@@ -55,10 +55,12 @@ export default function UploadPage() {
     reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        // A opção `cellDates: true` deve estar aqui para que a biblioteca interprete as datas do Excel corretamente.
         const workbook = XLSX.read(data, { type: 'array', cellDates: true });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const json: any[] = XLSX.utils.sheet_to_json(worksheet, { cellDates: true });
+        // A opção foi removida daqui para corrigir o erro de build do TypeScript.
+        const json: any[] = XLSX.utils.sheet_to_json(worksheet);
 
         // Normaliza os cabeçalhos para remover espaços e caracteres especiais
         const normalizedJson = json.map(row => {
