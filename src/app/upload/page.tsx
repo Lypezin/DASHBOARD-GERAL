@@ -58,10 +58,10 @@ export default function UploadPage() {
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        // Usar `raw: true` para obter os números brutos do Excel e evitar qualquer conversão automática de data/hora.
+        // Usar `raw: true` para obter os números brutos do Excel e evitar qualquer conversão automática.
         const json: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: true });
 
-        // Lógica de processamento robusta baseada em números brutos do Excel
+        // Lógica final à prova de inconsistências do Excel.
         const processedData = json.map(row => {
           const newRow: {[key: string]: any} = {};
           
@@ -73,28 +73,35 @@ export default function UploadPage() {
 
                 if (targetColumn === 'data_do_periodo') {
                   if (typeof value === 'number' && value > 1) {
-                    // Converte número de série do Excel para data. A fórmula (value - 25569) * 86400 * 1000
-                    // converte a data de "dias desde 1900" (Excel) para "ms desde 1970" (Unix).
                     const date = new Date((value - 25569) * 86400 * 1000);
                     newRow[targetColumn] = date.toISOString().split('T')[0];
                   } else if (value) {
                     newRow[targetColumn] = String(value).split('T')[0];
                   }
                 } else if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
-                  if (typeof value === 'number' && value >= 0 && value < 1) {
-                    // Converte fração de dia do Excel (ex: 0.5 = 12:00:00) para HH:MM:SS
-                    const totalSeconds = Math.round(value * 86400);
-                    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-                    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-                    const seconds = String(totalSeconds % 60).padStart(2, '0');
-                    newRow[targetColumn] = `${hours}:${minutes}:${seconds}`;
-                  } else if (typeof value === 'string' && value.includes(':')) {
-                    // Se já for uma string de tempo, usa direto.
-                    newRow[targetColumn] = value;
-                  } else if (value) {
-                     // Fallback para qualquer outro valor inesperado.
-                    newRow[targetColumn] = '00:00:00';
+                  let finalTime = '00:00:00'; // Valor padrão
+                  if (value !== null && value !== undefined) {
+                    if (typeof value === 'number' && value >= 0 && value < 1) {
+                      // Caso 1: O valor é um número (fração de dia).
+                      const totalSeconds = Math.round(value * 86400);
+                      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+                      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+                      const seconds = String(totalSeconds % 60).padStart(2, '0');
+                      finalTime = `${hours}:${minutes}:${seconds}`;
+                    } else if (typeof value === 'string') {
+                      if (value.includes('T')) {
+                        // Caso 2: O valor é um texto "dataTtempo".
+                        const timePart = value.split('T')[1];
+                        if (timePart) {
+                          finalTime = timePart.split('.')[0];
+                        }
+                      } else if (value.match(/^\d{1,2}:\d{2}(:\d{2})?$/)) {
+                        // Caso 3: O valor já é um texto "HH:MM:SS" ou "HH:MM".
+                        finalTime = value;
+                      }
+                    }
                   }
+                  newRow[targetColumn] = finalTime;
                 } else {
                   newRow[targetColumn] = value;
                 }
