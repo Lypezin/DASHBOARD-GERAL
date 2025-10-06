@@ -72,13 +72,37 @@ export default function UploadPage() {
           return newRow;
         });
 
-        setMessage(`Enviando ${normalizedJson.length} registros...`);
+        // Adicionado para corrigir o formato de data para colunas de intervalo
+        const intervalColumns = [
+          'duracao_do_periodo',
+          'tempo_disponivel_escalado',
+          'tempo_disponivel_absoluto'
+        ];
+
+        const processedData = normalizedJson.map(row => {
+          const newRow = { ...row };
+          for (const col of intervalColumns) {
+            if (newRow[col] && newRow[col] instanceof Date) {
+              const date = newRow[col];
+              // Formata para HH:MM:SS. Usamos UTC para evitar problemas de fuso horário
+              // com a data base do Excel (1899-12-30).
+              const hours = String(date.getUTCHours()).padStart(2, '0');
+              const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+              const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+              newRow[col] = `${hours}:${minutes}:${seconds}`;
+            }
+          }
+          return newRow;
+        });
+
+
+        setMessage(`Enviando ${processedData.length} registros...`);
 
         const BATCH_SIZE = 500; // O Supabase recomenda lotes de até 1000, 500 é seguro.
         let totalInserted = 0;
 
-        for (let i = 0; i < normalizedJson.length; i += BATCH_SIZE) {
-          const batch = normalizedJson.slice(i, i + BATCH_SIZE);
+        for (let i = 0; i < processedData.length; i += BATCH_SIZE) {
+          const batch = processedData.slice(i, i + BATCH_SIZE);
           
           const { error } = await supabase.from('dados_corridas').insert(batch);
 
@@ -87,7 +111,7 @@ export default function UploadPage() {
           }
           
           totalInserted += batch.length;
-          setProgress((totalInserted / normalizedJson.length) * 100);
+          setProgress((totalInserted / processedData.length) * 100);
         }
 
         setMessage(`Upload concluído com sucesso! ${totalInserted} registros inseridos.`);
