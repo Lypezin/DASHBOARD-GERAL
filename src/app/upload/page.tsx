@@ -58,7 +58,7 @@ export default function UploadPage() {
         const workbook = XLSX.read(data, { type: 'array', cellDates: true });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+        const json: any[] = XLSX.utils.sheet_to_json(worksheet, { cellDates: true });
 
         // Normaliza os cabeçalhos para remover espaços e caracteres especiais
         const normalizedJson = json.map(row => {
@@ -72,33 +72,45 @@ export default function UploadPage() {
           return newRow;
         });
 
-        // Adicionado para corrigir o formato de data para colunas de intervalo
-        const intervalColumns = [
-          'duracao_do_periodo',
-          'tempo_disponivel_escalado',
-          'tempo_disponivel_absoluto'
-        ];
-
+        // Lógica robusta para processar datas e intervalos
         const processedData = normalizedJson.map(row => {
           const newRow = { ...row };
+
+          // 1. Formata a coluna de data para 'YYYY-MM-DD'
+          if (newRow.data_do_periodo && newRow.data_do_periodo instanceof Date) {
+            newRow.data_do_periodo = newRow.data_do_periodo.toISOString().split('T')[0];
+          }
+
+          // 2. Formata as colunas de intervalo para 'HH:MM:SS'
+          const intervalColumns = [
+            'duracao_do_periodo',
+            'tempo_disponivel_escalado',
+            'tempo_disponivel_absoluto'
+          ];
+
           for (const col of intervalColumns) {
-            if (newRow[col] && newRow[col] instanceof Date) {
-              const date = newRow[col];
-              // Formata para HH:MM:SS. Usamos UTC para evitar problemas de fuso horário
-              // com a data base do Excel (1899-12-30).
+            const value = newRow[col];
+            if (value instanceof Date) {
+              const date = value;
               const hours = String(date.getUTCHours()).padStart(2, '0');
               const minutes = String(date.getUTCMinutes()).padStart(2, '0');
               const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+              newRow[col] = `${hours}:${minutes}:${seconds}`;
+            } else if (typeof value === 'number' && value > 0 && value < 1) {
+              // Converte a fração de dia do Excel (ex: 0.5 = 12:00:00) para HH:MM:SS
+              const totalSeconds = Math.round(value * 86400);
+              const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+              const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+              const seconds = String(totalSeconds % 60).padStart(2, '0');
               newRow[col] = `${hours}:${minutes}:${seconds}`;
             }
           }
           return newRow;
         });
 
-
         setMessage(`Enviando ${processedData.length} registros...`);
 
-        const BATCH_SIZE = 500; // O Supabase recomenda lotes de até 1000, 500 é seguro.
+        const BATCH_SIZE = 500;
         let totalInserted = 0;
 
         for (let i = 0; i < processedData.length; i += BATCH_SIZE) {
