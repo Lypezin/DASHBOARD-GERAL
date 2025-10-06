@@ -83,6 +83,13 @@ export default function UploadPage() {
           // Clone o objeto para não modificar o original
           const newRow = { ...row };
 
+          // Lista de colunas que devem ser formatadas como "HH:MM:SS"
+          const timeColumns = [
+            'duracao_do_periodo',
+            'tempo_disponivel_escalado',
+            'tempo_disponivel_absoluto'
+          ];
+            
           try {
             // Processar a data de período
             if (newRow.data_do_periodo !== undefined) {
@@ -95,13 +102,6 @@ export default function UploadPage() {
                 newRow.data_do_periodo = newRow.data_do_periodo.split('T')[0];
               }
             }
-
-            // Lista de colunas que devem ser formatadas como "HH:MM:SS"
-            const timeColumns = [
-              'duracao_do_periodo',
-              'tempo_disponivel_escalado',
-              'tempo_disponivel_absoluto'
-            ];
 
             // Força o formato correto para todas as colunas de tempo
             timeColumns.forEach(colName => {
