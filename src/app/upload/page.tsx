@@ -59,8 +59,10 @@ export default function UploadPage() {
         const workbook = XLSX.read(data, { type: 'array', cellDates: true });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        // A opção foi removida daqui para corrigir o erro de build do TypeScript.
+        // Obter JSON da planilha
         const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+        setMessage("Normalizando dados...");
 
         // Normaliza os cabeçalhos para remover espaços e caracteres especiais
         const normalizedJson = json.map(row => {
@@ -74,45 +76,95 @@ export default function UploadPage() {
           return newRow;
         });
 
-        // Lógica robusta para processar datas e intervalos
-        const processedData = normalizedJson.map(row => {
+        // SOLUÇÃO DEFINITIVA: Garantir que todas as colunas críticas sejam strings formatadas corretamente
+        setMessage("Processando formatos de dados...");
+
+        const processedData = normalizedJson.map((row, index) => {
+          // Clone o objeto para não modificar o original
           const newRow = { ...row };
 
-          // 1. Formata a coluna de data para 'YYYY-MM-DD'
-          if (newRow.data_do_periodo && newRow.data_do_periodo instanceof Date) {
-            newRow.data_do_periodo = newRow.data_do_periodo.toISOString().split('T')[0];
-          }
-
-          // 2. Formata as colunas de intervalo para 'HH:MM:SS'
-          const intervalColumns = [
-            'duracao_do_periodo',
-            'tempo_disponivel_escalado',
-            'tempo_disponivel_absoluto'
-          ];
-
-          for (const col of intervalColumns) {
-            const value = newRow[col];
-            if (value instanceof Date) {
-              const date = value;
-              const hours = String(date.getUTCHours()).padStart(2, '0');
-              const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-              const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-              newRow[col] = `${hours}:${minutes}:${seconds}`;
-            } else if (typeof value === 'number' && value > 0 && value < 1) {
-              // Converte a fração de dia do Excel (ex: 0.5 = 12:00:00) para HH:MM:SS
-              const totalSeconds = Math.round(value * 86400);
-              const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-              const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-              const seconds = String(totalSeconds % 60).padStart(2, '0');
-              newRow[col] = `${hours}:${minutes}:${seconds}`;
+          try {
+            // Processar a data de período
+            if (newRow.data_do_periodo !== undefined) {
+              // Se for uma data JS, converta para string ISO
+              if (newRow.data_do_periodo instanceof Date) {
+                newRow.data_do_periodo = newRow.data_do_periodo.toISOString().split('T')[0];
+              }
+              // Se for uma string de data completa, pegue apenas a parte da data
+              else if (typeof newRow.data_do_periodo === 'string' && newRow.data_do_periodo.includes('T')) {
+                newRow.data_do_periodo = newRow.data_do_periodo.split('T')[0];
+              }
             }
+
+            // Lista de colunas que devem ser formatadas como "HH:MM:SS"
+            const timeColumns = [
+              'duracao_do_periodo',
+              'tempo_disponivel_escalado',
+              'tempo_disponivel_absoluto'
+            ];
+
+            // Força o formato correto para todas as colunas de tempo
+            timeColumns.forEach(colName => {
+              // Pular se a coluna não existir ou for nula
+              if (newRow[colName] === undefined || newRow[colName] === null) return;
+
+              let timeValue = newRow[colName];
+              let hours = 0;
+              let minutes = 0;
+              let seconds = 0;
+
+              // CASO 1: É um objeto Date do JS
+              if (timeValue instanceof Date) {
+                hours = timeValue.getUTCHours();
+                minutes = timeValue.getUTCMinutes();
+                seconds = timeValue.getUTCSeconds();
+              }
+              // CASO 2: É um número (fração de um dia no Excel)
+              else if (typeof timeValue === 'number') {
+                // Converter da representação Excel (fração de 24 horas)
+                const totalSeconds = Math.round(timeValue * 86400); // 86400 segundos em um dia
+                hours = Math.floor(totalSeconds / 3600);
+                minutes = Math.floor((totalSeconds % 3600) / 60);
+                seconds = totalSeconds % 60;
+              }
+              // CASO 3: É uma string ISO de data (1899-12-30T07:05:28.000Z)
+              else if (typeof timeValue === 'string' && timeValue.includes('T')) {
+                const dateParts = timeValue.split('T');
+                if (dateParts.length > 1) {
+                  const timePart = dateParts[1].split('.')[0]; // Remover milissegundos se existirem
+                  const [h, m, s] = timePart.split(':').map(Number);
+                  hours = h || 0;
+                  minutes = m || 0;
+                  seconds = s || 0;
+                }
+              }
+              // CASO 4: Já é uma string de tempo (07:05:28)
+              else if (typeof timeValue === 'string' && timeValue.includes(':')) {
+                const [h, m, s] = timeValue.split(':').map(Number);
+                hours = h || 0;
+                minutes = m || 0;
+                seconds = s || 0;
+              }
+
+              // Formata para HH:MM:SS garantindo zeros à esquerda
+              newRow[colName] = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            });
+
+            return newRow;
+          } catch (err) {
+            console.error(`Erro ao processar a linha ${index}:`, err);
+            // Em caso de erro, tentar garantir pelo menos um formato básico
+            timeColumns.forEach(col => {
+              if (newRow[col]) newRow[col] = '00:00:00';
+            });
+            return newRow;
           }
-          return newRow;
         });
 
         setMessage(`Enviando ${processedData.length} registros...`);
 
-        const BATCH_SIZE = 500;
+        // Reduzindo o tamanho do lote para mais segurança
+        const BATCH_SIZE = 100;
         let totalInserted = 0;
 
         for (let i = 0; i < processedData.length; i += BATCH_SIZE) {
@@ -121,7 +173,14 @@ export default function UploadPage() {
           const { error } = await supabase.from('dados_corridas').insert(batch);
 
           if (error) {
-            throw new Error(`Erro no lote ${i / BATCH_SIZE + 1}: ${error.message}`);
+            console.error("Erro detalhado:", error);
+            
+            // Para debug: imprimir o primeiro registro do lote que falhou
+            if (batch.length > 0) {
+              console.error("Exemplo do primeiro registro que falhou:", JSON.stringify(batch[0]));
+            }
+            
+            throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
           }
           
           totalInserted += batch.length;
