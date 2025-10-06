@@ -55,17 +55,16 @@ export default function UploadPage() {
     reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        // Removido `cellDates: true`. Vamos ler os números brutos para evitar problemas de fuso horário.
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+        // Usar `raw: true` para obter os números brutos do Excel e evitar qualquer conversão automática de data/hora.
+        const json: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: true });
 
         // Lógica de processamento robusta baseada em números brutos do Excel
         const processedData = json.map(row => {
           const newRow: {[key: string]: any} = {};
           
-          // Itera sobre as colunas esperadas para normalizar e converter
           for (const excelHeader in row) {
              const normalizedKey = excelHeader.trim().toLowerCase().replace(/ /g, '_');
              if (COLUMN_MAP[normalizedKey]) {
@@ -74,23 +73,27 @@ export default function UploadPage() {
 
                 if (targetColumn === 'data_do_periodo') {
                   if (typeof value === 'number' && value > 1) {
-                    // Converte número de série do Excel para data (epoch de 1900 para 1970)
+                    // Converte número de série do Excel para data. A fórmula (value - 25569) * 86400 * 1000
+                    // converte a data de "dias desde 1900" (Excel) para "ms desde 1970" (Unix).
                     const date = new Date((value - 25569) * 86400 * 1000);
                     newRow[targetColumn] = date.toISOString().split('T')[0];
                   } else if (value) {
-                    newRow[targetColumn] = String(value); // Fallback
+                    newRow[targetColumn] = String(value).split('T')[0];
                   }
                 } else if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
                   if (typeof value === 'number' && value >= 0 && value < 1) {
                     // Converte fração de dia do Excel (ex: 0.5 = 12:00:00) para HH:MM:SS
-                    // Arredondamento para o segundo mais próximo para evitar imprecisões de ponto flutuante.
                     const totalSeconds = Math.round(value * 86400);
                     const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
                     const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
                     const seconds = String(totalSeconds % 60).padStart(2, '0');
                     newRow[targetColumn] = `${hours}:${minutes}:${seconds}`;
+                  } else if (typeof value === 'string' && value.includes(':')) {
+                    // Se já for uma string de tempo, usa direto.
+                    newRow[targetColumn] = value;
                   } else if (value) {
-                    newRow[targetColumn] = String(value); // Fallback
+                     // Fallback para qualquer outro valor inesperado.
+                    newRow[targetColumn] = '00:00:00';
                   }
                 } else {
                   newRow[targetColumn] = value;
