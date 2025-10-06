@@ -59,112 +59,41 @@ export default function UploadPage() {
         const workbook = XLSX.read(data, { type: 'array', cellDates: true });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        // Obter JSON da planilha
         const json: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-        setMessage("Normalizando dados...");
-
-        // Normaliza os cabeçalhos para remover espaços e caracteres especiais
-        const normalizedJson = json.map(row => {
+        // Lógica de processamento simplificada após mudança no DB para TEXT
+        const processedData = json.map(row => {
           const newRow: {[key: string]: any} = {};
+          // Normaliza os cabeçalhos e garante que todos os valores sejam do tipo certo
           for (const key in row) {
              const normalizedKey = key.trim().toLowerCase().replace(/ /g, '_');
              if (COLUMN_MAP[normalizedKey]) {
-                newRow[COLUMN_MAP[normalizedKey]] = row[key];
+                const value = row[key];
+                const targetColumn = COLUMN_MAP[normalizedKey];
+
+                if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
+                  // Se for um objeto Date, extrai a hora. Senão, converte para string.
+                  if (value instanceof Date) {
+                    const hours = String(value.getUTCHours()).padStart(2, '0');
+                    const minutes = String(value.getUTCMinutes()).padStart(2, '0');
+                    const seconds = String(value.getUTCSeconds()).padStart(2, '0');
+                    newRow[targetColumn] = `${hours}:${minutes}:${seconds}`;
+                  } else if (value !== null && value !== undefined) {
+                    newRow[targetColumn] = String(value);
+                  }
+                } else if (targetColumn === 'data_do_periodo' && value instanceof Date) {
+                  newRow[targetColumn] = value.toISOString().split('T')[0];
+                } else {
+                  newRow[targetColumn] = value;
+                }
              }
           }
           return newRow;
         });
 
-        // SOLUÇÃO DEFINITIVA: Garantir que todas as colunas críticas sejam strings formatadas corretamente
-        setMessage("Processando formatos de dados...");
-
-        const processedData = normalizedJson.map((row, index) => {
-          // Clone o objeto para não modificar o original
-          const newRow = { ...row };
-
-          // Lista de colunas que devem ser formatadas como "HH:MM:SS"
-          const timeColumns = [
-            'duracao_do_periodo',
-            'tempo_disponivel_escalado',
-            'tempo_disponivel_absoluto'
-          ];
-            
-          try {
-            // Processar a data de período
-            if (newRow.data_do_periodo !== undefined) {
-              // Se for uma data JS, converta para string ISO
-              if (newRow.data_do_periodo instanceof Date) {
-                newRow.data_do_periodo = newRow.data_do_periodo.toISOString().split('T')[0];
-              }
-              // Se for uma string de data completa, pegue apenas a parte da data
-              else if (typeof newRow.data_do_periodo === 'string' && newRow.data_do_periodo.includes('T')) {
-                newRow.data_do_periodo = newRow.data_do_periodo.split('T')[0];
-              }
-            }
-
-            // Força o formato correto para todas as colunas de tempo
-            timeColumns.forEach(colName => {
-              // Pular se a coluna não existir ou for nula
-              if (newRow[colName] === undefined || newRow[colName] === null) return;
-
-              let timeValue = newRow[colName];
-              let hours = 0;
-              let minutes = 0;
-              let seconds = 0;
-
-              // CASO 1: É um objeto Date do JS
-              if (timeValue instanceof Date) {
-                hours = timeValue.getUTCHours();
-                minutes = timeValue.getUTCMinutes();
-                seconds = timeValue.getUTCSeconds();
-              }
-              // CASO 2: É um número (fração de um dia no Excel)
-              else if (typeof timeValue === 'number') {
-                // Converter da representação Excel (fração de 24 horas)
-                const totalSeconds = Math.round(timeValue * 86400); // 86400 segundos em um dia
-                hours = Math.floor(totalSeconds / 3600);
-                minutes = Math.floor((totalSeconds % 3600) / 60);
-                seconds = totalSeconds % 60;
-              }
-              // CASO 3: É uma string ISO de data (1899-12-30T07:05:28.000Z)
-              else if (typeof timeValue === 'string' && timeValue.includes('T')) {
-                const dateParts = timeValue.split('T');
-                if (dateParts.length > 1) {
-                  const timePart = dateParts[1].split('.')[0]; // Remover milissegundos se existirem
-                  const [h, m, s] = timePart.split(':').map(Number);
-                  hours = h || 0;
-                  minutes = m || 0;
-                  seconds = s || 0;
-                }
-              }
-              // CASO 4: Já é uma string de tempo (07:05:28)
-              else if (typeof timeValue === 'string' && timeValue.includes(':')) {
-                const [h, m, s] = timeValue.split(':').map(Number);
-                hours = h || 0;
-                minutes = m || 0;
-                seconds = s || 0;
-              }
-
-              // Formata para HH:MM:SS garantindo zeros à esquerda
-              newRow[colName] = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            });
-
-            return newRow;
-          } catch (err) {
-            console.error(`Erro ao processar a linha ${index}:`, err);
-            // Em caso de erro, tentar garantir pelo menos um formato básico
-            timeColumns.forEach(col => {
-              if (newRow[col]) newRow[col] = '00:00:00';
-            });
-            return newRow;
-          }
-        });
-
         setMessage(`Enviando ${processedData.length} registros...`);
 
-        // Reduzindo o tamanho do lote para mais segurança
-        const BATCH_SIZE = 100;
+        const BATCH_SIZE = 100; // Lote menor para mais segurança
         let totalInserted = 0;
 
         for (let i = 0; i < processedData.length; i += BATCH_SIZE) {
