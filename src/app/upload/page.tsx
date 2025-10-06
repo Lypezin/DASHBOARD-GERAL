@@ -61,12 +61,22 @@ export default function UploadPage() {
         // Usar `raw: true` para obter os números brutos do Excel e evitar qualquer conversão automática.
         const json: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: true });
 
+        // Debug: vamos logar os primeiros 3 registros para entender exatamente o que vem do Excel
+        console.log('DEBUG - Primeiros 3 registros brutos do Excel:', JSON.stringify(json.slice(0, 3), null, 2));
+
         // Lógica final à prova de inconsistências do Excel.
-        const processedData = json.map(row => {
+        const processedData = json.map((row, index) => {
           const newRow: {[key: string]: any} = {};
-          
+
           for (const excelHeader in row) {
-             const normalizedKey = excelHeader.trim().toLowerCase().replace(/ /g, '_');
+             // Normalização melhorada do cabeçalho
+             const normalizedKey = excelHeader
+               .trim()
+               .toLowerCase()
+               .normalize('NFD')
+               .replace(/[\u0300-\u036f]/g, '') // remove acentos
+               .replace(/\s+/g, '_');
+
              if (COLUMN_MAP[normalizedKey]) {
                 const targetColumn = COLUMN_MAP[normalizedKey];
                 const value = row[excelHeader];
@@ -80,6 +90,12 @@ export default function UploadPage() {
                   }
                 } else if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
                   let finalTime = '00:00:00'; // Valor padrão
+
+                  // Debug: log do valor bruto para esta célula específica
+                  if (index < 3 && ['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
+                    console.log(`DEBUG - Coluna ${targetColumn}, valor bruto:`, value, `tipo: ${typeof value}`);
+                  }
+
                   if (value !== null && value !== undefined) {
                     if (typeof value === 'number' && value >= 0 && value < 1) {
                       // Caso 1: O valor é um número (fração de dia).
@@ -89,18 +105,32 @@ export default function UploadPage() {
                       const seconds = String(totalSeconds % 60).padStart(2, '0');
                       finalTime = `${hours}:${minutes}:${seconds}`;
                     } else if (typeof value === 'string') {
-                      if (value.includes('T')) {
-                        // Caso 2: O valor é um texto "dataTtempo".
+                      if (value.includes('T') && value.includes('1899-12-30')) {
+                        // Caso específico: string ISO "1899-12-30T..."
+                        // Este é o formato problemático que vemos no banco
                         const timePart = value.split('T')[1];
                         if (timePart) {
-                          finalTime = timePart.split('.')[0];
+                          finalTime = timePart.split('.')[0]; // Remove milissegundos
+                          console.log(`DEBUG - Convertido "${value}" para "${finalTime}"`);
                         }
                       } else if (value.match(/^\d{1,2}:\d{2}(:\d{2})?$/)) {
                         // Caso 3: O valor já é um texto "HH:MM:SS" ou "HH:MM".
                         finalTime = value;
+                      } else if (value.includes('T')) {
+                        // Caso genérico para qualquer string com 'T'
+                        const timePart = value.split('T')[1];
+                        if (timePart) {
+                          finalTime = timePart.split('.')[0];
+                        }
                       }
                     }
                   }
+
+                  // Debug: log do resultado final
+                  if (index < 3 && ['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
+                    console.log(`DEBUG - Resultado final para ${targetColumn}: "${finalTime}"`);
+                  }
+
                   newRow[targetColumn] = finalTime;
                 } else {
                   newRow[targetColumn] = value;
