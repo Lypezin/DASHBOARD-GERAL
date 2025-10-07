@@ -39,11 +39,36 @@ interface AderenciaTurno {
   aderencia_percentual: number;
 }
 
+interface AderenciaSubPraca {
+  sub_praca: string;
+  horas_a_entregar: string;
+  horas_entregues: string;
+  aderencia_percentual: number;
+}
+
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
+interface Filters {
+  ano: number | null;
+  semana: number | null;
+  praca: string | null;
+  subPraca: string | null;
+}
+
 export default function DashboardPage() {
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
   const [aderenciaTurno, setAderenciaTurno] = useState<AderenciaTurno[]>([]);
+  const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>([]);
+  const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
+  const [semanasDisponiveis, setSemanasDisponiveis] = useState<number[]>([]);
+  const [pracas, setPracas] = useState<FilterOption[]>([]);
+  const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
+  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,10 +100,14 @@ export default function DashboardPage() {
         setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
       }
 
-      const [semanal, porDia, porTurno] = await Promise.all([
-        supabase.rpc('calcular_aderencia_semanal'),
-        supabase.rpc('calcular_aderencia_por_dia'),
-        supabase.rpc('calcular_aderencia_por_turno'),
+      const params = buildFilterPayload(filters);
+
+      const [semanal, porDia, porTurno, porSubPraca, filtrosDisponiveis] = await Promise.all([
+        supabase.rpc('calcular_aderencia_semanal', params),
+        supabase.rpc('calcular_aderencia_por_dia', params),
+        supabase.rpc('calcular_aderencia_por_turno', params),
+        supabase.rpc('calcular_aderencia_por_sub_praca', params),
+        supabase.rpc('listar_dimensoes_dashboard'),
       ]);
 
       if (semanal.error) {
@@ -102,11 +131,26 @@ export default function DashboardPage() {
         setAderenciaTurno((porTurno.data as AderenciaTurno[]) || []);
       }
 
+      if (porSubPraca.error) {
+        console.error('Erro ao buscar aderência por sub praça:', porSubPraca.error);
+        setAderenciaSubPraca([]);
+      } else {
+        setAderenciaSubPraca((porSubPraca.data as AderenciaSubPraca[]) || []);
+      }
+
+      if (!filtrosDisponiveis.error && filtrosDisponiveis.data) {
+        const { anos, semanas, pracas: pracasData, sub_pracas: subPracasData } = filtrosDisponiveis.data as any;
+        setAnosDisponiveis(anos || []);
+        setSemanasDisponiveis(semanas || []);
+        setPracas((pracasData || []).map((p: string) => ({ value: p, label: p })));
+        setSubPracas((subPracasData || []).map((sp: string) => ({ value: sp, label: sp })));
+      }
+
       setLoading(false);
     }
 
     fetchData();
-  }, []);
+  }, [filters]);
 
   return (
     <div className="container mx-auto space-y-8">
@@ -120,12 +164,20 @@ export default function DashboardPage() {
 
       {totals && !loading && !error && (
         <>
+          <FiltroBar
+            filters={filters}
+            setFilters={setFilters}
+            anos={anosDisponiveis}
+            semanas={semanasDisponiveis}
+            pracas={pracas}
+            subPracas={subPracas}
+          />
           <ResumoCards totals={totals} aderenciaAtual={aderenciaGeral?.aderencia_percentual} />
-
           <AderenciaOverview
             aderenciaSemanal={aderenciaSemanal}
             aderenciaDia={aderenciaDia}
             aderenciaTurno={aderenciaTurno}
+            aderenciaSubPraca={aderenciaSubPraca}
           />
         </>
       )}
@@ -168,7 +220,7 @@ interface AderenciaOverviewProps {
   aderenciaTurno: AderenciaTurno[];
 }
 
-function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno }: AderenciaOverviewProps) {
+function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca }: AderenciaOverviewProps) {
   const semanaAtual = aderenciaSemanal[0];
 
   return (
@@ -270,6 +322,25 @@ function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno }: A
           </div>
         )}
       </section>
+
+      <section className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-blue-100 dark:border-blue-900/40 p-6">
+        <header className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Aderência por sub praça</h3>
+            <p className="text-sm text-gray-500">Comportamento por hubs locais</p>
+          </div>
+        </header>
+
+        {aderenciaSubPraca.length === 0 ? (
+          <EmptyState message="Sem dados de aderência por sub praça." />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {aderenciaSubPraca.map((sub) => (
+              <CardSubPraca key={sub.sub_praca} subPraca={sub} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
@@ -309,6 +380,21 @@ function CardTurno({ turno }: { turno: AderenciaTurno }) {
           style={{ width: `${Math.min(turno.aderencia_percentual, 100)}%` }}
         />
       </div>
+    </div>
+  );
+}
+
+function CardSubPraca({ subPraca }: { subPraca: AderenciaSubPraca }) {
+  return (
+    <div className="border border-blue-100 dark:border-blue-900/40 rounded-lg p-4 shadow-sm flex flex-col gap-3">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">{subPraca.sub_praca}</p>
+          <p className="text-xs text-gray-500">{subPraca.horas_a_entregar} planejadas • {subPraca.horas_entregues} entregues</p>
+        </div>
+        <Badge value={subPraca.aderencia_percentual} />
+      </div>
+      <Gauge percentual={subPraca.aderencia_percentual} thickness="thin" />
     </div>
   );
 }
