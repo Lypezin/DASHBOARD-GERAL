@@ -1,5 +1,4 @@
--- Funções RPC para Dashboard (evita limite de 1000 linhas)
--- Execute no SQL Editor do Supabase
+-- Funções RPC para a dashboard (execute cada seção no SQL Editor do Supabase)
 
 -- 1. Totais de corridas
 DROP FUNCTION IF EXISTS public.dashboard_totals();
@@ -24,7 +23,41 @@ AS $$
   FROM public.dados_corridas;
 $$;
 
--- 2. Cálculo de Aderência (semanal)
+GRANT EXECUTE ON FUNCTION public.dashboard_totals() TO anon, authenticated, service_role;
+
+-- 2. Função auxiliar: converte texto HH:MM:SS para segundos
+DROP FUNCTION IF EXISTS public.hhmmss_to_seconds(text);
+
+CREATE OR REPLACE FUNCTION public.hhmmss_to_seconds(value text)
+RETURNS numeric
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+  parts text[];
+BEGIN
+  IF value IS NULL OR trim(value) = '' THEN
+    RETURN 0;
+  END IF;
+
+  BEGIN
+    RETURN EXTRACT(EPOCH FROM value::interval);
+  EXCEPTION WHEN others THEN
+    parts := regexp_split_to_array(value, ':');
+    IF array_length(parts, 1) = 3 THEN
+      RETURN COALESCE(parts[1]::numeric, 0) * 3600
+           + COALESCE(parts[2]::numeric, 0) * 60
+           + COALESCE(parts[3]::numeric, 0);
+    ELSE
+      RETURN 0;
+    END IF;
+  END;
+END;
+$$;
+
+-- 3. Aderência semanal (corrigido)
+DROP FUNCTION IF EXISTS public.calcular_aderencia_semanal();
+
 CREATE OR REPLACE FUNCTION public.calcular_aderencia_semanal()
 RETURNS TABLE (
   semana text,
@@ -37,61 +70,244 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-WITH dados_unicos AS (
-  -- Remove duplicatas baseado em data, período e escala mínima (como no Excel)
-  SELECT DISTINCT
+WITH base AS (
+  SELECT
+    date_part('isoyear', data_do_periodo)::int AS ano_iso,
+    date_part('week', data_do_periodo)::int AS semana_numero,
     data_do_periodo,
     periodo,
     numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_do_periodo
+    hhmmss_to_seconds(duracao_do_periodo) AS duracao_segundos,
+    hhmmss_to_seconds(tempo_disponivel_absoluto) AS tempo_disponivel_segundos
   FROM public.dados_corridas
   WHERE data_do_periodo IS NOT NULL
-    AND periodo IS NOT NULL
-    AND numero_minimo_de_entregadores_regulares_na_escala IS NOT NULL
-    AND duracao_do_periodo IS NOT NULL
-    AND duracao_do_periodo != '00:00:00'
 ),
-horas_por_semana AS (
+unique_turnos AS (
+  SELECT DISTINCT ON (
+      ano_iso,
+      semana_numero,
+      data_do_periodo,
+      periodo,
+      numero_minimo_de_entregadores_regulares_na_escala
+    )
+    ano_iso,
+    semana_numero,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    duracao_segundos
+  FROM base
+  WHERE duracao_segundos > 0
+  ORDER BY
+    ano_iso,
+    semana_numero,
+    data_do_periodo,
+    periodo,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    duracao_segundos DESC
+),
+horas_planejadas AS (
   SELECT
-    -- Extrai a semana do ano (formato: "Semana XX")
-    'Semana ' || TO_CHAR(du.data_do_periodo, 'WW') AS semana,
-    -- Calcula horas a entregar: escala * duração (em segundos)
-    SUM(
-      du.numero_minimo_de_entregadores_regulares_na_escala *
-      (EXTRACT(EPOCH FROM (du.duracao_do_periodo::interval)) / 3600.0)
-    ) AS horas_a_entregar_segundos,
-    -- Soma das horas entregues (tempo_disponivel_absoluto convertido para segundos)
-    COALESCE(
-      SUM(EXTRACT(EPOCH FROM (dc.tempo_disponivel_absoluto::interval))),
-      0
-    ) AS horas_entregues_segundos
-  FROM dados_unicos du
-  LEFT JOIN public.dados_corridas dc ON
-    du.data_do_periodo = dc.data_do_periodo AND
-    du.periodo = dc.periodo AND
-    du.numero_minimo_de_entregadores_regulares_na_escala = dc.numero_minimo_de_entregadores_regulares_na_escala
-  GROUP BY TO_CHAR(du.data_do_periodo, 'WW')
-  ORDER BY semana DESC
+    ano_iso,
+    semana_numero,
+    SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
+  FROM unique_turnos
+  GROUP BY ano_iso, semana_numero
+),
+horas_realizadas AS (
+  SELECT
+    ano_iso,
+    semana_numero,
+    SUM(tempo_disponivel_segundos) AS segundos_realizados
+  FROM base
+  WHERE tempo_disponivel_segundos > 0
+  GROUP BY ano_iso, semana_numero
+),
+semanas AS (
+  SELECT DISTINCT ano_iso, semana_numero FROM base
 )
 SELECT
-  semana,
-  -- Converte segundos para HH:MM:SS
+  'Semana ' || LPAD(semana_numero::text, 2, '0') AS semana,
   TO_CHAR(
-    INTERVAL '1 second' * FLOOR(horas_a_entregar_segundos),
+    INTERVAL '1 second' * COALESCE(segundos_planejados, 0),
     'HH24:MI:SS'
   ) AS horas_a_entregar,
   TO_CHAR(
-    INTERVAL '1 second' * FLOOR(horas_entregues_segundos),
+    INTERVAL '1 second' * COALESCE(segundos_realizados, 0),
     'HH24:MI:SS'
   ) AS horas_entregues,
-  -- Calcula percentual de aderência
   CASE
-    WHEN horas_a_entregar_segundos > 0 THEN
-      ROUND((horas_entregues_segundos / horas_a_entregar_segundos) * 100, 2)
+    WHEN COALESCE(segundos_planejados, 0) > 0 THEN
+      ROUND((COALESCE(segundos_realizados, 0) / segundos_planejados) * 100, 2)
     ELSE 0
   END AS aderencia_percentual
-FROM horas_por_semana;
+FROM semanas s
+LEFT JOIN horas_planejadas hp USING (ano_iso, semana_numero)
+LEFT JOIN horas_realizadas hr USING (ano_iso, semana_numero)
+ORDER BY ano_iso DESC, semana_numero DESC;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.dashboard_totals() TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.calcular_aderencia_semanal() TO anon, authenticated, service_role;
+
+-- 4. Aderência por dia (data)
+DROP FUNCTION IF EXISTS public.calcular_aderencia_por_dia();
+
+CREATE OR REPLACE FUNCTION public.calcular_aderencia_por_dia()
+RETURNS TABLE (
+  data text,
+  dia_da_semana text,
+  horas_a_entregar text,
+  horas_entregues text,
+  aderencia_percentual numeric
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+WITH base AS (
+  SELECT
+    data_do_periodo::date AS data_ref,
+    periodo,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    hhmmss_to_seconds(duracao_do_periodo) AS duracao_segundos,
+    hhmmss_to_seconds(tempo_disponivel_absoluto) AS tempo_disponivel_segundos
+  FROM public.dados_corridas
+  WHERE data_do_periodo IS NOT NULL
+),
+unique_turnos AS (
+  SELECT DISTINCT ON (
+      data_ref,
+      periodo,
+      numero_minimo_de_entregadores_regulares_na_escala
+    )
+    data_ref,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    duracao_segundos
+  FROM base
+  WHERE duracao_segundos > 0
+  ORDER BY
+    data_ref,
+    periodo,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    duracao_segundos DESC
+),
+horas_planejadas AS (
+  SELECT
+    data_ref,
+    SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
+  FROM unique_turnos
+  GROUP BY data_ref
+),
+horas_realizadas AS (
+  SELECT
+    data_ref,
+    SUM(tempo_disponivel_segundos) AS segundos_realizados
+  FROM base
+  WHERE tempo_disponivel_segundos > 0
+  GROUP BY data_ref
+)
+SELECT
+  TO_CHAR(s.data_ref, 'YYYY-MM-DD') AS data,
+  INITCAP(TO_CHAR(s.data_ref, 'TMDay')) AS dia_da_semana,
+  TO_CHAR(
+    INTERVAL '1 second' * COALESCE(hp.segundos_planejados, 0),
+    'HH24:MI:SS'
+  ) AS horas_a_entregar,
+  TO_CHAR(
+    INTERVAL '1 second' * COALESCE(hr.segundos_realizados, 0),
+    'HH24:MI:SS'
+  ) AS horas_entregues,
+  CASE
+    WHEN COALESCE(hp.segundos_planejados, 0) > 0 THEN
+      ROUND((COALESCE(hr.segundos_realizados, 0) / hp.segundos_planejados) * 100, 2)
+    ELSE 0
+  END AS aderencia_percentual
+FROM (
+  SELECT DISTINCT data_ref FROM base
+) s
+LEFT JOIN horas_planejadas hp USING (data_ref)
+LEFT JOIN horas_realizadas hr USING (data_ref)
+ORDER BY s.data_ref DESC;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_dia() TO anon, authenticated, service_role;
+
+-- 5. Aderência por turno (período)
+DROP FUNCTION IF EXISTS public.calcular_aderencia_por_turno();
+
+CREATE OR REPLACE FUNCTION public.calcular_aderencia_por_turno()
+RETURNS TABLE (
+  periodo text,
+  horas_a_entregar text,
+  horas_entregues text,
+  aderencia_percentual numeric
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+WITH base AS (
+  SELECT
+    data_do_periodo::date AS data_ref,
+    periodo,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    hhmmss_to_seconds(duracao_do_periodo) AS duracao_segundos,
+    hhmmss_to_seconds(tempo_disponivel_absoluto) AS tempo_disponivel_segundos
+  FROM public.dados_corridas
+  WHERE data_do_periodo IS NOT NULL
+    AND periodo IS NOT NULL
+),
+unique_turnos AS (
+  SELECT DISTINCT ON (
+      data_ref,
+      periodo,
+      numero_minimo_de_entregadores_regulares_na_escala
+    )
+    periodo,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    duracao_segundos
+  FROM base
+  WHERE duracao_segundos > 0
+  ORDER BY
+    data_ref,
+    periodo,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    duracao_segundos DESC
+),
+horas_planejadas AS (
+  SELECT
+    periodo,
+    SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
+  FROM unique_turnos
+  GROUP BY periodo
+),
+horas_realizadas AS (
+  SELECT
+    periodo,
+    SUM(tempo_disponivel_segundos) AS segundos_realizados
+  FROM base
+  WHERE tempo_disponivel_segundos > 0
+  GROUP BY periodo
+)
+SELECT
+  hp.periodo,
+  TO_CHAR(
+    INTERVAL '1 second' * COALESCE(hp.segundos_planejados, 0),
+    'HH24:MI:SS'
+  ) AS horas_a_entregar,
+  TO_CHAR(
+    INTERVAL '1 second' * COALESCE(hr.segundos_realizados, 0),
+    'HH24:MI:SS'
+  ) AS horas_entregues,
+  CASE
+    WHEN COALESCE(hp.segundos_planejados, 0) > 0 THEN
+      ROUND((COALESCE(hr.segundos_realizados, 0) / hp.segundos_planejados) * 100, 2)
+    ELSE 0
+  END AS aderencia_percentual
+FROM horas_planejadas hp
+LEFT JOIN horas_realizadas hr USING (periodo)
+ORDER BY hp.periodo;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_turno() TO anon, authenticated, service_role;
+
