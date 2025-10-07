@@ -79,8 +79,20 @@ export default function UploadPage() {
                 const targetColumn = COLUMN_MAP[normalizedKey];
                 const value = row[excelHeader];
 
+                // Tratamento específico para data_do_periodo (número de série do Excel)
+                if (targetColumn === 'data_do_periodo') {
+                  if (typeof value === 'number' && value > 40000) { // Números de série do Excel são > 40000
+                    // Converte número de série do Excel para data
+                    // Fórmula correta: (número_série - 25569) * 86400 * 1000
+                    const date = new Date((value - 25569) * 86400 * 1000);
+                    newRow[targetColumn] = date.toISOString().split('T')[0];
+                    console.log(`   🔄 data_do_periodo: ${value} → ${newRow[targetColumn]}`);
+                  } else {
+                    newRow[targetColumn] = value;
+                  }
+                }
                 // Para colunas de tempo, aplicar conversão correta baseada no formato
-                if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
+                else if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
                   if (value === null || value === undefined) {
                     newRow[targetColumn] = null;
                   } else if (typeof value === 'number') {
