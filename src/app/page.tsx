@@ -218,6 +218,7 @@ interface AderenciaOverviewProps {
   aderenciaSemanal: AderenciaSemanal[];
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
+  aderenciaSubPraca: AderenciaSubPraca[];
 }
 
 function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca }: AderenciaOverviewProps) {
