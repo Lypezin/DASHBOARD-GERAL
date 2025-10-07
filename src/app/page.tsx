@@ -191,41 +191,40 @@ export default function DashboardPage() {
   }, [filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-slate-900 dark:via-blue-900 dark:to-slate-800">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className="h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900 overflow-hidden">
+      <div className="h-full flex flex-col max-w-full p-3">
         {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="flex flex-col items-center space-y-6">
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center space-y-4">
               <div className="relative">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200"></div>
-                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 absolute top-0 left-0"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 absolute top-0 left-0"></div>
               </div>
-              <div className="text-center">
-                <p className="text-gray-700 dark:text-gray-300 font-semibold text-lg">Carregando dados...</p>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Processando informações do dashboard</p>
-              </div>
+              <p className="text-blue-700 dark:text-blue-300 font-medium">Carregando...</p>
             </div>
           </div>
         )}
         
         {error && (
-          <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-8 text-center shadow-lg">
-            <div className="text-6xl mb-4">⚠️</div>
-            <div className="text-red-700 text-xl font-bold mb-2">Erro ao carregar dados</div>
-            <p className="text-red-600 text-lg">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Tentar novamente
-            </button>
+          <div className="flex items-center justify-center h-full">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center shadow-lg max-w-md">
+              <div className="text-4xl mb-3">⚠️</div>
+              <div className="text-blue-700 text-lg font-bold mb-2">Erro ao carregar dados</div>
+              <p className="text-blue-600 mb-4">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Tentar novamente
+              </button>
+            </div>
           </div>
         )}
 
         {totals && !loading && !error && (
-          <>
-            {/* Header com Filtros */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-6 mb-6">
+          <div className="flex flex-col h-full overflow-hidden">
+            {/* Header com Filtros - Compacto */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 p-4 mb-3 flex-shrink-0">
               <FiltroBar
                 filters={filters}
                 setFilters={setFilters}
@@ -237,12 +236,12 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 mb-6">
+            {/* Navigation Tabs - Compacto */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 mb-3 flex-shrink-0">
               <div className="flex border-b border-blue-100 dark:border-blue-700">
                 <button
                   onClick={() => setActiveTab('dashboard')}
-                  className={`px-6 py-4 font-semibold text-sm transition-all duration-200 border-b-2 ${
+                  className={`px-4 py-2 font-medium text-sm transition-all duration-200 border-b-2 ${
                     activeTab === 'dashboard'
                       ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400'
                       : 'border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300'
@@ -252,7 +251,7 @@ export default function DashboardPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('analise')}
-                  className={`px-6 py-4 font-semibold text-sm transition-all duration-200 border-b-2 ${
+                  className={`px-4 py-2 font-medium text-sm transition-all duration-200 border-b-2 ${
                     activeTab === 'analise'
                       ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400'
                       : 'border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300'
@@ -263,23 +262,25 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Tab Content */}
-            {activeTab === 'dashboard' && (
-              <DashboardTab
-                aderenciaGeral={aderenciaGeral}
-                aderenciaDia={aderenciaDia}
-                aderenciaTurno={aderenciaTurno}
-                aderenciaSubPraca={aderenciaSubPraca}
-                aderenciaOrigem={aderenciaOrigem}
-                viewMode={viewMode}
-                setViewMode={setViewMode}
-              />
-            )}
+            {/* Tab Content - Flex que preenche o espaço restante */}
+            <div className="flex-1 overflow-hidden">
+              {activeTab === 'dashboard' && (
+                <DashboardTab
+                  aderenciaGeral={aderenciaGeral}
+                  aderenciaDia={aderenciaDia}
+                  aderenciaTurno={aderenciaTurno}
+                  aderenciaSubPraca={aderenciaSubPraca}
+                  aderenciaOrigem={aderenciaOrigem}
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
+                />
+              )}
 
-            {activeTab === 'analise' && (
-              <AnaliseTab totals={totals} />
-            )}
-          </>
+              {activeTab === 'analise' && (
+                <AnaliseTab totals={totals} />
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -299,88 +300,89 @@ interface DashboardTabProps {
 
 function DashboardTab({ aderenciaGeral, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, viewMode, setViewMode }: DashboardTabProps) {
   return (
-    <div className="space-y-6">
-      {/* Aderência Geral Card */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-              <span className="text-white text-2xl">🎯</span>
+    <div className="h-full grid grid-rows-3 gap-3 overflow-hidden">
+      {/* Row 1: Aderência Geral + Aderência Diária */}
+      <div className="grid grid-cols-5 gap-3">
+        {/* Aderência Geral - 2 colunas */}
+        <div className="col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 p-4">
+          <div className="flex items-center space-x-2 mb-3">
+            <div className="p-2 bg-blue-500 rounded-lg shadow-sm">
+              <span className="text-white text-lg">🎯</span>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Aderência Geral</h2>
-              <p className="text-gray-600 dark:text-gray-400">Desempenho consolidado</p>
+              <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">Aderência Geral</h2>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Desempenho consolidado</p>
             </div>
           </div>
+
+          {aderenciaGeral ? (
+            <div className="grid grid-cols-3 gap-3 h-24">
+              <div className="flex items-center justify-center">
+                <Gauge percentual={aderenciaGeral.aderencia_percentual} size="medium" />
+              </div>
+              <div className="space-y-2">
+                <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-2 text-center">
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400">Planejadas</p>
+                  <p className="text-sm font-bold text-blue-800 dark:text-blue-300">{aderenciaGeral.horas_a_entregar}</p>
+                </div>
+                <div className="bg-blue-100 dark:bg-blue-800/30 rounded-lg p-2 text-center">
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400">Entregues</p>
+                  <p className="text-sm font-bold text-blue-800 dark:text-blue-300">{aderenciaGeral.horas_entregues}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-center">
+                <Badge value={aderenciaGeral.aderencia_percentual} />
+              </div>
+            </div>
+          ) : (
+            <EmptyState message="Sem dados gerais." />
+          )}
         </div>
 
-        {aderenciaGeral ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <Gauge percentual={aderenciaGeral.aderencia_percentual} size="large" />
-            </div>
-            <div className="space-y-4">
-              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4">
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Horas Planejadas</p>
-                <p className="text-2xl font-bold text-blue-800 dark:text-blue-300">{aderenciaGeral.horas_a_entregar}</p>
+        {/* Aderência Diária - 3 colunas */}
+        <div className="col-span-3 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-blue-600 rounded-lg shadow-sm">
+                <span className="text-white text-lg">📅</span>
               </div>
-              <div className="bg-green-50 dark:bg-green-900/30 rounded-xl p-4">
-                <p className="text-sm font-medium text-green-600 dark:text-green-400 uppercase tracking-wide">Horas Entregues</p>
-                <p className="text-2xl font-bold text-green-800 dark:text-green-300">{aderenciaGeral.horas_entregues}</p>
+              <div>
+                <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">Aderência por Dia</h2>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Distribuição semanal</p>
               </div>
-            </div>
-            <div className="flex items-center justify-center">
-              <Badge value={aderenciaGeral.aderencia_percentual} size="large" />
             </div>
           </div>
-        ) : (
-          <EmptyState message="Sem dados de aderência geral." />
-        )}
-      </div>
 
-      {/* Aderência Diária */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
-              <span className="text-white text-2xl">📅</span>
+          {aderenciaDia.length === 0 ? (
+            <EmptyState message="Sem dados por dia." />
+          ) : (
+            <div className="grid grid-cols-7 gap-2 h-24">
+              {aderenciaDia.map((dia) => (
+                <CardDia key={dia.dia_iso} dia={dia} />
+              ))}
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Aderência por Dia da Semana</h2>
-              <p className="text-gray-600 dark:text-gray-400">Distribuição semanal do desempenho</p>
-            </div>
-          </div>
+          )}
         </div>
-
-        {aderenciaDia.length === 0 ? (
-          <EmptyState message="Sem dados de aderência por dia." />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            {aderenciaDia.map((dia) => (
-              <CardDia key={dia.dia_iso} dia={dia} />
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Filtros de Visualização */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Visualizações Adicionais</h3>
+      {/* Row 2: Filtros de Visualização */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">Visualizações</h3>
           <div className="flex space-x-2">
             {[
               { key: 'geral', label: 'Geral', icon: '📊' },
-              { key: 'turno', label: 'Por Turno', icon: '⏰' },
-              { key: 'sub_praca', label: 'Por Sub Praça', icon: '🏢' },
-              { key: 'origem', label: 'Por Origem', icon: '🌐' }
+              { key: 'turno', label: 'Turno', icon: '⏰' },
+              { key: 'sub_praca', label: 'Sub Praça', icon: '🏢' },
+              { key: 'origem', label: 'Origem', icon: '🌐' }
             ].map((mode) => (
               <button
                 key={mode.key}
                 onClick={() => setViewMode(mode.key as any)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
                   viewMode === mode.key
-                    ? 'bg-blue-500 text-white shadow-lg'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100'
                 }`}
               >
                 {mode.icon} {mode.label}
@@ -389,48 +391,61 @@ function DashboardTab({ aderenciaGeral, aderenciaDia, aderenciaTurno, aderenciaS
           </div>
         </div>
 
-        {viewMode === 'turno' && (
-          <div className="space-y-4">
-            {aderenciaTurno.length === 0 ? (
-              <EmptyState message="Sem dados de aderência por turno." />
-            ) : (
-              aderenciaTurno.map((turno) => (
-                <CardTurno key={turno.periodo} turno={turno} />
-              ))
-            )}
-          </div>
-        )}
+        {/* Visualização Selecionada */}
+        <div className="h-20 overflow-hidden">
+          {viewMode === 'turno' && (
+            <div className="space-y-1 h-full overflow-y-auto">
+              {aderenciaTurno.length === 0 ? (
+                <EmptyState message="Sem dados por turno." />
+              ) : (
+                aderenciaTurno.slice(0, 2).map((turno) => (
+                  <CardTurnoCompact key={turno.periodo} turno={turno} />
+                ))
+              )}
+            </div>
+          )}
 
-        {viewMode === 'sub_praca' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {aderenciaSubPraca.length === 0 ? (
-              <EmptyState message="Sem dados de aderência por sub praça." />
-            ) : (
-              aderenciaSubPraca.map((sub) => (
-                <CardSubPraca key={sub.sub_praca} subPraca={sub} />
-              ))
-            )}
-          </div>
-        )}
+          {viewMode === 'sub_praca' && (
+            <div className="grid grid-cols-4 gap-2 h-full">
+              {aderenciaSubPraca.length === 0 ? (
+                <EmptyState message="Sem dados por sub praça." />
+              ) : (
+                aderenciaSubPraca.slice(0, 4).map((sub) => (
+                  <CardCompact key={sub.sub_praca} titulo={sub.sub_praca} percentual={sub.aderencia_percentual} />
+                ))
+              )}
+            </div>
+          )}
 
-        {viewMode === 'origem' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {aderenciaOrigem.length === 0 ? (
-              <EmptyState message="Sem dados de aderência por origem." />
-            ) : (
-              aderenciaOrigem.map((origem) => (
-                <CardOrigem key={origem.origem} origem={origem} />
-              ))
-            )}
-          </div>
-        )}
+          {viewMode === 'origem' && (
+            <div className="grid grid-cols-4 gap-2 h-full">
+              {aderenciaOrigem.length === 0 ? (
+                <EmptyState message="Sem dados por origem." />
+              ) : (
+                aderenciaOrigem.slice(0, 4).map((origem) => (
+                  <CardCompact key={origem.origem} titulo={origem.origem} percentual={origem.aderencia_percentual} />
+                ))
+              )}
+            </div>
+          )}
 
-        {viewMode === 'geral' && (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-4">📊</div>
-            <p className="text-gray-600 dark:text-gray-400">Selecione uma visualização acima para ver dados detalhados</p>
+          {viewMode === 'geral' && (
+            <div className="text-center py-4">
+              <div className="text-2xl mb-2">📊</div>
+              <p className="text-sm text-blue-600 dark:text-blue-400">Selecione uma visualização</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Row 3: Espaço para expansão ou informações adicionais */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 p-4">
+        <div className="text-center h-full flex items-center justify-center">
+          <div>
+            <div className="text-3xl mb-2">📈</div>
+            <p className="text-sm text-blue-600 dark:text-blue-400">Área reservada para expansões futuras</p>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -439,137 +454,94 @@ function DashboardTab({ aderenciaGeral, aderenciaDia, aderenciaTurno, aderenciaS
 // Análise Tab Component
 function AnaliseTab({ totals }: { totals: Totals }) {
   const metricas = [
-    { 
-      titulo: "Corridas Ofertadas", 
-      valor: totals.ofertadas, 
-      icon: "🎯", 
-      cor: "from-blue-500 to-blue-600",
-      descricao: "Total de corridas disponibilizadas no sistema"
-    },
-    { 
-      titulo: "Corridas Aceitas", 
-      valor: totals.aceitas, 
-      icon: "✅", 
-      cor: "from-green-500 to-green-600",
-      descricao: "Corridas aceitas pelos entregadores"
-    },
-    { 
-      titulo: "Corridas Rejeitadas", 
-      valor: totals.rejeitadas, 
-      icon: "❌", 
-      cor: "from-red-500 to-red-600",
-      descricao: "Corridas recusadas pelos entregadores"
-    },
-    { 
-      titulo: "Corridas Completadas", 
-      valor: totals.completadas, 
-      icon: "🏆", 
-      cor: "from-purple-500 to-purple-600",
-      descricao: "Corridas finalizadas com sucesso"
-    }
+    { titulo: "Ofertadas", valor: totals.ofertadas, icon: "🎯", intensidade: "bg-blue-500" },
+    { titulo: "Aceitas", valor: totals.aceitas, icon: "✅", intensidade: "bg-blue-600" },
+    { titulo: "Rejeitadas", valor: totals.rejeitadas, icon: "❌", intensidade: "bg-blue-400" },
+    { titulo: "Completadas", valor: totals.completadas, icon: "🏆", intensidade: "bg-blue-700" }
   ];
 
   const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
   const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Métricas Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="h-full grid grid-rows-2 gap-3 overflow-hidden">
+      {/* Row 1: Métricas */}
+      <div className="grid grid-cols-4 gap-3">
         {metricas.map((metrica, index) => (
-          <div key={index} className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-3 rounded-xl bg-gradient-to-br ${metrica.cor} text-white shadow-lg`}>
-                <span className="text-2xl">{metrica.icon}</span>
+          <div key={index} className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-2 rounded-lg ${metrica.intensidade} shadow-sm`}>
+                <span className="text-white text-lg">{metrica.icon}</span>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900 dark:text-gray-50">
+                <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                   {metrica.valor.toLocaleString('pt-BR')}
                 </div>
               </div>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">{metrica.titulo}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{metrica.descricao}</p>
+              <h3 className="text-sm font-bold text-blue-800 dark:text-blue-200">{metrica.titulo}</h3>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Análises Calculadas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
-              <span className="text-white text-2xl">📊</span>
+      {/* Row 2: Análises */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 p-4">
+          <div className="flex items-center space-x-2 mb-3">
+            <div className="p-2 bg-blue-600 rounded-lg shadow-sm">
+              <span className="text-white text-lg">📊</span>
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Taxa de Aceitação</h3>
-              <p className="text-gray-600 dark:text-gray-400">Percentual de corridas aceitas</p>
+              <h3 className="text-lg font-bold text-blue-800 dark:text-blue-200">Taxa de Aceitação</h3>
+              <p className="text-xs text-blue-600 dark:text-blue-400">Aceitas / Ofertadas</p>
             </div>
           </div>
           <div className="text-center">
-            <Gauge percentual={taxaAceitacao} size="large" />
-            <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-              {totals.aceitas.toLocaleString('pt-BR')} de {totals.ofertadas.toLocaleString('pt-BR')} corridas
-            </p>
+            <Gauge percentual={taxaAceitacao} size="medium" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
-              <span className="text-white text-2xl">🎯</span>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 p-4">
+          <div className="flex items-center space-x-2 mb-3">
+            <div className="p-2 bg-blue-700 rounded-lg shadow-sm">
+              <span className="text-white text-lg">🎯</span>
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Taxa de Completude</h3>
-              <p className="text-gray-600 dark:text-gray-400">Percentual de corridas finalizadas</p>
+              <h3 className="text-lg font-bold text-blue-800 dark:text-blue-200">Taxa de Completude</h3>
+              <p className="text-xs text-blue-600 dark:text-blue-400">Completadas / Aceitas</p>
             </div>
           </div>
           <div className="text-center">
-            <Gauge percentual={taxaCompletude} size="large" />
-            <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-              {totals.completadas.toLocaleString('pt-BR')} de {totals.aceitas.toLocaleString('pt-BR')} aceitas
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Resumo Detalhado */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg">
-            <span className="text-white text-2xl">📈</span>
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Resumo Operacional</h3>
-            <p className="text-gray-600 dark:text-gray-400">Visão consolidada do desempenho</p>
+            <Gauge percentual={taxaCompletude} size="medium" />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-              {((totals.aceitas + totals.rejeitadas) / totals.ofertadas * 100).toFixed(1)}%
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 p-4">
+          <div className="flex items-center space-x-2 mb-3">
+            <div className="p-2 bg-blue-800 rounded-lg shadow-sm">
+              <span className="text-white text-lg">📈</span>
             </div>
-            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Taxa de Resposta</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Corridas com alguma ação</p>
+            <div>
+              <h3 className="text-lg font-bold text-blue-800 dark:text-blue-200">Resumo</h3>
+              <p className="text-xs text-blue-600 dark:text-blue-400">Visão geral</p>
+            </div>
           </div>
-
-          <div className="bg-green-50 dark:bg-green-900/30 rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-              {(totals.completadas / totals.ofertadas * 100).toFixed(1)}%
+          
+          <div className="space-y-2">
+            <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-2 text-center">
+              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                {((totals.aceitas + totals.rejeitadas) / totals.ofertadas * 100).toFixed(1)}%
+              </div>
+              <p className="text-xs text-blue-800 dark:text-blue-300">Taxa Resposta</p>
             </div>
-            <p className="text-sm font-medium text-green-800 dark:text-green-300">Eficiência Geral</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Completadas vs Ofertadas</p>
-          </div>
-
-          <div className="bg-purple-50 dark:bg-purple-900/30 rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-              {totals.ofertadas - totals.aceitas - totals.rejeitadas}
+            <div className="bg-blue-100 dark:bg-blue-800/30 rounded-lg p-2 text-center">
+              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                {totals.ofertadas - totals.aceitas - totals.rejeitadas}
+              </div>
+              <p className="text-xs text-blue-800 dark:text-blue-300">Sem Resposta</p>
             </div>
-            <p className="text-sm font-medium text-purple-800 dark:text-purple-300">Sem Resposta</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Corridas não respondidas</p>
           </div>
         </div>
       </div>
@@ -577,117 +549,69 @@ function AnaliseTab({ totals }: { totals: Totals }) {
   );
 }
 
-// Componentes auxiliares atualizados
+// Componentes auxiliares compactos
 function CardDia({ dia }: { dia: AderenciaDia }) {
-  const corFundo = dia.aderencia_percentual >= 80 ? 'from-green-50 to-emerald-50 border-green-200' : 
-                   dia.aderencia_percentual >= 60 ? 'from-yellow-50 to-orange-50 border-yellow-200' : 
-                   'from-red-50 to-pink-50 border-red-200';
-  
   return (
-    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 rounded-xl border-2 p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 space-y-3`}>
-      <div className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">{dia.dia_da_semana}</div>
-      <Gauge percentual={dia.aderencia_percentual} size="small" />
-      <div className="space-y-1">
-        <p className="text-xs text-blue-700 dark:text-blue-400">{dia.horas_a_entregar}</p>
-        <p className="text-xs text-green-700 dark:text-green-400">{dia.horas_entregues}</p>
+    <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700 p-2 text-center h-full flex flex-col justify-between">
+      <div className="text-xs font-bold text-blue-800 dark:text-blue-200 uppercase">{dia.dia_da_semana.substring(0, 3)}</div>
+      <div className="flex-1 flex items-center justify-center">
+        <Gauge percentual={dia.aderencia_percentual} size="small" />
       </div>
-      <Badge value={dia.aderencia_percentual} />
+      <Badge value={dia.aderencia_percentual} size="small" />
     </div>
   );
 }
 
-function CardTurno({ turno }: { turno: AderenciaTurno }) {
-  const corFundo = turno.aderencia_percentual >= 80 ? 'from-green-50 to-emerald-100 border-green-200' : 
-                   turno.aderencia_percentual >= 60 ? 'from-yellow-50 to-orange-100 border-yellow-200' : 
-                   'from-red-50 to-pink-100 border-red-200';
-  
+function CardTurnoCompact({ turno }: { turno: AderenciaTurno }) {
   return (
-    <div className={`bg-gradient-to-r ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300`}>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg">
-              <span className="text-white text-sm">⏰</span>
-            </div>
-            <p className="text-lg font-bold uppercase tracking-wide text-gray-800 dark:text-gray-200">{turno.periodo}</p>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 ml-11">{turno.horas_a_entregar} planejadas • {turno.horas_entregues} entregues</p>
+    <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-2 flex items-center justify-between">
+      <div className="flex items-center space-x-2">
+        <div className="p-1 bg-blue-500 rounded text-white text-xs">⏰</div>
+        <p className="text-sm font-bold text-blue-800 dark:text-blue-200 uppercase">{turno.periodo}</p>
+      </div>
+      <div className="flex items-center space-x-2">
+        <div className="w-12">
+          <Gauge percentual={turno.aderencia_percentual} size="tiny" />
         </div>
-        <div className="flex items-center gap-4">
-          <div className="w-24">
-            <Gauge percentual={turno.aderencia_percentual} thickness="thin" />
-          </div>
-          <Badge value={turno.aderencia_percentual} />
-        </div>
+        <Badge value={turno.aderencia_percentual} size="small" />
       </div>
     </div>
   );
 }
 
-function CardSubPraca({ subPraca }: { subPraca: AderenciaSubPraca }) {
-  const corFundo = subPraca.aderencia_percentual >= 80 ? 'from-green-50 to-emerald-100 border-green-200' : 
-                   subPraca.aderencia_percentual >= 60 ? 'from-yellow-50 to-orange-100 border-yellow-200' : 
-                   'from-red-50 to-pink-100 border-red-200';
-  
+function CardCompact({ titulo, percentual }: { titulo: string; percentual: number }) {
   return (
-    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col gap-4`}>
-      <div className="flex items-start justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
-            <span className="text-white text-sm">🏢</span>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">{subPraca.sub_praca}</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{subPraca.horas_a_entregar} • {subPraca.horas_entregues}</p>
-          </div>
-        </div>
-        <Badge value={subPraca.aderencia_percentual} />
+    <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-2 text-center h-full flex flex-col justify-between">
+      <p className="text-xs font-bold text-blue-800 dark:text-blue-200 uppercase truncate">{titulo}</p>
+      <div className="flex-1 flex items-center justify-center">
+        <Gauge percentual={percentual} size="small" />
       </div>
-      <div className="flex justify-center">
-        <Gauge percentual={subPraca.aderencia_percentual} thickness="thin" />
-      </div>
+      <Badge value={percentual} size="small" />
     </div>
   );
 }
 
-function CardOrigem({ origem }: { origem: AderenciaOrigem }) {
-  const corFundo = origem.aderencia_percentual >= 80 ? 'from-cyan-50 to-sky-100 border-cyan-200' :
-                   origem.aderencia_percentual >= 60 ? 'from-blue-50 to-indigo-100 border-blue-200' :
-                   'from-slate-50 to-slate-100 border-slate-200';
-
-  return (
-    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col gap-4`}>
-      <div className="flex items-start justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-br from-sky-500 to-blue-600 rounded-lg">
-            <span className="text-white text-sm">🌐</span>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">{origem.origem}</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{origem.horas_a_entregar} • {origem.horas_entregues}</p>
-          </div>
-        </div>
-        <Badge value={origem.aderencia_percentual} />
-      </div>
-      <div className="flex justify-center">
-        <Gauge percentual={origem.aderencia_percentual} thickness="thin" />
-      </div>
-    </div>
-  );
-}
-
-function Gauge({ percentual, size = 'medium', thickness = 'normal' }: { percentual: number; size?: 'small' | 'medium' | 'large'; thickness?: 'normal' | 'thin' }) {
+function Gauge({ percentual, size = 'medium' }: { percentual: number; size?: 'tiny' | 'small' | 'medium' | 'large' }) {
   const clamped = Math.max(0, Math.min(percentual, 100));
-  const radius = size === 'large' ? 70 : size === 'small' ? 35 : 50;
-  const strokeWidth = thickness === 'thin' ? 6 : size === 'large' ? 12 : 8;
+  const radius = size === 'large' ? 50 : size === 'medium' ? 35 : size === 'small' ? 25 : 15;
+  const strokeWidth = size === 'large' ? 8 : size === 'medium' ? 6 : size === 'small' ? 4 : 3;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - clamped / 100);
-  const color = clamped >= 80 ? '#10b981' : clamped >= 60 ? '#f59e0b' : '#ef4444';
+  
+  // Tons de azul baseado na performance
+  const color = clamped >= 80 ? '#1e40af' : clamped >= 60 ? '#3b82f6' : clamped >= 40 ? '#60a5fa' : '#93c5fd';
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: radius * 2, height: radius * 2 }}>
       <svg className="transform -rotate-90" width={radius * 2} height={radius * 2}>
-        <circle cx={radius} cy={radius} r={radius} fill="transparent" stroke="#e5e7eb" strokeWidth={strokeWidth} strokeDasharray={circumference} />
+        <circle 
+          cx={radius} 
+          cy={radius} 
+          r={radius} 
+          fill="transparent" 
+          stroke="#e0f2fe" 
+          strokeWidth={strokeWidth}
+        />
         <circle
           cx={radius}
           cy={radius}
@@ -701,34 +625,37 @@ function Gauge({ percentual, size = 'medium', thickness = 'normal' }: { percentu
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className={`font-semibold ${size === 'large' ? 'text-lg' : size === 'small' ? 'text-xs' : 'text-sm'}`} style={{ color }}>
-          {clamped.toFixed(1)}%
+        <span 
+          className={`font-bold ${size === 'large' ? 'text-sm' : size === 'medium' ? 'text-xs' : 'text-xs'}`}
+          style={{ color, fontSize: size === 'tiny' ? '8px' : undefined }}
+        >
+          {clamped.toFixed(0)}%
         </span>
       </div>
     </div>
   );
 }
 
-function Badge({ value, size = 'normal' }: { value: number; size?: 'normal' | 'large' }) {
-  let badgeClass = 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg';
-  let label = 'Precisa melhorar';
-  let icon = '⚠️';
+function Badge({ value, size = 'normal' }: { value: number; size?: 'normal' | 'small' }) {
+  // Tons de azul baseado na performance
+  let badgeClass = 'bg-blue-300 text-blue-900';
+  let label = 'Baixo';
 
   if (value >= 80) {
-    badgeClass = 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg';
-    label = 'Excelente';
-    icon = '🏆';
+    badgeClass = 'bg-blue-700 text-white';
+    label = 'Alto';
   } else if (value >= 60) {
-    badgeClass = 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg';
-    label = 'Bom';
-    icon = '👍';
+    badgeClass = 'bg-blue-500 text-white';
+    label = 'Médio';
+  } else if (value >= 40) {
+    badgeClass = 'bg-blue-400 text-white';
+    label = 'Baixo';
   }
 
-  const sizeClass = size === 'large' ? 'px-4 py-3 text-sm' : 'px-3 py-2 text-xs';
+  const sizeClass = size === 'small' ? 'px-2 py-1 text-xs' : 'px-3 py-1 text-xs';
 
   return (
-    <span className={`inline-flex items-center gap-1 rounded-xl font-bold ${badgeClass} transform transition-transform hover:scale-105 ${sizeClass}`}>
-      <span>{icon}</span>
+    <span className={`inline-flex items-center rounded-lg font-bold ${badgeClass} ${sizeClass}`}>
       {label}
     </span>
   );
@@ -736,10 +663,9 @@ function Badge({ value, size = 'normal' }: { value: number; size?: 'normal' | 'l
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="text-4xl mb-4 opacity-50">📊</div>
-      <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">{message}</p>
-      <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Dados serão exibidos quando disponíveis</p>
+    <div className="flex flex-col items-center justify-center h-full text-center">
+      <div className="text-2xl mb-2 opacity-50">📊</div>
+      <p className="text-sm text-blue-600 dark:text-blue-400">{message}</p>
     </div>
   );
 }
@@ -778,24 +704,24 @@ function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas, orig
 
   return (
     <div>
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-          <span className="text-white text-lg">🔍</span>
+      <div className="flex items-center space-x-2 mb-3">
+        <div className="p-2 bg-blue-500 rounded-lg">
+          <span className="text-white text-sm">🔍</span>
         </div>
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">Filtros de Análise</h2>
+        <h2 className="text-lg font-bold text-blue-800 dark:text-blue-200">Filtros</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-5 gap-3">
         <FiltroSelect
-          label="Ano (ISO)"
+          label="Ano"
           placeholder="Todos"
           options={anos.map((ano) => ({ value: String(ano), label: String(ano) }))}
           value={filters.ano !== null ? String(filters.ano) : ''}
           onChange={(value) => handleChange('ano', value)}
         />
         <FiltroSelect
-          label="Semana (ISO)"
+          label="Semana"
           placeholder="Todas"
-          options={semanas.map((sem) => ({ value: String(sem), label: `Semana ${sem.toString().padStart(2, '0')}` }))}
+          options={semanas.map((sem) => ({ value: String(sem), label: `S${sem.toString().padStart(2, '0')}` }))}
           value={filters.semana !== null ? String(filters.semana) : ''}
           onChange={(value) => handleChange('semana', value)}
         />
@@ -807,7 +733,7 @@ function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas, orig
           onChange={(value) => handleChange('praca', value)}
         />
         <FiltroSelect
-          label="Sub praça"
+          label="Sub Praça"
           placeholder="Todas"
           options={subPracas}
           value={filters.subPraca ?? ''}
@@ -835,10 +761,10 @@ interface FiltroSelectProps {
 
 function FiltroSelect({ label, placeholder, options, value, onChange }: FiltroSelectProps) {
   return (
-    <label className="flex flex-col gap-2">
-      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">{label}</span>
+    <label className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-blue-700 dark:text-blue-300">{label}</span>
       <select
-        className="rounded-xl border-2 border-blue-200 dark:border-blue-700 bg-white dark:bg-slate-700 px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
+        className="rounded-lg border border-blue-200 dark:border-blue-600 bg-white dark:bg-slate-700 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
         value={value}
         onChange={(event) => onChange(event.target.value || null)}
       >
