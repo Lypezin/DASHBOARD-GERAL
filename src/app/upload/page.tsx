@@ -187,9 +187,9 @@ export default function UploadPage() {
         for (let i = 0; i < sanitizedData.length; i += BATCH_SIZE) {
           const batch = sanitizedData.slice(i, i + BATCH_SIZE);
 
-          const { data, error } = await supabase
+          const { count, error } = await supabase
             .from('dados_corridas')
-            .insert(batch, { returning: 'minimal' });
+            .insert(batch, { count: 'exact' });
 
           if (error) {
             console.error("Erro detalhado:", error);
@@ -202,7 +202,7 @@ export default function UploadPage() {
             throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
           }
           
-          totalInserted += data?.length ?? batch.length;
+          totalInserted += count ?? batch.length;
           setProgress((totalInserted / sanitizedData.length) * 100);
           setInsertedRows(totalInserted);
         }
