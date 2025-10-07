@@ -152,7 +152,7 @@ DROP FUNCTION IF EXISTS public.calcular_aderencia_por_dia();
 
 CREATE OR REPLACE FUNCTION public.calcular_aderencia_por_dia()
 RETURNS TABLE (
-  data text,
+  dia_iso integer,
   dia_da_semana text,
   horas_a_entregar text,
   horas_entregues text,
@@ -179,7 +179,8 @@ unique_turnos AS (
       periodo,
       numero_minimo_de_entregadores_regulares_na_escala
     )
-    data_ref,
+    date_part('isodow', data_ref)::int AS dia_iso,
+    trim(to_char(data_ref, 'TMDay')) AS dia_nome,
     numero_minimo_de_entregadores_regulares_na_escala,
     duracao_segundos
   FROM base
@@ -192,22 +193,24 @@ unique_turnos AS (
 ),
 horas_planejadas AS (
   SELECT
-    data_ref,
+    dia_iso,
+    dia_nome,
     SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
   FROM unique_turnos
-  GROUP BY data_ref
+  GROUP BY dia_iso, dia_nome
 ),
 horas_realizadas AS (
   SELECT
-    data_ref,
+    date_part('isodow', data_ref)::int AS dia_iso,
+    trim(to_char(data_ref, 'TMDay')) AS dia_nome,
     SUM(tempo_disponivel_segundos) AS segundos_realizados
   FROM base
   WHERE tempo_disponivel_segundos > 0
-  GROUP BY data_ref
+  GROUP BY date_part('isodow', data_ref)::int, trim(to_char(data_ref, 'TMDay'))
 )
 SELECT
-  TO_CHAR(s.data_ref, 'YYYY-MM-DD') AS data,
-  INITCAP(TO_CHAR(s.data_ref, 'TMDay')) AS dia_da_semana,
+  hp.dia_iso,
+  INITCAP(hp.dia_nome) AS dia_da_semana,
   TO_CHAR(
     INTERVAL '1 second' * COALESCE(hp.segundos_planejados, 0),
     'HH24:MI:SS'
@@ -221,12 +224,9 @@ SELECT
       ROUND((COALESCE(hr.segundos_realizados, 0) / hp.segundos_planejados) * 100, 2)
     ELSE 0
   END AS aderencia_percentual
-FROM (
-  SELECT DISTINCT data_ref FROM base
-) s
-LEFT JOIN horas_planejadas hp USING (data_ref)
-LEFT JOIN horas_realizadas hr USING (data_ref)
-ORDER BY s.data_ref DESC;
+FROM horas_planejadas hp
+LEFT JOIN horas_realizadas hr USING (dia_iso, dia_nome)
+ORDER BY hp.dia_iso;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_dia() TO anon, authenticated, service_role;
