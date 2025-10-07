@@ -79,10 +79,29 @@ export default function UploadPage() {
                 const targetColumn = COLUMN_MAP[normalizedKey];
                 const value = row[excelHeader];
 
-                // Para colunas de tempo, converter para string
+                // Para colunas de tempo, aplicar conversão correta baseada no formato
                 if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
                   if (value === null || value === undefined) {
                     newRow[targetColumn] = null;
+                  } else if (typeof value === 'number') {
+                    // Aplicar lógica de conversão baseada no tipo de coluna
+                    if (targetColumn === 'tempo_disponivel_escalado') {
+                      // Esta coluna parece ser em segundos, não fração de dia
+                      const totalSeconds = Math.round(value);
+                      const hours = Math.floor(totalSeconds / 3600);
+                      const minutes = Math.floor((totalSeconds % 3600) / 60);
+                      const seconds = totalSeconds % 60;
+                      newRow[targetColumn] = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                      console.log(`   🔄 ${targetColumn}: ${value} segundos → ${newRow[targetColumn]}`);
+                    } else {
+                      // Outras colunas de tempo (fração de dia)
+                      const totalSeconds = Math.round(value * 86400);
+                      const hours = Math.floor(totalSeconds / 3600);
+                      const minutes = Math.floor((totalSeconds % 3600) / 60);
+                      const seconds = totalSeconds % 60;
+                      newRow[targetColumn] = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                      console.log(`   🔄 ${targetColumn}: ${value} (fração) → ${newRow[targetColumn]}`);
+                    }
                   } else {
                     newRow[targetColumn] = String(value);
                   }
