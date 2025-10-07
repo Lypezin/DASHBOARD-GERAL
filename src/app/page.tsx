@@ -137,193 +137,21 @@ function buildFilterPayload(filters: Filters) {
 
 
 // =================================================================================
-// Componente Principal da Página
+// Componentes de UI reutilizáveis (movidos para cima)
 // =================================================================================
 
-export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise'>('dashboard');
-  const [viewMode, setViewMode] = useState<'geral' | 'turno' | 'sub_praca' | 'origem'>('geral');
-  const [totals, setTotals] = useState<Totals | null>(null);
-  const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
-  const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
-  const [aderenciaTurno, setAderenciaTurno] = useState<AderenciaTurno[]>([]);
-  const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>([]);
-  const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>([]);
-  const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
-  const [semanasDisponiveis, setSemanasDisponiveis] = useState<number[]>([]);
-  const [pracas, setPracas] = useState<FilterOption[]>([]);
-  const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
-  const [origens, setOrigens] = useState<FilterOption[]>([]);
-  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
-
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      setError(null);
-
-      const { data: totalsData, error: totalsError } = await supabase.rpc('dashboard_totals');
-
-      if (totalsError) {
-        console.error('Erro ao buscar totais:', totalsError);
-        setError('Não foi possível carregar os dados. Verifique a conexão com o Supabase.');
-        setTotals(null);
-      } else if (totalsData && Array.isArray(totalsData) && totalsData.length > 0) {
-        const totalsRow = totalsData[0] as DashboardTotalsRow;
-        const safeNumber = (value: number | string | null | undefined) => (value === null || value === undefined ? 0 : Number(value));
-
-        setTotals({
-          ofertadas: safeNumber(totalsRow.corridas_ofertadas),
-          aceitas: safeNumber(totalsRow.corridas_aceitas),
-          rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
-          completadas: safeNumber(totalsRow.corridas_completadas),
-        });
-      } else {
-        setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
-      }
-
-      const params = buildFilterPayload(filters);
-
-      const [
-        semanal,
-        porDia,
-        porTurno,
-        porSubPraca,
-        porOrigem,
-        filtrosDisponiveis,
-      ] = await Promise.all([
-        supabase.rpc('calcular_aderencia_semanal', params),
-        supabase.rpc('calcular_aderencia_por_dia', params),
-        supabase.rpc('calcular_aderencia_por_turno', params),
-        supabase.rpc('calcular_aderencia_por_sub_praca', params),
-        supabase.rpc('calcular_aderencia_por_origem', params),
-        supabase.rpc('listar_dimensoes_dashboard'),
-      ]);
-
-      setAderenciaSemanal(!semanal.error ? ((semanal.data as AderenciaSemanal[]) || []) : []);
-      setAderenciaDia(!porDia.error ? ((porDia.data as AderenciaDia[]) || []) : []);
-      setAderenciaTurno(!porTurno.error ? ((porTurno.data as AderenciaTurno[]) || []) : []);
-      setAderenciaSubPraca(!porSubPraca.error ? ((porSubPraca.data as AderenciaSubPraca[]) || []) : []);
-      setAderenciaOrigem(!porOrigem.error ? ((porOrigem.data as AderenciaOrigem[]) || []) : []);
-
-      if (!filtrosDisponiveis.error && filtrosDisponiveis.data) {
-        const { anos, semanas, pracas: pracasData, sub_pracas: subPracasData, origens: origensData } = filtrosDisponiveis.data as DimensoesDashboard;
-        setAnosDisponiveis(anos || []);
-        setSemanasDisponiveis(semanas || []);
-        setPracas((pracasData || []).map((p: string) => ({ value: p, label: p })));
-        setSubPracas((subPracasData || []).map((sp: string) => ({ value: sp, label: sp })));
-        setOrigens((origensData || []).map((origem: string) => ({ value: origem, label: origem })));
-      }
-
-      setLoading(false);
-    }
-
-    fetchData();
-  }, [filters]);
-
+function TabButton({ label, icon, active, onClick }: TabButtonProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-6 py-8">
-        {loading && (
-          <div className="flex h-[80vh] items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                <div className="h-14 w-14 animate-spin rounded-full border-4 border-blue-200"></div>
-                <div className="absolute inset-0 h-14 w-14 animate-spin rounded-full border-t-4 border-blue-600"></div>
-              </div>
-              <p className="font-semibold text-blue-700 dark:text-blue-200">Carregando dados do dashboard...</p>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="flex h-[80vh] items-center justify-center">
-            <div className="max-w-lg rounded-2xl border border-blue-200 bg-white px-8 py-6 text-center shadow-xl dark:border-blue-700 dark:bg-slate-900">
-              <div className="text-5xl">⚠️</div>
-              <p className="mt-4 text-xl font-bold text-blue-800 dark:text-blue-200">Não foi possível carregar os dados</p>
-              <p className="mt-2 text-blue-600 dark:text-blue-300">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-6 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700"
-              >
-                Tentar novamente
-              </button>
-            </div>
-          </div>
-        )}
-
-        {totals && !loading && !error && (
-          <div className="flex flex-col gap-6">
-            <header className="flex flex-col gap-4 rounded-2xl border border-blue-200 bg-white/80 p-5 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/70">
-              <FiltroBar
-                filters={filters}
-                setFilters={setFilters}
-                anos={anosDisponiveis}
-                semanas={semanasDisponiveis}
-                pracas={pracas}
-                subPracas={subPracas}
-                origens={origens}
-              />
-              <div className="h-px w-full bg-blue-200 dark:bg-blue-800"></div>
-              <div className="flex items-center gap-3">
-                <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-                <TabButton label="Análise Detalhada" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
-              </div>
-            </header>
-
-            <main className="transition-all duration-300">
-              {activeTab === 'dashboard' && (
-                <DashboardView
-                  aderenciaGeral={aderenciaGeral}
-                  aderenciaSemanal={aderenciaSemanal}
-                  aderenciaDia={aderenciaDia}
-                  aderenciaTurno={aderenciaTurno}
-                  aderenciaSubPraca={aderenciaSubPraca}
-                  aderenciaOrigem={aderenciaOrigem}
-                />
-              )}
-              {activeTab === 'analise' && <AnaliseView totals={totals} aderenciaGeral={aderenciaGeral} aderenciaSemanal={aderenciaSemanal} />}
-            </main>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// =================================================================================
-// Dashboard View Components
-// =================================================================================
-
-function DashboardView({
-  aderenciaGeral,
-  aderenciaSemanal,
-  aderenciaDia,
-  aderenciaTurno,
-  aderenciaSubPraca,
-  aderenciaOrigem,
-}: Omit<DashboardViewProps, 'viewMode' | 'setViewMode'>) {
-  return (
-    <div className="grid grid-cols-12 gap-6">
-      {/* Coluna Esquerda */}
-      <div className="col-span-12 flex flex-col gap-6 lg:col-span-4">
-        <AderenciaGeralCard aderenciaGeral={aderenciaGeral} />
-        <DestaquesCard aderenciaDia={aderenciaDia} aderenciaTurno={aderenciaTurno} />
-      </div>
-
-      {/* Coluna Direita */}
-      <div className="col-span-12 flex flex-col gap-6 lg:col-span-8">
-        <AderenciaDiaCard aderenciaDia={aderenciaDia} />
-        <VisualizacoesAdicionais
-          aderenciaTurno={aderenciaTurno}
-          aderenciaSubPraca={aderenciaSubPraca}
-          aderenciaOrigem={aderenciaOrigem}
-        />
-      </div>
-    </div>
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+        active
+          ? 'bg-white text-blue-600 shadow-md dark:bg-slate-800 dark:text-blue-200'
+          : 'text-blue-500 hover:bg-white/60 dark:text-blue-300 dark:hover:bg-slate-800/50'
+      }`}
+    >
+      {icon} {label}
+    </button>
   );
 }
 
@@ -458,10 +286,34 @@ function VisualizacoesAdicionais({ aderenciaTurno, aderenciaSubPraca, aderenciaO
   );
 }
 
+function DashboardView({
+  aderenciaGeral,
+  aderenciaSemanal,
+  aderenciaDia,
+  aderenciaTurno,
+  aderenciaSubPraca,
+  aderenciaOrigem,
+}: Omit<DashboardViewProps, 'viewMode' | 'setViewMode'>) {
+  return (
+    <div className="grid grid-cols-12 gap-6">
+      {/* Coluna Esquerda */}
+      <div className="col-span-12 flex flex-col gap-6 lg:col-span-4">
+        <AderenciaGeralCard aderenciaGeral={aderenciaGeral} />
+        <DestaquesCard aderenciaDia={aderenciaDia} aderenciaTurno={aderenciaTurno} />
+      </div>
 
-// =================================================================================
-// Analise View Components
-// =================================================================================
+      {/* Coluna Direita */}
+      <div className="col-span-12 flex flex-col gap-6 lg:col-span-8">
+        <AderenciaDiaCard aderenciaDia={aderenciaDia} />
+        <VisualizacoesAdicionais
+          aderenciaTurno={aderenciaTurno}
+          aderenciaSubPraca={aderenciaSubPraca}
+          aderenciaOrigem={aderenciaOrigem}
+        />
+      </div>
+    </div>
+  );
+}
 
 function AnaliseView({ totals, aderenciaGeral, aderenciaSemanal }: AnaliseViewProps) {
   const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
@@ -704,5 +556,163 @@ function FiltroSelect({ label, placeholder, options, value, onChange }: FiltroSe
         ))}
       </select>
     </label>
+  );
+}
+
+// =================================================================================
+// Componente Principal da Página
+// =================================================================================
+
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise'>('dashboard');
+  const [viewMode, setViewMode] = useState<'geral' | 'turno' | 'sub_praca' | 'origem'>('geral');
+  const [totals, setTotals] = useState<Totals | null>(null);
+  const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
+  const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
+  const [aderenciaTurno, setAderenciaTurno] = useState<AderenciaTurno[]>([]);
+  const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>([]);
+  const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>([]);
+  const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
+  const [semanasDisponiveis, setSemanasDisponiveis] = useState<number[]>([]);
+  const [pracas, setPracas] = useState<FilterOption[]>([]);
+  const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
+  const [origens, setOrigens] = useState<FilterOption[]>([]);
+  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      setError(null);
+
+      const { data: totalsData, error: totalsError } = await supabase.rpc('dashboard_totals');
+
+      if (totalsError) {
+        console.error('Erro ao buscar totais:', totalsError);
+        setError('Não foi possível carregar os dados. Verifique a conexão com o Supabase.');
+        setTotals(null);
+      } else if (totalsData && Array.isArray(totalsData) && totalsData.length > 0) {
+        const totalsRow = totalsData[0] as DashboardTotalsRow;
+        const safeNumber = (value: number | string | null | undefined) => (value === null || value === undefined ? 0 : Number(value));
+
+        setTotals({
+          ofertadas: safeNumber(totalsRow.corridas_ofertadas),
+          aceitas: safeNumber(totalsRow.corridas_aceitas),
+          rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
+          completadas: safeNumber(totalsRow.corridas_completadas),
+        });
+      } else {
+        setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
+      }
+
+      const params = buildFilterPayload(filters);
+
+      const [
+        semanal,
+        porDia,
+        porTurno,
+        porSubPraca,
+        porOrigem,
+        filtrosDisponiveis,
+      ] = await Promise.all([
+        supabase.rpc('calcular_aderencia_semanal', params),
+        supabase.rpc('calcular_aderencia_por_dia', params),
+        supabase.rpc('calcular_aderencia_por_turno', params),
+        supabase.rpc('calcular_aderencia_por_sub_praca', params),
+        supabase.rpc('calcular_aderencia_por_origem', params),
+        supabase.rpc('listar_dimensoes_dashboard'),
+      ]);
+
+      setAderenciaSemanal(!semanal.error ? ((semanal.data as AderenciaSemanal[]) || []) : []);
+      setAderenciaDia(!porDia.error ? ((porDia.data as AderenciaDia[]) || []) : []);
+      setAderenciaTurno(!porTurno.error ? ((porTurno.data as AderenciaTurno[]) || []) : []);
+      setAderenciaSubPraca(!porSubPraca.error ? ((porSubPraca.data as AderenciaSubPraca[]) || []) : []);
+      setAderenciaOrigem(!porOrigem.error ? ((porOrigem.data as AderenciaOrigem[]) || []) : []);
+
+      if (!filtrosDisponiveis.error && filtrosDisponiveis.data) {
+        const { anos, semanas, pracas: pracasData, sub_pracas: subPracasData, origens: origensData } = filtrosDisponiveis.data as DimensoesDashboard;
+        setAnosDisponiveis(anos || []);
+        setSemanasDisponiveis(semanas || []);
+        setPracas((pracasData || []).map((p: string) => ({ value: p, label: p })));
+        setSubPracas((subPracasData || []).map((sp: string) => ({ value: sp, label: sp })));
+        setOrigens((origensData || []).map((origem: string) => ({ value: origem, label: origem })));
+      }
+
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [filters]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-6 py-8">
+        {loading && (
+          <div className="flex h-[80vh] items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <div className="h-14 w-14 animate-spin rounded-full border-4 border-blue-200"></div>
+                <div className="absolute inset-0 h-14 w-14 animate-spin rounded-full border-t-4 border-blue-600"></div>
+              </div>
+              <p className="font-semibold text-blue-700 dark:text-blue-200">Carregando dados do dashboard...</p>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="flex h-[80vh] items-center justify-center">
+            <div className="max-w-lg rounded-2xl border border-blue-200 bg-white px-8 py-6 text-center shadow-xl dark:border-blue-700 dark:bg-slate-900">
+              <div className="text-5xl">⚠️</div>
+              <p className="mt-4 text-xl font-bold text-blue-800 dark:text-blue-200">Não foi possível carregar os dados</p>
+              <p className="mt-2 text-blue-600 dark:text-blue-300">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-6 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </div>
+        )}
+
+        {totals && !loading && !error && (
+          <div className="flex flex-col gap-6">
+            <header className="flex flex-col gap-4 rounded-2xl border border-blue-200 bg-white/80 p-5 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/70">
+              <FiltroBar
+                filters={filters}
+                setFilters={setFilters}
+                anos={anosDisponiveis}
+                semanas={semanasDisponiveis}
+                pracas={pracas}
+                subPracas={subPracas}
+                origens={origens}
+              />
+              <div className="h-px w-full bg-blue-200 dark:bg-blue-800"></div>
+              <div className="flex items-center gap-3">
+                <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+                <TabButton label="Análise Detalhada" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
+              </div>
+            </header>
+
+            <main className="transition-all duration-300">
+              {activeTab === 'dashboard' && (
+                <DashboardView
+                  aderenciaGeral={aderenciaGeral}
+                  aderenciaSemanal={aderenciaSemanal}
+                  aderenciaDia={aderenciaDia}
+                  aderenciaTurno={aderenciaTurno}
+                  aderenciaSubPraca={aderenciaSubPraca}
+                  aderenciaOrigem={aderenciaOrigem}
+                />
+              )}
+              {activeTab === 'analise' && <AnaliseView totals={totals} aderenciaGeral={aderenciaGeral} aderenciaSemanal={aderenciaSemanal} />}
+            </main>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
