@@ -77,6 +77,8 @@ type DimensoesDashboard = {
 };
 
 export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise'>('dashboard');
+  const [viewMode, setViewMode] = useState<'geral' | 'turno' | 'sub_praca' | 'origem'>('geral');
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
@@ -189,8 +191,8 @@ export default function DashboardPage() {
   }, [filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800">
-      <div className="container mx-auto px-6 py-8 space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-slate-900 dark:via-blue-900 dark:to-slate-800">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
         {loading && (
           <div className="flex items-center justify-center py-20">
             <div className="flex flex-col items-center space-y-6">
@@ -222,23 +224,61 @@ export default function DashboardPage() {
 
         {totals && !loading && !error && (
           <>
-            <FiltroBar
-              filters={filters}
-              setFilters={setFilters}
-              anos={anosDisponiveis}
-              semanas={semanasDisponiveis}
-              pracas={pracas}
-              subPracas={subPracas}
-              origens={origens}
-            />
-            <ResumoCards totals={totals} aderenciaAtual={aderenciaGeral?.aderencia_percentual} />
-            <AderenciaOverview
-              aderenciaSemanal={aderenciaSemanal}
-              aderenciaDia={aderenciaDia}
-              aderenciaTurno={aderenciaTurno}
-              aderenciaSubPraca={aderenciaSubPraca}
-              aderenciaOrigem={aderenciaOrigem}
-            />
+            {/* Header com Filtros */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-6 mb-6">
+              <FiltroBar
+                filters={filters}
+                setFilters={setFilters}
+                anos={anosDisponiveis}
+                semanas={semanasDisponiveis}
+                pracas={pracas}
+                subPracas={subPracas}
+                origens={origens}
+              />
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 mb-6">
+              <div className="flex border-b border-blue-100 dark:border-blue-700">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-6 py-4 font-semibold text-sm transition-all duration-200 border-b-2 ${
+                    activeTab === 'dashboard'
+                      ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300'
+                  }`}
+                >
+                  📊 Dashboard
+                </button>
+                <button
+                  onClick={() => setActiveTab('analise')}
+                  className={`px-6 py-4 font-semibold text-sm transition-all duration-200 border-b-2 ${
+                    activeTab === 'analise'
+                      ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300'
+                  }`}
+                >
+                  📈 Análise
+                </button>
+              </div>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'dashboard' && (
+              <DashboardTab
+                aderenciaGeral={aderenciaGeral}
+                aderenciaDia={aderenciaDia}
+                aderenciaTurno={aderenciaTurno}
+                aderenciaSubPraca={aderenciaSubPraca}
+                aderenciaOrigem={aderenciaOrigem}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+              />
+            )}
+
+            {activeTab === 'analise' && (
+              <AnaliseTab totals={totals} />
+            )}
           </>
         )}
       </div>
@@ -246,141 +286,71 @@ export default function DashboardPage() {
   );
 }
 
-function ResumoCards({ totals, aderenciaAtual }: { totals: Totals; aderenciaAtual?: number }) {
-  const cards = [
-    { titulo: "Corridas ofertadas", valor: totals.ofertadas, subtitulo: "Total do período", icon: "🎯", cor: "from-blue-500 to-blue-600" },
-    { titulo: "Corridas aceitas", valor: totals.aceitas, subtitulo: "Entregadores", icon: "✅", cor: "from-green-500 to-green-600" },
-    { titulo: "Corridas rejeitadas", valor: totals.rejeitadas, subtitulo: "Total", icon: "❌", cor: "from-red-500 to-red-600" },
-    { titulo: "Corridas completadas", valor: totals.completadas, subtitulo: "Finalizadas", icon: "🏆", cor: "from-purple-500 to-purple-600" },
-    { titulo: "Aderência geral", valor: aderenciaAtual ?? 0, subtitulo: "Semana atual", icon: "📈", cor: "from-indigo-500 to-indigo-600", formato: "percentual" as const }
-  ];
-
-  return (
-    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-      {cards.map((card, index) => (
-        <ResumoCard key={index} {...card} />
-      ))}
-    </section>
-  );
-}
-
-function ResumoCard({ titulo, valor, subtitulo, formato, icon, cor }: { titulo: string; valor: number; subtitulo: string; formato?: 'percentual'; icon?: string; cor?: string }) {
-  return (
-    <div className="group relative overflow-hidden bg-white dark:bg-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-      <div className={`absolute inset-0 bg-gradient-to-br ${cor || 'from-blue-500 to-blue-600'} opacity-5 group-hover:opacity-10 transition-opacity`}></div>
-      <div className="relative p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`p-3 rounded-xl bg-gradient-to-br ${cor || 'from-blue-500 to-blue-600'} text-white shadow-lg`}>
-            <span className="text-xl">{icon || '📊'}</span>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-50">
-              {formato === 'percentual' ? `${valor.toFixed(1)}%` : valor.toLocaleString('pt-BR')}
-            </div>
-          </div>
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{titulo}</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{subtitulo}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface AderenciaOverviewProps {
-  aderenciaSemanal: AderenciaSemanal[];
+// Dashboard Tab Component
+interface DashboardTabProps {
+  aderenciaGeral?: AderenciaSemanal;
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
   aderenciaSubPraca: AderenciaSubPraca[];
   aderenciaOrigem: AderenciaOrigem[];
+  viewMode: 'geral' | 'turno' | 'sub_praca' | 'origem';
+  setViewMode: (mode: 'geral' | 'turno' | 'sub_praca' | 'origem') => void;
 }
 
-function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem }: AderenciaOverviewProps) {
-  const semanaAtual = aderenciaSemanal[0];
-
+function DashboardTab({ aderenciaGeral, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, viewMode, setViewMode }: DashboardTabProps) {
   return (
-    <div className="space-y-8">
-      <section className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-blue-100 dark:border-blue-900/40 p-8 flex flex-col justify-between">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-              <span className="text-2xl text-white">🎯</span>
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Aderência Geral</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Semana mais recente</p>
-          </div>
-
-          {semanaAtual ? (
-            <div className="flex flex-col items-center mt-6 space-y-4">
-              <Gauge percentual={semanaAtual.aderencia_percentual} size="large" />
-              <ResumoHoras titulo="Horas a entregar" valor={semanaAtual.horas_a_entregar} cor="text-blue-600" />
-              <ResumoHoras titulo="Horas entregues" valor={semanaAtual.horas_entregues} cor="text-green-600" />
-              <Badge value={semanaAtual.aderencia_percentual} />
-            </div>
-          ) : (
-            <EmptyState message="Sem dados de aderência semanal." />
-          )}
-        </div>
-
-        <div className="lg:col-span-3 bg-gradient-to-br from-white to-slate-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-blue-100 dark:border-blue-900/40 p-8">
-          <header className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl">
-                <span className="text-white text-lg">📈</span>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Histórico Semanal</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Últimas 10 semanas acompanhadas</p>
-              </div>
-            </div>
-          </header>
-
-          {aderenciaSemanal.length === 0 ? (
-            <EmptyState message="Sem dados históricos de aderência." />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <TableHeader text="Semana" />
-                    <TableHeader text="Horas a entregar" />
-                    <TableHeader text="Horas entregues" />
-                    <TableHeader text="Aderência" />
-                    <TableHeader text="Status" />
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200">
-                  {aderenciaSemanal.slice(0, 10).map((semana) => (
-                    <tr key={semana.semana}>
-                      <TableCell text={semana.semana} bold />
-                      <TableCell text={semana.horas_a_entregar} />
-                      <TableCell text={semana.horas_entregues} />
-                      <TableCell text={`${semana.aderencia_percentual}%`} />
-                      <TableCell>
-                        <Badge value={semana.aderencia_percentual} />
-                      </TableCell>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="bg-gradient-to-br from-white to-green-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-green-100 dark:border-green-900/40 p-8">
-        <header className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      {/* Aderência Geral Card */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
-              <span className="text-white text-lg">📅</span>
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+              <span className="text-white text-2xl">🎯</span>
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Aderência por Dia da Semana</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Consolidado do período carregado</p>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Aderência Geral</h2>
+              <p className="text-gray-600 dark:text-gray-400">Desempenho consolidado</p>
             </div>
           </div>
-        </header>
+        </div>
+
+        {aderenciaGeral ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <Gauge percentual={aderenciaGeral.aderencia_percentual} size="large" />
+            </div>
+            <div className="space-y-4">
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4">
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Horas Planejadas</p>
+                <p className="text-2xl font-bold text-blue-800 dark:text-blue-300">{aderenciaGeral.horas_a_entregar}</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-900/30 rounded-xl p-4">
+                <p className="text-sm font-medium text-green-600 dark:text-green-400 uppercase tracking-wide">Horas Entregues</p>
+                <p className="text-2xl font-bold text-green-800 dark:text-green-300">{aderenciaGeral.horas_entregues}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center">
+              <Badge value={aderenciaGeral.aderencia_percentual} size="large" />
+            </div>
+          </div>
+        ) : (
+          <EmptyState message="Sem dados de aderência geral." />
+        )}
+      </div>
+
+      {/* Aderência Diária */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+              <span className="text-white text-2xl">📅</span>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Aderência por Dia da Semana</h2>
+              <p className="text-gray-600 dark:text-gray-400">Distribuição semanal do desempenho</p>
+            </div>
+          </div>
+        </div>
 
         {aderenciaDia.length === 0 ? (
           <EmptyState message="Sem dados de aderência por dia." />
@@ -391,95 +361,235 @@ function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, ade
             ))}
           </div>
         )}
-      </section>
+      </div>
 
-      <section className="bg-gradient-to-br from-white to-orange-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-orange-100 dark:border-orange-900/40 p-8">
-        <header className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl">
-              <span className="text-white text-lg">⏰</span>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Aderência por Turno</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Comparativo entre períodos operacionais</p>
-            </div>
+      {/* Filtros de Visualização */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Visualizações Adicionais</h3>
+          <div className="flex space-x-2">
+            {[
+              { key: 'geral', label: 'Geral', icon: '📊' },
+              { key: 'turno', label: 'Por Turno', icon: '⏰' },
+              { key: 'sub_praca', label: 'Por Sub Praça', icon: '🏢' },
+              { key: 'origem', label: 'Por Origem', icon: '🌐' }
+            ].map((mode) => (
+              <button
+                key={mode.key}
+                onClick={() => setViewMode(mode.key as any)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  viewMode === mode.key
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                }`}
+              >
+                {mode.icon} {mode.label}
+              </button>
+            ))}
           </div>
-        </header>
+        </div>
 
-        {aderenciaTurno.length === 0 ? (
-          <EmptyState message="Sem dados de aderência por turno." />
-        ) : (
+        {viewMode === 'turno' && (
           <div className="space-y-4">
-            {aderenciaTurno.map((turno) => (
-              <CardTurno key={turno.periodo} turno={turno} />
-            ))}
+            {aderenciaTurno.length === 0 ? (
+              <EmptyState message="Sem dados de aderência por turno." />
+            ) : (
+              aderenciaTurno.map((turno) => (
+                <CardTurno key={turno.periodo} turno={turno} />
+              ))
+            )}
           </div>
         )}
-      </section>
 
-      <section className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-purple-100 dark:border-purple-900/40 p-8">
-        <header className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl">
-              <span className="text-white text-lg">🏢</span>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Aderência por Sub Praça</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Comportamento por hubs locais</p>
-            </div>
-          </div>
-        </header>
-
-        {aderenciaSubPraca.length === 0 ? (
-          <EmptyState message="Sem dados de aderência por sub praça." />
-        ) : (
+        {viewMode === 'sub_praca' && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {aderenciaSubPraca.map((sub) => (
-              <CardSubPraca key={sub.sub_praca} subPraca={sub} />
-            ))}
+            {aderenciaSubPraca.length === 0 ? (
+              <EmptyState message="Sem dados de aderência por sub praça." />
+            ) : (
+              aderenciaSubPraca.map((sub) => (
+                <CardSubPraca key={sub.sub_praca} subPraca={sub} />
+              ))
+            )}
           </div>
         )}
-      </section>
 
-      <section className="bg-gradient-to-br from-white to-sky-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-sky-100 dark:border-sky-900/40 p-8">
-        <header className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl">
-              <span className="text-white text-lg">🌐</span>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Aderência por origem</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Comparativo por canal de operação</p>
-            </div>
-          </div>
-        </header>
-
-        {aderenciaOrigem.length === 0 ? (
-          <EmptyState message="Sem dados de aderência por origem." />
-        ) : (
+        {viewMode === 'origem' && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {aderenciaOrigem.map((origem) => (
-              <CardOrigem key={origem.origem} origem={origem} />
-            ))}
+            {aderenciaOrigem.length === 0 ? (
+              <EmptyState message="Sem dados de aderência por origem." />
+            ) : (
+              aderenciaOrigem.map((origem) => (
+                <CardOrigem key={origem.origem} origem={origem} />
+              ))
+            )}
           </div>
         )}
-      </section>
+
+        {viewMode === 'geral' && (
+          <div className="text-center py-8">
+            <div className="text-4xl mb-4">📊</div>
+            <p className="text-gray-600 dark:text-gray-400">Selecione uma visualização acima para ver dados detalhados</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
+// Análise Tab Component
+function AnaliseTab({ totals }: { totals: Totals }) {
+  const metricas = [
+    { 
+      titulo: "Corridas Ofertadas", 
+      valor: totals.ofertadas, 
+      icon: "🎯", 
+      cor: "from-blue-500 to-blue-600",
+      descricao: "Total de corridas disponibilizadas no sistema"
+    },
+    { 
+      titulo: "Corridas Aceitas", 
+      valor: totals.aceitas, 
+      icon: "✅", 
+      cor: "from-green-500 to-green-600",
+      descricao: "Corridas aceitas pelos entregadores"
+    },
+    { 
+      titulo: "Corridas Rejeitadas", 
+      valor: totals.rejeitadas, 
+      icon: "❌", 
+      cor: "from-red-500 to-red-600",
+      descricao: "Corridas recusadas pelos entregadores"
+    },
+    { 
+      titulo: "Corridas Completadas", 
+      valor: totals.completadas, 
+      icon: "🏆", 
+      cor: "from-purple-500 to-purple-600",
+      descricao: "Corridas finalizadas com sucesso"
+    }
+  ];
+
+  const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
+  const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Métricas Principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {metricas.map((metrica, index) => (
+          <div key={index} className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-3 rounded-xl bg-gradient-to-br ${metrica.cor} text-white shadow-lg`}>
+                <span className="text-2xl">{metrica.icon}</span>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-gray-900 dark:text-gray-50">
+                  {metrica.valor.toLocaleString('pt-BR')}
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">{metrica.titulo}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{metrica.descricao}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Análises Calculadas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+              <span className="text-white text-2xl">📊</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Taxa de Aceitação</h3>
+              <p className="text-gray-600 dark:text-gray-400">Percentual de corridas aceitas</p>
+            </div>
+          </div>
+          <div className="text-center">
+            <Gauge percentual={taxaAceitacao} size="large" />
+            <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              {totals.aceitas.toLocaleString('pt-BR')} de {totals.ofertadas.toLocaleString('pt-BR')} corridas
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+              <span className="text-white text-2xl">🎯</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Taxa de Completude</h3>
+              <p className="text-gray-600 dark:text-gray-400">Percentual de corridas finalizadas</p>
+            </div>
+          </div>
+          <div className="text-center">
+            <Gauge percentual={taxaCompletude} size="large" />
+            <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              {totals.completadas.toLocaleString('pt-BR')} de {totals.aceitas.toLocaleString('pt-BR')} aceitas
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Resumo Detalhado */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-blue-200 dark:border-blue-800 p-8">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg">
+            <span className="text-white text-2xl">📈</span>
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Resumo Operacional</h3>
+            <p className="text-gray-600 dark:text-gray-400">Visão consolidada do desempenho</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-6 text-center">
+            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+              {((totals.aceitas + totals.rejeitadas) / totals.ofertadas * 100).toFixed(1)}%
+            </div>
+            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Taxa de Resposta</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Corridas com alguma ação</p>
+          </div>
+
+          <div className="bg-green-50 dark:bg-green-900/30 rounded-xl p-6 text-center">
+            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+              {(totals.completadas / totals.ofertadas * 100).toFixed(1)}%
+            </div>
+            <p className="text-sm font-medium text-green-800 dark:text-green-300">Eficiência Geral</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Completadas vs Ofertadas</p>
+          </div>
+
+          <div className="bg-purple-50 dark:bg-purple-900/30 rounded-xl p-6 text-center">
+            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+              {totals.ofertadas - totals.aceitas - totals.rejeitadas}
+            </div>
+            <p className="text-sm font-medium text-purple-800 dark:text-purple-300">Sem Resposta</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Corridas não respondidas</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Componentes auxiliares atualizados
 function CardDia({ dia }: { dia: AderenciaDia }) {
   const corFundo = dia.aderencia_percentual >= 80 ? 'from-green-50 to-emerald-50 border-green-200' : 
                    dia.aderencia_percentual >= 60 ? 'from-yellow-50 to-orange-50 border-yellow-200' : 
                    'from-red-50 to-pink-50 border-red-200';
   
   return (
-    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 rounded-2xl border-2 p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 space-y-4`}>
+    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 rounded-xl border-2 p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 space-y-3`}>
       <div className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">{dia.dia_da_semana}</div>
       <Gauge percentual={dia.aderencia_percentual} size="small" />
-      <div className="space-y-2">
-        <ResumoHoras titulo="Horas a entregar" valor={dia.horas_a_entregar} cor="text-blue-700 dark:text-blue-400" tamanho="sm" />
-        <ResumoHoras titulo="Entregues" valor={dia.horas_entregues} cor="text-green-700 dark:text-green-400" tamanho="sm" />
+      <div className="space-y-1">
+        <p className="text-xs text-blue-700 dark:text-blue-400">{dia.horas_a_entregar}</p>
+        <p className="text-xs text-green-700 dark:text-green-400">{dia.horas_entregues}</p>
       </div>
       <Badge value={dia.aderencia_percentual} />
     </div>
@@ -492,8 +602,8 @@ function CardTurno({ turno }: { turno: AderenciaTurno }) {
                    'from-red-50 to-pink-100 border-red-200';
   
   return (
-    <div className={`bg-gradient-to-r ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300`}>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+    <div className={`bg-gradient-to-r ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300`}>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center space-x-3 mb-2">
             <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg">
@@ -503,18 +613,12 @@ function CardTurno({ turno }: { turno: AderenciaTurno }) {
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 ml-11">{turno.horas_a_entregar} planejadas • {turno.horas_entregues} entregues</p>
         </div>
-        <div className="flex items-center gap-6">
-          <div className="w-32">
+        <div className="flex items-center gap-4">
+          <div className="w-24">
             <Gauge percentual={turno.aderencia_percentual} thickness="thin" />
           </div>
           <Badge value={turno.aderencia_percentual} />
         </div>
-      </div>
-      <div className="mt-4 h-3 w-full bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden shadow-inner">
-        <div
-          className={`h-full transition-all duration-500 ${turno.aderencia_percentual >= 80 ? 'bg-gradient-to-r from-green-400 to-green-600' : turno.aderencia_percentual >= 60 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 'bg-gradient-to-r from-red-400 to-red-600'}`}
-          style={{ width: `${Math.min(turno.aderencia_percentual, 100)}%` }}
-        />
       </div>
     </div>
   );
@@ -526,7 +630,7 @@ function CardSubPraca({ subPraca }: { subPraca: AderenciaSubPraca }) {
                    'from-red-50 to-pink-100 border-red-200';
   
   return (
-    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col gap-4`}>
+    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col gap-4`}>
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
@@ -534,7 +638,7 @@ function CardSubPraca({ subPraca }: { subPraca: AderenciaSubPraca }) {
           </div>
           <div>
             <p className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">{subPraca.sub_praca}</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{subPraca.horas_a_entregar} planejadas • {subPraca.horas_entregues} entregues</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{subPraca.horas_a_entregar} • {subPraca.horas_entregues}</p>
           </div>
         </div>
         <Badge value={subPraca.aderencia_percentual} />
@@ -552,7 +656,7 @@ function CardOrigem({ origem }: { origem: AderenciaOrigem }) {
                    'from-slate-50 to-slate-100 border-slate-200';
 
   return (
-    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col gap-4`}>
+    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col gap-4`}>
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-to-br from-sky-500 to-blue-600 rounded-lg">
@@ -560,7 +664,7 @@ function CardOrigem({ origem }: { origem: AderenciaOrigem }) {
           </div>
           <div>
             <p className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">{origem.origem}</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{origem.horas_a_entregar} planejadas • {origem.horas_entregues} entregues</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{origem.horas_a_entregar} • {origem.horas_entregues}</p>
           </div>
         </div>
         <Badge value={origem.aderencia_percentual} />
@@ -574,8 +678,8 @@ function CardOrigem({ origem }: { origem: AderenciaOrigem }) {
 
 function Gauge({ percentual, size = 'medium', thickness = 'normal' }: { percentual: number; size?: 'small' | 'medium' | 'large'; thickness?: 'normal' | 'thin' }) {
   const clamped = Math.max(0, Math.min(percentual, 100));
-  const radius = size === 'large' ? 70 : size === 'small' ? 40 : 56;
-  const strokeWidth = thickness === 'thin' ? 8 : 12;
+  const radius = size === 'large' ? 70 : size === 'small' ? 35 : 50;
+  const strokeWidth = thickness === 'thin' ? 6 : size === 'large' ? 12 : 8;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - clamped / 100);
   const color = clamped >= 80 ? '#10b981' : clamped >= 60 ? '#f59e0b' : '#ef4444';
@@ -597,7 +701,7 @@ function Gauge({ percentual, size = 'medium', thickness = 'normal' }: { percentu
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-lg font-semibold" style={{ color }}>
+        <span className={`font-semibold ${size === 'large' ? 'text-lg' : size === 'small' ? 'text-xs' : 'text-sm'}`} style={{ color }}>
           {clamped.toFixed(1)}%
         </span>
       </div>
@@ -605,7 +709,7 @@ function Gauge({ percentual, size = 'medium', thickness = 'normal' }: { percentu
   );
 }
 
-function Badge({ value }: { value: number }) {
+function Badge({ value, size = 'normal' }: { value: number; size?: 'normal' | 'large' }) {
   let badgeClass = 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg';
   let label = 'Precisa melhorar';
   let icon = '⚠️';
@@ -620,39 +724,20 @@ function Badge({ value }: { value: number }) {
     icon = '👍';
   }
 
+  const sizeClass = size === 'large' ? 'px-4 py-3 text-sm' : 'px-3 py-2 text-xs';
+
   return (
-    <span className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold ${badgeClass} transform transition-transform hover:scale-105`}>
+    <span className={`inline-flex items-center gap-1 rounded-xl font-bold ${badgeClass} transform transition-transform hover:scale-105 ${sizeClass}`}>
       <span>{icon}</span>
       {label}
     </span>
   );
 }
 
-function TableHeader({ text }: { text: string }) {
-  return <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{text}</th>;
-}
-
-function TableCell({ text, children, bold }: { text?: string; children?: React.ReactNode; bold?: boolean }) {
-  return (
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-      {children ?? <span className={bold ? 'font-semibold text-gray-800 dark:text-gray-100' : ''}>{text}</span>}
-    </td>
-  );
-}
-
-function ResumoHoras({ titulo, valor, cor, tamanho = 'md' }: { titulo: string; valor: string; cor: string; tamanho?: 'sm' | 'md' }) {
-  return (
-    <div>
-      <p className={`text-${tamanho === 'sm' ? 'xs' : 'xs'} uppercase tracking-wide text-gray-500`}>{titulo}</p>
-      <p className={`${cor} font-semibold ${tamanho === 'sm' ? 'text-sm' : 'text-lg'}`}>{valor}</p>
-    </div>
-  );
-}
-
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="text-6xl mb-4 opacity-50">📊</div>
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="text-4xl mb-4 opacity-50">📊</div>
       <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">{message}</p>
       <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Dados serão exibidos quando disponíveis</p>
     </div>
@@ -692,14 +777,14 @@ function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas, orig
   };
 
   return (
-    <section className="bg-gradient-to-r from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 border-2 border-blue-200 dark:border-blue-900/40 shadow-xl rounded-2xl p-8">
+    <div>
       <div className="flex items-center space-x-3 mb-6">
         <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
           <span className="text-white text-lg">🔍</span>
         </div>
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">Filtros de Análise</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         <FiltroSelect
           label="Ano (ISO)"
           placeholder="Todos"
@@ -736,7 +821,7 @@ function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas, orig
           onChange={(value) => handleChange('origem', value)}
         />
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -753,7 +838,7 @@ function FiltroSelect({ label, placeholder, options, value, onChange }: FiltroSe
     <label className="flex flex-col gap-2">
       <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">{label}</span>
       <select
-        className="rounded-xl border-2 border-blue-200 dark:border-blue-900/60 bg-white dark:bg-gray-900 px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
+        className="rounded-xl border-2 border-blue-200 dark:border-blue-700 bg-white dark:bg-slate-700 px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
         value={value}
         onChange={(event) => onChange(event.target.value || null)}
       >
