@@ -473,3 +473,94 @@ function EmptyState({ message }: { message: string }) {
     <div className="flex items-center justify-center py-10 text-sm text-gray-500 dark:text-gray-400 border border-dashed rounded-lg">{message}</div>
   );
 }
+
+function buildFilterPayload(filters: Filters) {
+  return {
+    p_ano: filters.ano,
+    p_semana: filters.semana,
+    p_praca: filters.praca,
+    p_sub_praca: filters.subPraca,
+  };
+}
+
+interface FiltroBarProps {
+  filters: Filters;
+  setFilters: (filters: Filters) => void;
+  anos: number[];
+  semanas: number[];
+  pracas: FilterOption[];
+  subPracas: FilterOption[];
+}
+
+function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas }: FiltroBarProps) {
+  const handleChange = (key: keyof Filters, value: string | null) => {
+    setFilters({
+      ...filters,
+      [key]: value === '' ? null : key === 'ano' || key === 'semana' ? value ? Number(value) : null : value,
+    });
+  };
+
+  return (
+    <section className="bg-white dark:bg-gray-900 border border-blue-100 dark:border-blue-900/40 shadow-sm rounded-xl p-5">
+      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-4">Filtros</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <FiltroSelect
+          label="Ano (ISO)"
+          placeholder="Todos"
+          options={anos.map((ano) => ({ value: String(ano), label: String(ano) }))}
+          value={filters.ano !== null ? String(filters.ano) : ''}
+          onChange={(value) => handleChange('ano', value)}
+        />
+        <FiltroSelect
+          label="Semana (ISO)"
+          placeholder="Todas"
+          options={semanas.map((sem) => ({ value: String(sem), label: `Semana ${sem.toString().padStart(2, '0')}` }))}
+          value={filters.semana !== null ? String(filters.semana) : ''}
+          onChange={(value) => handleChange('semana', value)}
+        />
+        <FiltroSelect
+          label="Praça"
+          placeholder="Todas"
+          options={pracas}
+          value={filters.praca ?? ''}
+          onChange={(value) => handleChange('praca', value)}
+        />
+        <FiltroSelect
+          label="Sub praça"
+          placeholder="Todas"
+          options={subPracas}
+          value={filters.subPraca ?? ''}
+          onChange={(value) => handleChange('subPraca', value)}
+        />
+      </div>
+    </section>
+  );
+}
+
+interface FiltroSelectProps {
+  label: string;
+  placeholder: string;
+  options: FilterOption[];
+  value: string;
+  onChange: (value: string | null) => void;
+}
+
+function FiltroSelect({ label, placeholder, options, value, onChange }: FiltroSelectProps) {
+  return (
+    <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
+      {label}
+      <select
+        className="rounded-lg border border-blue-100 dark:border-blue-900/60 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        value={value}
+        onChange={(event) => onChange(event.target.value || null)}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}

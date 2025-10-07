@@ -449,3 +449,61 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_sub_praca() TO anon, authenticated, service_role;
 
+-- 7. Dimensões disponíveis para filtros
+DROP FUNCTION IF EXISTS public.listar_dimensoes_dashboard();
+
+CREATE OR REPLACE FUNCTION public.listar_dimensoes_dashboard()
+RETURNS jsonb
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+WITH base AS (
+  SELECT
+    data_do_periodo,
+    praca,
+    sub_praca
+  FROM public.dados_corridas
+  WHERE data_do_periodo IS NOT NULL
+),
+anos AS (
+  SELECT COALESCE(array_agg(val), ARRAY[]::integer[]) AS values
+  FROM (SELECT DISTINCT date_part('isoyear', data_do_periodo)::int AS val FROM base ORDER BY val) t
+),
+semanas AS (
+  SELECT COALESCE(array_agg(val), ARRAY[]::integer[]) AS values
+  FROM (SELECT DISTINCT date_part('week', data_do_periodo)::int AS val FROM base ORDER BY val) t
+),
+pracas AS (
+  SELECT COALESCE(array_agg(val), ARRAY[]::text[]) AS values
+  FROM (SELECT DISTINCT praca AS val FROM base WHERE praca IS NOT NULL ORDER BY val) t
+),
+sub_pracas AS (
+  SELECT COALESCE(array_agg(val), ARRAY[]::text[]) AS values
+  FROM (SELECT DISTINCT sub_praca AS val FROM base WHERE sub_praca IS NOT NULL ORDER BY val) t
+),
+sub_por_praca AS (
+  SELECT COALESCE(jsonb_object_agg(praca, subs), '{}'::jsonb) AS mapping
+  FROM (
+    SELECT praca, to_jsonb(array_agg(sub_praca ORDER BY sub_praca)) AS subs
+    FROM (
+      SELECT DISTINCT praca, sub_praca
+      FROM base
+      WHERE praca IS NOT NULL AND sub_praca IS NOT NULL
+    ) distinct_sub
+    GROUP BY praca
+  ) mapa
+)
+SELECT jsonb_build_object(
+  'anos', to_jsonb(anos.values),
+  'semanas', to_jsonb(semanas.values),
+  'pracas', to_jsonb(pracas.values),
+  'sub_pracas', to_jsonb(sub_pracas.values),
+  'map_sub_praca', COALESCE(sub_por_praca.mapping, '{}'::jsonb)
+)
+FROM anos, semanas, pracas, sub_pracas, sub_por_praca;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.listar_dimensoes_dashboard() TO anon, authenticated, service_role;
+
