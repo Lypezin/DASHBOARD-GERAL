@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -28,11 +28,45 @@ const COLUMN_MAP: { [key: string]: string } = {
 };
 
 
+const EXCEL_EPOCH_OFFSET = 25569;
+const SECONDS_IN_DAY = 86400;
+const MAX_DEBUG_ROWS = 5;
+
+const convertSecondsToHHMMSS = (totalSeconds: number): string => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.max(0, totalSeconds % 60);
+
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
+const convertFractionToHHMMSS = (fraction: number): string => {
+  const totalSeconds = Math.round(fraction * SECONDS_IN_DAY);
+  return convertSecondsToHHMMSS(totalSeconds);
+};
+
+const excelSerialToISODate = (serial: number): string | null => {
+  if (Number.isNaN(serial) || serial <= 0) return null;
+  const date = new Date((serial - EXCEL_EPOCH_OFFSET) * SECONDS_IN_DAY * 1000);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().split('T')[0];
+};
+
+
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState('');
+  const [totalRows, setTotalRows] = useState<number | null>(null);
+  const [insertedRows, setInsertedRows] = useState(0);
+
+  const progressLabel = useMemo(() => {
+    if (uploading && totalRows) {
+      return `${insertedRows}/${totalRows} registros enviados`;
+    }
+    return '';
+  }, [insertedRows, totalRows, uploading]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -50,6 +84,8 @@ export default function UploadPage() {
     setUploading(true);
     setProgress(0);
     setMessage('Lendo o arquivo...');
+    setInsertedRows(0);
+    setTotalRows(null);
 
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -59,12 +95,15 @@ export default function UploadPage() {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         // ========== PROCESSAMENTO SIMPLIFICADO ==========
-        const json: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: true });
+        const json: any[] = XLSX.utils.sheet_to_json(worksheet, {
+          raw: true,
+          defval: null,
+        });
 
-        console.log('📊 Dados brutos do Excel (primeiras 3 linhas):', JSON.stringify(json.slice(0, 3), null, 2));
+        console.log('📊 Dados brutos do Excel (primeiras linhas):', JSON.stringify(json.slice(0, MAX_DEBUG_ROWS), null, 2));
 
-        const processedData = json.slice(0, 15).map((row, index) => { // Limitar a 15 linhas para teste
-          const newRow: {[key: string]: any} = {};
+        const processedData = json.map((row, index) => {
+          const newRow: { [key: string]: any } = {};
 
           for (const excelHeader in row) {
              // Normalização básica do cabeçalho
@@ -81,38 +120,33 @@ export default function UploadPage() {
 
                 // Tratamento específico para data_do_periodo (número de série do Excel)
                 if (targetColumn === 'data_do_periodo') {
-                  if (typeof value === 'number' && value > 40000) { // Números de série do Excel são > 40000
-                    // Converte número de série do Excel para data
-                    // Fórmula correta: (número_série - 25569) * 86400 * 1000
-                    const date = new Date((value - 25569) * 86400 * 1000);
-                    newRow[targetColumn] = date.toISOString().split('T')[0];
-                    console.log(`   🔄 data_do_periodo: ${value} → ${newRow[targetColumn]}`);
+                  if (typeof value === 'number') {
+                    const isoDate = excelSerialToISODate(value);
+                    newRow[targetColumn] = isoDate ?? value;
+                    if (index < MAX_DEBUG_ROWS) {
+                      console.log(`   🔄 data_do_periodo: ${value} → ${newRow[targetColumn]}`);
+                    }
                   } else {
                     newRow[targetColumn] = value;
                   }
                 }
                 // Para colunas de tempo, aplicar conversão correta baseada no formato
                 else if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
-                  if (value === null || value === undefined) {
+                  if (value === null || value === undefined || value === '') {
                     newRow[targetColumn] = null;
                   } else if (typeof value === 'number') {
                     // Aplicar lógica de conversão baseada no tipo de coluna
                     if (targetColumn === 'tempo_disponivel_escalado') {
-                      // Esta coluna parece ser em segundos, não fração de dia
                       const totalSeconds = Math.round(value);
-                      const hours = Math.floor(totalSeconds / 3600);
-                      const minutes = Math.floor((totalSeconds % 3600) / 60);
-                      const seconds = totalSeconds % 60;
-                      newRow[targetColumn] = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                      console.log(`   🔄 ${targetColumn}: ${value} segundos → ${newRow[targetColumn]}`);
+                      newRow[targetColumn] = convertSecondsToHHMMSS(totalSeconds);
+                      if (index < MAX_DEBUG_ROWS) {
+                        console.log(`   🔄 ${targetColumn}: ${value} segundos → ${newRow[targetColumn]}`);
+                      }
                     } else {
-                      // Outras colunas de tempo (fração de dia)
-                      const totalSeconds = Math.round(value * 86400);
-                      const hours = Math.floor(totalSeconds / 3600);
-                      const minutes = Math.floor((totalSeconds % 3600) / 60);
-                      const seconds = totalSeconds % 60;
-                      newRow[targetColumn] = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                      console.log(`   🔄 ${targetColumn}: ${value} (fração) → ${newRow[targetColumn]}`);
+                      newRow[targetColumn] = convertFractionToHHMMSS(value);
+                      if (index < MAX_DEBUG_ROWS) {
+                        console.log(`   🔄 ${targetColumn}: ${value} (fração) → ${newRow[targetColumn]}`);
+                      }
                     }
                   } else {
                     newRow[targetColumn] = String(value);
@@ -126,17 +160,36 @@ export default function UploadPage() {
           return newRow;
         });
 
-        console.log('📤 Dados processados para o banco:', JSON.stringify(processedData, null, 2));
+        const sanitizedData = processedData.filter((row) =>
+          Object.values(row).some((value) => value !== null && value !== ''),
+        );
 
-        setMessage(`Enviando ${processedData.length} registros...`);
+        console.log(
+          '📤 Dados processados para o banco:',
+          JSON.stringify(sanitizedData.slice(0, MAX_DEBUG_ROWS), null, 2),
+        );
+        if (sanitizedData.length > MAX_DEBUG_ROWS) {
+          console.log(`... +${sanitizedData.length - MAX_DEBUG_ROWS} linhas adicionais`);
+        }
 
-        const BATCH_SIZE = 100; // Lote menor para mais segurança
+        if (sanitizedData.length === 0) {
+          setMessage('Nenhum registro válido encontrado no arquivo.');
+          setUploading(false);
+          return;
+        }
+
+        setTotalRows(sanitizedData.length);
+        setMessage(`Enviando ${sanitizedData.length} registros...`);
+
+        const BATCH_SIZE = 500; // Supabase recomenda até ~500 registros por batch
         let totalInserted = 0;
 
-        for (let i = 0; i < processedData.length; i += BATCH_SIZE) {
-          const batch = processedData.slice(i, i + BATCH_SIZE);
-          
-          const { error } = await supabase.from('dados_corridas').insert(batch);
+        for (let i = 0; i < sanitizedData.length; i += BATCH_SIZE) {
+          const batch = sanitizedData.slice(i, i + BATCH_SIZE);
+
+          const { data, error } = await supabase
+            .from('dados_corridas')
+            .insert(batch, { returning: 'minimal' });
 
           if (error) {
             console.error("Erro detalhado:", error);
@@ -149,11 +202,13 @@ export default function UploadPage() {
             throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
           }
           
-          totalInserted += batch.length;
-          setProgress((totalInserted / processedData.length) * 100);
+          totalInserted += data?.length ?? batch.length;
+          setProgress((totalInserted / sanitizedData.length) * 100);
+          setInsertedRows(totalInserted);
         }
 
         setMessage(`Upload concluído com sucesso! ${totalInserted} registros inseridos.`);
+        setProgress(100);
       } catch (error: any) {
         console.error('Erro no upload:', error);
         setMessage(`Erro: ${error.message}`);
@@ -189,6 +244,8 @@ export default function UploadPage() {
               <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
             </div>
           )}
+
+          {progressLabel && <p className="text-xs text-gray-500">{progressLabel}</p>}
 
           {message && <p className="text-sm text-center mt-4">{message}</p>}
         </div>
