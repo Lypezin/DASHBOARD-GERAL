@@ -27,17 +27,14 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase.rpc<DashboardTotalsRow[], null>(
-        'dashboard_totals',
-        null,
-      );
+      const { data, error } = await supabase.rpc('dashboard_totals');
 
       if (error) {
         console.error('Erro ao buscar dados:', error);
         setError('Não foi possível carregar os dados. Verifique a conexão com o Supabase.');
         setTotals(null);
-      } else if (data && data.length > 0) {
-        const totalsRow = data[0];
+      } else if (data && Array.isArray(data) && data.length > 0) {
+        const totalsRow = data[0] as DashboardTotalsRow;
         const safeNumber = (value: number | string | null | undefined) =>
           value === null || value === undefined ? 0 : Number(value);
 
