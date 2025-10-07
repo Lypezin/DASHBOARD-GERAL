@@ -153,63 +153,99 @@ export default function DashboardPage() {
   }, [filters]);
 
   return (
-    <div className="container mx-auto space-y-8">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Dashboard de Aderência Operacional</h1>
-        <p className="text-sm text-gray-500">Visão consolidada semelhante a um relatório Power BI</p>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800">
+      <div className="container mx-auto px-6 py-8 space-y-8">
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 absolute top-0 left-0"></div>
+              </div>
+              <div className="text-center">
+                <p className="text-gray-700 dark:text-gray-300 font-semibold text-lg">Carregando dados...</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Processando informações do dashboard</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-8 text-center shadow-lg">
+            <div className="text-6xl mb-4">⚠️</div>
+            <div className="text-red-700 text-xl font-bold mb-2">Erro ao carregar dados</div>
+            <p className="text-red-600 text-lg">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        )}
 
-      {loading && <p>Carregando dados...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-
-      {totals && !loading && !error && (
-        <>
-          <FiltroBar
-            filters={filters}
-            setFilters={setFilters}
-            anos={anosDisponiveis}
-            semanas={semanasDisponiveis}
-            pracas={pracas}
-            subPracas={subPracas}
-          />
-          <ResumoCards totals={totals} aderenciaAtual={aderenciaGeral?.aderencia_percentual} />
-          <AderenciaOverview
-            aderenciaSemanal={aderenciaSemanal}
-            aderenciaDia={aderenciaDia}
-            aderenciaTurno={aderenciaTurno}
-            aderenciaSubPraca={aderenciaSubPraca}
-          />
-        </>
-      )}
+        {totals && !loading && !error && (
+          <>
+            <FiltroBar
+              filters={filters}
+              setFilters={setFilters}
+              anos={anosDisponiveis}
+              semanas={semanasDisponiveis}
+              pracas={pracas}
+              subPracas={subPracas}
+            />
+            <ResumoCards totals={totals} aderenciaAtual={aderenciaGeral?.aderencia_percentual} />
+            <AderenciaOverview
+              aderenciaSemanal={aderenciaSemanal}
+              aderenciaDia={aderenciaDia}
+              aderenciaTurno={aderenciaTurno}
+              aderenciaSubPraca={aderenciaSubPraca}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
 function ResumoCards({ totals, aderenciaAtual }: { totals: Totals; aderenciaAtual?: number }) {
+  const cards = [
+    { titulo: "Corridas ofertadas", valor: totals.ofertadas, subtitulo: "Total do período", icon: "🎯", cor: "from-blue-500 to-blue-600" },
+    { titulo: "Corridas aceitas", valor: totals.aceitas, subtitulo: "Entregadores", icon: "✅", cor: "from-green-500 to-green-600" },
+    { titulo: "Corridas rejeitadas", valor: totals.rejeitadas, subtitulo: "Total", icon: "❌", cor: "from-red-500 to-red-600" },
+    { titulo: "Corridas completadas", valor: totals.completadas, subtitulo: "Finalizadas", icon: "🏆", cor: "from-purple-500 to-purple-600" },
+    { titulo: "Aderência geral", valor: aderenciaAtual ?? 0, subtitulo: "Semana atual", icon: "📈", cor: "from-indigo-500 to-indigo-600", formato: "percentual" as const }
+  ];
+
   return (
-    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      <ResumoCard titulo="Corridas ofertadas" valor={totals.ofertadas} subtitulo="Total do período" />
-      <ResumoCard titulo="Corridas aceitas" valor={totals.aceitas} subtitulo="Entregadores" />
-      <ResumoCard titulo="Corridas rejeitadas" valor={totals.rejeitadas} subtitulo="Total" />
-      <ResumoCard titulo="Corridas completadas" valor={totals.completadas} subtitulo="Finalizadas" />
-      <ResumoCard
-        titulo="Aderência geral"
-        valor={aderenciaAtual ?? 0}
-        subtitulo="Semana atual"
-        formato="percentual"
-      />
+    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      {cards.map((card, index) => (
+        <ResumoCard key={index} {...card} />
+      ))}
     </section>
   );
 }
 
-function ResumoCard({ titulo, valor, subtitulo, formato }: { titulo: string; valor: number; subtitulo: string; formato?: 'percentual' }) {
+function ResumoCard({ titulo, valor, subtitulo, formato, icon, cor }: { titulo: string; valor: number; subtitulo: string; formato?: 'percentual'; icon?: string; cor?: string }) {
   return (
-    <div className="bg-white dark:bg-gray-900 border border-blue-100 dark:border-blue-900/40 shadow-sm rounded-xl p-5 flex flex-col gap-2">
-      <span className="text-xs uppercase tracking-wide text-blue-600 font-semibold">{titulo}</span>
-      <span className="text-2xl font-bold text-gray-900 dark:text-gray-50">
-        {formato === 'percentual' ? `${valor.toFixed(1)}%` : valor.toLocaleString('pt-BR')}
-      </span>
-      <span className="text-xs text-gray-400 uppercase">{subtitulo}</span>
+    <div className="group relative overflow-hidden bg-white dark:bg-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div className={`absolute inset-0 bg-gradient-to-br ${cor || 'from-blue-500 to-blue-600'} opacity-5 group-hover:opacity-10 transition-opacity`}></div>
+      <div className="relative p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className={`p-3 rounded-xl bg-gradient-to-br ${cor || 'from-blue-500 to-blue-600'} text-white shadow-lg`}>
+            <span className="text-xl">{icon || '📊'}</span>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-50">
+              {formato === 'percentual' ? `${valor.toFixed(1)}%` : valor.toLocaleString('pt-BR')}
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{titulo}</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{subtitulo}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -227,10 +263,13 @@ function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, ade
   return (
     <div className="space-y-8">
       <section className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 bg-white dark:bg-gray-900 rounded-xl shadow-md border border-blue-100 dark:border-blue-900/40 p-6 flex flex-col justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Aderência geral</h2>
-            <p className="text-sm text-gray-500">Semana mais recente</p>
+        <div className="lg:col-span-1 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-blue-100 dark:border-blue-900/40 p-8 flex flex-col justify-between">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg">
+              <span className="text-2xl text-white">🎯</span>
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Aderência Geral</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Semana mais recente</p>
           </div>
 
           {semanaAtual ? (
@@ -245,11 +284,16 @@ function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, ade
           )}
         </div>
 
-        <div className="lg:col-span-3 bg-white dark:bg-gray-900 rounded-xl shadow-md border border-blue-100 dark:border-blue-900/40 p-6">
-          <header className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Histórico semanal</h3>
-              <p className="text-sm text-gray-500">Últimas 10 semanas acompanhadas</p>
+        <div className="lg:col-span-3 bg-gradient-to-br from-white to-slate-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-blue-100 dark:border-blue-900/40 p-8">
+          <header className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl">
+                <span className="text-white text-lg">📈</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Histórico Semanal</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Últimas 10 semanas acompanhadas</p>
+              </div>
             </div>
           </header>
 
@@ -286,11 +330,16 @@ function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, ade
         </div>
       </section>
 
-      <section className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-blue-100 dark:border-blue-900/40 p-6">
-        <header className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Aderência por dia da semana</h3>
-            <p className="text-sm text-gray-500">Consolidado do período carregado</p>
+      <section className="bg-gradient-to-br from-white to-green-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-green-100 dark:border-green-900/40 p-8">
+        <header className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
+              <span className="text-white text-lg">📅</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Aderência por Dia da Semana</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Consolidado do período carregado</p>
+            </div>
           </div>
         </header>
 
@@ -305,11 +354,16 @@ function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, ade
         )}
       </section>
 
-      <section className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-blue-100 dark:border-blue-900/40 p-6">
-        <header className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Aderência por turno</h3>
-            <p className="text-sm text-gray-500">Comparativo entre períodos operacionais</p>
+      <section className="bg-gradient-to-br from-white to-orange-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-orange-100 dark:border-orange-900/40 p-8">
+        <header className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl">
+              <span className="text-white text-lg">⏰</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Aderência por Turno</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Comparativo entre períodos operacionais</p>
+            </div>
           </div>
         </header>
 
@@ -324,11 +378,16 @@ function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, ade
         )}
       </section>
 
-      <section className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-blue-100 dark:border-blue-900/40 p-6">
-        <header className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Aderência por sub praça</h3>
-            <p className="text-sm text-gray-500">Comportamento por hubs locais</p>
+      <section className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-purple-100 dark:border-purple-900/40 p-8">
+        <header className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl">
+              <span className="text-white text-lg">🏢</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Aderência por Sub Praça</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Comportamento por hubs locais</p>
+            </div>
           </div>
         </header>
 
@@ -347,13 +406,17 @@ function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, ade
 }
 
 function CardDia({ dia }: { dia: AderenciaDia }) {
+  const corFundo = dia.aderencia_percentual >= 80 ? 'from-green-50 to-emerald-50 border-green-200' : 
+                   dia.aderencia_percentual >= 60 ? 'from-yellow-50 to-orange-50 border-yellow-200' : 
+                   'from-red-50 to-pink-50 border-red-200';
+  
   return (
-    <div className="bg-gradient-to-b from-blue-50 via-white to-white dark:from-blue-900/30 rounded-lg border border-blue-100 dark:border-blue-900/40 p-4 text-center shadow-sm space-y-3">
-      <div className="text-xs uppercase tracking-wider text-blue-700 font-semibold">{dia.dia_da_semana}</div>
+    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 rounded-2xl border-2 p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 space-y-4`}>
+      <div className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">{dia.dia_da_semana}</div>
       <Gauge percentual={dia.aderencia_percentual} size="small" />
-      <div className="space-y-1">
-        <ResumoHoras titulo="Horas a entregar" valor={dia.horas_a_entregar} cor="text-blue-600" tamanho="sm" />
-        <ResumoHoras titulo="Entregues" valor={dia.horas_entregues} cor="text-green-600" tamanho="sm" />
+      <div className="space-y-2">
+        <ResumoHoras titulo="Horas a entregar" valor={dia.horas_a_entregar} cor="text-blue-700 dark:text-blue-400" tamanho="sm" />
+        <ResumoHoras titulo="Entregues" valor={dia.horas_entregues} cor="text-green-700 dark:text-green-400" tamanho="sm" />
       </div>
       <Badge value={dia.aderencia_percentual} />
     </div>
@@ -361,23 +424,32 @@ function CardDia({ dia }: { dia: AderenciaDia }) {
 }
 
 function CardTurno({ turno }: { turno: AderenciaTurno }) {
+  const corFundo = turno.aderencia_percentual >= 80 ? 'from-green-50 to-emerald-100 border-green-200' : 
+                   turno.aderencia_percentual >= 60 ? 'from-yellow-50 to-orange-100 border-yellow-200' : 
+                   'from-red-50 to-pink-100 border-red-200';
+  
   return (
-    <div className="border border-blue-100 dark:border-blue-900/40 rounded-lg p-4 shadow-sm">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">{turno.periodo}</p>
-          <p className="text-xs text-gray-500">{turno.horas_a_entregar} planejadas • {turno.horas_entregues} entregues</p>
+    <div className={`bg-gradient-to-r ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300`}>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="flex-1">
+          <div className="flex items-center space-x-3 mb-2">
+            <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg">
+              <span className="text-white text-sm">⏰</span>
+            </div>
+            <p className="text-lg font-bold uppercase tracking-wide text-gray-800 dark:text-gray-200">{turno.periodo}</p>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 ml-11">{turno.horas_a_entregar} planejadas • {turno.horas_entregues} entregues</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="w-28">
+        <div className="flex items-center gap-6">
+          <div className="w-32">
             <Gauge percentual={turno.aderencia_percentual} thickness="thin" />
           </div>
           <Badge value={turno.aderencia_percentual} />
         </div>
       </div>
-      <div className="mt-3 h-2 w-full bg-blue-100 dark:bg-blue-900/30 rounded-full overflow-hidden">
+      <div className="mt-4 h-3 w-full bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden shadow-inner">
         <div
-          className={`h-full ${turno.aderencia_percentual >= 80 ? 'bg-green-500' : turno.aderencia_percentual >= 60 ? 'bg-yellow-400' : 'bg-red-500'}`}
+          className={`h-full transition-all duration-500 ${turno.aderencia_percentual >= 80 ? 'bg-gradient-to-r from-green-400 to-green-600' : turno.aderencia_percentual >= 60 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 'bg-gradient-to-r from-red-400 to-red-600'}`}
           style={{ width: `${Math.min(turno.aderencia_percentual, 100)}%` }}
         />
       </div>
@@ -386,16 +458,27 @@ function CardTurno({ turno }: { turno: AderenciaTurno }) {
 }
 
 function CardSubPraca({ subPraca }: { subPraca: AderenciaSubPraca }) {
+  const corFundo = subPraca.aderencia_percentual >= 80 ? 'from-green-50 to-emerald-100 border-green-200' : 
+                   subPraca.aderencia_percentual >= 60 ? 'from-yellow-50 to-orange-100 border-yellow-200' : 
+                   'from-red-50 to-pink-100 border-red-200';
+  
   return (
-    <div className="border border-blue-100 dark:border-blue-900/40 rounded-lg p-4 shadow-sm flex flex-col gap-3">
+    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col gap-4`}>
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">{subPraca.sub_praca}</p>
-          <p className="text-xs text-gray-500">{subPraca.horas_a_entregar} planejadas • {subPraca.horas_entregues} entregues</p>
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
+            <span className="text-white text-sm">🏢</span>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">{subPraca.sub_praca}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{subPraca.horas_a_entregar} planejadas • {subPraca.horas_entregues} entregues</p>
+          </div>
         </div>
         <Badge value={subPraca.aderencia_percentual} />
       </div>
-      <Gauge percentual={subPraca.aderencia_percentual} thickness="thin" />
+      <div className="flex justify-center">
+        <Gauge percentual={subPraca.aderencia_percentual} thickness="thin" />
+      </div>
     </div>
   );
 }
@@ -434,18 +517,26 @@ function Gauge({ percentual, size = 'medium', thickness = 'normal' }: { percentu
 }
 
 function Badge({ value }: { value: number }) {
-  let badgeClass = 'bg-red-100 text-red-800';
+  let badgeClass = 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg';
   let label = 'Precisa melhorar';
+  let icon = '⚠️';
 
   if (value >= 80) {
-    badgeClass = 'bg-green-100 text-green-800';
+    badgeClass = 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg';
     label = 'Excelente';
+    icon = '🏆';
   } else if (value >= 60) {
-    badgeClass = 'bg-yellow-100 text-yellow-800';
+    badgeClass = 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg';
     label = 'Bom';
+    icon = '👍';
   }
 
-  return <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${badgeClass}`}>{label}</span>;
+  return (
+    <span className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold ${badgeClass} transform transition-transform hover:scale-105`}>
+      <span>{icon}</span>
+      {label}
+    </span>
+  );
 }
 
 function TableHeader({ text }: { text: string }) {
@@ -471,7 +562,11 @@ function ResumoHoras({ titulo, valor, cor, tamanho = 'md' }: { titulo: string; v
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="flex items-center justify-center py-10 text-sm text-gray-500 dark:text-gray-400 border border-dashed rounded-lg">{message}</div>
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="text-6xl mb-4 opacity-50">📊</div>
+      <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">{message}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Dados serão exibidos quando disponíveis</p>
+    </div>
   );
 }
 
@@ -502,9 +597,14 @@ function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas }: Fi
   };
 
   return (
-    <section className="bg-white dark:bg-gray-900 border border-blue-100 dark:border-blue-900/40 shadow-sm rounded-xl p-5">
-      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-4">Filtros</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <section className="bg-gradient-to-r from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 border-2 border-blue-200 dark:border-blue-900/40 shadow-xl rounded-2xl p-8">
+      <div className="flex items-center space-x-3 mb-6">
+        <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+          <span className="text-white text-lg">🔍</span>
+        </div>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">Filtros de Análise</h2>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <FiltroSelect
           label="Ano (ISO)"
           placeholder="Todos"
@@ -548,10 +648,10 @@ interface FiltroSelectProps {
 
 function FiltroSelect({ label, placeholder, options, value, onChange }: FiltroSelectProps) {
   return (
-    <label className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
-      {label}
+    <label className="flex flex-col gap-2">
+      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">{label}</span>
       <select
-        className="rounded-lg border border-blue-100 dark:border-blue-900/60 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="rounded-xl border-2 border-blue-200 dark:border-blue-900/60 bg-white dark:bg-gray-900 px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
         value={value}
         onChange={(event) => onChange(event.target.value || null)}
       >
