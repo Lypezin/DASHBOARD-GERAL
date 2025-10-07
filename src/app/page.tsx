@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 interface Totals {
@@ -46,6 +47,13 @@ interface AderenciaSubPraca {
   aderencia_percentual: number;
 }
 
+interface AderenciaOrigem {
+  origem: string;
+  horas_a_entregar: string;
+  horas_entregues: string;
+  aderencia_percentual: number;
+}
+
 interface FilterOption {
   value: string;
   label: string;
@@ -56,7 +64,17 @@ interface Filters {
   semana: number | null;
   praca: string | null;
   subPraca: string | null;
+  origem: string | null;
 }
+
+type DimensoesDashboard = {
+  anos: number[];
+  semanas: number[];
+  pracas: string[];
+  sub_pracas: string[];
+  origens: string[];
+  map_sub_praca: { [key: string]: string[] };
+};
 
 export default function DashboardPage() {
   const [totals, setTotals] = useState<Totals | null>(null);
@@ -64,11 +82,13 @@ export default function DashboardPage() {
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
   const [aderenciaTurno, setAderenciaTurno] = useState<AderenciaTurno[]>([]);
   const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>([]);
+  const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>([]);
   const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
   const [semanasDisponiveis, setSemanasDisponiveis] = useState<number[]>([]);
   const [pracas, setPracas] = useState<FilterOption[]>([]);
   const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
-  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null });
+  const [origens, setOrigens] = useState<FilterOption[]>([]);
+  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,11 +122,19 @@ export default function DashboardPage() {
 
       const params = buildFilterPayload(filters);
 
-      const [semanal, porDia, porTurno, porSubPraca, filtrosDisponiveis] = await Promise.all([
+      const [
+        semanal,
+        porDia,
+        porTurno,
+        porSubPraca,
+        porOrigem,
+        filtrosDisponiveis,
+      ] = await Promise.all([
         supabase.rpc('calcular_aderencia_semanal', params),
         supabase.rpc('calcular_aderencia_por_dia', params),
         supabase.rpc('calcular_aderencia_por_turno', params),
         supabase.rpc('calcular_aderencia_por_sub_praca', params),
+        supabase.rpc('calcular_aderencia_por_origem', params),
         supabase.rpc('listar_dimensoes_dashboard'),
       ]);
 
@@ -138,12 +166,20 @@ export default function DashboardPage() {
         setAderenciaSubPraca((porSubPraca.data as AderenciaSubPraca[]) || []);
       }
 
+      if (porOrigem.error) {
+        console.error('Erro ao buscar aderência por origem:', porOrigem.error);
+        setAderenciaOrigem([]);
+      } else {
+        setAderenciaOrigem((porOrigem.data as AderenciaOrigem[]) || []);
+      }
+
       if (!filtrosDisponiveis.error && filtrosDisponiveis.data) {
-        const { anos, semanas, pracas: pracasData, sub_pracas: subPracasData } = filtrosDisponiveis.data as any;
+        const { anos, semanas, pracas: pracasData, sub_pracas: subPracasData, origens: origensData } = filtrosDisponiveis.data as DimensoesDashboard;
         setAnosDisponiveis(anos || []);
         setSemanasDisponiveis(semanas || []);
         setPracas((pracasData || []).map((p: string) => ({ value: p, label: p })));
         setSubPracas((subPracasData || []).map((sp: string) => ({ value: sp, label: sp })));
+        setOrigens((origensData || []).map((origem: string) => ({ value: origem, label: origem })));
       }
 
       setLoading(false);
@@ -193,6 +229,7 @@ export default function DashboardPage() {
               semanas={semanasDisponiveis}
               pracas={pracas}
               subPracas={subPracas}
+              origens={origens}
             />
             <ResumoCards totals={totals} aderenciaAtual={aderenciaGeral?.aderencia_percentual} />
             <AderenciaOverview
@@ -200,6 +237,7 @@ export default function DashboardPage() {
               aderenciaDia={aderenciaDia}
               aderenciaTurno={aderenciaTurno}
               aderenciaSubPraca={aderenciaSubPraca}
+              aderenciaOrigem={aderenciaOrigem}
             />
           </>
         )}
@@ -255,9 +293,10 @@ interface AderenciaOverviewProps {
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
   aderenciaSubPraca: AderenciaSubPraca[];
+  aderenciaOrigem: AderenciaOrigem[];
 }
 
-function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca }: AderenciaOverviewProps) {
+function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem }: AderenciaOverviewProps) {
   const semanaAtual = aderenciaSemanal[0];
 
   return (
@@ -401,6 +440,30 @@ function AderenciaOverview({ aderenciaSemanal, aderenciaDia, aderenciaTurno, ade
           </div>
         )}
       </section>
+
+      <section className="bg-gradient-to-br from-white to-sky-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-sky-100 dark:border-sky-900/40 p-8">
+        <header className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl">
+              <span className="text-white text-lg">🌐</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Aderência por origem</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Comparativo por canal de operação</p>
+            </div>
+          </div>
+        </header>
+
+        {aderenciaOrigem.length === 0 ? (
+          <EmptyState message="Sem dados de aderência por origem." />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {aderenciaOrigem.map((origem) => (
+              <CardOrigem key={origem.origem} origem={origem} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
@@ -478,6 +541,32 @@ function CardSubPraca({ subPraca }: { subPraca: AderenciaSubPraca }) {
       </div>
       <div className="flex justify-center">
         <Gauge percentual={subPraca.aderencia_percentual} thickness="thin" />
+      </div>
+    </div>
+  );
+}
+
+function CardOrigem({ origem }: { origem: AderenciaOrigem }) {
+  const corFundo = origem.aderencia_percentual >= 80 ? 'from-cyan-50 to-sky-100 border-cyan-200' :
+                   origem.aderencia_percentual >= 60 ? 'from-blue-50 to-indigo-100 border-blue-200' :
+                   'from-slate-50 to-slate-100 border-slate-200';
+
+  return (
+    <div className={`bg-gradient-to-br ${corFundo} dark:from-gray-800 dark:to-gray-700 border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col gap-4`}>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-br from-sky-500 to-blue-600 rounded-lg">
+            <span className="text-white text-sm">🌐</span>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">{origem.origem}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{origem.horas_a_entregar} planejadas • {origem.horas_entregues} entregues</p>
+          </div>
+        </div>
+        <Badge value={origem.aderencia_percentual} />
+      </div>
+      <div className="flex justify-center">
+        <Gauge percentual={origem.aderencia_percentual} thickness="thin" />
       </div>
     </div>
   );
@@ -576,24 +665,30 @@ function buildFilterPayload(filters: Filters) {
     p_semana: filters.semana,
     p_praca: filters.praca,
     p_sub_praca: filters.subPraca,
+    p_origem: filters.origem,
   };
 }
 
 interface FiltroBarProps {
   filters: Filters;
-  setFilters: (filters: Filters) => void;
+  setFilters: Dispatch<SetStateAction<Filters>>;
   anos: number[];
   semanas: number[];
   pracas: FilterOption[];
   subPracas: FilterOption[];
+  origens: FilterOption[];
 }
 
-function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas }: FiltroBarProps) {
-  const handleChange = (key: keyof Filters, value: string | null) => {
-    setFilters({
-      ...filters,
-      [key]: value === '' ? null : key === 'ano' || key === 'semana' ? value ? Number(value) : null : value,
-    });
+function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas, origens }: FiltroBarProps) {
+  const handleChange = (key: keyof Filters, rawValue: string | null) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: rawValue === '' || rawValue === null
+        ? null
+        : key === 'ano' || key === 'semana'
+        ? Number(rawValue)
+        : rawValue,
+    }));
   };
 
   return (
@@ -604,7 +699,7 @@ function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas }: Fi
         </div>
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">Filtros de Análise</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
         <FiltroSelect
           label="Ano (ISO)"
           placeholder="Todos"
@@ -632,6 +727,13 @@ function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas }: Fi
           options={subPracas}
           value={filters.subPraca ?? ''}
           onChange={(value) => handleChange('subPraca', value)}
+        />
+        <FiltroSelect
+          label="Origem"
+          placeholder="Todas"
+          options={origens}
+          value={filters.origem ?? ''}
+          onChange={(value) => handleChange('origem', value)}
         />
       </div>
     </section>

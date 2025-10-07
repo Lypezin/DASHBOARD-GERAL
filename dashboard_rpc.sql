@@ -353,7 +353,6 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_turno() TO anon, authenticated, service_role;
 
--- 6. Aderência por sub praça
 DROP FUNCTION IF EXISTS public.calcular_aderencia_por_sub_praca();
 
 CREATE OR REPLACE FUNCTION public.calcular_aderencia_por_sub_praca(
@@ -447,9 +446,105 @@ LEFT JOIN horas_realizadas hr USING (sub_praca)
 ORDER BY hp.sub_praca;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_sub_praca() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_sub_praca(integer, integer, text, text) TO anon, authenticated, service_role;
 
--- 7. Dimensões disponíveis para filtros
+-- 7. Aderência por origem
+DROP FUNCTION IF EXISTS public.calcular_aderencia_por_origem();
+
+CREATE OR REPLACE FUNCTION public.calcular_aderencia_por_origem(
+  p_ano integer DEFAULT NULL,
+  p_semana integer DEFAULT NULL,
+  p_praca text DEFAULT NULL,
+  p_sub_praca text DEFAULT NULL,
+  p_origem text DEFAULT NULL
+)
+RETURNS TABLE (
+  origem text,
+  horas_a_entregar text,
+  horas_entregues text,
+  aderencia_percentual numeric
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+WITH base AS (
+  SELECT
+    data_do_periodo::date AS data_ref,
+    origem,
+    periodo,
+    praca,
+    sub_praca,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    hhmmss_to_seconds(duracao_do_periodo) AS duracao_segundos,
+    hhmmss_to_seconds(tempo_disponivel_absoluto) AS tempo_disponivel_segundos
+  FROM public.dados_corridas
+  WHERE data_do_periodo IS NOT NULL
+    AND origem IS NOT NULL
+    AND (p_ano IS NULL OR date_part('isoyear', data_do_periodo)::int = p_ano)
+    AND (p_semana IS NULL OR date_part('week', data_do_periodo)::int = p_semana)
+    AND (p_praca IS NULL OR praca = p_praca)
+    AND (p_sub_praca IS NULL OR sub_praca = p_sub_praca)
+    AND (p_origem IS NULL OR origem = p_origem)
+),
+unique_turnos AS (
+  SELECT DISTINCT ON (
+      data_ref,
+      origem,
+      periodo,
+      numero_minimo_de_entregadores_regulares_na_escala
+    )
+    origem,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    duracao_segundos
+  FROM base
+  WHERE duracao_segundos > 0
+  ORDER BY
+    data_ref,
+    origem,
+    periodo,
+    numero_minimo_de_entregadores_regulares_na_escala,
+    duracao_segundos DESC
+),
+horas_planejadas AS (
+  SELECT
+    origem,
+    SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
+  FROM unique_turnos
+  GROUP BY origem
+),
+horas_realizadas AS (
+  SELECT
+    origem,
+    SUM(tempo_disponivel_segundos) AS segundos_realizados
+  FROM base
+  WHERE tempo_disponivel_segundos > 0
+  GROUP BY origem
+)
+SELECT
+  hp.origem,
+  TO_CHAR(
+    INTERVAL '1 second' * COALESCE(hp.segundos_planejados, 0),
+    'HH24:MI:SS'
+  ) AS horas_a_entregar,
+  TO_CHAR(
+    INTERVAL '1 second' * COALESCE(hr.segundos_realizados, 0),
+    'HH24:MI:SS'
+  ) AS horas_entregues,
+  CASE
+    WHEN COALESCE(hp.segundos_planejados, 0) > 0 THEN
+      ROUND((COALESCE(hr.segundos_realizados, 0) / hp.segundos_planejados) * 100, 2)
+    ELSE 0
+  END AS aderencia_percentual
+FROM horas_planejadas hp
+LEFT JOIN horas_realizadas hr USING (origem)
+ORDER BY hp.origem;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_origem(integer, integer, text, text, text) TO anon, authenticated, service_role;
+
+-- 8. Dimensões disponíveis para filtros
 DROP FUNCTION IF EXISTS public.listar_dimensoes_dashboard();
 
 CREATE OR REPLACE FUNCTION public.listar_dimensoes_dashboard()
@@ -463,7 +558,8 @@ WITH base AS (
   SELECT
     data_do_periodo,
     praca,
-    sub_praca
+    sub_praca,
+    origem
   FROM public.dados_corridas
   WHERE data_do_periodo IS NOT NULL
 ),
@@ -483,6 +579,10 @@ sub_pracas AS (
   SELECT COALESCE(array_agg(val), ARRAY[]::text[]) AS values
   FROM (SELECT DISTINCT sub_praca AS val FROM base WHERE sub_praca IS NOT NULL ORDER BY val) t
 ),
+origens AS (
+  SELECT COALESCE(array_agg(val), ARRAY[]::text[]) AS values
+  FROM (SELECT DISTINCT origem AS val FROM base WHERE origem IS NOT NULL ORDER BY val) t
+),
 sub_por_praca AS (
   SELECT COALESCE(jsonb_object_agg(praca, subs), '{}'::jsonb) AS mapping
   FROM (
@@ -500,9 +600,10 @@ SELECT jsonb_build_object(
   'semanas', to_jsonb(semanas.values),
   'pracas', to_jsonb(pracas.values),
   'sub_pracas', to_jsonb(sub_pracas.values),
+  'origens', to_jsonb(origens.values),
   'map_sub_praca', COALESCE(sub_por_praca.mapping, '{}'::jsonb)
 )
-FROM anos, semanas, pracas, sub_pracas, sub_por_praca;
+FROM anos, semanas, pracas, sub_pracas, origens, sub_por_praca;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.listar_dimensoes_dashboard() TO anon, authenticated, service_role;
