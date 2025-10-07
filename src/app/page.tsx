@@ -10,6 +10,13 @@ interface Totals {
   completadas: number;
 }
 
+interface DashboardTotalsRow {
+  corridas_ofertadas: number | string | null;
+  corridas_aceitas: number | string | null;
+  corridas_rejeitadas: number | string | null;
+  corridas_completadas: number | string | null;
+}
+
 export default function DashboardPage() {
   const [totals, setTotals] = useState<Totals | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,26 +27,27 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
-        .from('dados_corridas')
-        .select('numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_rejeitadas, numero_de_corridas_completadas');
+      const { data, error } = await supabase.rpc<DashboardTotalsRow[]>(
+        'dashboard_totals',
+      );
 
       if (error) {
         console.error('Erro ao buscar dados:', error);
         setError('Não foi possível carregar os dados. Verifique a conexão com o Supabase.');
         setTotals(null);
-      } else if (data) {
-        const calculatedTotals = data.reduce(
-          (acc, row) => {
-            acc.ofertadas += row.numero_de_corridas_ofertadas || 0;
-            acc.aceitas += row.numero_de_corridas_aceitas || 0;
-            acc.rejeitadas += row.numero_de_corridas_rejeitadas || 0;
-            acc.completadas += row.numero_de_corridas_completadas || 0;
-            return acc;
-          },
-          { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }
-        );
-        setTotals(calculatedTotals);
+      } else if (data && data.length > 0) {
+        const totalsRow = data[0];
+        const safeNumber = (value: number | string | null | undefined) =>
+          value === null || value === undefined ? 0 : Number(value);
+
+        setTotals({
+          ofertadas: safeNumber(totalsRow.corridas_ofertadas),
+          aceitas: safeNumber(totalsRow.corridas_aceitas),
+          rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
+          completadas: safeNumber(totalsRow.corridas_completadas),
+        });
+      } else {
+        setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
       }
       setLoading(false);
     }
