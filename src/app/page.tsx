@@ -27,8 +27,9 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase.rpc<DashboardTotalsRow[]>(
+      const { data, error } = await supabase.rpc<DashboardTotalsRow[], null>(
         'dashboard_totals',
+        null,
       );
 
       if (error) {
