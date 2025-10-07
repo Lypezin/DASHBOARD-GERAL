@@ -58,87 +58,113 @@ export default function UploadPage() {
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        // Usar `raw: true` para obter os números brutos do Excel e evitar qualquer conversão automática.
-        const json: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: true });
+        // ========== ANÁLISE COMPLETA DO EXCEL ==========
+        console.log('🔍 ANALISANDO PLANILHA EXCEL...');
 
-        // Debug: vamos logar os primeiros 3 registros para entender exatamente o que vem do Excel
-        console.log('DEBUG - Primeiros 3 registros brutos do Excel:', JSON.stringify(json.slice(0, 3), null, 2));
+        // Testar diferentes opções de leitura
+        console.log('📊 Opção 1 - raw: true');
+        const jsonRaw: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: true });
+        console.log('Dados raw (primeiras 3 linhas):', JSON.stringify(jsonRaw.slice(0, 3), null, 2));
 
-        // Lógica final à prova de inconsistências do Excel.
-        const processedData = json.map((row, index) => {
+        console.log('📊 Opção 2 - cellDates: true');
+        const jsonDates: any[] = XLSX.utils.sheet_to_json(worksheet, { cellDates: true });
+        console.log('Dados com datas (primeiras 3 linhas):', JSON.stringify(jsonDates.slice(0, 3), null, 2));
+
+        console.log('📊 Opção 3 - header: 1');
+        const jsonHeader: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
+        console.log('Dados com header (primeiras 3 linhas):', JSON.stringify(jsonHeader.slice(0, 3), null, 2));
+
+        // ========== MAPEAMENTO ROBUSTO ==========
+        const processedData = jsonRaw.slice(0, 15).map((row, index) => { // Limitar a 15 linhas para teste
+          console.log(`\n🔄 Processando linha ${index + 1}:`, row);
+
           const newRow: {[key: string]: any} = {};
 
-          for (const excelHeader in row) {
-             // Normalização melhorada do cabeçalho
-             const normalizedKey = excelHeader
-               .trim()
-               .toLowerCase()
-               .normalize('NFD')
-               .replace(/[\u0300-\u036f]/g, '') // remove acentos
-               .replace(/\s+/g, '_');
+          // Tentar múltiplas variações do mapeamento
+          const possibleHeaders = [
+            // Normalização atual
+            Object.keys(row).map(key => key.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '_')),
+            // Sem normalização
+            Object.keys(row).map(key => key.trim().toLowerCase()),
+            // Apenas minúsculas
+            Object.keys(row).map(key => key.toLowerCase()),
+            // Original
+            Object.keys(row)
+          ];
 
-             if (COLUMN_MAP[normalizedKey]) {
-                const targetColumn = COLUMN_MAP[normalizedKey];
-                const value = row[excelHeader];
+          console.log(`   Cabeçalhos possíveis:`, possibleHeaders[0]);
 
-                if (targetColumn === 'data_do_periodo') {
-                  if (typeof value === 'number' && value > 1) {
-                    const date = new Date((value - 25569) * 86400 * 1000);
-                    newRow[targetColumn] = date.toISOString().split('T')[0];
-                  } else if (value) {
-                    newRow[targetColumn] = String(value).split('T')[0];
-                  }
-                } else if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
-                  let finalTime = '00:00:00'; // Valor padrão
+          for (let i = 0; i < Object.keys(row).length; i++) {
+            const originalKey = Object.keys(row)[i];
+            const normalizedKey = possibleHeaders[0][i];
 
-                  // Debug: log do valor bruto para esta célula específica
-                  if (index < 3 && ['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
-                    console.log(`DEBUG - Coluna ${targetColumn}, valor bruto:`, value, `tipo: ${typeof value}`);
-                  }
+            if (COLUMN_MAP[normalizedKey]) {
+              const targetColumn = COLUMN_MAP[normalizedKey];
+              const value = row[originalKey];
 
-                  if (value !== null && value !== undefined) {
-                    if (typeof value === 'number' && value >= 0 && value < 1) {
-                      // Caso 1: O valor é um número (fração de dia).
-                      const totalSeconds = Math.round(value * 86400);
-                      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-                      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-                      const seconds = String(totalSeconds % 60).padStart(2, '0');
-                      finalTime = `${hours}:${minutes}:${seconds}`;
-                    } else if (typeof value === 'string') {
-                      if (value.includes('T') && value.includes('1899-12-30')) {
-                        // Caso específico: string ISO "1899-12-30T..."
-                        // Este é o formato problemático que vemos no banco
-                        const timePart = value.split('T')[1];
-                        if (timePart) {
-                          finalTime = timePart.split('.')[0]; // Remove milissegundos
-                          console.log(`DEBUG - Convertido "${value}" para "${finalTime}"`);
-                        }
-                      } else if (value.match(/^\d{1,2}:\d{2}(:\d{2})?$/)) {
-                        // Caso 3: O valor já é um texto "HH:MM:SS" ou "HH:MM".
-                        finalTime = value;
-                      } else if (value.includes('T')) {
-                        // Caso genérico para qualquer string com 'T'
-                        const timePart = value.split('T')[1];
-                        if (timePart) {
-                          finalTime = timePart.split('.')[0];
-                        }
-                      }
+              console.log(`   ✅ Mapeando "${originalKey}" → "${normalizedKey}" → "${targetColumn}" = "${value}" (${typeof value})`);
+
+              if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
+                // ========== PROCESSAMENTO DE TEMPO ULTRA-ROBUSTO ==========
+                let finalValue = '00:00:00';
+
+                if (value !== null && value !== undefined) {
+                  const stringValue = String(value);
+
+                  console.log(`   🔍 Analisando valor de tempo: "${stringValue}"`);
+
+                  // Caso 1: String com formato ISO "1899-12-30T05:59:36.000Z"
+                  if (stringValue.includes('T') && stringValue.includes('1899-12-30')) {
+                    const timePart = stringValue.split('T')[1];
+                    if (timePart) {
+                      finalValue = timePart.split('.')[0]; // Remove milissegundos
+                      console.log(`   ✅ Caso ISO: "${stringValue}" → "${finalValue}"`);
                     }
                   }
-
-                  // Debug: log do resultado final
-                  if (index < 3 && ['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
-                    console.log(`DEBUG - Resultado final para ${targetColumn}: "${finalTime}"`);
+                  // Caso 2: Número (fração de dia)
+                  else if (!isNaN(Number(stringValue)) && stringValue.includes('.')) {
+                    const numValue = Number(stringValue);
+                    if (numValue >= 0 && numValue < 1) {
+                      const totalSeconds = Math.round(numValue * 86400);
+                      const hours = Math.floor(totalSeconds / 3600);
+                      const minutes = Math.floor((totalSeconds % 3600) / 60);
+                      const seconds = totalSeconds % 60;
+                      finalValue = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                      console.log(`   ✅ Caso número: ${numValue} → ${finalValue}`);
+                    }
                   }
-
-                  newRow[targetColumn] = finalTime;
-                } else {
-                  newRow[targetColumn] = value;
+                  // Caso 3: Já está no formato correto
+                  else if (/^\d{1,2}:\d{2}:\d{2}$/.test(stringValue)) {
+                    finalValue = stringValue;
+                    console.log(`   ✅ Caso formato correto: "${stringValue}"`);
+                  }
+                  // Caso 4: HH:MM
+                  else if (/^\d{1,2}:\d{2}$/.test(stringValue)) {
+                    finalValue = stringValue + ':00';
+                    console.log(`   ✅ Caso HH:MM: "${stringValue}" → "${finalValue}"`);
+                  }
+                  // Caso 5: Fallback
+                  else {
+                    finalValue = stringValue;
+                    console.log(`   ⚠️ Fallback: "${stringValue}"`);
+                  }
                 }
-             }
+
+                console.log(`   🎯 Resultado final: "${finalValue}"`);
+                newRow[targetColumn] = finalValue;
+              } else {
+                newRow[targetColumn] = value;
+              }
+            } else {
+              console.log(`   ❌ Cabeçalho "${originalKey}" → "${normalizedKey}" não mapeado`);
+            }
           }
+
           return newRow;
         });
+
+        console.log('\n📤 DADOS FINAIS PARA O BANCO:');
+        console.log(JSON.stringify(processedData, null, 2));
 
         setMessage(`Enviando ${processedData.length} registros...`);
 
