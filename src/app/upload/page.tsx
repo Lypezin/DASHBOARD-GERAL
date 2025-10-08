@@ -1,337 +1,336 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabaseClient';
 
-// Mapeamento completo baseado nas colunas reais da planilha
 const COLUMN_MAP: { [key: string]: string } = {
-  'data_do_periodo': 'data_do_periodo',
-  'periodo': 'periodo',
-  'duracao_do_periodo': 'duracao_do_periodo',
-  'numero_minimo_de_entregadores_regulares_na_escala': 'numero_minimo_de_entregadores_regulares_na_escala',
-  'tag': 'tag',
-  'id_da_pessoa_entregadora': 'id_da_pessoa_entregadora',
-  'pessoa_entregadora': 'pessoa_entregadora',
-  'praca': 'praca',
-  'sub_praca': 'sub_praca',
-  'origem': 'origem',
-  'tempo_disponivel_escalado': 'tempo_disponivel_escalado',
-  'tempo_disponivel_absoluto': 'tempo_disponivel_absoluto',
-  'numero_de_corridas_ofertadas': 'numero_de_corridas_ofertadas',
-  'numero_de_corridas_aceitas': 'numero_de_corridas_aceitas',
-  'numero_de_corridas_rejeitadas': 'numero_de_corridas_rejeitadas',
-  'numero_de_corridas_completadas': 'numero_de_corridas_completadas',
-  'numero_de_corridas_canceladas_pela_pessoa_entregadora': 'numero_de_corridas_canceladas_pela_pessoa_entregadora',
-  'numero_de_pedidos_aceitos_e_concluidos': 'numero_de_pedidos_aceitos_e_concluidos',
-  'soma_das_taxas_das_corridas_aceitas': 'soma_das_taxas_das_corridas_aceitas',
+  data_do_periodo: 'data_do_periodo',
+  periodo: 'periodo',
+  duracao_do_periodo: 'duracao_do_periodo',
+  numero_minimo_de_entregadores_regulares_na_escala: 'numero_minimo_de_entregadores_regulares_na_escala',
+  tag: 'tag',
+  id_da_pessoa_entregadora: 'id_da_pessoa_entregadora',
+  pessoa_entregadora: 'pessoa_entregadora',
+  praca: 'praca',
+  sub_praca: 'sub_praca',
+  origem: 'origem',
+  tempo_disponivel_escalado: 'tempo_disponivel_escalado',
+  tempo_disponivel_absoluto: 'tempo_disponivel_absoluto',
+  numero_de_corridas_ofertadas: 'numero_de_corridas_ofertadas',
+  numero_de_corridas_aceitas: 'numero_de_corridas_aceitas',
+  numero_de_corridas_rejeitadas: 'numero_de_corridas_rejeitadas',
+  numero_de_corridas_completadas: 'numero_de_corridas_completadas',
+  numero_de_corridas_canceladas_pela_pessoa_entregadora: 'numero_de_corridas_canceladas_pela_pessoa_entregadora',
+  numero_de_pedidos_aceitos_e_concluidos: 'numero_de_pedidos_aceitos_e_concluidos',
+  soma_das_taxas_das_corridas_aceitas: 'soma_das_taxas_das_corridas_aceitas',
 };
 
+const BATCH_SIZE = 500;
 
-const EXCEL_EPOCH_OFFSET = 25569;
-const SECONDS_IN_DAY = 86400;
-const MAX_DEBUG_ROWS = 5;
+function excelSerialToISODate(serial: number): string {
+  const utc_days = Math.floor(serial - 25569);
+  const date_info = new Date(utc_days * 86400 * 1000);
+  const year = date_info.getUTCFullYear();
+  const month = String(date_info.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date_info.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
-const convertSecondsToHHMMSS = (totalSeconds: number): string => {
+function convertSecondsToHHMMSS(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = Math.max(0, totalSeconds % 60);
-
+  const seconds = Math.floor(totalSeconds % 60);
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-};
+}
 
-const convertFractionToHHMMSS = (fraction: number): string => {
-  const totalSeconds = Math.round(fraction * SECONDS_IN_DAY);
+function convertFractionToHHMMSS(fraction: number): string {
+  const totalSeconds = Math.round(fraction * 86400);
   return convertSecondsToHHMMSS(totalSeconds);
-};
-
-const excelSerialToISODate = (serial: number): string | null => {
-  if (Number.isNaN(serial) || serial <= 0) return null;
-  const date = new Date((serial - EXCEL_EPOCH_OFFSET) * SECONDS_IN_DAY * 1000);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString().split('T')[0];
-};
-
+}
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState('');
-  const [totalRows, setTotalRows] = useState<number | null>(null);
-  const [insertedRows, setInsertedRows] = useState(0);
-
-  const progressLabel = useMemo(() => {
-    if (uploading && totalRows) {
-      return `${insertedRows}/${totalRows} registros enviados`;
-    }
-    return '';
-  }, [insertedRows, totalRows, uploading]);
+  const [progress, setProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState('');
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setFile(event.target.files[0]);
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
       setMessage('');
+      setProgress(0);
+      setProgressLabel('');
     }
   };
 
   const handleUpload = async () => {
     if (!file) {
-      setMessage('Por favor, selecione um arquivo Excel.');
+      setMessage('Por favor, selecione um arquivo.');
       return;
     }
 
     setUploading(true);
+    setMessage('');
     setProgress(0);
-    setMessage('Lendo o arquivo...');
-    setInsertedRows(0);
-    setTotalRows(null);
+    setProgressLabel('Lendo arquivo...');
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        // ========== PROCESSAMENTO SIMPLIFICADO ==========
-        const json: any[] = XLSX.utils.sheet_to_json(worksheet, {
-          raw: true,
-          defval: null,
-        });
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { raw: true });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
 
-        console.log('📊 Dados brutos do Excel (primeiras linhas):', JSON.stringify(json.slice(0, MAX_DEBUG_ROWS), null, 2));
+      setProgressLabel('Processando dados...');
+      setProgress(10);
 
-        const processedData = json.map((row, index) => {
-          const newRow: { [key: string]: any } = {};
+      const sanitizedData = rawData
+        .map((row: any) => {
+          const sanitized: any = {};
+          for (const excelCol in COLUMN_MAP) {
+            const dbCol = COLUMN_MAP[excelCol];
+            let value = row[excelCol];
 
-          for (const excelHeader in row) {
-             // Normalização básica do cabeçalho
-             const normalizedKey = excelHeader
-               .trim()
-               .toLowerCase()
-               .normalize('NFD')
-               .replace(/[\u0300-\u036f]/g, '') // remove acentos
-               .replace(/\s+/g, '_');
-
-             if (COLUMN_MAP[normalizedKey]) {
-                const targetColumn = COLUMN_MAP[normalizedKey];
-                const value = row[excelHeader];
-
-                // Tratamento específico para data_do_periodo (número de série do Excel)
-                if (targetColumn === 'data_do_periodo') {
-                  if (typeof value === 'number') {
-                    const isoDate = excelSerialToISODate(value);
-                    newRow[targetColumn] = isoDate ?? value;
-                    if (index < MAX_DEBUG_ROWS) {
-                      console.log(`   🔄 data_do_periodo: ${value} → ${newRow[targetColumn]}`);
-                    }
-                  } else {
-                    newRow[targetColumn] = value;
-                  }
-                }
-                // Para colunas de tempo, aplicar conversão correta baseada no formato
-                else if (['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'].includes(targetColumn)) {
-                  if (value === null || value === undefined || value === '') {
-                    newRow[targetColumn] = null;
-                  } else if (typeof value === 'number') {
-                    // Aplicar lógica de conversão baseada no tipo de coluna
-                    if (targetColumn === 'tempo_disponivel_escalado') {
-                      const totalSeconds = Math.round(value);
-                      newRow[targetColumn] = convertSecondsToHHMMSS(totalSeconds);
-                      if (index < MAX_DEBUG_ROWS) {
-                        console.log(`   🔄 ${targetColumn}: ${value} segundos → ${newRow[targetColumn]}`);
-                      }
-                    } else {
-                      newRow[targetColumn] = convertFractionToHHMMSS(value);
-                      if (index < MAX_DEBUG_ROWS) {
-                        console.log(`   🔄 ${targetColumn}: ${value} (fração) → ${newRow[targetColumn]}`);
-                      }
-                    }
-                  } else {
-                    newRow[targetColumn] = String(value);
-                  }
-                } else {
-                  newRow[targetColumn] = value;
-                }
-             }
-          }
-
-          return newRow;
-        });
-
-        const sanitizedData = processedData.filter((row) =>
-          Object.values(row).some((value) => value !== null && value !== ''),
-        );
-
-        console.log(
-          '📤 Dados processados para o banco:',
-          JSON.stringify(sanitizedData.slice(0, MAX_DEBUG_ROWS), null, 2),
-        );
-        if (sanitizedData.length > MAX_DEBUG_ROWS) {
-          console.log(`... +${sanitizedData.length - MAX_DEBUG_ROWS} linhas adicionais`);
-        }
-
-        if (sanitizedData.length === 0) {
-          setMessage('Nenhum registro válido encontrado no arquivo.');
-          setUploading(false);
-          return;
-        }
-
-        setTotalRows(sanitizedData.length);
-        setMessage(`Enviando ${sanitizedData.length} registros...`);
-
-        const BATCH_SIZE = 500; // Supabase recomenda até ~500 registros por batch
-        let totalInserted = 0;
-
-        for (let i = 0; i < sanitizedData.length; i += BATCH_SIZE) {
-          const batch = sanitizedData.slice(i, i + BATCH_SIZE);
-
-          const { count, error } = await supabase
-            .from('dados_corridas')
-            .insert(batch, { count: 'exact' });
-
-          if (error) {
-            console.error("Erro detalhado:", error);
-            
-            // Para debug: imprimir o primeiro registro do lote que falhou
-            if (batch.length > 0) {
-              console.error("Exemplo do primeiro registro que falhou:", JSON.stringify(batch[0]));
+            if (dbCol === 'data_do_periodo') {
+              if (typeof value === 'number') {
+                value = excelSerialToISODate(value);
+              } else if (value instanceof Date) {
+                const yyyy = value.getFullYear();
+                const mm = String(value.getMonth() + 1).padStart(2, '0');
+                const dd = String(value.getDate()).padStart(2, '0');
+                value = `${yyyy}-${mm}-${dd}`;
+              }
             }
-            
-            throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
+
+            if (dbCol === 'tempo_disponivel_escalado') {
+              if (typeof value === 'number') {
+                value = convertSecondsToHHMMSS(value);
+              }
+            }
+
+            if (dbCol === 'duracao_do_periodo' || dbCol === 'tempo_disponivel_absoluto') {
+              if (typeof value === 'number') {
+                value = convertFractionToHHMMSS(value);
+              } else if (value instanceof Date) {
+                const h = value.getHours();
+                const m = value.getMinutes();
+                const s = value.getSeconds();
+                value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+              } else if (typeof value === 'string' && value.includes('T')) {
+                const timeMatch = value.match(/T(\d{2}):(\d{2}):(\d{2})/);
+                if (timeMatch) {
+                  value = `${timeMatch[1]}:${timeMatch[2]}:${timeMatch[3]}`;
+                }
+              }
+            }
+
+            sanitized[dbCol] = value === null || value === undefined || value === '' ? null : value;
           }
-          
-          totalInserted += count ?? batch.length;
-          setProgress((totalInserted / sanitizedData.length) * 100);
-          setInsertedRows(totalInserted);
+          return sanitized;
+        })
+        .filter((row: any) => {
+          const hasData = Object.values(row).some((v) => v !== null && v !== undefined && v !== '');
+          return hasData;
+        });
+
+      const totalRows = sanitizedData.length;
+      let insertedRows = 0;
+
+      setProgressLabel(`Enviando dados (0/${totalRows})...`);
+      setProgress(20);
+
+      for (let i = 0; i < totalRows; i += BATCH_SIZE) {
+        const batch = sanitizedData.slice(i, i + BATCH_SIZE);
+        const { error: batchError } = await supabase.from('dados_corridas').insert(batch, { count: 'exact' });
+
+        if (batchError) {
+          throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}`);
         }
 
-        setMessage(`Upload concluído com sucesso! ${totalInserted} registros inseridos.`);
-        setProgress(100);
-      } catch (error: any) {
-        console.error('Erro no upload:', error);
-        setMessage(`Erro: ${error.message}`);
-      } finally {
-        setUploading(false);
+        insertedRows += batch.length;
+        const progressPercent = 20 + (insertedRows / totalRows) * 70;
+        setProgress(progressPercent);
+        setProgressLabel(`Enviando dados (${insertedRows}/${totalRows})...`);
       }
-    };
-    reader.readAsArrayBuffer(file);
+
+      setProgressLabel('Atualizando materialized view...');
+      setProgress(95);
+
+      const { error: refreshError } = await supabase.rpc('refresh_mv_aderencia');
+      if (refreshError) {
+        console.warn('Erro ao atualizar materialized view:', refreshError);
+      }
+
+      setProgress(100);
+      setProgressLabel('Concluído!');
+      setMessage(`✅ Upload concluído com sucesso! ${insertedRows} linhas inseridas.`);
+      setFile(null);
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+    } catch (error: any) {
+      console.error('Erro no upload:', error);
+      setMessage(`❌ Erro no upload: ${error.message}`);
+      setProgress(0);
+      setProgressLabel('');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800">
-      <div className="container mx-auto px-6 py-12 flex justify-center">
-        <div className="w-full max-w-2xl">
-          <div className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl border border-blue-200 dark:border-blue-900/40 p-10">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-6 shadow-lg">
-                <span className="text-3xl text-white">📊</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
+      <div className="container mx-auto px-6 py-12">
+        <div className="mx-auto max-w-3xl">
+          {/* Card Principal */}
+          <div className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-2xl dark:border-blue-900 dark:bg-slate-900">
+            {/* Header do Card */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-center">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <span className="text-4xl">📊</span>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">Selecione sua planilha</h2>
-              <p className="text-gray-600 dark:text-gray-400">Formatos suportados: .xlsx, .xls</p>
+              <h1 className="text-3xl font-bold text-white">Upload de Dados</h1>
+              <p className="mt-2 text-blue-100">Importe sua planilha Excel para o sistema</p>
             </div>
 
-            <div className="space-y-6">
+            {/* Conteúdo */}
+            <div className="p-8">
+              {/* Área de Upload */}
               <div className="relative">
                 <input
                   type="file"
                   accept=".xlsx, .xls"
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-gray-600 dark:text-gray-300 
-                           file:mr-4 file:py-4 file:px-6 file:rounded-xl file:border-0 
-                           file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-500 file:to-indigo-600 
-                           file:text-white file:shadow-lg hover:file:from-blue-600 hover:file:to-indigo-700 
-                           file:transition-all file:duration-200 file:cursor-pointer
-                           border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-xl p-6
-                           hover:border-blue-400 dark:hover:border-blue-600 transition-colors"
                   disabled={uploading}
+                  className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
                 />
-                {!file && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">📁</div>
-                      <p className="text-gray-500 dark:text-gray-400">Clique para selecionar ou arraste aqui</p>
+                <div className="rounded-2xl border-2 border-dashed border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 p-12 text-center transition-all duration-300 hover:border-blue-400 hover:bg-gradient-to-br hover:from-blue-100 hover:to-indigo-100 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:border-blue-700 dark:from-blue-950/30 dark:to-indigo-950/30 dark:hover:border-blue-600">
+                  {!file ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                        <span className="text-3xl">📁</span>
+                      </div>
+                      <div>
+                        <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">
+                          Clique para selecionar ou arraste o arquivo aqui
+                        </p>
+                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Formatos aceitos: .xlsx, .xls</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                        <span className="text-3xl">✅</span>
+                      </div>
+                      <div>
+                        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">Arquivo selecionado</p>
+                        <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">{file.name}</p>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {file && (
-                <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl p-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">✅</span>
-                    <div>
-                      <p className="font-semibold text-green-800 dark:text-green-200">Arquivo selecionado:</p>
-                      <p className="text-green-700 dark:text-green-300 text-sm">{file.name}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
+              {/* Botão de Upload */}
               <button
                 onClick={handleUpload}
                 disabled={uploading || !file}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-6 rounded-xl 
-                         hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 
-                         disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 
-                         transform hover:-translate-y-1 disabled:transform-none"
+                className="mt-6 w-full transform rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
               >
                 {uploading ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Enviando...</span>
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    <span>Processando...</span>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center space-x-2">
-                    <span>🚀</span>
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-xl">🚀</span>
                     <span>Enviar Dados</span>
                   </div>
                 )}
               </button>
-              
+
+              {/* Barra de Progresso */}
               {uploading && (
-                <div className="space-y-3">
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 shadow-inner">
-                    <div 
-                      className="bg-gradient-to-r from-blue-500 to-indigo-600 h-4 rounded-full shadow-sm transition-all duration-300" 
+                <div className="mt-6 space-y-3 animate-in fade-in duration-300">
+                  <div className="overflow-hidden rounded-full bg-slate-200 shadow-inner dark:bg-slate-800">
+                    <div
+                      className="h-3 rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-lg transition-all duration-500"
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
                   {progressLabel && (
                     <div className="text-center">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{progressLabel}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Progresso: {progress.toFixed(1)}%</p>
+                      <p className="font-semibold text-slate-700 dark:text-slate-300">{progressLabel}</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{progress.toFixed(1)}% concluído</p>
                     </div>
                   )}
                 </div>
               )}
 
+              {/* Mensagem de Status */}
               {message && (
-                <div className={`p-4 rounded-xl border-2 ${
-                  message.includes('sucesso') 
-                    ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-200' 
-                    : message.includes('Erro') 
-                    ? 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200'
-                    : 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-200'
-                }`}>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-lg">
-                      {message.includes('sucesso') ? '✅' : message.includes('Erro') ? '❌' : 'ℹ️'}
-                    </span>
-                    <p className="font-medium">{message}</p>
-                  </div>
+                <div
+                  className={`mt-6 animate-in fade-in slide-in-from-top-2 rounded-xl border-2 p-4 duration-300 ${
+                    message.includes('✅')
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
+                      : message.includes('❌')
+                      ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200'
+                      : 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-200'
+                  }`}
+                >
+                  <p className="font-medium">{message}</p>
                 </div>
               )}
 
-              <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">💡 Dicas importantes:</h3>
-                <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                  <li>• Certifique-se de que a planilha contém todas as colunas necessárias</li>
-                  <li>• O sistema suporta grandes volumes de dados</li>
-                  <li>• O upload pode levar alguns minutos para arquivos grandes</li>
-                </ul>
+              {/* Informações e Dicas */}
+              <div className="mt-8 rounded-xl bg-blue-50 p-6 dark:bg-blue-950/30">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">💡</span>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-blue-900 dark:text-blue-100">Dicas importantes</h3>
+                    <ul className="mt-3 space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-blue-600">•</span>
+                        <span>Certifique-se de que a planilha contém todas as colunas necessárias</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-blue-600">•</span>
+                        <span>O sistema processa automaticamente grandes volumes de dados</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-blue-600">•</span>
+                        <span>Aguarde a conclusão do upload antes de navegar para outra página</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-blue-600">•</span>
+                        <span>Após o upload, os dados estarão disponíveis imediatamente no dashboard</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               </div>
+
+              {/* Colunas Esperadas */}
+              <details className="mt-6 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
+                <summary className="cursor-pointer font-semibold text-slate-700 dark:text-slate-300">
+                  📋 Ver colunas esperadas na planilha
+                </summary>
+                <div className="mt-4 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+                  {Object.keys(COLUMN_MAP).map((col) => (
+                    <div key={col} className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 dark:bg-slate-900">
+                      <span className="text-blue-600">✓</span>
+                      <code className="text-xs text-slate-700 dark:text-slate-300">{col}</code>
+                    </div>
+                  ))}
+                </div>
+              </details>
             </div>
           </div>
         </div>

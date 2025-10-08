@@ -1,21 +1,17 @@
-"use client";
+'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+
+// =================================================================================
+// Interfaces e Tipos
+// =================================================================================
 
 interface Totals {
   ofertadas: number;
   aceitas: number;
   rejeitadas: number;
   completadas: number;
-}
-
-interface DashboardTotalsRow {
-  corridas_ofertadas: number | string | null;
-  corridas_aceitas: number | string | null;
-  corridas_rejeitadas: number | string | null;
-  corridas_completadas: number | string | null;
 }
 
 interface AderenciaSemanal {
@@ -67,77 +63,31 @@ interface Filters {
   origem: string | null;
 }
 
-type DimensoesDashboard = {
+interface DimensoesDashboard {
   anos: number[];
   semanas: number[];
   pracas: string[];
   sub_pracas: string[];
   origens: string[];
-  map_sub_praca?: { [key: string]: string[] };
-};
+}
 
 interface DashboardResumoData {
-  totais?: {
-    corridas_ofertadas?: number;
-    corridas_aceitas?: number;
-    corridas_rejeitadas?: number;
-    corridas_completadas?: number;
+  totais: {
+    corridas_ofertadas: number;
+    corridas_aceitas: number;
+    corridas_rejeitadas: number;
+    corridas_completadas: number;
   };
-  semanal?: AderenciaSemanal[];
-  dia?: AderenciaDia[];
-  turno?: AderenciaTurno[];
-  sub_praca?: AderenciaSubPraca[];
-  origem?: AderenciaOrigem[];
-  dimensoes?: DimensoesDashboard;
+  semanal: AderenciaSemanal[];
+  dia: AderenciaDia[];
+  turno: AderenciaTurno[];
+  sub_praca: AderenciaSubPraca[];
+  origem: AderenciaOrigem[];
+  dimensoes: DimensoesDashboard;
 }
 
 // =================================================================================
-// Definições de Props para os componentes
-// =================================================================================
-
-interface TabButtonProps {
-  label: string;
-  icon: string;
-  active: boolean;
-  onClick: () => void;
-}
-
-interface DashboardViewProps {
-  aderenciaGeral?: AderenciaSemanal;
-  aderenciaSemanal: AderenciaSemanal[];
-  aderenciaDia: AderenciaDia[];
-  aderenciaTurno: AderenciaTurno[];
-  aderenciaSubPraca: AderenciaSubPraca[];
-  aderenciaOrigem: AderenciaOrigem[];
-}
-
-interface AnaliseViewProps {
-  totals: Totals;
-  aderenciaGeral?: AderenciaSemanal;
-  aderenciaSemanal: AderenciaSemanal[];
-}
-
-interface FiltroBarProps {
-  filters: Filters;
-  setFilters: Dispatch<SetStateAction<Filters>>;
-  anos: number[];
-  semanas: number[];
-  pracas: FilterOption[];
-  subPracas: FilterOption[];
-  origens: FilterOption[];
-}
-
-interface FiltroSelectProps {
-  label: string;
-  placeholder: string;
-  options: FilterOption[];
-  value: string;
-  onChange: (value: string | null) => void;
-}
-
-
-// =================================================================================
-// Funções Utilitárias
+// Funções auxiliares
 // =================================================================================
 
 function buildFilterPayload(filters: Filters) {
@@ -150,392 +100,213 @@ function buildFilterPayload(filters: Filters) {
   };
 }
 
+function getAderenciaColor(value: number): string {
+  if (value >= 90) return 'text-emerald-600 dark:text-emerald-400';
+  if (value >= 70) return 'text-amber-600 dark:text-amber-400';
+  return 'text-rose-600 dark:text-rose-400';
+}
+
+function getAderenciaBgColor(value: number): string {
+  if (value >= 90) return 'bg-emerald-50 dark:bg-emerald-950/30';
+  if (value >= 70) return 'bg-amber-50 dark:bg-amber-950/30';
+  return 'bg-rose-50 dark:bg-rose-950/30';
+}
 
 // =================================================================================
-// Componentes de UI reutilizáveis (movidos para cima)
+// Componentes UI
 // =================================================================================
 
-function TabButton({ label, icon, active, onClick }: TabButtonProps) {
+function TabButton({ label, icon, active, onClick }: { label: string; icon: string; active: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+      className={`group relative flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
         active
-          ? 'bg-white text-blue-600 shadow-md dark:bg-slate-800 dark:text-blue-200'
-          : 'text-blue-500 hover:bg-white/60 dark:text-blue-300 dark:hover:bg-slate-800/50'
+          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+          : 'text-blue-600 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-950/50'
       }`}
     >
-      {icon} {label}
+      <span className="text-lg">{icon}</span>
+      <span>{label}</span>
+      {active && (
+        <div className="absolute -bottom-0.5 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-blue-400 to-indigo-400"></div>
+      )}
     </button>
   );
 }
 
-function AderenciaGeralCard({ aderenciaGeral }: { aderenciaGeral?: AderenciaSemanal }) {
+function MetricCard({ 
+  title, 
+  value, 
+  icon, 
+  percentage, 
+  percentageLabel,
+  gradient 
+}: { 
+  title: string; 
+  value: number; 
+  icon: string; 
+  percentage?: number;
+  percentageLabel?: string;
+  gradient: string;
+}) {
   return (
-    <section className="flex flex-col rounded-2xl border border-blue-200 bg-white/90 p-6 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/80">
-      <header className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-md">🎯</div>
-        <div>
-          <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100">Aderência Geral</h2>
-          <p className="text-sm text-blue-600 dark:text-blue-300">Última semana calculada</p>
-        </div>
-      </header>
-      <div className="mt-5 flex flex-1 flex-col justify-center gap-6">
-        {aderenciaGeral ? (
-          <>
-            <div className="flex items-center justify-center">
-              <Gauge percentual={aderenciaGeral.aderencia_percentual} size="lg" />
+    <div className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-slate-900">
+      <div className={`absolute right-0 top-0 h-32 w-32 rounded-full opacity-10 blur-3xl ${gradient}`}></div>
+      
+      <div className="relative flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{value.toLocaleString('pt-BR')}</p>
+          {percentage !== undefined && (
+            <div className="mt-3 flex items-center gap-2">
+              <div className="rounded-lg bg-blue-50 px-2 py-1 dark:bg-blue-950/30">
+                <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                  {percentage.toFixed(1)}%
+                </span>
+              </div>
+              {percentageLabel && (
+                <span className="text-xs text-slate-500 dark:text-slate-400">{percentageLabel}</span>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <MetricChip label="Horas planejadas" value={aderenciaGeral.horas_a_entregar} accent="primary" />
-              <MetricChip label="Horas entregues" value={aderenciaGeral.horas_entregues} accent="secondary" />
-            </div>
-            <div className="flex justify-center">
-              <Badge value={aderenciaGeral.aderencia_percentual} size="lg" />
-            </div>
-          </>
-        ) : (
-          <EmptyState message="Sem dados consolidados." />
-        )}
-      </div>
-    </section>
-  );
-}
-
-function DestaquesCard({ aderenciaDia, aderenciaTurno }: { aderenciaDia: AderenciaDia[]; aderenciaTurno: AderenciaTurno[] }) {
-  const melhorDia = aderenciaDia.length > 0 ? aderenciaDia.reduce((prev, curr) => (curr.aderencia_percentual > prev.aderencia_percentual ? curr : prev)) : null;
-  const piorDia = aderenciaDia.length > 0 ? aderenciaDia.reduce((prev, curr) => (curr.aderencia_percentual < prev.aderencia_percentual ? curr : prev)) : null;
-  const melhorTurno = aderenciaTurno.length > 0 ? aderenciaTurno.reduce((prev, curr) => (curr.aderencia_percentual > prev.aderencia_percentual ? curr : prev)) : null;
-
-  return (
-    <section className="flex flex-col rounded-2xl border border-blue-200 bg-white/90 p-6 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/80">
-      <header className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-md">🔍</div>
-        <div>
-          <h3 className="text-xl font-bold text-blue-900 dark:text-blue-100">Destaques da Operação</h3>
-          <p className="text-sm text-blue-600 dark:text-blue-300">Pontos chave do período</p>
+          )}
         </div>
-      </header>
-      <div className="mt-5 flex flex-1 flex-col justify-center gap-4">
-        <HighlightItem titulo="Melhor dia" valor={melhorDia?.dia_da_semana ?? 'N/D'} percentual={melhorDia?.aderencia_percentual} />
-        <HighlightItem titulo="Maior desafio" valor={piorDia?.dia_da_semana ?? 'N/D'} percentual={piorDia?.aderencia_percentual} invert />
-        <HighlightItem titulo="Turno destaque" valor={melhorTurno?.periodo ?? 'N/D'} percentual={melhorTurno?.aderencia_percentual} />
-      </div>
-    </section>
-  );
-}
-
-function AderenciaDiaCard({ aderenciaDia }: { aderenciaDia: AderenciaDia[] }) {
-  return (
-    <section className="flex flex-col rounded-2xl border border-blue-200 bg-white/90 p-6 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/80">
-      <header className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-md">📅</div>
-        <div>
-          <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100">Aderência por Dia</h2>
-          <p className="text-sm text-blue-600 dark:text-blue-300">Comparativo da semana</p>
-        </div>
-      </header>
-      <div className="mt-5 flex flex-1 items-stretch">
-        {aderenciaDia.length === 0 ? (
-          <EmptyState message="Ainda não existem dados por dia." />
-        ) : (
-          <div className="grid flex-1 grid-cols-7 gap-4">
-            {aderenciaDia.map((dia) => (
-              <DayCard key={dia.dia_iso} dia={dia} />
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function VisualizacoesAdicionais({ aderenciaTurno, aderenciaSubPraca, aderenciaOrigem }: { aderenciaTurno: AderenciaTurno[]; aderenciaSubPraca: AderenciaSubPraca[]; aderenciaOrigem: AderenciaOrigem[] }) {
-  const [viewMode, setViewMode] = useState<'turno' | 'sub_praca' | 'origem'>('turno');
-
-  return (
-    <section className="flex flex-col rounded-2xl border border-blue-200 bg-white/90 p-6 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/80">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h3 className="text-xl font-bold text-blue-900 dark:text-blue-100">Recortes de Aderência</h3>
-          <p className="text-sm text-blue-600 dark:text-blue-300">Explore diferentes visualizações</p>
-        </div>
-        <div className="flex gap-2 rounded-xl bg-blue-100 p-1 dark:bg-blue-900/50">
-          {[
-            { key: 'turno', label: 'Turnos', icon: '⏰' },
-            { key: 'sub_praca', label: 'Sub Praças', icon: '🏢' },
-            { key: 'origem', label: 'Origem', icon: '🌐' },
-          ].map((mode) => (
-            <button
-              key={mode.key}
-              onClick={() => setViewMode(mode.key as typeof viewMode)}
-              className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                viewMode === mode.key
-                  ? 'bg-white text-blue-600 shadow-md dark:bg-slate-800 dark:text-blue-200'
-                  : 'text-blue-500 hover:bg-white/60 dark:text-blue-300 dark:hover:bg-slate-800/50'
-              }`}
-            >
-              {mode.icon} {mode.label}
-            </button>
-          ))}
-        </div>
-      </header>
-      <div className="mt-5 flex flex-1 items-stretch">
-        {viewMode === 'turno' && (
-          <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
-            {aderenciaTurno.length === 0 ? <EmptyState message="Sem dados por turno." /> : aderenciaTurno.map((turno) => <CompactMetric key={turno.periodo} title={turno.periodo} direita={turno.horas_entregues} esquerda={turno.horas_a_entregar} percentual={turno.aderencia_percentual} />)}
-          </div>
-        )}
-        {viewMode === 'sub_praca' && (
-          <div className="grid flex-1 grid-cols-2 gap-4 md:grid-cols-4">
-            {aderenciaSubPraca.length === 0 ? <EmptyState message="Sem dados por sub praça." /> : aderenciaSubPraca.map((sub) => <MiniGauge key={sub.sub_praca} titulo={sub.sub_praca} percentual={sub.aderencia_percentual} />)}
-          </div>
-        )}
-        {viewMode === 'origem' && (
-          <div className="grid flex-1 grid-cols-2 gap-4 md:grid-cols-4">
-            {aderenciaOrigem.length === 0 ? <EmptyState message="Sem dados por origem." /> : aderenciaOrigem.map((origem) => <MiniGauge key={origem.origem} titulo={origem.origem} percentual={origem.aderencia_percentual} />)}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function DashboardView({
-  aderenciaGeral,
-  aderenciaSemanal,
-  aderenciaDia,
-  aderenciaTurno,
-  aderenciaSubPraca,
-  aderenciaOrigem,
-}: Omit<DashboardViewProps, 'viewMode' | 'setViewMode'>) {
-  return (
-    <div className="grid grid-cols-12 gap-6">
-      {/* Coluna Esquerda */}
-      <div className="col-span-12 flex flex-col gap-6 lg:col-span-4">
-        <AderenciaGeralCard aderenciaGeral={aderenciaGeral} />
-        <DestaquesCard aderenciaDia={aderenciaDia} aderenciaTurno={aderenciaTurno} />
-      </div>
-
-      {/* Coluna Direita */}
-      <div className="col-span-12 flex flex-col gap-6 lg:col-span-8">
-        <AderenciaDiaCard aderenciaDia={aderenciaDia} />
-        <VisualizacoesAdicionais
-          aderenciaTurno={aderenciaTurno}
-          aderenciaSubPraca={aderenciaSubPraca}
-          aderenciaOrigem={aderenciaOrigem}
-        />
-      </div>
-    </div>
-  );
-}
-
-function AnaliseView({ totals, aderenciaGeral, aderenciaSemanal }: AnaliseViewProps) {
-  const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
-  const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
-
-  const metricas = [
-    { titulo: 'Corridas Ofertadas', valor: totals.ofertadas, icon: '🎯', cor: 'bg-blue-600' },
-    { titulo: 'Corridas Aceitas', valor: totals.aceitas, icon: '✅', cor: 'bg-blue-500' },
-    { titulo: 'Corridas Rejeitadas', valor: totals.rejeitadas, icon: '❌', cor: 'bg-blue-400' },
-    { titulo: 'Corridas Completadas', valor: totals.completadas, icon: '🏆', cor: 'bg-blue-700' },
-  ];
-
-  return (
-    <div className="grid grid-cols-12 grid-rows-2 gap-6">
-      {metricas.map((metrica) => (
-        <article key={metrica.titulo} className="col-span-12 flex flex-col justify-between rounded-2xl border border-blue-200 bg-white/90 p-5 shadow-lg backdrop-blur transition-transform hover:-translate-y-1 dark:border-blue-800 dark:bg-slate-900/80 sm:col-span-6 lg:col-span-3">
-          <div className="flex items-center justify-between">
-            <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${metrica.cor} text-xl text-white shadow-md`}>{metrica.icon}</div>
-            <span className="text-3xl font-bold text-blue-900 dark:text-blue-100">{metrica.valor.toLocaleString('pt-BR')}</span>
-          </div>
-          <h3 className="mt-5 text-base font-semibold text-blue-800 dark:text-blue-200">{metrica.titulo}</h3>
-        </article>
-      ))}
-
-      <article className="col-span-12 flex flex-col rounded-2xl border border-blue-200 bg-white/90 p-6 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/80 lg:col-span-4">
-        <header className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-md">📊</div>
-          <div>
-            <h3 className="text-xl font-bold text-blue-900 dark:text-blue-100">Taxa de Aceitação</h3>
-            <p className="text-sm text-blue-600 dark:text-blue-300">Aceitas vs. Ofertadas</p>
-          </div>
-        </header>
-        <div className="mt-6 flex flex-1 items-center justify-center">
-          <Gauge percentual={taxaAceitacao} size="lg" />
-        </div>
-      </article>
-
-      <article className="col-span-12 flex flex-col rounded-2xl border border-blue-200 bg-white/90 p-6 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/80 lg:col-span-4">
-        <header className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-md">🎯</div>
-          <div>
-            <h3 className="text-xl font-bold text-blue-900 dark:text-blue-100">Taxa de Completude</h3>
-            <p className="text-sm text-blue-600 dark:text-blue-300">Completadas vs. Aceitas</p>
-          </div>
-        </header>
-        <div className="mt-6 flex flex-1 items-center justify-center">
-          <Gauge percentual={taxaCompletude} size="lg" />
-        </div>
-      </article>
-
-      <article className="col-span-12 flex flex-col rounded-2xl border border-blue-200 bg-white/90 p-6 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/80 lg:col-span-4">
-        <header className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-md">📈</div>
-          <div>
-            <h3 className="text-xl font-bold text-blue-900 dark:text-blue-100">Resumo Operacional</h3>
-            <p className="text-sm text-blue-600 dark:text-blue-300">Indicadores chave</p>
-          </div>
-        </header>
-        <div className="mt-5 grid flex-1 grid-cols-2 gap-4">
-          <SummaryCard title="Resposta" value={(totals.ofertadas > 0 ? ((totals.aceitas + totals.rejeitadas) / totals.ofertadas) * 100 : 0).toFixed(1) + '%'} subtitle="Ações sobre corridas" />
-          <SummaryCard title="Eficiência" value={(totals.ofertadas > 0 ? (totals.completadas / totals.ofertadas) * 100 : 0).toFixed(1) + '%'} subtitle="Completadas vs. ofertadas" />
-          <SummaryCard title="Aderência Média" value={(aderenciaSemanal.slice(0, 4).reduce((acc, semana) => acc + semana.aderencia_percentual, 0) / Math.max(aderenciaSemanal.slice(0, 4).length, 1)).toFixed(1) + '%'} subtitle="Últimas 4 semanas" />
-          <SummaryCard title="Aderência Atual" value={`${aderenciaGeral ? aderenciaGeral.aderencia_percentual.toFixed(1) : '0.0'}%`} subtitle={aderenciaGeral ? aderenciaGeral.semana : 'N/D'} />
-        </div>
-      </article>
-    </div>
-  );
-}
-
-// =================================================================================
-// Componentes Auxiliares Refinados
-// =================================================================================
-
-function MetricChip({ label, value, accent }: { label: string; value: string; accent: 'primary' | 'secondary' }) {
-  const accentClasses = accent === 'primary' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/70 dark:text-blue-200' : 'bg-blue-200 text-blue-900 dark:bg-blue-800/80 dark:text-blue-300';
-  return (
-    <div className={`rounded-lg p-3 text-center transition-transform hover:scale-105 ${accentClasses}`}>
-      <p className="text-xs font-semibold uppercase tracking-wider">{label}</p>
-      <p className="text-lg font-bold">{value}</p>
-    </div>
-  );
-}
-
-function SummaryCard({ title, value, subtitle }: { title: string; value: string; subtitle: string }) {
-  return (
-    <div className="flex flex-col justify-center rounded-xl border border-blue-200 bg-blue-50/70 p-4 text-center transition-transform hover:-translate-y-1 dark:border-blue-800 dark:bg-blue-900/50">
-      <p className="text-sm font-bold text-blue-900 dark:text-blue-100">{value}</p>
-      <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">{title}</p>
-      <p className="text-[11px] text-blue-600 dark:text-blue-400">{subtitle}</p>
-    </div>
-  );
-}
-
-function HighlightItem({ titulo, valor, percentual, invert }: { titulo: string; valor: string; percentual?: number; invert?: boolean }) {
-  return (
-    <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/70 px-4 py-3 transition-shadow hover:shadow-md dark:border-blue-800 dark:bg-blue-900/50">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">{titulo}</p>
-        <p className="text-base font-bold text-blue-900 dark:text-blue-100">{valor}</p>
-      </div>
-      {percentual !== undefined && <Badge value={percentual} size="md" emphasis={invert ? 'low' : 'high'} />}
-    </div>
-  );
-}
-
-function DayCard({ dia }: { dia: AderenciaDia }) {
-  return (
-    <div className="flex flex-col justify-between gap-2 rounded-xl border border-blue-200 bg-blue-50/80 p-3 text-center shadow-sm transition-transform hover:-translate-y-1 dark:border-blue-800 dark:bg-blue-900/60">
-      <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">{dia.dia_da_semana}</p>
-      <div className="flex flex-1 items-center justify-center">
-        <Gauge percentual={dia.aderencia_percentual} size="sm" />
-      </div>
-      <Badge value={dia.aderencia_percentual} size="sm" />
-    </div>
-  );
-}
-
-function CompactMetric({ title, esquerda, direita, percentual }: { title: string; esquerda: string; direita: string; percentual: number }) {
-  return (
-    <div className="flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50/80 p-4 shadow-sm transition-shadow hover:shadow-md dark:border-blue-800 dark:bg-blue-900/60">
-      <div className="flex items-center justify-between">
-        <p className="font-semibold text-blue-800 dark:text-blue-200">{title}</p>
-        <Badge value={percentual} size="md" />
-      </div>
-      <div className="grid grid-cols-2 gap-2 text-center text-xs text-blue-700 dark:text-blue-200">
-        <div className="rounded-lg bg-blue-100/70 p-2 dark:bg-blue-900/60">
-          <span className="font-bold">{esquerda}</span> <span className="text-blue-600 dark:text-blue-400">Plan.</span>
-        </div>
-        <div className="rounded-lg bg-blue-100/70 p-2 dark:bg-blue-900/60">
-          <span className="font-bold">{direita}</span> <span className="text-blue-600 dark:text-blue-400">Entr.</span>
+        <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} text-2xl shadow-lg`}>
+          {icon}
         </div>
       </div>
     </div>
   );
 }
 
-function MiniGauge({ titulo, percentual }: { titulo: string; percentual: number }) {
-  return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/80 p-3 text-center shadow-sm transition-shadow hover:shadow-md dark:border-blue-800 dark:bg-blue-900/60">
-      <p className="w-full truncate text-xs font-semibold uppercase tracking-wide text-blue-800 dark:text-blue-200">{titulo}</p>
-      <Gauge percentual={percentual} size="xs" />
-      <Badge value={percentual} size="sm" />
-    </div>
-  );
-}
-
-function Gauge({ percentual, size = 'md' }: { percentual: number; size?: 'xs' | 'sm' | 'md' | 'lg' }) {
-  const clamped = Math.min(Math.max(percentual, 0), 100);
-  const config = {
-    xs: { radius: 22, stroke: 4.5, font: '11px' },
-    sm: { radius: 30, stroke: 6, font: '12px' },
-    md: { radius: 40, stroke: 7, font: '14px' },
-    lg: { radius: 60, stroke: 9, font: '18px' },
-  }[size];
-  const circumference = 2 * Math.PI * config.radius;
-  const offset = circumference * (1 - clamped / 100);
-
-  const color = clamped >= 85 ? '#1e3a8a' : clamped >= 70 ? '#1d4ed8' : clamped >= 55 ? '#2563eb' : '#60a5fa';
+function AderenciaCard({ 
+  title, 
+  planejado, 
+  entregue, 
+  percentual 
+}: { 
+  title: string; 
+  planejado: string; 
+  entregue: string; 
+  percentual: number;
+}) {
+  const colorClass = getAderenciaColor(percentual);
+  const bgClass = getAderenciaBgColor(percentual);
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: config.radius * 2, height: config.radius * 2 }}>
-      <svg className="-rotate-90 transform" width={config.radius * 2} height={config.radius * 2}>
-        <circle cx={config.radius} cy={config.radius} r={config.radius} fill="transparent" stroke="#dbeafe" strokeWidth={config.stroke} />
-        <circle
-          cx={config.radius}
-          cy={config.radius}
-          r={config.radius}
-          fill="transparent"
-          stroke={color}
-          strokeWidth={config.stroke}
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="transition-all duration-500"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span style={{ color, fontSize: config.font }} className="font-bold">
-          {clamped.toFixed(0)}%
-        </span>
+    <div className="group overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-slate-900">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{title}</h3>
+        <div className={`rounded-xl px-3 py-1.5 ${bgClass}`}>
+          <span className={`text-lg font-bold ${colorClass}`}>{percentual.toFixed(1)}%</span>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Planejado</span>
+          <span className="text-sm font-bold text-slate-900 dark:text-white">{planejado}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Entregue</span>
+          <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{entregue}</span>
+        </div>
+      </div>
+
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div 
+          className={`h-full rounded-full transition-all duration-1000 ${percentual >= 90 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : percentual >= 70 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-rose-500 to-rose-600'}`}
+          style={{ width: `${Math.min(percentual, 100)}%` }}
+        ></div>
       </div>
     </div>
   );
 }
 
-function Badge({ value, size = 'md', emphasis = 'high' }: { value: number; size?: 'sm' | 'md' | 'lg'; emphasis?: 'high' | 'low' }) {
-  let base = 'bg-blue-200 text-blue-800 dark:bg-blue-800/50 dark:text-blue-300';
-  if (value >= 85) base = 'bg-blue-700 text-white dark:bg-blue-600';
-  else if (value >= 70) base = 'bg-blue-600 text-white dark:bg-blue-500';
-  else if (value >= 55) base = 'bg-blue-500 text-white dark:bg-blue-400';
-  else if (value < 55 && emphasis === 'low') base = 'bg-red-200 text-red-800 dark:bg-red-800/50 dark:text-red-300';
+function DayCard({ day, data }: { day: string; data?: AderenciaDia }) {
+  if (!data) {
+    return (
+      <div className="rounded-xl bg-slate-50 p-4 text-center dark:bg-slate-800/50">
+        <p className="text-sm font-semibold text-slate-400">{day}</p>
+        <p className="mt-2 text-xs text-slate-400">Sem dados</p>
+      </div>
+    );
+  }
 
-  const padding = size === 'lg' ? 'px-4 py-1.5 text-sm' : size === 'md' ? 'px-3 py-1 text-xs' : 'px-2.5 py-1 text-[11px]';
+  const colorClass = getAderenciaColor(data.aderencia_percentual);
+  const bgClass = getAderenciaBgColor(data.aderencia_percentual);
 
-  return <span className={`inline-flex items-center rounded-full font-bold transition-colors ${base} ${padding}`}>{value.toFixed(1)}%</span>;
-}
-
-function EmptyState({ message }: { message: string }) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center text-center text-sm text-blue-600 dark:text-blue-300">
-      <div className="text-3xl">📊</div>
-      <p className="mt-2 font-semibold">{message}</p>
+    <div className="group overflow-hidden rounded-xl bg-white p-4 shadow-md transition-all duration-300 hover:shadow-lg dark:bg-slate-900">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-bold text-slate-900 dark:text-white">{day}</p>
+        <div className={`rounded-lg px-2 py-1 ${bgClass}`}>
+          <span className={`text-xs font-bold ${colorClass}`}>{data.aderencia_percentual.toFixed(0)}%</span>
+        </div>
+      </div>
+      <div className="space-y-1.5 text-xs">
+        <div className="flex justify-between">
+          <span className="text-slate-500">Planejado:</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-300">{data.horas_a_entregar}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-500">Entregue:</span>
+          <span className="font-semibold text-blue-600 dark:text-blue-400">{data.horas_entregues}</span>
+        </div>
+      </div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div 
+          className={`h-full rounded-full transition-all duration-1000 ${data.aderencia_percentual >= 90 ? 'bg-emerald-500' : data.aderencia_percentual >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`}
+          style={{ width: `${Math.min(data.aderencia_percentual, 100)}%` }}
+        ></div>
+      </div>
     </div>
   );
 }
 
-function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas, origens }: FiltroBarProps) {
+function FiltroSelect({ label, placeholder, options, value, onChange }: {
+  label: string;
+  placeholder: string;
+  options: FilterOption[];
+  value: string;
+  onChange: (value: string | null) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">{label}</span>
+      <select
+        className="rounded-xl border-2 border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-900 shadow-sm transition-all duration-200 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 dark:focus:border-blue-600 dark:focus:ring-blue-900/30"
+        value={value}
+        onChange={(e) => onChange(e.target.value || null)}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function FiltroBar({
+  filters,
+  setFilters,
+  anos,
+  semanas,
+  pracas,
+  subPracas,
+  origens,
+}: {
+  filters: Filters;
+  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
+  anos: number[];
+  semanas: number[];
+  pracas: FilterOption[];
+  subPracas: FilterOption[];
+  origens: FilterOption[];
+}) {
   const handleChange = (key: keyof Filters, rawValue: string | null) => {
     setFilters((prev) => ({
       ...prev,
@@ -545,42 +316,271 @@ function FiltroBar({ filters, setFilters, anos, semanas, pracas, subPracas, orig
 
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-      <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anos.map((ano) => ({ value: String(ano), label: String(ano) }))} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
-      <FiltroSelect label="Semana" value={filters.semana !== null ? String(filters.semana) : ''} options={semanas.map((sem) => ({ value: String(sem), label: `S${sem.toString().padStart(2, '0')}` }))} placeholder="Todas" onChange={(value) => handleChange('semana', value)} />
-      <FiltroSelect label="Praça" value={filters.praca ?? ''} options={pracas} placeholder="Todas" onChange={(value) => handleChange('praca', value)} />
-      <FiltroSelect label="Sub praça" value={filters.subPraca ?? ''} options={subPracas} placeholder="Todas" onChange={(value) => handleChange('subPraca', value)} />
-      <FiltroSelect label="Origem" value={filters.origem ?? ''} options={origens} placeholder="Todas" onChange={(value) => handleChange('origem', value)} />
+      <FiltroSelect
+        label="Ano"
+        value={filters.ano !== null ? String(filters.ano) : ''}
+        options={anos.map((ano) => ({ value: String(ano), label: String(ano) }))}
+        placeholder="Todos"
+        onChange={(value) => handleChange('ano', value)}
+      />
+      <FiltroSelect
+        label="Semana"
+        value={filters.semana !== null ? String(filters.semana) : ''}
+        options={semanas.map((sem) => ({ value: String(sem), label: `S${sem.toString().padStart(2, '0')}` }))}
+        placeholder="Todas"
+        onChange={(value) => handleChange('semana', value)}
+      />
+      <FiltroSelect
+        label="Praça"
+        value={filters.praca ?? ''}
+        options={pracas}
+        placeholder="Todas"
+        onChange={(value) => handleChange('praca', value)}
+      />
+      <FiltroSelect
+        label="Sub praça"
+        value={filters.subPraca ?? ''}
+        options={subPracas}
+        placeholder="Todas"
+        onChange={(value) => handleChange('subPraca', value)}
+      />
+      <FiltroSelect
+        label="Origem"
+        value={filters.origem ?? ''}
+        options={origens}
+        placeholder="Todas"
+        onChange={(value) => handleChange('origem', value)}
+      />
     </div>
   );
 }
 
-function FiltroSelect({ label, placeholder, options, value, onChange }: FiltroSelectProps) {
+// =================================================================================
+// Views Principais
+// =================================================================================
+
+function DashboardView({
+  aderenciaGeral,
+  aderenciaDia,
+  aderenciaTurno,
+  aderenciaSubPraca,
+  aderenciaOrigem,
+}: {
+  aderenciaGeral?: AderenciaSemanal;
+  aderenciaDia: AderenciaDia[];
+  aderenciaTurno: AderenciaTurno[];
+  aderenciaSubPraca: AderenciaSubPraca[];
+  aderenciaOrigem: AderenciaOrigem[];
+}) {
+  const [viewMode, setViewMode] = useState<'turno' | 'sub_praca' | 'origem'>('turno');
+
+  const diasOrdenados = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+  const diasData = diasOrdenados.map((dia) => ({
+    dia,
+    data: aderenciaDia.find((d) => d.dia_da_semana === dia),
+  }));
+
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">{label}</span>
-      <select
-        className="rounded-xl border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-800 shadow-sm transition-all duration-200 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-blue-700 dark:bg-slate-800 dark:text-blue-100 dark:focus:border-blue-500 dark:focus:ring-blue-800/50"
-        value={value}
-        onChange={(event) => onChange(event.target.value || null)}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Aderência Geral */}
+      {aderenciaGeral && (
+        <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-8 shadow-2xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-blue-100">Aderência Geral</h2>
+              <p className="mt-1 text-4xl font-bold text-white">{aderenciaGeral.aderencia_percentual.toFixed(1)}%</p>
+              <div className="mt-4 flex gap-6 text-sm">
+                <div>
+                  <span className="text-blue-200">Planejado:</span>
+                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_a_entregar}</span>
+                </div>
+                <div>
+                  <span className="text-blue-200">Entregue:</span>
+                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_entregues}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex h-32 w-32 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+              <span className="text-5xl">📊</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Aderência por Dia */}
+      <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-900">
+        <h3 className="mb-6 text-lg font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
+          {diasData.map(({ dia, data }) => (
+            <DayCard key={dia} day={dia} data={data} />
+          ))}
+        </div>
+      </div>
+
+      {/* Seletor de Visualização */}
+      <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-900">
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Visualizações Adicionais</h3>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('turno')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                viewMode === 'turno'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+              }`}
+            >
+              Por Turno
+            </button>
+            <button
+              onClick={() => setViewMode('sub_praca')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                viewMode === 'sub_praca'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+              }`}
+            >
+              Por Sub-Praça
+            </button>
+            <button
+              onClick={() => setViewMode('origem')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                viewMode === 'origem'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+              }`}
+            >
+              Por Origem
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {viewMode === 'turno' &&
+            aderenciaTurno.map((item) => (
+              <AderenciaCard
+                key={item.periodo}
+                title={item.periodo}
+                planejado={item.horas_a_entregar}
+                entregue={item.horas_entregues}
+                percentual={item.aderencia_percentual}
+              />
+            ))}
+          {viewMode === 'sub_praca' &&
+            aderenciaSubPraca.map((item) => (
+              <AderenciaCard
+                key={item.sub_praca}
+                title={item.sub_praca}
+                planejado={item.horas_a_entregar}
+                entregue={item.horas_entregues}
+                percentual={item.aderencia_percentual}
+              />
+            ))}
+          {viewMode === 'origem' &&
+            aderenciaOrigem.map((item) => (
+              <AderenciaCard
+                key={item.origem}
+                title={item.origem}
+                planejado={item.horas_a_entregar}
+                entregue={item.horas_entregues}
+                percentual={item.aderencia_percentual}
+              />
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnaliseView({ totals, aderenciaGeral }: { totals: Totals; aderenciaGeral?: AderenciaSemanal }) {
+  const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
+  const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
+  const taxaRejeicao = totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0;
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Métricas Principais */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          title="Corridas Ofertadas"
+          value={totals.ofertadas}
+          icon="📢"
+          gradient="from-blue-500 to-cyan-500"
+        />
+        <MetricCard
+          title="Corridas Aceitas"
+          value={totals.aceitas}
+          icon="✅"
+          percentage={taxaAceitacao}
+          percentageLabel="taxa de aceitação"
+          gradient="from-emerald-500 to-teal-500"
+        />
+        <MetricCard
+          title="Corridas Rejeitadas"
+          value={totals.rejeitadas}
+          icon="❌"
+          percentage={taxaRejeicao}
+          percentageLabel="taxa de rejeição"
+          gradient="from-rose-500 to-pink-500"
+        />
+        <MetricCard
+          title="Corridas Completadas"
+          value={totals.completadas}
+          icon="🏁"
+          percentage={taxaCompletude}
+          percentageLabel="taxa de completude"
+          gradient="from-violet-500 to-purple-500"
+        />
+      </div>
+
+      {/* Resumo Operacional */}
+      {aderenciaGeral && (
+        <div className="rounded-2xl bg-white p-8 shadow-lg dark:bg-slate-900">
+          <h3 className="mb-6 text-xl font-bold text-slate-900 dark:text-white">Resumo Operacional</h3>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:from-blue-950/30 dark:to-indigo-950/30">
+              <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Aderência Geral</p>
+              <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">{aderenciaGeral.aderencia_percentual.toFixed(1)}%</p>
+              <div className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-blue-600 dark:text-blue-400">Planejado:</span>
+                  <span className="font-semibold text-blue-900 dark:text-blue-100">{aderenciaGeral.horas_a_entregar}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-blue-600 dark:text-blue-400">Entregue:</span>
+                  <span className="font-semibold text-blue-900 dark:text-blue-100">{aderenciaGeral.horas_entregues}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 dark:from-emerald-950/30 dark:to-teal-950/30">
+              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Eficiência de Aceitação</p>
+              <p className="mt-2 text-3xl font-bold text-emerald-900 dark:text-emerald-100">{taxaAceitacao.toFixed(1)}%</p>
+              <p className="mt-4 text-sm text-emerald-600 dark:text-emerald-400">
+                {totals.aceitas.toLocaleString('pt-BR')} de {totals.ofertadas.toLocaleString('pt-BR')} corridas
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 p-6 dark:from-violet-950/30 dark:to-purple-950/30">
+              <p className="text-sm font-semibold text-violet-700 dark:text-violet-300">Eficiência de Completude</p>
+              <p className="mt-2 text-3xl font-bold text-violet-900 dark:text-violet-100">{taxaCompletude.toFixed(1)}%</p>
+              <p className="mt-4 text-sm text-violet-600 dark:text-violet-400">
+                {totals.completadas.toLocaleString('pt-BR')} de {totals.aceitas.toLocaleString('pt-BR')} aceitas
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
 // =================================================================================
-// Componente Principal da Página
+// Componente Principal
 // =================================================================================
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'analise'>('dashboard');
-  const [viewMode, setViewMode] = useState<'geral' | 'turno' | 'sub_praca' | 'origem'>('geral');
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
@@ -601,105 +601,107 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchData() {
-    setLoading(true);
-    setError(null);
-
-    const params = buildFilterPayload(filters);
-
-    try {
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      const { data: resumoData, error: resumoError } = await supabase.rpc('dashboard_resumo', params);
-
-      if (controller.signal.aborted) {
-        return;
-      }
-
-      if (resumoError) {
-        throw resumoError;
-      }
-
-      const resumo = resumoData as DashboardResumoData | null;
-
-      const safeNumber = (value: number | string | null | undefined) =>
-        value === null || value === undefined ? 0 : Number(value);
-
-      const totalsRow = resumo?.totais;
-      setTotals(
-        totalsRow
-          ? {
-              ofertadas: safeNumber(totalsRow.corridas_ofertadas),
-              aceitas: safeNumber(totalsRow.corridas_aceitas),
-              rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
-              completadas: safeNumber(totalsRow.corridas_completadas),
-            }
-          : { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }
-      );
-
-      setAderenciaSemanal(resumo?.semanal ?? []);
-      setAderenciaDia(resumo?.dia ?? []);
-      setAderenciaTurno(resumo?.turno ?? []);
-      setAderenciaSubPraca(resumo?.sub_praca ?? []);
-      setAderenciaOrigem(resumo?.origem ?? []);
-
-      const dimensoes = resumo?.dimensoes;
-      setAnosDisponiveis(dimensoes?.anos ?? []);
-      setSemanasDisponiveis(dimensoes?.semanas ?? []);
-      setPracas((dimensoes?.pracas ?? []).map((p: string) => ({ value: p, label: p })));
-      setSubPracas((dimensoes?.sub_pracas ?? []).map((sp: string) => ({ value: sp, label: sp })));
-      setOrigens((dimensoes?.origens ?? []).map((origem: string) => ({ value: origem, label: origem })));
-
+      setLoading(true);
       setError(null);
-    } catch (err: any) {
-      if (err?.name === 'AbortError') {
-        return;
+
+      const params = buildFilterPayload(filters);
+
+      try {
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
+        const { data: resumoData, error: resumoError } = await supabase.rpc('dashboard_resumo', params);
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        if (resumoError) {
+          throw resumoError;
+        }
+
+        const resumo = resumoData as DashboardResumoData | null;
+
+        const safeNumber = (value: number | string | null | undefined) =>
+          value === null || value === undefined ? 0 : Number(value);
+
+        const totalsRow = resumo?.totais;
+        setTotals(
+          totalsRow
+            ? {
+                ofertadas: safeNumber(totalsRow.corridas_ofertadas),
+                aceitas: safeNumber(totalsRow.corridas_aceitas),
+                rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
+                completadas: safeNumber(totalsRow.corridas_completadas),
+              }
+            : { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }
+        );
+
+        setAderenciaSemanal(resumo?.semanal ?? []);
+        setAderenciaDia(resumo?.dia ?? []);
+        setAderenciaTurno(resumo?.turno ?? []);
+        setAderenciaSubPraca(resumo?.sub_praca ?? []);
+        setAderenciaOrigem(resumo?.origem ?? []);
+
+        const dimensoes = resumo?.dimensoes;
+        setAnosDisponiveis(dimensoes?.anos ?? []);
+        setSemanasDisponiveis(dimensoes?.semanas ?? []);
+        setPracas((dimensoes?.pracas ?? []).map((p: string) => ({ value: p, label: p })));
+        setSubPracas((dimensoes?.sub_pracas ?? []).map((sp: string) => ({ value: sp, label: sp })));
+        setOrigens((dimensoes?.origens ?? []).map((origem: string) => ({ value: origem, label: origem })));
+
+        setError(null);
+      } catch (err: any) {
+        if (err?.name === 'AbortError') {
+          return;
+        }
+        console.error('Erro ao buscar dados do dashboard:', err);
+        setError('Não foi possível carregar os dados. Verifique os filtros ou tente novamente.');
+        setTotals(null);
+        setAderenciaSemanal([]);
+        setAderenciaDia([]);
+        setAderenciaTurno([]);
+        setAderenciaSubPraca([]);
+        setAderenciaOrigem([]);
+      } finally {
+        setLoading(false);
       }
-      console.error('Erro ao buscar dados do dashboard:', err);
-      setError('Não foi possível carregar os dados. Verifique os filtros ou tente novamente.');
-      setTotals(null);
-      setAderenciaSemanal([]);
-      setAderenciaDia([]);
-      setAderenciaTurno([]);
-      setAderenciaSubPraca([]);
-      setAderenciaOrigem([]);
-    } finally {
-      setLoading(false);
     }
-  }
 
-  fetchData();
+    fetchData();
 
-  return () => {
-    abortRef.current?.abort();
-  };
-}, [filters]);
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, [filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
+      <div className="mx-auto max-w-[1600px] px-6 py-8">
         {loading && (
           <div className="flex h-[80vh] items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                <div className="h-14 w-14 animate-spin rounded-full border-4 border-blue-200"></div>
-                <div className="absolute inset-0 h-14 w-14 animate-spin rounded-full border-t-4 border-blue-600"></div>
+            <div className="text-center">
+              <div className="relative mx-auto h-16 w-16">
+                <div className="absolute h-16 w-16 animate-ping rounded-full bg-blue-400 opacity-75"></div>
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-indigo-600">
+                  <span className="text-2xl">📊</span>
+                </div>
               </div>
-              <p className="font-semibold text-blue-700 dark:text-blue-200">Carregando dados do dashboard...</p>
+              <p className="mt-6 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando dashboard...</p>
             </div>
           </div>
         )}
 
         {error && (
           <div className="flex h-[80vh] items-center justify-center">
-            <div className="max-w-lg rounded-2xl border border-blue-200 bg-white px-8 py-6 text-center shadow-xl dark:border-blue-700 dark:bg-slate-900">
-              <div className="text-5xl">⚠️</div>
-              <p className="mt-4 text-xl font-bold text-blue-800 dark:text-blue-200">Não foi possível carregar os dados</p>
-              <p className="mt-2 text-blue-600 dark:text-blue-300">{error}</p>
+            <div className="max-w-md rounded-2xl border-2 border-rose-200 bg-white p-8 text-center shadow-2xl dark:border-rose-900 dark:bg-slate-900">
+              <div className="text-6xl">⚠️</div>
+              <p className="mt-6 text-xl font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
+              <p className="mt-3 text-rose-700 dark:text-rose-300">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="mt-6 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700"
+                className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 font-semibold text-white shadow-lg transition-all hover:shadow-xl"
               >
                 Tentar novamente
               </button>
@@ -708,8 +710,9 @@ export default function DashboardPage() {
         )}
 
         {totals && !loading && !error && (
-          <div className="flex flex-col gap-6">
-            <header className="flex flex-col gap-4 rounded-2xl border border-blue-200 bg-white/80 p-5 shadow-lg backdrop-blur dark:border-blue-800 dark:bg-slate-900/70">
+          <div className="space-y-6">
+            {/* Header com filtros e tabs */}
+            <div className="rounded-2xl border border-blue-200 bg-white/80 p-6 shadow-xl backdrop-blur-sm dark:border-blue-900 dark:bg-slate-900/80">
               <FiltroBar
                 filters={filters}
                 setFilters={setFilters}
@@ -719,25 +722,25 @@ export default function DashboardPage() {
                 subPracas={subPracas}
                 origens={origens}
               />
-              <div className="h-px w-full bg-blue-200 dark:bg-blue-800"></div>
-              <div className="flex items-center gap-3">
+              <div className="mt-6 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700"></div>
+              <div className="mt-6 flex flex-wrap gap-3">
                 <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
                 <TabButton label="Análise Detalhada" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
               </div>
-            </header>
+            </div>
 
-            <main className="transition-all duration-300">
+            {/* Conteúdo */}
+            <main>
               {activeTab === 'dashboard' && (
                 <DashboardView
                   aderenciaGeral={aderenciaGeral}
-                  aderenciaSemanal={aderenciaSemanal}
                   aderenciaDia={aderenciaDia}
                   aderenciaTurno={aderenciaTurno}
                   aderenciaSubPraca={aderenciaSubPraca}
                   aderenciaOrigem={aderenciaOrigem}
                 />
               )}
-              {activeTab === 'analise' && <AnaliseView totals={totals} aderenciaGeral={aderenciaGeral} aderenciaSemanal={aderenciaSemanal} />}
+              {activeTab === 'analise' && <AnaliseView totals={totals} aderenciaGeral={aderenciaGeral} />}
             </main>
           </div>
         )}
