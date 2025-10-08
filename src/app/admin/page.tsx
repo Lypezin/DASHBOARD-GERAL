@@ -52,8 +52,7 @@ export default function AdminPage() {
 
     // Verificar se é admin
     const { data: profile, error } = await supabase
-      .rpc('get_current_user_profile')
-      .single() as { data: UserProfile | null; error: any };
+      .rpc('get_current_user_profile') as { data: UserProfile | null; error: any };
 
     if (error || !profile?.is_admin) {
       router.push('/');

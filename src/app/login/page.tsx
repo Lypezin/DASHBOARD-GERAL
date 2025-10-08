@@ -27,8 +27,7 @@ export default function LoginPage() {
 
       // Verificar se o usuário está aprovado
       const { data: profile, error: profileError } = await supabase
-        .rpc('get_current_user_profile')
-        .single() as { data: any; error: any };
+        .rpc('get_current_user_profile') as { data: any; error: any };
 
       if (profileError) {
         await supabase.auth.signOut();

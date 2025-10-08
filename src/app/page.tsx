@@ -1183,7 +1183,7 @@ export default function DashboardPage() {
     async function checkUserAndFetchData() {
       // Primeiro, buscar informações do usuário
       try {
-        const { data: userProfile } = await supabase.rpc('get_current_user_profile').single() as { data: any; error: any };
+        const { data: userProfile } = await supabase.rpc('get_current_user_profile') as { data: any; error: any };
         if (userProfile) {
           setCurrentUser({
             is_admin: userProfile.is_admin,
