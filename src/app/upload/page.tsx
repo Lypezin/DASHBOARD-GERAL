@@ -156,17 +156,19 @@ export default function UploadPage() {
         setProgressLabel(`Enviando dados (${insertedRows}/${totalRows})...`);
       }
 
-      setProgressLabel('Atualizando materialized view...');
       setProgress(95);
+      setProgressLabel('Finalizando...');
 
-      const { error: refreshError } = await supabase.rpc('refresh_mv_aderencia');
-      if (refreshError) {
-        console.warn('Erro ao atualizar materialized view:', refreshError);
+      // Tentar atualizar a materialized view, mas não bloquear se falhar
+      try {
+        await supabase.rpc('refresh_mv_aderencia');
+      } catch (refreshError) {
+        console.warn('Aviso: Não foi possível atualizar a view automaticamente. Atualize manualmente se necessário.');
       }
 
       setProgress(100);
       setProgressLabel('Concluído!');
-      setMessage(`✅ Upload concluído com sucesso! ${insertedRows} linhas inseridas.`);
+      setMessage(`✅ Upload concluído com sucesso! ${insertedRows} linhas inseridas. Atualize a página para ver os novos dados.`);
       setFile(null);
 
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;

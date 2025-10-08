@@ -107,9 +107,9 @@ function getAderenciaColor(value: number): string {
 }
 
 function getAderenciaBgColor(value: number): string {
-  if (value >= 90) return 'bg-emerald-50 dark:bg-emerald-950/30';
-  if (value >= 70) return 'bg-amber-50 dark:bg-amber-950/30';
-  return 'bg-rose-50 dark:bg-rose-950/30';
+  if (value >= 90) return 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800';
+  if (value >= 70) return 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800';
+  return 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800';
 }
 
 // =================================================================================
@@ -120,17 +120,13 @@ function TabButton({ label, icon, active, onClick }: { label: string; icon: stri
   return (
     <button
       onClick={onClick}
-      className={`group relative flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
+      className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
         active
-          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
-          : 'text-blue-600 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-950/50'
+          ? 'bg-blue-600 text-white shadow-md'
+          : 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
       }`}
     >
-      <span className="text-lg">{icon}</span>
-      <span>{label}</span>
-      {active && (
-        <div className="absolute -bottom-0.5 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-blue-400 to-indigo-400"></div>
-      )}
+      {icon} {label}
     </button>
   );
 }
@@ -139,42 +135,87 @@ function MetricCard({
   title, 
   value, 
   icon, 
-  percentage, 
-  percentageLabel,
-  gradient 
+  color = 'blue'
 }: { 
   title: string; 
   value: number; 
   icon: string; 
-  percentage?: number;
-  percentageLabel?: string;
-  gradient: string;
+  color?: string;
 }) {
+  const colorClasses: Record<string, string> = {
+    blue: 'from-blue-500 to-blue-600',
+    green: 'from-emerald-500 to-emerald-600',
+    red: 'from-rose-500 to-rose-600',
+    purple: 'from-purple-500 to-purple-600',
+  };
+
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-slate-900">
-      <div className={`absolute right-0 top-0 h-32 w-32 rounded-full opacity-10 blur-3xl ${gradient}`}></div>
-      
-      <div className="relative flex items-start justify-between">
-        <div className="flex-1">
+    <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md transition-all hover:shadow-lg dark:border-blue-800 dark:bg-slate-900">
+      <div className="flex items-center justify-between">
+        <div>
           <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{title}</p>
           <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{value.toLocaleString('pt-BR')}</p>
-          {percentage !== undefined && (
-            <div className="mt-3 flex items-center gap-2">
-              <div className="rounded-lg bg-blue-50 px-2 py-1 dark:bg-blue-950/30">
-                <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-                  {percentage.toFixed(1)}%
-                </span>
-              </div>
-              {percentageLabel && (
-                <span className="text-xs text-slate-500 dark:text-slate-400">{percentageLabel}</span>
-              )}
-            </div>
-          )}
         </div>
-        <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} text-2xl shadow-lg`}>
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${colorClasses[color]} text-2xl text-white shadow-lg`}>
           {icon}
         </div>
       </div>
+    </div>
+  );
+}
+
+function GaugeCard({ 
+  title, 
+  value, 
+  percentage 
+}: { 
+  title: string; 
+  value: number; 
+  percentage: number;
+}) {
+  const colorClass = percentage >= 90 ? 'from-emerald-500 to-emerald-600' : percentage >= 70 ? 'from-amber-500 to-amber-600' : 'from-rose-500 to-rose-600';
+
+  return (
+    <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
+      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{title}</h3>
+      <div className="mt-4 flex items-center justify-center">
+        <div className="relative h-32 w-32">
+          <svg className="h-32 w-32 -rotate-90 transform">
+            <circle
+              cx="64"
+              cy="64"
+              r="56"
+              stroke="currentColor"
+              strokeWidth="12"
+              fill="none"
+              className="text-slate-200 dark:text-slate-700"
+            />
+            <circle
+              cx="64"
+              cy="64"
+              r="56"
+              stroke="url(#gradient)"
+              strokeWidth="12"
+              fill="none"
+              strokeDasharray={`${(percentage / 100) * 351.86} 351.86`}
+              strokeLinecap="round"
+              className="transition-all duration-1000"
+            />
+            <defs>
+              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" className={colorClass.split(' ')[0].replace('from-', 'stop-')} />
+                <stop offset="100%" className={colorClass.split(' ')[1].replace('to-', 'stop-')} />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-2xl font-bold text-slate-900 dark:text-white">{percentage.toFixed(1)}%</span>
+          </div>
+        </div>
+      </div>
+      <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
+        {value.toLocaleString('pt-BR')} corridas
+      </p>
     </div>
   );
 }
@@ -194,70 +235,25 @@ function AderenciaCard({
   const bgClass = getAderenciaBgColor(percentual);
 
   return (
-    <div className="group overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-slate-900">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{title}</h3>
-        <div className={`rounded-xl px-3 py-1.5 ${bgClass}`}>
-          <span className={`text-lg font-bold ${colorClass}`}>{percentual.toFixed(1)}%</span>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Planejado</span>
-          <span className="text-sm font-bold text-slate-900 dark:text-white">{planejado}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Entregue</span>
-          <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{entregue}</span>
-        </div>
-      </div>
-
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-        <div 
-          className={`h-full rounded-full transition-all duration-1000 ${percentual >= 90 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : percentual >= 70 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-rose-500 to-rose-600'}`}
-          style={{ width: `${Math.min(percentual, 100)}%` }}
-        ></div>
-      </div>
-    </div>
-  );
-}
-
-function DayCard({ day, data }: { day: string; data?: AderenciaDia }) {
-  if (!data) {
-    return (
-      <div className="rounded-xl bg-slate-50 p-4 text-center dark:bg-slate-800/50">
-        <p className="text-sm font-semibold text-slate-400">{day}</p>
-        <p className="mt-2 text-xs text-slate-400">Sem dados</p>
-      </div>
-    );
-  }
-
-  const colorClass = getAderenciaColor(data.aderencia_percentual);
-  const bgClass = getAderenciaBgColor(data.aderencia_percentual);
-
-  return (
-    <div className="group overflow-hidden rounded-xl bg-white p-4 shadow-md transition-all duration-300 hover:shadow-lg dark:bg-slate-900">
+    <div className={`rounded-xl border p-4 ${bgClass}`}>
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm font-bold text-slate-900 dark:text-white">{day}</p>
-        <div className={`rounded-lg px-2 py-1 ${bgClass}`}>
-          <span className={`text-xs font-bold ${colorClass}`}>{data.aderencia_percentual.toFixed(0)}%</span>
-        </div>
+        <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
+        <span className={`text-xl font-bold ${colorClass}`}>{percentual.toFixed(1)}%</span>
       </div>
-      <div className="space-y-1.5 text-xs">
+      <div className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500">Planejado:</span>
-          <span className="font-semibold text-slate-700 dark:text-slate-300">{data.horas_a_entregar}</span>
+          <span className="text-slate-600 dark:text-slate-400">Planejado:</span>
+          <span className="font-semibold text-slate-900 dark:text-white">{planejado}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500">Entregue:</span>
-          <span className="font-semibold text-blue-600 dark:text-blue-400">{data.horas_entregues}</span>
+          <span className="text-slate-600 dark:text-slate-400">Entregue:</span>
+          <span className="font-semibold text-blue-600 dark:text-blue-400">{entregue}</span>
         </div>
       </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/50 dark:bg-slate-800/50">
         <div 
-          className={`h-full rounded-full transition-all duration-1000 ${data.aderencia_percentual >= 90 ? 'bg-emerald-500' : data.aderencia_percentual >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`}
-          style={{ width: `${Math.min(data.aderencia_percentual, 100)}%` }}
+          className={`h-full rounded-full transition-all duration-1000 ${percentual >= 90 ? 'bg-emerald-500' : percentual >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`}
+          style={{ width: `${Math.min(percentual, 100)}%` }}
         ></div>
       </div>
     </div>
@@ -272,10 +268,10 @@ function FiltroSelect({ label, placeholder, options, value, onChange }: {
   onChange: (value: string | null) => void;
 }) {
   return (
-    <label className="flex flex-col gap-2">
+    <label className="flex flex-col gap-1.5">
       <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">{label}</span>
       <select
-        className="rounded-xl border-2 border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-900 shadow-sm transition-all duration-200 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 dark:focus:border-blue-600 dark:focus:ring-blue-900/30"
+        className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-900 transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100"
         value={value}
         onChange={(e) => onChange(e.target.value || null)}
       >
@@ -315,7 +311,7 @@ function FiltroBar({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
       <FiltroSelect
         label="Ano"
         value={filters.ano !== null ? String(filters.ano) : ''}
@@ -374,59 +370,78 @@ function DashboardView({
 }) {
   const [viewMode, setViewMode] = useState<'turno' | 'sub_praca' | 'origem'>('turno');
 
-  const diasOrdenados = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
-  const diasData = diasOrdenados.map((dia) => ({
-    dia,
-    data: aderenciaDia.find((d) => d.dia_da_semana === dia),
-  }));
-
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6">
       {/* Aderência Geral */}
       {aderenciaGeral && (
-        <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-8 shadow-2xl">
+        <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-600 to-indigo-600 p-6 shadow-lg dark:border-blue-900">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-blue-100">Aderência Geral</h2>
-              <p className="mt-1 text-4xl font-bold text-white">{aderenciaGeral.aderencia_percentual.toFixed(1)}%</p>
+              <h2 className="text-sm font-semibold text-blue-100">Aderência Geral</h2>
+              <p className="mt-2 text-4xl font-bold text-white">{aderenciaGeral.aderencia_percentual?.toFixed(1) || '0.0'}%</p>
               <div className="mt-4 flex gap-6 text-sm">
                 <div>
-                  <span className="text-blue-200">Planejado:</span>
+                  <span className="text-blue-100">Planejado:</span>
                   <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_a_entregar}</span>
                 </div>
                 <div>
-                  <span className="text-blue-200">Entregue:</span>
+                  <span className="text-blue-100">Entregue:</span>
                   <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_entregues}</span>
                 </div>
               </div>
             </div>
-            <div className="flex h-32 w-32 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-              <span className="text-5xl">📊</span>
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+              <span className="text-4xl">📊</span>
             </div>
           </div>
         </div>
       )}
 
       {/* Aderência por Dia */}
-      <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-900">
-        <h3 className="mb-6 text-lg font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
-          {diasData.map(({ dia, data }) => (
-            <DayCard key={dia} day={dia} data={data} />
-          ))}
+      <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
+        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+          {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia) => {
+            const data = aderenciaDia.find((d) => d.dia_da_semana === dia);
+            if (!data) {
+              return (
+                <div key={dia} className="rounded-lg bg-slate-50 p-3 text-center dark:bg-slate-800">
+                  <p className="text-sm font-semibold text-slate-400">{dia}</p>
+                  <p className="mt-2 text-xs text-slate-400">Sem dados</p>
+                </div>
+              );
+            }
+            const colorClass = getAderenciaColor(data.aderencia_percentual);
+            return (
+              <div key={dia} className="rounded-lg border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{dia}</p>
+                <p className={`mt-2 text-xl font-bold ${colorClass}`}>{data.aderencia_percentual?.toFixed(0) || '0'}%</p>
+                <div className="mt-2 space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Plan:</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">{data.horas_a_entregar}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Ent:</span>
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">{data.horas_entregues}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Seletor de Visualização */}
-      <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-900">
-        <div className="mb-6 flex flex-wrap items-center gap-3">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Visualizações Adicionais</h3>
+      {/* Aderência por Turno/Sub-Praça/Origem */}
+      <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Aderência Detalhada</h3>
           <div className="flex gap-2">
             <button
               onClick={() => setViewMode('turno')}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-all ${
                 viewMode === 'turno'
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
               }`}
             >
@@ -434,9 +449,9 @@ function DashboardView({
             </button>
             <button
               onClick={() => setViewMode('sub_praca')}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-all ${
                 viewMode === 'sub_praca'
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
               }`}
             >
@@ -444,9 +459,9 @@ function DashboardView({
             </button>
             <button
               onClick={() => setViewMode('origem')}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-all ${
                 viewMode === 'origem'
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
               }`}
             >
@@ -495,82 +510,61 @@ function DashboardView({
 function AnaliseView({ totals, aderenciaGeral }: { totals: Totals; aderenciaGeral?: AderenciaSemanal }) {
   const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
   const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
-  const taxaRejeicao = totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Métricas Principais */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Corridas Ofertadas"
-          value={totals.ofertadas}
-          icon="📢"
-          gradient="from-blue-500 to-cyan-500"
-        />
-        <MetricCard
-          title="Corridas Aceitas"
-          value={totals.aceitas}
-          icon="✅"
-          percentage={taxaAceitacao}
-          percentageLabel="taxa de aceitação"
-          gradient="from-emerald-500 to-teal-500"
-        />
-        <MetricCard
-          title="Corridas Rejeitadas"
-          value={totals.rejeitadas}
-          icon="❌"
-          percentage={taxaRejeicao}
-          percentageLabel="taxa de rejeição"
-          gradient="from-rose-500 to-pink-500"
-        />
-        <MetricCard
-          title="Corridas Completadas"
-          value={totals.completadas}
-          icon="🏁"
-          percentage={taxaCompletude}
-          percentageLabel="taxa de completude"
-          gradient="from-violet-500 to-purple-500"
-        />
+    <div className="space-y-6">
+      {/* Métricas de Corridas */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard title="Corridas Ofertadas" value={totals.ofertadas} icon="📢" color="blue" />
+        <MetricCard title="Corridas Aceitas" value={totals.aceitas} icon="✅" color="green" />
+        <MetricCard title="Corridas Rejeitadas" value={totals.rejeitadas} icon="❌" color="red" />
+        <MetricCard title="Corridas Completadas" value={totals.completadas} icon="🏁" color="purple" />
+      </div>
+
+      {/* Taxas e Aderência */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <GaugeCard title="Taxa de Aceitação" value={totals.aceitas} percentage={taxaAceitacao} />
+        <GaugeCard title="Taxa de Completude" value={totals.completadas} percentage={taxaCompletude} />
+        {aderenciaGeral && (
+          <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Aderência Geral</h3>
+            <p className="mt-4 text-center text-4xl font-bold text-blue-600 dark:text-blue-400">
+              {aderenciaGeral.aderencia_percentual?.toFixed(1) || '0.0'}%
+            </p>
+            <div className="mt-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-600 dark:text-slate-400">Planejado:</span>
+                <span className="font-semibold text-slate-900 dark:text-white">{aderenciaGeral.horas_a_entregar}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600 dark:text-slate-400">Entregue:</span>
+                <span className="font-semibold text-blue-600 dark:text-blue-400">{aderenciaGeral.horas_entregues}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Resumo Operacional */}
-      {aderenciaGeral && (
-        <div className="rounded-2xl bg-white p-8 shadow-lg dark:bg-slate-900">
-          <h3 className="mb-6 text-xl font-bold text-slate-900 dark:text-white">Resumo Operacional</h3>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:from-blue-950/30 dark:to-indigo-950/30">
-              <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Aderência Geral</p>
-              <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">{aderenciaGeral.aderencia_percentual.toFixed(1)}%</p>
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-blue-600 dark:text-blue-400">Planejado:</span>
-                  <span className="font-semibold text-blue-900 dark:text-blue-100">{aderenciaGeral.horas_a_entregar}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-600 dark:text-blue-400">Entregue:</span>
-                  <span className="font-semibold text-blue-900 dark:text-blue-100">{aderenciaGeral.horas_entregues}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 dark:from-emerald-950/30 dark:to-teal-950/30">
-              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Eficiência de Aceitação</p>
-              <p className="mt-2 text-3xl font-bold text-emerald-900 dark:text-emerald-100">{taxaAceitacao.toFixed(1)}%</p>
-              <p className="mt-4 text-sm text-emerald-600 dark:text-emerald-400">
-                {totals.aceitas.toLocaleString('pt-BR')} de {totals.ofertadas.toLocaleString('pt-BR')} corridas
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 p-6 dark:from-violet-950/30 dark:to-purple-950/30">
-              <p className="text-sm font-semibold text-violet-700 dark:text-violet-300">Eficiência de Completude</p>
-              <p className="mt-2 text-3xl font-bold text-violet-900 dark:text-violet-100">{taxaCompletude.toFixed(1)}%</p>
-              <p className="mt-4 text-sm text-violet-600 dark:text-violet-400">
-                {totals.completadas.toLocaleString('pt-BR')} de {totals.aceitas.toLocaleString('pt-BR')} aceitas
-              </p>
-            </div>
+      <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
+        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Resumo Operacional</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
+            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Taxa de Aceitação</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-900 dark:text-emerald-100">{taxaAceitacao.toFixed(1)}%</p>
+            <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">
+              {totals.aceitas.toLocaleString('pt-BR')} de {totals.ofertadas.toLocaleString('pt-BR')} corridas
+            </p>
+          </div>
+          <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
+            <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">Taxa de Completude</p>
+            <p className="mt-2 text-2xl font-bold text-purple-900 dark:text-purple-100">{taxaCompletude.toFixed(1)}%</p>
+            <p className="mt-2 text-sm text-purple-600 dark:text-purple-400">
+              {totals.completadas.toLocaleString('pt-BR')} de {totals.aceitas.toLocaleString('pt-BR')} aceitas
+            </p>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -677,31 +671,26 @@ export default function DashboardPage() {
   }, [filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-      <div className="mx-auto max-w-[1600px] px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
+      <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
         {loading && (
           <div className="flex h-[80vh] items-center justify-center">
             <div className="text-center">
-              <div className="relative mx-auto h-16 w-16">
-                <div className="absolute h-16 w-16 animate-ping rounded-full bg-blue-400 opacity-75"></div>
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-indigo-600">
-                  <span className="text-2xl">📊</span>
-                </div>
-              </div>
-              <p className="mt-6 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando dashboard...</p>
+              <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+              <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando dashboard...</p>
             </div>
           </div>
         )}
 
         {error && (
           <div className="flex h-[80vh] items-center justify-center">
-            <div className="max-w-md rounded-2xl border-2 border-rose-200 bg-white p-8 text-center shadow-2xl dark:border-rose-900 dark:bg-slate-900">
-              <div className="text-6xl">⚠️</div>
-              <p className="mt-6 text-xl font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
-              <p className="mt-3 text-rose-700 dark:text-rose-300">{error}</p>
+            <div className="max-w-md rounded-xl border border-rose-200 bg-white p-8 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
+              <div className="text-5xl">⚠️</div>
+              <p className="mt-4 text-xl font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
+              <p className="mt-2 text-rose-700 dark:text-rose-300">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 font-semibold text-white shadow-lg transition-all hover:shadow-xl"
+                className="mt-6 rounded-lg bg-blue-600 px-6 py-2 font-semibold text-white shadow-md transition hover:bg-blue-700"
               >
                 Tentar novamente
               </button>
@@ -712,7 +701,7 @@ export default function DashboardPage() {
         {totals && !loading && !error && (
           <div className="space-y-6">
             {/* Header com filtros e tabs */}
-            <div className="rounded-2xl border border-blue-200 bg-white/80 p-6 shadow-xl backdrop-blur-sm dark:border-blue-900 dark:bg-slate-900/80">
+            <div className="rounded-xl border border-blue-200 bg-white/90 p-4 shadow-lg backdrop-blur-sm dark:border-blue-900 dark:bg-slate-900/90 sm:p-6">
               <FiltroBar
                 filters={filters}
                 setFilters={setFilters}
@@ -722,8 +711,8 @@ export default function DashboardPage() {
                 subPracas={subPracas}
                 origens={origens}
               />
-              <div className="mt-6 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700"></div>
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="my-4 h-px bg-blue-200 dark:bg-blue-800"></div>
+              <div className="flex flex-wrap gap-2">
                 <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
                 <TabButton label="Análise Detalhada" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
               </div>
