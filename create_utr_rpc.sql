@@ -17,6 +17,7 @@ CREATE OR REPLACE FUNCTION public.calcular_utr(
 RETURNS jsonb
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
 SET search_path = public
 AS $$
 WITH filtro_base AS (
