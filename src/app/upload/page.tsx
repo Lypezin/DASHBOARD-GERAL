@@ -178,31 +178,32 @@ export default function UploadPage() {
       }
     }
 
-    // Atualizar a materialized view após todos os uploads
-    setProgressLabel('Atualizando dados agregados...');
-    setProgress(95);
-    
-    let viewRefreshed = false;
-    try {
-      const refreshResult = await supabase.rpc('refresh_mv_aderencia');
-      if (!refreshResult.error) {
-        viewRefreshed = true;
-      }
-    } catch (refreshError) {
-      console.warn('Aviso: Não foi possível atualizar a view automaticamente.');
-    }
-
     setProgress(100);
     setProgressLabel('Concluído!');
     
     if (errorCount === 0) {
-      if (viewRefreshed) {
-        setMessage(`✅ Todos os ${successCount} arquivo(s) foram importados com sucesso! Atualize a página para ver os novos dados.`);
-      } else {
-        setMessage(`✅ Todos os ${successCount} arquivo(s) foram importados. ⚠️ Os dados agregados serão atualizados em segundo plano. Aguarde alguns minutos e atualize a página.`);
-      }
+      setMessage(`✅ Todos os ${successCount} arquivo(s) foram importados com sucesso! 
+        
+⏳ Aguarde alguns minutos para os dados agregados serem processados, depois atualize a página.
+
+💡 Dica: Com grandes volumes de dados, o processamento pode levar até 10 minutos. Você pode fechar esta página e voltar mais tarde.`);
     } else {
       setMessage(`⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Verifique os logs.`);
+    }
+    
+    // Tentar refresh assíncrono da materialized view (não bloqueia o upload)
+    try {
+      // Usar setTimeout para não bloquear a UI
+      setTimeout(async () => {
+        try {
+          await supabase.rpc('refresh_mv_aderencia_async');
+          console.log('Refresh da materialized view iniciado em segundo plano');
+        } catch (e) {
+          console.warn('Refresh assíncrono não disponível, será processado automaticamente');
+        }
+      }, 1000);
+    } catch (e) {
+      // Silenciar erros - o refresh será feito automaticamente
     }
 
     setFiles([]);

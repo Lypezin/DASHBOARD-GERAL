@@ -360,72 +360,72 @@ function DashboardView({
       )}
 
       {/* Destaques da Operação */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:border-emerald-800 dark:from-emerald-950/30 dark:to-teal-950/30">
-          <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
-            <span className="text-xl">📊</span>
-            <p className="text-sm font-semibold">Melhor Dia</p>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-3 dark:border-emerald-800 dark:from-emerald-950/30 dark:to-teal-950/30">
+          <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300">
+            <span className="text-base">📊</span>
+            <p className="text-xs font-semibold">Melhor Dia</p>
           </div>
-          <p className="mt-2 text-2xl font-bold text-emerald-900 dark:text-emerald-100">
+          <p className="mt-1.5 text-lg font-bold text-emerald-900 dark:text-emerald-100">
             {aderenciaDia.length > 0 
               ? aderenciaDia.reduce((max, dia) => (dia.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? dia : max).dia_da_semana
               : '-'}
           </p>
-          <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
+          <p className="mt-0.5 text-xs text-emerald-600 dark:text-emerald-400">
             {aderenciaDia.length > 0 
-              ? `${aderenciaDia.reduce((max, dia) => (dia.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? dia : max).aderencia_percentual?.toFixed(1) || '0'}% de aderência`
-              : 'Sem dados'}
+              ? `${aderenciaDia.reduce((max, dia) => (dia.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? dia : max).aderencia_percentual?.toFixed(1) || '0'}%`
+              : 'N/D'}
           </p>
         </div>
 
-        <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-4 dark:border-blue-800 dark:from-blue-950/30 dark:to-cyan-950/30">
-          <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
-            <span className="text-xl">⏰</span>
-            <p className="text-sm font-semibold">Melhor Turno</p>
+        <div className="rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-3 dark:border-blue-800 dark:from-blue-950/30 dark:to-cyan-950/30">
+          <div className="flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
+            <span className="text-base">⏰</span>
+            <p className="text-xs font-semibold">Melhor Turno</p>
           </div>
-          <p className="mt-2 text-2xl font-bold text-blue-900 dark:text-blue-100">
+          <p className="mt-1.5 text-lg font-bold text-blue-900 dark:text-blue-100 truncate">
             {aderenciaTurno.length > 0 
               ? aderenciaTurno.reduce((max, turno) => (turno.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? turno : max).periodo
               : '-'}
           </p>
-          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+          <p className="mt-0.5 text-xs text-blue-600 dark:text-blue-400">
             {aderenciaTurno.length > 0 
-              ? `${aderenciaTurno.reduce((max, turno) => (turno.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? turno : max).aderencia_percentual?.toFixed(1) || '0'}% de aderência`
-              : 'Sem dados'}
+              ? `${aderenciaTurno.reduce((max, turno) => (turno.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? turno : max).aderencia_percentual?.toFixed(1) || '0'}%`
+              : 'N/D'}
           </p>
         </div>
 
-        <div className="rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-4 dark:border-violet-800 dark:from-violet-950/30 dark:to-purple-950/30">
-          <div className="flex items-center gap-2 text-violet-700 dark:text-violet-300">
-            <span className="text-xl">📍</span>
-            <p className="text-sm font-semibold">Melhor Sub-Praça</p>
+        <div className="rounded-lg border border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-3 dark:border-violet-800 dark:from-violet-950/30 dark:to-purple-950/30">
+          <div className="flex items-center gap-1.5 text-violet-700 dark:text-violet-300">
+            <span className="text-base">📍</span>
+            <p className="text-xs font-semibold">Melhor Sub-Praça</p>
           </div>
-          <p className="mt-2 text-2xl font-bold text-violet-900 dark:text-violet-100">
+          <p className="mt-1.5 text-lg font-bold text-violet-900 dark:text-violet-100 truncate">
             {aderenciaSubPraca.length > 0 
               ? aderenciaSubPraca.reduce((max, sp) => (sp.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? sp : max).sub_praca
               : '-'}
           </p>
-          <p className="mt-1 text-xs text-violet-600 dark:text-violet-400">
+          <p className="mt-0.5 text-xs text-violet-600 dark:text-violet-400">
             {aderenciaSubPraca.length > 0 
-              ? `${aderenciaSubPraca.reduce((max, sp) => (sp.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? sp : max).aderencia_percentual?.toFixed(1) || '0'}% de aderência`
-              : 'Sem dados'}
+              ? `${aderenciaSubPraca.reduce((max, sp) => (sp.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? sp : max).aderencia_percentual?.toFixed(1) || '0'}%`
+              : 'N/D'}
           </p>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 dark:border-amber-800 dark:from-amber-950/30 dark:to-orange-950/30">
-          <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
-            <span className="text-xl">🎯</span>
-            <p className="text-sm font-semibold">Melhor Origem</p>
+        <div className="rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-3 dark:border-amber-800 dark:from-amber-950/30 dark:to-orange-950/30">
+          <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
+            <span className="text-base">🎯</span>
+            <p className="text-xs font-semibold">Melhor Origem</p>
           </div>
-          <p className="mt-2 text-2xl font-bold text-amber-900 dark:text-amber-100">
+          <p className="mt-1.5 text-lg font-bold text-amber-900 dark:text-amber-100 truncate">
             {aderenciaOrigem.length > 0 
               ? aderenciaOrigem.reduce((max, orig) => (orig.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? orig : max).origem
               : '-'}
           </p>
-          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+          <p className="mt-0.5 text-xs text-amber-600 dark:text-amber-400">
             {aderenciaOrigem.length > 0 
-              ? `${aderenciaOrigem.reduce((max, orig) => (orig.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? orig : max).aderencia_percentual?.toFixed(1) || '0'}% de aderência`
-              : 'Sem dados'}
+              ? `${aderenciaOrigem.reduce((max, orig) => (orig.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? orig : max).aderencia_percentual?.toFixed(1) || '0'}%`
+              : 'N/D'}
           </p>
         </div>
       </div>
