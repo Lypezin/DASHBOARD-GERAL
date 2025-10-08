@@ -606,24 +606,27 @@ export default function DashboardPage() {
 
     const params = buildFilterPayload(filters);
 
-    const controller = new AbortController();
-    abortRef.current?.abort();
-    abortRef.current = controller;
-
     try {
-      const response = await supabase.rpc('dashboard_resumo', params, {
-        signal: controller.signal,
-      });
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-      if (response.error) {
-        throw response.error;
+      const { data: resumoData, error: resumoError } = await supabase.rpc('dashboard_resumo', params);
+
+      if (controller.signal.aborted) {
+        return;
       }
 
-      const resumoData = response.data as DashboardResumoData | null;
+      if (resumoError) {
+        throw resumoError;
+      }
 
-      const safeNumber = (value: number | string | null | undefined) => (value === null || value === undefined ? 0 : Number(value));
+      const resumo = resumoData as DashboardResumoData | null;
 
-      const totalsRow = resumoData?.totais;
+      const safeNumber = (value: number | string | null | undefined) =>
+        value === null || value === undefined ? 0 : Number(value);
+
+      const totalsRow = resumo?.totais;
       setTotals(
         totalsRow
           ? {
@@ -635,13 +638,13 @@ export default function DashboardPage() {
           : { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }
       );
 
-      setAderenciaSemanal(resumoData?.semanal ?? []);
-      setAderenciaDia(resumoData?.dia ?? []);
-      setAderenciaTurno(resumoData?.turno ?? []);
-      setAderenciaSubPraca(resumoData?.sub_praca ?? []);
-      setAderenciaOrigem(resumoData?.origem ?? []);
+      setAderenciaSemanal(resumo?.semanal ?? []);
+      setAderenciaDia(resumo?.dia ?? []);
+      setAderenciaTurno(resumo?.turno ?? []);
+      setAderenciaSubPraca(resumo?.sub_praca ?? []);
+      setAderenciaOrigem(resumo?.origem ?? []);
 
-      const dimensoes = resumoData?.dimensoes;
+      const dimensoes = resumo?.dimensoes;
       setAnosDisponiveis(dimensoes?.anos ?? []);
       setSemanasDisponiveis(dimensoes?.semanas ?? []);
       setPracas((dimensoes?.pracas ?? []).map((p: string) => ({ value: p, label: p })));
