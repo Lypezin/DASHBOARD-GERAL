@@ -73,6 +73,11 @@ export function Header() {
     return null;
   }
 
+  // Não mostrar header se não houver usuário autenticado
+  if (!user) {
+    return null;
+  }
+
   return (
     <header className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-xl">
       <div className="container mx-auto flex h-20 items-center justify-between px-6">
@@ -95,7 +100,7 @@ export function Header() {
             <span className="font-medium">Dashboard</span>
           </Link>
           
-          {user?.is_admin && (
+          {user.is_admin && (
             <>
               <Link
                 href="/upload"
@@ -116,38 +121,36 @@ export function Header() {
             </>
           )}
 
-          {user && (
-            <div className="relative">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-all duration-200 border border-white/20"
-              >
-                <span>👤</span>
-                <span className="font-medium">{user.full_name.split(' ')[0]}</span>
-                <span className="text-xs">▼</span>
-              </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-all duration-200 border border-white/20"
+            >
+              <span>👤</span>
+              <span className="font-medium">{user.full_name.split(' ')[0]}</span>
+              <span className="text-xs">▼</span>
+            </button>
 
-              {showMenu && (
-                <div className="absolute right-0 mt-2 w-64 rounded-xl border border-white/20 bg-white shadow-xl">
-                  <div className="border-b border-slate-200 p-4">
-                    <p className="font-semibold text-slate-900">{user.full_name}</p>
-                    <p className="text-sm text-slate-600">{user.email}</p>
-                    {user.is_admin && (
-                      <span className="mt-2 inline-block rounded bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
-                        Administrador
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full p-4 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors rounded-b-xl"
-                  >
-                    🚪 Sair
-                  </button>
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-64 rounded-xl border border-white/20 bg-white shadow-xl z-50">
+                <div className="border-b border-slate-200 p-4">
+                  <p className="font-semibold text-slate-900">{user.full_name}</p>
+                  <p className="text-sm text-slate-600">{user.email}</p>
+                  {user.is_admin && (
+                    <span className="mt-2 inline-block rounded bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
+                      Administrador
+                    </span>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+                <button
+                  onClick={handleLogout}
+                  className="w-full p-4 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors rounded-b-xl"
+                >
+                  🚪 Sair
+                </button>
+              </div>
+            )}
+          </div>
         </nav>
       </div>
     </header>
