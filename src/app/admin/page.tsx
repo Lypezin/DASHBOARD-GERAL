@@ -33,6 +33,8 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedPracas, setSelectedPracas] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -163,6 +165,49 @@ export default function AdminPage() {
     }
   };
 
+  const handleEditPracas = (user: User) => {
+    setEditingUser(user);
+    setSelectedPracas(user.assigned_pracas || []);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditPracas = async () => {
+    if (!editingUser) return;
+
+    try {
+      const { error } = await supabase.rpc('update_user_pracas', {
+        user_id: editingUser.id,
+        pracas: selectedPracas,
+      });
+
+      if (error) throw error;
+
+      setShowEditModal(false);
+      setEditingUser(null);
+      setSelectedPracas([]);
+      fetchData();
+    } catch (err: any) {
+      alert('Erro ao atualizar praças: ' + err.message);
+    }
+  };
+
+  const handleToggleAdmin = async (userId: string, currentIsAdmin: boolean) => {
+    const action = currentIsAdmin ? 'remover admin de' : 'tornar admin';
+    if (!confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
+
+    try {
+      const { error } = await supabase.rpc('set_user_admin', {
+        user_id: userId,
+        make_admin: !currentIsAdmin,
+      });
+
+      if (error) throw error;
+      fetchData();
+    } catch (err: any) {
+      alert('Erro ao alterar status de admin: ' + err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -276,25 +321,46 @@ export default function AdminPage() {
                       )}
                     </td>
                     <td className="py-3">
-                      {!user.is_admin && (
-                        <div className="flex gap-2">
-                          {user.is_approved ? (
+                      <div className="flex flex-wrap gap-2">
+                        {!user.is_admin && !user.is_approved && (
+                          <button
+                            onClick={() => handleApproveUser(user)}
+                            className="rounded bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-200"
+                          >
+                            Aprovar
+                          </button>
+                        )}
+                        
+                        {user.is_approved && !user.is_admin && (
+                          <>
+                            <button
+                              onClick={() => handleEditPracas(user)}
+                              className="rounded bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-200"
+                            >
+                              Editar Praças
+                            </button>
                             <button
                               onClick={() => handleRevokeAccess(user.id)}
                               className="rounded bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-200"
                             >
                               Revogar
                             </button>
-                          ) : (
-                            <button
-                              onClick={() => handleApproveUser(user)}
-                              className="rounded bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-200"
-                            >
-                              Aprovar
-                            </button>
-                          )}
-                        </div>
-                      )}
+                          </>
+                        )}
+                        
+                        {user.id !== currentUser?.id && (
+                          <button
+                            onClick={() => handleToggleAdmin(user.id, user.is_admin)}
+                            className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
+                              user.is_admin
+                                ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                                : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                            }`}
+                          >
+                            {user.is_admin ? 'Remover Admin' : 'Tornar Admin'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -303,6 +369,66 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Edição de Praças */}
+      {showEditModal && editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+            <h3 className="mb-4 text-xl font-bold text-slate-900">
+              Editar Praças
+            </h3>
+            <div className="mb-4">
+              <p className="text-sm text-slate-600">Usuário:</p>
+              <p className="font-semibold text-slate-900">{editingUser.full_name}</p>
+              <p className="text-sm text-slate-600">{editingUser.email}</p>
+            </div>
+
+            <div className="mb-6">
+              <p className="mb-2 text-sm font-semibold text-slate-700">Selecione as praças:</p>
+              {pracasDisponiveis.length === 0 ? (
+                <p className="text-sm text-slate-500">Nenhuma praça disponível</p>
+              ) : (
+                <div className="max-h-60 space-y-2 overflow-y-auto">
+                  {pracasDisponiveis.map((praca) => (
+                    <label
+                      key={praca}
+                      className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 cursor-pointer hover:bg-slate-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedPracas.includes(praca)}
+                        onChange={() => togglePracaSelection(praca)}
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm font-medium text-slate-900">{praca}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingUser(null);
+                  setSelectedPracas([]);
+                }}
+                className="flex-1 rounded-lg border border-slate-300 py-2 font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEditPracas}
+                disabled={selectedPracas.length === 0}
+                className="flex-1 rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Aprovação */}
       {showModal && selectedUser && (
