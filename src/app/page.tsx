@@ -588,7 +588,9 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
 
-      const { data: totalsData, error: totalsError } = await supabase.rpc('dashboard_totals');
+      const params = buildFilterPayload(filters);
+
+      const { data: totalsData, error: totalsError } = await supabase.rpc('dashboard_totals', params);
 
       if (totalsError) {
         console.error('Erro ao buscar totais:', totalsError);
@@ -607,8 +609,6 @@ export default function DashboardPage() {
       } else {
         setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
       }
-
-      const params = buildFilterPayload(filters);
 
       const [
         semanal,
