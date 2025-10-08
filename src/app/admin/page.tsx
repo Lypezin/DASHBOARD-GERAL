@@ -76,10 +76,22 @@ export default function AdminPage() {
       if (pendingError) throw pendingError;
       setPendingUsers(pending || []);
 
-      // Buscar praças disponíveis
-      const { data: dimensoes, error: dimensoesError } = await supabase.rpc('listar_dimensoes_dashboard');
-      if (dimensoesError) throw dimensoesError;
-      setPracasDisponiveis(dimensoes?.pracas || []);
+      // Buscar praças disponíveis (função otimizada)
+      const { data: pracasData, error: pracasError } = await supabase.rpc('list_pracas_disponiveis');
+      if (pracasError) {
+        console.warn('Erro ao buscar praças:', pracasError);
+        // Fallback: buscar diretamente da tabela
+        const { data: fallbackPracas } = await supabase
+          .from('dados_corridas')
+          .select('praca')
+          .not('praca', 'is', null)
+          .limit(100);
+        
+        const uniquePracas = [...new Set(fallbackPracas?.map(p => p.praca) || [])];
+        setPracasDisponiveis(uniquePracas);
+      } else {
+        setPracasDisponiveis(pracasData?.map((p: any) => p.praca) || []);
+      }
     } catch (err: any) {
       console.error('Erro ao carregar dados:', err);
       setError(err.message);
