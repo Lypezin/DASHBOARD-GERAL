@@ -49,10 +49,10 @@ export default function RegistroPage() {
 
       setSuccess(true);
       
-      // Redirecionar após 3 segundos
+      // Redirecionar após 10 segundos
       setTimeout(() => {
         router.push('/login');
-      }, 3000);
+      }, 10000);
     } catch (err: any) {
       console.error('Erro no registro:', err);
       setError(err.message || 'Erro ao criar conta. Tente novamente.');
