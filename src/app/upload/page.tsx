@@ -50,35 +50,50 @@ function convertFractionToHHMMSS(fraction: number): string {
 }
 
 export default function UploadPage() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
+  const [currentFileIndex, setCurrentFileIndex] = useState(0);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+    const selectedFiles = event.target.files;
+    if (selectedFiles && selectedFiles.length > 0) {
+      setFiles(Array.from(selectedFiles));
       setMessage('');
       setProgress(0);
       setProgressLabel('');
+      setCurrentFileIndex(0);
     }
   };
 
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
+
   const handleUpload = async () => {
-    if (!file) {
-      setMessage('Por favor, selecione um arquivo.');
+    if (files.length === 0) {
+      setMessage('Por favor, selecione pelo menos um arquivo.');
       return;
     }
 
     setUploading(true);
     setMessage('');
     setProgress(0);
-    setProgressLabel('Lendo arquivo...');
+    setCurrentFileIndex(0);
 
-    try {
-      const arrayBuffer = await file.arrayBuffer();
+    const totalFiles = files.length;
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (let fileIdx = 0; fileIdx < files.length; fileIdx++) {
+      const file = files[fileIdx];
+      setCurrentFileIndex(fileIdx + 1);
+      setProgressLabel(`Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`);
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { raw: true });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
@@ -136,51 +151,54 @@ export default function UploadPage() {
           return hasData;
         });
 
-      const totalRows = sanitizedData.length;
-      let insertedRows = 0;
+        const totalRows = sanitizedData.length;
+        let insertedRows = 0;
 
-      setProgressLabel(`Enviando dados (0/${totalRows})...`);
-      setProgress(20);
+        const fileProgress = (fileIdx / totalFiles) * 100;
+        setProgress(fileProgress);
 
-      for (let i = 0; i < totalRows; i += BATCH_SIZE) {
-        const batch = sanitizedData.slice(i, i + BATCH_SIZE);
-        const { error: batchError } = await supabase.from('dados_corridas').insert(batch, { count: 'exact' });
+        for (let i = 0; i < totalRows; i += BATCH_SIZE) {
+          const batch = sanitizedData.slice(i, i + BATCH_SIZE);
+          const { error: batchError } = await supabase.from('dados_corridas').insert(batch, { count: 'exact' });
 
-        if (batchError) {
-          throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}`);
+          if (batchError) {
+            throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}`);
+          }
+
+          insertedRows += batch.length;
+          const batchProgress = (insertedRows / totalRows) * (100 / totalFiles);
+          setProgress(fileProgress + batchProgress);
+          setProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${totalRows} linhas`);
         }
 
-        insertedRows += batch.length;
-        const progressPercent = 20 + (insertedRows / totalRows) * 70;
-        setProgress(progressPercent);
-        setProgressLabel(`Enviando dados (${insertedRows}/${totalRows})...`);
+        successCount++;
+      } catch (error: any) {
+        console.error(`Erro no arquivo ${file.name}:`, error);
+        errorCount++;
       }
-
-      setProgress(95);
-      setProgressLabel('Finalizando...');
-
-      // Tentar atualizar a materialized view, mas não bloquear se falhar
-      try {
-        await supabase.rpc('refresh_mv_aderencia');
-      } catch (refreshError) {
-        console.warn('Aviso: Não foi possível atualizar a view automaticamente. Atualize manualmente se necessário.');
-      }
-
-      setProgress(100);
-      setProgressLabel('Concluído!');
-      setMessage(`✅ Upload concluído com sucesso! ${insertedRows} linhas inseridas. Atualize a página para ver os novos dados.`);
-      setFile(null);
-
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-    } catch (error: any) {
-      console.error('Erro no upload:', error);
-      setMessage(`❌ Erro no upload: ${error.message}`);
-      setProgress(0);
-      setProgressLabel('');
-    } finally {
-      setUploading(false);
     }
+
+    // Atualizar a materialized view após todos os uploads
+    setProgressLabel('Atualizando dados agregados...');
+    try {
+      await supabase.rpc('refresh_mv_aderencia');
+    } catch (refreshError) {
+      console.warn('Aviso: Não foi possível atualizar a view automaticamente.');
+    }
+
+    setProgress(100);
+    setProgressLabel('Concluído!');
+    
+    if (errorCount === 0) {
+      setMessage(`✅ Todos os ${successCount} arquivo(s) foram importados com sucesso! Atualize a página para ver os novos dados.`);
+    } else {
+      setMessage(`⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Verifique os logs.`);
+    }
+
+    setFiles([]);
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+    setUploading(false);
   };
 
   return (
@@ -205,21 +223,25 @@ export default function UploadPage() {
                 <input
                   type="file"
                   accept=".xlsx, .xls"
+                  multiple
                   onChange={handleFileChange}
                   disabled={uploading}
                   className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
                 />
                 <div className="rounded-2xl border-2 border-dashed border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 p-12 text-center transition-all duration-300 hover:border-blue-400 hover:bg-gradient-to-br hover:from-blue-100 hover:to-indigo-100 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:border-blue-700 dark:from-blue-950/30 dark:to-indigo-950/30 dark:hover:border-blue-600">
-                  {!file ? (
+                  {files.length === 0 ? (
                     <div className="space-y-4">
                       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
                         <span className="text-3xl">📁</span>
                       </div>
                       <div>
                         <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">
-                          Clique para selecionar ou arraste o arquivo aqui
+                          Clique para selecionar ou arraste os arquivos aqui
                         </p>
-                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Formatos aceitos: .xlsx, .xls</p>
+                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                          Você pode selecionar múltiplos arquivos de uma vez
+                        </p>
+                        <p className="mt-1 text-xs text-slate-400">Formatos aceitos: .xlsx, .xls</p>
                       </div>
                     </div>
                   ) : (
@@ -228,10 +250,8 @@ export default function UploadPage() {
                         <span className="text-3xl">✅</span>
                       </div>
                       <div>
-                        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">Arquivo selecionado</p>
-                        <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">{file.name}</p>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
+                          {files.length} arquivo(s) selecionado(s)
                         </p>
                       </div>
                     </div>
@@ -239,21 +259,52 @@ export default function UploadPage() {
                 </div>
               </div>
 
+              {/* Lista de Arquivos */}
+              {files.length > 0 && !uploading && (
+                <div className="mt-4 space-y-2">
+                  {files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">📄</span>
+                        <div>
+                          <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="rounded-lg bg-rose-100 p-2 text-rose-600 transition-colors hover:bg-rose-200 dark:bg-rose-950/30 dark:text-rose-400"
+                      >
+                        <span>🗑️</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Botão de Upload */}
               <button
                 onClick={handleUpload}
-                disabled={uploading || !file}
+                disabled={uploading || files.length === 0}
                 className="mt-6 w-full transform rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
               >
                 {uploading ? (
                   <div className="flex items-center justify-center gap-3">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    <span>Processando...</span>
+                    <span>
+                      {currentFileIndex > 0 && `Arquivo ${currentFileIndex}/${files.length} - `}
+                      Processando...
+                    </span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-3">
                     <span className="text-xl">🚀</span>
-                    <span>Enviar Dados</span>
+                    <span>Enviar {files.length} Arquivo(s)</span>
                   </div>
                 )}
               </button>

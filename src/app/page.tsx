@@ -135,87 +135,49 @@ function MetricCard({
   title, 
   value, 
   icon, 
+  percentage,
+  percentageLabel,
   color = 'blue'
 }: { 
   title: string; 
   value: number; 
   icon: string; 
+  percentage?: number;
+  percentageLabel?: string;
   color?: string;
 }) {
   const colorClasses: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-600',
-    green: 'from-emerald-500 to-emerald-600',
-    red: 'from-rose-500 to-rose-600',
-    purple: 'from-purple-500 to-purple-600',
+    blue: 'from-blue-500 to-cyan-500',
+    green: 'from-emerald-500 to-teal-500',
+    red: 'from-rose-500 to-pink-500',
+    purple: 'from-violet-500 to-purple-500',
   };
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md transition-all hover:shadow-lg dark:border-blue-800 dark:bg-slate-900">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="group relative overflow-hidden rounded-xl bg-white p-6 shadow-md transition-all duration-300 hover:shadow-xl dark:bg-slate-900">
+      <div className={`absolute right-0 top-0 h-32 w-32 rounded-full opacity-10 blur-3xl ${colorClasses[color]}`}></div>
+      
+      <div className="relative flex items-start justify-between">
+        <div className="flex-1">
           <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{title}</p>
           <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{value.toLocaleString('pt-BR')}</p>
+          {percentage !== undefined && (
+            <div className="mt-3 flex items-center gap-2">
+              <div className="rounded-lg bg-blue-50 px-2 py-1 dark:bg-blue-950/30">
+                <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                  {percentage.toFixed(1)}%
+                </span>
+              </div>
+              {percentageLabel && (
+                <span className="text-xs text-slate-500 dark:text-slate-400">{percentageLabel}</span>
+              )}
+            </div>
+          )}
         </div>
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${colorClasses[color]} text-2xl text-white shadow-lg`}>
+        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-2xl text-white shadow-lg`}>
           {icon}
         </div>
       </div>
-    </div>
-  );
-}
-
-function GaugeCard({ 
-  title, 
-  value, 
-  percentage 
-}: { 
-  title: string; 
-  value: number; 
-  percentage: number;
-}) {
-  const colorClass = percentage >= 90 ? 'from-emerald-500 to-emerald-600' : percentage >= 70 ? 'from-amber-500 to-amber-600' : 'from-rose-500 to-rose-600';
-
-  return (
-    <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
-      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{title}</h3>
-      <div className="mt-4 flex items-center justify-center">
-        <div className="relative h-32 w-32">
-          <svg className="h-32 w-32 -rotate-90 transform">
-            <circle
-              cx="64"
-              cy="64"
-              r="56"
-              stroke="currentColor"
-              strokeWidth="12"
-              fill="none"
-              className="text-slate-200 dark:text-slate-700"
-            />
-            <circle
-              cx="64"
-              cy="64"
-              r="56"
-              stroke="url(#gradient)"
-              strokeWidth="12"
-              fill="none"
-              strokeDasharray={`${(percentage / 100) * 351.86} 351.86`}
-              strokeLinecap="round"
-              className="transition-all duration-1000"
-            />
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" className={colorClass.split(' ')[0].replace('from-', 'stop-')} />
-                <stop offset="100%" className={colorClass.split(' ')[1].replace('to-', 'stop-')} />
-              </linearGradient>
-            </defs>
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">{percentage.toFixed(1)}%</span>
-          </div>
-        </div>
-      </div>
-      <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
-        {value.toLocaleString('pt-BR')} corridas
-      </p>
     </div>
   );
 }
@@ -510,61 +472,256 @@ function DashboardView({
 function AnaliseView({ totals, aderenciaGeral }: { totals: Totals; aderenciaGeral?: AderenciaSemanal }) {
   const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
   const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
+  const taxaRejeicao = totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Métricas de Corridas */}
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Métricas Principais */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard title="Corridas Ofertadas" value={totals.ofertadas} icon="📢" color="blue" />
-        <MetricCard title="Corridas Aceitas" value={totals.aceitas} icon="✅" color="green" />
-        <MetricCard title="Corridas Rejeitadas" value={totals.rejeitadas} icon="❌" color="red" />
-        <MetricCard title="Corridas Completadas" value={totals.completadas} icon="🏁" color="purple" />
-      </div>
-
-      {/* Taxas e Aderência */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <GaugeCard title="Taxa de Aceitação" value={totals.aceitas} percentage={taxaAceitacao} />
-        <GaugeCard title="Taxa de Completude" value={totals.completadas} percentage={taxaCompletude} />
-        {aderenciaGeral && (
-          <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
-            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Aderência Geral</h3>
-            <p className="mt-4 text-center text-4xl font-bold text-blue-600 dark:text-blue-400">
-              {aderenciaGeral.aderencia_percentual?.toFixed(1) || '0.0'}%
-            </p>
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">Planejado:</span>
-                <span className="font-semibold text-slate-900 dark:text-white">{aderenciaGeral.horas_a_entregar}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">Entregue:</span>
-                <span className="font-semibold text-blue-600 dark:text-blue-400">{aderenciaGeral.horas_entregues}</span>
-              </div>
-            </div>
-          </div>
-        )}
+        <MetricCard
+          title="Corridas Ofertadas"
+          value={totals.ofertadas}
+          icon="📢"
+          color="blue"
+        />
+        <MetricCard
+          title="Corridas Aceitas"
+          value={totals.aceitas}
+          icon="✅"
+          percentage={taxaAceitacao}
+          percentageLabel="taxa de aceitação"
+          color="green"
+        />
+        <MetricCard
+          title="Corridas Rejeitadas"
+          value={totals.rejeitadas}
+          icon="❌"
+          percentage={taxaRejeicao}
+          percentageLabel="taxa de rejeição"
+          color="red"
+        />
+        <MetricCard
+          title="Corridas Completadas"
+          value={totals.completadas}
+          icon="🏁"
+          percentage={taxaCompletude}
+          percentageLabel="taxa de completude"
+          color="purple"
+        />
       </div>
 
       {/* Resumo Operacional */}
-      <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
-        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Resumo Operacional</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
-            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Taxa de Aceitação</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-900 dark:text-emerald-100">{taxaAceitacao.toFixed(1)}%</p>
-            <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">
-              {totals.aceitas.toLocaleString('pt-BR')} de {totals.ofertadas.toLocaleString('pt-BR')} corridas
-            </p>
+      {aderenciaGeral && (
+        <div className="rounded-xl bg-white p-6 shadow-md dark:bg-slate-900">
+          <h3 className="mb-6 text-lg font-bold text-slate-900 dark:text-white">Resumo Operacional</h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:from-blue-950/30 dark:to-indigo-950/30">
+              <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Aderência Geral</p>
+              <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">{aderenciaGeral.aderencia_percentual?.toFixed(1) || '0.0'}%</p>
+              <div className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-blue-600 dark:text-blue-400">Planejado:</span>
+                  <span className="font-semibold text-blue-900 dark:text-blue-100">{aderenciaGeral.horas_a_entregar}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-blue-600 dark:text-blue-400">Entregue:</span>
+                  <span className="font-semibold text-blue-900 dark:text-blue-100">{aderenciaGeral.horas_entregues}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 dark:from-emerald-950/30 dark:to-teal-950/30">
+              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Eficiência de Aceitação</p>
+              <p className="mt-2 text-3xl font-bold text-emerald-900 dark:text-emerald-100">{taxaAceitacao.toFixed(1)}%</p>
+              <p className="mt-4 text-sm text-emerald-600 dark:text-emerald-400">
+                {totals.aceitas.toLocaleString('pt-BR')} de {totals.ofertadas.toLocaleString('pt-BR')} corridas
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 p-6 dark:from-violet-950/30 dark:to-purple-950/30">
+              <p className="text-sm font-semibold text-violet-700 dark:text-violet-300">Eficiência de Completude</p>
+              <p className="mt-2 text-3xl font-bold text-violet-900 dark:text-violet-100">{taxaCompletude.toFixed(1)}%</p>
+              <p className="mt-4 text-sm text-violet-600 dark:text-violet-400">
+                {totals.completadas.toLocaleString('pt-BR')} de {totals.aceitas.toLocaleString('pt-BR')} aceitas
+              </p>
+            </div>
           </div>
-          <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
-            <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">Taxa de Completude</p>
-            <p className="mt-2 text-2xl font-bold text-purple-900 dark:text-purple-100">{taxaCompletude.toFixed(1)}%</p>
-            <p className="mt-2 text-sm text-purple-600 dark:text-purple-400">
-              {totals.completadas.toLocaleString('pt-BR')} de {totals.aceitas.toLocaleString('pt-BR')} aceitas
-            </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ComparacaoView({
+  semanas,
+  pracas,
+  subPracas,
+  origens,
+}: {
+  semanas: number[];
+  pracas: FilterOption[];
+  subPracas: FilterOption[];
+  origens: FilterOption[];
+}) {
+  const [semana1, setSemana1] = useState<number | null>(null);
+  const [semana2, setSemana2] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [dados1, setDados1] = useState<DashboardResumoData | null>(null);
+  const [dados2, setDados2] = useState<DashboardResumoData | null>(null);
+
+  const compararSemanas = async () => {
+    if (!semana1 || !semana2) return;
+
+    setLoading(true);
+    try {
+      const [res1, res2] = await Promise.all([
+        supabase.rpc('dashboard_resumo', { p_semana: semana1 }),
+        supabase.rpc('dashboard_resumo', { p_semana: semana2 }),
+      ]);
+
+      setDados1(res1.data as DashboardResumoData);
+      setDados2(res2.data as DashboardResumoData);
+    } catch (error) {
+      console.error('Erro ao comparar semanas:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Seletores */}
+      <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
+        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Selecione as Semanas para Comparar</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <FiltroSelect
+            label="Semana 1"
+            value={semana1 !== null ? String(semana1) : ''}
+            options={semanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
+            placeholder="Selecione..."
+            onChange={(value) => setSemana1(value ? Number(value) : null)}
+          />
+          <FiltroSelect
+            label="Semana 2"
+            value={semana2 !== null ? String(semana2) : ''}
+            options={semanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
+            placeholder="Selecione..."
+            onChange={(value) => setSemana2(value ? Number(value) : null)}
+          />
+          <div className="flex items-end">
+            <button
+              onClick={compararSemanas}
+              disabled={!semana1 || !semana2 || loading}
+              className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-all hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Comparando...' : 'Comparar'}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Comparação */}
+      {dados1 && dados2 && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Semana 1 */}
+          <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
+            <h3 className="mb-4 text-lg font-bold text-blue-600 dark:text-blue-400">Semana {semana1}</h3>
+            <div className="space-y-4">
+              <div className="rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 p-4 dark:from-blue-950/30 dark:to-indigo-950/30">
+                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Aderência</p>
+                <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">
+                  {dados1.semanal[0]?.aderencia_percentual?.toFixed(1) || '0.0'}%
+                </p>
+                <div className="mt-3 space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-blue-600">Planejado:</span>
+                    <span className="font-semibold">{dados1.semanal[0]?.horas_a_entregar || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-600">Entregue:</span>
+                    <span className="font-semibold">{dados1.semanal[0]?.horas_entregues || '-'}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
+                  <p className="text-slate-600 dark:text-slate-400">Ofertadas</p>
+                  <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                    {dados1.totais.corridas_ofertadas.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
+                  <p className="text-emerald-600 dark:text-emerald-400">Aceitas</p>
+                  <p className="mt-1 text-xl font-bold text-emerald-900 dark:text-emerald-100">
+                    {dados1.totais.corridas_aceitas.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-rose-50 p-3 dark:bg-rose-950/30">
+                  <p className="text-rose-600 dark:text-rose-400">Rejeitadas</p>
+                  <p className="mt-1 text-xl font-bold text-rose-900 dark:text-rose-100">
+                    {dados1.totais.corridas_rejeitadas.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-950/30">
+                  <p className="text-purple-600 dark:text-purple-400">Completadas</p>
+                  <p className="mt-1 text-xl font-bold text-purple-900 dark:text-purple-100">
+                    {dados1.totais.corridas_completadas.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Semana 2 */}
+          <div className="rounded-xl border border-indigo-200 bg-white p-6 shadow-md dark:border-indigo-800 dark:bg-slate-900">
+            <h3 className="mb-4 text-lg font-bold text-indigo-600 dark:text-indigo-400">Semana {semana2}</h3>
+            <div className="space-y-4">
+              <div className="rounded-lg bg-gradient-to-br from-indigo-50 to-purple-50 p-4 dark:from-indigo-950/30 dark:to-purple-950/30">
+                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Aderência</p>
+                <p className="mt-2 text-3xl font-bold text-indigo-900 dark:text-indigo-100">
+                  {dados2.semanal[0]?.aderencia_percentual?.toFixed(1) || '0.0'}%
+                </p>
+                <div className="mt-3 space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-indigo-600">Planejado:</span>
+                    <span className="font-semibold">{dados2.semanal[0]?.horas_a_entregar || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-indigo-600">Entregue:</span>
+                    <span className="font-semibold">{dados2.semanal[0]?.horas_entregues || '-'}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
+                  <p className="text-slate-600 dark:text-slate-400">Ofertadas</p>
+                  <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                    {dados2.totais.corridas_ofertadas.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
+                  <p className="text-emerald-600 dark:text-emerald-400">Aceitas</p>
+                  <p className="mt-1 text-xl font-bold text-emerald-900 dark:text-emerald-100">
+                    {dados2.totais.corridas_aceitas.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-rose-50 p-3 dark:bg-rose-950/30">
+                  <p className="text-rose-600 dark:text-rose-400">Rejeitadas</p>
+                  <p className="mt-1 text-xl font-bold text-rose-900 dark:text-rose-100">
+                    {dados2.totais.corridas_rejeitadas.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-950/30">
+                  <p className="text-purple-600 dark:text-purple-400">Completadas</p>
+                  <p className="mt-1 text-xl font-bold text-purple-900 dark:text-purple-100">
+                    {dados2.totais.corridas_completadas.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -574,7 +731,7 @@ function AnaliseView({ totals, aderenciaGeral }: { totals: Totals; aderenciaGera
 // =================================================================================
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao'>('dashboard');
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
@@ -702,19 +859,24 @@ export default function DashboardPage() {
           <div className="space-y-6">
             {/* Header com filtros e tabs */}
             <div className="rounded-xl border border-blue-200 bg-white/90 p-4 shadow-lg backdrop-blur-sm dark:border-blue-900 dark:bg-slate-900/90 sm:p-6">
-              <FiltroBar
-                filters={filters}
-                setFilters={setFilters}
-                anos={anosDisponiveis}
-                semanas={semanasDisponiveis}
-                pracas={pracas}
-                subPracas={subPracas}
-                origens={origens}
-              />
-              <div className="my-4 h-px bg-blue-200 dark:bg-blue-800"></div>
+              {activeTab !== 'comparacao' && (
+                <>
+                  <FiltroBar
+                    filters={filters}
+                    setFilters={setFilters}
+                    anos={anosDisponiveis}
+                    semanas={semanasDisponiveis}
+                    pracas={pracas}
+                    subPracas={subPracas}
+                    origens={origens}
+                  />
+                  <div className="my-4 h-px bg-blue-200 dark:bg-blue-800"></div>
+                </>
+              )}
               <div className="flex flex-wrap gap-2">
                 <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
                 <TabButton label="Análise Detalhada" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
+                <TabButton label="Comparação" icon="⚖️" active={activeTab === 'comparacao'} onClick={() => setActiveTab('comparacao')} />
               </div>
             </div>
 
@@ -730,6 +892,14 @@ export default function DashboardPage() {
                 />
               )}
               {activeTab === 'analise' && <AnaliseView totals={totals} aderenciaGeral={aderenciaGeral} />}
+              {activeTab === 'comparacao' && (
+                <ComparacaoView
+                  semanas={semanasDisponiveis}
+                  pracas={pracas}
+                  subPracas={subPracas}
+                  origens={origens}
+                />
+              )}
             </main>
           </div>
         )}
