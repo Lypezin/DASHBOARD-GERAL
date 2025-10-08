@@ -689,6 +689,22 @@ function ComparacaoView({
   const [loading, setLoading] = useState(false);
   const [dados1, setDados1] = useState<DashboardResumoData | null>(null);
   const [dados2, setDados2] = useState<DashboardResumoData | null>(null);
+  const [todasSemanas, setTodasSemanas] = useState<number[]>([]);
+
+  // Buscar TODAS as semanas disponíveis (sem filtro)
+  useEffect(() => {
+    async function fetchTodasSemanas() {
+      try {
+        const { data, error } = await supabase.rpc('listar_todas_semanas');
+        if (!error && data) {
+          setTodasSemanas(data);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar semanas:', err);
+      }
+    }
+    fetchTodasSemanas();
+  }, []);
 
   const compararSemanas = async () => {
     if (!semana1 || !semana2) return;
@@ -742,14 +758,14 @@ function ComparacaoView({
           <FiltroSelect
             label="Semana 1"
             value={semana1 !== null ? String(semana1) : ''}
-            options={semanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
+            options={todasSemanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
             placeholder="Selecione..."
             onChange={(value) => setSemana1(value ? Number(value) : null)}
           />
           <FiltroSelect
             label="Semana 2"
             value={semana2 !== null ? String(semana2) : ''}
-            options={semanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
+            options={todasSemanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
             placeholder="Selecione..."
             onChange={(value) => setSemana2(value ? Number(value) : null)}
           />
