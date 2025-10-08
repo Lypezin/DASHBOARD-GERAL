@@ -158,7 +158,7 @@ RETURNS jsonb
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, statement_timeout = '120000ms'
 AS $$
 WITH base AS (
   SELECT
@@ -183,7 +183,7 @@ WITH base AS (
     AND (p_origem IS NULL OR origem = p_origem)
 ),
 
--- Totais gerais
+-- Totais gerais -------------------------------------------------------
 res_totais AS (
   SELECT jsonb_build_object(
     'corridas_ofertadas', COALESCE(SUM(numero_de_corridas_ofertadas), 0),
@@ -194,35 +194,40 @@ res_totais AS (
   FROM base
 ),
 
--- Aderência semanal
-turnos_semanais AS (
-  SELECT DISTINCT ON (
-      date_part('isoyear', data_do_periodo)::int,
-      date_part('week', data_do_periodo)::int,
-      data_do_periodo,
-      periodo,
-      numero_minimo_de_entregadores_regulares_na_escala
-    )
+-- Preparação de turnos planejados sem duplicidade --------------------
+turnos_planejados AS (
+  SELECT
+    date_trunc('day', data_do_periodo) AS dia_ref,
     date_part('isoyear', data_do_periodo)::int AS ano_iso,
     date_part('week', data_do_periodo)::int AS semana_numero,
+    date_part('isodow', data_do_periodo)::int AS dia_iso,
+    periodo,
+    praca,
+    sub_praca,
+    origem,
     numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos
+    MAX(duracao_segundos) AS duracao_segundos
   FROM base
   WHERE duracao_segundos > 0
-  ORDER BY
+  GROUP BY
+    date_trunc('day', data_do_periodo),
     date_part('isoyear', data_do_periodo)::int,
     date_part('week', data_do_periodo)::int,
-    data_do_periodo,
+    date_part('isodow', data_do_periodo)::int,
     periodo,
-    numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos DESC
+    praca,
+    sub_praca,
+    origem,
+    numero_minimo_de_entregadores_regulares_na_escala
 ),
+
+-- Aderência semanal ---------------------------------------------------
 planejado_semana AS (
   SELECT
     ano_iso,
     semana_numero,
     SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
-  FROM turnos_semanais
+  FROM turnos_planejados
   GROUP BY ano_iso, semana_numero
 ),
 realizado_semana AS (
@@ -234,41 +239,40 @@ realizado_semana AS (
   WHERE tempo_absoluto_segundos > 0
   GROUP BY 1, 2
 ),
-res_semana AS (
-  SELECT COALESCE(jsonb_agg(jsonb_build_object(
-    'semana', 'Semana ' || LPAD(hp.semana_numero::text, 2, '0')) ORDER BY hp.ano_iso DESC, hp.semana_numero DESC), '[]'::jsonb)
-         || jsonb_agg DISTINCT NULL
-  FROM (
-    SELECT
-      hp.ano_iso,
-      hp.semana_numero,
-      'Semana ' || LPAD(hp.semana_numero::text, 2, '0') AS semana,
-      TO_CHAR(INTERVAL '1 second' * COALESCE(hp.segundos_planejados, 0), 'HH24:MI:SS') AS horas_a_entregar,
-      TO_CHAR(INTERVAL '1 second' * COALESCE(hr.segundos_realizados, 0), 'HH24:MI:SS') AS horas_entregues,
-      CASE WHEN COALESCE(hp.segundos_planejados, 0) > 0 THEN ROUND((COALESCE(hr.segundos_realizados, 0) / hp.segundos_planejados) * 100, 2) ELSE 0 END AS aderencia_percentual
-    FROM planejado_semana hp
-    LEFT JOIN realizado_semana hr USING (ano_iso, semana_numero)
-  ) dados
+semana_union AS (
+  SELECT
+    COALESCE(ps.ano_iso, rs.ano_iso) AS ano_iso,
+    COALESCE(ps.semana_numero, rs.semana_numero) AS semana_numero,
+    COALESCE(ps.segundos_planejados, 0) AS segundos_planejados,
+    COALESCE(rs.segundos_realizados, 0) AS segundos_realizados
+  FROM planejado_semana ps
+  FULL JOIN realizado_semana rs
+    ON ps.ano_iso = rs.ano_iso
+   AND ps.semana_numero = rs.semana_numero
+  WHERE COALESCE(ps.semana_numero, rs.semana_numero) IS NOT NULL
+),
+semana_json AS (
+  SELECT COALESCE(
+    jsonb_agg(
+      jsonb_build_object(
+        'semana', 'Semana ' || LPAD(semana_numero::text, 2, '0'),
+        'horas_a_entregar', TO_CHAR(INTERVAL '1 second' * segundos_planejados, 'HH24:MI:SS'),
+        'horas_entregues', TO_CHAR(INTERVAL '1 second' * segundos_realizados, 'HH24:MI:SS'),
+        'aderencia_percentual', COALESCE(ROUND((segundos_realizados / NULLIF(segundos_planejados, 0)) * 100, 2), 0)
+      )
+      ORDER BY ano_iso DESC, semana_numero DESC
+    ),
+    '[]'::jsonb
+  ) AS data
+  FROM semana_union
 ),
 
--- Aderência por dia
-turnos_dia AS (
-  SELECT DISTINCT ON (data_do_periodo::date, periodo, numero_minimo_de_entregadores_regulares_na_escala)
-    data_do_periodo::date AS data_ref,
-    date_part('isodow', data_do_periodo)::int AS dia_iso,
-    numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos
-  FROM base
-  WHERE duracao_segundos > 0
-  ORDER BY data_do_periodo::date, periodo,
-    numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos DESC
-),
+-- Aderência por dia ---------------------------------------------------
 planejado_dia AS (
   SELECT
     dia_iso,
     SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
-  FROM turnos_dia
+  FROM turnos_planejados
   GROUP BY dia_iso
 ),
 realizado_dia AS (
@@ -279,134 +283,176 @@ realizado_dia AS (
   WHERE tempo_absoluto_segundos > 0
   GROUP BY 1
 ),
-res_dia AS (
-  SELECT COALESCE(jsonb_agg(jsonb_build_object(
-    'dia_iso', hp.dia_iso,
-    'dia_da_semana', CASE hp.dia_iso
-      WHEN 1 THEN 'Segunda'
-      WHEN 2 THEN 'Terça'
-      WHEN 3 THEN 'Quarta'
-      WHEN 4 THEN 'Quinta'
-      WHEN 5 THEN 'Sexta'
-      WHEN 6 THEN 'Sábado'
-      WHEN 7 THEN 'Domingo'
-      ELSE 'N/D' END,
-    'horas_a_entregar', TO_CHAR(INTERVAL '1 second' * COALESCE(hp.segundos_planejados, 0), 'HH24:MI:SS'),
-    'horas_entregues', TO_CHAR(INTERVAL '1 second' * COALESCE(hr.segundos_realizados, 0), 'HH24:MI:SS'),
-    'aderencia_percentual', CASE WHEN COALESCE(hp.segundos_planejados, 0) > 0 THEN ROUND((COALESCE(hr.segundos_realizados, 0) / hp.segundos_planejados) * 100, 2) ELSE 0 END
-  ) ORDER BY hp.dia_iso), '[]'::jsonb)
-  FROM planejado_dia hp
-  LEFT JOIN realizado_dia hr USING (dia_iso)
+dia_union AS (
+  SELECT
+    COALESCE(pd.dia_iso, rd.dia_iso) AS dia_iso,
+    COALESCE(pd.segundos_planejados, 0) AS segundos_planejados,
+    COALESCE(rd.segundos_realizados, 0) AS segundos_realizados
+  FROM planejado_dia pd
+  FULL JOIN realizado_dia rd USING (dia_iso)
+  WHERE COALESCE(pd.dia_iso, rd.dia_iso) IS NOT NULL
+),
+dia_json AS (
+  SELECT COALESCE(
+    jsonb_agg(
+      jsonb_build_object(
+        'dia_iso', dia_iso,
+        'dia_da_semana', CASE dia_iso
+          WHEN 1 THEN 'Segunda'
+          WHEN 2 THEN 'Terça'
+          WHEN 3 THEN 'Quarta'
+          WHEN 4 THEN 'Quinta'
+          WHEN 5 THEN 'Sexta'
+          WHEN 6 THEN 'Sábado'
+          WHEN 7 THEN 'Domingo'
+          ELSE 'N/D' END,
+        'horas_a_entregar', TO_CHAR(INTERVAL '1 second' * segundos_planejados, 'HH24:MI:SS'),
+        'horas_entregues', TO_CHAR(INTERVAL '1 second' * segundos_realizados, 'HH24:MI:SS'),
+        'aderencia_percentual', COALESCE(ROUND((segundos_realizados / NULLIF(segundos_planejados, 0)) * 100, 2), 0)
+      )
+      ORDER BY dia_iso
+    ),
+    '[]'::jsonb
+  ) AS data
+  FROM dia_union
 ),
 
--- Aderência por turno
-turnos_periodo AS (
-  SELECT DISTINCT ON (data_do_periodo::date, periodo, numero_minimo_de_entregadores_regulares_na_escala)
-    periodo,
-    numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos
-  FROM base
-  WHERE periodo IS NOT NULL AND duracao_segundos > 0
-  ORDER BY data_do_periodo::date, periodo,
-    numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos DESC
-),
+-- Aderência por turno -------------------------------------------------
 planejado_turno AS (
-  SELECT periodo, SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
-  FROM turnos_periodo
+  SELECT
+    periodo,
+    SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
+  FROM turnos_planejados
+  WHERE periodo IS NOT NULL
   GROUP BY periodo
 ),
 realizado_turno AS (
-  SELECT periodo, SUM(tempo_absoluto_segundos) AS segundos_realizados
+  SELECT
+    periodo,
+    SUM(tempo_absoluto_segundos) AS segundos_realizados
   FROM base
-  WHERE periodo IS NOT NULL AND tempo_absoluto_segundos > 0
+  WHERE periodo IS NOT NULL
+    AND tempo_absoluto_segundos > 0
   GROUP BY periodo
 ),
-res_turno AS (
-  SELECT COALESCE(jsonb_agg(jsonb_build_object(
-    'periodo', hp.periodo,
-    'horas_a_entregar', TO_CHAR(INTERVAL '1 second' * COALESCE(hp.segundos_planejados, 0), 'HH24:MI:SS'),
-    'horas_entregues', TO_CHAR(INTERVAL '1 second' * COALESCE(hr.segundos_realizados, 0), 'HH24:MI:SS'),
-    'aderencia_percentual', CASE WHEN COALESCE(hp.segundos_planejados, 0) > 0 THEN ROUND((COALESCE(hr.segundos_realizados, 0) / hp.segundos_planejados) * 100, 2) ELSE 0 END
-  ) ORDER BY hp.periodo), '[]'::jsonb)
-  FROM planejado_turno hp
-  LEFT JOIN realizado_turno hr USING (periodo)
+turno_union AS (
+  SELECT
+    COALESCE(pt.periodo, rt.periodo) AS periodo,
+    COALESCE(pt.segundos_planejados, 0) AS segundos_planejados,
+    COALESCE(rt.segundos_realizados, 0) AS segundos_realizados
+  FROM planejado_turno pt
+  FULL JOIN realizado_turno rt USING (periodo)
+  WHERE COALESCE(pt.periodo, rt.periodo) IS NOT NULL
+),
+turno_json AS (
+  SELECT COALESCE(
+    jsonb_agg(
+      jsonb_build_object(
+        'periodo', periodo,
+        'horas_a_entregar', TO_CHAR(INTERVAL '1 second' * segundos_planejados, 'HH24:MI:SS'),
+        'horas_entregues', TO_CHAR(INTERVAL '1 second' * segundos_realizados, 'HH24:MI:SS'),
+        'aderencia_percentual', COALESCE(ROUND((segundos_realizados / NULLIF(segundos_planejados, 0)) * 100, 2), 0)
+      )
+      ORDER BY periodo
+    ),
+    '[]'::jsonb
+  ) AS data
+  FROM turno_union
 ),
 
--- Aderência por sub praça
-turnos_sub AS (
-  SELECT DISTINCT ON (data_do_periodo::date, sub_praca, periodo, numero_minimo_de_entregadores_regulares_na_escala)
-    sub_praca,
-    numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos
-  FROM base
-  WHERE sub_praca IS NOT NULL AND duracao_segundos > 0
-  ORDER BY data_do_periodo::date, sub_praca, periodo,
-    numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos DESC
-),
+-- Aderência por sub praça ---------------------------------------------
 planejado_sub AS (
-  SELECT sub_praca, SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
-  FROM turnos_sub
+  SELECT
+    sub_praca,
+    SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
+  FROM turnos_planejados
+  WHERE sub_praca IS NOT NULL
   GROUP BY sub_praca
 ),
 realizado_sub AS (
-  SELECT sub_praca, SUM(tempo_absoluto_segundos) AS segundos_realizados
+  SELECT
+    sub_praca,
+    SUM(tempo_absoluto_segundos) AS segundos_realizados
   FROM base
-  WHERE sub_praca IS NOT NULL AND tempo_absoluto_segundos > 0
+  WHERE sub_praca IS NOT NULL
+    AND tempo_absoluto_segundos > 0
   GROUP BY sub_praca
 ),
-res_sub AS (
-  SELECT COALESCE(jsonb_agg(jsonb_build_object(
-    'sub_praca', hp.sub_praca,
-    'horas_a_entregar', TO_CHAR(INTERVAL '1 second' * COALESCE(hp.segundos_planejados, 0), 'HH24:MI:SS'),
-    'horas_entregues', TO_CHAR(INTERVAL '1 second' * COALESCE(hr.segundos_realizados, 0), 'HH24:MI:SS'),
-    'aderencia_percentual', CASE WHEN COALESCE(hp.segundos_planejados, 0) > 0 THEN ROUND((COALESCE(hr.segundos_realizados, 0) / hp.segundos_planejados) * 100, 2) ELSE 0 END
-  ) ORDER BY hp.sub_praca), '[]'::jsonb)
-  FROM planejado_sub hp
-  LEFT JOIN realizado_sub hr USING (sub_praca)
+sub_union AS (
+  SELECT
+    COALESCE(psub.sub_praca, rsub.sub_praca) AS sub_praca,
+    COALESCE(psub.segundos_planejados, 0) AS segundos_planejados,
+    COALESCE(rsub.segundos_realizados, 0) AS segundos_realizados
+  FROM planejado_sub psub
+  FULL JOIN realizado_sub rsub USING (sub_praca)
+  WHERE COALESCE(psub.sub_praca, rsub.sub_praca) IS NOT NULL
+),
+sub_json AS (
+  SELECT COALESCE(
+    jsonb_agg(
+      jsonb_build_object(
+        'sub_praca', sub_praca,
+        'horas_a_entregar', TO_CHAR(INTERVAL '1 second' * segundos_planejados, 'HH24:MI:SS'),
+        'horas_entregues', TO_CHAR(INTERVAL '1 second' * segundos_realizados, 'HH24:MI:SS'),
+        'aderencia_percentual', COALESCE(ROUND((segundos_realizados / NULLIF(segundos_planejados, 0)) * 100, 2), 0)
+      )
+      ORDER BY sub_praca
+    ),
+    '[]'::jsonb
+  ) AS data
+  FROM sub_union
 ),
 
--- Aderência por origem
-turnos_origem AS (
-  SELECT DISTINCT ON (data_do_periodo::date, origem, periodo, numero_minimo_de_entregadores_regulares_na_escala)
-    origem,
-    numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos
-  FROM base
-  WHERE origem IS NOT NULL AND duracao_segundos > 0
-  ORDER BY data_do_periodo::date, origem, periodo,
-    numero_minimo_de_entregadores_regulares_na_escala,
-    duracao_segundos DESC
-),
+-- Aderência por origem ------------------------------------------------
 planejado_origem AS (
-  SELECT origem, SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
-  FROM turnos_origem
+  SELECT
+    origem,
+    SUM(numero_minimo_de_entregadores_regulares_na_escala * duracao_segundos) AS segundos_planejados
+  FROM turnos_planejados
+  WHERE origem IS NOT NULL
   GROUP BY origem
 ),
 realizado_origem AS (
-  SELECT origem, SUM(tempo_absoluto_segundos) AS segundos_realizados
+  SELECT
+    origem,
+    SUM(tempo_absoluto_segundos) AS segundos_realizados
   FROM base
-  WHERE origem IS NOT NULL AND tempo_absoluto_segundos > 0
+  WHERE origem IS NOT NULL
+    AND tempo_absoluto_segundos > 0
   GROUP BY origem
 ),
-res_origem AS (
-  SELECT COALESCE(jsonb_agg(jsonb_build_object(
-    'origem', hp.origem,
-    'horas_a_entregar', TO_CHAR(INTERVAL '1 second' * COALESCE(hp.segundos_planejados, 0), 'HH24:MI:SS'),
-    'horas_entregues', TO_CHAR(INTERVAL '1 second' * COALESCE(hr.segundos_realizados, 0), 'HH24:MI:SS'),
-    'aderencia_percentual', CASE WHEN COALESCE(hp.segundos_planejados, 0) > 0 THEN ROUND((COALESCE(hr.segundos_realizados, 0) / hp.segundos_planejados) * 100, 2) ELSE 0 END
-  ) ORDER BY hp.origem), '[]'::jsonb)
-  FROM planejado_origem hp
-  LEFT JOIN realizado_origem hr USING (origem)
+origem_union AS (
+  SELECT
+    COALESCE(pori.origem, rori.origem) AS origem,
+    COALESCE(pori.segundos_planejados, 0) AS segundos_planejados,
+    COALESCE(rori.segundos_realizados, 0) AS segundos_realizados
+  FROM planejado_origem pori
+  FULL JOIN realizado_origem rori USING (origem)
+  WHERE COALESCE(pori.origem, rori.origem) IS NOT NULL
+),
+origem_json AS (
+  SELECT COALESCE(
+    jsonb_agg(
+      jsonb_build_object(
+        'origem', origem,
+        'horas_a_entregar', TO_CHAR(INTERVAL '1 second' * segundos_planejados, 'HH24:MI:SS'),
+        'horas_entregues', TO_CHAR(INTERVAL '1 second' * segundos_realizados, 'HH24:MI:SS'),
+        'aderencia_percentual', COALESCE(ROUND((segundos_realizados / NULLIF(segundos_planejados, 0)) * 100, 2), 0)
+      )
+      ORDER BY origem
+    ),
+    '[]'::jsonb
+  ) AS data
+  FROM origem_union
 )
 SELECT jsonb_build_object(
   'totais', (SELECT data FROM res_totais),
-  'semanal', (SELECT data FROM res_semana),
-  'dia', (SELECT data FROM res_dia),
-  'turno', (SELECT data FROM res_turno),
-  'sub_praca', (SELECT data FROM res_sub),
-  'origem', (SELECT data FROM res_origem)
+  'semanal', (SELECT data FROM semana_json),
+  'dia', (SELECT data FROM dia_json),
+  'turno', (SELECT data FROM turno_json),
+  'sub_praca', (SELECT data FROM sub_json),
+  'origem', (SELECT data FROM origem_json),
+  'dimensoes', public.listar_dimensoes_dashboard()
 );
 $$;
 
