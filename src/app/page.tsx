@@ -73,8 +73,23 @@ type DimensoesDashboard = {
   pracas: string[];
   sub_pracas: string[];
   origens: string[];
-  map_sub_praca: { [key: string]: string[] };
+  map_sub_praca?: { [key: string]: string[] };
 };
+
+interface DashboardResumoData {
+  totais?: {
+    corridas_ofertadas?: number;
+    corridas_aceitas?: number;
+    corridas_rejeitadas?: number;
+    corridas_completadas?: number;
+  };
+  semanal?: AderenciaSemanal[];
+  dia?: AderenciaDia[];
+  turno?: AderenciaTurno[];
+  sub_praca?: AderenciaSubPraca[];
+  origem?: AderenciaOrigem[];
+  dimensoes?: DimensoesDashboard;
+}
 
 // =================================================================================
 // Definições de Props para os componentes
@@ -580,72 +595,83 @@ export default function DashboardPage() {
   const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true);
+    setLoading(true);
+    setError(null);
+
+    const params = buildFilterPayload(filters);
+
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+
+    try {
+      const response = await supabase.rpc('dashboard_resumo', params, {
+        signal: controller.signal,
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      const resumoData = response.data as DashboardResumoData | null;
+
+      const safeNumber = (value: number | string | null | undefined) => (value === null || value === undefined ? 0 : Number(value));
+
+      const totalsRow = resumoData?.totais;
+      setTotals(
+        totalsRow
+          ? {
+              ofertadas: safeNumber(totalsRow.corridas_ofertadas),
+              aceitas: safeNumber(totalsRow.corridas_aceitas),
+              rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
+              completadas: safeNumber(totalsRow.corridas_completadas),
+            }
+          : { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }
+      );
+
+      setAderenciaSemanal(resumoData?.semanal ?? []);
+      setAderenciaDia(resumoData?.dia ?? []);
+      setAderenciaTurno(resumoData?.turno ?? []);
+      setAderenciaSubPraca(resumoData?.sub_praca ?? []);
+      setAderenciaOrigem(resumoData?.origem ?? []);
+
+      const dimensoes = resumoData?.dimensoes;
+      setAnosDisponiveis(dimensoes?.anos ?? []);
+      setSemanasDisponiveis(dimensoes?.semanas ?? []);
+      setPracas((dimensoes?.pracas ?? []).map((p: string) => ({ value: p, label: p })));
+      setSubPracas((dimensoes?.sub_pracas ?? []).map((sp: string) => ({ value: sp, label: sp })));
+      setOrigens((dimensoes?.origens ?? []).map((origem: string) => ({ value: origem, label: origem })));
+
       setError(null);
-
-      const params = buildFilterPayload(filters);
-
-      const { data: totalsData, error: totalsError } = await supabase.rpc('dashboard_totals', params);
-
-      if (totalsError) {
-        console.error('Erro ao buscar totais:', totalsError);
-        setError('Não foi possível carregar os dados. Verifique a conexão com o Supabase.');
-        setTotals(null);
-      } else if (totalsData && Array.isArray(totalsData) && totalsData.length > 0) {
-        const totalsRow = totalsData[0] as DashboardTotalsRow;
-        const safeNumber = (value: number | string | null | undefined) => (value === null || value === undefined ? 0 : Number(value));
-
-        setTotals({
-          ofertadas: safeNumber(totalsRow.corridas_ofertadas),
-          aceitas: safeNumber(totalsRow.corridas_aceitas),
-          rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
-          completadas: safeNumber(totalsRow.corridas_completadas),
-        });
-      } else {
-        setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        return;
       }
-
-      const [
-        semanal,
-        porDia,
-        porTurno,
-        porSubPraca,
-        porOrigem,
-        filtrosDisponiveis,
-      ] = await Promise.all([
-        supabase.rpc('calcular_aderencia_semanal', params),
-        supabase.rpc('calcular_aderencia_por_dia', params),
-        supabase.rpc('calcular_aderencia_por_turno', params),
-        supabase.rpc('calcular_aderencia_por_sub_praca', params),
-        supabase.rpc('calcular_aderencia_por_origem', params),
-        supabase.rpc('listar_dimensoes_dashboard'),
-      ]);
-
-      setAderenciaSemanal(!semanal.error ? ((semanal.data as AderenciaSemanal[]) || []) : []);
-      setAderenciaDia(!porDia.error ? ((porDia.data as AderenciaDia[]) || []) : []);
-      setAderenciaTurno(!porTurno.error ? ((porTurno.data as AderenciaTurno[]) || []) : []);
-      setAderenciaSubPraca(!porSubPraca.error ? ((porSubPraca.data as AderenciaSubPraca[]) || []) : []);
-      setAderenciaOrigem(!porOrigem.error ? ((porOrigem.data as AderenciaOrigem[]) || []) : []);
-
-      if (!filtrosDisponiveis.error && filtrosDisponiveis.data) {
-        const { anos, semanas, pracas: pracasData, sub_pracas: subPracasData, origens: origensData } = filtrosDisponiveis.data as DimensoesDashboard;
-        setAnosDisponiveis(anos || []);
-        setSemanasDisponiveis(semanas || []);
-        setPracas((pracasData || []).map((p: string) => ({ value: p, label: p })));
-        setSubPracas((subPracasData || []).map((sp: string) => ({ value: sp, label: sp })));
-        setOrigens((origensData || []).map((origem: string) => ({ value: origem, label: origem })));
-      }
-
+      console.error('Erro ao buscar dados do dashboard:', err);
+      setError('Não foi possível carregar os dados. Verifique os filtros ou tente novamente.');
+      setTotals(null);
+      setAderenciaSemanal([]);
+      setAderenciaDia([]);
+      setAderenciaTurno([]);
+      setAderenciaSubPraca([]);
+      setAderenciaOrigem([]);
+    } finally {
       setLoading(false);
     }
+  }
 
-    fetchData();
-  }, [filters]);
+  fetchData();
+
+  return () => {
+    abortRef.current?.abort();
+  };
+}, [filters]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
