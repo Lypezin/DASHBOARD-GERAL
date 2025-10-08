@@ -359,6 +359,77 @@ function DashboardView({
         </div>
       )}
 
+      {/* Destaques da Operação */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:border-emerald-800 dark:from-emerald-950/30 dark:to-teal-950/30">
+          <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+            <span className="text-xl">📊</span>
+            <p className="text-sm font-semibold">Melhor Dia</p>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-emerald-900 dark:text-emerald-100">
+            {aderenciaDia.length > 0 
+              ? aderenciaDia.reduce((max, dia) => (dia.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? dia : max).dia_da_semana
+              : '-'}
+          </p>
+          <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
+            {aderenciaDia.length > 0 
+              ? `${aderenciaDia.reduce((max, dia) => (dia.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? dia : max).aderencia_percentual?.toFixed(1) || '0'}% de aderência`
+              : 'Sem dados'}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-4 dark:border-blue-800 dark:from-blue-950/30 dark:to-cyan-950/30">
+          <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+            <span className="text-xl">⏰</span>
+            <p className="text-sm font-semibold">Melhor Turno</p>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-blue-900 dark:text-blue-100">
+            {aderenciaTurno.length > 0 
+              ? aderenciaTurno.reduce((max, turno) => (turno.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? turno : max).periodo
+              : '-'}
+          </p>
+          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+            {aderenciaTurno.length > 0 
+              ? `${aderenciaTurno.reduce((max, turno) => (turno.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? turno : max).aderencia_percentual?.toFixed(1) || '0'}% de aderência`
+              : 'Sem dados'}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-4 dark:border-violet-800 dark:from-violet-950/30 dark:to-purple-950/30">
+          <div className="flex items-center gap-2 text-violet-700 dark:text-violet-300">
+            <span className="text-xl">📍</span>
+            <p className="text-sm font-semibold">Melhor Sub-Praça</p>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-violet-900 dark:text-violet-100">
+            {aderenciaSubPraca.length > 0 
+              ? aderenciaSubPraca.reduce((max, sp) => (sp.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? sp : max).sub_praca
+              : '-'}
+          </p>
+          <p className="mt-1 text-xs text-violet-600 dark:text-violet-400">
+            {aderenciaSubPraca.length > 0 
+              ? `${aderenciaSubPraca.reduce((max, sp) => (sp.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? sp : max).aderencia_percentual?.toFixed(1) || '0'}% de aderência`
+              : 'Sem dados'}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 dark:border-amber-800 dark:from-amber-950/30 dark:to-orange-950/30">
+          <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+            <span className="text-xl">🎯</span>
+            <p className="text-sm font-semibold">Melhor Origem</p>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-amber-900 dark:text-amber-100">
+            {aderenciaOrigem.length > 0 
+              ? aderenciaOrigem.reduce((max, orig) => (orig.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? orig : max).origem
+              : '-'}
+          </p>
+          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+            {aderenciaOrigem.length > 0 
+              ? `${aderenciaOrigem.reduce((max, orig) => (orig.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? orig : max).aderencia_percentual?.toFixed(1) || '0'}% de aderência`
+              : 'Sem dados'}
+          </p>
+        </div>
+      </div>
+
       {/* Aderência por Dia */}
       <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
         <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
@@ -588,10 +659,34 @@ function ComparacaoView({
     }
   };
 
+  const calcularVariacao = (valor1: number | null | undefined, valor2: number | null | undefined): string => {
+    const v1 = valor1 ?? 0;
+    const v2 = valor2 ?? 0;
+    if (v1 === 0) return '0.0';
+    const variacao = ((v2 - v1) / v1) * 100;
+    return variacao.toFixed(1);
+  };
+
+  const VariacaoBadge = ({ variacao }: { variacao: string }) => {
+    const valor = parseFloat(variacao);
+    const isPositive = valor >= 0;
+    return (
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold ${
+          isPositive
+            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+            : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+        }`}
+      >
+        {isPositive ? '↗' : '↘'} {Math.abs(valor).toFixed(1)}%
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Seletores */}
-      <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
+      <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
         <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Selecione as Semanas para Comparar</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <FiltroSelect
@@ -612,7 +707,7 @@ function ComparacaoView({
             <button
               onClick={compararSemanas}
               disabled={!semana1 || !semana2 || loading}
-              className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-all hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed"
+              className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 font-semibold text-white shadow-md transition-all hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {loading ? 'Comparando...' : 'Comparar'}
             </button>
@@ -622,104 +717,207 @@ function ComparacaoView({
 
       {/* Comparação */}
       {dados1 && dados2 && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Semana 1 */}
-          <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
-            <h3 className="mb-4 text-lg font-bold text-blue-600 dark:text-blue-400">Semana {semana1}</h3>
-            <div className="space-y-4">
-              <div className="rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 p-4 dark:from-blue-950/30 dark:to-indigo-950/30">
-                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Aderência</p>
+        <div className="space-y-6">
+          {/* Aderência Geral */}
+          <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-white to-blue-50 p-6 shadow-lg dark:border-blue-800 dark:from-slate-900 dark:to-blue-950/30">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+              <span className="text-xl">📊</span>
+              Comparação de Aderência Geral
+            </h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-lg border border-blue-200 bg-white p-4 dark:border-blue-700 dark:bg-slate-800">
+                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Semana {semana1}</p>
                 <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">
-                  {dados1.semanal[0]?.aderencia_percentual?.toFixed(1) || '0.0'}%
+                  {(dados1.semanal[0]?.aderencia_percentual ?? 0).toFixed(1)}%
                 </p>
-                <div className="mt-3 space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-blue-600">Planejado:</span>
-                    <span className="font-semibold">{dados1.semanal[0]?.horas_a_entregar || '-'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-blue-600">Entregue:</span>
-                    <span className="font-semibold">{dados1.semanal[0]?.horas_entregues || '-'}</span>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Variação</p>
+                  <div className="mt-2">
+                    <VariacaoBadge
+                      variacao={calcularVariacao(
+                        dados1.semanal[0]?.aderencia_percentual,
+                        dados2.semanal[0]?.aderencia_percentual
+                      )}
+                    />
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                  <p className="text-slate-600 dark:text-slate-400">Ofertadas</p>
-                  <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
-                    {dados1.totais.corridas_ofertadas.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-                  <p className="text-emerald-600 dark:text-emerald-400">Aceitas</p>
-                  <p className="mt-1 text-xl font-bold text-emerald-900 dark:text-emerald-100">
-                    {dados1.totais.corridas_aceitas.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-rose-50 p-3 dark:bg-rose-950/30">
-                  <p className="text-rose-600 dark:text-rose-400">Rejeitadas</p>
-                  <p className="mt-1 text-xl font-bold text-rose-900 dark:text-rose-100">
-                    {dados1.totais.corridas_rejeitadas.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-950/30">
-                  <p className="text-purple-600 dark:text-purple-400">Completadas</p>
-                  <p className="mt-1 text-xl font-bold text-purple-900 dark:text-purple-100">
-                    {dados1.totais.corridas_completadas.toLocaleString('pt-BR')}
-                  </p>
-                </div>
+              <div className="rounded-lg border border-indigo-200 bg-white p-4 dark:border-indigo-700 dark:bg-slate-800">
+                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Semana {semana2}</p>
+                <p className="mt-2 text-3xl font-bold text-indigo-900 dark:text-indigo-100">
+                  {(dados2.semanal[0]?.aderencia_percentual ?? 0).toFixed(1)}%
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Semana 2 */}
-          <div className="rounded-xl border border-indigo-200 bg-white p-6 shadow-md dark:border-indigo-800 dark:bg-slate-900">
-            <h3 className="mb-4 text-lg font-bold text-indigo-600 dark:text-indigo-400">Semana {semana2}</h3>
-            <div className="space-y-4">
-              <div className="rounded-lg bg-gradient-to-br from-indigo-50 to-purple-50 p-4 dark:from-indigo-950/30 dark:to-purple-950/30">
-                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Aderência</p>
-                <p className="mt-2 text-3xl font-bold text-indigo-900 dark:text-indigo-100">
-                  {dados2.semanal[0]?.aderencia_percentual?.toFixed(1) || '0.0'}%
-                </p>
-                <div className="mt-3 space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-indigo-600">Planejado:</span>
-                    <span className="font-semibold">{dados2.semanal[0]?.horas_a_entregar || '-'}</span>
+          {/* Totais de Corridas */}
+          <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+              <span className="text-xl">🚗</span>
+              Comparação de Corridas
+            </h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {[
+                { key: 'corridas_ofertadas' as const, label: 'Ofertadas', color: 'slate' },
+                { key: 'corridas_aceitas' as const, label: 'Aceitas', color: 'emerald' },
+                { key: 'corridas_rejeitadas' as const, label: 'Rejeitadas', color: 'rose' },
+                { key: 'corridas_completadas' as const, label: 'Completadas', color: 'purple' },
+              ].map(({ key, label, color }) => (
+                <div
+                  key={key}
+                  className={`rounded-lg border border-${color}-200 bg-${color}-50/50 p-4 dark:border-${color}-800 dark:bg-${color}-950/30`}
+                >
+                  <p className={`text-sm font-semibold text-${color}-700 dark:text-${color}-300`}>{label}</p>
+                  <div className="mt-2 flex items-baseline justify-between">
+                    <span className={`text-xl font-bold text-${color}-900 dark:text-${color}-100`}>
+                      {dados1.totais[key].toLocaleString('pt-BR')}
+                    </span>
+                    <span className="text-xs text-slate-500">S{semana1}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-indigo-600">Entregue:</span>
-                    <span className="font-semibold">{dados2.semanal[0]?.horas_entregues || '-'}</span>
+                  <div className="mt-1 flex items-baseline justify-between">
+                    <span className={`text-xl font-bold text-${color}-900 dark:text-${color}-100`}>
+                      {dados2.totais[key].toLocaleString('pt-BR')}
+                    </span>
+                    <span className="text-xs text-slate-500">S{semana2}</span>
+                  </div>
+                  <div className="mt-2">
+                    <VariacaoBadge variacao={calcularVariacao(dados1.totais[key], dados2.totais[key])} />
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                  <p className="text-slate-600 dark:text-slate-400">Ofertadas</p>
-                  <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
-                    {dados2.totais.corridas_ofertadas.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-                  <p className="text-emerald-600 dark:text-emerald-400">Aceitas</p>
-                  <p className="mt-1 text-xl font-bold text-emerald-900 dark:text-emerald-100">
-                    {dados2.totais.corridas_aceitas.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-rose-50 p-3 dark:bg-rose-950/30">
-                  <p className="text-rose-600 dark:text-rose-400">Rejeitadas</p>
-                  <p className="mt-1 text-xl font-bold text-rose-900 dark:text-rose-100">
-                    {dados2.totais.corridas_rejeitadas.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-950/30">
-                  <p className="text-purple-600 dark:text-purple-400">Completadas</p>
-                  <p className="mt-1 text-xl font-bold text-purple-900 dark:text-purple-100">
-                    {dados2.totais.corridas_completadas.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
+
+          {/* Aderência por Dia */}
+          <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+              <span className="text-xl">📅</span>
+              Comparação de Aderência por Dia
+            </h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
+              {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia) => {
+                const data1 = dados1.dia?.find((d) => d.dia_da_semana === dia);
+                const data2 = dados2.dia?.find((d) => d.dia_da_semana === dia);
+                return (
+                  <div key={dia} className="rounded-lg border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white">{dia}</p>
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                          {(data1?.aderencia_percentual ?? 0).toFixed(0)}%
+                        </span>
+                        <span className="text-xs text-slate-500">S{semana1}</span>
+                      </div>
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-sm font-bold text-indigo-900 dark:text-indigo-100">
+                          {(data2?.aderencia_percentual ?? 0).toFixed(0)}%
+                        </span>
+                        <span className="text-xs text-slate-500">S{semana2}</span>
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <VariacaoBadge
+                        variacao={calcularVariacao(data1?.aderencia_percentual, data2?.aderencia_percentual)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Aderência por Sub-Praça */}
+          {dados1.sub_praca && dados1.sub_praca.length > 0 && (
+            <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span className="text-xl">📍</span>
+                Comparação de Aderência por Sub-Praça
+              </h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from(
+                  new Set([
+                    ...(dados1.sub_praca?.map((sp) => sp.sub_praca) ?? []),
+                    ...(dados2.sub_praca?.map((sp) => sp.sub_praca) ?? []),
+                  ])
+                ).map((subPraca) => {
+                  const data1 = dados1.sub_praca?.find((sp) => sp.sub_praca === subPraca);
+                  const data2 = dados2.sub_praca?.find((sp) => sp.sub_praca === subPraca);
+                  return (
+                    <div key={subPraca} className="rounded-lg border border-violet-100 bg-violet-50/50 p-4 dark:border-violet-900 dark:bg-violet-950/30">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{subPraca}</p>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-lg font-bold text-violet-900 dark:text-violet-100">
+                            {(data1?.aderencia_percentual ?? 0).toFixed(1)}%
+                          </span>
+                          <span className="text-xs text-slate-500">S{semana1}</span>
+                        </div>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-lg font-bold text-purple-900 dark:text-purple-100">
+                            {(data2?.aderencia_percentual ?? 0).toFixed(1)}%
+                          </span>
+                          <span className="text-xs text-slate-500">S{semana2}</span>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <VariacaoBadge
+                          variacao={calcularVariacao(data1?.aderencia_percentual, data2?.aderencia_percentual)}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Aderência por Origem */}
+          {dados1.origem && dados1.origem.length > 0 && (
+            <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span className="text-xl">🎯</span>
+                Comparação de Aderência por Origem
+              </h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from(
+                  new Set([
+                    ...(dados1.origem?.map((o) => o.origem) ?? []),
+                    ...(dados2.origem?.map((o) => o.origem) ?? []),
+                  ])
+                ).map((origem) => {
+                  const data1 = dados1.origem?.find((o) => o.origem === origem);
+                  const data2 = dados2.origem?.find((o) => o.origem === origem);
+                  return (
+                    <div key={origem} className="rounded-lg border border-amber-100 bg-amber-50/50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{origem}</p>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-lg font-bold text-amber-900 dark:text-amber-100">
+                            {(data1?.aderencia_percentual ?? 0).toFixed(1)}%
+                          </span>
+                          <span className="text-xs text-slate-500">S{semana1}</span>
+                        </div>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-lg font-bold text-orange-900 dark:text-orange-100">
+                            {(data2?.aderencia_percentual ?? 0).toFixed(1)}%
+                          </span>
+                          <span className="text-xs text-slate-500">S{semana2}</span>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <VariacaoBadge
+                          variacao={calcularVariacao(data1?.aderencia_percentual, data2?.aderencia_percentual)}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
