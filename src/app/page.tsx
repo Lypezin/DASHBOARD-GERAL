@@ -222,20 +222,22 @@ function AderenciaCard({
   );
 }
 
-function FiltroSelect({ label, placeholder, options, value, onChange }: {
+function FiltroSelect({ label, placeholder, options, value, onChange, disabled = false }: {
   label: string;
   placeholder: string;
   options: FilterOption[];
   value: string;
   onChange: (value: string | null) => void;
+  disabled?: boolean;
 }) {
   return (
     <label className="flex flex-col gap-1.5">
       <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">{label}</span>
       <select
-        className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-900 transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100"
+        className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-900 transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
         value={value}
         onChange={(e) => onChange(e.target.value || null)}
+        disabled={disabled}
       >
         <option value="">{placeholder}</option>
         {options.map((opt) => (
@@ -945,8 +947,36 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
 
   const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
+
+  useEffect(() => {
+    async function checkUserAndFetchData() {
+      // Primeiro, buscar informações do usuário
+      try {
+        const { data: userProfile } = await supabase.rpc('get_current_user_profile').single();
+        if (userProfile) {
+          setCurrentUser({
+            is_admin: userProfile.is_admin,
+            assigned_pracas: userProfile.assigned_pracas || []
+          });
+          
+          // Se não for admin e tiver praças atribuídas, aplicar filtro automático
+          if (!userProfile.is_admin && userProfile.assigned_pracas && userProfile.assigned_pracas.length > 0) {
+            // Se tiver apenas 1 praça, setar automaticamente
+            if (userProfile.assigned_pracas.length === 1) {
+              setFilters(prev => ({ ...prev, praca: userProfile.assigned_pracas[0] }));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao buscar perfil do usuário:', err);
+      }
+    }
+
+    checkUserAndFetchData();
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
