@@ -180,8 +180,14 @@ export default function UploadPage() {
 
     // Atualizar a materialized view após todos os uploads
     setProgressLabel('Atualizando dados agregados...');
+    setProgress(95);
+    
+    let viewRefreshed = false;
     try {
-      await supabase.rpc('refresh_mv_aderencia');
+      const refreshResult = await supabase.rpc('refresh_mv_aderencia');
+      if (!refreshResult.error) {
+        viewRefreshed = true;
+      }
     } catch (refreshError) {
       console.warn('Aviso: Não foi possível atualizar a view automaticamente.');
     }
@@ -190,7 +196,11 @@ export default function UploadPage() {
     setProgressLabel('Concluído!');
     
     if (errorCount === 0) {
-      setMessage(`✅ Todos os ${successCount} arquivo(s) foram importados com sucesso! Atualize a página para ver os novos dados.`);
+      if (viewRefreshed) {
+        setMessage(`✅ Todos os ${successCount} arquivo(s) foram importados com sucesso! Atualize a página para ver os novos dados.`);
+      } else {
+        setMessage(`✅ Todos os ${successCount} arquivo(s) foram importados. ⚠️ Os dados agregados serão atualizados em segundo plano. Aguarde alguns minutos e atualize a página.`);
+      }
     } else {
       setMessage(`⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Verifique os logs.`);
     }

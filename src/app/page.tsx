@@ -200,7 +200,7 @@ function AderenciaCard({
     <div className={`rounded-xl border p-4 ${bgClass}`}>
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
-        <span className={`text-xl font-bold ${colorClass}`}>{percentual.toFixed(1)}%</span>
+        <span className={`text-xl font-bold ${colorClass}`}>{(percentual ?? 0).toFixed(1)}%</span>
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
@@ -340,7 +340,7 @@ function DashboardView({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-blue-100">Aderência Geral</h2>
-              <p className="mt-2 text-4xl font-bold text-white">{aderenciaGeral.aderencia_percentual?.toFixed(1) || '0.0'}%</p>
+              <p className="mt-2 text-4xl font-bold text-white">{(aderenciaGeral.aderencia_percentual ?? 0).toFixed(1)}%</p>
               <div className="mt-4 flex gap-6 text-sm">
                 <div>
                   <span className="text-blue-100">Planejado:</span>
@@ -517,7 +517,7 @@ function AnaliseView({ totals, aderenciaGeral }: { totals: Totals; aderenciaGera
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:from-blue-950/30 dark:to-indigo-950/30">
               <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Aderência Geral</p>
-              <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">{aderenciaGeral.aderencia_percentual?.toFixed(1) || '0.0'}%</p>
+              <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">{(aderenciaGeral.aderencia_percentual ?? 0).toFixed(1)}%</p>
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-blue-600 dark:text-blue-400">Planejado:</span>
