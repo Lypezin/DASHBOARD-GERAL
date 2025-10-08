@@ -3,7 +3,13 @@
 -- 1. Totais de corridas
 DROP FUNCTION IF EXISTS public.dashboard_totals();
 
-CREATE OR REPLACE FUNCTION public.dashboard_totals()
+CREATE OR REPLACE FUNCTION public.dashboard_totals(
+  p_ano integer DEFAULT NULL,
+  p_semana integer DEFAULT NULL,
+  p_praca text DEFAULT NULL,
+  p_sub_praca text DEFAULT NULL,
+  p_origem text DEFAULT NULL
+)
 RETURNS TABLE (
   corridas_ofertadas numeric,
   corridas_aceitas numeric,
@@ -20,12 +26,17 @@ AS $$
     COALESCE(SUM(numero_de_corridas_aceitas), 0) AS corridas_aceitas,
     COALESCE(SUM(numero_de_corridas_rejeitadas), 0) AS corridas_rejeitadas,
     COALESCE(SUM(numero_de_corridas_completadas), 0) AS corridas_completadas
-  FROM public.dados_corridas;
+  FROM public.dados_corridas
+  WHERE (p_ano IS NULL OR date_part('isoyear', data_do_periodo)::int = p_ano)
+    AND (p_semana IS NULL OR date_part('week', data_do_periodo)::int = p_semana)
+    AND (p_praca IS NULL OR praca = p_praca)
+    AND (p_sub_praca IS NULL OR sub_praca = p_sub_praca)
+    AND (p_origem IS NULL OR origem = p_origem);
 $$;
 
-GRANT EXECUTE ON FUNCTION public.dashboard_totals() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.dashboard_totals(integer, integer, text, text, text) TO anon, authenticated, service_role;
 
--- 2. Função auxiliar: converte texto HH:MM:SS para segundos
+-- 2. Função auxiliar fallback para segundos
 DROP FUNCTION IF EXISTS public.hhmmss_to_seconds(text);
 
 CREATE OR REPLACE FUNCTION public.hhmmss_to_seconds(value text)
@@ -33,7 +44,7 @@ RETURNS numeric
 LANGUAGE plpgsql
 IMMUTABLE
 AS $$
-DECLARE
+declare
   parts text[];
 BEGIN
   IF value IS NULL OR trim(value) = '' THEN
@@ -55,14 +66,15 @@ BEGIN
 END;
 $$;
 
--- 3. Aderência semanal (corrigido)
+-- 3. Aderência semanal (otimizada)
 DROP FUNCTION IF EXISTS public.calcular_aderencia_semanal();
 
 CREATE OR REPLACE FUNCTION public.calcular_aderencia_semanal(
   p_ano integer DEFAULT NULL,
   p_semana integer DEFAULT NULL,
   p_praca text DEFAULT NULL,
-  p_sub_praca text DEFAULT NULL
+  p_sub_praca text DEFAULT NULL,
+  p_origem text DEFAULT NULL
 )
 RETURNS TABLE (
   semana text,
@@ -83,15 +95,17 @@ WITH base AS (
     periodo,
     praca,
     sub_praca,
+    origem,
     numero_minimo_de_entregadores_regulares_na_escala,
-    hhmmss_to_seconds(duracao_do_periodo) AS duracao_segundos,
-    hhmmss_to_seconds(tempo_disponivel_absoluto) AS tempo_disponivel_segundos
+    COALESCE(duracao_segundos, hhmmss_to_seconds(duracao_do_periodo)) AS duracao_segundos,
+    COALESCE(tempo_disponivel_absoluto_segundos, hhmmss_to_seconds(tempo_disponivel_absoluto)) AS tempo_disponivel_segundos
   FROM public.dados_corridas
   WHERE data_do_periodo IS NOT NULL
     AND (p_ano IS NULL OR date_part('isoyear', data_do_periodo)::int = p_ano)
     AND (p_semana IS NULL OR date_part('week', data_do_periodo)::int = p_semana)
     AND (p_praca IS NULL OR praca = p_praca)
     AND (p_sub_praca IS NULL OR sub_praca = p_sub_praca)
+    AND (p_origem IS NULL OR origem = p_origem)
 ),
 unique_turnos AS (
   SELECT DISTINCT ON (
@@ -156,16 +170,17 @@ LEFT JOIN horas_realizadas hr USING (ano_iso, semana_numero)
 ORDER BY ano_iso DESC, semana_numero DESC;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.calcular_aderencia_semanal() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.calcular_aderencia_semanal(integer, integer, text, text, text) TO anon, authenticated, service_role;
 
--- 4. Aderência por dia (data)
+-- 4. Aderência por dia (otimizada)
 DROP FUNCTION IF EXISTS public.calcular_aderencia_por_dia();
 
 CREATE OR REPLACE FUNCTION public.calcular_aderencia_por_dia(
   p_ano integer DEFAULT NULL,
   p_semana integer DEFAULT NULL,
   p_praca text DEFAULT NULL,
-  p_sub_praca text DEFAULT NULL
+  p_sub_praca text DEFAULT NULL,
+  p_origem text DEFAULT NULL
 )
 RETURNS TABLE (
   dia_iso integer,
@@ -185,15 +200,17 @@ WITH base AS (
     periodo,
     praca,
     sub_praca,
+    origem,
     numero_minimo_de_entregadores_regulares_na_escala,
-    hhmmss_to_seconds(duracao_do_periodo) AS duracao_segundos,
-    hhmmss_to_seconds(tempo_disponivel_absoluto) AS tempo_disponivel_segundos
+    COALESCE(duracao_segundos, hhmmss_to_seconds(duracao_do_periodo)) AS duracao_segundos,
+    COALESCE(tempo_disponivel_absoluto_segundos, hhmmss_to_seconds(tempo_disponivel_absoluto)) AS tempo_disponivel_segundos
   FROM public.dados_corridas
   WHERE data_do_periodo IS NOT NULL
     AND (p_ano IS NULL OR date_part('isoyear', data_do_periodo)::int = p_ano)
     AND (p_semana IS NULL OR date_part('week', data_do_periodo)::int = p_semana)
     AND (p_praca IS NULL OR praca = p_praca)
     AND (p_sub_praca IS NULL OR sub_praca = p_sub_praca)
+    AND (p_origem IS NULL OR origem = p_origem)
 ),
 unique_turnos AS (
   SELECT DISTINCT ON (
@@ -260,16 +277,17 @@ LEFT JOIN horas_realizadas hr USING (dia_iso, dia_nome)
 ORDER BY hp.dia_iso;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_dia() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_dia(integer, integer, text, text, text) TO anon, authenticated, service_role;
 
--- 5. Aderência por turno (período)
+-- 5. Aderência por turno (otimizada)
 DROP FUNCTION IF EXISTS public.calcular_aderencia_por_turno();
 
 CREATE OR REPLACE FUNCTION public.calcular_aderencia_por_turno(
   p_ano integer DEFAULT NULL,
   p_semana integer DEFAULT NULL,
   p_praca text DEFAULT NULL,
-  p_sub_praca text DEFAULT NULL
+  p_sub_praca text DEFAULT NULL,
+  p_origem text DEFAULT NULL
 )
 RETURNS TABLE (
   periodo text,
@@ -288,9 +306,10 @@ WITH base AS (
     periodo,
     praca,
     sub_praca,
+    origem,
     numero_minimo_de_entregadores_regulares_na_escala,
-    hhmmss_to_seconds(duracao_do_periodo) AS duracao_segundos,
-    hhmmss_to_seconds(tempo_disponivel_absoluto) AS tempo_disponivel_segundos
+    COALESCE(duracao_segundos, hhmmss_to_seconds(duracao_do_periodo)) AS duracao_segundos,
+    COALESCE(tempo_disponivel_absoluto_segundos, hhmmss_to_seconds(tempo_disponivel_absoluto)) AS tempo_disponivel_segundos
   FROM public.dados_corridas
   WHERE data_do_periodo IS NOT NULL
     AND periodo IS NOT NULL
@@ -298,6 +317,7 @@ WITH base AS (
     AND (p_semana IS NULL OR date_part('week', data_do_periodo)::int = p_semana)
     AND (p_praca IS NULL OR praca = p_praca)
     AND (p_sub_praca IS NULL OR sub_praca = p_sub_praca)
+    AND (p_origem IS NULL OR origem = p_origem)
 ),
 unique_turnos AS (
   SELECT DISTINCT ON (
@@ -351,15 +371,17 @@ LEFT JOIN horas_realizadas hr USING (periodo)
 ORDER BY hp.periodo;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_turno() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_turno(integer, integer, text, text, text) TO anon, authenticated, service_role;
 
+-- 6. Aderência por sub praça (otimizada)
 DROP FUNCTION IF EXISTS public.calcular_aderencia_por_sub_praca();
 
 CREATE OR REPLACE FUNCTION public.calcular_aderencia_por_sub_praca(
   p_ano integer DEFAULT NULL,
   p_semana integer DEFAULT NULL,
   p_praca text DEFAULT NULL,
-  p_sub_praca text DEFAULT NULL
+  p_sub_praca text DEFAULT NULL,
+  p_origem text DEFAULT NULL
 )
 RETURNS TABLE (
   sub_praca text,
@@ -377,10 +399,11 @@ WITH base AS (
     data_do_periodo::date AS data_ref,
     praca,
     sub_praca,
+    origem,
     periodo,
     numero_minimo_de_entregadores_regulares_na_escala,
-    hhmmss_to_seconds(duracao_do_periodo) AS duracao_segundos,
-    hhmmss_to_seconds(tempo_disponivel_absoluto) AS tempo_disponivel_segundos
+    COALESCE(duracao_segundos, hhmmss_to_seconds(duracao_do_periodo)) AS duracao_segundos,
+    COALESCE(tempo_disponivel_absoluto_segundos, hhmmss_to_seconds(tempo_disponivel_absoluto)) AS tempo_disponivel_segundos
   FROM public.dados_corridas
   WHERE data_do_periodo IS NOT NULL
     AND sub_praca IS NOT NULL
@@ -388,6 +411,7 @@ WITH base AS (
     AND (p_semana IS NULL OR date_part('week', data_do_periodo)::int = p_semana)
     AND (p_praca IS NULL OR praca = p_praca)
     AND (p_sub_praca IS NULL OR sub_praca = p_sub_praca)
+    AND (p_origem IS NULL OR origem = p_origem)
 ),
 unique_turnos AS (
   SELECT DISTINCT ON (
@@ -446,9 +470,9 @@ LEFT JOIN horas_realizadas hr USING (sub_praca)
 ORDER BY hp.sub_praca;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_sub_praca(integer, integer, text, text) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_sub_praca(integer, integer, text, text, text) TO anon, authenticated, service_role;
 
--- 7. Aderência por origem
+-- 7. Aderência por origem (otimizada)
 DROP FUNCTION IF EXISTS public.calcular_aderencia_por_origem();
 
 CREATE OR REPLACE FUNCTION public.calcular_aderencia_por_origem(
@@ -477,8 +501,8 @@ WITH base AS (
     praca,
     sub_praca,
     numero_minimo_de_entregadores_regulares_na_escala,
-    hhmmss_to_seconds(duracao_do_periodo) AS duracao_segundos,
-    hhmmss_to_seconds(tempo_disponivel_absoluto) AS tempo_disponivel_segundos
+    COALESCE(duracao_segundos, hhmmss_to_seconds(duracao_do_periodo)) AS duracao_segundos,
+    COALESCE(tempo_disponivel_absoluto_segundos, hhmmss_to_seconds(tempo_disponivel_absoluto)) AS tempo_disponivel_segundos
   FROM public.dados_corridas
   WHERE data_do_periodo IS NOT NULL
     AND origem IS NOT NULL
@@ -544,7 +568,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.calcular_aderencia_por_origem(integer, integer, text, text, text) TO anon, authenticated, service_role;
 
--- 8. Dimensões disponíveis para filtros
+-- 8. Dimensões disponíveis para filtros (sem alteração estrutural)
 DROP FUNCTION IF EXISTS public.listar_dimensoes_dashboard();
 
 CREATE OR REPLACE FUNCTION public.listar_dimensoes_dashboard()

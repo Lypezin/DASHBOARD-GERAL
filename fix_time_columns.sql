@@ -28,6 +28,10 @@ CREATE TABLE public.dados_corridas (
     numero_de_corridas_canceladas_pela_pessoa_entregadora INTEGER,
     numero_de_pedidos_aceitos_e_concluidos INTEGER,
     soma_das_taxas_das_corridas_aceitas NUMERIC(10,2),
+    -- colunas derivadas para performance
+    duracao_segundos NUMERIC,
+    tempo_disponivel_escalado_segundos NUMERIC,
+    tempo_disponivel_absoluto_segundos NUMERIC,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -44,7 +48,7 @@ ON public.dados_corridas
 FOR INSERT
 WITH CHECK (true);
 
--- SEÇÃO 4: FUNÇÃO SIMPLES (execute depois das permissões)
+-- SEÇÃO 4: FUNÇÕES AUXILIARES E TRIGGER (execute depois das permissões)
 CREATE OR REPLACE FUNCTION public.normalize_time_to_hhmmss(input_value text)
 RETURNS text
 LANGUAGE plpgsql
@@ -59,12 +63,10 @@ BEGIN
 
   input_value := trim(input_value);
 
-  -- Trata strings ISO
   IF input_value LIKE '%T%:%:%Z' THEN
     result := split_part(split_part(input_value, 'T', 2), '.', 1);
 
-  -- Trata números decimais (fração de dia)
-  ELSIF input_value ~ '^[0-9]+\.[0-9]+$' THEN
+  ELSIF input_value ~ '^[0-9]+\\.[0-9]+$' THEN
     DECLARE
       total_seconds int := round((input_value::numeric * 86400)::numeric);
       hours int := floor(total_seconds / 3600);
@@ -76,7 +78,6 @@ BEGIN
                 lpad(seconds::text, 2, '0');
     END;
 
-  -- Trata formato HH:MM:SS
   ELSIF input_value ~ '^[0-9]{1,2}:[0-9]{2}:[0-9]{2}$' THEN
     result := input_value;
 
@@ -87,15 +88,56 @@ BEGIN
   RETURN result;
 END $$;
 
--- SEÇÃO 5: TRIGGER (execute depois da função)
+CREATE OR REPLACE FUNCTION public.hhmmss_to_seconds(input_value text)
+RETURNS numeric
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+  hh int;
+  mm int;
+  ss int;
+BEGIN
+  IF input_value IS NULL OR trim(input_value) = '' THEN
+    RETURN 0;
+  END IF;
+
+  BEGIN
+    RETURN EXTRACT(EPOCH FROM input_value::interval);
+  EXCEPTION WHEN others THEN
+    BEGIN
+      SELECT split_part(input_value, ':', 1)::int,
+             split_part(input_value, ':', 2)::int,
+             split_part(input_value, ':', 3)::int
+      INTO hh, mm, ss;
+      RETURN (hh * 3600 + mm * 60 + ss);
+    EXCEPTION WHEN others THEN
+      RETURN 0;
+    END;
+  END;
+END $$;
+
 CREATE OR REPLACE FUNCTION public.normalize_time_columns_trigger()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
+DECLARE
+  duracao_norm text;
+  escalado_norm text;
+  absoluto_norm text;
 BEGIN
-  NEW.duracao_do_periodo := public.normalize_time_to_hhmmss(NEW.duracao_do_periodo);
-  NEW.tempo_disponivel_escalado := public.normalize_time_to_hhmmss(NEW.tempo_disponivel_escalado);
-  NEW.tempo_disponivel_absoluto := public.normalize_time_to_hhmmss(NEW.tempo_disponivel_absoluto);
+  duracao_norm := public.normalize_time_to_hhmmss(NEW.duracao_do_periodo);
+  escalado_norm := public.normalize_time_to_hhmmss(NEW.tempo_disponivel_escalado);
+  absoluto_norm := public.normalize_time_to_hhmmss(NEW.tempo_disponivel_absoluto);
+
+  NEW.duracao_do_periodo := duracao_norm;
+  NEW.tempo_disponivel_escalado := escalado_norm;
+  NEW.tempo_disponivel_absoluto := absoluto_norm;
+
+  NEW.duracao_segundos := public.hhmmss_to_seconds(duracao_norm);
+  NEW.tempo_disponivel_escalado_segundos := public.hhmmss_to_seconds(escalado_norm);
+  NEW.tempo_disponivel_absoluto_segundos := public.hhmmss_to_seconds(absoluto_norm);
+
   RETURN NEW;
 END $$;
 
@@ -103,7 +145,7 @@ CREATE TRIGGER dados_corridas_normalize_time
 BEFORE INSERT OR UPDATE ON public.dados_corridas
 FOR EACH ROW EXECUTE FUNCTION public.normalize_time_columns_trigger();
 
--- SEÇÃO 6: TESTE (execute depois do trigger)
+-- SEÇÃO 5: TESTE (execute depois do trigger)
 DO $$
 DECLARE
   test_result text;
@@ -119,3 +161,22 @@ BEGIN
   test_result := public.normalize_time_to_hhmmss('02:53:08');
   RAISE NOTICE 'HH:MM:SS: %', test_result;
 END $$;
+
+-- SEÇÃO 6: COLUNAS DERIVADAS E ÍNDICES (execute após importar dados antigos)
+UPDATE public.dados_corridas
+SET
+  duracao_do_periodo = public.normalize_time_to_hhmmss(duracao_do_periodo),
+  tempo_disponivel_escalado = public.normalize_time_to_hhmmss(tempo_disponivel_escalado),
+  tempo_disponivel_absoluto = public.normalize_time_to_hhmmss(tempo_disponivel_absoluto),
+  duracao_segundos = public.hhmmss_to_seconds(public.normalize_time_to_hhmmss(duracao_do_periodo)),
+  tempo_disponivel_escalado_segundos = public.hhmmss_to_seconds(public.normalize_time_to_hhmmss(tempo_disponivel_escalado)),
+  tempo_disponivel_absoluto_segundos = public.hhmmss_to_seconds(public.normalize_time_to_hhmmss(tempo_disponivel_absoluto));
+
+CREATE INDEX IF NOT EXISTS idx_dados_corridas_data ON public.dados_corridas (data_do_periodo);
+CREATE INDEX IF NOT EXISTS idx_dados_corridas_praca ON public.dados_corridas (praca);
+CREATE INDEX IF NOT EXISTS idx_dados_corridas_sub_praca ON public.dados_corridas (sub_praca);
+CREATE INDEX IF NOT EXISTS idx_dados_corridas_origem ON public.dados_corridas (origem);
+CREATE INDEX IF NOT EXISTS idx_dados_corridas_semana ON public.dados_corridas ((date_part('week', data_do_periodo)));
+CREATE INDEX IF NOT EXISTS idx_dados_corridas_ano_iso ON public.dados_corridas ((date_part('isoyear', data_do_periodo)));
+
+ANALYZE public.dados_corridas;
