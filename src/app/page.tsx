@@ -258,6 +258,7 @@ function FiltroBar({
   pracas,
   subPracas,
   origens,
+  currentUser,
 }: {
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
@@ -266,6 +267,7 @@ function FiltroBar({
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
+  currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
 }) {
   const handleChange = (key: keyof Filters, rawValue: string | null) => {
     setFilters((prev) => ({
@@ -273,6 +275,9 @@ function FiltroBar({
       [key]: rawValue === '' || rawValue === null ? null : key === 'ano' || key === 'semana' ? Number(rawValue) : rawValue,
     }));
   };
+
+  // Verificar se deve desabilitar o filtro de praça
+  const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
 
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -296,6 +301,7 @@ function FiltroBar({
         options={pracas}
         placeholder="Todas"
         onChange={(value) => handleChange('praca', value)}
+        disabled={shouldDisablePracaFilter}
       />
       <FiltroSelect
         label="Sub praça"
@@ -1026,9 +1032,22 @@ export default function DashboardPage() {
         const dimensoes = resumo?.dimensoes;
         setAnosDisponiveis(dimensoes?.anos ?? []);
         setSemanasDisponiveis(dimensoes?.semanas ?? []);
-        setPracas((dimensoes?.pracas ?? []).map((p: string) => ({ value: p, label: p })));
-        setSubPracas((dimensoes?.sub_pracas ?? []).map((sp: string) => ({ value: sp, label: sp })));
-        setOrigens((dimensoes?.origens ?? []).map((origem: string) => ({ value: origem, label: origem })));
+        
+        // Filtrar praças, sub-praças e origens baseado nas permissões do usuário
+        let pracasDisponiveis = dimensoes?.pracas ?? [];
+        let subPracasDisponiveis = dimensoes?.sub_pracas ?? [];
+        let origensDisponiveis = dimensoes?.origens ?? [];
+        
+        // Se não for admin, filtrar apenas praças atribuídas
+        if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+          pracasDisponiveis = pracasDisponiveis.filter((p: string) => 
+            currentUser.assigned_pracas.includes(p)
+          );
+        }
+        
+        setPracas(pracasDisponiveis.map((p: string) => ({ value: p, label: p })));
+        setSubPracas(subPracasDisponiveis.map((sp: string) => ({ value: sp, label: sp })));
+        setOrigens(origensDisponiveis.map((origem: string) => ({ value: origem, label: origem })));
 
         setError(null);
       } catch (err: any) {
@@ -1053,7 +1072,7 @@ export default function DashboardPage() {
     return () => {
       abortRef.current?.abort();
     };
-  }, [filters]);
+  }, [filters, currentUser]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
@@ -1097,6 +1116,7 @@ export default function DashboardPage() {
                     pracas={pracas}
                     subPracas={subPracas}
                     origens={origens}
+                    currentUser={currentUser}
                   />
                   <div className="my-4 h-px bg-blue-200 dark:bg-blue-800"></div>
                 </>
