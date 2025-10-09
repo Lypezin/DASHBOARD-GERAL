@@ -114,7 +114,8 @@ interface UtrPorOrigem {
 }
 
 interface UtrPorTurno {
-  periodo: string;
+  turno?: string;
+  periodo?: string;
   tempo_horas: number;
   corridas: number;
   utr: number;
@@ -323,11 +324,25 @@ function FiltroBar({
     }));
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      ano: null,
+      semana: null,
+      praca: currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1 ? currentUser.assigned_pracas[0] : null,
+      subPraca: null,
+      origem: null,
+    });
+  };
+
+  const hasActiveFilters = filters.ano !== null || filters.semana !== null || filters.subPraca !== null || filters.origem !== null ||
+    (currentUser?.is_admin && filters.praca !== null);
+
   // Verificar se deve desabilitar o filtro de praça (somente não-admin com 1 praça)
   const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
 
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
       <FiltroSelect
         label="Ano"
         value={filters.ano !== null ? String(filters.ano) : ''}
@@ -364,6 +379,20 @@ function FiltroBar({
         placeholder="Todas"
         onChange={(value) => handleChange('origem', value)}
       />
+      </div>
+      
+      {/* Botão Limpar Filtros */}
+      {hasActiveFilters && (
+        <div className="flex justify-end">
+          <button
+            onClick={handleClearFilters}
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            <span>🔄</span>
+            Limpar Filtros
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1223,8 +1252,8 @@ function UtrView({
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {porTurno.map((item) => (
-              <div key={item.periodo} className="rounded-lg border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
-                <p className="mb-2 text-sm font-bold text-slate-900 dark:text-white">{item.periodo}</p>
+              <div key={item.turno || item.periodo} className="rounded-lg border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+                <p className="mb-2 text-sm font-bold text-slate-900 dark:text-white">{item.turno || item.periodo || 'N/D'}</p>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Tempo:</span>
