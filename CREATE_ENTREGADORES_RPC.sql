@@ -25,18 +25,21 @@ BEGIN
   -- Buscar dados dos entregadores com aderência calculada
   SELECT COALESCE(jsonb_agg(
     jsonb_build_object(
-      'pessoa_entregadora', pessoa_entregadora,
+      'id_entregador', id_entregador,
+      'nome_entregador', nome_entregador,
       'corridas_ofertadas', corridas_ofertadas,
       'corridas_aceitas', corridas_aceitas,
       'corridas_rejeitadas', corridas_rejeitadas,
       'corridas_completadas', corridas_completadas,
-      'aderencia_percentual', aderencia_percentual
+      'aderencia_percentual', aderencia_percentual,
+      'rejeicao_percentual', rejeicao_percentual
     ) ORDER BY aderencia_percentual DESC NULLS LAST
   ), '[]'::jsonb)
   INTO v_result
   FROM (
     SELECT 
-      id_da_pessoa_entregadora as pessoa_entregadora,
+      id_da_pessoa_entregadora as id_entregador,
+      COALESCE(MAX(nome_da_pessoa_entregadora), id_da_pessoa_entregadora) as nome_entregador,
       SUM(COALESCE(numero_de_corridas_ofertadas, 0)) as corridas_ofertadas,
       SUM(COALESCE(numero_de_corridas_aceitas, 0)) as corridas_aceitas,
       SUM(COALESCE(numero_de_corridas_rejeitadas, 0)) as corridas_rejeitadas,
@@ -48,7 +51,13 @@ BEGIN
           THEN (COALESCE(tempo_disponivel_escalado_segundos, 0)::numeric / duracao_segundos::numeric) * 100
           ELSE NULL
         END
-      ) as aderencia_percentual
+      ) as aderencia_percentual,
+      -- Calcular % de rejeição: (rejeitadas / ofertadas) * 100
+      CASE 
+        WHEN SUM(COALESCE(numero_de_corridas_ofertadas, 0)) > 0 
+        THEN (SUM(COALESCE(numero_de_corridas_rejeitadas, 0))::numeric / SUM(COALESCE(numero_de_corridas_ofertadas, 0))::numeric) * 100
+        ELSE 0 
+      END as rejeicao_percentual
     FROM public.dados_corridas
     WHERE (p_ano IS NULL OR ano_iso = p_ano)
       AND (p_semana IS NULL OR semana_numero = p_semana)

@@ -135,12 +135,14 @@ interface UtrData {
 }
 
 interface Entregador {
-  pessoa_entregadora: string;
+  id_entregador: string;
+  nome_entregador: string;
   corridas_ofertadas: number;
   corridas_aceitas: number;
   corridas_rejeitadas: number;
   corridas_completadas: number;
   aderencia_percentual: number;
+  rejeicao_percentual: number;
 }
 
 interface EntregadoresData {
@@ -1302,6 +1304,9 @@ function EntregadoresView({
   entregadoresData: EntregadoresData | null;
   loading: boolean;
 }) {
+  const [sortField, setSortField] = useState<keyof Entregador>('aderencia_percentual');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -1321,6 +1326,37 @@ function EntregadoresView({
     );
   }
 
+  const handleSort = (field: keyof Entregador) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const sortedEntregadores = [...entregadoresData.entregadores].sort((a, b) => {
+    const aValue = a[sortField];
+    const bValue = b[sortField];
+    
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return sortDirection === 'asc' 
+        ? aValue.localeCompare(bValue) 
+        : bValue.localeCompare(aValue);
+    }
+    
+    const aNum = Number(aValue) || 0;
+    const bNum = Number(bValue) || 0;
+    return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+  });
+
+  const SortIcon = ({ field }: { field: keyof Entregador }) => {
+    if (sortField !== field) {
+      return <span className="ml-1 text-slate-400">⇅</span>;
+    }
+    return <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+  };
+
   const getAderenciaColor = (aderencia: number) => {
     if (aderencia >= 90) return 'text-emerald-700 dark:text-emerald-400';
     if (aderencia >= 70) return 'text-amber-700 dark:text-amber-400';
@@ -1330,6 +1366,18 @@ function EntregadoresView({
   const getAderenciaBg = (aderencia: number) => {
     if (aderencia >= 90) return 'bg-emerald-50 dark:bg-emerald-950/30';
     if (aderencia >= 70) return 'bg-amber-50 dark:bg-amber-950/30';
+    return 'bg-rose-50 dark:bg-rose-950/30';
+  };
+
+  const getRejeicaoColor = (rejeicao: number) => {
+    if (rejeicao <= 10) return 'text-emerald-700 dark:text-emerald-400';
+    if (rejeicao <= 30) return 'text-amber-700 dark:text-amber-400';
+    return 'text-rose-700 dark:text-rose-400';
+  };
+
+  const getRejeicaoBg = (rejeicao: number) => {
+    if (rejeicao <= 10) return 'bg-emerald-50 dark:bg-emerald-950/30';
+    if (rejeicao <= 30) return 'bg-amber-50 dark:bg-amber-950/30';
     return 'bg-rose-50 dark:bg-rose-950/30';
   };
 
@@ -1351,27 +1399,63 @@ function EntregadoresView({
 
       {/* Tabela de Entregadores */}
       <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
-        <div className="overflow-x-auto">
+        <div className="max-h-[600px] overflow-auto">
           <table className="w-full">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="border-b border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
-                <th className="px-6 py-4 text-left text-sm font-bold text-blue-900 dark:text-blue-100">Entregador</th>
-                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Ofertadas</th>
-                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Aceitas</th>
-                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Rejeitadas</th>
-                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Completadas</th>
-                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Aderência</th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-left text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('nome_entregador')}
+                >
+                  Entregador <SortIcon field="nome_entregador" />
+                </th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('corridas_ofertadas')}
+                >
+                  Ofertadas <SortIcon field="corridas_ofertadas" />
+                </th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('corridas_aceitas')}
+                >
+                  Aceitas <SortIcon field="corridas_aceitas" />
+                </th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('corridas_rejeitadas')}
+                >
+                  Rejeitadas <SortIcon field="corridas_rejeitadas" />
+                </th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('corridas_completadas')}
+                >
+                  Completadas <SortIcon field="corridas_completadas" />
+                </th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('aderencia_percentual')}
+                >
+                  Aderência <SortIcon field="aderencia_percentual" />
+                </th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('rejeicao_percentual')}
+                >
+                  % Rejeição <SortIcon field="rejeicao_percentual" />
+                </th>
               </tr>
             </thead>
             <tbody>
-              {entregadoresData.entregadores.map((entregador, index) => (
+              {sortedEntregadores.map((entregador, index) => (
                 <tr
-                  key={entregador.pessoa_entregadora}
+                  key={entregador.id_entregador}
                   className={`border-b border-blue-100 transition-colors hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-950/20 ${
                     index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/30 dark:bg-slate-800/30'
                   }`}
                 >
-                  <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{entregador.pessoa_entregadora}</td>
+                  <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{entregador.nome_entregador}</td>
                   <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{entregador.corridas_ofertadas}</td>
                   <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{entregador.corridas_aceitas}</td>
                   <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{entregador.corridas_rejeitadas}</td>
@@ -1380,6 +1464,13 @@ function EntregadoresView({
                     <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getAderenciaBg(entregador.aderencia_percentual ?? 0)}`}>
                       <span className={`text-lg font-bold ${getAderenciaColor(entregador.aderencia_percentual ?? 0)}`}>
                         {(entregador.aderencia_percentual ?? 0).toFixed(2)}%
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)}`}>
+                      <span className={`text-lg font-bold ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)}`}>
+                        {(entregador.rejeicao_percentual ?? 0).toFixed(2)}%
                       </span>
                     </div>
                   </td>
