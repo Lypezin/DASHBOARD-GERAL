@@ -27,6 +27,12 @@ interface AderenciaDia {
   horas_a_entregar: string;
   horas_entregues: string;
   aderencia_percentual: number;
+  corridas_ofertadas?: number;
+  corridas_aceitas?: number;
+  corridas_rejeitadas?: number;
+  corridas_completadas?: number;
+  taxa_aceitacao?: number;
+  taxa_completude?: number;
 }
 
 interface AderenciaTurno {
@@ -34,6 +40,12 @@ interface AderenciaTurno {
   horas_a_entregar: string;
   horas_entregues: string;
   aderencia_percentual: number;
+  corridas_ofertadas?: number;
+  corridas_aceitas?: number;
+  corridas_rejeitadas?: number;
+  corridas_completadas?: number;
+  taxa_aceitacao?: number;
+  taxa_completude?: number;
 }
 
 interface AderenciaSubPraca {
@@ -41,6 +53,12 @@ interface AderenciaSubPraca {
   horas_a_entregar: string;
   horas_entregues: string;
   aderencia_percentual: number;
+  corridas_ofertadas?: number;
+  corridas_aceitas?: number;
+  corridas_rejeitadas?: number;
+  corridas_completadas?: number;
+  taxa_aceitacao?: number;
+  taxa_completude?: number;
 }
 
 interface AderenciaOrigem {
@@ -48,6 +66,12 @@ interface AderenciaOrigem {
   horas_a_entregar: string;
   horas_entregues: string;
   aderencia_percentual: number;
+  corridas_ofertadas?: number;
+  corridas_aceitas?: number;
+  corridas_rejeitadas?: number;
+  corridas_completadas?: number;
+  taxa_aceitacao?: number;
+  taxa_completude?: number;
 }
 
 interface FilterOption {
@@ -640,7 +664,21 @@ function DashboardView({
   );
 }
 
-function AnaliseView({ totals, aderenciaGeral }: { totals: Totals; aderenciaGeral?: AderenciaSemanal }) {
+function AnaliseView({ 
+  totals, 
+  aderenciaGeral,
+  aderenciaDia,
+  aderenciaTurno,
+  aderenciaSubPraca,
+  aderenciaOrigem
+}: { 
+  totals: Totals; 
+  aderenciaGeral?: AderenciaSemanal;
+  aderenciaDia: AderenciaDia[];
+  aderenciaTurno: AderenciaTurno[];
+  aderenciaSubPraca: AderenciaSubPraca[];
+  aderenciaOrigem: AderenciaOrigem[];
+}) {
   const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
   const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
   const taxaRejeicao = totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0;
@@ -719,6 +757,59 @@ function AnaliseView({ totals, aderenciaGeral }: { totals: Totals; aderenciaGera
           </div>
         </div>
       )}
+
+      {/* Tabela por Dia */}
+      {aderenciaDia && aderenciaDia.length > 0 && (
+        <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
+          <div className="border-b border-blue-200 px-6 py-4 dark:border-blue-800">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+              <span className="text-xl">📅</span>
+              Análise por Dia da Semana
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-blue-50 dark:bg-blue-950/30">
+                <tr className="border-b border-blue-200 dark:border-blue-800">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-900 dark:text-blue-100">Dia</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Ofertadas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Aceitas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Rejeitadas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Completadas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Taxa Aceitação</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Aderência</th>
+                </tr>
+              </thead>
+              <tbody>
+                {aderenciaDia.map((dia, index) => (
+                  <tr
+                    key={dia.dia_iso}
+                    className={`border-b border-blue-100 transition-colors hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-950/20 ${
+                      index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/30 dark:bg-slate-800/30'
+                    }`}
+                  >
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{dia.dia_da_semana}</td>
+                    <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{dia.corridas_ofertadas ?? 0}</td>
+                    <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{dia.corridas_aceitas ?? 0}</td>
+                    <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{dia.corridas_rejeitadas ?? 0}</td>
+                    <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{dia.corridas_completadas ?? 0}</td>
+                    <td className="px-6 py-4 text-center font-semibold text-emerald-700 dark:text-emerald-400">
+                      {(dia.taxa_aceitacao ?? 0).toFixed(1)}%
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold text-blue-900 dark:text-blue-100">
+                      {(dia.aderencia_percentual ?? 0).toFixed(1)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tabelas de Turno, Sub-Praça e Origem nos pr
+
+óximos componentes */}
     </div>
   );
 }
