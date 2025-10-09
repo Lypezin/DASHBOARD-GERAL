@@ -688,6 +688,7 @@ function ComparacaoView({
 }) {
   const [semana1, setSemana1] = useState<number | null>(null);
   const [semana2, setSemana2] = useState<number | null>(null);
+  const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dados1, setDados1] = useState<DashboardResumoData | null>(null);
   const [dados2, setDados2] = useState<DashboardResumoData | null>(null);
@@ -708,23 +709,32 @@ function ComparacaoView({
     fetchTodasSemanas();
   }, []);
 
+  // Se não for admin e tiver apenas 1 praça, setar automaticamente
+  useEffect(() => {
+    if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
+      setPracaSelecionada(currentUser.assigned_pracas[0]);
+    }
+  }, [currentUser]);
+
   const compararSemanas = async () => {
     if (!semana1 || !semana2) return;
 
     setLoading(true);
     try {
-      // Construir filtro com praça do usuário se não for admin
+      // Construir filtro com praça selecionada
       const filtro: any = { p_semana: semana1 };
       const filtro2: any = { p_semana: semana2 };
       
-      // Se não for admin e tiver praças atribuídas, filtrar por elas
-      if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-        // Se tiver apenas 1 praça, usar como filtro
-        if (currentUser.assigned_pracas.length === 1) {
-          filtro.p_praca = currentUser.assigned_pracas[0];
-          filtro2.p_praca = currentUser.assigned_pracas[0];
-        }
-        // Se tiver múltiplas praças, não filtramos (mostra tudo que ele tem acesso)
+      // Se houver praça selecionada, aplicar filtro
+      if (pracaSelecionada) {
+        filtro.p_praca = pracaSelecionada;
+        filtro2.p_praca = pracaSelecionada;
+      }
+      
+      // Se não for admin e não tiver praça selecionada, mas tiver apenas 1 praça atribuída
+      if (currentUser && !currentUser.is_admin && !pracaSelecionada && currentUser.assigned_pracas.length === 1) {
+        filtro.p_praca = currentUser.assigned_pracas[0];
+        filtro2.p_praca = currentUser.assigned_pracas[0];
       }
       
       const [res1, res2] = await Promise.all([
@@ -797,12 +807,23 @@ function ComparacaoView({
     );
   };
 
+  // Verificar se deve desabilitar o filtro de praça
+  const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
+
   return (
     <div className="space-y-6">
       {/* Seletores */}
       <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
         <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Selecione as Semanas para Comparar</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <FiltroSelect
+            label="Praça"
+            value={pracaSelecionada ?? ''}
+            options={pracas}
+            placeholder="Todas"
+            onChange={(value) => setPracaSelecionada(value)}
+            disabled={shouldDisablePracaFilter}
+          />
           <FiltroSelect
             label="Semana 1"
             value={semana1 !== null ? String(semana1) : ''}
