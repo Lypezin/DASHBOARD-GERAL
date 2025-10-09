@@ -1268,13 +1268,15 @@ export default function DashboardPage() {
         setAderenciaOrigem(resumo?.origem ?? []);
 
         const dimensoes = resumo?.dimensoes;
-        setAnosDisponiveis(dimensoes?.anos ?? []);
-        setSemanasDisponiveis(dimensoes?.semanas ?? []);
+        // Garantir que anos e semanas sempre sejam arrays
+        setAnosDisponiveis(Array.isArray(dimensoes?.anos) ? dimensoes.anos : []);
+        setSemanasDisponiveis(Array.isArray(dimensoes?.semanas) ? dimensoes.semanas : []);
         
         // Filtrar praças, sub-praças e origens baseado nas permissões do usuário
-        let pracasDisponiveis = dimensoes?.pracas ?? [];
-        let subPracasDisponiveis = dimensoes?.sub_pracas ?? [];
-        let origensDisponiveis = dimensoes?.origens ?? [];
+        // Garantir que sempre sejam arrays
+        let pracasDisponiveis = Array.isArray(dimensoes?.pracas) ? dimensoes.pracas : [];
+        let subPracasDisponiveis = Array.isArray(dimensoes?.sub_pracas) ? dimensoes.sub_pracas : [];
+        let origensDisponiveis = Array.isArray(dimensoes?.origens) ? dimensoes.origens : [];
         
         // Se não for admin, filtrar apenas praças atribuídas
         if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
