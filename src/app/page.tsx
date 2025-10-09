@@ -394,11 +394,11 @@ function DashboardView({
               <div className="mt-4 flex gap-6 text-sm">
                 <div>
                   <span className="text-blue-100">Planejado:</span>
-                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_a_entregar}</span>
+                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_entregues}</span>
                 </div>
                 <div>
                   <span className="text-blue-100">Entregue:</span>
-                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_entregues}</span>
+                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_a_entregar}</span>
                 </div>
               </div>
             </div>
