@@ -394,11 +394,11 @@ function DashboardView({
               <div className="mt-4 flex gap-6 text-sm">
                 <div>
                   <span className="text-blue-100">Planejado:</span>
-                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_entregues}</span>
+                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_a_entregar}</span>
                 </div>
                 <div>
                   <span className="text-blue-100">Entregue:</span>
-                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_a_entregar}</span>
+                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_entregues}</span>
                 </div>
               </div>
             </div>
@@ -732,8 +732,40 @@ function ComparacaoView({
         supabase.rpc('dashboard_resumo', filtro2),
       ]);
 
-      setDados1(res1.data as DashboardResumoData);
-      setDados2(res2.data as DashboardResumoData);
+      // Filtrar dados se não for admin
+      let dados1Filtrados = res1.data as DashboardResumoData;
+      let dados2Filtrados = res2.data as DashboardResumoData;
+
+      if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+        const pracasPermitidas = currentUser.assigned_pracas;
+        
+        // Filtrar sub_praca, origem baseado nas praças permitidas
+        // Precisamos manter apenas os dados das praças que o usuário tem acesso
+        dados1Filtrados = {
+          ...dados1Filtrados,
+          sub_praca: (dados1Filtrados.sub_praca || []).filter((item: any) => {
+            // Sub-praças normalmente contêm o nome da praça
+            return pracasPermitidas.some(praca => item.sub_praca?.toUpperCase().includes(praca.toUpperCase()));
+          }),
+          origem: (dados1Filtrados.origem || []).filter((item: any) => {
+            // Se não conseguimos determinar, mantemos (pode ser global)
+            return true;
+          })
+        };
+
+        dados2Filtrados = {
+          ...dados2Filtrados,
+          sub_praca: (dados2Filtrados.sub_praca || []).filter((item: any) => {
+            return pracasPermitidas.some(praca => item.sub_praca?.toUpperCase().includes(praca.toUpperCase()));
+          }),
+          origem: (dados2Filtrados.origem || []).filter((item: any) => {
+            return true;
+          })
+        };
+      }
+
+      setDados1(dados1Filtrados);
+      setDados2(dados2Filtrados);
     } catch (error) {
       console.error('Erro ao comparar semanas:', error);
     } finally {
