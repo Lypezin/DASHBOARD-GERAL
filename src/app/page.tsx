@@ -394,11 +394,11 @@ function DashboardView({
               <div className="mt-4 flex gap-6 text-sm">
                 <div>
                   <span className="text-blue-100">Planejado:</span>
-                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_a_entregar}</span>
+                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_entregues}</span>
                 </div>
                 <div>
                   <span className="text-blue-100">Entregue:</span>
-                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_entregues}</span>
+                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_a_entregar}</span>
                 </div>
               </div>
             </div>
@@ -678,11 +678,13 @@ function ComparacaoView({
   pracas,
   subPracas,
   origens,
+  currentUser,
 }: {
   semanas: number[];
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
+  currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
 }) {
   const [semana1, setSemana1] = useState<number | null>(null);
   const [semana2, setSemana2] = useState<number | null>(null);
@@ -711,9 +713,23 @@ function ComparacaoView({
 
     setLoading(true);
     try {
+      // Construir filtro com praça do usuário se não for admin
+      const filtro: any = { p_semana: semana1 };
+      const filtro2: any = { p_semana: semana2 };
+      
+      // Se não for admin e tiver praças atribuídas, filtrar por elas
+      if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+        // Se tiver apenas 1 praça, usar como filtro
+        if (currentUser.assigned_pracas.length === 1) {
+          filtro.p_praca = currentUser.assigned_pracas[0];
+          filtro2.p_praca = currentUser.assigned_pracas[0];
+        }
+        // Se tiver múltiplas praças, não filtramos (mostra tudo que ele tem acesso)
+      }
+      
       const [res1, res2] = await Promise.all([
-        supabase.rpc('dashboard_resumo', { p_semana: semana1 }),
-        supabase.rpc('dashboard_resumo', { p_semana: semana2 }),
+        supabase.rpc('dashboard_resumo', filtro),
+        supabase.rpc('dashboard_resumo', filtro2),
       ]);
 
       setDados1(res1.data as DashboardResumoData);
@@ -1411,6 +1427,7 @@ export default function DashboardPage() {
                   pracas={pracas}
                   subPracas={subPracas}
                   origens={origens}
+                  currentUser={currentUser}
                 />
               )}
               {activeTab === 'utr' && (
