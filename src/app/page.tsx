@@ -134,6 +134,20 @@ interface UtrData {
   por_turno?: UtrPorTurno[];
 }
 
+interface Entregador {
+  pessoa_entregadora: string;
+  corridas_ofertadas: number;
+  corridas_aceitas: number;
+  corridas_rejeitadas: number;
+  corridas_completadas: number;
+  aderencia_percentual: number;
+}
+
+interface EntregadoresData {
+  entregadores: Entregador[];
+  total: number;
+}
+
 // =================================================================================
 // Funções auxiliares
 // =================================================================================
@@ -1278,11 +1292,113 @@ function UtrView({
 }
 
 // =================================================================================
+// View Entregadores
+// =================================================================================
+
+function EntregadoresView({
+  entregadoresData,
+  loading,
+}: {
+  entregadoresData: EntregadoresData | null;
+  loading: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando entregadores...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!entregadoresData || entregadoresData.entregadores.length === 0) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
+        <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Nenhum entregador encontrado</p>
+      </div>
+    );
+  }
+
+  const getAderenciaColor = (aderencia: number) => {
+    if (aderencia >= 90) return 'text-emerald-700 dark:text-emerald-400';
+    if (aderencia >= 70) return 'text-amber-700 dark:text-amber-400';
+    return 'text-rose-700 dark:text-rose-400';
+  };
+
+  const getAderenciaBg = (aderencia: number) => {
+    if (aderencia >= 90) return 'bg-emerald-50 dark:bg-emerald-950/30';
+    if (aderencia >= 70) return 'bg-amber-50 dark:bg-amber-950/30';
+    return 'bg-rose-50 dark:bg-rose-950/30';
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-600 to-indigo-600 p-6 shadow-lg dark:border-blue-900">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-blue-100">👥 Entregadores</h2>
+            <p className="mt-2 text-4xl font-bold text-white">{entregadoresData.total}</p>
+            <p className="mt-1 text-sm text-blue-100">Total de entregadores</p>
+          </div>
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+            <span className="text-4xl">🚴</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabela de Entregadores */}
+      <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
+                <th className="px-6 py-4 text-left text-sm font-bold text-blue-900 dark:text-blue-100">Entregador</th>
+                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Ofertadas</th>
+                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Aceitas</th>
+                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Rejeitadas</th>
+                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Completadas</th>
+                <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Aderência</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entregadoresData.entregadores.map((entregador, index) => (
+                <tr
+                  key={entregador.pessoa_entregadora}
+                  className={`border-b border-blue-100 transition-colors hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-950/20 ${
+                    index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/30 dark:bg-slate-800/30'
+                  }`}
+                >
+                  <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{entregador.pessoa_entregadora}</td>
+                  <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{entregador.corridas_ofertadas}</td>
+                  <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{entregador.corridas_aceitas}</td>
+                  <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{entregador.corridas_rejeitadas}</td>
+                  <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{entregador.corridas_completadas}</td>
+                  <td className="px-6 py-4">
+                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getAderenciaBg(entregador.aderencia_percentual ?? 0)}`}>
+                      <span className={`text-lg font-bold ${getAderenciaColor(entregador.aderencia_percentual ?? 0)}`}>
+                        {(entregador.aderencia_percentual ?? 0).toFixed(2)}%
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =================================================================================
 // Componente Principal
 // =================================================================================
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores'>('dashboard');
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
@@ -1301,6 +1417,8 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
   const [utrData, setUtrData] = useState<UtrData | null>(null);
   const [loadingUtr, setLoadingUtr] = useState(false);
+  const [entregadoresData, setEntregadoresData] = useState<EntregadoresData | null>(null);
+  const [loadingEntregadores, setLoadingEntregadores] = useState(false);
 
   const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
 
@@ -1447,6 +1565,30 @@ export default function DashboardPage() {
     }
   }, [activeTab, filters]);
 
+  // Buscar dados dos Entregadores quando a aba estiver ativa
+  useEffect(() => {
+    if (activeTab === 'entregadores') {
+      async function fetchEntregadores() {
+        setLoadingEntregadores(true);
+        try {
+          const params = buildFilterPayload(filters);
+          const { data: entregadoresResult, error: entregadoresError } = await supabase.rpc('listar_entregadores', params);
+          
+          if (entregadoresError) throw entregadoresError;
+          
+          setEntregadoresData(entregadoresResult as EntregadoresData);
+        } catch (err: any) {
+          console.error('Erro ao buscar Entregadores:', err);
+          setEntregadoresData(null);
+        } finally {
+          setLoadingEntregadores(false);
+        }
+      }
+      
+      fetchEntregadores();
+    }
+  }, [activeTab, filters]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
       <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
@@ -1499,6 +1641,7 @@ export default function DashboardPage() {
                 <TabButton label="Análise Detalhada" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
                 <TabButton label="Comparação" icon="⚖️" active={activeTab === 'comparacao'} onClick={() => setActiveTab('comparacao')} />
                 <TabButton label="UTR" icon="📏" active={activeTab === 'utr'} onClick={() => setActiveTab('utr')} />
+                <TabButton label="Entregadores" icon="👥" active={activeTab === 'entregadores'} onClick={() => setActiveTab('entregadores')} />
               </div>
             </div>
 
@@ -1527,6 +1670,13 @@ export default function DashboardPage() {
                 <UtrView
                   utrData={utrData}
                   loading={loadingUtr}
+                />
+              )}
+              
+              {activeTab === 'entregadores' && (
+                <EntregadoresView
+                  entregadoresData={entregadoresData}
+                  loading={loadingEntregadores}
                 />
               )}
             </main>
