@@ -807,9 +807,55 @@ function AnaliseView({
         </div>
       )}
 
-      {/* Tabelas de Turno, Sub-Praça e Origem nos pr
+      {/* Tabela por Turno */}
+      {aderenciaTurno && aderenciaTurno.length > 0 && (
+        <div className="rounded-xl border border-purple-200 bg-white shadow-lg dark:border-purple-800 dark:bg-slate-900">
+          <div className="border-b border-purple-200 px-6 py-4 dark:border-purple-800">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+              <span className="text-xl">⏰</span>
+              Análise por Turno
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-purple-50 dark:bg-purple-950/30">
+                <tr className="border-b border-purple-200 dark:border-purple-800">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-purple-900 dark:text-purple-100">Turno</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Ofertadas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Aceitas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Rejeitadas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Completadas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Taxa Completude</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Aderência</th>
+                </tr>
+              </thead>
+              <tbody>
+                {aderenciaTurno.map((turno, index) => (
+                  <tr
+                    key={turno.periodo}
+                    className={`border-b border-purple-100 transition-colors hover:bg-purple-50 dark:border-purple-900 dark:hover:bg-purple-950/20 ${
+                      index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-purple-50/30 dark:bg-slate-800/30'
+                    }`}
+                  >
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{turno.periodo}</td>
+                    <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{turno.corridas_ofertadas ?? 0}</td>
+                    <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{turno.corridas_aceitas ?? 0}</td>
+                    <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{turno.corridas_rejeitadas ?? 0}</td>
+                    <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{turno.corridas_completadas ?? 0}</td>
+                    <td className="px-6 py-4 text-center font-semibold text-violet-700 dark:text-violet-400">
+                      {(turno.taxa_completude ?? 0).toFixed(1)}%
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold text-purple-900 dark:text-purple-100">
+                      {(turno.aderencia_percentual ?? 0).toFixed(1)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-óximos componentes */}
     </div>
   );
 }
@@ -1838,7 +1884,16 @@ export default function DashboardPage() {
                   aderenciaOrigem={aderenciaOrigem}
                 />
               )}
-              {activeTab === 'analise' && <AnaliseView totals={totals} aderenciaGeral={aderenciaGeral} />}
+              {activeTab === 'analise' && (
+                <AnaliseView 
+                  totals={totals} 
+                  aderenciaGeral={aderenciaGeral}
+                  aderenciaDia={aderenciaDia}
+                  aderenciaTurno={aderenciaTurno}
+                  aderenciaSubPraca={aderenciaSubPraca}
+                  aderenciaOrigem={aderenciaOrigem}
+                />
+              )}
               {activeTab === 'comparacao' && (
                 <ComparacaoView
                   semanas={semanasDisponiveis}
