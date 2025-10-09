@@ -318,7 +318,7 @@ function FiltroBar({
     }));
   };
 
-  // Verificar se deve desabilitar o filtro de praça
+  // Verificar se deve desabilitar o filtro de praça (somente não-admin com 1 praça)
   const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
 
   return (
