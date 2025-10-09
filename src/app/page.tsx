@@ -122,10 +122,15 @@ interface UtrPorTurno {
 
 interface UtrData {
   geral: UtrGeral;
-  por_praca: UtrPorPraca[];
-  por_sub_praca: UtrPorSubPraca[];
-  por_origem: UtrPorOrigem[];
-  por_turno: UtrPorTurno[];
+  praca?: UtrPorPraca[];
+  sub_praca?: UtrPorSubPraca[];
+  origem?: UtrPorOrigem[];
+  turno?: UtrPorTurno[];
+  // Compatibilidade com nomes antigos
+  por_praca?: UtrPorPraca[];
+  por_sub_praca?: UtrPorSubPraca[];
+  por_origem?: UtrPorOrigem[];
+  por_turno?: UtrPorTurno[];
 }
 
 // =================================================================================
@@ -1089,6 +1094,12 @@ function UtrView({
     );
   }
 
+  // Usar os nomes corretos que vêm do backend (com fallback para compatibilidade)
+  const porPraca = utrData.praca || utrData.por_praca || [];
+  const porSubPraca = utrData.sub_praca || utrData.por_sub_praca || [];
+  const porOrigem = utrData.origem || utrData.por_origem || [];
+  const porTurno = utrData.turno || utrData.por_turno || [];
+
   return (
     <div className="space-y-6">
       {/* UTR Geral */}
@@ -1111,14 +1122,14 @@ function UtrView({
       </div>
 
       {/* UTR por Praça */}
-      {utrData.por_praca && utrData.por_praca.length > 0 && (
+      {porPraca && porPraca.length > 0 && (
         <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
             <span className="text-xl">🏢</span>
             UTR por Praça
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {utrData.por_praca.map((item) => (
+            {porPraca.map((item) => (
               <div key={item.praca} className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
                 <p className="mb-2 text-sm font-bold text-slate-900 dark:text-white">{item.praca}</p>
                 <div className="space-y-1 text-sm">
@@ -1142,14 +1153,14 @@ function UtrView({
       )}
 
       {/* UTR por Sub-Praça */}
-      {utrData.por_sub_praca && utrData.por_sub_praca.length > 0 && (
+      {porSubPraca && porSubPraca.length > 0 && (
         <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
             <span className="text-xl">📍</span>
             UTR por Sub-Praça
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {utrData.por_sub_praca.map((item) => (
+            {porSubPraca.map((item) => (
               <div key={item.sub_praca} className="rounded-lg border border-violet-100 bg-violet-50/50 p-4 dark:border-violet-900 dark:bg-violet-950/30">
                 <p className="mb-2 text-sm font-bold text-slate-900 dark:text-white">{item.sub_praca}</p>
                 <div className="space-y-1 text-sm">
@@ -1173,14 +1184,14 @@ function UtrView({
       )}
 
       {/* UTR por Origem */}
-      {utrData.por_origem && utrData.por_origem.length > 0 && (
+      {porOrigem && porOrigem.length > 0 && (
         <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
             <span className="text-xl">🎯</span>
             UTR por Origem
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {utrData.por_origem.map((item) => (
+            {porOrigem.map((item) => (
               <div key={item.origem} className="rounded-lg border border-orange-100 bg-orange-50/50 p-4 dark:border-orange-900 dark:bg-orange-950/30">
                 <p className="mb-2 text-sm font-bold text-slate-900 dark:text-white">{item.origem}</p>
                 <div className="space-y-1 text-sm">
@@ -1204,14 +1215,14 @@ function UtrView({
       )}
 
       {/* UTR por Turno */}
-      {utrData.por_turno && utrData.por_turno.length > 0 && (
+      {porTurno && porTurno.length > 0 && (
         <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
             <span className="text-xl">⏰</span>
             UTR por Turno
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {utrData.por_turno.map((item) => (
+            {porTurno.map((item) => (
               <div key={item.periodo} className="rounded-lg border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
                 <p className="mb-2 text-sm font-bold text-slate-900 dark:text-white">{item.periodo}</p>
                 <div className="space-y-1 text-sm">
