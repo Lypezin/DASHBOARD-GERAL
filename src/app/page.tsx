@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import {
   Chart as ChartJS,
@@ -1884,9 +1884,16 @@ function ComparacaoView({
                   <tr className="border-b border-slate-200 dark:border-slate-700">
                     <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Métrica</th>
                     {semanasSelecionadas.map((semana, idx) => (
-                      <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        Semana {semana} {idx > 0 && '(Δ%)'}
-                      </th>
+                      <React.Fragment key={semana}>
+                        <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
+                          Semana {semana}
+                        </th>
+                        {idx > 0 && (
+                          <th className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">
+                            Δ% vs S{semanasSelecionadas[idx - 1]}
+                          </th>
+                        )}
+                      </React.Fragment>
                     ))}
                   </tr>
                 </thead>
@@ -1908,15 +1915,15 @@ function ComparacaoView({
                       }
                       
                       return (
-                        <>
-                          <td key={`${idx}-valor`} className="px-6 py-4 text-center">
+                        <React.Fragment key={idx}>
+                          <td className="px-6 py-4 text-center border-l-2 border-slate-300 dark:border-slate-600">
                             <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-lg font-bold text-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
                               {aderencia.toFixed(1)}%
                             </span>
                           </td>
                           {idx > 0 && variacao !== null && (
-                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                            <td className="px-4 py-4 text-center bg-blue-50/30 dark:bg-blue-950/20">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
                                 variacao >= 0 
                                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                   : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
@@ -1925,7 +1932,7 @@ function ComparacaoView({
                               </span>
                             </td>
                           )}
-                        </>
+                        </React.Fragment>
                       );
                     })}
                   </tr>
@@ -1947,13 +1954,13 @@ function ComparacaoView({
                       }
                       
                       return (
-                        <>
-                          <td key={`${idx}-valor`} className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300">
+                        <React.Fragment key={idx}>
+                          <td className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
                             {ofertadas.toLocaleString('pt-BR')}
                           </td>
                           {idx > 0 && variacao !== null && (
-                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                            <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
                                 variacao >= 0 
                                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                   : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
@@ -1962,7 +1969,7 @@ function ComparacaoView({
                               </span>
                             </td>
                           )}
-                        </>
+                        </React.Fragment>
                       );
                     })}
                   </tr>
@@ -1984,13 +1991,13 @@ function ComparacaoView({
                       }
                       
                       return (
-                        <>
-                          <td key={`${idx}-valor`} className="px-6 py-4 text-center text-base font-semibold text-emerald-700 dark:text-emerald-400">
+                        <React.Fragment key={idx}>
+                          <td className="px-6 py-4 text-center text-base font-semibold text-emerald-700 dark:text-emerald-400 border-l-2 border-slate-300 dark:border-slate-600">
                             {aceitas.toLocaleString('pt-BR')}
                           </td>
                           {idx > 0 && variacao !== null && (
-                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                            <td className="px-4 py-4 text-center bg-emerald-50/30 dark:bg-emerald-950/20">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
                                 variacao >= 0 
                                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                   : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
@@ -1999,7 +2006,7 @@ function ComparacaoView({
                               </span>
                             </td>
                           )}
-                        </>
+                        </React.Fragment>
                       );
                     })}
                   </tr>
@@ -2021,13 +2028,13 @@ function ComparacaoView({
                       }
                       
                       return (
-                        <>
-                          <td key={`${idx}-valor`} className="px-6 py-4 text-center text-base font-semibold text-rose-700 dark:text-rose-400">
+                        <React.Fragment key={idx}>
+                          <td className="px-6 py-4 text-center text-base font-semibold text-rose-700 dark:text-rose-400 border-l-2 border-slate-300 dark:border-slate-600">
                             {rejeitadas.toLocaleString('pt-BR')}
                           </td>
                           {idx > 0 && variacao !== null && (
-                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                            <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
                                 variacao >= 0 
                                   ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                                   : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
@@ -2036,7 +2043,7 @@ function ComparacaoView({
                               </span>
                             </td>
                           )}
-                        </>
+                        </React.Fragment>
                       );
                     })}
                   </tr>
@@ -2058,13 +2065,13 @@ function ComparacaoView({
                       }
                       
                       return (
-                        <>
-                          <td key={`${idx}-valor`} className="px-6 py-4 text-center text-base font-semibold text-purple-700 dark:text-purple-400">
+                        <React.Fragment key={idx}>
+                          <td className="px-6 py-4 text-center text-base font-semibold text-purple-700 dark:text-purple-400 border-l-2 border-slate-300 dark:border-slate-600">
                             {completadas.toLocaleString('pt-BR')}
                           </td>
                           {idx > 0 && variacao !== null && (
-                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                            <td className="px-4 py-4 text-center bg-purple-50/30 dark:bg-purple-950/20">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
                                 variacao >= 0 
                                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                   : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
@@ -2073,7 +2080,7 @@ function ComparacaoView({
                               </span>
                             </td>
                           )}
-                        </>
+                        </React.Fragment>
                       );
                     })}
                   </tr>
@@ -2091,9 +2098,12 @@ function ComparacaoView({
                         ? ((dados.totais?.corridas_aceitas ?? 0) / dados.totais.corridas_ofertadas) * 100 
                         : 0;
                       return (
-                        <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300">
-                          {taxaAceitacao.toFixed(1)}%
-                        </td>
+                        <React.Fragment key={idx}>
+                          <td className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
+                            {taxaAceitacao.toFixed(1)}%
+                          </td>
+                          {idx > 0 && <td className="px-4 py-4 bg-slate-50/30 dark:bg-slate-900/50"></td>}
+                        </React.Fragment>
                       );
                     })}
                   </tr>
@@ -2107,9 +2117,12 @@ function ComparacaoView({
                       </div>
                     </td>
                     {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center font-mono text-base font-semibold text-amber-700 dark:text-amber-400">
-                        {formatarHorasParaHMS(dados.semanal[0]?.horas_a_entregar ?? '0')}
-                      </td>
+                      <React.Fragment key={idx}>
+                        <td className="px-6 py-4 text-center font-mono text-base font-semibold text-amber-700 dark:text-amber-400 border-l-2 border-slate-300 dark:border-slate-600">
+                          {formatarHorasParaHMS(dados.semanal[0]?.horas_a_entregar ?? '0')}
+                        </td>
+                        {idx > 0 && <td className="px-4 py-4 bg-amber-50/30 dark:bg-amber-950/20"></td>}
+                      </React.Fragment>
                     ))}
                   </tr>
                   
@@ -2122,9 +2135,12 @@ function ComparacaoView({
                       </div>
                     </td>
                     {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center font-mono text-base font-semibold text-blue-700 dark:text-blue-400">
-                        {formatarHorasParaHMS(dados.semanal[0]?.horas_entregues ?? '0')}
-                      </td>
+                      <React.Fragment key={idx}>
+                        <td className="px-6 py-4 text-center font-mono text-base font-semibold text-blue-700 dark:text-blue-400 border-l-2 border-slate-300 dark:border-slate-600">
+                          {formatarHorasParaHMS(dados.semanal[0]?.horas_entregues ?? '0')}
+                        </td>
+                        {idx > 0 && <td className="px-4 py-4 bg-slate-50/30 dark:bg-slate-900/50"></td>}
+                      </React.Fragment>
                     ))}
                   </tr>
                 </tbody>
@@ -2132,65 +2148,56 @@ function ComparacaoView({
             </div>
             ) : (
               <div className="p-6">
-                <Line data={{
+                <Bar data={{
                   labels: semanasSelecionadas.map(s => `Semana ${s}`),
                   datasets: [
                     {
+                      type: 'bar' as const,
+                      label: 'Ofertadas',
+                      data: dadosComparacao.map(d => d.totais?.corridas_ofertadas ?? 0),
+                      backgroundColor: 'rgba(100, 116, 139, 0.7)',
+                      borderColor: 'rgb(100, 116, 139)',
+                      borderWidth: 1,
+                      yAxisID: 'y-count',
+                      order: 2,
+                    },
+                    {
+                      type: 'bar' as const,
+                      label: 'Aceitas',
+                      data: dadosComparacao.map(d => d.totais?.corridas_aceitas ?? 0),
+                      backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                      borderColor: 'rgb(16, 185, 129)',
+                      borderWidth: 1,
+                      yAxisID: 'y-count',
+                      order: 2,
+                    },
+                    {
+                      type: 'bar' as const,
+                      label: 'Completadas',
+                      data: dadosComparacao.map(d => d.totais?.corridas_completadas ?? 0),
+                      backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                      borderColor: 'rgb(139, 92, 246)',
+                      borderWidth: 1,
+                      yAxisID: 'y-count',
+                      order: 2,
+                    },
+                    {
+                      type: 'line' as any,
                       label: 'Aderência (%)',
                       data: dadosComparacao.map(d => d.semanal[0]?.aderencia_percentual ?? 0),
-                      backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                      borderColor: 'rgb(99, 102, 241)',
+                      backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                      borderColor: 'rgb(59, 130, 246)',
                       borderWidth: 3,
                       tension: 0.4,
                       pointRadius: 6,
                       pointHoverRadius: 8,
+                      pointBackgroundColor: 'rgb(59, 130, 246)',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
                       yAxisID: 'y-percent',
+                      order: 1,
                     },
-                    {
-                      label: 'Corridas Ofertadas',
-                      data: dadosComparacao.map(d => d.totais?.corridas_ofertadas ?? 0),
-                      backgroundColor: 'rgba(100, 116, 139, 0.2)',
-                      borderColor: 'rgb(100, 116, 139)',
-                      borderWidth: 2,
-                      tension: 0.4,
-                      pointRadius: 5,
-                      pointHoverRadius: 7,
-                      yAxisID: 'y-count',
-                    },
-                    {
-                      label: 'Corridas Aceitas',
-                      data: dadosComparacao.map(d => d.totais?.corridas_aceitas ?? 0),
-                      backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                      borderColor: 'rgb(16, 185, 129)',
-                      borderWidth: 2,
-                      tension: 0.4,
-                      pointRadius: 5,
-                      pointHoverRadius: 7,
-                      yAxisID: 'y-count',
-                    },
-                    {
-                      label: 'Corridas Rejeitadas',
-                      data: dadosComparacao.map(d => d.totais?.corridas_rejeitadas ?? 0),
-                      backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                      borderColor: 'rgb(239, 68, 68)',
-                      borderWidth: 2,
-                      tension: 0.4,
-                      pointRadius: 5,
-                      pointHoverRadius: 7,
-                      yAxisID: 'y-count',
-                    },
-                    {
-                      label: 'Corridas Completadas',
-                      data: dadosComparacao.map(d => d.totais?.corridas_completadas ?? 0),
-                      backgroundColor: 'rgba(139, 92, 246, 0.2)',
-                      borderColor: 'rgb(139, 92, 246)',
-                      borderWidth: 2,
-                      tension: 0.4,
-                      pointRadius: 5,
-                      pointHoverRadius: 7,
-                      yAxisID: 'y-count',
-                    },
-                  ],
+                  ] as any,
                 }} options={{
                   responsive: true,
                   maintainAspectRatio: true,
@@ -2202,59 +2209,68 @@ function ComparacaoView({
                     legend: {
                       position: 'top' as const,
                       labels: {
-                        font: { size: 12 },
-                        padding: 15,
+                        font: { size: 13, weight: 'bold' as const },
+                        padding: 20,
                         usePointStyle: true,
+                        pointStyle: 'circle',
                       }
                     },
                     tooltip: {
-                      backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                      padding: 12,
-                      titleFont: { size: 14, weight: 'bold' as const },
-                      bodyFont: { size: 13 },
+                      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                      padding: 15,
+                      titleFont: { size: 15, weight: 'bold' as const },
+                      bodyFont: { size: 14 },
+                      bodySpacing: 8,
+                      borderColor: 'rgba(255, 255, 255, 0.1)',
+                      borderWidth: 1,
                       callbacks: {
                         label: (context: any) => {
                           const label = context.dataset.label || '';
                           const value = context.parsed.y;
                           
                           if (label === 'Aderência (%)') {
-                            return `${label}: ${value.toFixed(1)}%`;
+                            return `  ${label}: ${value.toFixed(1)}%`;
                           }
-                          return `${label}: ${value.toLocaleString('pt-BR')}`;
+                          return `  ${label}: ${value.toLocaleString('pt-BR')} corridas`;
                         }
                       }
                     }
                   },
                   scales: {
-                    'y-percent': {
+                    'y-count': {
                       type: 'linear' as const,
                       position: 'left' as const,
                       beginAtZero: true,
                       title: {
                         display: true,
-                        text: 'Aderência (%)',
-                        font: { size: 12, weight: 'bold' as const },
-                      },
-                      ticks: {
-                        callback: (value: any) => `${value}%`,
-                        font: { size: 11 },
-                      },
-                      grid: {
-                        color: 'rgba(99, 102, 241, 0.1)',
-                      }
-                    },
-                    'y-count': {
-                      type: 'linear' as const,
-                      position: 'right' as const,
-                      beginAtZero: true,
-                      title: {
-                        display: true,
                         text: 'Quantidade de Corridas',
-                        font: { size: 12, weight: 'bold' as const },
+                        font: { size: 13, weight: 'bold' as const },
+                        color: 'rgb(100, 116, 139)',
                       },
                       ticks: {
                         callback: (value: any) => value.toLocaleString('pt-BR'),
-                        font: { size: 11 },
+                        font: { size: 12 },
+                        color: 'rgb(100, 116, 139)',
+                      },
+                      grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                      }
+                    },
+                    'y-percent': {
+                      type: 'linear' as const,
+                      position: 'right' as const,
+                      beginAtZero: true,
+                      max: 100,
+                      title: {
+                        display: true,
+                        text: 'Aderência (%)',
+                        font: { size: 13, weight: 'bold' as const },
+                        color: 'rgb(59, 130, 246)',
+                      },
+                      ticks: {
+                        callback: (value: any) => `${value}%`,
+                        font: { size: 12 },
+                        color: 'rgb(59, 130, 246)',
                       },
                       grid: {
                         display: false,
@@ -2262,7 +2278,7 @@ function ComparacaoView({
                     },
                     x: {
                       ticks: {
-                        font: { size: 11 },
+                        font: { size: 12, weight: 'bold' as const },
                       },
                       grid: {
                         display: false,
