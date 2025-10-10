@@ -1593,6 +1593,7 @@ function ComparacaoView({
   const [todasSemanas, setTodasSemanas] = useState<number[]>([]);
   
   // Estados para controlar visualização (tabela/gráfico)
+  const [viewModeDetalhada, setViewModeDetalhada] = useState<'table' | 'chart'>('table');
   const [viewModeDia, setViewModeDia] = useState<'table' | 'chart'>('table');
   const [viewModeTurno, setViewModeTurno] = useState<'table' | 'chart'>('table');
   const [viewModeSubPraca, setViewModeSubPraca] = useState<'table' | 'chart'>('table');
@@ -1857,11 +1858,26 @@ function ComparacaoView({
           {/* Tabela de Comparação Completa */}
           <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
             <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-blue-950/30">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                <span className="text-xl">📊</span>
-                Comparação Detalhada de Métricas
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                  <span className="text-xl">📊</span>
+                  Comparação Detalhada de Métricas
+                </h3>
+                <div className="flex gap-2">
+                  <ViewToggleButton
+                    active={viewModeDetalhada === 'table'}
+                    onClick={() => setViewModeDetalhada('table')}
+                    label="📋 Tabela"
+                  />
+                  <ViewToggleButton
+                    active={viewModeDetalhada === 'chart'}
+                    onClick={() => setViewModeDetalhada('chart')}
+                    label="📊 Gráfico"
+                  />
+                </div>
+              </div>
             </div>
+            {viewModeDetalhada === 'table' ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-slate-50 dark:bg-slate-800/50">
@@ -2114,6 +2130,91 @@ function ComparacaoView({
                 </tbody>
               </table>
             </div>
+            ) : (
+              <div className="p-6 space-y-6">
+                {/* Gráfico de Aderência */}
+                <div>
+                  <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Aderência Média</h4>
+                  <Line data={{
+                    labels: semanasSelecionadas.map(s => `Semana ${s}`),
+                    datasets: [{
+                      label: 'Aderência (%)',
+                      data: dadosComparacao.map(d => d.semanal[0]?.aderencia_percentual ?? 0),
+                      backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                      borderColor: 'rgb(99, 102, 241)',
+                      borderWidth: 3,
+                      tension: 0.4,
+                      pointRadius: 6,
+                      pointHoverRadius: 8,
+                      fill: true,
+                    }],
+                  }} options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        callbacks: {
+                          label: (context: any) => `Aderência: ${context.parsed.y.toFixed(1)}%`
+                        }
+                      }
+                    },
+                    scales: {
+                      y: { beginAtZero: true, ticks: { callback: (value: any) => `${value}%` } },
+                    }
+                  }} />
+                </div>
+
+                {/* Gráfico de Corridas */}
+                <div>
+                  <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Volume de Corridas</h4>
+                  <Line data={{
+                    labels: semanasSelecionadas.map(s => `Semana ${s}`),
+                    datasets: [
+                      {
+                        label: 'Ofertadas',
+                        data: dadosComparacao.map(d => d.totais?.corridas_ofertadas ?? 0),
+                        backgroundColor: 'rgba(100, 116, 139, 0.2)',
+                        borderColor: 'rgb(100, 116, 139)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 5,
+                      },
+                      {
+                        label: 'Aceitas',
+                        data: dadosComparacao.map(d => d.totais?.corridas_aceitas ?? 0),
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: 'rgb(16, 185, 129)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 5,
+                      },
+                      {
+                        label: 'Completadas',
+                        data: dadosComparacao.map(d => d.totais?.corridas_completadas ?? 0),
+                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                        borderColor: 'rgb(139, 92, 246)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 5,
+                      },
+                    ],
+                  }} options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { position: 'top' as const },
+                      tooltip: {
+                        callbacks: {
+                          label: (context: any) => `${context.dataset.label}: ${context.parsed.y.toLocaleString('pt-BR')}`
+                        }
+                      }
+                    },
+                    scales: {
+                      y: { beginAtZero: true },
+                    }
+                  }} />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Comparação de Corridas por Dia */}
