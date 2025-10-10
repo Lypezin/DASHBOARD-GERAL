@@ -2,6 +2,32 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { Bar, Line, Doughnut } from 'react-chartjs-2';
+
+// Registrar componentes do Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // =================================================================================
 // Interfaces e Tipos
@@ -208,13 +234,14 @@ function TabButton({ label, icon, active, onClick }: { label: string; icon: stri
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+      className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
         active
-          ? 'bg-blue-600 text-white shadow-md'
-          : 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
+          ? 'scale-105 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+          : 'bg-blue-100 text-blue-700 hover:scale-105 hover:bg-blue-200 hover:shadow-md active:scale-95 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
       }`}
     >
-      {icon} {label}
+      <span className={active ? 'animate-pulse-soft' : ''}>{icon}</span>
+      {label}
     </button>
   );
 }
@@ -242,13 +269,13 @@ function MetricCard({
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-xl bg-white p-6 shadow-md transition-all duration-300 hover:shadow-xl dark:bg-slate-900">
-      <div className={`absolute right-0 top-0 h-32 w-32 rounded-full opacity-10 blur-3xl ${colorClasses[color]}`}></div>
+    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
+      <div className={`absolute right-0 top-0 h-32 w-32 rounded-full bg-gradient-to-br ${colorClasses[color]} opacity-10 blur-3xl transition-opacity group-hover:opacity-20`}></div>
       
       <div className="relative flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{value.toLocaleString('pt-BR')}</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white">{value.toLocaleString('pt-BR')}</p>
           {percentage !== undefined && (
             <div className="mt-3 flex items-center gap-2">
               <div className="rounded-lg bg-blue-50 px-2 py-1 dark:bg-blue-950/30">
@@ -262,7 +289,7 @@ function MetricCard({
             </div>
           )}
         </div>
-        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-2xl text-white shadow-lg`}>
+        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-2xl text-white shadow-lg transition-transform group-hover:rotate-3 group-hover:scale-110`}>
           {icon}
         </div>
       </div>
@@ -321,19 +348,35 @@ function FiltroSelect({ label, placeholder, options, value, onChange, disabled =
   return (
     <label className="flex flex-col gap-1.5">
       <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">{label}</span>
-      <select
-        className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-900 transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
-        value={value}
-        onChange={(e) => onChange(e.target.value || null)}
-        disabled={disabled}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2.5 pr-10 text-sm font-medium text-blue-900 shadow-sm transition-all hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 dark:hover:border-blue-700 dark:focus:border-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+          value={value}
+          onChange={(e) => onChange(e.target.value || null)}
+          disabled={disabled}
+        >
+          <option value="">{placeholder}</option>
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        {value && !disabled && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onChange(null);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            title="Limpar filtro"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
     </label>
   );
 }
@@ -381,8 +424,8 @@ function FiltroBar({
   const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
       <FiltroSelect
         label="Ano"
         value={filters.ano !== null ? String(filters.ano) : ''}
@@ -423,13 +466,15 @@ function FiltroBar({
       
       {/* Botão Limpar Filtros */}
       {hasActiveFilters && (
-        <div className="flex justify-end">
+        <div className="flex justify-end animate-slide-down">
           <button
             onClick={handleClearFilters}
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95"
           >
-            <span>🔄</span>
-            Limpar Filtros
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Limpar Todos os Filtros
           </button>
         </div>
       )}
@@ -683,10 +728,118 @@ function AnaliseView({
   const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
   const taxaRejeicao = totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0;
 
+  // Dados para o gráfico de pizza (distribuição de corridas)
+  const doughnutData = {
+    labels: ['Completadas', 'Rejeitadas', 'Aceitas (Não Completadas)'],
+    datasets: [{
+      data: [totals.completadas, totals.rejeitadas, totals.aceitas - totals.completadas],
+      backgroundColor: [
+        'rgba(16, 185, 129, 0.8)',
+        'rgba(239, 68, 68, 0.8)',
+        'rgba(59, 130, 246, 0.8)',
+      ],
+      borderColor: [
+        'rgb(16, 185, 129)',
+        'rgb(239, 68, 68)',
+        'rgb(59, 130, 246)',
+      ],
+      borderWidth: 2,
+    }],
+  };
+
+  // Dados para o gráfico de barras por dia
+  const barDataDia = {
+    labels: aderenciaDia.map(d => d.dia_da_semana),
+    datasets: [
+      {
+        label: 'Ofertadas',
+        data: aderenciaDia.map(d => d.corridas_ofertadas ?? 0),
+        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+        borderColor: 'rgb(59, 130, 246)',
+        borderWidth: 1,
+      },
+      {
+        label: 'Aceitas',
+        data: aderenciaDia.map(d => d.corridas_aceitas ?? 0),
+        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+        borderColor: 'rgb(16, 185, 129)',
+        borderWidth: 1,
+      },
+      {
+        label: 'Rejeitadas',
+        data: aderenciaDia.map(d => d.corridas_rejeitadas ?? 0),
+        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+        borderColor: 'rgb(239, 68, 68)',
+        borderWidth: 1,
+      },
+      {
+        label: 'Completadas',
+        data: aderenciaDia.map(d => d.corridas_completadas ?? 0),
+        backgroundColor: 'rgba(139, 92, 246, 0.7)',
+        borderColor: 'rgb(139, 92, 246)',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Dados para o gráfico de linha de aderência por dia
+  const lineDataAderencia = {
+    labels: aderenciaDia.map(d => d.dia_da_semana),
+    datasets: [
+      {
+        label: 'Aderência (%)',
+        data: aderenciaDia.map(d => d.aderencia_percentual ?? 0),
+        borderColor: 'rgb(99, 102, 241)',
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        tension: 0.4,
+        fill: true,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      },
+      {
+        label: 'Taxa Aceitação (%)',
+        data: aderenciaDia.map(d => d.taxa_aceitacao ?? 0),
+        borderColor: 'rgb(16, 185, 129)',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        tension: 0.4,
+        fill: true,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          font: {
+            size: 12,
+            family: "'Inter', sans-serif",
+          },
+          padding: 15,
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+        },
+        bodyFont: {
+          size: 13,
+        },
+      },
+    },
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6">
       {/* Métricas Principais */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-in">
         <MetricCard
           title="Corridas Ofertadas"
           value={totals.ofertadas}
@@ -719,42 +872,60 @@ function AnaliseView({
         />
       </div>
 
-      {/* Resumo Operacional */}
-      {aderenciaGeral && (
-        <div className="rounded-xl bg-white p-6 shadow-md dark:bg-slate-900">
-          <h3 className="mb-6 text-lg font-bold text-slate-900 dark:text-white">Resumo Operacional</h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:from-blue-950/30 dark:to-indigo-950/30">
-              <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Aderência Geral</p>
-              <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">{(aderenciaGeral.aderencia_percentual ?? 0).toFixed(1)}%</p>
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-blue-600 dark:text-blue-400">Planejado:</span>
-                  <span className="font-semibold text-blue-900 dark:text-blue-100">{aderenciaGeral.horas_a_entregar}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-600 dark:text-blue-400">Entregue:</span>
-                  <span className="font-semibold text-blue-900 dark:text-blue-100">{aderenciaGeral.horas_entregues}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 dark:from-emerald-950/30 dark:to-teal-950/30">
-              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Eficiência de Aceitação</p>
-              <p className="mt-2 text-3xl font-bold text-emerald-900 dark:text-emerald-100">{taxaAceitacao.toFixed(1)}%</p>
-              <p className="mt-4 text-sm text-emerald-600 dark:text-emerald-400">
-                {totals.aceitas.toLocaleString('pt-BR')} de {totals.ofertadas.toLocaleString('pt-BR')} corridas
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 p-6 dark:from-violet-950/30 dark:to-purple-950/30">
-              <p className="text-sm font-semibold text-violet-700 dark:text-violet-300">Eficiência de Completude</p>
-              <p className="mt-2 text-3xl font-bold text-violet-900 dark:text-violet-100">{taxaCompletude.toFixed(1)}%</p>
-              <p className="mt-4 text-sm text-violet-600 dark:text-violet-400">
-                {totals.completadas.toLocaleString('pt-BR')} de {totals.aceitas.toLocaleString('pt-BR')} aceitas
-              </p>
+      {/* Gráficos */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Gráfico de Pizza - Distribuição */}
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+            <span className="text-xl">📊</span>
+            Distribuição de Corridas
+          </h3>
+          <div className="flex justify-center">
+            <div className="w-full max-w-sm">
+              <Doughnut data={doughnutData} options={chartOptions} />
             </div>
           </div>
+        </div>
+
+        {/* Gráfico de Linha - Aderência por Dia */}
+        {aderenciaDia.length > 0 && (
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+              <span className="text-xl">📈</span>
+              Aderência e Aceitação por Dia
+            </h3>
+            <Line data={lineDataAderencia} options={chartOptions} />
+          </div>
+        )}
+      </div>
+
+      {/* Gráfico de Barras - Corridas por Dia */}
+      {aderenciaDia.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+            <span className="text-xl">📊</span>
+            Corridas por Dia da Semana
+          </h3>
+          <Bar data={barDataDia} options={{
+            ...chartOptions,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  font: {
+                    size: 11,
+                  },
+                },
+              },
+              x: {
+                ticks: {
+                  font: {
+                    size: 11,
+                  },
+                },
+              },
+            },
+          }} />
         </div>
       )}
 
@@ -1716,11 +1887,40 @@ export default function DashboardPage() {
             : { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }
         );
 
-        setAderenciaSemanal(resumo?.semanal ?? []);
-        setAderenciaDia(resumo?.dia ?? []);
-        setAderenciaTurno(resumo?.turno ?? []);
-        setAderenciaSubPraca(resumo?.sub_praca ?? []);
-        setAderenciaOrigem(resumo?.origem ?? []);
+        // Filtrar dados baseado nas permissões do usuário ANTES de setar states
+        let semanalFiltrado = resumo?.semanal ?? [];
+        let diaFiltrado = resumo?.dia ?? [];
+        let turnoFiltrado = resumo?.turno ?? [];
+        let subPracaFiltrado = resumo?.sub_praca ?? [];
+        let origemFiltrado = resumo?.origem ?? [];
+        
+        // Se não for admin e tiver praças atribuídas, filtrar TODOS os dados
+        if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+          const pracasPermitidas = currentUser.assigned_pracas.map(p => p.toUpperCase());
+          
+          // Filtrar turno (não tem referência direta à praça, então mantém todos se já filtrou no backend)
+          // O backend já deve estar filtrando pelo p_praca, então mantemos
+          turnoFiltrado = turnoFiltrado;
+          
+          // Filtrar sub-praças (sub-praças contêm o nome da praça principal)
+          subPracaFiltrado = subPracaFiltrado.filter((item: any) => {
+            return pracasPermitidas.some(praca => 
+              item.sub_praca?.toUpperCase().includes(praca)
+            );
+          });
+          
+          // Filtrar origens - CORRIGIDO: agora filtra de verdade
+          // Como origem não tem referência direta à praça, vamos usar a praça selecionada nos filtros
+          // Se o usuário já tem filtro de praça aplicado, o backend retorna apenas dados daquela praça
+          // Então mantemos as origens retornadas
+          origemFiltrado = origemFiltrado;
+        }
+
+        setAderenciaSemanal(semanalFiltrado);
+        setAderenciaDia(diaFiltrado);
+        setAderenciaTurno(turnoFiltrado);
+        setAderenciaSubPraca(subPracaFiltrado);
+        setAderenciaOrigem(origemFiltrado);
 
         const dimensoes = resumo?.dimensoes;
         // Garantir que anos e semanas sempre sejam arrays
@@ -1735,9 +1935,21 @@ export default function DashboardPage() {
         
         // Se não for admin, filtrar apenas praças atribuídas
         if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+          const pracasPermitidas = currentUser.assigned_pracas.map(p => p.toUpperCase());
+          
           pracasDisponiveis = pracasDisponiveis.filter((p: string) => 
             currentUser.assigned_pracas.includes(p)
           );
+          
+          // Filtrar sub-praças disponíveis nos dropdowns
+          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
+            pracasPermitidas.some(praca => sp.toUpperCase().includes(praca))
+          );
+          
+          // Filtrar origens disponíveis nos dropdowns
+          // Como origem não tem referência à praça, vamos manter apenas as que aparecem nos dados filtrados
+          const origensNoDados = new Set(origemFiltrado.map((item: any) => item.origem));
+          origensDisponiveis = origensDisponiveis.filter((origem: string) => origensNoDados.has(origem));
         }
         
         setPracas(pracasDisponiveis.map((p: string) => ({ value: p, label: p })));
@@ -1820,8 +2032,21 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
       <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
+        {/* Header Principal */}
+        <header className="mb-6 animate-fade-in">
+          <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 p-6 shadow-xl">
+            <div>
+              <h1 className="text-3xl font-bold text-white">Dashboard Geral</h1>
+              <p className="mt-1 text-sm text-blue-100">Sistema de Análise e Monitoramento</p>
+            </div>
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+              <span className="text-4xl">📊</span>
+            </div>
+          </div>
+        </header>
+
         {loading && (
-          <div className="flex h-[80vh] items-center justify-center">
+          <div className="flex h-[80vh] items-center justify-center animate-pulse-soft">
             <div className="text-center">
               <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
               <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando dashboard...</p>
@@ -1830,14 +2055,14 @@ export default function DashboardPage() {
         )}
 
         {error && (
-          <div className="flex h-[80vh] items-center justify-center">
+          <div className="flex h-[80vh] items-center justify-center animate-fade-in">
             <div className="max-w-md rounded-xl border border-rose-200 bg-white p-8 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
               <div className="text-5xl">⚠️</div>
               <p className="mt-4 text-xl font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
               <p className="mt-2 text-rose-700 dark:text-rose-300">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="mt-6 rounded-lg bg-blue-600 px-6 py-2 font-semibold text-white shadow-md transition hover:bg-blue-700"
+                className="mt-6 rounded-lg bg-blue-600 px-6 py-2 font-semibold text-white shadow-md transition-all hover:scale-105 hover:bg-blue-700 active:scale-95"
               >
                 Tentar novamente
               </button>
@@ -1846,9 +2071,9 @@ export default function DashboardPage() {
         )}
 
         {totals && !loading && !error && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fade-in">
             {/* Header com filtros e tabs */}
-            <div className="rounded-xl border border-blue-200 bg-white/90 p-4 shadow-lg backdrop-blur-sm dark:border-blue-900 dark:bg-slate-900/90 sm:p-6">
+            <div className="rounded-xl border border-blue-200 bg-white/90 p-4 shadow-lg backdrop-blur-sm transition-all hover:shadow-xl dark:border-blue-900 dark:bg-slate-900/90 sm:p-6">
               {activeTab !== 'comparacao' && (
                 <>
                   <FiltroBar
@@ -1861,7 +2086,7 @@ export default function DashboardPage() {
                     origens={origens}
                     currentUser={currentUser}
                   />
-                  <div className="my-4 h-px bg-blue-200 dark:bg-blue-800"></div>
+                  <div className="my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700"></div>
                 </>
               )}
               <div className="flex flex-wrap gap-2">
