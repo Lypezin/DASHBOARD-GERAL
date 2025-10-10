@@ -8,10 +8,12 @@
 -- 1. DROPAR OBJETOS EXISTENTES (se existirem)
 -- =====================================================
 
--- Dropar funções
-DROP FUNCTION IF EXISTS public.registrar_atividade(UUID, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT);
-DROP FUNCTION IF EXISTS public.listar_usuarios_online();
-DROP FUNCTION IF EXISTS public.historico_atividades_usuario(UUID, TIMESTAMP WITH TIME ZONE, TIMESTAMP WITH TIME ZONE);
+-- Dropar funções (todas as possíveis versões)
+DROP FUNCTION IF EXISTS public.registrar_atividade(UUID, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT) CASCADE;
+DROP FUNCTION IF EXISTS public.registrar_atividade(TEXT, TEXT, TEXT, JSONB, TEXT, TEXT) CASCADE;
+DROP FUNCTION IF EXISTS public.registrar_atividade CASCADE;
+DROP FUNCTION IF EXISTS public.listar_usuarios_online() CASCADE;
+DROP FUNCTION IF EXISTS public.historico_atividades_usuario(UUID, TIMESTAMP WITH TIME ZONE, TIMESTAMP WITH TIME ZONE) CASCADE;
 
 -- Dropar políticas RLS
 DROP POLICY IF EXISTS "Usuários podem inserir suas próprias atividades" ON public.user_activities;
