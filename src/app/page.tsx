@@ -1319,31 +1319,8 @@ function MonitoramentoView() {
         const filtros = u.filters_applied || {};
         const pracas = filtros.p_praca ? [filtros.p_praca] : (filtros.praca ? [filtros.praca] : []);
         
-        // Criar descrição detalhada da ação
-        let descricaoAcao = '';
-        
-        if (u.last_action_type === 'login') {
-          descricaoAcao = 'Fez login no sistema';
-        } else if (u.last_action_type === 'tab_change') {
-          descricaoAcao = `Acessou a aba "${u.current_tab || 'desconhecida'}"`;
-        } else if (u.last_action_type === 'filter_change') {
-          const partes = [];
-          if (filtros.p_semana || filtros.semana) partes.push(`Semana ${filtros.p_semana || filtros.semana}`);
-          if (filtros.p_praca || filtros.praca) partes.push(`Praça ${filtros.p_praca || filtros.praca}`);
-          if (filtros.p_ano || filtros.ano) partes.push(`Ano ${filtros.p_ano || filtros.ano}`);
-          if (filtros.p_sub_praca) partes.push(`Sub-praça ${filtros.p_sub_praca}`);
-          if (filtros.p_origem) partes.push(`Origem ${filtros.p_origem}`);
-          
-          if (partes.length > 0) {
-            descricaoAcao = `Filtrou: ${partes.join(', ')} na aba "${u.current_tab || 'dashboard'}"`;
-          } else {
-            descricaoAcao = `Alterou filtros na aba "${u.current_tab || 'dashboard'}"`;
-          }
-        } else if (u.last_action_type === 'heartbeat') {
-          descricaoAcao = `Navegando na aba "${u.current_tab || 'dashboard'}"`;
-        } else {
-          descricaoAcao = u.last_action_type || 'Atividade desconhecida';
-        }
+        // A descrição detalhada já vem do backend (action_details)
+        const descricaoAcao = u.action_details || u.last_action_type || 'Atividade desconhecida';
         
         return {
           user_id: u.user_id,
@@ -2036,17 +2013,26 @@ function ComparacaoView({
                         </div>
                       </td>
                       {utrComparacao.map((item, idx) => {
-                        // A estrutura retornada é { semana, utr }
-                        // Onde utr pode ser um número ou um objeto com utr_geral
+                        // A estrutura retornada é { semana, utr: { geral: { utr: ... }, por_praca: [...], ... } }
                         let utrValue = 0;
                         
-                        if (typeof item.utr === 'number') {
+                        if (item.utr && typeof item.utr === 'object') {
+                          // Tentar acessar utr.geral.utr (estrutura correta)
+                          if (item.utr.geral && typeof item.utr.geral === 'object') {
+                            utrValue = item.utr.geral.utr ?? 0;
+                          }
+                          // Fallback para outras estruturas possíveis
+                          else if (item.utr.utr_geral !== undefined) {
+                            utrValue = item.utr.utr_geral;
+                          }
+                          else if (item.utr.utr !== undefined) {
+                            utrValue = item.utr.utr;
+                          }
+                        } else if (typeof item.utr === 'number') {
                           utrValue = item.utr;
-                        } else if (item.utr && typeof item.utr === 'object') {
-                          utrValue = item.utr.utr_geral ?? item.utr.utr ?? 0;
                         }
                         
-                        console.log(`📊 UTR Semana ${item.semana}:`, utrValue, 'Raw:', item.utr);
+                        console.log(`📊 UTR Semana ${item.semana}:`, utrValue, 'Estrutura completa:', JSON.stringify(item.utr));
                         
                         return (
                           <td key={idx} className="px-6 py-4 text-center">
@@ -2535,6 +2521,7 @@ function EntregadoresView({
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores' | 'monitoramento'>('dashboard');
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const [isPageVisible, setIsPageVisible] = useState(true);
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
@@ -2561,10 +2548,57 @@ export default function DashboardPage() {
   // Hook para registrar atividades
   const registrarAtividade = async (actionType: string, actionDetails: any = {}, tabName: string | null = null, filtersApplied: any = {}) => {
     try {
+      // Gerar descrição detalhada da ação
+      let descricaoDetalhada = '';
+      
+      const tabNames: Record<string, string> = {
+        dashboard: 'Dashboard',
+        analise: 'Análise Detalhada',
+        comparacao: 'Comparação',
+        utr: 'UTR',
+        entregadores: 'Entregadores',
+        monitoramento: 'Monitoramento'
+      };
+      
+      const nomeAba = tabNames[tabName || activeTab] || tabName || activeTab;
+      
+      switch (actionType) {
+        case 'filter_change':
+          const filtros: string[] = [];
+          if (filtersApplied.semana) filtros.push(`Semana ${filtersApplied.semana}`);
+          if (filtersApplied.praca) filtros.push(`Praça: ${filtersApplied.praca}`);
+          if (filtersApplied.sub_praca) filtros.push(`Sub-Praça: ${filtersApplied.sub_praca}`);
+          if (filtersApplied.origem) filtros.push(`Origem: ${filtersApplied.origem}`);
+          
+          if (filtros.length > 0) {
+            descricaoDetalhada = `Filtrou: ${filtros.join(', ')} na aba ${nomeAba}`;
+          } else {
+            descricaoDetalhada = `Limpou filtros na aba ${nomeAba}`;
+          }
+          break;
+        case 'tab_change':
+          descricaoDetalhada = `Acessou a aba ${nomeAba}`;
+          break;
+        case 'login':
+          descricaoDetalhada = 'Fez login no sistema';
+          break;
+        case 'heartbeat':
+          descricaoDetalhada = `Navegando na aba ${nomeAba}`;
+          break;
+        case 'page_visible':
+          descricaoDetalhada = `Voltou para a aba ${nomeAba}`;
+          break;
+        case 'page_hidden':
+          descricaoDetalhada = `Saiu da aba ${nomeAba}`;
+          break;
+        default:
+          descricaoDetalhada = typeof actionDetails === 'string' ? actionDetails : `${actionType} na aba ${nomeAba}`;
+      }
+      
       await supabase.rpc('registrar_atividade', {
         p_action_type: actionType,
-        p_action_details: actionDetails,
-        p_tab_name: tabName,
+        p_action_details: descricaoDetalhada,
+        p_tab_name: tabName || activeTab,
         p_filters_applied: filtersApplied,
         p_session_id: sessionId
       });
@@ -2592,13 +2626,39 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
-  // Heartbeat - registrar atividade periódica
+  // Monitorar visibilidade da página (para contar inatividade corretamente)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const visible = !document.hidden;
+      setIsPageVisible(visible);
+      
+      if (currentUser) {
+        if (visible) {
+          // Página ficou visível - registrar volta
+          registrarAtividade('page_visible', {}, activeTab, filters);
+        } else {
+          // Página ficou invisível - registrar saída
+          registrarAtividade('page_hidden', {}, activeTab, filters);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, activeTab]);
+
+  // Heartbeat - registrar atividade periódica (APENAS quando a página está visível)
   useEffect(() => {
     if (currentUser) {
       registrarAtividade('login', { dispositivo: 'web' }, activeTab, filters);
       
       const heartbeatInterval = setInterval(() => {
-        if (currentUser) {
+        if (currentUser && isPageVisible) {
+          // Só registra heartbeat se a página estiver visível
           registrarAtividade('heartbeat', {}, activeTab, filters);
         }
       }, 60000); // A cada 1 minuto
@@ -2606,7 +2666,7 @@ export default function DashboardPage() {
       return () => clearInterval(heartbeatInterval);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, [currentUser, isPageVisible]);
 
   useEffect(() => {
     async function checkUserAndFetchData() {
