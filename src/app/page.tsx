@@ -1603,7 +1603,13 @@ function ComparacaoView({
       const resultadosUtr = await Promise.all(promessasUtr);
       
       console.log('📊 Dados Comparação:', resultadosDados);
-      console.log('🎯 UTR Comparação:', resultadosUtr);
+      console.log('🎯 UTR Comparação RAW:', resultadosUtr);
+      console.log('🎯 UTR Estrutura:', resultadosUtr.map(r => ({
+        semana: r.semana,
+        utr: r.utr,
+        tipo: typeof r.utr,
+        keys: r.utr ? Object.keys(r.utr) : []
+      })));
       
       setDadosComparacao(resultadosDados.map(r => r.dados));
       setUtrComparacao(resultadosUtr);
@@ -2030,12 +2036,22 @@ function ComparacaoView({
                         </div>
                       </td>
                       {utrComparacao.map((item, idx) => {
-                        // Tentar diferentes estruturas possíveis
-                        const utrValue = item.utr?.utr_geral ?? item.utr_geral ?? item?.utr_geral ?? 0;
+                        // A estrutura retornada é { semana, utr }
+                        // Onde utr pode ser um número ou um objeto com utr_geral
+                        let utrValue = 0;
+                        
+                        if (typeof item.utr === 'number') {
+                          utrValue = item.utr;
+                        } else if (item.utr && typeof item.utr === 'object') {
+                          utrValue = item.utr.utr_geral ?? item.utr.utr ?? 0;
+                        }
+                        
+                        console.log(`📊 UTR Semana ${item.semana}:`, utrValue, 'Raw:', item.utr);
+                        
                         return (
                           <td key={idx} className="px-6 py-4 text-center">
                             <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-lg font-bold text-purple-900 dark:bg-purple-900/30 dark:text-purple-100">
-                              {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}
+                              {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}%
                             </span>
                           </td>
                         );
