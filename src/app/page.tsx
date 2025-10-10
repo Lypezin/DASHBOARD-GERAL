@@ -919,10 +919,23 @@ function AnaliseView({
     },
   };
 
+  const ViewToggleButton = ({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+        active
+          ? 'bg-blue-600 text-white shadow-md'
+          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Métricas Principais */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-in">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Corridas Ofertadas"
           value={totals.ofertadas}
@@ -955,72 +968,31 @@ function AnaliseView({
         />
       </div>
 
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Gráfico de Pizza - Distribuição */}
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
-          <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-            <span className="text-xl">📊</span>
-            Distribuição de Corridas
-          </h3>
-          <div className="flex justify-center">
-            <div className="w-full max-w-sm">
-              <Doughnut data={doughnutData} options={chartOptions} />
-            </div>
-          </div>
-        </div>
-
-        {/* Gráfico de Linha - Aderência por Dia */}
-        {aderenciaDia.length > 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-              <span className="text-xl">📈</span>
-              Aderência e Aceitação por Dia
-            </h3>
-            <Line data={lineDataAderencia} options={chartOptions} />
-          </div>
-        )}
-      </div>
-
-      {/* Gráfico de Barras - Corridas por Dia */}
-      {aderenciaDia.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
-          <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-            <span className="text-xl">📊</span>
-            Corridas por Dia da Semana
-          </h3>
-          <Bar data={barDataDia} options={{
-            ...chartOptions,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  font: {
-                    size: 11,
-                  },
-                },
-              },
-              x: {
-                ticks: {
-                  font: {
-                    size: 11,
-                  },
-                },
-              },
-            },
-          }} />
-        </div>
-      )}
-
-      {/* Tabela por Dia */}
+      {/* Performance por Dia da Semana */}
       {aderenciaDia && aderenciaDia.length > 0 && (
         <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
           <div className="border-b border-blue-200 px-6 py-4 dark:border-blue-800">
-            <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-              <span className="text-xl">📅</span>
-              Análise por Dia da Semana
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span className="text-xl">📅</span>
+                Performance por Dia da Semana
+              </h3>
+              <div className="flex gap-2">
+                <ViewToggleButton
+                  active={viewModeDia === 'table'}
+                  onClick={() => setViewModeDia('table')}
+                  label="📋 Tabela"
+                />
+                <ViewToggleButton
+                  active={viewModeDia === 'chart'}
+                  onClick={() => setViewModeDia('chart')}
+                  label="📊 Gráfico"
+                />
+              </div>
+            </div>
           </div>
+          
+          {viewModeDia === 'table' ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-blue-50 dark:bg-blue-950/30">
@@ -1058,16 +1030,51 @@ function AnaliseView({
               </tbody>
             </table>
           </div>
+          ) : (
+            <div className="p-6">
+              <Bar data={barDataDia} options={{
+                ...chartOptions,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: { font: { size: 11 } },
+                  },
+                  x: {
+                    ticks: { font: { size: 11 } },
+                  },
+                },
+              }} />
+            </div>
+          )}
         </div>
       )}
 
-      {/* Gráfico de Barras - Corridas por Turno */}
+      {/* Performance por Turno */}
       {aderenciaTurno.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
-          <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-            <span className="text-xl">⏰</span>
-            Performance por Turno
-          </h3>
+        <div className="rounded-xl border border-purple-200 bg-white shadow-lg dark:border-purple-800 dark:bg-slate-900">
+          <div className="border-b border-purple-200 px-6 py-4 dark:border-purple-800">
+            <div className="flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span className="text-xl">⏰</span>
+                Performance por Turno
+              </h3>
+              <div className="flex gap-2">
+                <ViewToggleButton
+                  active={viewModeTurno === 'table'}
+                  onClick={() => setViewModeTurno('table')}
+                  label="📋 Tabela"
+                />
+                <ViewToggleButton
+                  active={viewModeTurno === 'chart'}
+                  onClick={() => setViewModeTurno('chart')}
+                  label="📊 Gráfico"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {viewModeTurno === 'chart' ? (
+            <div className="p-6">
           <Bar data={{
             labels: aderenciaTurno.map(t => t.periodo),
             datasets: [
@@ -1106,18 +1113,8 @@ function AnaliseView({
               },
             },
           }} />
-        </div>
-      )}
-
-      {/* Tabela por Turno */}
-      {aderenciaTurno && aderenciaTurno.length > 0 && (
-        <div className="rounded-xl border border-purple-200 bg-white shadow-lg dark:border-purple-800 dark:bg-slate-900">
-          <div className="border-b border-purple-200 px-6 py-4 dark:border-purple-800">
-            <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-              <span className="text-xl">📋</span>
-              Detalhamento por Turno
-            </h3>
-          </div>
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-purple-50 dark:bg-purple-950/30">
@@ -1155,6 +1152,127 @@ function AnaliseView({
               </tbody>
             </table>
           </div>
+          )}
+        </div>
+      )}
+
+      {/* Performance por Localização (Sub-Praça e Origem) */}
+      {((aderenciaSubPraca && aderenciaSubPraca.length > 0) || (aderenciaOrigem && aderenciaOrigem.length > 0)) && (
+        <div className="rounded-xl border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-900">
+          <div className="border-b border-emerald-200 px-6 py-4 dark:border-emerald-800">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span className="text-xl">📍</span>
+                Performance por Localização
+              </h3>
+              <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2">
+                  <ViewToggleButton
+                    active={viewModeLocal === 'subpraca'}
+                    onClick={() => setViewModeLocal('subpraca')}
+                    label="Sub-Praça"
+                  />
+                  <ViewToggleButton
+                    active={viewModeLocal === 'origem'}
+                    onClick={() => setViewModeLocal('origem')}
+                    label="Origem"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <ViewToggleButton
+                    active={viewModeLocalVis === 'table'}
+                    onClick={() => setViewModeLocalVis('table')}
+                    label="📋 Tabela"
+                  />
+                  <ViewToggleButton
+                    active={viewModeLocalVis === 'chart'}
+                    onClick={() => setViewModeLocalVis('chart')}
+                    label="📊 Gráfico"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {viewModeLocalVis === 'table' ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-emerald-50 dark:bg-emerald-950/30">
+                  <tr className="border-b border-emerald-200 dark:border-emerald-800">
+                    <th className="px-6 py-4 text-left text-sm font-bold text-emerald-900 dark:text-emerald-100">
+                      {viewModeLocal === 'subpraca' ? 'Sub-Praça' : 'Origem'}
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Ofertadas</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Aceitas</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Rejeitadas</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Completadas</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Taxa Aceitação</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Aderência</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map((item, index) => {
+                    const nome = viewModeLocal === 'subpraca' ? (item as any).sub_praca : (item as any).origem;
+                    return (
+                      <tr
+                        key={nome}
+                        className={`border-b border-emerald-100 transition-colors hover:bg-emerald-50 dark:border-emerald-900 dark:hover:bg-emerald-950/20 ${
+                          index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-emerald-50/30 dark:bg-slate-800/30'
+                        }`}
+                      >
+                        <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{nome}</td>
+                        <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{item.corridas_ofertadas ?? 0}</td>
+                        <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{item.corridas_aceitas ?? 0}</td>
+                        <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{item.corridas_rejeitadas ?? 0}</td>
+                        <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{item.corridas_completadas ?? 0}</td>
+                        <td className="px-6 py-4 text-center font-semibold text-emerald-700 dark:text-emerald-400">
+                          {(item.taxa_aceitacao ?? 0).toFixed(1)}%
+                        </td>
+                        <td className="px-6 py-4 text-center font-bold text-emerald-900 dark:text-emerald-100">
+                          {(item.aderencia_percentual ?? 0).toFixed(1)}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-6">
+              <Bar data={{
+                labels: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => 
+                  viewModeLocal === 'subpraca' ? (item as any).sub_praca : (item as any).origem
+                ),
+                datasets: [
+                  {
+                    label: 'Ofertadas',
+                    data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_ofertadas ?? 0),
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: 'rgb(16, 185, 129)',
+                    borderWidth: 1,
+                  },
+                  {
+                    label: 'Completadas',
+                    data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_completadas ?? 0),
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1,
+                  },
+                ],
+              }} options={{
+                ...chartOptions,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: { font: { size: 11 } },
+                  },
+                  x: {
+                    ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 45 },
+                  },
+                },
+              }} />
+            </div>
+          )}
         </div>
       )}
 
