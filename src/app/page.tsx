@@ -223,6 +223,20 @@ interface MonitoramentoData {
 // Funções auxiliares
 // =================================================================================
 
+// Função para converter horas decimais em hh:mm:ss
+function formatarHorasParaHMS(horasDecimais: string | number): string {
+  const horas = typeof horasDecimais === 'string' ? parseFloat(horasDecimais) : horasDecimais;
+  
+  if (isNaN(horas) || horas === 0) return '00:00:00';
+  
+  const horasInteiras = Math.floor(horas);
+  const minutosDecimais = (horas - horasInteiras) * 60;
+  const minutosInteiros = Math.floor(minutosDecimais);
+  const segundos = Math.round((minutosDecimais - minutosInteiros) * 60);
+  
+  return `${String(horasInteiras).padStart(2, '0')}:${String(minutosInteiros).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+}
+
 function buildFilterPayload(filters: Filters) {
   return {
     p_ano: filters.ano,
@@ -339,11 +353,11 @@ function AderenciaCard({
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-slate-600 dark:text-slate-400">Planejado:</span>
-          <span className="font-semibold text-slate-900 dark:text-white">{planejado}</span>
+          <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatarHorasParaHMS(planejado)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-slate-600 dark:text-slate-400">Entregue:</span>
-          <span className="font-semibold text-blue-600 dark:text-blue-400">{entregue}</span>
+          <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{formatarHorasParaHMS(entregue)}</span>
         </div>
       </div>
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/50 dark:bg-slate-800/50">
@@ -532,11 +546,11 @@ function DashboardView({
               <div className="mt-4 flex gap-6 text-sm">
                 <div>
                   <span className="text-blue-100">Planejado:</span>
-                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_entregues}</span>
+                  <span className="ml-2 font-mono font-bold text-white">{formatarHorasParaHMS(aderenciaGeral.horas_entregues)}</span>
                 </div>
                 <div>
                   <span className="text-blue-100">Entregue:</span>
-                  <span className="ml-2 font-bold text-white">{aderenciaGeral.horas_a_entregar}</span>
+                  <span className="ml-2 font-mono font-bold text-white">{formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}</span>
                 </div>
               </div>
             </div>
@@ -640,11 +654,11 @@ function DashboardView({
                 <div className="mt-2 space-y-1 text-xs">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Plan:</span>
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">{data.horas_a_entregar}</span>
+                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">{formatarHorasParaHMS(data.horas_a_entregar)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Ent:</span>
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">{data.horas_entregues}</span>
+                    <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{formatarHorasParaHMS(data.horas_entregues)}</span>
                   </div>
                 </div>
               </div>
@@ -743,6 +757,11 @@ function AnaliseView({
   aderenciaSubPraca: AderenciaSubPraca[];
   aderenciaOrigem: AderenciaOrigem[];
 }) {
+  const [viewModeDia, setViewModeDia] = useState<'table' | 'chart'>('table');
+  const [viewModeTurno, setViewModeTurno] = useState<'table' | 'chart'>('table');
+  const [viewModeLocal, setViewModeLocal] = useState<'subpraca' | 'origem'>('subpraca');
+  const [viewModeLocalVis, setViewModeLocalVis] = useState<'table' | 'chart'>('table');
+  
   const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
   const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
   const taxaRejeicao = totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0;
@@ -2180,7 +2199,10 @@ export default function DashboardPage() {
         p_session_id: sessionId
       });
     } catch (error) {
-      console.error('Erro ao registrar atividade:', error);
+      // Silenciosamente falha se a função não existir ainda
+      if (error && typeof error === 'object' && 'code' in error && error.code !== '42883') {
+        console.error('Erro ao registrar atividade:', error);
+      }
     }
   };
 
