@@ -1401,7 +1401,7 @@ function MonitoramentoView() {
       const usuariosMapeados = (data || []).map((u: any) => {
         // Segundos de inatividade já vem como número do backend
         const segundosInativo = u.seconds_inactive || 0;
-        
+        // sd
         // Extrair praças dos filtros
         const filtros = u.filters_applied || {};
         const pracas = filtros.p_praca ? [filtros.p_praca] : (filtros.praca ? [filtros.praca] : []);
