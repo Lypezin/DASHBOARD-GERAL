@@ -2131,13 +2131,11 @@ function ComparacaoView({
               </table>
             </div>
             ) : (
-              <div className="p-6 space-y-6">
-                {/* Gráfico de Aderência */}
-                <div>
-                  <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Aderência Média</h4>
-                  <Line data={{
-                    labels: semanasSelecionadas.map(s => `Semana ${s}`),
-                    datasets: [{
+              <div className="p-6">
+                <Line data={{
+                  labels: semanasSelecionadas.map(s => `Semana ${s}`),
+                  datasets: [
+                    {
                       label: 'Aderência (%)',
                       data: dadosComparacao.map(d => d.semanal[0]?.aderencia_percentual ?? 0),
                       backgroundColor: 'rgba(99, 102, 241, 0.2)',
@@ -2146,73 +2144,132 @@ function ComparacaoView({
                       tension: 0.4,
                       pointRadius: 6,
                       pointHoverRadius: 8,
-                      fill: true,
-                    }],
-                  }} options={{
-                    responsive: true,
-                    plugins: {
-                      legend: { display: false },
-                      tooltip: {
-                        callbacks: {
-                          label: (context: any) => `Aderência: ${context.parsed.y.toFixed(1)}%`
-                        }
+                      yAxisID: 'y-percent',
+                    },
+                    {
+                      label: 'Corridas Ofertadas',
+                      data: dadosComparacao.map(d => d.totais?.corridas_ofertadas ?? 0),
+                      backgroundColor: 'rgba(100, 116, 139, 0.2)',
+                      borderColor: 'rgb(100, 116, 139)',
+                      borderWidth: 2,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 7,
+                      yAxisID: 'y-count',
+                    },
+                    {
+                      label: 'Corridas Aceitas',
+                      data: dadosComparacao.map(d => d.totais?.corridas_aceitas ?? 0),
+                      backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                      borderColor: 'rgb(16, 185, 129)',
+                      borderWidth: 2,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 7,
+                      yAxisID: 'y-count',
+                    },
+                    {
+                      label: 'Corridas Rejeitadas',
+                      data: dadosComparacao.map(d => d.totais?.corridas_rejeitadas ?? 0),
+                      backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                      borderColor: 'rgb(239, 68, 68)',
+                      borderWidth: 2,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 7,
+                      yAxisID: 'y-count',
+                    },
+                    {
+                      label: 'Corridas Completadas',
+                      data: dadosComparacao.map(d => d.totais?.corridas_completadas ?? 0),
+                      backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                      borderColor: 'rgb(139, 92, 246)',
+                      borderWidth: 2,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 7,
+                      yAxisID: 'y-count',
+                    },
+                  ],
+                }} options={{
+                  responsive: true,
+                  maintainAspectRatio: true,
+                  interaction: {
+                    mode: 'index' as const,
+                    intersect: false,
+                  },
+                  plugins: {
+                    legend: {
+                      position: 'top' as const,
+                      labels: {
+                        font: { size: 12 },
+                        padding: 15,
+                        usePointStyle: true,
                       }
                     },
-                    scales: {
-                      y: { beginAtZero: true, ticks: { callback: (value: any) => `${value}%` } },
-                    }
-                  }} />
-                </div>
-
-                {/* Gráfico de Corridas */}
-                <div>
-                  <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Volume de Corridas</h4>
-                  <Line data={{
-                    labels: semanasSelecionadas.map(s => `Semana ${s}`),
-                    datasets: [
-                      {
-                        label: 'Ofertadas',
-                        data: dadosComparacao.map(d => d.totais?.corridas_ofertadas ?? 0),
-                        backgroundColor: 'rgba(100, 116, 139, 0.2)',
-                        borderColor: 'rgb(100, 116, 139)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 5,
-                      },
-                      {
-                        label: 'Aceitas',
-                        data: dadosComparacao.map(d => d.totais?.corridas_aceitas ?? 0),
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                        borderColor: 'rgb(16, 185, 129)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 5,
-                      },
-                      {
-                        label: 'Completadas',
-                        data: dadosComparacao.map(d => d.totais?.corridas_completadas ?? 0),
-                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
-                        borderColor: 'rgb(139, 92, 246)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 5,
-                      },
-                    ],
-                  }} options={{
-                    responsive: true,
-                    plugins: {
-                      legend: { position: 'top' as const },
-                      tooltip: {
-                        callbacks: {
-                          label: (context: any) => `${context.dataset.label}: ${context.parsed.y.toLocaleString('pt-BR')}`
+                    tooltip: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                      padding: 12,
+                      titleFont: { size: 14, weight: 'bold' as const },
+                      bodyFont: { size: 13 },
+                      callbacks: {
+                        label: (context: any) => {
+                          const label = context.dataset.label || '';
+                          const value = context.parsed.y;
+                          
+                          if (label === 'Aderência (%)') {
+                            return `${label}: ${value.toFixed(1)}%`;
+                          }
+                          return `${label}: ${value.toLocaleString('pt-BR')}`;
                         }
                       }
-                    },
-                    scales: {
-                      y: { beginAtZero: true },
                     }
-                  }} />
-                </div>
+                  },
+                  scales: {
+                    'y-percent': {
+                      type: 'linear' as const,
+                      position: 'left' as const,
+                      beginAtZero: true,
+                      title: {
+                        display: true,
+                        text: 'Aderência (%)',
+                        font: { size: 12, weight: 'bold' as const },
+                      },
+                      ticks: {
+                        callback: (value: any) => `${value}%`,
+                        font: { size: 11 },
+                      },
+                      grid: {
+                        color: 'rgba(99, 102, 241, 0.1)',
+                      }
+                    },
+                    'y-count': {
+                      type: 'linear' as const,
+                      position: 'right' as const,
+                      beginAtZero: true,
+                      title: {
+                        display: true,
+                        text: 'Quantidade de Corridas',
+                        font: { size: 12, weight: 'bold' as const },
+                      },
+                      ticks: {
+                        callback: (value: any) => value.toLocaleString('pt-BR'),
+                        font: { size: 11 },
+                      },
+                      grid: {
+                        display: false,
+                      }
+                    },
+                    x: {
+                      ticks: {
+                        font: { size: 11 },
+                      },
+                      grid: {
+                        display: false,
+                      }
+                    }
+                  }
+                }} />
               </div>
             )}
           </div>
