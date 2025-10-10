@@ -2006,13 +2006,91 @@ function ComparacaoView({
             </div>
           </div>
 
-          {/* Comparação por Dia da Semana */}
+          {/* Comparação de Corridas por Dia */}
+          <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
+            <div className="border-b border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 dark:border-blue-800 dark:from-blue-950/30 dark:to-cyan-950/30">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span className="text-xl">📊</span>
+                Comparação de Corridas por Dia da Semana
+              </h3>
+            </div>
+            <div className="overflow-x-auto p-6">
+              <table className="w-full">
+                <thead className="bg-blue-50 dark:bg-blue-950/30">
+                  <tr className="border-b border-blue-200 dark:border-blue-700">
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">Dia</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">Métrica</th>
+                    {semanasSelecionadas.map((semana, idx) => (
+                      <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">
+                        Semana {semana} {idx > 0 && '(Δ%)'}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-blue-100 dark:divide-blue-900">
+                  {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, diaIdx) => {
+                    const metricas = [
+                      { label: 'Ofertadas', key: 'corridas_ofertadas', color: 'text-slate-700 dark:text-slate-300' },
+                      { label: 'Aceitas', key: 'corridas_aceitas', color: 'text-emerald-700 dark:text-emerald-400' },
+                      { label: 'Rejeitadas', key: 'corridas_rejeitadas', color: 'text-rose-700 dark:text-rose-400' },
+                      { label: 'Completadas', key: 'corridas_completadas', color: 'text-blue-700 dark:text-blue-400' },
+                    ];
+                    
+                    return metricas.map((metrica, metricaIdx) => (
+                      <tr key={`${dia}-${metrica.key}`} className={diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/30 dark:bg-blue-950/20'}>
+                        {metricaIdx === 0 && (
+                          <td rowSpan={4} className="px-4 py-3 font-bold text-slate-900 dark:text-white border-r border-blue-200 dark:border-blue-800">
+                            {dia}
+                          </td>
+                        )}
+                        <td className={`px-4 py-2 text-sm font-semibold ${metrica.color}`}>{metrica.label}</td>
+                        {dadosComparacao.map((dados, idx) => {
+                          const diaData = dados.dia?.find(d => d.dia_da_semana === dia);
+                          const valor = diaData?.[metrica.key as keyof typeof diaData] as number ?? 0;
+                          
+                          // Calcular variação se não for a primeira semana
+                          let variacao = null;
+                          if (idx > 0) {
+                            const dadosAnterior = dadosComparacao[idx - 1];
+                            const diaDataAnterior = dadosAnterior.dia?.find(d => d.dia_da_semana === dia);
+                            const valorAnterior = diaDataAnterior?.[metrica.key as keyof typeof diaDataAnterior] as number ?? 0;
+                            variacao = valorAnterior > 0 ? ((valor - valorAnterior) / valorAnterior) * 100 : 0;
+                          }
+                          
+                          return (
+                            <>
+                              <td key={`${idx}-valor`} className={`px-4 py-2 text-center font-semibold ${metrica.color}`}>
+                                {typeof valor === 'number' ? valor.toLocaleString('pt-BR') : '0'}
+                              </td>
+                              {idx > 0 && variacao !== null && (
+                                <td key={`${idx}-var`} className="px-4 py-2 text-center text-xs font-bold">
+                                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${
+                                    variacao >= 0 
+                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                      : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                                  }`}>
+                                    {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                  </span>
+                                </td>
+                              )}
+                            </>
+                          );
+                        })}
+                      </tr>
+                    ));
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Comparação de Aderência por Dia da Semana */}
           <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
             <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-indigo-950/30">
               <div className="flex items-center justify-between">
                 <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
                   <span className="text-xl">📅</span>
-                  Comparação por Dia da Semana
+                  Comparação de Aderência por Dia da Semana
                 </h3>
                 <div className="flex gap-2">
                   <ViewToggleButton
@@ -2034,9 +2112,9 @@ function ComparacaoView({
                 <thead className="bg-slate-50 dark:bg-slate-800/50">
                   <tr className="border-b border-slate-200 dark:border-slate-700">
                     <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Dia</th>
-                    {semanasSelecionadas.map((semana) => (
-                      <th key={semana} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        Semana {semana}
+                    {semanasSelecionadas.map((semana, idx) => (
+                      <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                        Semana {semana} {idx > 0 && '(Δ%)'}
                       </th>
                     ))}
                   </tr>
@@ -2047,12 +2125,36 @@ function ComparacaoView({
                       <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{dia}</td>
                       {dadosComparacao.map((dados, idx) => {
                         const diaData = dados.dia?.find(d => d.dia_da_semana === dia);
+                        const aderencia = diaData?.aderencia_percentual ?? 0;
+                        
+                        // Calcular variação se não for a primeira semana
+                        let variacao = null;
+                        if (idx > 0) {
+                          const dadosAnterior = dadosComparacao[idx - 1];
+                          const diaDataAnterior = dadosAnterior.dia?.find(d => d.dia_da_semana === dia);
+                          const aderenciaAnterior = diaDataAnterior?.aderencia_percentual ?? 0;
+                          variacao = aderenciaAnterior > 0 ? ((aderencia - aderenciaAnterior) / aderenciaAnterior) * 100 : 0;
+                        }
+                        
                         return (
-                          <td key={idx} className="px-6 py-4 text-center">
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">
-                              {diaData?.aderencia_percentual?.toFixed(1) ?? '0.0'}%
-                            </span>
-                          </td>
+                          <>
+                            <td key={`${idx}-valor`} className="px-6 py-4 text-center">
+                              <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                {aderencia.toFixed(1)}%
+                              </span>
+                            </td>
+                            {idx > 0 && variacao !== null && (
+                              <td key={`${idx}-var`} className="px-6 py-4 text-center">
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                                  variacao >= 0 
+                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                    : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                                }`}>
+                                  {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                </span>
+                              </td>
+                            )}
+                          </>
                         );
                       })}
                     </tr>
@@ -2138,9 +2240,9 @@ function ComparacaoView({
                   <thead className="bg-slate-50 dark:bg-slate-800/50">
                     <tr className="border-b border-slate-200 dark:border-slate-700">
                       <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Turno</th>
-                      {semanasSelecionadas.map((semana) => (
-                        <th key={semana} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                          Semana {semana}
+                      {semanasSelecionadas.map((semana, idx) => (
+                        <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                          Semana {semana} {idx > 0 && '(Δ%)'}
                         </th>
                       ))}
                     </tr>
@@ -2151,12 +2253,36 @@ function ComparacaoView({
                         <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{turno}</td>
                         {dadosComparacao.map((dados, idx) => {
                           const turnoData = dados.turno?.find(t => t.periodo === turno);
+                          const aderencia = turnoData?.aderencia_percentual ?? 0;
+                          
+                          // Calcular variação se não for a primeira semana
+                          let variacao = null;
+                          if (idx > 0) {
+                            const dadosAnterior = dadosComparacao[idx - 1];
+                            const turnoDataAnterior = dadosAnterior.turno?.find(t => t.periodo === turno);
+                            const aderenciaAnterior = turnoDataAnterior?.aderencia_percentual ?? 0;
+                            variacao = aderenciaAnterior > 0 ? ((aderencia - aderenciaAnterior) / aderenciaAnterior) * 100 : 0;
+                          }
+                          
                           return (
-                            <td key={idx} className="px-6 py-4 text-center">
-                              <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                {turnoData?.aderencia_percentual?.toFixed(1) ?? '0.0'}%
-                              </span>
-                            </td>
+                            <>
+                              <td key={`${idx}-valor`} className="px-6 py-4 text-center">
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                  {aderencia.toFixed(1)}%
+                                </span>
+                              </td>
+                              {idx > 0 && variacao !== null && (
+                                <td key={`${idx}-var`} className="px-6 py-4 text-center">
+                                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                                    variacao >= 0 
+                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                      : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                                  }`}>
+                                    {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                  </span>
+                                </td>
+                              )}
+                            </>
                           );
                         })}
                       </tr>
