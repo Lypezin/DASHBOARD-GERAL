@@ -1312,23 +1312,48 @@ function MonitoramentoView() {
       
       // Mapear os dados da API para o formato esperado
       const usuariosMapeados = (data || []).map((u: any) => {
-        // Converter INTERVAL para segundos
-        const intervalo = u.time_since_last_activity || {};
-        const segundosInativo = (intervalo.hours || 0) * 3600 + (intervalo.minutes || 0) * 60 + (intervalo.seconds || 0);
+        // Segundos de inatividade já vem como número do backend
+        const segundosInativo = u.seconds_inactive || 0;
         
         // Extrair praças dos filtros
         const filtros = u.filters_applied || {};
-        const pracas = filtros.praca ? [filtros.praca] : [];
+        const pracas = filtros.p_praca ? [filtros.p_praca] : (filtros.praca ? [filtros.praca] : []);
+        
+        // Criar descrição detalhada da ação
+        let descricaoAcao = '';
+        
+        if (u.last_action_type === 'login') {
+          descricaoAcao = 'Fez login no sistema';
+        } else if (u.last_action_type === 'tab_change') {
+          descricaoAcao = `Acessou a aba "${u.current_tab || 'desconhecida'}"`;
+        } else if (u.last_action_type === 'filter_change') {
+          const partes = [];
+          if (filtros.p_semana || filtros.semana) partes.push(`Semana ${filtros.p_semana || filtros.semana}`);
+          if (filtros.p_praca || filtros.praca) partes.push(`Praça ${filtros.p_praca || filtros.praca}`);
+          if (filtros.p_ano || filtros.ano) partes.push(`Ano ${filtros.p_ano || filtros.ano}`);
+          if (filtros.p_sub_praca) partes.push(`Sub-praça ${filtros.p_sub_praca}`);
+          if (filtros.p_origem) partes.push(`Origem ${filtros.p_origem}`);
+          
+          if (partes.length > 0) {
+            descricaoAcao = `Filtrou: ${partes.join(', ')} na aba "${u.current_tab || 'dashboard'}"`;
+          } else {
+            descricaoAcao = `Alterou filtros na aba "${u.current_tab || 'dashboard'}"`;
+          }
+        } else if (u.last_action_type === 'heartbeat') {
+          descricaoAcao = `Navegando na aba "${u.current_tab || 'dashboard'}"`;
+        } else {
+          descricaoAcao = u.last_action_type || 'Atividade desconhecida';
+        }
         
         return {
           user_id: u.user_id,
-          nome: u.user_email?.split('@')[0] || 'Usuário',
+          nome: u.user_name || u.user_email?.split('@')[0] || 'Usuário',
           email: u.user_email,
           aba_atual: u.current_tab,
           pracas: pracas,
-          ultima_acao: u.last_action_type,
-          segundos_inativo: segundosInativo,
-          acoes_ultima_hora: 0, // Não temos essa informação agora
+          ultima_acao: descricaoAcao,
+          segundos_inativo: Math.floor(segundosInativo),
+          acoes_ultima_hora: 0,
           is_active: u.is_active
         };
       });
