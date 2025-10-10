@@ -200,6 +200,25 @@ interface EntregadoresData {
   total: number;
 }
 
+interface UsuarioOnline {
+  user_id: string;
+  email: string;
+  nome: string | null;
+  pracas: string[];
+  ultima_acao: string;
+  aba_atual: string | null;
+  filtros: any;
+  ultima_atividade: string;
+  segundos_inativo: number;
+  acoes_ultima_hora: number;
+}
+
+interface MonitoramentoData {
+  success: boolean;
+  total_online: number;
+  usuarios: UsuarioOnline[];
+}
+
 // =================================================================================
 // Funções auxiliares
 // =================================================================================
@@ -812,6 +831,10 @@ function AnaliseView({
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: true,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
     plugins: {
       legend: {
         position: 'top' as const,
@@ -821,16 +844,57 @@ function AnaliseView({
             family: "'Inter', sans-serif",
           },
           padding: 15,
+          usePointStyle: true,
+          pointStyle: 'circle',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
         padding: 12,
         titleFont: {
           size: 14,
+          weight: 'bold' as const,
         },
         bodyFont: {
           size: 13,
+        },
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        displayColors: true,
+        callbacks: {
+          label: function(context: any) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed.y !== null) {
+              label += new Intl.NumberFormat('pt-BR').format(context.parsed.y);
+            }
+            return label;
+          }
+        }
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+        ticks: {
+          font: {
+            size: 11,
+          },
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          font: {
+            size: 11,
+          },
         },
       },
     },
@@ -978,13 +1042,61 @@ function AnaliseView({
         </div>
       )}
 
+      {/* Gráfico de Barras - Corridas por Turno */}
+      {aderenciaTurno.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+            <span className="text-xl">⏰</span>
+            Performance por Turno
+          </h3>
+          <Bar data={{
+            labels: aderenciaTurno.map(t => t.periodo),
+            datasets: [
+              {
+                label: 'Ofertadas',
+                data: aderenciaTurno.map(t => t.corridas_ofertadas ?? 0),
+                backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                borderColor: 'rgb(139, 92, 246)',
+                borderWidth: 1,
+              },
+              {
+                label: 'Completadas',
+                data: aderenciaTurno.map(t => t.corridas_completadas ?? 0),
+                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                borderColor: 'rgb(16, 185, 129)',
+                borderWidth: 1,
+              },
+            ],
+          }} options={{
+            ...chartOptions,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  font: {
+                    size: 11,
+                  },
+                },
+              },
+              x: {
+                ticks: {
+                  font: {
+                    size: 11,
+                  },
+                },
+              },
+            },
+          }} />
+        </div>
+      )}
+
       {/* Tabela por Turno */}
       {aderenciaTurno && aderenciaTurno.length > 0 && (
         <div className="rounded-xl border border-purple-200 bg-white shadow-lg dark:border-purple-800 dark:bg-slate-900">
           <div className="border-b border-purple-200 px-6 py-4 dark:border-purple-800">
             <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-              <span className="text-xl">⏰</span>
-              Análise por Turno
+              <span className="text-xl">📋</span>
+              Detalhamento por Turno
             </h3>
           </div>
           <div className="overflow-x-auto">
@@ -1027,6 +1139,166 @@ function AnaliseView({
         </div>
       )}
 
+    </div>
+  );
+}
+
+function MonitoramentoView() {
+  const [monitoramentoData, setMonitoramentoData] = useState<MonitoramentoData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+
+  const fetchMonitoramento = async () => {
+    try {
+      const { data, error } = await supabase.rpc('listar_usuarios_online', { p_minutos_inatividade: 5 });
+      
+      if (error) throw error;
+      
+      setMonitoramentoData(data as MonitoramentoData);
+    } catch (err) {
+      console.error('Erro ao buscar monitoramento:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMonitoramento();
+    
+    if (autoRefresh) {
+      const interval = setInterval(fetchMonitoramento, 10000); // Atualizar a cada 10 segundos
+      return () => clearInterval(interval);
+    }
+  }, [autoRefresh]);
+
+  const formatarTempo = (segundos: number) => {
+    if (segundos < 60) return `${Math.floor(segundos)}s`;
+    if (segundos < 3600) return `${Math.floor(segundos / 60)}m`;
+    return `${Math.floor(segundos / 3600)}h ${Math.floor((segundos % 3600) / 60)}m`;
+  };
+
+  const getStatusColor = (segundos: number) => {
+    if (segundos < 60) return 'bg-emerald-500';
+    if (segundos < 180) return 'bg-amber-500';
+    return 'bg-slate-400';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
+        <div className="text-center">
+          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando monitoramento...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-indigo-600 to-purple-600 p-6 shadow-xl dark:border-slate-700">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-indigo-100">🔍 Monitoramento em Tempo Real</h2>
+            <p className="mt-2 text-4xl font-bold text-white">{monitoramentoData?.total_online || 0}</p>
+            <p className="mt-1 text-sm text-indigo-100">Usuários online</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-white">
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+                className="h-4 w-4 rounded"
+              />
+              <span className="text-sm">Auto-atualizar</span>
+            </label>
+            <button
+              onClick={fetchMonitoramento}
+              className="rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/30 hover:scale-105 active:scale-95"
+            >
+              🔄 Atualizar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Lista de Usuários Online */}
+      {monitoramentoData && monitoramentoData.usuarios && monitoramentoData.usuarios.length > 0 ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {monitoramentoData.usuarios.map((usuario) => (
+            <div
+              key={usuario.user_id}
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-3 w-3 rounded-full ${getStatusColor(usuario.segundos_inativo)} animate-pulse`}></div>
+                    <h3 className="font-bold text-slate-900 dark:text-white">{usuario.nome || usuario.email}</h3>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{usuario.email}</p>
+                  
+                  <div className="mt-4 space-y-2">
+                    {/* Aba Atual */}
+                    {usuario.aba_atual && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aba:</span>
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                          {usuario.aba_atual}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Praças */}
+                    {usuario.pracas && usuario.pracas.length > 0 && (
+                      <div className="flex items-start gap-2">
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Praças:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {usuario.pracas.map((praca, idx) => (
+                            <span key={idx} className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                              {praca}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Última Ação */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Última ação:</span>
+                      <span className="text-xs text-slate-700 dark:text-slate-300">{usuario.ultima_acao}</span>
+                    </div>
+                    
+                    {/* Tempo Inativo */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Inativo há:</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">{formatarTempo(usuario.segundos_inativo)}</span>
+                    </div>
+                    
+                    {/* Ações última hora */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Ações (última hora):</span>
+                      <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
+                        {usuario.acoes_ultima_hora}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl text-white shadow-md">
+                  👤
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900 dark:bg-amber-950/30">
+          <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Nenhum usuário online no momento</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -1689,18 +1961,93 @@ function EntregadoresView({
     return 'bg-rose-50 dark:bg-rose-950/30';
   };
 
+  // Calcular estatísticas gerais
+  const totalOfertadas = entregadoresData.entregadores.reduce((sum, e) => sum + e.corridas_ofertadas, 0);
+  const totalAceitas = entregadoresData.entregadores.reduce((sum, e) => sum + e.corridas_aceitas, 0);
+  const totalRejeitadas = entregadoresData.entregadores.reduce((sum, e) => sum + e.corridas_rejeitadas, 0);
+  const totalCompletadas = entregadoresData.entregadores.reduce((sum, e) => sum + e.corridas_completadas, 0);
+  const aderenciaMedia = entregadoresData.entregadores.reduce((sum, e) => sum + e.aderencia_percentual, 0) / entregadoresData.total;
+  const rejeicaoMedia = entregadoresData.entregadores.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / entregadoresData.total;
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-600 to-indigo-600 p-6 shadow-lg dark:border-blue-900">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-blue-100">👥 Entregadores</h2>
-            <p className="mt-2 text-4xl font-bold text-white">{entregadoresData.total}</p>
-            <p className="mt-1 text-sm text-blue-100">Total de entregadores</p>
+    <div className="space-y-6 animate-fade-in">
+      {/* Cards de Estatísticas */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-2xl text-white shadow-md">
+              👥
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{entregadoresData.total}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Entregadores</p>
+            </div>
           </div>
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-            <span className="text-4xl">🚴</span>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 text-2xl text-white shadow-md">
+              📢
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalOfertadas}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Ofertadas</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-2xl text-white shadow-md">
+              ✅
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalAceitas}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Aceitas</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 text-2xl text-white shadow-md">
+              ❌
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalRejeitadas}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Rejeitadas</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 text-2xl text-white shadow-md">
+              🏁
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalCompletadas}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Completadas</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Médias</p>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-600 dark:text-slate-400">Aderência:</span>
+                <span className={`text-sm font-bold ${getAderenciaColor(aderenciaMedia)}`}>{aderenciaMedia.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-600 dark:text-slate-400">Rejeição:</span>
+                <span className={`text-sm font-bold ${getRejeicaoColor(rejeicaoMedia)}`}>{rejeicaoMedia.toFixed(1)}%</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1797,7 +2144,8 @@ function EntregadoresView({
 // =================================================================================
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores' | 'monitoramento'>('dashboard');
+  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
@@ -1820,6 +2168,53 @@ export default function DashboardPage() {
   const [loadingEntregadores, setLoadingEntregadores] = useState(false);
 
   const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
+
+  // Hook para registrar atividades
+  const registrarAtividade = async (actionType: string, actionDetails: any = {}, tabName: string | null = null, filtersApplied: any = {}) => {
+    try {
+      await supabase.rpc('registrar_atividade', {
+        p_action_type: actionType,
+        p_action_details: actionDetails,
+        p_tab_name: tabName,
+        p_filters_applied: filtersApplied,
+        p_session_id: sessionId
+      });
+    } catch (error) {
+      console.error('Erro ao registrar atividade:', error);
+    }
+  };
+
+  // Registrar mudança de aba
+  useEffect(() => {
+    if (currentUser) {
+      registrarAtividade('tab_change', { tab: activeTab }, activeTab, filters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  // Registrar mudança de filtros
+  useEffect(() => {
+    if (currentUser && Object.values(filters).some(v => v !== null)) {
+      registrarAtividade('filter_change', { filters }, activeTab, filters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
+
+  // Heartbeat - registrar atividade periódica
+  useEffect(() => {
+    if (currentUser) {
+      registrarAtividade('login', { dispositivo: 'web' }, activeTab, filters);
+      
+      const heartbeatInterval = setInterval(() => {
+        if (currentUser) {
+          registrarAtividade('heartbeat', {}, activeTab, filters);
+        }
+      }, 60000); // A cada 1 minuto
+
+      return () => clearInterval(heartbeatInterval);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
 
   useEffect(() => {
     async function checkUserAndFetchData() {
@@ -2095,6 +2490,9 @@ export default function DashboardPage() {
                 <TabButton label="Comparação" icon="⚖️" active={activeTab === 'comparacao'} onClick={() => setActiveTab('comparacao')} />
                 <TabButton label="UTR" icon="📏" active={activeTab === 'utr'} onClick={() => setActiveTab('utr')} />
                 <TabButton label="Entregadores" icon="👥" active={activeTab === 'entregadores'} onClick={() => setActiveTab('entregadores')} />
+                {currentUser?.is_admin && (
+                  <TabButton label="Monitoramento" icon="🔍" active={activeTab === 'monitoramento'} onClick={() => setActiveTab('monitoramento')} />
+                )}
               </div>
             </div>
 
@@ -2140,6 +2538,10 @@ export default function DashboardPage() {
                   entregadoresData={entregadoresData}
                   loading={loadingEntregadores}
                 />
+              )}
+              
+              {activeTab === 'monitoramento' && currentUser?.is_admin && (
+                <MonitoramentoView />
               )}
             </main>
           </div>
