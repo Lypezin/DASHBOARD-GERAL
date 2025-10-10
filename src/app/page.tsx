@@ -1453,12 +1453,11 @@ function ComparacaoView({
   origens: FilterOption[];
   currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
 }) {
-  const [semana1, setSemana1] = useState<number | null>(null);
-  const [semana2, setSemana2] = useState<number | null>(null);
+  const [semanasSelecionadas, setSemanasSelecionadas] = useState<number[]>([]);
   const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [dados1, setDados1] = useState<DashboardResumoData | null>(null);
-  const [dados2, setDados2] = useState<DashboardResumoData | null>(null);
+  const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
+  const [utrComparacao, setUtrComparacao] = useState<any[]>([]);
   const [todasSemanas, setTodasSemanas] = useState<number[]>([]);
 
   // Buscar TODAS as semanas disponíveis (sem filtro)
@@ -1483,66 +1482,61 @@ function ComparacaoView({
     }
   }, [currentUser]);
 
+  const toggleSemana = (semana: number) => {
+    setSemanasSelecionadas(prev => {
+      if (prev.includes(semana)) {
+        return prev.filter(s => s !== semana);
+      } else {
+        return [...prev, semana].sort((a, b) => a - b);
+      }
+    });
+  };
+
   const compararSemanas = async () => {
-    if (!semana1 || !semana2) return;
+    if (semanasSelecionadas.length < 2) return;
 
     setLoading(true);
     try {
-      // Construir filtro com praça selecionada
-      const filtro: any = { p_semana: semana1 };
-      const filtro2: any = { p_semana: semana2 };
-      
-      // Se houver praça selecionada, aplicar filtro
-      if (pracaSelecionada) {
-        filtro.p_praca = pracaSelecionada;
-        filtro2.p_praca = pracaSelecionada;
-      }
-      
-      // Se não for admin e não tiver praça selecionada, mas tiver apenas 1 praça atribuída
-      if (currentUser && !currentUser.is_admin && !pracaSelecionada && currentUser.assigned_pracas.length === 1) {
-        filtro.p_praca = currentUser.assigned_pracas[0];
-        filtro2.p_praca = currentUser.assigned_pracas[0];
-      }
-      
-      const [res1, res2] = await Promise.all([
-        supabase.rpc('dashboard_resumo', filtro),
-        supabase.rpc('dashboard_resumo', filtro2),
-      ]);
-
-      // Filtrar dados se não for admin
-      let dados1Filtrados = res1.data as DashboardResumoData;
-      let dados2Filtrados = res2.data as DashboardResumoData;
-
-      if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-        const pracasPermitidas = currentUser.assigned_pracas;
+      // Buscar dados para cada semana selecionada
+      const promessasDados = semanasSelecionadas.map(async (semana) => {
+        const filtro: any = { p_semana: semana };
         
-        // Filtrar sub_praca, origem baseado nas praças permitidas
-        // Precisamos manter apenas os dados das praças que o usuário tem acesso
-        dados1Filtrados = {
-          ...dados1Filtrados,
-          sub_praca: (dados1Filtrados.sub_praca || []).filter((item: any) => {
-            // Sub-praças normalmente contêm o nome da praça
-            return pracasPermitidas.some(praca => item.sub_praca?.toUpperCase().includes(praca.toUpperCase()));
-          }),
-          origem: (dados1Filtrados.origem || []).filter((item: any) => {
-            // Se não conseguimos determinar, mantemos (pode ser global)
-            return true;
-          })
-        };
+        // Se houver praça selecionada ou se não for admin com 1 praça
+        if (pracaSelecionada) {
+          filtro.p_praca = pracaSelecionada;
+        } else if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
+          filtro.p_praca = currentUser.assigned_pracas[0];
+        }
+        
+        // Buscar dados do dashboard
+        const { data, error } = await supabase.rpc('dashboard_resumo', filtro);
+        if (error) throw error;
+        
+        return { semana, dados: data as DashboardResumoData };
+      });
 
-        dados2Filtrados = {
-          ...dados2Filtrados,
-          sub_praca: (dados2Filtrados.sub_praca || []).filter((item: any) => {
-            return pracasPermitidas.some(praca => item.sub_praca?.toUpperCase().includes(praca.toUpperCase()));
-          }),
-          origem: (dados2Filtrados.origem || []).filter((item: any) => {
-            return true;
-          })
-        };
-      }
+      // Buscar UTR para cada semana
+      const promessasUtr = semanasSelecionadas.map(async (semana) => {
+        const filtro: any = { p_semana: semana };
+        
+        if (pracaSelecionada) {
+          filtro.p_praca = pracaSelecionada;
+        } else if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
+          filtro.p_praca = currentUser.assigned_pracas[0];
+        }
+        
+        const { data, error } = await supabase.rpc('calcular_utr', filtro);
+        if (error) throw error;
+        
+        return { semana, utr: data };
+      });
 
-      setDados1(dados1Filtrados);
-      setDados2(dados2Filtrados);
+      const resultadosDados = await Promise.all(promessasDados);
+      const resultadosUtr = await Promise.all(promessasUtr);
+      
+      setDadosComparacao(resultadosDados.map(r => r.dados));
+      setUtrComparacao(resultadosUtr);
+      
     } catch (error) {
       console.error('Erro ao comparar semanas:', error);
     } finally {
@@ -1578,11 +1572,13 @@ function ComparacaoView({
   const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
 
   return (
-    <div className="space-y-6">
-      {/* Seletores */}
+    <div className="space-y-6 animate-fade-in">
+      {/* Seleção de Praça e Semanas */}
       <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
-        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Selecione as Semanas para Comparar</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">🔍 Configurar Comparação</h3>
+        
+        {/* Filtro de Praça */}
+        <div className="mb-6">
           <FiltroSelect
             label="Praça"
             value={pracaSelecionada ?? ''}
@@ -1591,232 +1587,169 @@ function ComparacaoView({
             onChange={(value) => setPracaSelecionada(value)}
             disabled={shouldDisablePracaFilter}
           />
-          <FiltroSelect
-            label="Semana 1"
-            value={semana1 !== null ? String(semana1) : ''}
-            options={todasSemanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
-            placeholder="Selecione..."
-            onChange={(value) => setSemana1(value ? Number(value) : null)}
-          />
-          <FiltroSelect
-            label="Semana 2"
-            value={semana2 !== null ? String(semana2) : ''}
-            options={todasSemanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
-            placeholder="Selecione..."
-            onChange={(value) => setSemana2(value ? Number(value) : null)}
-          />
-          <div className="flex items-end">
+        </div>
+
+        {/* Seleção de Semanas */}
+        <div>
+          <label className="mb-3 block text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
+            Semanas (selecione 2 ou mais)
+          </label>
+          <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+            {todasSemanas.map((semana) => (
+              <label
+                key={semana}
+                className={`flex cursor-pointer items-center justify-center rounded-lg border-2 p-3 text-center transition-all hover:scale-105 ${
+                  semanasSelecionadas.includes(semana)
+                    ? 'border-blue-600 bg-blue-600 text-white shadow-md'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={semanasSelecionadas.includes(semana)}
+                  onChange={() => toggleSemana(semana)}
+                />
+                <span className="text-sm font-bold">S{semana}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Botão de Comparar */}
+        <div className="mt-6 flex items-center justify-between">
+          <div className="text-sm text-slate-600 dark:text-slate-400">
+            {semanasSelecionadas.length > 0 && (
+              <span>
+                {semanasSelecionadas.length} semana{semanasSelecionadas.length !== 1 ? 's' : ''} selecionada{semanasSelecionadas.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          <div className="flex gap-3">
+            {semanasSelecionadas.length > 0 && (
+              <button
+                onClick={() => setSemanasSelecionadas([])}
+                className="rounded-lg bg-slate-200 px-5 py-2.5 font-semibold text-slate-700 transition-all hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
+              >
+                Limpar
+              </button>
+            )}
             <button
               onClick={compararSemanas}
-              disabled={!semana1 || !semana2 || loading}
-              className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 font-semibold text-white shadow-md transition-all hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:shadow-none"
+              disabled={semanasSelecionadas.length < 2 || loading}
+              className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 font-semibold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
             >
-              {loading ? 'Comparando...' : 'Comparar'}
+              {loading ? '⏳ Comparando...' : '⚖️ Comparar Semanas'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Comparação */}
-      {dados1 && dados2 && (
+      {/* Resultados da Comparação */}
+      {dadosComparacao.length > 0 && (
         <div className="space-y-6">
-          {/* Aderência Geral */}
-          <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-white to-blue-50 p-6 shadow-lg dark:border-blue-800 dark:from-slate-900 dark:to-blue-950/30">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-              <span className="text-xl">📊</span>
-              Comparação de Aderência Geral
-            </h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-lg border border-blue-200 bg-white p-4 dark:border-blue-700 dark:bg-slate-800">
-                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Semana {semana1}</p>
-                <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">
-                  {(dados1.semanal[0]?.aderencia_percentual ?? 0).toFixed(1)}%
-                </p>
-              </div>
-              <div className="flex items-center justify-center">
-                <div className="text-center">
-                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Variação</p>
-                  <div className="mt-2">
-                    <VariacaoBadge
-                      variacao={calcularVariacao(
-                        dados1.semanal[0]?.aderencia_percentual,
-                        dados2.semanal[0]?.aderencia_percentual
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-lg border border-indigo-200 bg-white p-4 dark:border-indigo-700 dark:bg-slate-800">
-                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Semana {semana2}</p>
-                <p className="mt-2 text-3xl font-bold text-indigo-900 dark:text-indigo-100">
-                  {(dados2.semanal[0]?.aderencia_percentual ?? 0).toFixed(1)}%
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Totais de Corridas */}
-          <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-              <span className="text-xl">🚗</span>
-              Comparação de Corridas
-            </h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {[
-                { key: 'corridas_ofertadas' as const, label: 'Ofertadas', color: 'slate' },
-                { key: 'corridas_aceitas' as const, label: 'Aceitas', color: 'emerald' },
-                { key: 'corridas_rejeitadas' as const, label: 'Rejeitadas', color: 'rose' },
-                { key: 'corridas_completadas' as const, label: 'Completadas', color: 'purple' },
-              ].map(({ key, label, color }) => (
-                <div
-                  key={key}
-                  className={`rounded-lg border border-${color}-200 bg-${color}-50/50 p-4 dark:border-${color}-800 dark:bg-${color}-950/30`}
-                >
-                  <p className={`text-sm font-semibold text-${color}-700 dark:text-${color}-300`}>{label}</p>
-                  <div className="mt-2 flex items-baseline justify-between">
-                    <span className={`text-xl font-bold text-${color}-900 dark:text-${color}-100`}>
-                      {dados1.totais[key].toLocaleString('pt-BR')}
-                    </span>
-                    <span className="text-xs text-slate-500">S{semana1}</span>
-                  </div>
-                  <div className="mt-1 flex items-baseline justify-between">
-                    <span className={`text-xl font-bold text-${color}-900 dark:text-${color}-100`}>
-                      {dados2.totais[key].toLocaleString('pt-BR')}
-                    </span>
-                    <span className="text-xs text-slate-500">S{semana2}</span>
-                  </div>
-                  <div className="mt-2">
-                    <VariacaoBadge variacao={calcularVariacao(dados1.totais[key], dados2.totais[key])} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Aderência por Dia */}
-          <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-              <span className="text-xl">📅</span>
-              Comparação de Aderência por Dia
-            </h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
-              {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia) => {
-                const data1 = dados1.dia?.find((d) => d.dia_da_semana === dia);
-                const data2 = dados2.dia?.find((d) => d.dia_da_semana === dia);
-                return (
-                  <div key={dia} className="rounded-lg border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
-                    <p className="text-xs font-bold text-slate-900 dark:text-white">{dia}</p>
-                    <div className="mt-2 space-y-1">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
-                          {(data1?.aderencia_percentual ?? 0).toFixed(0)}%
-                        </span>
-                        <span className="text-xs text-slate-500">S{semana1}</span>
-                      </div>
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-sm font-bold text-indigo-900 dark:text-indigo-100">
-                          {(data2?.aderencia_percentual ?? 0).toFixed(0)}%
-                        </span>
-                        <span className="text-xs text-slate-500">S{semana2}</span>
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <VariacaoBadge
-                        variacao={calcularVariacao(data1?.aderencia_percentual, data2?.aderencia_percentual)}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Aderência por Sub-Praça */}
-          {dados1.sub_praca && dados1.sub_praca.length > 0 && (
-            <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                <span className="text-xl">📍</span>
-                Comparação de Aderência por Sub-Praça
+          {/* Tabela de Comparação de Aderência */}
+          <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
+            <div className="border-b border-blue-200 px-6 py-4 dark:border-blue-800">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span className="text-xl">📊</span>
+                Comparação de Aderência e Métricas
               </h3>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {Array.from(
-                  new Set([
-                    ...(dados1.sub_praca?.map((sp) => sp.sub_praca) ?? []),
-                    ...(dados2.sub_praca?.map((sp) => sp.sub_praca) ?? []),
-                  ])
-                ).map((subPraca) => {
-                  const data1 = dados1.sub_praca?.find((sp) => sp.sub_praca === subPraca);
-                  const data2 = dados2.sub_praca?.find((sp) => sp.sub_praca === subPraca);
-                  return (
-                    <div key={subPraca} className="rounded-lg border border-violet-100 bg-violet-50/50 p-4 dark:border-violet-900 dark:bg-violet-950/30">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">{subPraca}</p>
-                      <div className="mt-2 space-y-2">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-lg font-bold text-violet-900 dark:text-violet-100">
-                            {(data1?.aderencia_percentual ?? 0).toFixed(1)}%
-                          </span>
-                          <span className="text-xs text-slate-500">S{semana1}</span>
-                        </div>
-                        <div className="flex items-baseline justify-between">
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-blue-50 dark:bg-blue-950/30">
+                  <tr className="border-b border-blue-200 dark:border-blue-800">
+                    <th className="px-6 py-4 text-left text-sm font-bold text-blue-900 dark:text-blue-100">Métrica</th>
+                    {semanasSelecionadas.map((semana) => (
+                      <th key={semana} className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">
+                        Semana {semana}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-blue-100 bg-white dark:border-blue-900 dark:bg-slate-900">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Aderência Geral</td>
+                    {dadosComparacao.map((dados, idx) => (
+                      <td key={idx} className="px-6 py-4 text-center">
+                        <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                          {(dados.semanal[0]?.aderencia_percentual ?? 0).toFixed(1)}%
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-blue-100 bg-blue-50/30 dark:border-blue-900 dark:bg-slate-800/30">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Corridas Ofertadas</td>
+                    {dadosComparacao.map((dados, idx) => (
+                      <td key={idx} className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">
+                        {dados.totais?.corridas_ofertadas?.toLocaleString('pt-BR') ?? 0}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-blue-100 bg-white dark:border-blue-900 dark:bg-slate-900">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Corridas Completadas</td>
+                    {dadosComparacao.map((dados, idx) => (
+                      <td key={idx} className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">
+                        {dados.totais?.corridas_completadas?.toLocaleString('pt-BR') ?? 0}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-blue-100 bg-blue-50/30 dark:border-blue-900 dark:bg-slate-800/30">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Horas Planejadas</td>
+                    {dadosComparacao.map((dados, idx) => (
+                      <td key={idx} className="px-6 py-4 text-center font-mono text-slate-700 dark:text-slate-300">
+                        {formatarHorasParaHMS(dados.semanal[0]?.horas_a_entregar ?? '0')}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-blue-100 bg-white dark:border-blue-900 dark:bg-slate-900">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Horas Entregues</td>
+                    {dadosComparacao.map((dados, idx) => (
+                      <td key={idx} className="px-6 py-4 text-center font-mono text-blue-700 dark:text-blue-400">
+                        {formatarHorasParaHMS(dados.semanal[0]?.horas_entregues ?? '0')}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Comparação de UTR */}
+          {utrComparacao.length > 0 && (
+            <div className="rounded-xl border border-purple-200 bg-white shadow-lg dark:border-purple-800 dark:bg-slate-900">
+              <div className="border-b border-purple-200 px-6 py-4 dark:border-purple-800">
+                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                  <span className="text-xl">🎯</span>
+                  Comparação de UTR
+                </h3>
+              </div>
+              <div className="overflow-x-auto p-6">
+                <table className="w-full">
+                  <thead className="bg-purple-50 dark:bg-purple-950/30">
+                    <tr className="border-b border-purple-200 dark:border-purple-800">
+                      <th className="px-6 py-4 text-left text-sm font-bold text-purple-900 dark:text-purple-100">Tipo</th>
+                      {semanasSelecionadas.map((semana) => (
+                        <th key={semana} className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">
+                          Semana {semana}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-purple-100 bg-white dark:border-purple-900 dark:bg-slate-900">
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">UTR Geral</td>
+                      {utrComparacao.map((item, idx) => (
+                        <td key={idx} className="px-6 py-4 text-center">
                           <span className="text-lg font-bold text-purple-900 dark:text-purple-100">
-                            {(data2?.aderencia_percentual ?? 0).toFixed(1)}%
+                            {item.utr?.utr_geral?.toFixed(1) ?? '0.0'}
                           </span>
-                          <span className="text-xs text-slate-500">S{semana2}</span>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <VariacaoBadge
-                          variacao={calcularVariacao(data1?.aderencia_percentual, data2?.aderencia_percentual)}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Aderência por Origem */}
-          {dados1.origem && dados1.origem.length > 0 && (
-            <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                <span className="text-xl">🎯</span>
-                Comparação de Aderência por Origem
-              </h3>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {Array.from(
-                  new Set([
-                    ...(dados1.origem?.map((o) => o.origem) ?? []),
-                    ...(dados2.origem?.map((o) => o.origem) ?? []),
-                  ])
-                ).map((origem) => {
-                  const data1 = dados1.origem?.find((o) => o.origem === origem);
-                  const data2 = dados2.origem?.find((o) => o.origem === origem);
-                  return (
-                    <div key={origem} className="rounded-lg border border-amber-100 bg-amber-50/50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">{origem}</p>
-                      <div className="mt-2 space-y-2">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-lg font-bold text-amber-900 dark:text-amber-100">
-                            {(data1?.aderencia_percentual ?? 0).toFixed(1)}%
-                          </span>
-                          <span className="text-xs text-slate-500">S{semana1}</span>
-                        </div>
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-lg font-bold text-orange-900 dark:text-orange-100">
-                            {(data2?.aderencia_percentual ?? 0).toFixed(1)}%
-                          </span>
-                          <span className="text-xs text-slate-500">S{semana2}</span>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <VariacaoBadge
-                          variacao={calcularVariacao(data1?.aderencia_percentual, data2?.aderencia_percentual)}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
