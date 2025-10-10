@@ -1306,7 +1306,7 @@ function MonitoramentoView() {
 
   const fetchMonitoramento = async () => {
     try {
-      const { data, error } = await supabase.rpc('listar_usuarios_online', { p_minutos_inatividade: 5 });
+      const { data, error } = await supabase.rpc('listar_usuarios_online');
       
       if (error) throw error;
       
