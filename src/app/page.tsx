@@ -1591,6 +1591,26 @@ function ComparacaoView({
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
   const [utrComparacao, setUtrComparacao] = useState<any[]>([]);
   const [todasSemanas, setTodasSemanas] = useState<number[]>([]);
+  
+  // Estados para controlar visualização (tabela/gráfico)
+  const [viewModeDia, setViewModeDia] = useState<'table' | 'chart'>('table');
+  const [viewModeTurno, setViewModeTurno] = useState<'table' | 'chart'>('table');
+  const [viewModeSubPraca, setViewModeSubPraca] = useState<'table' | 'chart'>('table');
+  const [viewModeOrigem, setViewModeOrigem] = useState<'table' | 'chart'>('table');
+
+  // Componente para alternar visualização
+  const ViewToggleButton = ({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+        active
+          ? 'bg-blue-600 text-white shadow-md'
+          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+      }`}
+    >
+      {label}
+    </button>
+  );
 
   // Buscar TODAS as semanas disponíveis (sem filtro)
   useEffect(() => {
@@ -1989,11 +2009,26 @@ function ComparacaoView({
           {/* Comparação por Dia da Semana */}
           <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
             <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-indigo-950/30">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                <span className="text-xl">📅</span>
-                Comparação por Dia da Semana
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                  <span className="text-xl">📅</span>
+                  Comparação por Dia da Semana
+                </h3>
+                <div className="flex gap-2">
+                  <ViewToggleButton
+                    active={viewModeDia === 'table'}
+                    onClick={() => setViewModeDia('table')}
+                    label="📋 Tabela"
+                  />
+                  <ViewToggleButton
+                    active={viewModeDia === 'chart'}
+                    onClick={() => setViewModeDia('chart')}
+                    label="📊 Gráfico"
+                  />
+                </div>
+              </div>
             </div>
+            {viewModeDia === 'table' ? (
             <div className="overflow-x-auto p-6">
               <table className="w-full">
                 <thead className="bg-slate-50 dark:bg-slate-800/50">
@@ -2025,17 +2060,79 @@ function ComparacaoView({
                 </tbody>
               </table>
             </div>
+            ) : (
+              <div className="p-6">
+                <Line data={{
+                  labels: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
+                  datasets: semanasSelecionadas.map((semana, idx) => {
+                    const cores = [
+                      { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgb(59, 130, 246)' },
+                      { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgb(16, 185, 129)' },
+                      { bg: 'rgba(139, 92, 246, 0.2)', border: 'rgb(139, 92, 246)' },
+                      { bg: 'rgba(251, 146, 60, 0.2)', border: 'rgb(251, 146, 60)' },
+                      { bg: 'rgba(236, 72, 153, 0.2)', border: 'rgb(236, 72, 153)' },
+                    ];
+                    const cor = cores[idx % cores.length];
+                    
+                    return {
+                      label: `Semana ${semana}`,
+                      data: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map(dia => {
+                        const dados = dadosComparacao[idx];
+                        const diaData = dados?.dia?.find(d => d.dia_da_semana === dia);
+                        return diaData?.aderencia_percentual ?? 0;
+                      }),
+                      backgroundColor: cor.bg,
+                      borderColor: cor.border,
+                      borderWidth: 2,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 7,
+                    };
+                  }),
+                }} options={{
+                  responsive: true,
+                  maintainAspectRatio: true,
+                  plugins: {
+                    legend: { position: 'top' as const },
+                    tooltip: {
+                      callbacks: {
+                        label: (context: any) => `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`
+                      }
+                    }
+                  },
+                  scales: {
+                    y: { beginAtZero: true, ticks: { callback: (value: any) => `${value}%` } },
+                    x: { ticks: { font: { size: 11 } } }
+                  }
+                }} />
+              </div>
+            )}
           </div>
 
           {/* Comparação por Turno */}
           {dadosComparacao.some(d => d.turno && d.turno.length > 0) && (
             <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
               <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-violet-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-violet-950/30">
-                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                  <span className="text-xl">🕐</span>
-                  Comparação por Turno
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                    <span className="text-xl">🕐</span>
+                    Comparação por Turno
+                  </h3>
+                  <div className="flex gap-2">
+                    <ViewToggleButton
+                      active={viewModeTurno === 'table'}
+                      onClick={() => setViewModeTurno('table')}
+                      label="📋 Tabela"
+                    />
+                    <ViewToggleButton
+                      active={viewModeTurno === 'chart'}
+                      onClick={() => setViewModeTurno('chart')}
+                      label="📊 Gráfico"
+                    />
+                  </div>
+                </div>
               </div>
+              {viewModeTurno === 'table' ? (
               <div className="overflow-x-auto p-6">
                 <table className="w-full">
                   <thead className="bg-slate-50 dark:bg-slate-800/50">
@@ -2067,6 +2164,54 @@ function ComparacaoView({
                   </tbody>
                 </table>
               </div>
+              ) : (
+                <div className="p-6">
+                  <Line data={{
+                    labels: Array.from(new Set(dadosComparacao.flatMap(d => d.turno?.map(t => t.periodo) ?? []))),
+                    datasets: semanasSelecionadas.map((semana, idx) => {
+                      const cores = [
+                        { bg: 'rgba(139, 92, 246, 0.2)', border: 'rgb(139, 92, 246)' },
+                        { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgb(16, 185, 129)' },
+                        { bg: 'rgba(251, 146, 60, 0.2)', border: 'rgb(251, 146, 60)' },
+                        { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgb(59, 130, 246)' },
+                        { bg: 'rgba(236, 72, 153, 0.2)', border: 'rgb(236, 72, 153)' },
+                      ];
+                      const cor = cores[idx % cores.length];
+                      const turnos = Array.from(new Set(dadosComparacao.flatMap(d => d.turno?.map(t => t.periodo) ?? [])));
+                      
+                      return {
+                        label: `Semana ${semana}`,
+                        data: turnos.map(turno => {
+                          const dados = dadosComparacao[idx];
+                          const turnoData = dados?.turno?.find(t => t.periodo === turno);
+                          return turnoData?.aderencia_percentual ?? 0;
+                        }),
+                        backgroundColor: cor.bg,
+                        borderColor: cor.border,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                      };
+                    }),
+                  }} options={{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                      legend: { position: 'top' as const },
+                      tooltip: {
+                        callbacks: {
+                          label: (context: any) => `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`
+                        }
+                      }
+                    },
+                    scales: {
+                      y: { beginAtZero: true, ticks: { callback: (value: any) => `${value}%` } },
+                      x: { ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 45 } }
+                    }
+                  }} />
+                </div>
+              )}
             </div>
           )}
 
