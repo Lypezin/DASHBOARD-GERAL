@@ -33,7 +33,7 @@ CREATE TABLE public.user_activities (
     action_details TEXT,
     tab_name TEXT,
     filters_applied JSONB DEFAULT '{}'::jsonb,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     session_id TEXT,
     ip_address TEXT,
     user_agent TEXT,
@@ -42,7 +42,7 @@ CREATE TABLE public.user_activities (
 
 -- Índices para melhor performance
 CREATE INDEX IF NOT EXISTS idx_user_activities_user_id ON public.user_activities(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_activities_timestamp ON public.user_activities(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_user_activities_created_at ON public.user_activities(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_user_activities_session ON public.user_activities(session_id);
 CREATE INDEX IF NOT EXISTS idx_user_activities_action_type ON public.user_activities(action_type);
 
@@ -121,7 +121,7 @@ BEGIN
         tab_name,
         session_id,
         user_agent,
-        timestamp
+        created_at
     )
     VALUES (
         p_user_id,
@@ -192,26 +192,26 @@ BEGIN
             ua.user_email,
             ua.tab_name,
             ua.filters_applied,
-            ua.timestamp,
+            ua.created_at,
             ua.session_id,
             ua.action_type,
-            NOW() - ua.timestamp AS time_inactive
+            NOW() - ua.created_at AS time_inactive
         FROM public.user_activities ua
-        WHERE ua.timestamp > NOW() - INTERVAL '5 minutes'
-        ORDER BY ua.user_id, ua.session_id, ua.timestamp DESC
+        WHERE ua.created_at > NOW() - INTERVAL '5 minutes'
+        ORDER BY ua.user_id, ua.session_id, ua.created_at DESC
     )
     SELECT
         la.user_id,
         la.user_email,
         la.tab_name,
         la.filters_applied,
-        la.timestamp,
+        la.created_at,
         la.session_id,
         (la.time_inactive < INTERVAL '2 minutes') AS is_active,
         la.action_type,
         la.time_inactive
     FROM latest_activities la
-    ORDER BY la.timestamp DESC;
+    ORDER BY la.created_at DESC;
 
 END;
 $$;
@@ -231,7 +231,7 @@ RETURNS TABLE (
     action_details TEXT,
     tab_name TEXT,
     filters_applied JSONB,
-    timestamp TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE,
     session_id TEXT
 )
 LANGUAGE plpgsql
@@ -256,12 +256,12 @@ BEGIN
         ua.action_details,
         ua.tab_name,
         ua.filters_applied,
-        ua.timestamp,
+        ua.created_at,
         ua.session_id
     FROM public.user_activities ua
     WHERE ua.user_id = p_user_id
-      AND ua.timestamp BETWEEN p_start_date AND p_end_date
-    ORDER BY ua.timestamp DESC
+      AND ua.created_at BETWEEN p_start_date AND p_end_date
+    ORDER BY ua.created_at DESC
     LIMIT 1000;
 
 END;

@@ -1867,6 +1867,90 @@ function ComparacaoView({
             </div>
           </div>
 
+          {/* Comparação por Dia da Semana */}
+          <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+            <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-indigo-950/30">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span className="text-xl">📅</span>
+                Comparação por Dia da Semana
+              </h3>
+            </div>
+            <div className="overflow-x-auto p-6">
+              <table className="w-full">
+                <thead className="bg-slate-50 dark:bg-slate-800/50">
+                  <tr className="border-b border-slate-200 dark:border-slate-700">
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Dia</th>
+                    {semanasSelecionadas.map((semana) => (
+                      <th key={semana} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                        Semana {semana}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, diaIdx) => (
+                    <tr key={dia} className={diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}>
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{dia}</td>
+                      {dadosComparacao.map((dados, idx) => {
+                        const diaData = dados.dia?.find(d => d.dia_da_semana === dia);
+                        return (
+                          <td key={idx} className="px-6 py-4 text-center">
+                            <span className="font-semibold text-slate-700 dark:text-slate-300">
+                              {diaData?.aderencia_percentual?.toFixed(1) ?? '0.0'}%
+                            </span>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Comparação por Turno */}
+          {dadosComparacao.some(d => d.turno && d.turno.length > 0) && (
+            <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+              <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-violet-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-violet-950/30">
+                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                  <span className="text-xl">🕐</span>
+                  Comparação por Turno
+                </h3>
+              </div>
+              <div className="overflow-x-auto p-6">
+                <table className="w-full">
+                  <thead className="bg-slate-50 dark:bg-slate-800/50">
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Turno</th>
+                      {semanasSelecionadas.map((semana) => (
+                        <th key={semana} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                          Semana {semana}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {Array.from(new Set(dadosComparacao.flatMap(d => d.turno?.map(t => t.periodo) ?? []))).map((turno, turnoIdx) => (
+                      <tr key={turno} className={turnoIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-violet-50/50 dark:bg-violet-950/20'}>
+                        <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{turno}</td>
+                        {dadosComparacao.map((dados, idx) => {
+                          const turnoData = dados.turno?.find(t => t.periodo === turno);
+                          return (
+                            <td key={idx} className="px-6 py-4 text-center">
+                              <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                {turnoData?.aderencia_percentual?.toFixed(1) ?? '0.0'}%
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* Comparação de UTR */}
           {utrComparacao.length > 0 ? (
             <div className="rounded-xl border border-purple-200 bg-white shadow-lg dark:border-purple-800 dark:bg-slate-900">
@@ -1896,13 +1980,17 @@ function ComparacaoView({
                           UTR Geral
                         </div>
                       </td>
-                      {utrComparacao.map((item, idx) => (
-                        <td key={idx} className="px-6 py-4 text-center">
-                          <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-lg font-bold text-purple-900 dark:bg-purple-900/30 dark:text-purple-100">
-                            {item.utr?.utr_geral?.toFixed(2) ?? '0.00'}
-                          </span>
-                        </td>
-                      ))}
+                      {utrComparacao.map((item, idx) => {
+                        // Tentar diferentes estruturas possíveis
+                        const utrValue = item.utr?.utr_geral ?? item.utr_geral ?? item?.utr_geral ?? 0;
+                        return (
+                          <td key={idx} className="px-6 py-4 text-center">
+                            <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-lg font-bold text-purple-900 dark:bg-purple-900/30 dark:text-purple-100">
+                              {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}
+                            </span>
+                          </td>
+                        );
+                      })}
                     </tr>
                   </tbody>
                 </table>
