@@ -1867,9 +1867,9 @@ function ComparacaoView({
                 <thead className="bg-slate-50 dark:bg-slate-800/50">
                   <tr className="border-b border-slate-200 dark:border-slate-700">
                     <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Métrica</th>
-                    {semanasSelecionadas.map((semana) => (
-                      <th key={semana} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        Semana {semana}
+                    {semanasSelecionadas.map((semana, idx) => (
+                      <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                        Semana {semana} {idx > 0 && '(Δ%)'}
                       </th>
                     ))}
                   </tr>
@@ -1883,13 +1883,35 @@ function ComparacaoView({
                         Aderência Geral
                       </div>
                     </td>
-                    {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-lg font-bold text-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
-                          {(dados.semanal[0]?.aderencia_percentual ?? 0).toFixed(1)}%
-                        </span>
-                      </td>
-                    ))}
+                    {dadosComparacao.map((dados, idx) => {
+                      const aderencia = dados.semanal[0]?.aderencia_percentual ?? 0;
+                      let variacao = null;
+                      if (idx > 0) {
+                        const aderenciaAnterior = dadosComparacao[idx - 1].semanal[0]?.aderencia_percentual ?? 0;
+                        variacao = aderenciaAnterior > 0 ? ((aderencia - aderenciaAnterior) / aderenciaAnterior) * 100 : 0;
+                      }
+                      
+                      return (
+                        <>
+                          <td key={`${idx}-valor`} className="px-6 py-4 text-center">
+                            <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-lg font-bold text-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
+                              {aderencia.toFixed(1)}%
+                            </span>
+                          </td>
+                          {idx > 0 && variacao !== null && (
+                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                                variacao >= 0 
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                  : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                              }`}>
+                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                              </span>
+                            </td>
+                          )}
+                        </>
+                      );
+                    })}
                   </tr>
                   
                   {/* Corridas Ofertadas */}
@@ -1900,11 +1922,33 @@ function ComparacaoView({
                         Corridas Ofertadas
                       </div>
                     </td>
-                    {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300">
-                        {dados.totais?.corridas_ofertadas?.toLocaleString('pt-BR') ?? 0}
-                      </td>
-                    ))}
+                    {dadosComparacao.map((dados, idx) => {
+                      const ofertadas = dados.totais?.corridas_ofertadas ?? 0;
+                      let variacao = null;
+                      if (idx > 0) {
+                        const ofertadasAnterior = dadosComparacao[idx - 1].totais?.corridas_ofertadas ?? 0;
+                        variacao = ofertadasAnterior > 0 ? ((ofertadas - ofertadasAnterior) / ofertadasAnterior) * 100 : 0;
+                      }
+                      
+                      return (
+                        <>
+                          <td key={`${idx}-valor`} className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300">
+                            {ofertadas.toLocaleString('pt-BR')}
+                          </td>
+                          {idx > 0 && variacao !== null && (
+                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                                variacao >= 0 
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                  : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                              }`}>
+                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                              </span>
+                            </td>
+                          )}
+                        </>
+                      );
+                    })}
                   </tr>
                   
                   {/* Corridas Aceitas */}
@@ -1915,11 +1959,33 @@ function ComparacaoView({
                         Corridas Aceitas
                       </div>
                     </td>
-                    {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-emerald-700 dark:text-emerald-400">
-                        {dados.totais?.corridas_aceitas?.toLocaleString('pt-BR') ?? 0}
-                      </td>
-                    ))}
+                    {dadosComparacao.map((dados, idx) => {
+                      const aceitas = dados.totais?.corridas_aceitas ?? 0;
+                      let variacao = null;
+                      if (idx > 0) {
+                        const aceitasAnterior = dadosComparacao[idx - 1].totais?.corridas_aceitas ?? 0;
+                        variacao = aceitasAnterior > 0 ? ((aceitas - aceitasAnterior) / aceitasAnterior) * 100 : 0;
+                      }
+                      
+                      return (
+                        <>
+                          <td key={`${idx}-valor`} className="px-6 py-4 text-center text-base font-semibold text-emerald-700 dark:text-emerald-400">
+                            {aceitas.toLocaleString('pt-BR')}
+                          </td>
+                          {idx > 0 && variacao !== null && (
+                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                                variacao >= 0 
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                  : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                              }`}>
+                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                              </span>
+                            </td>
+                          )}
+                        </>
+                      );
+                    })}
                   </tr>
                   
                   {/* Corridas Rejeitadas */}
@@ -1930,11 +1996,33 @@ function ComparacaoView({
                         Corridas Rejeitadas
                       </div>
                     </td>
-                    {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-rose-700 dark:text-rose-400">
-                        {dados.totais?.corridas_rejeitadas?.toLocaleString('pt-BR') ?? 0}
-                      </td>
-                    ))}
+                    {dadosComparacao.map((dados, idx) => {
+                      const rejeitadas = dados.totais?.corridas_rejeitadas ?? 0;
+                      let variacao = null;
+                      if (idx > 0) {
+                        const rejeitadasAnterior = dadosComparacao[idx - 1].totais?.corridas_rejeitadas ?? 0;
+                        variacao = rejeitadasAnterior > 0 ? ((rejeitadas - rejeitadasAnterior) / rejeitadasAnterior) * 100 : 0;
+                      }
+                      
+                      return (
+                        <>
+                          <td key={`${idx}-valor`} className="px-6 py-4 text-center text-base font-semibold text-rose-700 dark:text-rose-400">
+                            {rejeitadas.toLocaleString('pt-BR')}
+                          </td>
+                          {idx > 0 && variacao !== null && (
+                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                                variacao >= 0 
+                                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                                  : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                              }`}>
+                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                              </span>
+                            </td>
+                          )}
+                        </>
+                      );
+                    })}
                   </tr>
                   
                   {/* Corridas Completadas */}
@@ -1945,11 +2033,33 @@ function ComparacaoView({
                         Corridas Completadas
                       </div>
                     </td>
-                    {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-purple-700 dark:text-purple-400">
-                        {dados.totais?.corridas_completadas?.toLocaleString('pt-BR') ?? 0}
-                      </td>
-                    ))}
+                    {dadosComparacao.map((dados, idx) => {
+                      const completadas = dados.totais?.corridas_completadas ?? 0;
+                      let variacao = null;
+                      if (idx > 0) {
+                        const completadasAnterior = dadosComparacao[idx - 1].totais?.corridas_completadas ?? 0;
+                        variacao = completadasAnterior > 0 ? ((completadas - completadasAnterior) / completadasAnterior) * 100 : 0;
+                      }
+                      
+                      return (
+                        <>
+                          <td key={`${idx}-valor`} className="px-6 py-4 text-center text-base font-semibold text-purple-700 dark:text-purple-400">
+                            {completadas.toLocaleString('pt-BR')}
+                          </td>
+                          {idx > 0 && variacao !== null && (
+                            <td key={`${idx}-var`} className="px-6 py-4 text-center">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                                variacao >= 0 
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                  : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                              }`}>
+                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                              </span>
+                            </td>
+                          )}
+                        </>
+                      );
+                    })}
                   </tr>
                   
                   {/* Taxa de Aceitação */}
