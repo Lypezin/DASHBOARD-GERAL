@@ -1300,7 +1300,7 @@ function AnaliseView({
 }
 
 function MonitoramentoView() {
-  const [monitoramentoData, setMonitoramentoData] = useState<MonitoramentoData | null>(null);
+  const [usuarios, setUsuarios] = useState<UsuarioOnline[]>([]);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
@@ -1310,9 +1310,33 @@ function MonitoramentoView() {
       
       if (error) throw error;
       
-      setMonitoramentoData(data as MonitoramentoData);
+      // Mapear os dados da API para o formato esperado
+      const usuariosMapeados = (data || []).map((u: any) => {
+        // Converter INTERVAL para segundos
+        const intervalo = u.time_since_last_activity || {};
+        const segundosInativo = (intervalo.hours || 0) * 3600 + (intervalo.minutes || 0) * 60 + (intervalo.seconds || 0);
+        
+        // Extrair praças dos filtros
+        const filtros = u.filters_applied || {};
+        const pracas = filtros.praca ? [filtros.praca] : [];
+        
+        return {
+          user_id: u.user_id,
+          nome: u.user_email?.split('@')[0] || 'Usuário',
+          email: u.user_email,
+          aba_atual: u.current_tab,
+          pracas: pracas,
+          ultima_acao: u.last_action_type,
+          segundos_inativo: segundosInativo,
+          acoes_ultima_hora: 0, // Não temos essa informação agora
+          is_active: u.is_active
+        };
+      });
+      
+      setUsuarios(usuariosMapeados);
     } catch (err) {
       console.error('Erro ao buscar monitoramento:', err);
+      setUsuarios([]);
     } finally {
       setLoading(false);
     }
@@ -1357,7 +1381,7 @@ function MonitoramentoView() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-indigo-100">🔍 Monitoramento em Tempo Real</h2>
-            <p className="mt-2 text-4xl font-bold text-white">{monitoramentoData?.total_online || 0}</p>
+            <p className="mt-2 text-4xl font-bold text-white">{usuarios.length}</p>
             <p className="mt-1 text-sm text-indigo-100">Usuários online</p>
           </div>
           <div className="flex items-center gap-4">
@@ -1381,9 +1405,9 @@ function MonitoramentoView() {
       </div>
 
       {/* Lista de Usuários Online */}
-      {monitoramentoData && monitoramentoData.usuarios && monitoramentoData.usuarios.length > 0 ? (
+      {usuarios.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {monitoramentoData.usuarios.map((usuario) => (
+          {usuarios.map((usuario) => (
             <div
               key={usuario.user_id}
               className="rounded-xl border border-slate-200 bg-white p-5 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900"
