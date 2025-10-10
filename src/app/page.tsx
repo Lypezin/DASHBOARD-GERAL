@@ -267,14 +267,17 @@ function TabButton({ label, icon, active, onClick }: { label: string; icon: stri
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+      className={`relative flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-300 ${
         active
-          ? 'scale-105 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-          : 'bg-blue-100 text-blue-700 hover:scale-105 hover:bg-blue-200 hover:shadow-md active:scale-95 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
+          ? 'bg-white text-blue-700 shadow-xl scale-105 dark:bg-slate-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+          : 'bg-white/50 text-slate-700 hover:bg-white hover:shadow-lg hover:scale-105 active:scale-95 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800 border border-transparent'
       }`}
     >
-      <span className={active ? 'animate-pulse-soft' : ''}>{icon}</span>
-      {label}
+      {active && (
+        <div className="absolute -bottom-1 left-1/2 h-1 w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+      )}
+      <span className={`text-base ${active ? 'animate-pulse-soft' : ''}`}>{icon}</span>
+      <span>{label}</span>
     </button>
   );
 }
@@ -345,24 +348,26 @@ function AderenciaCard({
   const bgClass = getAderenciaBgColor(percentual);
 
   return (
-    <div className={`rounded-xl border p-4 ${bgClass}`}>
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
-        <span className={`text-xl font-bold ${colorClass}`}>{(percentual ?? 0).toFixed(1)}%</span>
+    <div className={`group rounded-2xl border p-5 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${bgClass}`}>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">{title}</h3>
+        <span className={`rounded-full px-3 py-1 text-lg font-bold ${colorClass} bg-white/50 dark:bg-slate-900/50`}>
+          {(percentual ?? 0).toFixed(1)}%
+        </span>
       </div>
-      <div className="space-y-2 text-sm">
-        <div className="flex justify-between">
-          <span className="text-slate-600 dark:text-slate-400">Planejado:</span>
-          <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatarHorasParaHMS(planejado)}</span>
+      <div className="space-y-3 text-sm">
+        <div className="flex items-center justify-between rounded-lg bg-white/30 px-3 py-2 dark:bg-slate-900/30">
+          <span className="font-medium text-slate-600 dark:text-slate-400">Planejado:</span>
+          <span className="font-mono text-base font-bold text-slate-900 dark:text-white">{formatarHorasParaHMS(planejado)}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-slate-600 dark:text-slate-400">Entregue:</span>
-          <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{formatarHorasParaHMS(entregue)}</span>
+        <div className="flex items-center justify-between rounded-lg bg-white/30 px-3 py-2 dark:bg-slate-900/30">
+          <span className="font-medium text-slate-600 dark:text-slate-400">Entregue:</span>
+          <span className="font-mono text-base font-bold text-blue-600 dark:text-blue-400">{formatarHorasParaHMS(entregue)}</span>
         </div>
       </div>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/50 dark:bg-slate-800/50">
+      <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/50 dark:bg-slate-800/50">
         <div 
-          className={`h-full rounded-full transition-all duration-1000 ${percentual >= 90 ? 'bg-emerald-500' : percentual >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`}
+          className={`h-full rounded-full transition-all duration-1000 ${percentual >= 90 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : percentual >= 70 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-rose-500 to-rose-600'}`}
           style={{ width: `${Math.min(percentual, 100)}%` }}
         ></div>
       </div>
@@ -536,26 +541,40 @@ function DashboardView({
 
   return (
     <div className="space-y-6">
-      {/* Aderência Geral */}
+      {/* Aderência Geral Redesenhada */}
       {aderenciaGeral && (
-        <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-600 to-indigo-600 p-6 shadow-lg dark:border-blue-900">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-blue-100">Aderência Geral</h2>
-              <p className="mt-2 text-4xl font-bold text-white">{(aderenciaGeral.aderencia_percentual ?? 0).toFixed(1)}%</p>
-              <div className="mt-4 flex gap-6 text-sm">
-                <div>
-                  <span className="text-blue-100">Planejado:</span>
-                  <span className="ml-2 font-mono font-bold text-white">{formatarHorasParaHMS(aderenciaGeral.horas_entregues)}</span>
+        <div className="relative overflow-hidden rounded-2xl border border-blue-200 bg-white p-8 shadow-2xl dark:border-blue-800 dark:bg-slate-900">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/10"></div>
+          <div className="relative flex items-center justify-between">
+            <div className="flex-1">
+              <div className="mb-2 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
+                  <span className="text-2xl">📊</span>
                 </div>
                 <div>
-                  <span className="text-blue-100">Entregue:</span>
-                  <span className="ml-2 font-mono font-bold text-white">{formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}</span>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Aderência Geral</h2>
+                  <p className="mt-1 text-5xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">
+                    {(aderenciaGeral.aderencia_percentual ?? 0).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Planejado</p>
+                  <p className="mt-1 font-mono text-lg font-bold text-slate-900 dark:text-white">
+                    {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400">Entregue</p>
+                  <p className="mt-1 font-mono text-lg font-bold text-blue-900 dark:text-blue-100">
+                    {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
+                  </p>
                 </div>
               </div>
             </div>
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-              <span className="text-4xl">📊</span>
+            <div className="ml-6 hidden lg:flex h-32 w-32 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30">
+              <span className="text-6xl">🎯</span>
             </div>
           </div>
         </div>
@@ -1534,6 +1553,9 @@ function ComparacaoView({
       const resultadosDados = await Promise.all(promessasDados);
       const resultadosUtr = await Promise.all(promessasUtr);
       
+      console.log('📊 Dados Comparação:', resultadosDados);
+      console.log('🎯 UTR Comparação:', resultadosUtr);
+      
       setDadosComparacao(resultadosDados.map(r => r.dados));
       setUtrComparacao(resultadosUtr);
       
@@ -1648,65 +1670,194 @@ function ComparacaoView({
       {/* Resultados da Comparação */}
       {dadosComparacao.length > 0 && (
         <div className="space-y-6">
-          {/* Tabela de Comparação de Aderência */}
-          <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
-            <div className="border-b border-blue-200 px-6 py-4 dark:border-blue-800">
+          {/* Cards Comparativos no Topo */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-500 to-indigo-600 p-6 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+                  <span className="text-2xl">📊</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-blue-100">Aderência Média</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(dadosComparacao.reduce((sum, d) => sum + (d.semanal[0]?.aderencia_percentual ?? 0), 0) / dadosComparacao.length).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-500 to-green-600 p-6 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+                  <span className="text-2xl">🚗</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-emerald-100">Total de Corridas</p>
+                  <p className="text-2xl font-bold text-white">
+                    {dadosComparacao.reduce((sum, d) => sum + (d.totais?.corridas_completadas ?? 0), 0).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-500 to-pink-600 p-6 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+                  <span className="text-2xl">⏱️</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-purple-100">Horas Entregues</p>
+                  <p className="text-xl font-bold font-mono text-white">
+                    {formatarHorasParaHMS(
+                      dadosComparacao.reduce((sum, d) => sum + parseFloat(d.semanal[0]?.horas_entregues ?? '0'), 0).toString()
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabela de Comparação Completa */}
+          <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+            <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-blue-950/30">
               <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
                 <span className="text-xl">📊</span>
-                Comparação de Aderência e Métricas
+                Comparação Detalhada de Métricas
               </h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-blue-50 dark:bg-blue-950/30">
-                  <tr className="border-b border-blue-200 dark:border-blue-800">
-                    <th className="px-6 py-4 text-left text-sm font-bold text-blue-900 dark:text-blue-100">Métrica</th>
+                <thead className="bg-slate-50 dark:bg-slate-800/50">
+                  <tr className="border-b border-slate-200 dark:border-slate-700">
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Métrica</th>
                     {semanasSelecionadas.map((semana) => (
-                      <th key={semana} className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">
+                      <th key={semana} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                         Semana {semana}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
-                  <tr className="border-b border-blue-100 bg-white dark:border-blue-900 dark:bg-slate-900">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Aderência Geral</td>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {/* Aderência */}
+                  <tr className="bg-blue-50/50 dark:bg-blue-950/20">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📈</span>
+                        Aderência Geral
+                      </div>
+                    </td>
                     {dadosComparacao.map((dados, idx) => (
                       <td key={idx} className="px-6 py-4 text-center">
-                        <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                        <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-lg font-bold text-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
                           {(dados.semanal[0]?.aderencia_percentual ?? 0).toFixed(1)}%
                         </span>
                       </td>
                     ))}
                   </tr>
-                  <tr className="border-b border-blue-100 bg-blue-50/30 dark:border-blue-900 dark:bg-slate-800/30">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Corridas Ofertadas</td>
+                  
+                  {/* Corridas Ofertadas */}
+                  <tr className="bg-white dark:bg-slate-900">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📢</span>
+                        Corridas Ofertadas
+                      </div>
+                    </td>
                     {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">
+                      <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300">
                         {dados.totais?.corridas_ofertadas?.toLocaleString('pt-BR') ?? 0}
                       </td>
                     ))}
                   </tr>
-                  <tr className="border-b border-blue-100 bg-white dark:border-blue-900 dark:bg-slate-900">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Corridas Completadas</td>
+                  
+                  {/* Corridas Aceitas */}
+                  <tr className="bg-emerald-50/50 dark:bg-emerald-950/20">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">✅</span>
+                        Corridas Aceitas
+                      </div>
+                    </td>
                     {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">
+                      <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-emerald-700 dark:text-emerald-400">
+                        {dados.totais?.corridas_aceitas?.toLocaleString('pt-BR') ?? 0}
+                      </td>
+                    ))}
+                  </tr>
+                  
+                  {/* Corridas Rejeitadas */}
+                  <tr className="bg-white dark:bg-slate-900">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">❌</span>
+                        Corridas Rejeitadas
+                      </div>
+                    </td>
+                    {dadosComparacao.map((dados, idx) => (
+                      <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-rose-700 dark:text-rose-400">
+                        {dados.totais?.corridas_rejeitadas?.toLocaleString('pt-BR') ?? 0}
+                      </td>
+                    ))}
+                  </tr>
+                  
+                  {/* Corridas Completadas */}
+                  <tr className="bg-purple-50/50 dark:bg-purple-950/20">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🎯</span>
+                        Corridas Completadas
+                      </div>
+                    </td>
+                    {dadosComparacao.map((dados, idx) => (
+                      <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-purple-700 dark:text-purple-400">
                         {dados.totais?.corridas_completadas?.toLocaleString('pt-BR') ?? 0}
                       </td>
                     ))}
                   </tr>
-                  <tr className="border-b border-blue-100 bg-blue-50/30 dark:border-blue-900 dark:bg-slate-800/30">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Horas Planejadas</td>
+                  
+                  {/* Taxa de Aceitação */}
+                  <tr className="bg-white dark:bg-slate-900">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">💯</span>
+                        Taxa de Aceitação
+                      </div>
+                    </td>
+                    {dadosComparacao.map((dados, idx) => {
+                      const taxaAceitacao = dados.totais?.corridas_ofertadas 
+                        ? ((dados.totais?.corridas_aceitas ?? 0) / dados.totais.corridas_ofertadas) * 100 
+                        : 0;
+                      return (
+                        <td key={idx} className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300">
+                          {taxaAceitacao.toFixed(1)}%
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  
+                  {/* Horas Planejadas */}
+                  <tr className="bg-amber-50/50 dark:bg-amber-950/20">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📅</span>
+                        Horas Planejadas
+                      </div>
+                    </td>
                     {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center font-mono text-slate-700 dark:text-slate-300">
+                      <td key={idx} className="px-6 py-4 text-center font-mono text-base font-semibold text-amber-700 dark:text-amber-400">
                         {formatarHorasParaHMS(dados.semanal[0]?.horas_a_entregar ?? '0')}
                       </td>
                     ))}
                   </tr>
-                  <tr className="border-b border-blue-100 bg-white dark:border-blue-900 dark:bg-slate-900">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">Horas Entregues</td>
+                  
+                  {/* Horas Entregues */}
+                  <tr className="bg-white dark:bg-slate-900">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">⏱️</span>
+                        Horas Entregues
+                      </div>
+                    </td>
                     {dadosComparacao.map((dados, idx) => (
-                      <td key={idx} className="px-6 py-4 text-center font-mono text-blue-700 dark:text-blue-400">
+                      <td key={idx} className="px-6 py-4 text-center font-mono text-base font-semibold text-blue-700 dark:text-blue-400">
                         {formatarHorasParaHMS(dados.semanal[0]?.horas_entregues ?? '0')}
                       </td>
                     ))}
@@ -1717,39 +1868,54 @@ function ComparacaoView({
           </div>
 
           {/* Comparação de UTR */}
-          {utrComparacao.length > 0 && (
+          {utrComparacao.length > 0 ? (
             <div className="rounded-xl border border-purple-200 bg-white shadow-lg dark:border-purple-800 dark:bg-slate-900">
-              <div className="border-b border-purple-200 px-6 py-4 dark:border-purple-800">
+              <div className="border-b border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 dark:border-purple-800 dark:from-purple-950/30 dark:to-pink-950/30">
                 <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
                   <span className="text-xl">🎯</span>
-                  Comparação de UTR
+                  Comparação de UTR (Utilização de Tempo Real)
                 </h3>
               </div>
               <div className="overflow-x-auto p-6">
                 <table className="w-full">
                   <thead className="bg-purple-50 dark:bg-purple-950/30">
-                    <tr className="border-b border-purple-200 dark:border-purple-800">
-                      <th className="px-6 py-4 text-left text-sm font-bold text-purple-900 dark:text-purple-100">Tipo</th>
+                    <tr className="border-b-2 border-purple-200 dark:border-purple-800">
+                      <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-purple-900 dark:text-purple-100">Métrica</th>
                       {semanasSelecionadas.map((semana) => (
-                        <th key={semana} className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">
+                        <th key={semana} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                           Semana {semana}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr className="border-b border-purple-100 bg-white dark:border-purple-900 dark:bg-slate-900">
-                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">UTR Geral</td>
+                  <tbody className="divide-y divide-purple-100 dark:divide-purple-900">
+                    <tr className="bg-white dark:bg-slate-900">
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">🎯</span>
+                          UTR Geral
+                        </div>
+                      </td>
                       {utrComparacao.map((item, idx) => (
                         <td key={idx} className="px-6 py-4 text-center">
-                          <span className="text-lg font-bold text-purple-900 dark:text-purple-100">
-                            {item.utr?.utr_geral?.toFixed(1) ?? '0.0'}
+                          <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-lg font-bold text-purple-900 dark:bg-purple-900/30 dark:text-purple-100">
+                            {item.utr?.utr_geral?.toFixed(2) ?? '0.00'}
                           </span>
                         </td>
                       ))}
                     </tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-950/20">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">⚠️</span>
+                <div>
+                  <p className="font-semibold text-amber-900 dark:text-amber-100">UTR não disponível</p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">Os dados de UTR não foram carregados para as semanas selecionadas.</p>
+                </div>
               </div>
             </div>
           )}
@@ -2498,17 +2664,37 @@ export default function DashboardPage() {
   }, [activeTab, filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
-      <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
-        {/* Header Principal */}
-        <header className="mb-6 animate-fade-in">
-          <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 p-6 shadow-xl">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Dashboard Geral</h1>
-              <p className="mt-1 text-sm text-blue-100">Sistema de Análise e Monitoramento</p>
-            </div>
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-              <span className="text-4xl">📊</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/30">
+      <div className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6">
+        {/* Header Principal Redesenhado */}
+        <header className="mb-8 animate-fade-in">
+          <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-2xl dark:border-blue-900/30 dark:bg-slate-900">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5"></div>
+            <div className="relative flex items-center justify-between p-8">
+              <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
+                  <span className="text-3xl">📊</span>
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent dark:from-white dark:to-blue-200">
+                    Dashboard Operacional
+                  </h1>
+                  <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-400">
+                    Sistema de Análise e Monitoramento em Tempo Real
+                  </p>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Última atualização</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">
+                    {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+                  <span className="text-xl">🟢</span>
+                </div>
+              </div>
             </div>
           </div>
         </header>
