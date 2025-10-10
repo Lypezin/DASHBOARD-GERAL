@@ -1019,14 +1019,26 @@ function AnaliseView({
                   <th className="px-6 py-4 text-left text-sm font-bold text-blue-900 dark:text-blue-100">Dia</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Ofertadas</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Aceitas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">% Aceitas</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Rejeitadas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-rose-900 dark:text-rose-100">% Rejeite</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Completadas</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Taxa Aceitação</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">% Completos</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-blue-900 dark:text-blue-100">Aderência</th>
                 </tr>
               </thead>
               <tbody>
-                {aderenciaDia.map((dia, index) => (
+                {aderenciaDia.map((dia, index) => {
+                  const ofertadas = dia.corridas_ofertadas ?? 0;
+                  const aceitas = dia.corridas_aceitas ?? 0;
+                  const rejeitadas = dia.corridas_rejeitadas ?? 0;
+                  const completadas = dia.corridas_completadas ?? 0;
+                  
+                  const percAceitas = ofertadas > 0 ? (aceitas / ofertadas) * 100 : 0;
+                  const percRejeitadas = ofertadas > 0 ? (rejeitadas / ofertadas) * 100 : 0;
+                  const percCompletas = aceitas > 0 ? (completadas / aceitas) * 100 : 0;
+                  
+                  return (
                   <tr
                     key={dia.dia_iso}
                     className={`border-b border-blue-100 transition-colors hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-950/20 ${
@@ -1034,24 +1046,31 @@ function AnaliseView({
                     }`}
                   >
                     <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{dia.dia_da_semana}</td>
-                    <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{dia.corridas_ofertadas ?? 0}</td>
-                    <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{dia.corridas_aceitas ?? 0}</td>
-                    <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{dia.corridas_rejeitadas ?? 0}</td>
-                    <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{dia.corridas_completadas ?? 0}</td>
+                    <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{ofertadas}</td>
+                    <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{aceitas}</td>
                     <td className="px-6 py-4 text-center font-semibold text-emerald-700 dark:text-emerald-400">
-                      {(dia.taxa_aceitacao ?? 0).toFixed(1)}%
+                      {percAceitas.toFixed(1)}%
+                    </td>
+                    <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{rejeitadas}</td>
+                    <td className="px-6 py-4 text-center font-semibold text-rose-700 dark:text-rose-400">
+                      {percRejeitadas.toFixed(1)}%
+                    </td>
+                    <td className="px-6 py-4 text-center text-purple-700 dark:text-purple-400">{completadas}</td>
+                    <td className="px-6 py-4 text-center font-semibold text-purple-700 dark:text-purple-400">
+                      {percCompletas.toFixed(1)}%
                     </td>
                     <td className="px-6 py-4 text-center font-bold text-blue-900 dark:text-blue-100">
                       {(dia.aderencia_percentual ?? 0).toFixed(1)}%
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
           ) : (
             <div className="p-6">
-              <Bar data={barDataDia} options={{
+              <Line data={barDataDia} options={{
                 ...chartOptions,
                 scales: {
                   y: {
@@ -1094,22 +1113,38 @@ function AnaliseView({
           
           {viewModeTurno === 'chart' ? (
             <div className="p-6">
-          <Bar data={{
+          <Line data={{
             labels: aderenciaTurno.map(t => t.periodo),
             datasets: [
               {
                 label: 'Ofertadas',
                 data: aderenciaTurno.map(t => t.corridas_ofertadas ?? 0),
-                backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                backgroundColor: 'rgba(139, 92, 246, 0.2)',
                 borderColor: 'rgb(139, 92, 246)',
-                borderWidth: 1,
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+              },
+              {
+                label: 'Aceitas',
+                data: aderenciaTurno.map(t => t.corridas_aceitas ?? 0),
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                borderColor: 'rgb(16, 185, 129)',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7,
               },
               {
                 label: 'Completadas',
                 data: aderenciaTurno.map(t => t.corridas_completadas ?? 0),
-                backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                borderColor: 'rgb(16, 185, 129)',
-                borderWidth: 1,
+                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                borderColor: 'rgb(99, 102, 241)',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7,
               },
             ],
           }} options={{
@@ -1141,14 +1176,26 @@ function AnaliseView({
                   <th className="px-6 py-4 text-left text-sm font-bold text-purple-900 dark:text-purple-100">Turno</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Ofertadas</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Aceitas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">% Aceitas</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Rejeitadas</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-rose-900 dark:text-rose-100">% Rejeite</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Completadas</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Taxa Completude</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-indigo-900 dark:text-indigo-100">% Completos</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-purple-900 dark:text-purple-100">Aderência</th>
                 </tr>
               </thead>
               <tbody>
-                {aderenciaTurno.map((turno, index) => (
+                {aderenciaTurno.map((turno, index) => {
+                  const ofertadas = turno.corridas_ofertadas ?? 0;
+                  const aceitas = turno.corridas_aceitas ?? 0;
+                  const rejeitadas = turno.corridas_rejeitadas ?? 0;
+                  const completadas = turno.corridas_completadas ?? 0;
+                  
+                  const percAceitas = ofertadas > 0 ? (aceitas / ofertadas) * 100 : 0;
+                  const percRejeitadas = ofertadas > 0 ? (rejeitadas / ofertadas) * 100 : 0;
+                  const percCompletas = aceitas > 0 ? (completadas / aceitas) * 100 : 0;
+                  
+                  return (
                   <tr
                     key={turno.periodo}
                     className={`border-b border-purple-100 transition-colors hover:bg-purple-50 dark:border-purple-900 dark:hover:bg-purple-950/20 ${
@@ -1156,18 +1203,25 @@ function AnaliseView({
                     }`}
                   >
                     <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{turno.periodo}</td>
-                    <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{turno.corridas_ofertadas ?? 0}</td>
-                    <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{turno.corridas_aceitas ?? 0}</td>
-                    <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{turno.corridas_rejeitadas ?? 0}</td>
-                    <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{turno.corridas_completadas ?? 0}</td>
-                    <td className="px-6 py-4 text-center font-semibold text-violet-700 dark:text-violet-400">
-                      {(turno.taxa_completude ?? 0).toFixed(1)}%
+                    <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{ofertadas}</td>
+                    <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{aceitas}</td>
+                    <td className="px-6 py-4 text-center font-semibold text-emerald-700 dark:text-emerald-400">
+                      {percAceitas.toFixed(1)}%
+                    </td>
+                    <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{rejeitadas}</td>
+                    <td className="px-6 py-4 text-center font-semibold text-rose-700 dark:text-rose-400">
+                      {percRejeitadas.toFixed(1)}%
+                    </td>
+                    <td className="px-6 py-4 text-center text-indigo-700 dark:text-indigo-400">{completadas}</td>
+                    <td className="px-6 py-4 text-center font-semibold text-indigo-700 dark:text-indigo-400">
+                      {percCompletas.toFixed(1)}%
                     </td>
                     <td className="px-6 py-4 text-center font-bold text-purple-900 dark:text-purple-100">
                       {(turno.aderencia_percentual ?? 0).toFixed(1)}%
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1223,15 +1277,26 @@ function AnaliseView({
                     </th>
                     <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Ofertadas</th>
                     <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Aceitas</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-teal-900 dark:text-teal-100">% Aceitas</th>
                     <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Rejeitadas</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-rose-900 dark:text-rose-100">% Rejeite</th>
                     <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Completadas</th>
-                    <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Taxa Aceitação</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-cyan-900 dark:text-cyan-100">% Completos</th>
                     <th className="px-6 py-4 text-center text-sm font-bold text-emerald-900 dark:text-emerald-100">Aderência</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map((item, index) => {
                     const nome = viewModeLocal === 'subpraca' ? (item as any).sub_praca : (item as any).origem;
+                    const ofertadas = item.corridas_ofertadas ?? 0;
+                    const aceitas = item.corridas_aceitas ?? 0;
+                    const rejeitadas = item.corridas_rejeitadas ?? 0;
+                    const completadas = item.corridas_completadas ?? 0;
+                    
+                    const percAceitas = ofertadas > 0 ? (aceitas / ofertadas) * 100 : 0;
+                    const percRejeitadas = ofertadas > 0 ? (rejeitadas / ofertadas) * 100 : 0;
+                    const percCompletas = aceitas > 0 ? (completadas / aceitas) * 100 : 0;
+                    
                     return (
                       <tr
                         key={nome}
@@ -1240,12 +1305,18 @@ function AnaliseView({
                         }`}
                       >
                         <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{nome}</td>
-                        <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{item.corridas_ofertadas ?? 0}</td>
-                        <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{item.corridas_aceitas ?? 0}</td>
-                        <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{item.corridas_rejeitadas ?? 0}</td>
-                        <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{item.corridas_completadas ?? 0}</td>
-                        <td className="px-6 py-4 text-center font-semibold text-emerald-700 dark:text-emerald-400">
-                          {(item.taxa_aceitacao ?? 0).toFixed(1)}%
+                        <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{ofertadas}</td>
+                        <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{aceitas}</td>
+                        <td className="px-6 py-4 text-center font-semibold text-teal-700 dark:text-teal-400">
+                          {percAceitas.toFixed(1)}%
+                        </td>
+                        <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{rejeitadas}</td>
+                        <td className="px-6 py-4 text-center font-semibold text-rose-700 dark:text-rose-400">
+                          {percRejeitadas.toFixed(1)}%
+                        </td>
+                        <td className="px-6 py-4 text-center text-cyan-700 dark:text-cyan-400">{completadas}</td>
+                        <td className="px-6 py-4 text-center font-semibold text-cyan-700 dark:text-cyan-400">
+                          {percCompletas.toFixed(1)}%
                         </td>
                         <td className="px-6 py-4 text-center font-bold text-emerald-900 dark:text-emerald-100">
                           {(item.aderencia_percentual ?? 0).toFixed(1)}%
@@ -1258,7 +1329,7 @@ function AnaliseView({
             </div>
           ) : (
             <div className="p-6">
-              <Bar data={{
+              <Line data={{
                 labels: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => 
                   viewModeLocal === 'subpraca' ? (item as any).sub_praca : (item as any).origem
                 ),
@@ -1266,16 +1337,32 @@ function AnaliseView({
                   {
                     label: 'Ofertadas',
                     data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_ofertadas ?? 0),
-                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
                     borderColor: 'rgb(16, 185, 129)',
-                    borderWidth: 1,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                  },
+                  {
+                    label: 'Aceitas',
+                    data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_aceitas ?? 0),
+                    backgroundColor: 'rgba(20, 184, 166, 0.2)',
+                    borderColor: 'rgb(20, 184, 166)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
                   },
                   {
                     label: 'Completadas',
                     data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_completadas ?? 0),
-                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
                     borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 1,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
                   },
                 ],
               }} options={{
