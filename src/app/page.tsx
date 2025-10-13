@@ -267,17 +267,17 @@ const TabButton = React.memo(({ label, icon, active, onClick }: { label: string;
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
+      className={`relative flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap overflow-hidden ${
         active
-          ? 'bg-white text-blue-700 shadow-xl scale-105 dark:bg-slate-800 dark:text-blue-300 border-2 border-blue-400 dark:border-blue-600'
-          : 'bg-white/50 text-slate-700 hover:bg-white hover:shadow-lg hover:scale-105 active:scale-95 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800 border border-transparent'
+          ? 'bg-white text-blue-700 shadow-lg dark:bg-slate-800 dark:text-blue-300 border-2 border-blue-400 dark:border-blue-600'
+          : 'bg-white/50 text-slate-700 hover:bg-white hover:shadow-md hover:scale-105 active:scale-95 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800 border border-transparent'
       }`}
     >
       {active && (
-        <div className="absolute -bottom-1 left-1/2 h-1 w-8 sm:w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 animate-pulse-soft"></div>
+        <div className="absolute -bottom-0.5 left-1/2 h-1 w-8 sm:w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
       )}
-      <span className={`text-sm sm:text-base ${active ? 'animate-bounce-subtle' : ''}`}>{icon}</span>
-      <span className="hidden xs:inline sm:inline">{label}</span>
+      <span className="text-sm sm:text-base">{icon}</span>
+      <span className="hidden xs:inline sm:inline truncate">{label}</span>
     </button>
   );
 });
@@ -335,7 +335,7 @@ function MetricCard({
   );
 }
 
-function AderenciaCard({ 
+const AderenciaCard = React.memo(({ 
   title, 
   planejado, 
   entregue, 
@@ -345,37 +345,39 @@ function AderenciaCard({
   planejado: string; 
   entregue: string; 
   percentual: number;
-}) {
+}) => {
   const colorClass = getAderenciaColor(percentual);
   const bgClass = getAderenciaBgColor(percentual);
 
   return (
-    <div className={`group rounded-2xl border p-5 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${bgClass}`}>
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">{title}</h3>
-        <span className={`rounded-full px-3 py-1 text-lg font-bold ${colorClass} bg-white/50 dark:bg-slate-900/50`}>
+    <div className={`group rounded-xl sm:rounded-2xl border p-3 sm:p-4 lg:p-5 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${bgClass} overflow-hidden`}>
+      <div className="mb-3 sm:mb-4 flex items-center justify-between gap-2">
+        <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300 truncate flex-1 min-w-0" title={title}>{title}</h3>
+        <span className={`shrink-0 rounded-full px-2 sm:px-3 py-1 text-sm sm:text-base lg:text-lg font-bold ${colorClass} bg-white/50 dark:bg-slate-900/50`}>
           {(percentual ?? 0).toFixed(1)}%
         </span>
       </div>
-      <div className="space-y-3 text-sm">
-        <div className="flex items-center justify-between rounded-lg bg-white/30 px-3 py-2 dark:bg-slate-900/30">
-          <span className="font-medium text-slate-600 dark:text-slate-400">Planejado:</span>
-          <span className="font-mono text-base font-bold text-slate-900 dark:text-white">{formatarHorasParaHMS(planejado)}</span>
+      <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+        <div className="flex items-center justify-between gap-2 rounded-lg bg-white/30 px-2 sm:px-3 py-1.5 sm:py-2 dark:bg-slate-900/30">
+          <span className="font-medium text-slate-600 dark:text-slate-400 shrink-0">Planejado:</span>
+          <span className="font-mono text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">{formatarHorasParaHMS(planejado)}</span>
         </div>
-        <div className="flex items-center justify-between rounded-lg bg-white/30 px-3 py-2 dark:bg-slate-900/30">
-          <span className="font-medium text-slate-600 dark:text-slate-400">Entregue:</span>
-          <span className="font-mono text-base font-bold text-blue-600 dark:text-blue-400">{formatarHorasParaHMS(entregue)}</span>
+        <div className="flex items-center justify-between gap-2 rounded-lg bg-white/30 px-2 sm:px-3 py-1.5 sm:py-2 dark:bg-slate-900/30">
+          <span className="font-medium text-slate-600 dark:text-slate-400 shrink-0">Entregue:</span>
+          <span className="font-mono text-sm sm:text-base font-bold text-blue-600 dark:text-blue-400 truncate">{formatarHorasParaHMS(entregue)}</span>
         </div>
       </div>
-      <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/50 dark:bg-slate-800/50">
+      <div className="mt-3 sm:mt-4 h-2 sm:h-2.5 overflow-hidden rounded-full bg-white/50 dark:bg-slate-800/50">
         <div 
-          className={`h-full rounded-full transition-all duration-1000 ${percentual >= 90 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : percentual >= 70 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-rose-500 to-rose-600'}`}
+          className={`h-full rounded-full transition-all duration-700 ${percentual >= 90 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : percentual >= 70 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-rose-500 to-rose-600'}`}
           style={{ width: `${Math.min(percentual, 100)}%` }}
         ></div>
       </div>
     </div>
   );
-}
+});
+
+AderenciaCard.displayName = 'AderenciaCard';
 
 const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange, disabled = false }: {
   label: string;
@@ -955,23 +957,23 @@ function AnaliseView({
     },
   };
 
-  const ViewToggleButton = ({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
+  const ViewToggleButton = React.memo(({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
     <button
       onClick={onClick}
-      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+      className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-200 whitespace-nowrap overflow-hidden ${
         active
-          ? 'bg-blue-600 text-white shadow-md'
-          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:scale-105 active:scale-95 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
       }`}
     >
       {label}
     </button>
-  );
+  ));
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* Métricas Principais */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Corridas Ofertadas"
           value={totals.ofertadas}
@@ -3536,35 +3538,35 @@ export default function DashboardPage() {
   }, [activeTab, filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/30">
-      <div className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6">
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-[1920px] px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         {/* Header Principal Redesenhado */}
-        <header className="mb-8 animate-fade-in">
-          <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-2xl dark:border-blue-900/30 dark:bg-slate-900">
+        <header className="mb-4 sm:mb-6 lg:mb-8 animate-fade-in">
+          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-blue-100 bg-white shadow-xl dark:border-blue-900/30 dark:bg-slate-900">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5"></div>
-            <div className="relative flex items-center justify-between p-8">
-              <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
-                  <span className="text-3xl">📊</span>
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-6 lg:p-8">
+              <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0 flex-1">
+                <div className="flex h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
+                  <span className="text-2xl sm:text-2xl lg:text-3xl">📊</span>
                 </div>
-                <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent dark:from-white dark:to-blue-200">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent dark:from-white dark:to-blue-200 truncate">
                     Dashboard Operacional
                   </h1>
-                  <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-400">
+                  <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">
                     Sistema de Análise e Monitoramento em Tempo Real
                   </p>
                 </div>
               </div>
-              <div className="hidden md:flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-3 lg:gap-4 shrink-0">
                 <div className="text-right">
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Última atualização</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">
+                  <p className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">Última atualização</p>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
                     {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
-                  <span className="text-xl">🟢</span>
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shrink-0">
+                  <span className="text-lg sm:text-xl">🟢</span>
                 </div>
               </div>
             </div>
@@ -3572,23 +3574,23 @@ export default function DashboardPage() {
         </header>
 
         {loading && (
-          <div className="flex h-[80vh] items-center justify-center animate-pulse-soft">
+          <div className="flex h-[60vh] sm:h-[70vh] items-center justify-center">
             <div className="text-center">
-              <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-              <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando dashboard...</p>
+              <div className="mx-auto h-12 w-12 sm:h-16 sm:w-16 animate-spin rounded-full border-3 sm:border-4 border-blue-200 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-400"></div>
+              <p className="mt-4 text-sm sm:text-base lg:text-lg font-semibold text-blue-700 dark:text-blue-300">Carregando dashboard...</p>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="flex h-[80vh] items-center justify-center animate-fade-in">
-            <div className="max-w-md rounded-xl border border-rose-200 bg-white p-8 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
-              <div className="text-5xl">⚠️</div>
-              <p className="mt-4 text-xl font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
-              <p className="mt-2 text-rose-700 dark:text-rose-300">{error}</p>
+          <div className="flex h-[60vh] sm:h-[70vh] items-center justify-center animate-fade-in">
+            <div className="max-w-sm sm:max-w-md mx-auto rounded-xl sm:rounded-2xl border border-rose-200 bg-white p-6 sm:p-8 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
+              <div className="text-4xl sm:text-5xl">⚠️</div>
+              <p className="mt-4 text-lg sm:text-xl font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
+              <p className="mt-2 text-sm sm:text-base text-rose-700 dark:text-rose-300">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="mt-6 rounded-lg bg-blue-600 px-6 py-2 font-semibold text-white shadow-md transition-all hover:scale-105 hover:bg-blue-700 active:scale-95"
+                className="mt-6 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95"
               >
                 Tentar novamente
               </button>
@@ -3597,7 +3599,7 @@ export default function DashboardPage() {
         )}
 
         {totals && !loading && !error && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-4 sm:space-y-6 animate-fade-in">
             {/* Header com filtros e tabs */}
             <div className="glass-strong rounded-2xl border border-blue-200 p-3 sm:p-4 lg:p-6 shadow-xl transition-all hover:shadow-2xl dark:border-blue-900 animate-slide-down">
               {activeTab !== 'comparacao' && (
