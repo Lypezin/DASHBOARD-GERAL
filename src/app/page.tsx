@@ -267,10 +267,10 @@ const TabButton = React.memo(({ label, icon, active, onClick }: { label: string;
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap overflow-hidden ${
+      className={`shrink-0 relative flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap overflow-hidden ${
         active
           ? 'bg-white text-blue-700 shadow-lg dark:bg-slate-800 dark:text-blue-300 border-2 border-blue-400 dark:border-blue-600'
-          : 'bg-white/50 text-slate-700 hover:bg-white hover:shadow-md hover:scale-105 active:scale-95 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800 border border-transparent'
+          : 'bg-white/50 text-slate-700 hover:bg-white hover:shadow-md dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800 border border-transparent'
       }`}
     >
       {active && (
@@ -709,33 +709,33 @@ function DashboardView({
             <span className="text-lg sm:text-xl">📊</span>
             <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Aderência Detalhada</h3>
           </div>
-          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 sm:pb-0">
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
             <button
               onClick={() => setViewMode('turno')}
-              className={`whitespace-nowrap rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-all hover:scale-105 ${
+              className={`shrink-0 whitespace-nowrap rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-all ${
                 viewMode === 'turno'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:shadow-md dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
               }`}
             >
               ⏰ Turno
             </button>
             <button
               onClick={() => setViewMode('sub_praca')}
-              className={`whitespace-nowrap rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-all hover:scale-105 ${
+              className={`shrink-0 whitespace-nowrap rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-all ${
                 viewMode === 'sub_praca'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:shadow-md dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
               }`}
             >
               📍 Sub-Praça
             </button>
             <button
               onClick={() => setViewMode('origem')}
-              className={`whitespace-nowrap rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-all hover:scale-105 ${
+              className={`shrink-0 whitespace-nowrap rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-all ${
                 viewMode === 'origem'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:shadow-md dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
               }`}
             >
               🎯 Origem
@@ -960,10 +960,10 @@ function AnaliseView({
   const ViewToggleButton = React.memo(({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
     <button
       onClick={onClick}
-      className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-200 whitespace-nowrap overflow-hidden ${
+      className={`shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-200 whitespace-nowrap overflow-hidden ${
         active
           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:scale-105 active:scale-95 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:shadow-md dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
       }`}
     >
       {label}
