@@ -200,6 +200,19 @@ interface EntregadoresData {
   total: number;
 }
 
+interface ValoresEntregador {
+  id_entregador: string;
+  nome_entregador: string;
+  total_taxas: number;
+  numero_corridas_aceitas: number;
+  taxa_media: number;
+}
+
+interface ValoresData {
+  valores: ValoresEntregador[];
+  total_geral: number;
+}
+
 interface UsuarioOnline {
   user_id: string;
   email: string;
@@ -2912,6 +2925,238 @@ function UtrView({
 }
 
 // =================================================================================
+// View Valores
+// =================================================================================
+
+function ValoresView({
+  valoresData,
+  loading,
+}: {
+  valoresData: ValoresEntregador[];
+  loading: boolean;
+}) {
+  const [sortField, setSortField] = useState<keyof ValoresEntregador>('total_taxas');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // Função para formatar valores em Real
+  const formatarReal = (valor: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(valor);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 sm:h-16 sm:w-16 animate-spin rounded-full border-3 sm:border-4 border-blue-200 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-400"></div>
+          <p className="mt-4 text-sm sm:text-base lg:text-lg font-semibold text-blue-700 dark:text-blue-300">Carregando valores...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!valoresData || valoresData.length === 0) {
+    return (
+      <div className="rounded-xl sm:rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8 text-center shadow-lg dark:border-amber-900 dark:bg-amber-950/30 animate-fade-in">
+        <div className="text-5xl sm:text-6xl mb-4">💰</div>
+        <p className="text-lg sm:text-xl font-bold text-amber-900 dark:text-amber-100">Nenhum valor encontrado</p>
+        <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">Tente ajustar os filtros para ver os dados.</p>
+      </div>
+    );
+  }
+
+  const handleSort = (field: keyof ValoresEntregador) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const sortedValores = [...valoresData].sort((a, b) => {
+    const aValue = a[sortField];
+    const bValue = b[sortField];
+    
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return sortDirection === 'asc' 
+        ? aValue.localeCompare(bValue) 
+        : bValue.localeCompare(aValue);
+    }
+    
+    const aNum = Number(aValue) || 0;
+    const bNum = Number(bValue) || 0;
+    return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+  });
+
+  const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
+    if (sortField !== field) {
+      return <span className="ml-1 text-slate-400">⇅</span>;
+    }
+    return <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+  };
+
+  // Calcular estatísticas gerais
+  const totalGeral = valoresData.reduce((sum, e) => sum + e.total_taxas, 0);
+  const totalCorridas = valoresData.reduce((sum, e) => sum + e.numero_corridas_aceitas, 0);
+  const taxaMediaGeral = totalCorridas > 0 ? totalGeral / totalCorridas : 0;
+  const totalEntregadores = valoresData.length;
+
+  return (
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
+      {/* Cards de Estatísticas */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <div className="rounded-xl sm:rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4 sm:p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-emerald-900 dark:from-emerald-950/30 dark:to-teal-950/30">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xl sm:text-2xl text-white shadow-md">
+              💰
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-300 truncate">Total Geral</p>
+              <p className="text-base sm:text-xl lg:text-2xl font-bold text-emerald-900 dark:text-emerald-100 truncate">{formatarReal(totalGeral)}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="rounded-xl sm:rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-blue-900 dark:from-blue-950/30 dark:to-indigo-950/30">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-xl sm:text-2xl text-white shadow-md">
+              👥
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-xs font-medium text-blue-700 dark:text-blue-300 truncate">Entregadores</p>
+              <p className="text-base sm:text-xl lg:text-2xl font-bold text-blue-900 dark:text-blue-100">{totalEntregadores}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="rounded-xl sm:rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4 sm:p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-purple-900 dark:from-purple-950/30 dark:to-pink-950/30">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-xl sm:text-2xl text-white shadow-md">
+              🚗
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-xs font-medium text-purple-700 dark:text-purple-300 truncate">Total Corridas</p>
+              <p className="text-base sm:text-xl lg:text-2xl font-bold text-purple-900 dark:text-purple-100">{totalCorridas.toLocaleString('pt-BR')}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="rounded-xl sm:rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 sm:p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-amber-900 dark:from-amber-950/30 dark:to-orange-950/30">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-xl sm:text-2xl text-white shadow-md">
+              📊
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-xs font-medium text-amber-700 dark:text-amber-300 truncate">Taxa Média</p>
+              <p className="text-base sm:text-xl lg:text-2xl font-bold text-amber-900 dark:text-amber-100 truncate">{formatarReal(taxaMediaGeral)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabela de Valores */}
+      <div className="rounded-xl sm:rounded-2xl border border-blue-200 bg-white shadow-xl dark:border-blue-800 dark:bg-slate-900 overflow-hidden">
+        <div className="border-b border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 dark:border-blue-800 dark:from-blue-950/30 dark:to-indigo-950/30">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-2xl sm:text-3xl">💰</span>
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white">Valores por Entregador</h3>
+          </div>
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+            Clique nos cabeçalhos para ordenar • Total de {totalEntregadores} entregadores
+          </p>
+        </div>
+        
+        <div className="max-h-[600px] overflow-auto">
+          <table className="w-full">
+            <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800">
+              <tr className="border-b-2 border-slate-200 dark:border-slate-700">
+                <th 
+                  className="cursor-pointer px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                  onClick={() => handleSort('nome_entregador')}
+                >
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <span className="text-sm sm:text-base">👤</span>
+                    <span className="truncate">Entregador</span>
+                    <SortIcon field="nome_entregador" />
+                  </div>
+                </th>
+                <th 
+                  className="cursor-pointer px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                  onClick={() => handleSort('total_taxas')}
+                >
+                  <div className="flex items-center justify-end gap-1 sm:gap-2">
+                    <span className="text-sm sm:text-base">💵</span>
+                    <span className="truncate">Total</span>
+                    <SortIcon field="total_taxas" />
+                  </div>
+                </th>
+                <th 
+                  className="cursor-pointer px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                  onClick={() => handleSort('numero_corridas_aceitas')}
+                >
+                  <div className="flex items-center justify-end gap-1 sm:gap-2">
+                    <span className="text-sm sm:text-base">🚗</span>
+                    <span className="truncate">Corridas</span>
+                    <SortIcon field="numero_corridas_aceitas" />
+                  </div>
+                </th>
+                <th 
+                  className="cursor-pointer px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                  onClick={() => handleSort('taxa_media')}
+                >
+                  <div className="flex items-center justify-end gap-1 sm:gap-2">
+                    <span className="text-sm sm:text-base">📊</span>
+                    <span className="truncate">Média</span>
+                    <SortIcon field="taxa_media" />
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              {sortedValores.map((entregador, index) => (
+                <tr 
+                  key={entregador.id_entregador}
+                  className="group transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/20"
+                >
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-xs sm:text-sm font-bold text-white shadow-sm">
+                        {index + 1}
+                      </div>
+                      <span className="font-medium text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-none">{entregador.nome_entregador}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                    <span className="inline-flex items-center rounded-lg bg-emerald-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100">
+                      {formatarReal(entregador.total_taxas)}
+                    </span>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs sm:text-sm">
+                      {entregador.numero_corridas_aceitas.toLocaleString('pt-BR')}
+                    </span>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                    <span className="inline-flex items-center rounded-lg bg-blue-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold text-blue-900 dark:bg-blue-950/50 dark:text-blue-100">
+                      {formatarReal(entregador.taxa_media)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =================================================================================
 // View Entregadores
 // =================================================================================
 
@@ -3182,7 +3427,7 @@ function EntregadoresView({
 // =================================================================================
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores' | 'monitoramento'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores' | 'valores' | 'monitoramento'>('dashboard');
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [totals, setTotals] = useState<Totals | null>(null);
@@ -3205,6 +3450,8 @@ export default function DashboardPage() {
   const [loadingUtr, setLoadingUtr] = useState(false);
   const [entregadoresData, setEntregadoresData] = useState<EntregadoresData | null>(null);
   const [loadingEntregadores, setLoadingEntregadores] = useState(false);
+  const [valoresData, setValoresData] = useState<ValoresEntregador[]>([]);
+  const [loadingValores, setLoadingValores] = useState(false);
 
   const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
 
@@ -3539,6 +3786,30 @@ export default function DashboardPage() {
     }
   }, [activeTab, filters]);
 
+  // Buscar dados de Valores quando a aba estiver ativa
+  useEffect(() => {
+    if (activeTab === 'valores') {
+      async function fetchValores() {
+        setLoadingValores(true);
+        try {
+          const params = buildFilterPayload(filters);
+          const { data: valoresResult, error: valoresError } = await supabase.rpc('listar_valores_entregadores', params);
+          
+          if (valoresError) throw valoresError;
+          
+          setValoresData(valoresResult || []);
+        } catch (err: any) {
+          console.error('Erro ao buscar Valores:', err);
+          setValoresData([]);
+        } finally {
+          setLoadingValores(false);
+        }
+      }
+      
+      fetchValores();
+    }
+  }, [activeTab, filters]);
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-[1920px] px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
@@ -3627,6 +3898,7 @@ export default function DashboardPage() {
                   <TabButton label="Comparação" icon="⚖️" active={activeTab === 'comparacao'} onClick={() => setActiveTab('comparacao')} />
                   <TabButton label="UTR" icon="📏" active={activeTab === 'utr'} onClick={() => setActiveTab('utr')} />
                   <TabButton label="Entregadores" icon="👥" active={activeTab === 'entregadores'} onClick={() => setActiveTab('entregadores')} />
+                  <TabButton label="Valores" icon="💰" active={activeTab === 'valores'} onClick={() => setActiveTab('valores')} />
                   {currentUser?.is_admin && (
                     <TabButton label="Monitor" icon="🔍" active={activeTab === 'monitoramento'} onClick={() => setActiveTab('monitoramento')} />
                   )}
@@ -3675,6 +3947,13 @@ export default function DashboardPage() {
                 <EntregadoresView
                   entregadoresData={entregadoresData}
                   loading={loadingEntregadores}
+                />
+              )}
+              
+              {activeTab === 'valores' && (
+                <ValoresView
+                  valoresData={valoresData}
+                  loading={loadingValores}
                 />
               )}
               
