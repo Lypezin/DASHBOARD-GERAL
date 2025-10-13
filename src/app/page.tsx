@@ -263,24 +263,26 @@ function getAderenciaBgColor(value: number): string {
 // Componentes UI
 // =================================================================================
 
-function TabButton({ label, icon, active, onClick }: { label: string; icon: string; active: boolean; onClick: () => void }) {
+const TabButton = React.memo(({ label, icon, active, onClick }: { label: string; icon: string; active: boolean; onClick: () => void }) => {
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-300 ${
+      className={`relative flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
         active
-          ? 'bg-white text-blue-700 shadow-xl scale-105 dark:bg-slate-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+          ? 'bg-white text-blue-700 shadow-xl scale-105 dark:bg-slate-800 dark:text-blue-300 border-2 border-blue-400 dark:border-blue-600'
           : 'bg-white/50 text-slate-700 hover:bg-white hover:shadow-lg hover:scale-105 active:scale-95 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800 border border-transparent'
       }`}
     >
       {active && (
-        <div className="absolute -bottom-1 left-1/2 h-1 w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+        <div className="absolute -bottom-1 left-1/2 h-1 w-8 sm:w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 animate-pulse-soft"></div>
       )}
-      <span className={`text-base ${active ? 'animate-pulse-soft' : ''}`}>{icon}</span>
-      <span>{label}</span>
+      <span className={`text-sm sm:text-base ${active ? 'animate-bounce-subtle' : ''}`}>{icon}</span>
+      <span className="hidden xs:inline sm:inline">{label}</span>
     </button>
   );
-}
+});
+
+TabButton.displayName = 'TabButton';
 
 function MetricCard({ 
   title, 
@@ -305,27 +307,27 @@ function MetricCard({
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
-      <div className={`absolute right-0 top-0 h-32 w-32 rounded-full bg-gradient-to-br ${colorClasses[color]} opacity-10 blur-3xl transition-opacity group-hover:opacity-20`}></div>
+    <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 lg:p-6 shadow-md transition-all duration-300 hover-lift hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
+      <div className={`absolute right-0 top-0 h-24 w-24 sm:h-32 sm:w-32 rounded-full bg-gradient-to-br ${colorClasses[color]} opacity-10 blur-3xl transition-opacity group-hover:opacity-20`}></div>
       
-      <div className="relative flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white">{value.toLocaleString('pt-BR')}</p>
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">{title}</p>
+          <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white">{value.toLocaleString('pt-BR')}</p>
           {percentage !== undefined && (
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-2 sm:mt-3 flex items-center gap-2 flex-wrap">
               <div className="rounded-lg bg-blue-50 px-2 py-1 dark:bg-blue-950/30">
                 <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
                   {percentage.toFixed(1)}%
                 </span>
               </div>
               {percentageLabel && (
-                <span className="text-xs text-slate-500 dark:text-slate-400">{percentageLabel}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{percentageLabel}</span>
               )}
             </div>
           )}
         </div>
-        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-2xl text-white shadow-lg transition-transform group-hover:rotate-3 group-hover:scale-110`}>
+        <div className={`flex h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-xl sm:text-2xl lg:text-3xl text-white shadow-lg transition-transform group-hover:rotate-3 group-hover:scale-110`}>
           {icon}
         </div>
       </div>
@@ -3582,7 +3584,7 @@ export default function DashboardPage() {
         {totals && !loading && !error && (
           <div className="space-y-6 animate-fade-in">
             {/* Header com filtros e tabs */}
-            <div className="rounded-xl border border-blue-200 bg-white/90 p-4 shadow-lg backdrop-blur-sm transition-all hover:shadow-xl dark:border-blue-900 dark:bg-slate-900/90 sm:p-6">
+            <div className="glass-strong rounded-2xl border border-blue-200 p-3 sm:p-4 lg:p-6 shadow-xl transition-all hover:shadow-2xl dark:border-blue-900 animate-slide-down">
               {activeTab !== 'comparacao' && (
                 <>
                   <FiltroBar
@@ -3595,18 +3597,21 @@ export default function DashboardPage() {
                     origens={origens}
                     currentUser={currentUser}
                   />
-                  <div className="my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700"></div>
+                  <div className="my-3 sm:my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700"></div>
                 </>
               )}
-              <div className="flex flex-wrap gap-2">
-                <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-                <TabButton label="Análise Detalhada" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
-                <TabButton label="Comparação" icon="⚖️" active={activeTab === 'comparacao'} onClick={() => setActiveTab('comparacao')} />
-                <TabButton label="UTR" icon="📏" active={activeTab === 'utr'} onClick={() => setActiveTab('utr')} />
-                <TabButton label="Entregadores" icon="👥" active={activeTab === 'entregadores'} onClick={() => setActiveTab('entregadores')} />
-                {currentUser?.is_admin && (
-                  <TabButton label="Monitoramento" icon="🔍" active={activeTab === 'monitoramento'} onClick={() => setActiveTab('monitoramento')} />
-                )}
+              {/* Tabs com scroll horizontal em mobile */}
+              <div className="relative">
+                <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
+                  <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+                  <TabButton label="Análise" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
+                  <TabButton label="Comparação" icon="⚖️" active={activeTab === 'comparacao'} onClick={() => setActiveTab('comparacao')} />
+                  <TabButton label="UTR" icon="📏" active={activeTab === 'utr'} onClick={() => setActiveTab('utr')} />
+                  <TabButton label="Entregadores" icon="👥" active={activeTab === 'entregadores'} onClick={() => setActiveTab('entregadores')} />
+                  {currentUser?.is_admin && (
+                    <TabButton label="Monitor" icon="🔍" active={activeTab === 'monitoramento'} onClick={() => setActiveTab('monitoramento')} />
+                  )}
+                </div>
               </div>
             </div>
 
