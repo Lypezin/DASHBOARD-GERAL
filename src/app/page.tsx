@@ -377,20 +377,20 @@ function AderenciaCard({
   );
 }
 
-function FiltroSelect({ label, placeholder, options, value, onChange, disabled = false }: {
+const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange, disabled = false }: {
   label: string;
   placeholder: string;
   options: FilterOption[];
   value: string;
   onChange: (value: string | null) => void;
   disabled?: boolean;
-}) {
+}) => {
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">{label}</span>
+    <label className="flex flex-col gap-1 sm:gap-1.5">
+      <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">{label}</span>
       <div className="relative">
         <select
-          className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2.5 pr-10 text-sm font-medium text-blue-900 shadow-sm transition-all hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 dark:hover:border-blue-700 dark:focus:border-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full appearance-none rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white px-2.5 sm:px-3 py-2 sm:py-2.5 pr-8 sm:pr-10 text-xs sm:text-sm font-medium text-blue-900 shadow-sm transition-all hover:border-blue-400 hover:shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 dark:hover:border-blue-600 dark:focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-blue-200"
           value={value}
           onChange={(e) => onChange(e.target.value || null)}
           disabled={disabled}
@@ -402,24 +402,31 @@ function FiltroSelect({ label, placeholder, options, value, onChange, disabled =
             </option>
           ))}
         </select>
+        <div className="pointer-events-none absolute right-2 sm:right-3 top-1/2 -translate-y-1/2">
+          <svg className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
         {value && !disabled && (
           <button
             onClick={(e) => {
               e.preventDefault();
               onChange(null);
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            className="absolute right-7 sm:right-9 top-1/2 -translate-y-1/2 rounded-full p-0.5 sm:p-1 text-slate-400 transition-all hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
             title="Limpar filtro"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         )}
       </div>
     </label>
   );
-}
+});
+
+FiltroSelect.displayName = 'FiltroSelect';
 
 function FiltroBar({
   filters,
@@ -464,8 +471,8 @@ function FiltroBar({
   const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
       <FiltroSelect
         label="Ano"
         value={filters.ano !== null ? String(filters.ano) : ''}
@@ -476,7 +483,7 @@ function FiltroBar({
       <FiltroSelect
         label="Semana"
         value={filters.semana !== null ? String(filters.semana) : ''}
-        options={semanas.map((sem) => ({ value: String(sem), label: `S${sem.toString().padStart(2, '0')}` }))}
+        options={semanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
         placeholder="Todas"
         onChange={(value) => handleChange('semana', value)}
       />
@@ -506,15 +513,16 @@ function FiltroBar({
       
       {/* Botão Limpar Filtros */}
       {hasActiveFilters && (
-        <div className="flex justify-end animate-slide-down">
+        <div className="flex justify-center sm:justify-end animate-scale-in">
           <button
             onClick={handleClearFilters}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105 hover:from-rose-600 hover:to-pink-700 active:scale-95"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            Limpar Todos os Filtros
+            <span className="hidden xs:inline">Limpar Todos os Filtros</span>
+            <span className="xs:hidden">Limpar Filtros</span>
           </button>
         </div>
       )}
@@ -545,107 +553,107 @@ function DashboardView({
     <div className="space-y-6">
       {/* Aderência Geral Redesenhada */}
       {aderenciaGeral && (
-        <div className="relative overflow-hidden rounded-2xl border border-blue-200 bg-white p-8 shadow-2xl dark:border-blue-800 dark:bg-slate-900">
+        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-blue-200 bg-white p-4 sm:p-6 lg:p-8 shadow-xl dark:border-blue-800 dark:bg-slate-900 animate-slide-up">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/10"></div>
-          <div className="relative flex items-center justify-between">
-            <div className="flex-1">
-              <div className="mb-2 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
-                  <span className="text-2xl">📊</span>
+          <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="flex-1 w-full">
+              <div className="mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shrink-0">
+                  <span className="text-xl sm:text-2xl">📊</span>
                 </div>
-                <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Aderência Geral</h2>
-                  <p className="mt-1 text-5xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Aderência Geral</h2>
+                  <p className="mt-0.5 sm:mt-1 text-3xl sm:text-4xl lg:text-5xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">
                     {(aderenciaGeral.aderencia_percentual ?? 0).toFixed(1)}%
                   </p>
                 </div>
               </div>
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Planejado</p>
-                  <p className="mt-1 font-mono text-lg font-bold text-slate-900 dark:text-white">
+              <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
+                <div className="rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50/80 p-3 sm:p-4 dark:border-slate-700 dark:bg-slate-800/80 hover-lift">
+                  <p className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">📅 Planejado</p>
+                  <p className="mt-1 font-mono text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white truncate">
                     {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
-                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400">Entregue</p>
-                  <p className="mt-1 font-mono text-lg font-bold text-blue-900 dark:text-blue-100">
+                <div className="rounded-lg sm:rounded-xl border border-blue-200 bg-blue-50/80 p-3 sm:p-4 dark:border-blue-800 dark:bg-blue-950/50 hover-lift">
+                  <p className="text-[10px] sm:text-xs font-medium text-blue-600 dark:text-blue-400">⏱️ Entregue</p>
+                  <p className="mt-1 font-mono text-sm sm:text-base lg:text-lg font-bold text-blue-900 dark:text-blue-100 truncate">
                     {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="ml-6 hidden lg:flex h-32 w-32 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30">
-              <span className="text-6xl">🎯</span>
+            <div className="hidden lg:flex h-24 w-24 xl:h-32 xl:w-32 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 shrink-0">
+              <span className="text-5xl xl:text-6xl">🎯</span>
             </div>
           </div>
         </div>
       )}
 
       {/* Destaques da Operação */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-3 dark:border-emerald-800 dark:from-emerald-950/30 dark:to-teal-950/30">
-          <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300">
-            <span className="text-base">📊</span>
-            <p className="text-xs font-semibold">Melhor Dia</p>
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+        <div className="group rounded-lg sm:rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-2.5 sm:p-3 lg:p-4 dark:border-emerald-800 dark:from-emerald-950/30 dark:to-teal-950/30 hover-lift">
+          <div className="flex items-center gap-1 sm:gap-1.5 text-emerald-700 dark:text-emerald-300">
+            <span className="text-sm sm:text-base lg:text-lg">📊</span>
+            <p className="text-[10px] sm:text-xs font-semibold truncate">Melhor Dia</p>
           </div>
-          <p className="mt-1.5 text-lg font-bold text-emerald-900 dark:text-emerald-100">
+          <p className="mt-1 sm:mt-1.5 text-base sm:text-lg lg:text-xl font-bold text-emerald-900 dark:text-emerald-100 truncate">
             {aderenciaDia.length > 0 
               ? aderenciaDia.reduce((max, dia) => (dia.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? dia : max).dia_da_semana
               : '-'}
           </p>
-          <p className="mt-0.5 text-xs text-emerald-600 dark:text-emerald-400">
+          <p className="mt-0.5 text-[10px] sm:text-xs font-semibold text-emerald-600 dark:text-emerald-400">
             {aderenciaDia.length > 0 
               ? `${aderenciaDia.reduce((max, dia) => (dia.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? dia : max).aderencia_percentual?.toFixed(1) || '0'}%`
               : 'N/D'}
           </p>
         </div>
 
-        <div className="rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-3 dark:border-blue-800 dark:from-blue-950/30 dark:to-cyan-950/30">
-          <div className="flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
-            <span className="text-base">⏰</span>
-            <p className="text-xs font-semibold">Melhor Turno</p>
+        <div className="group rounded-lg sm:rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-2.5 sm:p-3 lg:p-4 dark:border-blue-800 dark:from-blue-950/30 dark:to-cyan-950/30 hover-lift">
+          <div className="flex items-center gap-1 sm:gap-1.5 text-blue-700 dark:text-blue-300">
+            <span className="text-sm sm:text-base lg:text-lg">⏰</span>
+            <p className="text-[10px] sm:text-xs font-semibold truncate">Melhor Turno</p>
           </div>
-          <p className="mt-1.5 text-lg font-bold text-blue-900 dark:text-blue-100 truncate">
+          <p className="mt-1 sm:mt-1.5 text-base sm:text-lg lg:text-xl font-bold text-blue-900 dark:text-blue-100 truncate" title={aderenciaTurno.length > 0 ? aderenciaTurno.reduce((max, turno) => (turno.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? turno : max).periodo : '-'}>
             {aderenciaTurno.length > 0 
               ? aderenciaTurno.reduce((max, turno) => (turno.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? turno : max).periodo
               : '-'}
           </p>
-          <p className="mt-0.5 text-xs text-blue-600 dark:text-blue-400">
+          <p className="mt-0.5 text-[10px] sm:text-xs font-semibold text-blue-600 dark:text-blue-400">
             {aderenciaTurno.length > 0 
               ? `${aderenciaTurno.reduce((max, turno) => (turno.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? turno : max).aderencia_percentual?.toFixed(1) || '0'}%`
               : 'N/D'}
           </p>
         </div>
 
-        <div className="rounded-lg border border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-3 dark:border-violet-800 dark:from-violet-950/30 dark:to-purple-950/30">
-          <div className="flex items-center gap-1.5 text-violet-700 dark:text-violet-300">
-            <span className="text-base">📍</span>
-            <p className="text-xs font-semibold">Melhor Sub-Praça</p>
+        <div className="group rounded-lg sm:rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-2.5 sm:p-3 lg:p-4 dark:border-violet-800 dark:from-violet-950/30 dark:to-purple-950/30 hover-lift">
+          <div className="flex items-center gap-1 sm:gap-1.5 text-violet-700 dark:text-violet-300">
+            <span className="text-sm sm:text-base lg:text-lg">📍</span>
+            <p className="text-[10px] sm:text-xs font-semibold truncate">Melhor Sub-Praça</p>
           </div>
-          <p className="mt-1.5 text-lg font-bold text-violet-900 dark:text-violet-100 truncate">
+          <p className="mt-1 sm:mt-1.5 text-base sm:text-lg lg:text-xl font-bold text-violet-900 dark:text-violet-100 truncate" title={aderenciaSubPraca.length > 0 ? aderenciaSubPraca.reduce((max, sp) => (sp.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? sp : max).sub_praca : '-'}>
             {aderenciaSubPraca.length > 0 
               ? aderenciaSubPraca.reduce((max, sp) => (sp.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? sp : max).sub_praca
               : '-'}
           </p>
-          <p className="mt-0.5 text-xs text-violet-600 dark:text-violet-400">
+          <p className="mt-0.5 text-[10px] sm:text-xs font-semibold text-violet-600 dark:text-violet-400">
             {aderenciaSubPraca.length > 0 
               ? `${aderenciaSubPraca.reduce((max, sp) => (sp.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? sp : max).aderencia_percentual?.toFixed(1) || '0'}%`
               : 'N/D'}
           </p>
         </div>
 
-        <div className="rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-3 dark:border-amber-800 dark:from-amber-950/30 dark:to-orange-950/30">
-          <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
-            <span className="text-base">🎯</span>
-            <p className="text-xs font-semibold">Melhor Origem</p>
+        <div className="group rounded-lg sm:rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-2.5 sm:p-3 lg:p-4 dark:border-amber-800 dark:from-amber-950/30 dark:to-orange-950/30 hover-lift">
+          <div className="flex items-center gap-1 sm:gap-1.5 text-amber-700 dark:text-amber-300">
+            <span className="text-sm sm:text-base lg:text-lg">🎯</span>
+            <p className="text-[10px] sm:text-xs font-semibold truncate">Melhor Origem</p>
           </div>
-          <p className="mt-1.5 text-lg font-bold text-amber-900 dark:text-amber-100 truncate">
+          <p className="mt-1 sm:mt-1.5 text-base sm:text-lg lg:text-xl font-bold text-amber-900 dark:text-amber-100 truncate" title={aderenciaOrigem.length > 0 ? aderenciaOrigem.reduce((max, orig) => (orig.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? orig : max).origem : '-'}>
             {aderenciaOrigem.length > 0 
               ? aderenciaOrigem.reduce((max, orig) => (orig.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? orig : max).origem
               : '-'}
           </p>
-          <p className="mt-0.5 text-xs text-amber-600 dark:text-amber-400">
+          <p className="mt-0.5 text-[10px] sm:text-xs font-semibold text-amber-600 dark:text-amber-400">
             {aderenciaOrigem.length > 0 
               ? `${aderenciaOrigem.reduce((max, orig) => (orig.aderencia_percentual ?? 0) > (max.aderencia_percentual ?? 0) ? orig : max).aderencia_percentual?.toFixed(1) || '0'}%`
               : 'N/D'}
@@ -654,32 +662,36 @@ function DashboardView({
       </div>
 
       {/* Aderência por Dia */}
-      <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
-        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+      <div className="rounded-xl sm:rounded-2xl border border-blue-200 bg-white p-4 sm:p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+        <div className="mb-4 sm:mb-6 flex items-center gap-2">
+          <span className="text-lg sm:text-xl">📅</span>
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-7">
           {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia) => {
             const data = aderenciaDia.find((d) => d.dia_da_semana === dia);
             if (!data) {
               return (
-                <div key={dia} className="rounded-lg bg-slate-50 p-3 text-center dark:bg-slate-800">
-                  <p className="text-sm font-semibold text-slate-400">{dia}</p>
-                  <p className="mt-2 text-xs text-slate-400">Sem dados</p>
+                <div key={dia} className="rounded-lg sm:rounded-xl bg-slate-50 p-2.5 sm:p-3 text-center dark:bg-slate-800/50 hover-lift">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-400">{dia.substring(0, 3)}</p>
+                  <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-slate-400">Sem dados</p>
                 </div>
               );
             }
             const colorClass = getAderenciaColor(data.aderencia_percentual);
+            const bgClass = getAderenciaBgColor(data.aderencia_percentual);
             return (
-              <div key={dia} className="rounded-lg border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
-                <p className="text-sm font-bold text-slate-900 dark:text-white">{dia}</p>
-                <p className={`mt-2 text-xl font-bold ${colorClass}`}>{data.aderencia_percentual?.toFixed(0) || '0'}%</p>
-                <div className="mt-2 space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Plan:</span>
-                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">{formatarHorasParaHMS(data.horas_a_entregar)}</span>
+              <div key={dia} className={`rounded-lg sm:rounded-xl border p-2.5 sm:p-3 ${bgClass} hover-lift`}>
+                <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate" title={dia}>{dia.substring(0, 3)}</p>
+                <p className={`mt-1 sm:mt-2 text-lg sm:text-xl lg:text-2xl font-bold ${colorClass}`}>{data.aderencia_percentual?.toFixed(0) || '0'}%</p>
+                <div className="mt-1.5 sm:mt-2 space-y-0.5 sm:space-y-1 text-[10px] sm:text-xs">
+                  <div className="flex justify-between gap-1">
+                    <span className="text-slate-500 dark:text-slate-400">Plan:</span>
+                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-300 truncate">{formatarHorasParaHMS(data.horas_a_entregar)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Ent:</span>
-                    <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{formatarHorasParaHMS(data.horas_entregues)}</span>
+                  <div className="flex justify-between gap-1">
+                    <span className="text-slate-500 dark:text-slate-400">Ent:</span>
+                    <span className="font-mono font-semibold text-blue-600 dark:text-blue-400 truncate">{formatarHorasParaHMS(data.horas_entregues)}</span>
                   </div>
                 </div>
               </div>
@@ -689,44 +701,47 @@ function DashboardView({
       </div>
 
       {/* Aderência por Turno/Sub-Praça/Origem */}
-      <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md dark:border-blue-800 dark:bg-slate-900">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Aderência Detalhada</h3>
-          <div className="flex gap-2">
+      <div className="rounded-xl sm:rounded-2xl border border-blue-200 bg-white p-4 sm:p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg sm:text-xl">📊</span>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Aderência Detalhada</h3>
+          </div>
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 sm:pb-0">
             <button
               onClick={() => setViewMode('turno')}
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-all ${
+              className={`whitespace-nowrap rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-all hover:scale-105 ${
                 viewMode === 'turno'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
               }`}
             >
-              Por Turno
+              ⏰ Turno
             </button>
             <button
               onClick={() => setViewMode('sub_praca')}
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-all ${
+              className={`whitespace-nowrap rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-all hover:scale-105 ${
                 viewMode === 'sub_praca'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
               }`}
             >
-              Por Sub-Praça
+              📍 Sub-Praça
             </button>
             <button
               onClick={() => setViewMode('origem')}
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-all ${
+              className={`whitespace-nowrap rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-all hover:scale-105 ${
                 viewMode === 'origem'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
               }`}
             >
-              Por Origem
+              🎯 Origem
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
           {viewMode === 'turno' &&
             aderenciaTurno.map((item) => (
               <AderenciaCard
