@@ -79,44 +79,46 @@ export function Header() {
   }
 
   return (
-    <header className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-xl">
-      <div className="container mx-auto flex h-20 items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-3 group" prefetch={false}>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 group-hover:bg-white/30 transition-colors">
-            <span className="text-2xl">📊</span>
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-xl backdrop-blur-lg animate-slide-down">
+      <div className="container mx-auto flex h-16 md:h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group" prefetch={false}>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-1.5 sm:p-2 group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300">
+            <span className="text-xl sm:text-2xl">📊</span>
           </div>
-          <div>
-            <span className="font-bold text-xl text-white">Dashboard Operacional</span>
-            <p className="text-blue-100 text-sm">Sistema de Análise</p>
+          <div className="hidden sm:block">
+            <span className="font-bold text-lg sm:text-xl text-white">Dashboard Operacional</span>
+            <p className="text-blue-100 text-xs sm:text-sm">Sistema de Análise</p>
           </div>
+          <span className="font-bold text-lg text-white sm:hidden">Dashboard</span>
         </Link>
-        <nav className="flex items-center gap-4">
+        
+        <nav className="flex items-center gap-2 sm:gap-3 md:gap-4">
           <Link
             href="/"
-            className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:-translate-y-1 border border-white/20"
+            className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-200 hover-lift border border-white/20"
             prefetch={false}
           >
-            <span>📈</span>
-            <span className="font-medium">Dashboard</span>
+            <span className="text-base sm:text-lg">📈</span>
+            <span className="font-medium text-sm sm:text-base hidden xs:inline">Dashboard</span>
           </Link>
           
           {user.is_admin && (
             <>
               <Link
                 href="/upload"
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:-translate-y-1 border border-white/20"
+                className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-200 hover-lift border border-white/20"
                 prefetch={false}
               >
-                <span>📤</span>
-                <span className="font-medium">Upload</span>
+                <span className="text-base sm:text-lg">📤</span>
+                <span className="font-medium text-sm sm:text-base hidden md:inline">Upload</span>
               </Link>
               <Link
                 href="/admin"
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:-translate-y-1 border border-white/20"
+                className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-200 hover-lift border border-white/20"
                 prefetch={false}
               >
-                <span>⚙️</span>
-                <span className="font-medium">Admin</span>
+                <span className="text-base sm:text-lg">⚙️</span>
+                <span className="font-medium text-sm sm:text-base hidden md:inline">Admin</span>
               </Link>
             </>
           )}
@@ -124,29 +126,30 @@ export function Header() {
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-all duration-200 border border-white/20"
+              className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-200 border border-white/20"
             >
-              <span>👤</span>
-              <span className="font-medium">{user.full_name.split(' ')[0]}</span>
-              <span className="text-xs">▼</span>
+              <span className="text-base sm:text-lg">👤</span>
+              <span className="font-medium text-sm sm:text-base max-w-[80px] sm:max-w-none truncate">{user.full_name.split(' ')[0]}</span>
+              <span className="text-xs hidden sm:inline">▼</span>
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 mt-2 w-64 rounded-xl border border-white/20 bg-white shadow-xl z-50">
-                <div className="border-b border-slate-200 p-4">
-                  <p className="font-semibold text-slate-900">{user.full_name}</p>
-                  <p className="text-sm text-slate-600">{user.email}</p>
+              <div className="absolute right-0 mt-2 w-56 sm:w-64 rounded-xl border border-white/20 bg-white shadow-2xl z-50 animate-scale-in">
+                <div className="border-b border-slate-200 p-3 sm:p-4">
+                  <p className="font-semibold text-sm sm:text-base text-slate-900">{user.full_name}</p>
+                  <p className="text-xs sm:text-sm text-slate-600 truncate">{user.email}</p>
                   {user.is_admin && (
-                    <span className="mt-2 inline-block rounded bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
-                      Administrador
+                    <span className="mt-2 inline-block rounded-full gradient-primary px-3 py-1 text-xs font-semibold text-white">
+                      ⭐ Administrador
                     </span>
                   )}
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="w-full p-4 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors rounded-b-xl"
+                  className="w-full p-3 sm:p-4 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors rounded-b-xl flex items-center gap-2"
                 >
-                  🚪 Sair
+                  <span>🚪</span>
+                  <span>Sair</span>
                 </button>
               </div>
             )}
