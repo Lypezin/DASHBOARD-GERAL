@@ -1507,19 +1507,6 @@ function MonitoramentoView() {
     return 'bg-slate-400';
   };
 
-  // Calcular estatísticas
-  const usuariosAtivos = usuarios.filter(u => u.segundos_inativo < 60).length;
-  const usuariosInativos = usuarios.length - usuariosAtivos;
-  const totalAcoes = usuarios.reduce((sum, u) => sum + u.acoes_ultima_hora, 0);
-  
-  // Filtrar usuários
-  const usuariosFiltrados = usuarios.filter(u => {
-    if (filtroStatus === 'ativos') return u.segundos_inativo < 60;
-    if (filtroStatus === 'inativos') return u.segundos_inativo >= 60;
-    return true;
-  });
-
-  // Formatar timestamp
   const formatarTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     const agora = new Date();
@@ -1541,6 +1528,18 @@ function MonitoramentoView() {
       </div>
     );
   }
+
+  // Calcular estatísticas
+  const usuariosAtivos = usuarios.filter(u => u.segundos_inativo < 60).length;
+  const usuariosInativos = usuarios.length - usuariosAtivos;
+  const totalAcoes = usuarios.reduce((sum, u) => sum + u.acoes_ultima_hora, 0);
+  
+  // Filtrar usuários
+  const usuariosFiltrados = usuarios.filter(u => {
+    if (filtroStatus === 'ativos') return u.segundos_inativo < 60;
+    if (filtroStatus === 'inativos') return u.segundos_inativo >= 60;
+    return true;
+  });
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -1724,61 +1723,60 @@ function MonitoramentoView() {
                 </div>
               ))}
             </div>
-            ) : (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900 dark:bg-amber-950/30">
-                <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">
-                  Nenhum usuário {filtroStatus !== 'todos' ? filtroStatus : 'online'}
-                </p>
-              </div>
-            )}
-          </div>
+          ) : (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900 dark:bg-amber-950/30">
+              <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">
+                Nenhum usuário {filtroStatus !== 'todos' ? filtroStatus : 'online'}
+              </p>
+            </div>
+          )}
+        </div>
 
-          {/* Timeline de Atividades Recentes */}
-          <div className="lg:col-span-1">
-            <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
-              <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
-                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                  <span>📜</span>
-                  Atividades Recentes
-                </h3>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                  Últimas {atividades.length} ações
-                </p>
-              </div>
-              
-              <div className="max-h-[600px] space-y-2 overflow-auto p-4">
-                {atividades.length > 0 ? (
-                  atividades.map((ativ, idx) => (
-                    <div
-                      key={`${ativ.user_id}-${ativ.created_at}-${idx}`}
-                      className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium text-slate-900 dark:text-white truncate">
-                            {ativ.action_type === 'tab_change' && `Mudou para aba: ${ativ.filters_applied?.aba || 'desconhecida'}`}
-                            {ativ.action_type === 'filter_change' && 'Alterou filtros'}
-                            {ativ.action_type === 'login' && 'Fez login'}
-                            {ativ.action_type === 'heartbeat' && 'Ativo no sistema'}
-                            {ativ.action_type === 'page_visibility' && (ativ.details?.visible ? 'Voltou para a aba' : 'Saiu da aba')}
-                            {!['tab_change', 'filter_change', 'login', 'heartbeat', 'page_visibility'].includes(ativ.action_type) && (ativ.action_details || ativ.action_type)}
-                          </p>
-                          <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
-                            {formatarTimestamp(ativ.created_at)}
-                          </p>
-                        </div>
+        {/* Timeline de Atividades Recentes */}
+        <div className="lg:col-span-1">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+            <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span>📜</span>
+                Atividades Recentes
+              </h3>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                Últimas {atividades.length} ações
+              </p>
+            </div>
+            
+            <div className="max-h-[600px] space-y-2 overflow-auto p-4">
+              {atividades.length > 0 ? (
+                atividades.map((ativ, idx) => (
+                  <div
+                    key={`${ativ.user_id}-${ativ.created_at}-${idx}`}
+                    className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-slate-900 dark:text-white truncate">
+                          {ativ.action_type === 'tab_change' && `Mudou para aba: ${ativ.filters_applied?.aba || 'desconhecida'}`}
+                          {ativ.action_type === 'filter_change' && 'Alterou filtros'}
+                          {ativ.action_type === 'login' && 'Fez login'}
+                          {ativ.action_type === 'heartbeat' && 'Ativo no sistema'}
+                          {ativ.action_type === 'page_visibility' && (ativ.details?.visible ? 'Voltou para a aba' : 'Saiu da aba')}
+                          {!['tab_change', 'filter_change', 'login', 'heartbeat', 'page_visibility'].includes(ativ.action_type) && (ativ.action_details || ativ.action_type)}
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                          {formatarTimestamp(ativ.created_at)}
+                        </p>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="py-8 text-center">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Nenhuma atividade registrada
-                    </p>
                   </div>
-                )}
-              </div>
+                ))
+              ) : (
+                <div className="py-8 text-center">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Nenhuma atividade registrada
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
