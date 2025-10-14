@@ -2838,6 +2838,187 @@ function ComparacaoView({
             </div>
           )}
 
+          {/* Comparação Detalhada de Métricas por Sub-Praça */}
+          {dadosComparacao.some(d => d.sub_praca && d.sub_praca.length > 0) && (
+            <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+              <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-purple-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-purple-950/30">
+                <div className="flex items-center justify-between">
+                  <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                    <span className="text-xl">📍</span>
+                    Comparação Detalhada de Métricas por Sub-Praça
+                  </h3>
+                  <div className="flex gap-2">
+                    <ViewToggleButton
+                      active={viewModeSubPraca === 'table'}
+                      onClick={() => setViewModeSubPraca('table')}
+                      label="📋 Tabela"
+                    />
+                    <ViewToggleButton
+                      active={viewModeSubPraca === 'chart'}
+                      onClick={() => setViewModeSubPraca('chart')}
+                      label="📊 Gráfico"
+                    />
+                  </div>
+                </div>
+              </div>
+              {viewModeSubPraca === 'table' ? (
+              <div className="overflow-x-auto p-6">
+                <table className="w-full">
+                  <thead className="bg-slate-50 dark:bg-slate-800/50">
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sub-Praça</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Métrica</th>
+                      {semanasSelecionadas.map((semana, idx) => (
+                        <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                          Semana {semana} {idx > 0 && '(Δ%)'}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {Array.from(new Set(dadosComparacao.flatMap(d => d.sub_praca?.map(sp => sp.sub_praca) ?? []))).map((subPraca, subPracaIdx) => {
+                      const metricas = [
+                        { label: 'Aderência', key: 'aderencia_percentual', format: (v: number) => `${v.toFixed(1)}%`, color: 'text-blue-700 dark:text-blue-400' },
+                        { label: 'Ofertadas', key: 'corridas_ofertadas', format: (v: number) => v.toLocaleString('pt-BR'), color: 'text-slate-700 dark:text-slate-300' },
+                        { label: 'Aceitas', key: 'corridas_aceitas', format: (v: number) => v.toLocaleString('pt-BR'), color: 'text-emerald-700 dark:text-emerald-400' },
+                        { label: 'Rejeitadas', key: 'corridas_rejeitadas', format: (v: number) => v.toLocaleString('pt-BR'), color: 'text-rose-700 dark:text-rose-400' },
+                        { label: 'Completadas', key: 'corridas_completadas', format: (v: number) => v.toLocaleString('pt-BR'), color: 'text-purple-700 dark:text-purple-400' },
+                        { label: '% Aceitas', key: 'taxa_aceitacao', format: (v: number) => `${v.toFixed(1)}%`, color: 'text-emerald-600 dark:text-emerald-300' },
+                        { label: '% Rejeite', key: 'taxa_rejeicao', format: (v: number) => `${v.toFixed(1)}%`, color: 'text-rose-600 dark:text-rose-300' },
+                        { label: '% Completos', key: 'taxa_completude', format: (v: number) => `${v.toFixed(1)}%`, color: 'text-purple-600 dark:text-purple-300' },
+                      ];
+                      
+                      return metricas.map((metrica, metricaIdx) => (
+                        <tr key={`${subPraca}-${metrica.key}`} className={subPracaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-purple-50/30 dark:bg-purple-950/20'}>
+                          {metricaIdx === 0 && (
+                            <td rowSpan={8} className="px-4 py-3 font-bold text-slate-900 dark:text-white border-r border-purple-200 dark:border-purple-800">
+                              {subPraca}
+                            </td>
+                          )}
+                          <td className={`px-4 py-2 text-sm font-semibold ${metrica.color}`}>{metrica.label}</td>
+                          {dadosComparacao.map((dados, idx) => {
+                            const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                            let valor = 0;
+                            
+                            // Calcular valores especiais
+                            if (metrica.key === 'taxa_aceitacao') {
+                              const ofertadas = subPracaData?.corridas_ofertadas ?? 0;
+                              const aceitas = subPracaData?.corridas_aceitas ?? 0;
+                              valor = ofertadas > 0 ? (aceitas / ofertadas) * 100 : 0;
+                            } else if (metrica.key === 'taxa_rejeicao') {
+                              const ofertadas = subPracaData?.corridas_ofertadas ?? 0;
+                              const rejeitadas = subPracaData?.corridas_rejeitadas ?? 0;
+                              valor = ofertadas > 0 ? (rejeitadas / ofertadas) * 100 : 0;
+                            } else if (metrica.key === 'taxa_completude') {
+                              const aceitas = subPracaData?.corridas_aceitas ?? 0;
+                              const completadas = subPracaData?.corridas_completadas ?? 0;
+                              valor = aceitas > 0 ? (completadas / aceitas) * 100 : 0;
+                            } else {
+                              valor = subPracaData?.[metrica.key as keyof typeof subPracaData] as number ?? 0;
+                            }
+                            
+                            // Calcular variação se não for a primeira semana
+                            let variacao = null;
+                            if (idx > 0) {
+                              const dadosAnterior = dadosComparacao[idx - 1];
+                              const subPracaDataAnterior = dadosAnterior.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                              let valorAnterior = 0;
+                              
+                              if (metrica.key === 'taxa_aceitacao') {
+                                const ofertadasAnt = subPracaDataAnterior?.corridas_ofertadas ?? 0;
+                                const aceitasAnt = subPracaDataAnterior?.corridas_aceitas ?? 0;
+                                valorAnterior = ofertadasAnt > 0 ? (aceitasAnt / ofertadasAnt) * 100 : 0;
+                              } else if (metrica.key === 'taxa_rejeicao') {
+                                const ofertadasAnt = subPracaDataAnterior?.corridas_ofertadas ?? 0;
+                                const rejeitadasAnt = subPracaDataAnterior?.corridas_rejeitadas ?? 0;
+                                valorAnterior = ofertadasAnt > 0 ? (rejeitadasAnt / ofertadasAnt) * 100 : 0;
+                              } else if (metrica.key === 'taxa_completude') {
+                                const aceitasAnt = subPracaDataAnterior?.corridas_aceitas ?? 0;
+                                const completadasAnt = subPracaDataAnterior?.corridas_completadas ?? 0;
+                                valorAnterior = aceitasAnt > 0 ? (completadasAnt / aceitasAnt) * 100 : 0;
+                              } else {
+                                valorAnterior = subPracaDataAnterior?.[metrica.key as keyof typeof subPracaDataAnterior] as number ?? 0;
+                              }
+                              
+                              variacao = valorAnterior > 0 ? ((valor - valorAnterior) / valorAnterior) * 100 : 0;
+                            }
+                            
+                            return (
+                              <React.Fragment key={idx}>
+                                <td className={`px-4 py-2 text-center font-semibold ${metrica.color}`}>
+                                  {metrica.format(valor)}
+                                </td>
+                                {idx > 0 && variacao !== null && (
+                                  <td className="px-4 py-2 text-center text-xs font-bold">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${
+                                      variacao >= 0 
+                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                                    }`}>
+                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                    </span>
+                                  </td>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tr>
+                      ));
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              ) : (
+                <div className="p-6">
+                  <Line data={{
+                    labels: Array.from(new Set(dadosComparacao.flatMap(d => d.sub_praca?.map(sp => sp.sub_praca) ?? []))),
+                    datasets: semanasSelecionadas.map((semana, idx) => {
+                      const cores = [
+                        { bg: 'rgba(147, 51, 234, 0.2)', border: 'rgb(147, 51, 234)' },
+                        { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgb(16, 185, 129)' },
+                        { bg: 'rgba(251, 146, 60, 0.2)', border: 'rgb(251, 146, 60)' },
+                        { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgb(59, 130, 246)' },
+                        { bg: 'rgba(236, 72, 153, 0.2)', border: 'rgb(236, 72, 153)' },
+                      ];
+                      const cor = cores[idx % cores.length];
+                      const subPracas = Array.from(new Set(dadosComparacao.flatMap(d => d.sub_praca?.map(sp => sp.sub_praca) ?? [])));
+                      
+                      return {
+                        label: `Semana ${semana}`,
+                        data: subPracas.map(subPraca => {
+                          const dados = dadosComparacao[idx];
+                          const subPracaData = dados?.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                          return subPracaData?.aderencia_percentual ?? 0;
+                        }),
+                        backgroundColor: cor.bg,
+                        borderColor: cor.border,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                      };
+                    }),
+                  }} options={{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                      legend: { position: 'top' as const },
+                      tooltip: {
+                        callbacks: {
+                          label: (context: any) => `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`
+                        }
+                      }
+                    },
+                    scales: {
+                      y: { beginAtZero: true, ticks: { callback: (value: any) => `${value}%` } },
+                      x: { ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 45 } }
+                    }
+                  }} />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Comparação de UTR */}
           {utrComparacao.length > 0 ? (
             <div className="rounded-xl border border-purple-200 bg-white shadow-lg dark:border-purple-800 dark:bg-slate-900">
