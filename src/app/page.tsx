@@ -1424,24 +1424,45 @@ function MonitoramentoView() {
   const [usuarios, setUsuarios] = useState<UsuarioOnline[]>([]);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'ativos' | 'inativos'>('todos');
+  const [atividades, setAtividades] = useState<any[]>([]);
 
   const fetchMonitoramento = async () => {
     try {
+      // Buscar usuários online
       const { data, error } = await supabase.rpc('listar_usuarios_online');
       
       if (error) throw error;
+      
+      // Buscar atividades recentes (últimas 50)
+      const { data: atividadesData, error: atividadesError } = await supabase
+        .from('user_activity')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (!atividadesError && atividadesData) {
+        setAtividades(atividadesData);
+      }
       
       // Mapear os dados da API para o formato esperado
       const usuariosMapeados = (data || []).map((u: any) => {
         // Segundos de inatividade já vem como número do backend
         const segundosInativo = u.seconds_inactive || 0;
-        // sd
+        
         // Extrair praças dos filtros
         const filtros = u.filters_applied || {};
         const pracas = filtros.p_praca ? [filtros.p_praca] : (filtros.praca ? [filtros.praca] : []);
         
         // A descrição detalhada já vem do backend (action_details)
         const descricaoAcao = u.action_details || u.last_action_type || 'Atividade desconhecida';
+        
+        // Contar ações da última hora
+        const umaHoraAtras = new Date();
+        umaHoraAtras.setHours(umaHoraAtras.getHours() - 1);
+        const acoesUltimaHora = atividadesData?.filter((a: any) => 
+          a.user_id === u.user_id && new Date(a.created_at) > umaHoraAtras
+        ).length || 0;
         
         return {
           user_id: u.user_id,
@@ -1451,7 +1472,7 @@ function MonitoramentoView() {
           pracas: pracas,
           ultima_acao: descricaoAcao,
           segundos_inativo: Math.floor(segundosInativo),
-          acoes_ultima_hora: 0,
+          acoes_ultima_hora: acoesUltimaHora,
           is_active: u.is_active
         };
       });
@@ -1497,29 +1518,132 @@ function MonitoramentoView() {
     );
   }
 
+  // Calcular estatísticas
+  const usuariosAtivos = usuarios.filter(u => u.segundos_inativo < 60).length;
+  const usuariosInativos = usuarios.length - usuariosAtivos;
+  const totalAcoes = usuarios.reduce((sum, u) => sum + u.acoes_ultima_hora, 0);
+  
+  // Filtrar usuários
+  const usuariosFiltrados = usuarios.filter(u => {
+    if (filtroStatus === 'ativos') return u.segundos_inativo < 60;
+    if (filtroStatus === 'inativos') return u.segundos_inativo >= 60;
+    return true;
+  });
+
+  // Formatar timestamp
+  const formatarTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const agora = new Date();
+    const diff = Math.floor((agora.getTime() - date.getTime()) / 1000);
+    
+    if (diff < 60) return `${diff}s atrás`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m atrás`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
+    return date.toLocaleDateString('pt-BR');
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-indigo-600 to-purple-600 p-6 shadow-xl dark:border-slate-700">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-indigo-100">🔍 Monitoramento em Tempo Real</h2>
-            <p className="mt-2 text-4xl font-bold text-white">{usuarios.length}</p>
-            <p className="mt-1 text-sm text-indigo-100">Usuários online</p>
+      {/* Cards de Estatísticas */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-indigo-900 dark:from-indigo-950/30 dark:to-purple-950/30">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl text-white shadow-md">
+              👥
+            </div>
+            <div>
+              <p className="text-xs font-medium text-indigo-700 dark:text-indigo-300">Total Online</p>
+              <p className="text-3xl font-bold text-indigo-900 dark:text-indigo-100">{usuarios.length}</p>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-white">
+        </div>
+
+        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-emerald-900 dark:from-emerald-950/30 dark:to-teal-950/30">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-2xl text-white shadow-md">
+              ✅
+            </div>
+            <div>
+              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Ativos</p>
+              <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">{usuariosAtivos}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-amber-900 dark:from-amber-950/30 dark:to-orange-950/30">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-2xl text-white shadow-md">
+              ⏸️
+            </div>
+            <div>
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-300">Inativos</p>
+              <p className="text-3xl font-bold text-amber-900 dark:text-amber-100">{usuariosInativos}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-purple-900 dark:from-purple-950/30 dark:to-pink-950/30">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-2xl text-white shadow-md">
+              ⚡
+            </div>
+            <div>
+              <p className="text-xs font-medium text-purple-700 dark:text-purple-300">Ações (1h)</p>
+              <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">{totalAcoes}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Controles */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setFiltroStatus('todos')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                filtroStatus === 'todos'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+              }`}
+            >
+              Todos ({usuarios.length})
+            </button>
+            <button
+              onClick={() => setFiltroStatus('ativos')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                filtroStatus === 'ativos'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+              }`}
+            >
+              Ativos ({usuariosAtivos})
+            </button>
+            <button
+              onClick={() => setFiltroStatus('inativos')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                filtroStatus === 'inativos'
+                  ? 'bg-amber-600 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+              }`}
+            >
+              Inativos ({usuariosInativos})
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={autoRefresh}
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="h-4 w-4 rounded"
               />
-              <span className="text-sm">Auto-atualizar</span>
+              <span>Auto-atualizar (10s)</span>
             </label>
             <button
               onClick={fetchMonitoramento}
-              className="rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/30 hover:scale-105 active:scale-95"
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-indigo-700 hover:scale-105 active:scale-95"
             >
               🔄 Atualizar
             </button>
@@ -1527,81 +1651,138 @@ function MonitoramentoView() {
         </div>
       </div>
 
-      {/* Lista de Usuários Online */}
-      {usuarios.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {usuarios.map((usuario) => (
-            <div
-              key={usuario.user_id}
-              className="rounded-xl border border-slate-200 bg-white p-5 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <div className={`h-3 w-3 rounded-full ${getStatusColor(usuario.segundos_inativo)} animate-pulse`}></div>
-                    <h3 className="font-bold text-slate-900 dark:text-white">{usuario.nome || usuario.email}</h3>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{usuario.email}</p>
-                  
-                  <div className="mt-4 space-y-2">
-                    {/* Aba Atual */}
-                    {usuario.aba_atual && (
+      {/* Conteúdo */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Lista de Usuários Online */}
+        <div className="lg:col-span-2">
+          {usuariosFiltrados.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4">
+              {usuariosFiltrados.map((usuario) => (
+                <div
+                  key={usuario.user_id}
+                  className="rounded-xl border border-slate-200 bg-white p-5 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aba:</span>
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
-                          {usuario.aba_atual}
-                        </span>
+                        <div className={`h-3 w-3 rounded-full ${getStatusColor(usuario.segundos_inativo)} animate-pulse`}></div>
+                        <h3 className="font-bold text-slate-900 dark:text-white">{usuario.nome || usuario.email}</h3>
                       </div>
-                    )}
-                    
-                    {/* Praças */}
-                    {usuario.pracas && usuario.pracas.length > 0 && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Praças:</span>
-                        <div className="flex flex-wrap gap-1">
-                          {usuario.pracas.map((praca, idx) => (
-                            <span key={idx} className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-                              {praca}
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{usuario.email}</p>
+                      
+                      <div className="mt-4 space-y-2">
+                        {/* Aba Atual */}
+                        {usuario.aba_atual && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aba:</span>
+                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                              {usuario.aba_atual}
                             </span>
-                          ))}
+                          </div>
+                        )}
+                        
+                        {/* Praças */}
+                        {usuario.pracas && usuario.pracas.length > 0 && (
+                          <div className="flex items-start gap-2">
+                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Praças:</span>
+                            <div className="flex flex-wrap gap-1">
+                              {usuario.pracas.map((praca, idx) => (
+                                <span key={idx} className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                  {praca}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Última Ação */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Última ação:</span>
+                          <span className="text-xs text-slate-700 dark:text-slate-300">{usuario.ultima_acao}</span>
+                        </div>
+                        
+                        {/* Tempo Inativo */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Inativo há:</span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">{formatarTempo(usuario.segundos_inativo)}</span>
+                        </div>
+                        
+                        {/* Ações última hora */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Ações (última hora):</span>
+                          <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
+                            {usuario.acoes_ultima_hora}
+                          </span>
                         </div>
                       </div>
-                    )}
-                    
-                    {/* Última Ação */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Última ação:</span>
-                      <span className="text-xs text-slate-700 dark:text-slate-300">{usuario.ultima_acao}</span>
                     </div>
                     
-                    {/* Tempo Inativo */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Inativo há:</span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">{formatarTempo(usuario.segundos_inativo)}</span>
-                    </div>
-                    
-                    {/* Ações última hora */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Ações (última hora):</span>
-                      <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
-                        {usuario.acoes_ultima_hora}
-                      </span>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl text-white shadow-md">
+                      👤
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl text-white shadow-md">
-                  👤
-                </div>
+              ))}
+            </div>
+            ) : (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900 dark:bg-amber-950/30">
+                <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">
+                  Nenhum usuário {filtroStatus !== 'todos' ? filtroStatus : 'online'}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Timeline de Atividades Recentes */}
+          <div className="lg:col-span-1">
+            <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+              <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
+                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                  <span>📜</span>
+                  Atividades Recentes
+                </h3>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                  Últimas {atividades.length} ações
+                </p>
+              </div>
+              
+              <div className="max-h-[600px] space-y-2 overflow-auto p-4">
+                {atividades.length > 0 ? (
+                  atividades.map((ativ, idx) => (
+                    <div
+                      key={`${ativ.user_id}-${ativ.created_at}-${idx}`}
+                      className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium text-slate-900 dark:text-white truncate">
+                            {ativ.action_type === 'tab_change' && `Mudou para aba: ${ativ.filters_applied?.aba || 'desconhecida'}`}
+                            {ativ.action_type === 'filter_change' && 'Alterou filtros'}
+                            {ativ.action_type === 'login' && 'Fez login'}
+                            {ativ.action_type === 'heartbeat' && 'Ativo no sistema'}
+                            {ativ.action_type === 'page_visibility' && (ativ.details?.visible ? 'Voltou para a aba' : 'Saiu da aba')}
+                            {!['tab_change', 'filter_change', 'login', 'heartbeat', 'page_visibility'].includes(ativ.action_type) && (ativ.action_details || ativ.action_type)}
+                          </p>
+                          <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                            {formatarTimestamp(ativ.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Nenhuma atividade registrada
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+          </div>
         </div>
-      ) : (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900 dark:bg-amber-950/30">
-          <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Nenhum usuário online no momento</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -2937,6 +3118,10 @@ function ValoresView({
 }) {
   const [sortField, setSortField] = useState<keyof ValoresEntregador>('total_taxas');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<ValoresEntregador[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Função para formatar valores em Real
   const formatarReal = (valor: number) => {
@@ -2947,6 +3132,47 @@ function ValoresView({
       maximumFractionDigits: 2
     }).format(valor);
   };
+
+  // Pesquisa com debounce
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.rpc('pesquisar_valores_entregadores', {
+          termo_busca: searchTerm.trim()
+        });
+
+        if (error) throw error;
+        setSearchResults(data || []);
+      } catch (err) {
+        console.error('Erro ao pesquisar valores:', err);
+        // Fallback para pesquisa local
+        const filtered = valoresData.filter(e => 
+          e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          e.id_entregador.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setSearchResults(filtered);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm, valoresData]);
 
   if (loading) {
     return (
@@ -2978,7 +3204,10 @@ function ValoresView({
     }
   };
 
-  const sortedValores = [...valoresData].sort((a, b) => {
+  // Usar resultados da pesquisa se houver termo de busca, senão usar dados originais
+  const dataToDisplay = searchTerm.trim() ? searchResults : valoresData;
+
+  const sortedValores = [...dataToDisplay].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
     
@@ -3001,13 +3230,50 @@ function ValoresView({
   };
 
   // Calcular estatísticas gerais
-  const totalGeral = valoresData.reduce((sum, e) => sum + e.total_taxas, 0);
-  const totalCorridas = valoresData.reduce((sum, e) => sum + e.numero_corridas_aceitas, 0);
+  const totalGeral = dataToDisplay.reduce((sum, e) => sum + e.total_taxas, 0);
+  const totalCorridas = dataToDisplay.reduce((sum, e) => sum + e.numero_corridas_aceitas, 0);
   const taxaMediaGeral = totalCorridas > 0 ? totalGeral / totalCorridas : 0;
-  const totalEntregadores = valoresData.length;
+  const totalEntregadores = dataToDisplay.length;
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
+      {/* Barra de Pesquisa */}
+      <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="🔍 Pesquisar entregador por nome ou ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 pl-12 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
+          />
+          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+            {isSearching ? (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600"></div>
+            ) : (
+              <span className="text-lg">🔍</span>
+            )}
+          </div>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+            >
+              <span className="text-lg">✕</span>
+            </button>
+          )}
+        </div>
+        {searchTerm && (
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+            {isSearching ? (
+              'Pesquisando...'
+            ) : (
+              `Encontrado${totalEntregadores === 1 ? '' : 's'} ${totalEntregadores} resultado${totalEntregadores === 1 ? '' : 's'}`
+            )}
+          </p>
+        )}
+      </div>
+
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <div className="rounded-xl sm:rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4 sm:p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-emerald-900 dark:from-emerald-950/30 dark:to-teal-950/30">
@@ -3169,6 +3435,51 @@ function EntregadoresView({
 }) {
   const [sortField, setSortField] = useState<keyof Entregador>('aderencia_percentual');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<Entregador[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Pesquisa com debounce
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.rpc('pesquisar_entregadores', {
+          termo_busca: searchTerm.trim()
+        });
+
+        if (error) throw error;
+        setSearchResults(data?.entregadores || []);
+      } catch (err) {
+        console.error('Erro ao pesquisar entregadores:', err);
+        // Fallback para pesquisa local
+        const filtered = (entregadoresData?.entregadores || []).filter(e => 
+          e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          e.id_entregador.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setSearchResults(filtered);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm, entregadoresData]);
 
   if (loading) {
     return (
@@ -3198,7 +3509,10 @@ function EntregadoresView({
     }
   };
 
-  const sortedEntregadores = [...entregadoresData.entregadores].sort((a, b) => {
+  // Usar resultados da pesquisa se houver termo de busca, senão usar dados originais
+  const dataToDisplay = searchTerm.trim() ? searchResults : entregadoresData.entregadores;
+
+  const sortedEntregadores = [...dataToDisplay].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
     
@@ -3245,15 +3559,53 @@ function EntregadoresView({
   };
 
   // Calcular estatísticas gerais
-  const totalOfertadas = entregadoresData.entregadores.reduce((sum, e) => sum + e.corridas_ofertadas, 0);
-  const totalAceitas = entregadoresData.entregadores.reduce((sum, e) => sum + e.corridas_aceitas, 0);
-  const totalRejeitadas = entregadoresData.entregadores.reduce((sum, e) => sum + e.corridas_rejeitadas, 0);
-  const totalCompletadas = entregadoresData.entregadores.reduce((sum, e) => sum + e.corridas_completadas, 0);
-  const aderenciaMedia = entregadoresData.entregadores.reduce((sum, e) => sum + e.aderencia_percentual, 0) / entregadoresData.total;
-  const rejeicaoMedia = entregadoresData.entregadores.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / entregadoresData.total;
+  const totalOfertadas = dataToDisplay.reduce((sum, e) => sum + e.corridas_ofertadas, 0);
+  const totalAceitas = dataToDisplay.reduce((sum, e) => sum + e.corridas_aceitas, 0);
+  const totalRejeitadas = dataToDisplay.reduce((sum, e) => sum + e.corridas_rejeitadas, 0);
+  const totalCompletadas = dataToDisplay.reduce((sum, e) => sum + e.corridas_completadas, 0);
+  const totalEntregadores = dataToDisplay.length;
+  const aderenciaMedia = totalEntregadores > 0 ? dataToDisplay.reduce((sum, e) => sum + e.aderencia_percentual, 0) / totalEntregadores : 0;
+  const rejeicaoMedia = totalEntregadores > 0 ? dataToDisplay.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / totalEntregadores : 0;
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Barra de Pesquisa */}
+      <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="🔍 Pesquisar entregador por nome ou ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 pl-12 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
+          />
+          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+            {isSearching ? (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600"></div>
+            ) : (
+              <span className="text-lg">🔍</span>
+            )}
+          </div>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+            >
+              <span className="text-lg">✕</span>
+            </button>
+          )}
+        </div>
+        {searchTerm && (
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+            {isSearching ? (
+              'Pesquisando...'
+            ) : (
+              `Encontrado${totalEntregadores === 1 ? '' : 's'} ${totalEntregadores} resultado${totalEntregadores === 1 ? '' : 's'}`
+            )}
+          </p>
+        )}
+      </div>
+
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
@@ -3262,7 +3614,7 @@ function EntregadoresView({
               👥
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{entregadoresData.total}</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalEntregadores}</p>
               <p className="text-xs text-slate-600 dark:text-slate-400">Entregadores</p>
             </div>
           </div>

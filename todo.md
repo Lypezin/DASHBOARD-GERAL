@@ -1,2 +1,0 @@
-- [ ] Atualizar documentação com nova lógica de aderência
-- [ ] Revisar interface de filtros após incluir origem

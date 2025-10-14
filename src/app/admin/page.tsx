@@ -67,31 +67,35 @@ export default function AdminPage() {
     setError(null);
 
     try {
-      // Buscar todos os usuários
-      const { data: allUsers, error: usersError } = await supabase.rpc('list_all_users');
-      if (usersError) throw usersError;
-      setUsers(allUsers || []);
+      // Executar todas as operações em paralelo para melhor performance
+      const [usersPromise, pendingPromise, pracasPromise] = await Promise.allSettled([
+        supabase.rpc('list_all_users'),
+        supabase.rpc('list_pending_users'),
+        fetchPracasWithFallback()
+      ]);
 
-      // Buscar usuários pendentes
-      const { data: pending, error: pendingError } = await supabase.rpc('list_pending_users');
-      if (pendingError) throw pendingError;
-      setPendingUsers(pending || []);
-
-      // Buscar praças disponíveis (função otimizada)
-      const { data: pracasData, error: pracasError } = await supabase.rpc('list_pracas_disponiveis');
-      if (pracasError) {
-        console.warn('Erro ao buscar praças:', pracasError);
-        // Fallback: buscar diretamente da tabela
-        const { data: fallbackPracas } = await supabase
-          .from('dados_corridas')
-          .select('praca')
-          .not('praca', 'is', null)
-          .limit(100);
-        
-        const uniquePracas = [...new Set(fallbackPracas?.map(p => p.praca) || [])];
-        setPracasDisponiveis(uniquePracas);
+      // Processar usuários
+      if (usersPromise.status === 'fulfilled' && !usersPromise.value.error) {
+        setUsers(usersPromise.value.data || []);
       } else {
-        setPracasDisponiveis(pracasData?.map((p: any) => p.praca) || []);
+        console.warn('Erro ao buscar usuários:', usersPromise.status === 'fulfilled' ? usersPromise.value.error : usersPromise.reason);
+        setUsers([]);
+      }
+
+      // Processar usuários pendentes
+      if (pendingPromise.status === 'fulfilled' && !pendingPromise.value.error) {
+        setPendingUsers(pendingPromise.value.data || []);
+      } else {
+        console.warn('Erro ao buscar usuários pendentes:', pendingPromise.status === 'fulfilled' ? pendingPromise.value.error : pendingPromise.reason);
+        setPendingUsers([]);
+      }
+
+      // Processar praças
+      if (pracasPromise.status === 'fulfilled') {
+        setPracasDisponiveis(pracasPromise.value);
+      } else {
+        console.warn('Erro ao buscar praças:', pracasPromise.reason);
+        setPracasDisponiveis([]);
       }
     } catch (err: any) {
       console.error('Erro ao carregar dados:', err);
@@ -99,6 +103,78 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPracasWithFallback = async (): Promise<string[]> => {
+    // Cache local das praças para evitar buscar repetidamente
+    const cachedPracas = sessionStorage.getItem('admin_pracas_cache');
+    const cacheTime = sessionStorage.getItem('admin_pracas_cache_time');
+    
+    // Verificar se cache é válido (menos de 5 minutos)
+    if (cachedPracas && cacheTime) {
+      const now = Date.now();
+      const cached = parseInt(cacheTime);
+      if (now - cached < 5 * 60 * 1000) { // 5 minutos
+        return JSON.parse(cachedPracas);
+      }
+    }
+
+    try {
+      // Tentar função otimizada primeiro
+      const { data: pracasData, error: pracasError } = await supabase.rpc('list_pracas_disponiveis');
+      
+      if (!pracasError && pracasData && pracasData.length > 0) {
+        const pracas = pracasData.map((p: any) => p.praca).filter(Boolean);
+        // Salvar no cache
+        sessionStorage.setItem('admin_pracas_cache', JSON.stringify(pracas));
+        sessionStorage.setItem('admin_pracas_cache_time', Date.now().toString());
+        return pracas;
+      }
+    } catch (err) {
+      console.warn('Função list_pracas_disponiveis falhou, tentando fallback:', err);
+    }
+
+    // Fallback 1: Buscar da materialized view
+    try {
+      const { data: mvPracas, error: mvError } = await supabase
+        .from('mv_aderencia_agregada')
+        .select('praca')
+        .not('praca', 'is', null)
+        .order('praca');
+      
+      if (!mvError && mvPracas && mvPracas.length > 0) {
+        const uniquePracas = [...new Set(mvPracas.map(p => p.praca))].filter(Boolean);
+        // Salvar no cache
+        sessionStorage.setItem('admin_pracas_cache', JSON.stringify(uniquePracas));
+        sessionStorage.setItem('admin_pracas_cache_time', Date.now().toString());
+        return uniquePracas;
+      }
+    } catch (err) {
+      console.warn('Fallback MV falhou, tentando dados_corridas:', err);
+    }
+
+    // Fallback 2: Buscar diretamente da tabela principal
+    try {
+      const { data: fallbackPracas, error: fallbackError } = await supabase
+        .from('dados_corridas')
+        .select('praca')
+        .not('praca', 'is', null)
+        .order('praca')
+        .limit(500); // Aumentar limite para pegar mais praças
+      
+      if (!fallbackError && fallbackPracas) {
+        const uniquePracas = [...new Set(fallbackPracas.map(p => p.praca))].filter(Boolean);
+        // Salvar no cache
+        sessionStorage.setItem('admin_pracas_cache', JSON.stringify(uniquePracas));
+        sessionStorage.setItem('admin_pracas_cache_time', Date.now().toString());
+        return uniquePracas;
+      }
+    } catch (err) {
+      console.error('Todos os métodos de busca de praças falharam:', err);
+    }
+
+    // Se tudo falhar, retornar lista vazia
+    return [];
   };
 
   const handleApproveUser = (user: User) => {
@@ -209,10 +285,65 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-          <p className="mt-4 text-slate-600">Carregando...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 py-8">
+        <div className="mx-auto max-w-7xl px-4">
+          {/* Skeleton Header */}
+          <div className="mb-8 animate-pulse">
+            <div className="h-8 w-64 bg-slate-200 rounded-lg mb-2"></div>
+            <div className="h-4 w-96 bg-slate-200 rounded"></div>
+          </div>
+          
+          {/* Skeleton Cards */}
+          <div className="space-y-6">
+            <div className="rounded-xl bg-white p-6 shadow-md">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-6 w-6 bg-amber-200 rounded animate-pulse"></div>
+                <div className="h-6 w-48 bg-slate-200 rounded animate-pulse"></div>
+              </div>
+              <div className="space-y-4">
+                {[1, 2].map((i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-5 w-48 bg-amber-200 rounded animate-pulse"></div>
+                      <div className="h-4 w-64 bg-amber-200 rounded animate-pulse"></div>
+                    </div>
+                    <div className="h-8 w-20 bg-emerald-200 rounded animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="rounded-xl bg-white p-6 shadow-md">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-6 w-6 bg-blue-200 rounded animate-pulse"></div>
+                <div className="h-6 w-32 bg-slate-200 rounded animate-pulse"></div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <th key={i} className="pb-3">
+                          <div className="h-4 w-16 bg-slate-200 rounded animate-pulse"></div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[1, 2, 3, 4].map((i) => (
+                      <tr key={i} className="border-b">
+                        {[1, 2, 3, 4, 5].map((j) => (
+                          <td key={j} className="py-3">
+                            <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -221,14 +352,38 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 py-8">
       <div className="mx-auto max-w-7xl px-4">
+        {/* Header melhorado com estatísticas */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Gerenciamento de Usuários</h1>
-          <p className="mt-2 text-slate-600">Aprovar cadastros e gerenciar permissões</p>
+          <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-indigo-600 to-purple-600 p-6 shadow-xl">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="text-white">
+                <h1 className="text-2xl lg:text-3xl font-bold">👑 Painel Administrativo</h1>
+                <p className="mt-2 text-sm lg:text-base text-indigo-100">Gerenciamento completo de usuários e permissões</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 lg:gap-6">
+                <div className="rounded-lg bg-white/10 backdrop-blur-sm p-4 text-center">
+                  <p className="text-2xl lg:text-3xl font-bold text-white">{users.length}</p>
+                  <p className="text-xs lg:text-sm text-indigo-100">Total de Usuários</p>
+                </div>
+                <div className="rounded-lg bg-white/10 backdrop-blur-sm p-4 text-center">
+                  <p className="text-2xl lg:text-3xl font-bold text-white">{pendingUsers.length}</p>
+                  <p className="text-xs lg:text-sm text-indigo-100">Pendentes</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {error && (
-          <div className="mb-6 rounded-lg border border-rose-200 bg-rose-50 p-4 text-rose-800">
-            {error}
+          <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 shadow-lg animate-pulse">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <h3 className="font-bold text-rose-800">Erro no Carregamento</h3>
+                <p className="text-sm text-rose-700">{error}</p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -371,59 +526,76 @@ export default function AdminPage() {
 
       {/* Modal de Edição de Praças */}
       {showEditModal && editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-            <h3 className="mb-4 text-xl font-bold text-slate-900">
-              Editar Praças
-            </h3>
-            <div className="mb-4">
-              <p className="text-sm text-slate-600">Usuário:</p>
-              <p className="font-semibold text-slate-900">{editingUser.full_name}</p>
-              <p className="text-sm text-slate-600">{editingUser.email}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl animate-scale-in max-h-[90vh] overflow-hidden">
+            {/* Header do Modal */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <span>✏️</span>
+                Editar Praças
+              </h3>
+              <div className="mt-2 text-blue-100">
+                <p className="font-medium">{editingUser.full_name}</p>
+                <p className="text-sm opacity-90">{editingUser.email}</p>
+              </div>
             </div>
 
-            <div className="mb-6">
-              <p className="mb-2 text-sm font-semibold text-slate-700">Selecione as praças:</p>
-              {pracasDisponiveis.length === 0 ? (
-                <p className="text-sm text-slate-500">Nenhuma praça disponível</p>
-              ) : (
-                <div className="max-h-60 space-y-2 overflow-y-auto">
-                  {pracasDisponiveis.map((praca) => (
-                    <label
-                      key={praca}
-                      className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 cursor-pointer hover:bg-slate-50"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedPracas.includes(praca)}
-                        onChange={() => togglePracaSelection(praca)}
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <span className="text-sm font-medium text-slate-900">{praca}</span>
-                    </label>
-                  ))}
+            <div className="p-6">
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-slate-700">Selecione as praças:</p>
+                  <span className="text-xs text-slate-500">
+                    {selectedPracas.length} de {pracasDisponiveis.length} selecionadas
+                  </span>
                 </div>
-              )}
-            </div>
+                
+                {pracasDisponiveis.length === 0 ? (
+                  <div className="rounded-lg border-2 border-dashed border-slate-200 p-8 text-center">
+                    <span className="text-4xl mb-2 block">🏢</span>
+                    <p className="text-sm text-slate-500">Nenhuma praça disponível</p>
+                    <p className="text-xs text-slate-400 mt-1">Verifique a conexão ou tente recarregar</p>
+                  </div>
+                ) : (
+                  <div className="max-h-60 space-y-2 overflow-y-auto rounded-lg border border-slate-200 p-2">
+                    {pracasDisponiveis.map((praca) => (
+                      <label
+                        key={praca}
+                        className="flex items-center gap-3 rounded-lg border border-transparent p-3 cursor-pointer transition-all hover:border-blue-200 hover:bg-blue-50 group"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedPracas.includes(praca)}
+                          onChange={() => togglePracaSelection(praca)}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-colors"
+                        />
+                        <span className="text-sm font-medium text-slate-900 group-hover:text-blue-700">
+                          {praca}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditingUser(null);
-                  setSelectedPracas([]);
-                }}
-                className="flex-1 rounded-lg border border-slate-300 py-2 font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveEditPracas}
-                disabled={selectedPracas.length === 0}
-                className="flex-1 rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Salvar
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingUser(null);
+                    setSelectedPracas([]);
+                  }}
+                  className="flex-1 rounded-lg border-2 border-slate-200 py-3 font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveEditPracas}
+                  disabled={selectedPracas.length === 0}
+                  className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-3 font-semibold text-white transition-all hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:from-slate-300 disabled:to-slate-400 shadow-lg"
+                >
+                  💾 Salvar Alterações
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -431,59 +603,76 @@ export default function AdminPage() {
 
       {/* Modal de Aprovação */}
       {showModal && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-            <h3 className="mb-4 text-xl font-bold text-slate-900">
-              Aprovar Usuário
-            </h3>
-            <div className="mb-4">
-              <p className="text-sm text-slate-600">Usuário:</p>
-              <p className="font-semibold text-slate-900">{selectedUser.full_name}</p>
-              <p className="text-sm text-slate-600">{selectedUser.email}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl animate-scale-in max-h-[90vh] overflow-hidden">
+            {/* Header do Modal */}
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <span>✅</span>
+                Aprovar Usuário
+              </h3>
+              <div className="mt-2 text-emerald-100">
+                <p className="font-medium">{selectedUser.full_name}</p>
+                <p className="text-sm opacity-90">{selectedUser.email}</p>
+              </div>
             </div>
 
-            <div className="mb-6">
-              <p className="mb-2 text-sm font-semibold text-slate-700">Selecione as praças:</p>
-              {pracasDisponiveis.length === 0 ? (
-                <p className="text-sm text-slate-500">Nenhuma praça disponível</p>
-              ) : (
-                <div className="space-y-2">
-                  {pracasDisponiveis.map((praca) => (
-                    <label
-                      key={praca}
-                      className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 cursor-pointer hover:bg-slate-50"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedPracas.includes(praca)}
-                        onChange={() => togglePracaSelection(praca)}
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <span className="text-sm font-medium text-slate-900">{praca}</span>
-                    </label>
-                  ))}
+            <div className="p-6">
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-slate-700">Selecione as praças de acesso:</p>
+                  <span className="text-xs text-slate-500">
+                    {selectedPracas.length} de {pracasDisponiveis.length} selecionadas
+                  </span>
                 </div>
-              )}
-            </div>
+                
+                {pracasDisponiveis.length === 0 ? (
+                  <div className="rounded-lg border-2 border-dashed border-amber-200 bg-amber-50 p-8 text-center">
+                    <span className="text-4xl mb-2 block">⚠️</span>
+                    <p className="text-sm text-amber-700">Nenhuma praça disponível</p>
+                    <p className="text-xs text-amber-600 mt-1">O usuário não poderá ser aprovado sem praças</p>
+                  </div>
+                ) : (
+                  <div className="max-h-60 space-y-2 overflow-y-auto rounded-lg border border-slate-200 p-2">
+                    {pracasDisponiveis.map((praca) => (
+                      <label
+                        key={praca}
+                        className="flex items-center gap-3 rounded-lg border border-transparent p-3 cursor-pointer transition-all hover:border-emerald-200 hover:bg-emerald-50 group"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedPracas.includes(praca)}
+                          onChange={() => togglePracaSelection(praca)}
+                          className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-2 focus:ring-emerald-500 transition-colors"
+                        />
+                        <span className="text-sm font-medium text-slate-900 group-hover:text-emerald-700">
+                          {praca}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setSelectedUser(null);
-                  setSelectedPracas([]);
-                }}
-                className="flex-1 rounded-lg border border-slate-300 py-2 font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveApproval}
-                disabled={selectedPracas.length === 0}
-                className="flex-1 rounded-lg bg-emerald-600 py-2 font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Aprovar
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowModal(false);
+                    setSelectedUser(null);
+                    setSelectedPracas([]);
+                  }}
+                  className="flex-1 rounded-lg border-2 border-slate-200 py-3 font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveApproval}
+                  disabled={selectedPracas.length === 0}
+                  className="flex-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 py-3 font-semibold text-white transition-all hover:from-emerald-700 hover:to-teal-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:from-slate-300 disabled:to-slate-400 shadow-lg"
+                >
+                  ✅ Aprovar Acesso
+                </button>
+              </div>
             </div>
           </div>
         </div>
