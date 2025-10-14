@@ -1507,17 +1507,6 @@ function MonitoramentoView() {
     return 'bg-slate-400';
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando monitoramento...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Calcular estatísticas
   const usuariosAtivos = usuarios.filter(u => u.segundos_inativo < 60).length;
   const usuariosInativos = usuarios.length - usuariosAtivos;
@@ -1541,6 +1530,17 @@ function MonitoramentoView() {
     if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
     return date.toLocaleDateString('pt-BR');
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
+        <div className="text-center">
+          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando monitoramento...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
