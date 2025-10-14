@@ -2862,95 +2862,64 @@ function ComparacaoView({
                 </div>
               </div>
               {viewModeSubPraca === 'table' ? (
-              <div className="overflow-x-auto p-6">
+              <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-slate-50 dark:bg-slate-800/50">
                     <tr className="border-b border-slate-200 dark:border-slate-700">
-                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sub-Praça</th>
-                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Métrica</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sub-Praça / Métrica</th>
                       {semanasSelecionadas.map((semana, idx) => (
-                        <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                          Semana {semana} {idx > 0 && '(Δ%)'}
-                        </th>
+                        <React.Fragment key={semana}>
+                          <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
+                            Semana {semana}
+                          </th>
+                          {idx > 0 && (
+                            <th className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">
+                              Δ% vs S{semanasSelecionadas[idx - 1]}
+                            </th>
+                          )}
+                        </React.Fragment>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {Array.from(new Set(dadosComparacao.flatMap(d => d.sub_praca?.map(sp => sp.sub_praca) ?? []))).map((subPraca, subPracaIdx) => {
-                      const metricas = [
-                        { label: 'Aderência', key: 'aderencia_percentual', format: (v: number) => `${v.toFixed(1)}%`, color: 'text-blue-700 dark:text-blue-400' },
-                        { label: 'Ofertadas', key: 'corridas_ofertadas', format: (v: number) => v.toLocaleString('pt-BR'), color: 'text-slate-700 dark:text-slate-300' },
-                        { label: 'Aceitas', key: 'corridas_aceitas', format: (v: number) => v.toLocaleString('pt-BR'), color: 'text-emerald-700 dark:text-emerald-400' },
-                        { label: 'Rejeitadas', key: 'corridas_rejeitadas', format: (v: number) => v.toLocaleString('pt-BR'), color: 'text-rose-700 dark:text-rose-400' },
-                        { label: 'Completadas', key: 'corridas_completadas', format: (v: number) => v.toLocaleString('pt-BR'), color: 'text-purple-700 dark:text-purple-400' },
-                        { label: '% Aceitas', key: 'taxa_aceitacao', format: (v: number) => `${v.toFixed(1)}%`, color: 'text-emerald-600 dark:text-emerald-300' },
-                        { label: '% Rejeite', key: 'taxa_rejeicao', format: (v: number) => `${v.toFixed(1)}%`, color: 'text-rose-600 dark:text-rose-300' },
-                        { label: '% Completos', key: 'taxa_completude', format: (v: number) => `${v.toFixed(1)}%`, color: 'text-purple-600 dark:text-purple-300' },
-                      ];
-                      
-                      return metricas.map((metrica, metricaIdx) => (
-                        <tr key={`${subPraca}-${metrica.key}`} className={subPracaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-purple-50/30 dark:bg-purple-950/20'}>
-                          {metricaIdx === 0 && (
-                            <td rowSpan={8} className="px-4 py-3 font-bold text-slate-900 dark:text-white border-r border-purple-200 dark:border-purple-800">
-                              {subPraca}
-                            </td>
-                          )}
-                          <td className={`px-4 py-2 text-sm font-semibold ${metrica.color}`}>{metrica.label}</td>
+                    {Array.from(new Set(dadosComparacao.flatMap(d => d.sub_praca?.map(sp => sp.sub_praca) ?? []))).map((subPraca, subPracaIdx) => (
+                      <React.Fragment key={subPraca}>
+                        {/* Cabeçalho da Sub-Praça */}
+                        <tr className="bg-purple-100 dark:bg-purple-950/40">
+                          <td colSpan={semanasSelecionadas.length * 2} className="px-6 py-3 font-bold text-purple-900 dark:text-purple-100">
+                            📍 {subPraca}
+                          </td>
+                        </tr>
+                        
+                        {/* Aderência */}
+                        <tr className="bg-blue-50/50 dark:bg-blue-950/20">
+                          <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">📈</span>
+                              Aderência
+                            </div>
+                          </td>
                           {dadosComparacao.map((dados, idx) => {
                             const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
-                            let valor = 0;
-                            
-                            // Calcular valores especiais
-                            if (metrica.key === 'taxa_aceitacao') {
-                              const ofertadas = subPracaData?.corridas_ofertadas ?? 0;
-                              const aceitas = subPracaData?.corridas_aceitas ?? 0;
-                              valor = ofertadas > 0 ? (aceitas / ofertadas) * 100 : 0;
-                            } else if (metrica.key === 'taxa_rejeicao') {
-                              const ofertadas = subPracaData?.corridas_ofertadas ?? 0;
-                              const rejeitadas = subPracaData?.corridas_rejeitadas ?? 0;
-                              valor = ofertadas > 0 ? (rejeitadas / ofertadas) * 100 : 0;
-                            } else if (metrica.key === 'taxa_completude') {
-                              const aceitas = subPracaData?.corridas_aceitas ?? 0;
-                              const completadas = subPracaData?.corridas_completadas ?? 0;
-                              valor = aceitas > 0 ? (completadas / aceitas) * 100 : 0;
-                            } else {
-                              valor = subPracaData?.[metrica.key as keyof typeof subPracaData] as number ?? 0;
-                            }
-                            
-                            // Calcular variação se não for a primeira semana
+                            const aderencia = subPracaData?.aderencia_percentual ?? 0;
                             let variacao = null;
                             if (idx > 0) {
                               const dadosAnterior = dadosComparacao[idx - 1];
                               const subPracaDataAnterior = dadosAnterior.sub_praca?.find(sp => sp.sub_praca === subPraca);
-                              let valorAnterior = 0;
-                              
-                              if (metrica.key === 'taxa_aceitacao') {
-                                const ofertadasAnt = subPracaDataAnterior?.corridas_ofertadas ?? 0;
-                                const aceitasAnt = subPracaDataAnterior?.corridas_aceitas ?? 0;
-                                valorAnterior = ofertadasAnt > 0 ? (aceitasAnt / ofertadasAnt) * 100 : 0;
-                              } else if (metrica.key === 'taxa_rejeicao') {
-                                const ofertadasAnt = subPracaDataAnterior?.corridas_ofertadas ?? 0;
-                                const rejeitadasAnt = subPracaDataAnterior?.corridas_rejeitadas ?? 0;
-                                valorAnterior = ofertadasAnt > 0 ? (rejeitadasAnt / ofertadasAnt) * 100 : 0;
-                              } else if (metrica.key === 'taxa_completude') {
-                                const aceitasAnt = subPracaDataAnterior?.corridas_aceitas ?? 0;
-                                const completadasAnt = subPracaDataAnterior?.corridas_completadas ?? 0;
-                                valorAnterior = aceitasAnt > 0 ? (completadasAnt / aceitasAnt) * 100 : 0;
-                              } else {
-                                valorAnterior = subPracaDataAnterior?.[metrica.key as keyof typeof subPracaDataAnterior] as number ?? 0;
-                              }
-                              
-                              variacao = valorAnterior > 0 ? ((valor - valorAnterior) / valorAnterior) * 100 : 0;
+                              const aderenciaAnterior = subPracaDataAnterior?.aderencia_percentual ?? 0;
+                              variacao = aderenciaAnterior > 0 ? ((aderencia - aderenciaAnterior) / aderenciaAnterior) * 100 : 0;
                             }
                             
                             return (
                               <React.Fragment key={idx}>
-                                <td className={`px-4 py-2 text-center font-semibold ${metrica.color}`}>
-                                  {metrica.format(valor)}
+                                <td className="px-6 py-4 text-center border-l-2 border-slate-300 dark:border-slate-600">
+                                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-lg font-bold text-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
+                                    {aderencia.toFixed(1)}%
+                                  </span>
                                 </td>
                                 {idx > 0 && variacao !== null && (
-                                  <td className="px-4 py-2 text-center text-xs font-bold">
-                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${
+                                  <td className="px-4 py-4 text-center bg-blue-50/30 dark:bg-blue-950/20">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
                                       variacao >= 0 
                                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                         : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
@@ -2963,8 +2932,239 @@ function ComparacaoView({
                             );
                           })}
                         </tr>
-                      ));
-                    })}
+
+                        {/* Corridas Ofertadas */}
+                        <tr className="bg-white dark:bg-slate-900">
+                          <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">📢</span>
+                              Corridas Ofertadas
+                            </div>
+                          </td>
+                          {dadosComparacao.map((dados, idx) => {
+                            const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                            const ofertadas = subPracaData?.corridas_ofertadas ?? 0;
+                            let variacao = null;
+                            if (idx > 0) {
+                              const dadosAnterior = dadosComparacao[idx - 1];
+                              const subPracaDataAnterior = dadosAnterior.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                              const ofertadasAnterior = subPracaDataAnterior?.corridas_ofertadas ?? 0;
+                              variacao = ofertadasAnterior > 0 ? ((ofertadas - ofertadasAnterior) / ofertadasAnterior) * 100 : 0;
+                            }
+                            
+                            return (
+                              <React.Fragment key={idx}>
+                                <td className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
+                                  {ofertadas.toLocaleString('pt-BR')}
+                                </td>
+                                {idx > 0 && variacao !== null && (
+                                  <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
+                                      variacao >= 0 
+                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                                    }`}>
+                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                    </span>
+                                  </td>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tr>
+
+                        {/* Corridas Aceitas */}
+                        <tr className="bg-emerald-50/50 dark:bg-emerald-950/20">
+                          <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">✅</span>
+                              Corridas Aceitas
+                            </div>
+                          </td>
+                          {dadosComparacao.map((dados, idx) => {
+                            const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                            const aceitas = subPracaData?.corridas_aceitas ?? 0;
+                            let variacao = null;
+                            if (idx > 0) {
+                              const dadosAnterior = dadosComparacao[idx - 1];
+                              const subPracaDataAnterior = dadosAnterior.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                              const aceitasAnterior = subPracaDataAnterior?.corridas_aceitas ?? 0;
+                              variacao = aceitasAnterior > 0 ? ((aceitas - aceitasAnterior) / aceitasAnterior) * 100 : 0;
+                            }
+                            
+                            return (
+                              <React.Fragment key={idx}>
+                                <td className="px-6 py-4 text-center text-base font-semibold text-emerald-700 dark:text-emerald-400 border-l-2 border-slate-300 dark:border-slate-600">
+                                  {aceitas.toLocaleString('pt-BR')}
+                                </td>
+                                {idx > 0 && variacao !== null && (
+                                  <td className="px-4 py-4 text-center bg-emerald-50/30 dark:bg-emerald-950/20">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
+                                      variacao >= 0 
+                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                                    }`}>
+                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                    </span>
+                                  </td>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tr>
+
+                        {/* Corridas Rejeitadas */}
+                        <tr className="bg-white dark:bg-slate-900">
+                          <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">❌</span>
+                              Corridas Rejeitadas
+                            </div>
+                          </td>
+                          {dadosComparacao.map((dados, idx) => {
+                            const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                            const rejeitadas = subPracaData?.corridas_rejeitadas ?? 0;
+                            let variacao = null;
+                            if (idx > 0) {
+                              const dadosAnterior = dadosComparacao[idx - 1];
+                              const subPracaDataAnterior = dadosAnterior.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                              const rejeitadasAnterior = subPracaDataAnterior?.corridas_rejeitadas ?? 0;
+                              variacao = rejeitadasAnterior > 0 ? ((rejeitadas - rejeitadasAnterior) / rejeitadasAnterior) * 100 : 0;
+                            }
+                            
+                            return (
+                              <React.Fragment key={idx}>
+                                <td className="px-6 py-4 text-center text-base font-semibold text-rose-700 dark:text-rose-400 border-l-2 border-slate-300 dark:border-slate-600">
+                                  {rejeitadas.toLocaleString('pt-BR')}
+                                </td>
+                                {idx > 0 && variacao !== null && (
+                                  <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
+                                      variacao >= 0 
+                                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                    }`}>
+                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                    </span>
+                                  </td>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tr>
+
+                        {/* Corridas Completadas */}
+                        <tr className="bg-purple-50/50 dark:bg-purple-950/20">
+                          <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">🎯</span>
+                              Corridas Completadas
+                            </div>
+                          </td>
+                          {dadosComparacao.map((dados, idx) => {
+                            const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                            const completadas = subPracaData?.corridas_completadas ?? 0;
+                            let variacao = null;
+                            if (idx > 0) {
+                              const dadosAnterior = dadosComparacao[idx - 1];
+                              const subPracaDataAnterior = dadosAnterior.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                              const completadasAnterior = subPracaDataAnterior?.corridas_completadas ?? 0;
+                              variacao = completadasAnterior > 0 ? ((completadas - completadasAnterior) / completadasAnterior) * 100 : 0;
+                            }
+                            
+                            return (
+                              <React.Fragment key={idx}>
+                                <td className="px-6 py-4 text-center text-base font-semibold text-purple-700 dark:text-purple-400 border-l-2 border-slate-300 dark:border-slate-600">
+                                  {completadas.toLocaleString('pt-BR')}
+                                </td>
+                                {idx > 0 && variacao !== null && (
+                                  <td className="px-4 py-4 text-center bg-purple-50/30 dark:bg-purple-950/20">
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
+                                      variacao >= 0 
+                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+                                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                                    }`}>
+                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                    </span>
+                                  </td>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tr>
+
+                        {/* Taxa de Aceitação */}
+                        <tr className="bg-white dark:bg-slate-900">
+                          <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">💯</span>
+                              Taxa de Aceitação
+                            </div>
+                          </td>
+                          {dadosComparacao.map((dados, idx) => {
+                            const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                            const ofertadas = subPracaData?.corridas_ofertadas ?? 0;
+                            const aceitas = subPracaData?.corridas_aceitas ?? 0;
+                            const taxaAceitacao = ofertadas > 0 ? (aceitas / ofertadas) * 100 : 0;
+                            
+                            return (
+                              <React.Fragment key={idx}>
+                                <td className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
+                                  {taxaAceitacao.toFixed(1)}%
+                                </td>
+                                {idx > 0 && <td className="px-4 py-4 bg-slate-50/30 dark:bg-slate-900/50"></td>}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tr>
+
+                        {/* Horas Planejadas */}
+                        <tr className="bg-amber-50/50 dark:bg-amber-950/20">
+                          <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">📅</span>
+                              Horas Planejadas
+                            </div>
+                          </td>
+                          {dadosComparacao.map((dados, idx) => {
+                            const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                            const horasPlanejadas = subPracaData?.horas_a_entregar ?? '0';
+                            
+                            return (
+                              <React.Fragment key={idx}>
+                                <td className="px-6 py-4 text-center font-mono text-base font-semibold text-amber-700 dark:text-amber-400 border-l-2 border-slate-300 dark:border-slate-600">
+                                  {formatarHorasParaHMS(horasPlanejadas)}
+                                </td>
+                                {idx > 0 && <td className="px-4 py-4 bg-amber-50/30 dark:bg-amber-950/20"></td>}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tr>
+
+                        {/* Horas Entregues */}
+                        <tr className="bg-white dark:bg-slate-900">
+                          <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">⏱️</span>
+                              Horas Entregues
+                            </div>
+                          </td>
+                          {dadosComparacao.map((dados, idx) => {
+                            const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                            const horasEntregues = subPracaData?.horas_entregues ?? '0';
+                            
+                            return (
+                              <React.Fragment key={idx}>
+                                <td className="px-6 py-4 text-center font-mono text-base font-semibold text-blue-700 dark:text-blue-400 border-l-2 border-slate-300 dark:border-slate-600">
+                                  {formatarHorasParaHMS(horasEntregues)}
+                                </td>
+                                {idx > 0 && <td className="px-4 py-4 bg-slate-50/30 dark:bg-slate-900/50"></td>}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tr>
+                      </React.Fragment>
+                    ))}
                   </tbody>
                 </table>
               </div>
