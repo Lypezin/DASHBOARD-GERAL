@@ -3501,6 +3501,320 @@ function UtrView({
 }
 
 // =================================================================================
+// View Evolução
+// =================================================================================
+
+function EvolucaoView({
+  evolucaoMensal,
+  evolucaoSemanal,
+  loading,
+  anoSelecionado,
+  anosDisponiveis,
+  onAnoChange,
+}: {
+  evolucaoMensal: EvolucaoMensal[];
+  evolucaoSemanal: EvolucaoSemanal[];
+  loading: boolean;
+  anoSelecionado: number;
+  anosDisponiveis: number[];
+  onAnoChange: (ano: number) => void;
+}) {
+  const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
+        <div className="text-center">
+          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando evolução...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const dadosAtivos = viewMode === 'mensal' ? evolucaoMensal : evolucaoSemanal;
+
+  // Dados do gráfico
+  const chartData = {
+    labels: viewMode === 'mensal' 
+      ? evolucaoMensal.map(d => d.mes_nome)
+      : evolucaoSemanal.map(d => `S${d.semana}`),
+    datasets: [
+      {
+        label: 'Corridas',
+        data: dadosAtivos.map(d => d.total_corridas),
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        yAxisID: 'y',
+        tension: 0.4,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: 'rgb(59, 130, 246)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+      },
+      {
+        label: 'Horas',
+        data: dadosAtivos.map(d => d.total_horas),
+        borderColor: 'rgb(34, 197, 94)',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        yAxisID: 'y1',
+        tension: 0.4,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: 'rgb(34, 197, 94)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          font: {
+            size: 14,
+            weight: 'bold' as const,
+          },
+          padding: 20,
+          usePointStyle: true,
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+          weight: 'bold' as const,
+        },
+        bodyFont: {
+          size: 13,
+        },
+        callbacks: {
+          label: function(context: any) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.dataset.label === 'Horas') {
+              label += context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'h';
+            } else {
+              label += context.parsed.y.toLocaleString('pt-BR');
+            }
+            return label;
+          }
+        }
+      },
+    },
+    scales: {
+      y: {
+        type: 'linear' as const,
+        display: true,
+        position: 'left' as const,
+        title: {
+          display: true,
+          text: 'Corridas',
+          font: {
+            size: 14,
+            weight: 'bold' as const,
+          },
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+      },
+      y1: {
+        type: 'linear' as const,
+        display: true,
+        position: 'right' as const,
+        title: {
+          display: true,
+          text: 'Horas',
+          font: {
+            size: 14,
+            weight: 'bold' as const,
+          },
+        },
+        grid: {
+          drawOnChartArea: false,
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          font: {
+            size: 12,
+          },
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Header com controles */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+        <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-blue-950/30">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <span className="text-xl">📉</span>
+                Evolução {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
+              </h3>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                Acompanhe a evolução de corridas e horas ao longo do tempo
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Seletor de Ano */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Ano:</label>
+                <select
+                  value={anoSelecionado}
+                  onChange={(e) => onAnoChange(Number(e.target.value))}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                >
+                  {anosDisponiveis.map((ano) => (
+                    <option key={ano} value={ano}>
+                      {ano}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Toggle Mensal/Semanal */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('mensal')}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                    viewMode === 'mensal'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  📅 Mensal
+                </button>
+                <button
+                  onClick={() => setViewMode('semanal')}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                    viewMode === 'semanal'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  📊 Semanal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Gráfico de Evolução */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900">
+        {dadosAtivos.length > 0 ? (
+          <div className="h-[500px]">
+            <Line data={chartData} options={chartOptions} />
+          </div>
+        ) : (
+          <div className="flex h-[400px] items-center justify-center">
+            <div className="text-center">
+              <p className="text-lg font-semibold text-slate-500 dark:text-slate-400">
+                Nenhum dado disponível para {anoSelecionado}
+              </p>
+              <p className="mt-2 text-sm text-slate-400 dark:text-slate-500">
+                Tente selecionar outro ano
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Cards com estatísticas */}
+      {dadosAtivos.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Total de Corridas */}
+          <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 p-5 shadow-md dark:border-blue-900 dark:from-blue-950/30 dark:to-blue-900/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Total de Corridas</p>
+                <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">
+                  {dadosAtivos.reduce((sum, d) => sum + d.total_corridas, 0).toLocaleString('pt-BR')}
+                </p>
+              </div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-200 text-2xl dark:bg-blue-900/50">
+                🚗
+              </div>
+            </div>
+          </div>
+
+          {/* Total de Horas */}
+          <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 p-5 shadow-md dark:border-emerald-900 dark:from-emerald-950/30 dark:to-emerald-900/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Total de Horas</p>
+                <p className="mt-2 text-3xl font-bold text-emerald-900 dark:text-emerald-100">
+                  {dadosAtivos.reduce((sum, d) => sum + d.total_horas, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}h
+                </p>
+              </div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-200 text-2xl dark:bg-emerald-900/50">
+                ⏱️
+              </div>
+            </div>
+          </div>
+
+          {/* Média de Corridas */}
+          <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 p-5 shadow-md dark:border-purple-900 dark:from-purple-950/30 dark:to-purple-900/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                  Média {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
+                </p>
+                <p className="mt-2 text-3xl font-bold text-purple-900 dark:text-purple-100">
+                  {(dadosAtivos.reduce((sum, d) => sum + d.total_corridas, 0) / dadosAtivos.length).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </p>
+              </div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-200 text-2xl dark:bg-purple-900/50">
+                📊
+              </div>
+            </div>
+          </div>
+
+          {/* Período */}
+          <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 p-5 shadow-md dark:border-amber-900 dark:from-amber-950/30 dark:to-amber-900/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Período</p>
+                <p className="mt-2 text-2xl font-bold text-amber-900 dark:text-amber-100">
+                  {anoSelecionado}
+                </p>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'}
+                </p>
+              </div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-200 text-2xl dark:bg-amber-900/50">
+                📅
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =================================================================================
 // View Valores
 // =================================================================================
 
@@ -4203,7 +4517,6 @@ export default function DashboardPage() {
   const [evolucaoSemanal, setEvolucaoSemanal] = useState<EvolucaoSemanal[]>([]);
   const [loadingEvolucao, setLoadingEvolucao] = useState(false);
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
-  const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
 
   const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
 
@@ -4705,6 +5018,7 @@ export default function DashboardPage() {
                   <TabButton label="UTR" icon="📏" active={activeTab === 'utr'} onClick={() => setActiveTab('utr')} />
                   <TabButton label="Entregadores" icon="👥" active={activeTab === 'entregadores'} onClick={() => setActiveTab('entregadores')} />
                   <TabButton label="Valores" icon="💰" active={activeTab === 'valores'} onClick={() => setActiveTab('valores')} />
+                  <TabButton label="Evolução" icon="📉" active={activeTab === 'evolucao'} onClick={() => setActiveTab('evolucao')} />
                   {currentUser?.is_admin && (
                     <TabButton label="Monitor" icon="🔍" active={activeTab === 'monitoramento'} onClick={() => setActiveTab('monitoramento')} />
                   )}
@@ -4760,6 +5074,17 @@ export default function DashboardPage() {
                 <ValoresView
                   valoresData={valoresData}
                   loading={loadingValores}
+                />
+              )}
+              
+              {activeTab === 'evolucao' && (
+                <EvolucaoView
+                  evolucaoMensal={evolucaoMensal}
+                  evolucaoSemanal={evolucaoSemanal}
+                  loading={loadingEvolucao}
+                  anoSelecionado={anoEvolucao}
+                  anosDisponiveis={anosDisponiveis}
+                  onAnoChange={setAnoEvolucao}
                 />
               )}
               
