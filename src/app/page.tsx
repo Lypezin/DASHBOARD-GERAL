@@ -714,7 +714,7 @@ function DashboardView({
             return (
               <div key={dia} className={`rounded-lg sm:rounded-xl border p-2.5 sm:p-3 ${bgClass} hover-lift`}>
                 <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate" title={dia}>{dia.substring(0, 3)}</p>
-                <p className={`mt-1 sm:mt-2 text-lg sm:text-xl lg:text-2xl font-bold ${colorClass}`}>{data.aderencia_percentual?.toFixed(0) || '0'}%</p>
+                <p className={`mt-1 sm:mt-2 text-lg sm:text-xl lg:text-2xl font-bold ${colorClass}`}>{data.aderencia_percentual?.toFixed(1) || '0.0'}%</p>
                 <div className="mt-1.5 sm:mt-2 space-y-0.5 sm:space-y-1 text-[10px] sm:text-xs">
                   <div className="flex justify-between gap-1">
                     <span className="text-slate-500 dark:text-slate-400">Plan:</span>
