@@ -232,6 +232,22 @@ interface MonitoramentoData {
   usuarios: UsuarioOnline[];
 }
 
+interface EvolucaoMensal {
+  ano: number;
+  mes: number;
+  mes_nome: string;
+  total_corridas: number;
+  total_horas: number;
+}
+
+interface EvolucaoSemanal {
+  ano: number;
+  semana: number;
+  semana_label: string;
+  total_corridas: number;
+  total_horas: number;
+}
+
 // =================================================================================
 // Funções auxiliares
 // =================================================================================
@@ -4158,7 +4174,7 @@ function EntregadoresView({
 // =================================================================================
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores' | 'valores' | 'monitoramento'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento'>('dashboard');
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [totals, setTotals] = useState<Totals | null>(null);
@@ -4183,6 +4199,11 @@ export default function DashboardPage() {
   const [loadingEntregadores, setLoadingEntregadores] = useState(false);
   const [valoresData, setValoresData] = useState<ValoresEntregador[]>([]);
   const [loadingValores, setLoadingValores] = useState(false);
+  const [evolucaoMensal, setEvolucaoMensal] = useState<EvolucaoMensal[]>([]);
+  const [evolucaoSemanal, setEvolucaoSemanal] = useState<EvolucaoSemanal[]>([]);
+  const [loadingEvolucao, setLoadingEvolucao] = useState(false);
+  const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
+  const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
 
   const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
 
@@ -4540,6 +4561,60 @@ export default function DashboardPage() {
       fetchValores();
     }
   }, [activeTab, filters]);
+
+  // Buscar anos disponíveis ao carregar
+  useEffect(() => {
+    async function fetchAnosDisponiveis() {
+      try {
+        const { data, error } = await supabase.rpc('listar_anos_disponiveis');
+        if (error) throw error;
+        setAnosDisponiveis(data || []);
+      } catch (err: any) {
+        console.error('Erro ao buscar anos disponíveis:', err);
+        setAnosDisponiveis([new Date().getFullYear()]);
+      }
+    }
+    fetchAnosDisponiveis();
+  }, []);
+
+  // Buscar dados de Evolução quando a aba estiver ativa
+  useEffect(() => {
+    if (activeTab === 'evolucao') {
+      async function fetchEvolucao() {
+        setLoadingEvolucao(true);
+        try {
+          const pracaSelecionada = filters.praca || null;
+
+          // Buscar dados mensais e semanais em paralelo
+          const [mensalResult, semanalResult] = await Promise.all([
+            supabase.rpc('listar_evolucao_mensal', {
+              p_praca: pracaSelecionada,
+              p_ano: anoEvolucao
+            }),
+            supabase.rpc('listar_evolucao_semanal', {
+              p_praca: pracaSelecionada,
+              p_ano: anoEvolucao,
+              p_limite_semanas: 52
+            })
+          ]);
+
+          if (mensalResult.error) throw mensalResult.error;
+          if (semanalResult.error) throw semanalResult.error;
+
+          setEvolucaoMensal(mensalResult.data || []);
+          setEvolucaoSemanal(semanalResult.data || []);
+        } catch (err: any) {
+          console.error('Erro ao buscar Evolução:', err);
+          setEvolucaoMensal([]);
+          setEvolucaoSemanal([]);
+        } finally {
+          setLoadingEvolucao(false);
+        }
+      }
+
+      fetchEvolucao();
+    }
+  }, [activeTab, filters.praca, anoEvolucao]);
 
   return (
     <div className="min-h-screen">
