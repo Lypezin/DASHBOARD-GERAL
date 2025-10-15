@@ -237,7 +237,7 @@ interface EvolucaoMensal {
   mes: number;
   mes_nome: string;
   total_corridas: number;
-  total_horas: number;
+  total_segundos: number;
 }
 
 interface EvolucaoSemanal {
@@ -245,7 +245,7 @@ interface EvolucaoSemanal {
   semana: number;
   semana_label: string;
   total_corridas: number;
-  total_horas: number;
+  total_segundos: number;
 }
 
 // =================================================================================
@@ -3534,6 +3534,11 @@ function EvolucaoView({
 
   const dadosAtivos = viewMode === 'mensal' ? evolucaoMensal : evolucaoSemanal;
 
+  // Função para converter segundos em horas decimais para o gráfico
+  const segundosParaHoras = (segundos: number): number => {
+    return segundos / 3600;
+  };
+
   // Dados do gráfico
   const chartData = {
     labels: viewMode === 'mensal' 
@@ -3541,30 +3546,38 @@ function EvolucaoView({
       : evolucaoSemanal.map(d => `S${d.semana}`),
     datasets: [
       {
-        label: 'Corridas',
+        label: 'Corridas Completadas',
         data: dadosAtivos.map(d => d.total_corridas),
         borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        backgroundColor: 'rgba(59, 130, 246, 0.2)',
         yAxisID: 'y',
-        tension: 0.4,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        tension: 0.3,
+        pointRadius: 6,
+        pointHoverRadius: 8,
         pointBackgroundColor: 'rgb(59, 130, 246)',
         pointBorderColor: '#fff',
-        pointBorderWidth: 2,
+        pointBorderWidth: 3,
+        pointHoverBackgroundColor: 'rgb(37, 99, 235)',
+        pointHoverBorderColor: '#fff',
+        borderWidth: 3,
+        fill: true,
       },
       {
-        label: 'Horas',
-        data: dadosAtivos.map(d => d.total_horas),
+        label: 'Horas Trabalhadas',
+        data: dadosAtivos.map(d => segundosParaHoras(d.total_segundos)),
         borderColor: 'rgb(34, 197, 94)',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        backgroundColor: 'rgba(34, 197, 94, 0.2)',
         yAxisID: 'y1',
-        tension: 0.4,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        tension: 0.3,
+        pointRadius: 6,
+        pointHoverRadius: 8,
         pointBackgroundColor: 'rgb(34, 197, 94)',
         pointBorderColor: '#fff',
-        pointBorderWidth: 2,
+        pointBorderWidth: 3,
+        pointHoverBackgroundColor: 'rgb(22, 163, 74)',
+        pointHoverBorderColor: '#fff',
+        borderWidth: 3,
+        fill: true,
       },
     ],
   };
@@ -3581,31 +3594,41 @@ function EvolucaoView({
         position: 'top' as const,
         labels: {
           font: {
-            size: 14,
+            size: 15,
             weight: 'bold' as const,
           },
           padding: 20,
           usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 10,
+          boxHeight: 10,
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: 12,
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        padding: 16,
         titleFont: {
-          size: 14,
+          size: 15,
           weight: 'bold' as const,
         },
         bodyFont: {
-          size: 13,
+          size: 14,
         },
+        borderColor: 'rgba(148, 163, 184, 0.3)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
         callbacks: {
           label: function(context: any) {
             let label = context.dataset.label || '';
             if (label) {
               label += ': ';
             }
-            if (context.dataset.label === 'Horas') {
-              label += context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'h';
+            if (context.dataset.label === 'Horas Trabalhadas') {
+              // Converter horas decimais de volta para segundos e formatar
+              const horasDecimais = context.parsed.y;
+              const totalSegundos = Math.round(horasDecimais * 3600);
+              label += formatarHorasParaHMS(totalSegundos / 3600);
             } else {
               label += context.parsed.y.toLocaleString('pt-BR');
             }
@@ -3621,14 +3644,26 @@ function EvolucaoView({
         position: 'left' as const,
         title: {
           display: true,
-          text: 'Corridas',
+          text: 'Corridas Completadas',
           font: {
             size: 14,
             weight: 'bold' as const,
           },
+          color: 'rgb(59, 130, 246)',
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
+          color: 'rgba(59, 130, 246, 0.1)',
+          drawBorder: false,
+        },
+        ticks: {
+          color: 'rgb(59, 130, 246)',
+          font: {
+            size: 12,
+            weight: 'bold' as const,
+          },
+          callback: function(value: any) {
+            return value.toLocaleString('pt-BR');
+          }
         },
       },
       y1: {
@@ -3637,24 +3672,38 @@ function EvolucaoView({
         position: 'right' as const,
         title: {
           display: true,
-          text: 'Horas',
+          text: 'Horas Trabalhadas',
           font: {
             size: 14,
             weight: 'bold' as const,
           },
+          color: 'rgb(34, 197, 94)',
         },
         grid: {
           drawOnChartArea: false,
+        },
+        ticks: {
+          color: 'rgb(34, 197, 94)',
+          font: {
+            size: 12,
+            weight: 'bold' as const,
+          },
+          callback: function(value: any) {
+            return value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + 'h';
+          }
         },
       },
       x: {
         grid: {
           display: false,
+          drawBorder: false,
         },
         ticks: {
           font: {
             size: 12,
+            weight: '600' as any,
           },
+          color: 'rgb(71, 85, 105)',
         },
       },
     },
@@ -3765,7 +3814,7 @@ function EvolucaoView({
               <div>
                 <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Total de Horas</p>
                 <p className="mt-2 text-3xl font-bold text-emerald-900 dark:text-emerald-100">
-                  {dadosAtivos.reduce((sum, d) => sum + d.total_horas, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}h
+                  {formatarHorasParaHMS(dadosAtivos.reduce((sum, d) => sum + d.total_segundos, 0) / 3600)}
                 </p>
               </div>
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-200 text-2xl dark:bg-emerald-900/50">
