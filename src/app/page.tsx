@@ -4552,7 +4552,7 @@ export default function DashboardPage() {
   const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
   const [origens, setOrigens] = useState<FilterOption[]>([]);
   const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
@@ -4710,9 +4710,13 @@ export default function DashboardPage() {
               setFilters(prev => ({ ...prev, praca: userProfile.assigned_pracas[0] }));
             }
           }
+          
+          // Marcar loading como false após obter usuário
+          setLoading(false);
         }
       } catch (err) {
         console.error('Erro ao buscar perfil do usuário:', err);
+        setLoading(false);
       }
     }
 
@@ -4721,6 +4725,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchData() {
+      // Só carregar dados se estiver nas abas que precisam
+      if (!['dashboard', 'analise'].includes(activeTab)) {
+        return;
+      }
+      
       setLoading(true);
       setError(null);
 
@@ -4850,7 +4859,7 @@ export default function DashboardPage() {
     return () => {
       abortRef.current?.abort();
     };
-  }, [filters, currentUser]);
+  }, [filters, currentUser, activeTab]);
 
   // Buscar dados da UTR quando a aba estiver ativa
   useEffect(() => {
