@@ -4614,7 +4614,31 @@ export default function DashboardPage() {
   const [loadingEvolucao, setLoadingEvolucao] = useState(false);
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
 
-  const aderenciaGeral = useMemo(() => aderenciaSemanal[0], [aderenciaSemanal]);
+  const aderenciaGeral = useMemo(() => {
+    if (aderenciaSemanal.length === 0) return undefined;
+    
+    // Se houver apenas uma semana, retornar ela
+    if (aderenciaSemanal.length === 1) return aderenciaSemanal[0];
+    
+    // Se houver múltiplas semanas, calcular a soma total
+    const totalHorasAEntregar = aderenciaSemanal.reduce((acc, semana) => 
+      acc + parseFloat(semana.horas_a_entregar || '0'), 0
+    );
+    const totalHorasEntregues = aderenciaSemanal.reduce((acc, semana) => 
+      acc + parseFloat(semana.horas_entregues || '0'), 0
+    );
+    
+    const aderenciaPercentual = totalHorasAEntregar > 0 
+      ? (totalHorasEntregues / totalHorasAEntregar) * 100 
+      : 0;
+    
+    return {
+      semana: 'Geral',
+      horas_a_entregar: totalHorasAEntregar.toFixed(2),
+      horas_entregues: totalHorasEntregues.toFixed(2),
+      aderencia_percentual: aderenciaPercentual
+    };
+  }, [aderenciaSemanal]);
 
   // Hook para registrar atividades
   const registrarAtividade = async (actionType: string, actionDetails: any = {}, tabName: string | null = null, filtersApplied: any = {}) => {
