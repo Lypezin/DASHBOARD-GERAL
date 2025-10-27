@@ -1892,10 +1892,15 @@ function ComparacaoView({
 
   const toggleSemana = (semana: number) => {
     setSemanasSelecionadas(prev => {
-      if (prev.includes(semana)) {
-        return prev.filter(s => s !== semana);
+      const semanaStr = String(semana);
+      if (prev.includes(semanaStr)) {
+        return prev.filter(s => s !== semanaStr);
       } else {
-        return [...prev, semana].sort((a, b) => a - b);
+        return [...prev, semanaStr].sort((a, b) => {
+          const numA = typeof a === 'string' ? parseInt(a, 10) : a;
+          const numB = typeof b === 'string' ? parseInt(b, 10) : b;
+          return numA - numB;
+        });
       }
     });
   };
@@ -1907,9 +1912,11 @@ function ComparacaoView({
     try {
       // Buscar dados para cada semana selecionada
       const promessasDados = semanasSelecionadas.map(async (semana) => {
-        // Extrair número da semana se vier no formato "2025-W43"
-        const semanaNumero = typeof semana === 'string' && semana.includes('W')
-          ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
+        // Converter string para número
+        const semanaNumero = typeof semana === 'string' 
+          ? (semana.includes('W') 
+              ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
+              : parseInt(semana, 10))
           : semana;
         const filtro: any = { p_semana: semanaNumero };
         
@@ -1929,9 +1936,11 @@ function ComparacaoView({
 
       // Buscar UTR para cada semana
       const promessasUtr = semanasSelecionadas.map(async (semana) => {
-        // Extrair número da semana se vier no formato "2025-W43"
-        const semanaNumero = typeof semana === 'string' && semana.includes('W')
-          ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
+        // Converter string para número
+        const semanaNumero = typeof semana === 'string' 
+          ? (semana.includes('W') 
+              ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
+              : parseInt(semana, 10))
           : semana;
         const filtro: any = { p_semana: semanaNumero };
         
@@ -2024,7 +2033,7 @@ function ComparacaoView({
               <label
                 key={semana}
                 className={`flex cursor-pointer items-center justify-center rounded-lg border-2 p-3 text-center transition-all hover:scale-105 ${
-                  semanasSelecionadas.includes(semana)
+                  semanasSelecionadas.includes(String(semana))
                     ? 'border-blue-600 bg-blue-600 text-white shadow-md'
                     : 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                 }`}
@@ -2032,7 +2041,7 @@ function ComparacaoView({
                 <input
                   type="checkbox"
                   className="hidden"
-                  checked={semanasSelecionadas.includes(semana)}
+                  checked={semanasSelecionadas.includes(String(semana))}
                   onChange={() => toggleSemana(semana)}
                 />
                 <span className="text-sm font-bold">S{semana}</span>
