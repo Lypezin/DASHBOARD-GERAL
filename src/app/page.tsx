@@ -472,17 +472,33 @@ function FiltroBar({
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   anos: number[];
-  semanas: number[];
+  semanas: string[];
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
   currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
 }) {
   const handleChange = (key: keyof Filters, rawValue: string | null) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: rawValue === '' || rawValue === null ? null : key === 'ano' || key === 'semana' ? Number(rawValue) : rawValue,
-    }));
+    setFilters((prev) => {
+      let processedValue: any = null;
+      
+      if (rawValue && rawValue !== '') {
+        if (key === 'ano') {
+          processedValue = Number(rawValue);
+        } else if (key === 'semana') {
+          // Extrair número da semana do formato "2025-W43"
+          const match = rawValue.match(/W(\d+)/);
+          processedValue = match ? Number(match[1]) : Number(rawValue);
+        } else {
+          processedValue = rawValue;
+        }
+      }
+      
+      return {
+        ...prev,
+        [key]: processedValue,
+      };
+    });
   };
 
   const handleClearFilters = () => {
@@ -513,8 +529,11 @@ function FiltroBar({
       />
       <FiltroSelect
         label="Semana"
-        value={filters.semana !== null ? String(filters.semana) : ''}
-        options={semanas.map((sem) => ({ value: String(sem), label: `Semana ${sem}` }))}
+        value={filters.semana !== null ? `2025-W${String(filters.semana).padStart(2, '0')}` : ''}
+        options={semanas.map((sem) => ({ 
+          value: sem, 
+          label: sem.startsWith('20') ? sem : `Semana ${sem}` 
+        }))}
         placeholder="Todas"
         onChange={(value) => handleChange('semana', value)}
       />
@@ -4547,7 +4566,7 @@ export default function DashboardPage() {
   const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>([]);
   const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>([]);
   const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
-  const [semanasDisponiveis, setSemanasDisponiveis] = useState<number[]>([]);
+  const [semanasDisponiveis, setSemanasDisponiveis] = useState<string[]>([]);
   const [pracas, setPracas] = useState<FilterOption[]>([]);
   const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
   const [origens, setOrigens] = useState<FilterOption[]>([]);
