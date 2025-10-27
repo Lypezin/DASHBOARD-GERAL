@@ -1834,13 +1834,13 @@ function ComparacaoView({
   origens,
   currentUser,
 }: {
-  semanas: number[];
+  semanas: string[];
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
   currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
 }) {
-  const [semanasSelecionadas, setSemanasSelecionadas] = useState<number[]>([]);
+  const [semanasSelecionadas, setSemanasSelecionadas] = useState<string[]>([]);
   const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
@@ -1907,7 +1907,11 @@ function ComparacaoView({
     try {
       // Buscar dados para cada semana selecionada
       const promessasDados = semanasSelecionadas.map(async (semana) => {
-        const filtro: any = { p_semana: semana };
+        // Extrair número da semana se vier no formato "2025-W43"
+        const semanaNumero = typeof semana === 'string' && semana.includes('W')
+          ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
+          : semana;
+        const filtro: any = { p_semana: semanaNumero };
         
         // Se houver praça selecionada ou se não for admin com 1 praça
         if (pracaSelecionada) {
@@ -1925,7 +1929,11 @@ function ComparacaoView({
 
       // Buscar UTR para cada semana
       const promessasUtr = semanasSelecionadas.map(async (semana) => {
-        const filtro: any = { p_semana: semana };
+        // Extrair número da semana se vier no formato "2025-W43"
+        const semanaNumero = typeof semana === 'string' && semana.includes('W')
+          ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
+          : semana;
+        const filtro: any = { p_semana: semanaNumero };
         
         if (pracaSelecionada) {
           filtro.p_praca = pracaSelecionada;
