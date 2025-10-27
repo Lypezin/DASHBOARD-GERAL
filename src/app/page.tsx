@@ -4789,7 +4789,9 @@ export default function DashboardPage() {
         const controller = new AbortController();
         abortRef.current = controller;
 
+        console.log('🚀 Chamando dashboard_resumo...');
         const { data: resumoData, error: resumoError } = await supabase.rpc('dashboard_resumo', params);
+        console.log('✅ Resposta recebida:', { data: resumoData, error: resumoError });
 
         if (controller.signal.aborted) {
           return;
