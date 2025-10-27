@@ -4618,7 +4618,10 @@ export default function DashboardPage() {
     if (aderenciaSemanal.length === 0) return undefined;
     
     // Se houver apenas uma semana, retornar ela
-    if (aderenciaSemanal.length === 1) return aderenciaSemanal[0];
+    if (aderenciaSemanal.length === 1) {
+      console.log('🎯 Aderência Geral (1 semana):', aderenciaSemanal[0]);
+      return aderenciaSemanal[0];
+    }
     
     // Se houver múltiplas semanas, calcular a soma total
     const totalHorasAEntregar = aderenciaSemanal.reduce((acc, semana) => 
@@ -4632,12 +4635,22 @@ export default function DashboardPage() {
       ? (totalHorasEntregues / totalHorasAEntregar) * 100 
       : 0;
     
-    return {
+    const resultado = {
       semana: 'Geral',
       horas_a_entregar: totalHorasAEntregar.toFixed(2),
       horas_entregues: totalHorasEntregues.toFixed(2),
       aderencia_percentual: aderenciaPercentual
     };
+    
+    console.log('🎯 Aderência Geral (múltiplas semanas):', resultado);
+    console.log('📋 Detalhamento:', {
+      qtdSemanas: aderenciaSemanal.length,
+      totalHorasAEntregar,
+      totalHorasEntregues,
+      aderenciaPercentual
+    });
+    
+    return resultado;
   }, [aderenciaSemanal]);
 
   // Hook para registrar atividades
@@ -4871,6 +4884,9 @@ export default function DashboardPage() {
           origemFiltrado = origemFiltrado;
         }
 
+        console.log('📊 Dados Semanal recebidos:', semanalFiltrado);
+        console.log('📊 Quantidade de semanas:', semanalFiltrado.length);
+        
         setAderenciaSemanal(semanalFiltrado);
         setAderenciaDia(diaFiltrado);
         setAderenciaTurno(turnoFiltrado);
