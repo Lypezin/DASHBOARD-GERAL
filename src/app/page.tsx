@@ -529,10 +529,17 @@ function FiltroBar({
       />
       <FiltroSelect
         label="Semana"
-        value={filters.semana !== null ? `2025-W${String(filters.semana).padStart(2, '0')}` : ''}
+        value={
+          filters.semana !== null 
+            ? semanas.find(s => {
+                const match = s.match(/W(\d+)/);
+                return match && Number(match[1]) === filters.semana;
+              }) || ''
+            : ''
+        }
         options={semanas.map((sem) => ({ 
           value: sem, 
-          label: sem.startsWith('20') ? sem : `Semana ${sem}` 
+          label: sem 
         }))}
         placeholder="Todas"
         onChange={(value) => handleChange('semana', value)}
