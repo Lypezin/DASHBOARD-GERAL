@@ -537,10 +537,14 @@ function FiltroBar({
               }) || ''
             : ''
         }
-        options={semanas.map((sem) => ({ 
-          value: sem, 
-          label: sem 
-        }))}
+        options={semanas.map((sem) => {
+          const match = sem.match(/W(\d+)/);
+          const semanaNum = match ? match[1] : sem;
+          return { 
+            value: sem, 
+            label: `Semana ${semanaNum}` 
+          };
+        })}
         placeholder="Todas"
         onChange={(value) => handleChange('semana', value)}
       />
@@ -4777,6 +4781,8 @@ export default function DashboardPage() {
       setError(null);
 
       const params = buildFilterPayload(filters);
+      console.log('🔍 Filtros aplicados:', filters);
+      console.log('📤 Parâmetros enviados ao backend:', params);
 
       try {
         abortRef.current?.abort();
