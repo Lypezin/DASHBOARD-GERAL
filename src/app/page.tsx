@@ -115,7 +115,7 @@ interface Filters {
 
 interface DimensoesDashboard {
   anos: number[];
-  semanas: number[];
+  semanas: string[];
   pracas: string[];
   sub_pracas: string[];
   origens: string[];
