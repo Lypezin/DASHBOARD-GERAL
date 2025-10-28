@@ -1,0 +1,65 @@
+# ARQUIVOS SQL PARA DELETAR
+## Categorias: Diagnósticos, Testes, Versões Antigas
+
+## 🗑️ DIAGNÓSTICOS (NÃO USADOS):
+- CORRIGIR_HORAS_PLANEJADAS.sql
+- DIAGNOSTICO_ADERENCIA.sql
+- DIAGNOSTICO_DADOS_ZERADOS.sql
+- DIAGNOSTICO_DETALHADO_HORAS.sql
+- TESTE_COMPLETO_DIAGNOSTICO.sql
+- VERIFICAR_RLS_E_PERMISSOES.sql
+- DIAGNOSTICO_COMPLETO_SISTEMA.sql
+- DIAGNOSTICO_PROFUNDO.sql
+- DIAGNOSTICO_SP_COMPLETO.sql
+- DIAGNOSTICO_SP_DETALHADO.sql
+- COMANDOS_DIAGNOSTICO.sql
+- DIAGNOSTICAR_LOGIN.sql
+- DIAGNOSTICAR_LOGIN_SIMPLES.sql
+- DIAGNOSTICAR_E_CORRIGIR.sql
+- DIAGNOSTICO_E_CORRECAO_ENTREGADORES.sql
+
+## 🧪 TESTES E VERSÕES ANTIGAS:
+- TESTE_SIMPLES_HORAS.sql
+- DASHBOARD_RESUMO_FINAL_CORRETO.sql
+- DASHBOARD_RESUMO_HORAS_CORRIGIDAS.sql
+- DASHBOARD_RESUMO_HORAS_CORRETAS.sql
+- DASHBOARD_RESUMO_FINAL_CORRIGIDO.sql
+- DASHBOARD_RESUMO_COM_ADERENCIA.sql
+- DASHBOARD_RESUMO_COM_LOGS.sql
+- DASHBOARD_RESUMO_SIMPLES_TESTE.sql
+- TESTE_DASHBOARD_RESUMO.sql
+- TESTAR_DASHBOARD_RESUMO.sql
+- TESTE_CALCULO_SEMANA_35.sql
+- OTIMIZACAO_CTE_SIMPLES.sql
+- OTIMIZACAO_DASHBOARD_RESUMO_CTE.sql
+- OTIMIZACAO_DASHBOARD_RESUMO_FINAL.sql
+- DASHBOARD_FINAL_SIMPLIFICADO.sql
+- DASHBOARD_RESUMO_FUNCIONANDO.sql
+
+## 📊 OUTROS BACKUPS ANTIGOS (Sistema antigo, antes de 2025):
+- performance_optimization.sql
+- fix_user_profiles_recursion.sql
+- fix_time_columns.sql
+- fix_rls_praca_filter.sql
+- fix_list_pracas.sql
+- fix_materialized_view.sql
+- fix_dimensoes_filter.sql
+- fix_dimensoes_com_filtro.sql
+- fix_admin_functions.sql
+- fix_dashboard_resumo_dimensoes.sql
+- dashboard_rpc.sql
+- create_utr_rpc.sql
+- auth_setup.sql
+- add_set_user_admin_function.sql
+- E todos os arquivos BLOCO_*.sql
+- E todos os arquivos CORRIGIR_*.sql (exceto principais)
+- E todos os arquivos FIX_*.sql
+- E todos os arquivos SOLUCAO_*.sql
+- E todos os arquivos OTIMIZA*.sql (exceto OTIMIZACAO_CTE_CORRIGIDA.sql)
+
+## ✅ ARQUIVOS PARA MANTER:
+- DASHBOARD_RESUMO_HORAS_EXCEL_LOGICA.sql ⭐ PRINCIPAL
+- OTIMIZACAO_CTE_CORRIGIDA.sql (alternativa)
+- README_BACKUP.md (este backup)
+
+## 📝 TOTAL DE ARQUIVOS PARA DELETAR: ~140 arquivos
