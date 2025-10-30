@@ -3569,24 +3569,28 @@ function EvolucaoView({
   const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
   const isSemanal = viewMode === 'semanal';
 
-  // Cria gradiente suave para área preenchida do gráfico (adapta-se ao tamanho do canvas)
+  // Gradientes vibrantes e modernos com múltiplas paradas de cor
   const gradientBlue = (context: any) => {
     const chart = context.chart;
     const { ctx, chartArea } = chart;
-    if (!chartArea) return 'rgba(59, 130, 246, 0.15)';
+    if (!chartArea) return 'rgba(59, 130, 246, 0.2)';
     const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
-    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.00)');
+    gradient.addColorStop(0, 'rgba(96, 165, 250, 0.45)');    // Azul vibrante
+    gradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.25)');  // Azul médio
+    gradient.addColorStop(0.85, 'rgba(37, 99, 235, 0.08)');   // Azul escuro suave
+    gradient.addColorStop(1, 'rgba(30, 64, 175, 0.00)');     // Transparente
     return gradient;
   };
 
   const gradientGreen = (context: any) => {
     const chart = context.chart;
     const { ctx, chartArea } = chart;
-    if (!chartArea) return 'rgba(34, 197, 94, 0.15)';
+    if (!chartArea) return 'rgba(34, 197, 94, 0.2)';
     const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, 'rgba(34, 197, 94, 0.25)');
-    gradient.addColorStop(1, 'rgba(34, 197, 94, 0.00)');
+    gradient.addColorStop(0, 'rgba(74, 222, 128, 0.45)');    // Verde vibrante
+    gradient.addColorStop(0.5, 'rgba(34, 197, 94, 0.25)');   // Verde médio
+    gradient.addColorStop(0.85, 'rgba(22, 163, 74, 0.08)');   // Verde escuro suave
+    gradient.addColorStop(1, 'rgba(20, 83, 45, 0.00)');      // Transparente
     return gradient;
   };
 
@@ -3608,51 +3612,73 @@ function EvolucaoView({
     return segundos / 3600;
   };
 
-  // Dados do gráfico
+  // Dados do gráfico com estilo premium
   const chartData = {
     labels: viewMode === 'mensal' 
       ? evolucaoMensal.map(d => d.mes_nome)
       : evolucaoSemanal.map(d => `S${d.semana}`),
     datasets: [
       {
-        label: 'Corridas Completadas',
+        label: '🚗 Corridas Completadas',
         data: dadosAtivos.map(d => d.total_corridas),
-        borderColor: 'rgb(59, 130, 246)',
+        borderColor: 'rgba(59, 130, 246, 1)',
         backgroundColor: (ctx: any) => gradientBlue(ctx),
         yAxisID: 'y',
-        tension: isSemanal ? 0.35 : 0.45,
+        tension: 0.4,
         cubicInterpolationMode: 'monotone' as const,
-        pointRadius: isSemanal ? 3 : 5,
-        pointHoverRadius: isSemanal ? 6 : 8,
-        pointHitRadius: 12,
+        pointRadius: isSemanal ? 4 : 6,
+        pointHoverRadius: isSemanal ? 8 : 10,
+        pointHitRadius: 15,
         pointBackgroundColor: 'rgb(59, 130, 246)',
         pointBorderColor: '#fff',
-        pointBorderWidth: 2,
+        pointBorderWidth: 3,
         pointHoverBackgroundColor: 'rgb(37, 99, 235)',
         pointHoverBorderColor: '#fff',
-        borderWidth: 2.5,
+        pointHoverBorderWidth: 4,
+        pointStyle: 'circle',
+        borderWidth: 3,
         fill: true,
         spanGaps: true,
+        segment: {
+          borderColor: (ctx: any) => {
+            // Criar efeito de gradiente na linha
+            if (!ctx.p0 || !ctx.p1) return 'rgb(59, 130, 246)';
+            const value0 = ctx.p0.parsed.y;
+            const value1 = ctx.p1.parsed.y;
+            return value1 > value0 ? 'rgba(34, 197, 94, 0.8)' : 'rgba(59, 130, 246, 1)';
+          },
+        },
       },
       {
-        label: 'Horas Trabalhadas',
+        label: '⏱️ Horas Trabalhadas',
         data: dadosAtivos.map(d => segundosParaHoras(d.total_segundos)),
-        borderColor: 'rgb(34, 197, 94)',
+        borderColor: 'rgba(34, 197, 94, 1)',
         backgroundColor: (ctx: any) => gradientGreen(ctx),
         yAxisID: 'y1',
-        tension: isSemanal ? 0.35 : 0.45,
+        tension: 0.4,
         cubicInterpolationMode: 'monotone' as const,
-        pointRadius: isSemanal ? 3 : 5,
-        pointHoverRadius: isSemanal ? 6 : 8,
-        pointHitRadius: 12,
+        pointRadius: isSemanal ? 4 : 6,
+        pointHoverRadius: isSemanal ? 8 : 10,
+        pointHitRadius: 15,
         pointBackgroundColor: 'rgb(34, 197, 94)',
         pointBorderColor: '#fff',
-        pointBorderWidth: 2,
+        pointBorderWidth: 3,
         pointHoverBackgroundColor: 'rgb(22, 163, 74)',
         pointHoverBorderColor: '#fff',
-        borderWidth: 2.5,
+        pointHoverBorderWidth: 4,
+        pointStyle: 'circle',
+        borderWidth: 3,
         fill: true,
         spanGaps: true,
+        segment: {
+          borderColor: (ctx: any) => {
+            // Criar efeito de gradiente na linha
+            if (!ctx.p0 || !ctx.p1) return 'rgb(34, 197, 94)';
+            const value0 = ctx.p0.parsed.y;
+            const value1 = ctx.p1.parsed.y;
+            return value1 > value0 ? 'rgba(16, 185, 129, 1)' : 'rgba(34, 197, 94, 1)';
+          },
+        },
       },
     ],
   };
@@ -3662,69 +3688,119 @@ function EvolucaoView({
     maintainAspectRatio: false,
     layout: {
       padding: {
-        top: 8,
-        right: 12,
-        bottom: 0,
-        left: 8,
+        top: 12,
+        right: 16,
+        bottom: 8,
+        left: 12,
       },
     },
     animation: {
-      duration: 700,
-      easing: 'easeOutCubic' as const,
+      duration: 1200,
+      easing: 'easeInOutQuart' as const,
+      delay: (context: any) => {
+        let delay = 0;
+        if (context.type === 'data' && context.mode === 'default') {
+          delay = context.dataIndex * 30 + context.datasetIndex * 100;
+        }
+        return delay;
+      },
     },
     interaction: {
       mode: 'index' as const,
       intersect: false,
+      axis: 'x' as const,
     },
     plugins: {
       legend: {
-        position: 'bottom' as const,
+        position: 'top' as const,
+        align: 'center' as const,
         labels: {
           font: {
-            size: 15,
+            size: 14,
             weight: 'bold' as const,
+            family: "'Inter', 'system-ui', sans-serif",
           },
-          padding: 20,
+          padding: 16,
           usePointStyle: true,
           pointStyle: 'circle',
-          boxWidth: 10,
-          boxHeight: 10,
+          boxWidth: 12,
+          boxHeight: 12,
+          color: 'rgb(51, 65, 85)',
+          generateLabels: (chart: any) => {
+            const datasets = chart.data.datasets;
+            return datasets.map((dataset: any, i: number) => ({
+              text: dataset.label,
+              fillStyle: i === 0 ? 'rgb(59, 130, 246)' : 'rgb(34, 197, 94)',
+              strokeStyle: i === 0 ? 'rgb(59, 130, 246)' : 'rgb(34, 197, 94)',
+              lineWidth: 3,
+              hidden: !chart.isDatasetVisible(i),
+              index: i,
+              pointStyle: 'circle',
+            }));
+          },
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        padding: 16,
+        enabled: true,
+        backgroundColor: 'rgba(15, 23, 42, 0.97)',
+        titleColor: 'rgba(255, 255, 255, 1)',
+        bodyColor: 'rgba(226, 232, 240, 1)',
+        padding: 20,
         titleFont: {
-          size: 15,
+          size: 16,
           weight: 'bold' as const,
+          family: "'Inter', 'system-ui', sans-serif",
         },
         bodyFont: {
-          size: 14,
+          size: 15,
+          weight: '600' as any,
+          family: "'Inter', 'system-ui', sans-serif",
         },
-        borderColor: 'rgba(148, 163, 184, 0.3)',
-        borderWidth: 1,
-        cornerRadius: 8,
-        displayColors: false,
+        borderColor: 'rgba(148, 163, 184, 0.5)',
+        borderWidth: 2,
+        cornerRadius: 12,
+        displayColors: true,
+        boxWidth: 14,
+        boxHeight: 14,
+        boxPadding: 6,
+        usePointStyle: true,
         callbacks: {
           title: function(context: any) {
             const label = context[0]?.label || '';
-            return isSemanal ? `Semana ${label.replace('S','')}` : `Mês ${label}`;
+            const icon = isSemanal ? '📊' : '📅';
+            const prefix = isSemanal ? 'Semana' : 'Mês de';
+            const cleanLabel = isSemanal ? label.replace('S','') : label;
+            return `${icon} ${prefix} ${cleanLabel}`;
           },
           label: function(context: any) {
             let label = context.dataset.label || '';
             if (label) {
               label += ': ';
             }
-            if (context.dataset.label === 'Horas Trabalhadas') {
-              // Converter horas decimais de volta para segundos e formatar
+            if (context.dataset.label.includes('Horas')) {
               const horasDecimais = context.parsed.y;
               const totalSegundos = Math.round(horasDecimais * 3600);
               label += formatarHorasParaHMS(totalSegundos / 3600);
             } else {
-              label += context.parsed.y.toLocaleString('pt-BR');
+              label += context.parsed.y.toLocaleString('pt-BR') + ' corridas';
             }
             return label;
-          }
+          },
+          afterLabel: function(context: any) {
+            // Adicionar variação percentual se houver dados anteriores
+            const dataIndex = context.dataIndex;
+            if (dataIndex > 0) {
+              const currentValue = context.parsed.y;
+              const previousValue = context.dataset.data[dataIndex - 1];
+              if (previousValue && previousValue !== 0) {
+                const variation = ((currentValue - previousValue) / previousValue * 100);
+                const arrow = variation > 0 ? '📈' : variation < 0 ? '📉' : '➡️';
+                const sign = variation > 0 ? '+' : '';
+                return `${arrow} ${sign}${variation.toFixed(1)}% vs anterior`;
+              }
+            }
+            return '';
+          },
         }
       },
     },
@@ -3735,24 +3811,35 @@ function EvolucaoView({
         position: 'left' as const,
         title: {
           display: true,
-          text: 'Corridas Completadas',
+          text: '🚗 Corridas Completadas',
           font: {
-            size: 14,
+            size: 13,
             weight: 'bold' as const,
+            family: "'Inter', 'system-ui', sans-serif",
           },
           color: 'rgb(59, 130, 246)',
+          padding: { top: 0, bottom: 8 },
         },
         grid: {
-          color: 'rgba(100, 116, 139, 0.12)',
-          borderDash: [3, 4],
+          color: (context: any) => {
+            // Grid com opacidade alternada
+            return context.tick.value === 0 ? 'rgba(100, 116, 139, 0)' : 'rgba(148, 163, 184, 0.15)';
+          },
+          lineWidth: 1,
           drawBorder: false,
+          drawTicks: false,
+        },
+        border: {
+          display: false,
         },
         ticks: {
           color: 'rgb(59, 130, 246)',
           font: {
             size: 12,
             weight: 'bold' as const,
+            family: "'Inter', 'system-ui', sans-serif",
           },
+          padding: 8,
           callback: function(value: any) {
             return value.toLocaleString('pt-BR');
           }
@@ -3764,22 +3851,29 @@ function EvolucaoView({
         position: 'right' as const,
         title: {
           display: true,
-          text: 'Horas Trabalhadas',
+          text: '⏱️ Horas Trabalhadas',
           font: {
-            size: 14,
+            size: 13,
             weight: 'bold' as const,
+            family: "'Inter', 'system-ui', sans-serif",
           },
           color: 'rgb(34, 197, 94)',
+          padding: { top: 0, bottom: 8 },
         },
         grid: {
           drawOnChartArea: false,
+        },
+        border: {
+          display: false,
         },
         ticks: {
           color: 'rgb(34, 197, 94)',
           font: {
             size: 12,
             weight: 'bold' as const,
+            family: "'Inter', 'system-ui', sans-serif",
           },
+          padding: 8,
           callback: function(value: any) {
             return value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + 'h';
           }
@@ -3790,16 +3884,21 @@ function EvolucaoView({
           display: false,
           drawBorder: false,
         },
+        border: {
+          display: false,
+        },
         ticks: {
-          maxTicksLimit: isSemanal ? 12 : undefined,
+          maxTicksLimit: isSemanal ? 13 : 12,
           autoSkip: true,
           maxRotation: 0,
           minRotation: 0,
           font: {
             size: 12,
-            weight: '600' as any,
+            weight: '700' as any,
+            family: "'Inter', 'system-ui', sans-serif",
           },
           color: 'rgb(71, 85, 105)',
+          padding: 10,
         },
       },
     },
@@ -3809,7 +3908,9 @@ function EvolucaoView({
         borderJoinStyle: 'round' as const,
       },
       point: {
-        hoverBorderWidth: 2,
+        hoverBorderWidth: 4,
+        radius: isSemanal ? 4 : 6,
+        hoverRadius: isSemanal ? 8 : 10,
       },
     },
   };
@@ -3875,89 +3976,151 @@ function EvolucaoView({
         </div>
       </div>
 
-      {/* Gráfico de Evolução */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900">
+      {/* Gráfico de Evolução - Visual Premium */}
+      <div className="relative rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10 overflow-hidden">
+        {/* Elementos decorativos de fundo */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        </div>
+        
         {dadosAtivos.length > 0 ? (
-          <div className="h-[500px]">
-            <Line data={chartData} options={chartOptions} />
+          <div className="relative z-10">
+            {/* Título do gráfico */}
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h4 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg shadow-lg">
+                    📈
+                  </span>
+                  Desempenho {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
+                </h4>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                  Análise detalhada de corridas e horas trabalhadas
+                </p>
+              </div>
+              
+              {/* Indicadores de linha */}
+              <div className="hidden lg:flex items-center gap-4">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                  <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
+                  <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Corridas</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
+                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Horas</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Container do gráfico com altura aumentada */}
+            <div className="h-[550px] rounded-xl bg-white/50 dark:bg-slate-900/50 p-4 backdrop-blur-sm">
+              <Line data={chartData} options={chartOptions} />
+            </div>
           </div>
         ) : (
-          <div className="flex h-[400px] items-center justify-center">
+          <div className="relative z-10 flex h-[500px] items-center justify-center">
             <div className="text-center">
-              <p className="text-lg font-semibold text-slate-500 dark:text-slate-400">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                <span className="text-4xl">📊</span>
+              </div>
+              <p className="text-xl font-bold text-slate-600 dark:text-slate-300">
                 Nenhum dado disponível para {anoSelecionado}
               </p>
-              <p className="mt-2 text-sm text-slate-400 dark:text-slate-500">
-                Tente selecionar outro ano
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Selecione outro ano para visualizar os dados
               </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Cards com estatísticas */}
+      {/* Cards com estatísticas - Design Premium */}
       {dadosAtivos.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {/* Total de Corridas */}
-          <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 p-5 shadow-md dark:border-blue-900 dark:from-blue-950/30 dark:to-blue-900/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Total de Corridas</p>
-                <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">
+          <div className="group relative rounded-2xl border border-blue-200/50 bg-gradient-to-br from-blue-50 via-blue-100/50 to-indigo-100/30 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-blue-900/50 dark:from-blue-950/40 dark:via-blue-900/30 dark:to-indigo-950/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                  Total de Corridas
+                </p>
+                <p className="mt-3 text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">
                   {dadosAtivos.reduce((sum, d) => sum + d.total_corridas, 0).toLocaleString('pt-BR')}
                 </p>
+                <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
+                  {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} analisadas
+                </p>
               </div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-200 text-2xl dark:bg-blue-900/50">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 🚗
               </div>
             </div>
           </div>
 
           {/* Total de Horas */}
-          <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 p-5 shadow-md dark:border-emerald-900 dark:from-emerald-950/30 dark:to-emerald-900/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Total de Horas</p>
-                <p className="mt-2 text-3xl font-bold text-emerald-900 dark:text-emerald-100">
+          <div className="group relative rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-50 via-emerald-100/50 to-teal-100/30 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-emerald-900/50 dark:from-emerald-950/40 dark:via-emerald-900/30 dark:to-teal-950/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Total de Horas
+                </p>
+                <p className="mt-3 text-4xl font-black text-emerald-900 dark:text-emerald-100 tracking-tight">
                   {formatarHorasParaHMS(dadosAtivos.reduce((sum, d) => sum + d.total_segundos, 0) / 3600)}
                 </p>
+                <p className="mt-1 text-xs text-emerald-600/70 dark:text-emerald-400/70 font-medium">
+                  Tempo total trabalhado
+                </p>
               </div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-200 text-2xl dark:bg-emerald-900/50">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 ⏱️
               </div>
             </div>
           </div>
 
           {/* Média de Corridas */}
-          <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 p-5 shadow-md dark:border-purple-900 dark:from-purple-950/30 dark:to-purple-900/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+          <div className="group relative rounded-2xl border border-purple-200/50 bg-gradient-to-br from-purple-50 via-purple-100/50 to-pink-100/30 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-purple-900/50 dark:from-purple-950/40 dark:via-purple-900/30 dark:to-pink-950/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
                   Média {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
                 </p>
-                <p className="mt-2 text-3xl font-bold text-purple-900 dark:text-purple-100">
+                <p className="mt-3 text-4xl font-black text-purple-900 dark:text-purple-100 tracking-tight">
                   {(dadosAtivos.reduce((sum, d) => sum + d.total_corridas, 0) / dadosAtivos.length).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </p>
+                <p className="mt-1 text-xs text-purple-600/70 dark:text-purple-400/70 font-medium">
+                  Corridas por período
+                </p>
               </div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-200 text-2xl dark:bg-purple-900/50">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 📊
               </div>
             </div>
           </div>
 
           {/* Período */}
-          <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 p-5 shadow-md dark:border-amber-900 dark:from-amber-950/30 dark:to-amber-900/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Período</p>
-                <p className="mt-2 text-2xl font-bold text-amber-900 dark:text-amber-100">
+          <div className="group relative rounded-2xl border border-amber-200/50 bg-gradient-to-br from-amber-50 via-amber-100/50 to-orange-100/30 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-amber-900/50 dark:from-amber-950/40 dark:via-amber-900/30 dark:to-orange-950/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                  Período Analisado
+                </p>
+                <p className="mt-3 text-4xl font-black text-amber-900 dark:text-amber-100 tracking-tight">
                   {anoSelecionado}
                 </p>
-                <p className="text-sm text-amber-700 dark:text-amber-300">
-                  {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'}
+                <p className="mt-1 text-xs text-amber-600/70 dark:text-amber-400/70 font-medium">
+                  {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} registradas
                 </p>
               </div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-200 text-2xl dark:bg-amber-900/50">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 📅
               </div>
             </div>
