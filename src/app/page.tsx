@@ -882,37 +882,96 @@ function AnaliseView({
     }],
   };
 
-  // Dados para o gráfico de barras por dia
+  // Gradientes para gráficos da Análise
+  const createGradient = (ctx: any, color: string) => {
+    const chart = ctx.chart;
+    const {ctx: canvasCtx, chartArea} = chart;
+    if (!chartArea) return color;
+    const gradient = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    
+    if (color.includes('59, 130, 246')) { // Blue
+      gradient.addColorStop(0, 'rgba(96, 165, 250, 0.4)');
+      gradient.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
+    } else if (color.includes('16, 185, 129')) { // Green
+      gradient.addColorStop(0, 'rgba(74, 222, 128, 0.4)');
+      gradient.addColorStop(1, 'rgba(16, 185, 129, 0.05)');
+    } else if (color.includes('239, 68, 68')) { // Red
+      gradient.addColorStop(0, 'rgba(248, 113, 113, 0.4)');
+      gradient.addColorStop(1, 'rgba(239, 68, 68, 0.05)');
+    } else if (color.includes('139, 92, 246')) { // Purple
+      gradient.addColorStop(0, 'rgba(167, 139, 250, 0.4)');
+      gradient.addColorStop(1, 'rgba(139, 92, 246, 0.05)');
+    } else if (color.includes('99, 102, 241')) { // Indigo
+      gradient.addColorStop(0, 'rgba(129, 140, 248, 0.4)');
+      gradient.addColorStop(1, 'rgba(99, 102, 241, 0.05)');
+    }
+    
+    return gradient;
+  };
+
+  // Dados para o gráfico de barras por dia (melhorado)
   const barDataDia = {
     labels: aderenciaDia.map(d => d.dia_da_semana),
     datasets: [
       {
-        label: 'Ofertadas',
+        label: '📢 Ofertadas',
         data: aderenciaDia.map(d => d.corridas_ofertadas ?? 0),
-        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+        backgroundColor: (ctx: any) => createGradient(ctx, 'rgba(59, 130, 246, 0.7)'),
         borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 1,
+        borderWidth: 3,
+        tension: 0.4,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointBackgroundColor: 'rgb(59, 130, 246)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointHoverBorderWidth: 3,
+        fill: true,
       },
       {
-        label: 'Aceitas',
+        label: '✅ Aceitas',
         data: aderenciaDia.map(d => d.corridas_aceitas ?? 0),
-        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+        backgroundColor: (ctx: any) => createGradient(ctx, 'rgba(16, 185, 129, 0.7)'),
         borderColor: 'rgb(16, 185, 129)',
-        borderWidth: 1,
+        borderWidth: 3,
+        tension: 0.4,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointBackgroundColor: 'rgb(16, 185, 129)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointHoverBorderWidth: 3,
+        fill: true,
       },
       {
-        label: 'Rejeitadas',
+        label: '❌ Rejeitadas',
         data: aderenciaDia.map(d => d.corridas_rejeitadas ?? 0),
-        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+        backgroundColor: (ctx: any) => createGradient(ctx, 'rgba(239, 68, 68, 0.7)'),
         borderColor: 'rgb(239, 68, 68)',
-        borderWidth: 1,
+        borderWidth: 3,
+        tension: 0.4,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointBackgroundColor: 'rgb(239, 68, 68)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointHoverBorderWidth: 3,
+        fill: true,
       },
       {
-        label: 'Completadas',
+        label: '🏁 Completadas',
         data: aderenciaDia.map(d => d.corridas_completadas ?? 0),
-        backgroundColor: 'rgba(139, 92, 246, 0.7)',
+        backgroundColor: (ctx: any) => createGradient(ctx, 'rgba(139, 92, 246, 0.7)'),
         borderColor: 'rgb(139, 92, 246)',
-        borderWidth: 1,
+        borderWidth: 3,
+        tension: 0.4,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointBackgroundColor: 'rgb(139, 92, 246)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointHoverBorderWidth: 3,
+        fill: true,
       },
     ],
   };
@@ -947,47 +1006,103 @@ function AnaliseView({
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: true,
+    layout: {
+      padding: {
+        top: 10,
+        right: 10,
+        bottom: 5,
+        left: 5,
+      },
+    },
+    animation: {
+      duration: 1000,
+      easing: 'easeInOutQuart' as const,
+      delay: (context: any) => {
+        let delay = 0;
+        if (context.type === 'data' && context.mode === 'default') {
+          delay = context.dataIndex * 40 + context.datasetIndex * 80;
+        }
+        return delay;
+      },
+    },
     interaction: {
       mode: 'index' as const,
       intersect: false,
+      axis: 'x' as const,
     },
     plugins: {
       legend: {
         position: 'top' as const,
+        align: 'center' as const,
         labels: {
           font: {
-            size: 12,
-            family: "'Inter', sans-serif",
+            size: 13,
+            weight: 'bold' as const,
+            family: "'Inter', 'system-ui', sans-serif",
           },
-          padding: 15,
+          padding: 16,
           usePointStyle: true,
           pointStyle: 'circle',
+          boxWidth: 12,
+          boxHeight: 12,
+          color: 'rgb(51, 65, 85)',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        padding: 12,
+        enabled: true,
+        backgroundColor: 'rgba(15, 23, 42, 0.96)',
+        titleColor: 'rgba(255, 255, 255, 1)',
+        bodyColor: 'rgba(226, 232, 240, 1)',
+        padding: 16,
         titleFont: {
-          size: 14,
+          size: 15,
           weight: 'bold' as const,
+          family: "'Inter', 'system-ui', sans-serif",
         },
         bodyFont: {
-          size: 13,
+          size: 14,
+          weight: '600' as any,
+          family: "'Inter', 'system-ui', sans-serif",
         },
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderWidth: 1,
+        borderColor: 'rgba(148, 163, 184, 0.5)',
+        borderWidth: 2,
+        cornerRadius: 10,
         displayColors: true,
+        boxWidth: 12,
+        boxHeight: 12,
+        boxPadding: 5,
+        usePointStyle: true,
         callbacks: {
+          title: function(context: any) {
+            const label = context[0]?.label || '';
+            return `📅 ${label}`;
+          },
           label: function(context: any) {
             let label = context.dataset.label || '';
             if (label) {
               label += ': ';
             }
             if (context.parsed.y !== null) {
-              label += new Intl.NumberFormat('pt-BR').format(context.parsed.y);
+              label += new Intl.NumberFormat('pt-BR').format(context.parsed.y) + ' corridas';
             }
             return label;
-          }
+          },
+          afterLabel: function(context: any) {
+            const dataIndex = context.dataIndex;
+            if (dataIndex > 0) {
+              const currentValue = context.parsed.y;
+              const previousValue = context.dataset.data[dataIndex - 1];
+              if (previousValue && previousValue !== 0) {
+                const variation = ((currentValue - previousValue) / previousValue * 100);
+                if (Math.abs(variation) > 0.1) {
+                  const arrow = variation > 0 ? '📈' : '📉';
+                  const sign = variation > 0 ? '+' : '';
+                  return `${arrow} ${sign}${variation.toFixed(1)}% vs anterior`;
+                }
+              }
+            }
+            return '';
+          },
         }
       },
     },
@@ -995,23 +1110,52 @@ function AnaliseView({
       y: {
         beginAtZero: true,
         grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
+          color: 'rgba(148, 163, 184, 0.12)',
+          lineWidth: 1,
+          drawBorder: false,
         },
-        ticks: {
-          font: {
-            size: 11,
-          },
-        },
-      },
-      x: {
-        grid: {
+        border: {
           display: false,
         },
         ticks: {
           font: {
             size: 11,
+            weight: 'bold' as const,
+            family: "'Inter', 'system-ui', sans-serif",
           },
+          color: 'rgb(71, 85, 105)',
+          padding: 8,
+          callback: function(value: any) {
+            return new Intl.NumberFormat('pt-BR').format(value);
+          }
         },
+      },
+      x: {
+        grid: {
+          display: false,
+          drawBorder: false,
+        },
+        border: {
+          display: false,
+        },
+        ticks: {
+          font: {
+            size: 11,
+            weight: '700' as any,
+            family: "'Inter', 'system-ui', sans-serif",
+          },
+          color: 'rgb(71, 85, 105)',
+          padding: 8,
+        },
+      },
+    },
+    elements: {
+      line: {
+        borderCapStyle: 'round' as const,
+        borderJoinStyle: 'round' as const,
+      },
+      point: {
+        hoverBorderWidth: 3,
       },
     },
   };
@@ -1149,19 +1293,16 @@ function AnaliseView({
             </table>
           </div>
           ) : (
-            <div className="p-6">
-              <Line data={barDataDia} options={{
-                ...chartOptions,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: { font: { size: 11 } },
-                  },
-                  x: {
-                    ticks: { font: { size: 11 } },
-                  },
-                },
-              }} />
+            <div className="relative p-8 bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/20 dark:from-blue-950/10 dark:via-slate-900 dark:to-indigo-950/10">
+              {/* Elementos decorativos */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl"></div>
+              </div>
+              
+              <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-900/60 p-6 backdrop-blur-sm shadow-inner">
+                <Line data={barDataDia} options={chartOptions} />
+              </div>
             </div>
           )}
         </div>
@@ -1192,61 +1333,65 @@ function AnaliseView({
           </div>
           
           {viewModeTurno === 'chart' ? (
-            <div className="p-6">
-          <Line data={{
-            labels: aderenciaTurno.map(t => t.periodo),
-            datasets: [
-              {
-                label: 'Ofertadas',
-                data: aderenciaTurno.map(t => t.corridas_ofertadas ?? 0),
-                backgroundColor: 'rgba(139, 92, 246, 0.2)',
-                borderColor: 'rgb(139, 92, 246)',
-                borderWidth: 2,
-                tension: 0.4,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-              },
-              {
-                label: 'Aceitas',
-                data: aderenciaTurno.map(t => t.corridas_aceitas ?? 0),
-                backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                borderColor: 'rgb(16, 185, 129)',
-                borderWidth: 2,
-                tension: 0.4,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-              },
-              {
-                label: 'Completadas',
-                data: aderenciaTurno.map(t => t.corridas_completadas ?? 0),
-                backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                borderColor: 'rgb(99, 102, 241)',
-                borderWidth: 2,
-                tension: 0.4,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-              },
-            ],
-          }} options={{
-            ...chartOptions,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  font: {
-                    size: 11,
-                  },
-                },
-              },
-              x: {
-                ticks: {
-                  font: {
-                    size: 11,
-                  },
-                },
-              },
-            },
-          }} />
+            <div className="relative p-8 bg-gradient-to-br from-purple-50/30 via-white to-pink-50/20 dark:from-purple-950/10 dark:via-slate-900 dark:to-pink-950/10">
+              {/* Elementos decorativos */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500/5 rounded-full blur-3xl"></div>
+              </div>
+              
+              <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-900/60 p-6 backdrop-blur-sm shadow-inner">
+                <Line data={{
+                  labels: aderenciaTurno.map(t => t.periodo),
+                  datasets: [
+                    {
+                      label: '📢 Ofertadas',
+                      data: aderenciaTurno.map(t => t.corridas_ofertadas ?? 0),
+                      backgroundColor: (ctx: any) => createGradient(ctx, 'rgba(139, 92, 246, 0.2)'),
+                      borderColor: 'rgb(139, 92, 246)',
+                      borderWidth: 3,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 8,
+                      pointBackgroundColor: 'rgb(139, 92, 246)',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
+                      pointHoverBorderWidth: 3,
+                      fill: true,
+                    },
+                    {
+                      label: '✅ Aceitas',
+                      data: aderenciaTurno.map(t => t.corridas_aceitas ?? 0),
+                      backgroundColor: (ctx: any) => createGradient(ctx, 'rgba(16, 185, 129, 0.2)'),
+                      borderColor: 'rgb(16, 185, 129)',
+                      borderWidth: 3,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 8,
+                      pointBackgroundColor: 'rgb(16, 185, 129)',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
+                      pointHoverBorderWidth: 3,
+                      fill: true,
+                    },
+                    {
+                      label: '🏁 Completadas',
+                      data: aderenciaTurno.map(t => t.corridas_completadas ?? 0),
+                      backgroundColor: (ctx: any) => createGradient(ctx, 'rgba(99, 102, 241, 0.2)'),
+                      borderColor: 'rgb(99, 102, 241)',
+                      borderWidth: 3,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 8,
+                      pointBackgroundColor: 'rgb(99, 102, 241)',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
+                      pointHoverBorderWidth: 3,
+                      fill: true,
+                    },
+                  ],
+                }} options={chartOptions} />
+              </div>
             </div>
           ) : (
           <div className="overflow-x-auto">
@@ -1408,55 +1553,89 @@ function AnaliseView({
               </table>
             </div>
           ) : (
-            <div className="p-6">
-              <Line data={{
-                labels: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => 
-                  viewModeLocal === 'subpraca' ? (item as any).sub_praca : (item as any).origem
-                ),
-                datasets: [
-                  {
-                    label: 'Ofertadas',
-                    data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_ofertadas ?? 0),
-                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                    borderColor: 'rgb(16, 185, 129)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
+            <div className="relative p-8 bg-gradient-to-br from-emerald-50/30 via-white to-teal-50/20 dark:from-emerald-950/10 dark:via-slate-900 dark:to-teal-950/10">
+              {/* Elementos decorativos */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl"></div>
+              </div>
+              
+              <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-900/60 p-6 backdrop-blur-sm shadow-inner">
+                <Line data={{
+                  labels: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => 
+                    viewModeLocal === 'subpraca' ? (item as any).sub_praca : (item as any).origem
+                  ),
+                  datasets: [
+                    {
+                      label: '📢 Ofertadas',
+                      data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_ofertadas ?? 0),
+                      backgroundColor: (ctx: any) => createGradient(ctx, 'rgba(16, 185, 129, 0.2)'),
+                      borderColor: 'rgb(16, 185, 129)',
+                      borderWidth: 3,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 8,
+                      pointBackgroundColor: 'rgb(16, 185, 129)',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
+                      pointHoverBorderWidth: 3,
+                      fill: true,
+                    },
+                    {
+                      label: '✅ Aceitas',
+                      data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_aceitas ?? 0),
+                      backgroundColor: (ctx: any) => {
+                        const chart = ctx.chart;
+                        const {ctx: canvasCtx, chartArea} = chart;
+                        if (!chartArea) return 'rgba(20, 184, 166, 0.2)';
+                        const gradient = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        gradient.addColorStop(0, 'rgba(45, 212, 191, 0.4)');
+                        gradient.addColorStop(1, 'rgba(20, 184, 166, 0.05)');
+                        return gradient;
+                      },
+                      borderColor: 'rgb(20, 184, 166)',
+                      borderWidth: 3,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 8,
+                      pointBackgroundColor: 'rgb(20, 184, 166)',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
+                      pointHoverBorderWidth: 3,
+                      fill: true,
+                    },
+                    {
+                      label: '🏁 Completadas',
+                      data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_completadas ?? 0),
+                      backgroundColor: (ctx: any) => createGradient(ctx, 'rgba(59, 130, 246, 0.2)'),
+                      borderColor: 'rgb(59, 130, 246)',
+                      borderWidth: 3,
+                      tension: 0.4,
+                      pointRadius: 5,
+                      pointHoverRadius: 8,
+                      pointBackgroundColor: 'rgb(59, 130, 246)',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
+                      pointHoverBorderWidth: 3,
+                      fill: true,
+                    },
+                  ],
+                }} options={{
+                  ...chartOptions,
+                  scales: {
+                    ...chartOptions.scales,
+                    x: {
+                      ...chartOptions.scales.x,
+                      ticks: { 
+                        ...chartOptions.scales.x.ticks,
+                        maxRotation: 45, 
+                        minRotation: 45,
+                        font: { size: 10, weight: '700' as any, family: "'Inter', 'system-ui', sans-serif" },
+                      },
+                    },
                   },
-                  {
-                    label: 'Aceitas',
-                    data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_aceitas ?? 0),
-                    backgroundColor: 'rgba(20, 184, 166, 0.2)',
-                    borderColor: 'rgb(20, 184, 166)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                  },
-                  {
-                    label: 'Completadas',
-                    data: (viewModeLocal === 'subpraca' ? aderenciaSubPraca : aderenciaOrigem).map(item => item.corridas_completadas ?? 0),
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                  },
-                ],
-              }} options={{
-                ...chartOptions,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: { font: { size: 11 } },
-                  },
-                  x: {
-                    ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 45 },
-                  },
-                },
-              }} />
+                }} />
+              </div>
             </div>
           )}
         </div>
