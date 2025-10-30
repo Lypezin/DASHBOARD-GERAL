@@ -3670,7 +3670,7 @@ function EvolucaoView({
     },
     animation: {
       duration: 700,
-      easing: 'easeOutCubic',
+      easing: 'easeOutCubic' as const,
     },
     interaction: {
       mode: 'index' as const,
