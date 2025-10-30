@@ -3567,6 +3567,28 @@ function EvolucaoView({
   onAnoChange: (ano: number) => void;
 }) {
   const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
+  const isSemanal = viewMode === 'semanal';
+
+  // Cria gradiente suave para área preenchida do gráfico (adapta-se ao tamanho do canvas)
+  const gradientBlue = (context: any) => {
+    const chart = context.chart;
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return 'rgba(59, 130, 246, 0.15)';
+    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.00)');
+    return gradient;
+  };
+
+  const gradientGreen = (context: any) => {
+    const chart = context.chart;
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return 'rgba(34, 197, 94, 0.15)';
+    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    gradient.addColorStop(0, 'rgba(34, 197, 94, 0.25)');
+    gradient.addColorStop(1, 'rgba(34, 197, 94, 0.00)');
+    return gradient;
+  };
 
   if (loading) {
     return (
@@ -3596,35 +3618,41 @@ function EvolucaoView({
         label: 'Corridas Completadas',
         data: dadosAtivos.map(d => d.total_corridas),
         borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+        backgroundColor: (ctx: any) => gradientBlue(ctx),
         yAxisID: 'y',
-        tension: 0.3,
-        pointRadius: 6,
-        pointHoverRadius: 8,
+        tension: isSemanal ? 0.35 : 0.45,
+        cubicInterpolationMode: 'monotone' as const,
+        pointRadius: isSemanal ? 3 : 5,
+        pointHoverRadius: isSemanal ? 6 : 8,
+        pointHitRadius: 12,
         pointBackgroundColor: 'rgb(59, 130, 246)',
         pointBorderColor: '#fff',
-        pointBorderWidth: 3,
+        pointBorderWidth: 2,
         pointHoverBackgroundColor: 'rgb(37, 99, 235)',
         pointHoverBorderColor: '#fff',
-        borderWidth: 3,
+        borderWidth: 2.5,
         fill: true,
+        spanGaps: true,
       },
       {
         label: 'Horas Trabalhadas',
         data: dadosAtivos.map(d => segundosParaHoras(d.total_segundos)),
         borderColor: 'rgb(34, 197, 94)',
-        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+        backgroundColor: (ctx: any) => gradientGreen(ctx),
         yAxisID: 'y1',
-        tension: 0.3,
-        pointRadius: 6,
-        pointHoverRadius: 8,
+        tension: isSemanal ? 0.35 : 0.45,
+        cubicInterpolationMode: 'monotone' as const,
+        pointRadius: isSemanal ? 3 : 5,
+        pointHoverRadius: isSemanal ? 6 : 8,
+        pointHitRadius: 12,
         pointBackgroundColor: 'rgb(34, 197, 94)',
         pointBorderColor: '#fff',
-        pointBorderWidth: 3,
+        pointBorderWidth: 2,
         pointHoverBackgroundColor: 'rgb(22, 163, 74)',
         pointHoverBorderColor: '#fff',
-        borderWidth: 3,
+        borderWidth: 2.5,
         fill: true,
+        spanGaps: true,
       },
     ],
   };
@@ -3632,13 +3660,25 @@ function EvolucaoView({
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: {
+        top: 8,
+        right: 12,
+        bottom: 0,
+        left: 8,
+      },
+    },
+    animation: {
+      duration: 700,
+      easing: 'easeOutCubic',
+    },
     interaction: {
       mode: 'index' as const,
       intersect: false,
     },
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: 'bottom' as const,
         labels: {
           font: {
             size: 15,
@@ -3664,8 +3704,12 @@ function EvolucaoView({
         borderColor: 'rgba(148, 163, 184, 0.3)',
         borderWidth: 1,
         cornerRadius: 8,
-        displayColors: true,
+        displayColors: false,
         callbacks: {
+          title: function(context: any) {
+            const label = context[0]?.label || '';
+            return isSemanal ? `Semana ${label.replace('S','')}` : `Mês ${label}`;
+          },
           label: function(context: any) {
             let label = context.dataset.label || '';
             if (label) {
@@ -3699,7 +3743,8 @@ function EvolucaoView({
           color: 'rgb(59, 130, 246)',
         },
         grid: {
-          color: 'rgba(59, 130, 246, 0.1)',
+          color: 'rgba(100, 116, 139, 0.12)',
+          borderDash: [3, 4],
           drawBorder: false,
         },
         ticks: {
@@ -3746,12 +3791,25 @@ function EvolucaoView({
           drawBorder: false,
         },
         ticks: {
+          maxTicksLimit: isSemanal ? 12 : undefined,
+          autoSkip: true,
+          maxRotation: 0,
+          minRotation: 0,
           font: {
             size: 12,
             weight: '600' as any,
           },
           color: 'rgb(71, 85, 105)',
         },
+      },
+    },
+    elements: {
+      line: {
+        borderCapStyle: 'round' as const,
+        borderJoinStyle: 'round' as const,
+      },
+      point: {
+        hoverBorderWidth: 2,
       },
     },
   };
