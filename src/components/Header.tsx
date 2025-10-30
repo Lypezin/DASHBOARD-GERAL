@@ -79,46 +79,46 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-xl backdrop-blur-lg animate-slide-down">
-      <div className="container mx-auto flex h-16 md:h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-xl backdrop-blur-lg animate-slide-down">
+      <div className="container mx-auto flex h-16 md:h-18 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2 sm:gap-3 group" prefetch={false}>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-1.5 sm:p-2 group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300">
+          <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2 sm:p-2.5 group-hover:bg-white/25 group-hover:scale-105 transition-all duration-300 shadow-lg">
             <span className="text-xl sm:text-2xl">📊</span>
           </div>
           <div className="hidden sm:block">
-            <span className="font-bold text-lg sm:text-xl text-white">Dashboard Operacional</span>
-            <p className="text-blue-100 text-xs sm:text-sm">Sistema de Análise</p>
+            <span className="font-bold text-lg sm:text-xl text-white tracking-tight">Dashboard Operacional</span>
+            <p className="text-blue-100/90 text-xs sm:text-sm font-medium">Sistema de Análise</p>
           </div>
           <span className="font-bold text-lg text-white sm:hidden">Dashboard</span>
         </Link>
         
-        <nav className="flex items-center gap-2 sm:gap-3 md:gap-4">
+        <nav className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
           <Link
             href="/"
-            className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-200 hover-lift border border-white/20"
+            className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
             prefetch={false}
           >
             <span className="text-base sm:text-lg">📈</span>
-            <span className="font-medium text-sm sm:text-base hidden xs:inline">Dashboard</span>
+            <span className="text-sm sm:text-base hidden xs:inline">Dashboard</span>
           </Link>
           
           {user.is_admin && (
             <>
               <Link
                 href="/upload"
-                className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-200 hover-lift border border-white/20"
+                className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
                 prefetch={false}
               >
                 <span className="text-base sm:text-lg">📤</span>
-                <span className="font-medium text-sm sm:text-base hidden md:inline">Upload</span>
+                <span className="text-sm sm:text-base hidden md:inline">Upload</span>
               </Link>
               <Link
                 href="/admin"
-                className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-200 hover-lift border border-white/20"
+                className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
                 prefetch={false}
               >
                 <span className="text-base sm:text-lg">⚙️</span>
-                <span className="font-medium text-sm sm:text-base hidden md:inline">Admin</span>
+                <span className="text-sm sm:text-base hidden md:inline">Admin</span>
               </Link>
             </>
           )}
@@ -126,30 +126,31 @@ export function Header() {
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-200 border border-white/20"
+              className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium hover:shadow-lg"
             >
               <span className="text-base sm:text-lg">👤</span>
-              <span className="font-medium text-sm sm:text-base max-w-[80px] sm:max-w-none truncate">{user.full_name.split(' ')[0]}</span>
-              <span className="text-xs hidden sm:inline">▼</span>
+              <span className="text-sm sm:text-base max-w-[80px] sm:max-w-none truncate">{user.full_name.split(' ')[0]}</span>
+              <span className="text-xs hidden sm:inline transition-transform duration-200" style={{transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)'}}>▼</span>
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 mt-2 w-56 sm:w-64 rounded-xl border border-white/20 bg-white shadow-2xl z-50 animate-scale-in">
-                <div className="border-b border-slate-200 p-3 sm:p-4">
-                  <p className="font-semibold text-sm sm:text-base text-slate-900">{user.full_name}</p>
-                  <p className="text-xs sm:text-sm text-slate-600 truncate">{user.email}</p>
+              <div className="absolute right-0 mt-3 w-60 sm:w-64 rounded-xl border border-slate-200/50 bg-white shadow-2xl z-50 animate-scale-in overflow-hidden">
+                <div className="border-b border-slate-200 p-4 bg-gradient-to-br from-slate-50 to-blue-50">
+                  <p className="font-bold text-base text-slate-900">{user.full_name}</p>
+                  <p className="text-xs text-slate-600 truncate mt-0.5">{user.email}</p>
                   {user.is_admin && (
-                    <span className="mt-2 inline-block rounded-full gradient-primary px-3 py-1 text-xs font-semibold text-white">
-                      ⭐ Administrador
+                    <span className="mt-2.5 inline-flex items-center gap-1 rounded-full gradient-primary px-3 py-1 text-xs font-bold text-white shadow-md">
+                      <span>⭐</span>
+                      <span>Administrador</span>
                     </span>
                   )}
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="w-full p-3 sm:p-4 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors rounded-b-xl flex items-center gap-2"
+                  className="w-full p-4 text-left text-sm font-bold text-rose-600 hover:bg-rose-50 transition-all rounded-b-xl flex items-center gap-2.5 group"
                 >
-                  <span>🚪</span>
-                  <span>Sair</span>
+                  <span className="text-lg group-hover:scale-110 transition-transform">🚪</span>
+                  <span>Sair da Conta</span>
                 </button>
               </div>
             )}
