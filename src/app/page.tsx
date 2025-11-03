@@ -5081,6 +5081,8 @@ function PrioridadePromoView({
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [filtroAderencia, setFiltroAderencia] = useState<string>('');
   const [filtroRejeicao, setFiltroRejeicao] = useState<string>('');
+  const [filtroCompletadas, setFiltroCompletadas] = useState<string>('');
+  const [filtroAceitas, setFiltroAceitas] = useState<string>('');
 
   // Pesquisa com debounce
   useEffect(() => {
@@ -5129,7 +5131,7 @@ function PrioridadePromoView({
     return (searchTerm.trim() && searchResults.length > 0) ? searchResults : (entregadoresData?.entregadores || []);
   }, [searchTerm, searchResults, entregadoresData]);
 
-  // Aplicar filtros de % de aderência e rejeição
+  // Aplicar filtros de % de aderência, rejeição, completadas e aceitas
   const dataFiltrada = useMemo(() => {
     let filtered = [...dataToDisplay];
     
@@ -5149,8 +5151,36 @@ function PrioridadePromoView({
       }
     }
     
+    // Filtro por % de completadas (mostrar apenas quem tem o valor ou acima)
+    // % completadas = (corridas_completadas / corridas_ofertadas) * 100
+    if (filtroCompletadas.trim()) {
+      const completadasMin = parseFloat(filtroCompletadas);
+      if (!isNaN(completadasMin)) {
+        filtered = filtered.filter(e => {
+          const corridasOfertadas = e.corridas_ofertadas || 0;
+          if (corridasOfertadas === 0) return false;
+          const percentualCompletadas = (e.corridas_completadas / corridasOfertadas) * 100;
+          return percentualCompletadas >= completadasMin;
+        });
+      }
+    }
+    
+    // Filtro por % de aceitas (mostrar apenas quem tem o valor ou acima)
+    // % aceitas = (corridas_aceitas / corridas_ofertadas) * 100
+    if (filtroAceitas.trim()) {
+      const aceitasMin = parseFloat(filtroAceitas);
+      if (!isNaN(aceitasMin)) {
+        filtered = filtered.filter(e => {
+          const corridasOfertadas = e.corridas_ofertadas || 0;
+          if (corridasOfertadas === 0) return false;
+          const percentualAceitas = (e.corridas_aceitas / corridasOfertadas) * 100;
+          return percentualAceitas >= aceitasMin;
+        });
+      }
+    }
+    
     return filtered;
-  }, [dataToDisplay, filtroAderencia, filtroRejeicao]);
+  }, [dataToDisplay, filtroAderencia, filtroRejeicao, filtroCompletadas, filtroAceitas]);
 
   // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
   // IMPORTANTE: useMemo deve estar antes de qualquer early return (regras dos hooks do React)
@@ -5264,9 +5294,9 @@ function PrioridadePromoView({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Filtros de % de Aderência e Rejeição */}
+      {/* Filtros de % de Aderência, Rejeição, Completadas e Aceitas */}
       <div className="rounded-xl border border-purple-200 bg-white p-4 shadow-lg dark:border-purple-800 dark:bg-slate-900">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="flex-1">
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
               % Aderência Mínima
@@ -5281,7 +5311,7 @@ function PrioridadePromoView({
               step="0.1"
               className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
             />
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Mostrar apenas entregadores com este % ou acima</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Este % ou acima</p>
           </div>
           <div className="flex-1">
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
@@ -5297,19 +5327,53 @@ function PrioridadePromoView({
               step="0.1"
               className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
             />
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Mostrar apenas entregadores com este % ou abaixo</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Este % ou abaixo</p>
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              % Completadas Mínima
+            </label>
+            <input
+              type="number"
+              placeholder="Ex: 80"
+              value={filtroCompletadas}
+              onChange={(e) => setFiltroCompletadas(e.target.value)}
+              min="0"
+              max="100"
+              step="0.1"
+              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
+            />
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Este % ou acima</p>
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              % Aceitas Mínima
+            </label>
+            <input
+              type="number"
+              placeholder="Ex: 85"
+              value={filtroAceitas}
+              onChange={(e) => setFiltroAceitas(e.target.value)}
+              min="0"
+              max="100"
+              step="0.1"
+              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
+            />
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Este % ou acima</p>
           </div>
         </div>
-        {(filtroAderencia || filtroRejeicao) && (
+        {(filtroAderencia || filtroRejeicao || filtroCompletadas || filtroAceitas) && (
           <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
             <button
               onClick={() => {
                 setFiltroAderencia('');
                 setFiltroRejeicao('');
+                setFiltroCompletadas('');
+                setFiltroAceitas('');
               }}
               className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
             >
-              ✕ Limpar filtros
+              ✕ Limpar todos os filtros
             </button>
           </div>
         )}
