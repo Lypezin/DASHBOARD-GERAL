@@ -4429,15 +4429,27 @@ function ValoresView({
     const aValue = a[sortField];
     const bValue = b[sortField];
     
+    // Tratar valores nulos/undefined
+    if (aValue == null && bValue == null) return 0;
+    if (aValue == null) return 1;
+    if (bValue == null) return -1;
+    
+    // Se ambos são strings (nome_entregador ou id_entregador)
     if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === 'asc' 
-        ? aValue.localeCompare(bValue) 
-        : bValue.localeCompare(aValue);
+      const comparison = aValue.localeCompare(bValue, 'pt-BR', { sensitivity: 'base' });
+      return sortDirection === 'asc' ? comparison : -comparison;
     }
     
-    const aNum = Number(aValue) || 0;
-    const bNum = Number(bValue) || 0;
-    return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+    // Para valores numéricos (total_taxas, numero_corridas_aceitas, taxa_media)
+    const aNum = typeof aValue === 'number' ? aValue : parseFloat(String(aValue)) || 0;
+    const bNum = typeof bValue === 'number' ? bValue : parseFloat(String(bValue)) || 0;
+    
+    if (isNaN(aNum) && isNaN(bNum)) return 0;
+    if (isNaN(aNum)) return 1;
+    if (isNaN(bNum)) return -1;
+    
+    const comparison = aNum - bNum;
+    return sortDirection === 'asc' ? comparison : -comparison;
   });
 
   const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
