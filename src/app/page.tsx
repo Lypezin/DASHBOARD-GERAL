@@ -523,19 +523,32 @@ const FiltroMultiSelect = React.memo(({
       const updatePosition = () => {
         if (buttonRef.current && dropdownRef.current) {
           const rect = buttonRef.current.getBoundingClientRect();
+          // getBoundingClientRect retorna coordenadas relativas ao viewport (perfeito para position: fixed)
           dropdownRef.current.style.top = `${rect.bottom + 4}px`;
           dropdownRef.current.style.left = `${rect.left}px`;
           dropdownRef.current.style.width = `${rect.width}px`;
         }
       };
       
-      updatePosition();
-      window.addEventListener('scroll', updatePosition, true);
-      window.addEventListener('resize', updatePosition);
+      // Usar requestAnimationFrame para garantir que o DOM está atualizado
+      requestAnimationFrame(() => {
+        updatePosition();
+      });
+      
+      // Atualizar em caso de scroll ou resize
+      const handleScroll = () => {
+        requestAnimationFrame(updatePosition);
+      };
+      const handleResize = () => {
+        requestAnimationFrame(updatePosition);
+      };
+      
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
       
       return () => {
-        window.removeEventListener('scroll', updatePosition, true);
-        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
       };
     }
   }, [isOpen]);
@@ -596,13 +609,6 @@ const FiltroMultiSelect = React.memo(({
           <div 
             ref={dropdownRef}
             className="fixed z-[99999] max-h-60 overflow-auto rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white shadow-2xl dark:border-blue-800 dark:bg-slate-900" 
-            style={{ 
-              position: 'fixed', 
-              zIndex: 99999,
-              top: buttonRef.current ? `${buttonRef.current.getBoundingClientRect().bottom + 4}px` : 'auto',
-              left: buttonRef.current ? `${buttonRef.current.getBoundingClientRect().left}px` : 'auto',
-              width: buttonRef.current ? `${buttonRef.current.getBoundingClientRect().width}px` : 'auto'
-            }}
           >
             {options.length === 0 ? (
               <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">Nenhuma opção disponível</div>
