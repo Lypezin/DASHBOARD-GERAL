@@ -524,7 +524,7 @@ const FiltroMultiSelect = React.memo(({
     : `${selectedValues.length} selecionados`;
 
   return (
-    <div className="flex flex-col gap-1 sm:gap-1.5 relative" ref={containerRef}>
+    <div className="flex flex-col gap-1 sm:gap-1.5 relative z-[9999]" ref={containerRef}>
       <label className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">
         {label}
       </label>
@@ -560,7 +560,7 @@ const FiltroMultiSelect = React.memo(({
         )}
         
         {isOpen && (
-          <div className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
+          <div className="absolute z-[9999] mt-1 w-full max-h-60 overflow-auto rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white shadow-xl dark:border-blue-800 dark:bg-slate-900">
             {options.length === 0 ? (
               <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">Nenhuma opção disponível</div>
             ) : (
@@ -684,7 +684,7 @@ function FiltroBar({
   const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-3 sm:space-y-4 relative z-[9999]">
       <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
       <FiltroSelect
         label="Ano"
@@ -6605,21 +6605,23 @@ export default function DashboardPage() {
             <div className="glass-strong rounded-2xl border border-blue-200 p-3 sm:p-4 lg:p-6 shadow-xl transition-all hover:shadow-2xl dark:border-blue-900 animate-slide-down">
               {activeTab !== 'comparacao' && (
                 <>
-                  <FiltroBar
-                    filters={filters}
-                    setFilters={setFilters}
-                    anos={anosDisponiveis}
-                    semanas={semanasDisponiveis}
-                    pracas={pracas}
-                    subPracas={subPracas}
-                    origens={origens}
-                    currentUser={currentUser}
-                  />
+                  <div className="relative z-[9999]">
+                    <FiltroBar
+                      filters={filters}
+                      setFilters={setFilters}
+                      anos={anosDisponiveis}
+                      semanas={semanasDisponiveis}
+                      pracas={pracas}
+                      subPracas={subPracas}
+                      origens={origens}
+                      currentUser={currentUser}
+                    />
+                  </div>
                   <div className="my-3 sm:my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700"></div>
                 </>
               )}
               {/* Tabs com scroll horizontal em mobile */}
-              <div className="relative">
+              <div className="relative z-10">
                 <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
                   <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
                   <TabButton label="Análise" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
