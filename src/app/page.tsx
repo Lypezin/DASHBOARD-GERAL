@@ -493,18 +493,50 @@ const FiltroMultiSelect = React.memo(({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fechar ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        containerRef.current && 
+        !containerRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      // Usar capture phase para garantir que capture antes de outros elementos
+      document.addEventListener('mousedown', handleClickOutside, true);
+      return () => document.removeEventListener('mousedown', handleClickOutside, true);
+    }
+  }, [isOpen]);
+
+  // Atualizar posição do dropdown quando aberto
+  useEffect(() => {
+    if (isOpen && buttonRef.current && dropdownRef.current) {
+      const updatePosition = () => {
+        if (buttonRef.current && dropdownRef.current) {
+          const rect = buttonRef.current.getBoundingClientRect();
+          dropdownRef.current.style.top = `${rect.bottom + 4}px`;
+          dropdownRef.current.style.left = `${rect.left}px`;
+          dropdownRef.current.style.width = `${rect.width}px`;
+        }
+      };
+      
+      updatePosition();
+      window.addEventListener('scroll', updatePosition, true);
+      window.addEventListener('resize', updatePosition);
+      
+      return () => {
+        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener('resize', updatePosition);
+      };
     }
   }, [isOpen]);
 
@@ -530,6 +562,7 @@ const FiltroMultiSelect = React.memo(({
       </label>
       <div className="relative">
         <button
+          ref={buttonRef}
           type="button"
           className={`w-full appearance-none rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white px-2.5 sm:px-3 py-2 sm:py-2.5 pr-8 sm:pr-10 text-left text-xs sm:text-sm font-medium text-blue-900 shadow-sm transition-all hover:border-blue-400 hover:shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 dark:hover:border-blue-600 dark:focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-blue-200 ${selectedValues.length > 0 ? 'font-semibold' : ''}`}
           onClick={() => !disabled && setIsOpen(!isOpen)}
@@ -560,7 +593,17 @@ const FiltroMultiSelect = React.memo(({
         )}
         
         {isOpen && (
-          <div className="absolute z-[99999] mt-1 w-full max-h-60 overflow-auto rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white shadow-2xl dark:border-blue-800 dark:bg-slate-900" style={{ position: 'absolute', zIndex: 99999 }}>
+          <div 
+            ref={dropdownRef}
+            className="fixed z-[99999] max-h-60 overflow-auto rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white shadow-2xl dark:border-blue-800 dark:bg-slate-900" 
+            style={{ 
+              position: 'fixed', 
+              zIndex: 99999,
+              top: buttonRef.current ? `${buttonRef.current.getBoundingClientRect().bottom + 4}px` : 'auto',
+              left: buttonRef.current ? `${buttonRef.current.getBoundingClientRect().left}px` : 'auto',
+              width: buttonRef.current ? `${buttonRef.current.getBoundingClientRect().width}px` : 'auto'
+            }}
+          >
             {options.length === 0 ? (
               <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">Nenhuma opção disponível</div>
             ) : (
@@ -6602,10 +6645,10 @@ export default function DashboardPage() {
         {totals && !loading && !error && (
           <div className="space-y-4 sm:space-y-6 animate-fade-in">
             {/* Header com filtros e tabs */}
-            <div className="glass-strong rounded-2xl border border-blue-200 p-3 sm:p-4 lg:p-6 shadow-xl transition-all hover:shadow-2xl dark:border-blue-900 animate-slide-down">
+            <div className="glass-strong rounded-2xl border border-blue-200 p-3 sm:p-4 lg:p-6 shadow-xl transition-all hover:shadow-2xl dark:border-blue-900 animate-slide-down" style={{ position: 'relative', zIndex: 1 }}>
               {activeTab !== 'comparacao' && (
                 <>
-                  <div className="relative" style={{ isolation: 'isolate', zIndex: 99999 }}>
+                  <div className="relative" style={{ isolation: 'isolate', zIndex: 99999, position: 'relative' }}>
                     <FiltroBar
                       filters={filters}
                       setFilters={setFilters}
@@ -6617,11 +6660,11 @@ export default function DashboardPage() {
                       currentUser={currentUser}
                     />
                   </div>
-                  <div className="my-3 sm:my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700"></div>
+                  <div className="my-3 sm:my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700" style={{ position: 'relative', zIndex: 1 }}></div>
                 </>
               )}
               {/* Tabs com scroll horizontal em mobile */}
-              <div className="relative" style={{ zIndex: 1 }}>
+              <div className="relative" style={{ zIndex: 1, position: 'relative' }}>
                 <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
                   <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
                   <TabButton label="Análise" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
