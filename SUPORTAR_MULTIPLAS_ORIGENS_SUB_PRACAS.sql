@@ -119,12 +119,12 @@ WITH entregadores_agg AS (
     AND (p_semana IS NULL OR semana_numero = p_semana)
     AND (p_praca IS NULL OR praca = p_praca)
     AND (
-      p_sub_praca IS NULL 
+      (p_sub_praca IS NULL OR p_sub_praca = '')
       OR (p_sub_praca NOT LIKE '%,%' AND sub_praca = p_sub_praca)
       OR (p_sub_praca LIKE '%,%' AND sub_praca = ANY(string_to_array(p_sub_praca, ',')))
     )
     AND (
-      p_origem IS NULL 
+      (p_origem IS NULL OR p_origem = '')
       OR (p_origem NOT LIKE '%,%' AND origem = p_origem)
       OR (p_origem LIKE '%,%' AND origem = ANY(string_to_array(p_origem, ',')))
     )
@@ -276,11 +276,13 @@ WITH filtered_data AS (
     AND (p_praca IS NULL OR praca = p_praca)
     AND (
       p_sub_praca IS NULL 
+      OR p_sub_praca = ''
       OR (p_sub_praca NOT LIKE '%,%' AND sub_praca = p_sub_praca)
       OR (p_sub_praca LIKE '%,%' AND sub_praca = ANY(string_to_array(p_sub_praca, ',')))
     )
     AND (
       p_origem IS NULL 
+      OR p_origem = ''
       OR (p_origem NOT LIKE '%,%' AND origem = p_origem)
       OR (p_origem LIKE '%,%' AND origem = ANY(string_to_array(p_origem, ',')))
     )
@@ -437,13 +439,20 @@ dia_agg AS (
     ), 0) AS horas_planejadas_segundos,
     COALESCE(SUM(tempo_absoluto_segundos), 0) AS horas_entregues_segundos
   FROM filtered_data
-  WHERE dia_iso IS NOT NULL
   GROUP BY dia_iso
 ),
 dia AS (
   SELECT COALESCE(jsonb_agg(jsonb_build_object(
     'dia_iso', dia_iso,
-    'dia_da_semana', dia_da_semana,
+    'dia_da_semana', CASE dia_iso
+      WHEN 1 THEN 'Segunda'
+      WHEN 2 THEN 'Terça'
+      WHEN 3 THEN 'Quarta'
+      WHEN 4 THEN 'Quinta'
+      WHEN 5 THEN 'Sexta'
+      WHEN 6 THEN 'Sábado'
+      WHEN 7 THEN 'Domingo'
+      ELSE 'N/D' END,
     'corridas_ofertadas', ofertadas,
     'corridas_aceitas', aceitas,
     'corridas_rejeitadas', rejeitadas,
@@ -458,41 +467,95 @@ dia AS (
   ) ORDER BY dia_iso), '[]'::jsonb) AS data
   FROM dia_agg
 ),
-geral_agg AS (
+-- Aderência semanal
+semanal_agg AS (
   SELECT 
+    ano_iso,
+    semana_numero,
     COALESCE(SUM(numero_de_corridas_ofertadas), 0) AS ofertadas,
     COALESCE(SUM(numero_de_corridas_aceitas), 0) AS aceitas,
     COALESCE(SUM(numero_de_corridas_rejeitadas), 0) AS rejeitadas,
     COALESCE(SUM(numero_de_corridas_completadas), 0) AS completadas,
     COALESCE((
       SELECT SUM(duracao_segundos * numero_minimo_de_entregadores_regulares_na_escala)
-      FROM dados_sem_duplicatas
+      FROM dados_sem_duplicatas dsd
+      WHERE dsd.ano_iso = filtered_data.ano_iso
+        AND dsd.semana_numero = filtered_data.semana_numero
     ), 0) AS horas_planejadas_segundos,
     COALESCE(SUM(tempo_absoluto_segundos), 0) AS horas_entregues_segundos
   FROM filtered_data
+  GROUP BY ano_iso, semana_numero
+),
+semanal AS (
+  SELECT COALESCE(jsonb_agg(jsonb_build_object(
+    'semana', 'Semana ' || LPAD(semana_numero::text, 2, '0'),
+    'corridas_ofertadas', ofertadas,
+    'corridas_aceitas', aceitas,
+    'corridas_rejeitadas', rejeitadas,
+    'corridas_completadas', completadas,
+    'horas_a_entregar', ROUND((horas_planejadas_segundos::numeric / 3600), 2),
+    'horas_entregues', ROUND((horas_entregues_segundos::numeric / 3600), 2),
+    'aderencia_percentual', CASE 
+      WHEN horas_planejadas_segundos > 0 
+      THEN ROUND((horas_entregues_segundos::numeric / horas_planejadas_segundos) * 100, 2)
+      ELSE 0 
+    END
+  ) ORDER BY ano_iso DESC, semana_numero DESC), '[]'::jsonb) AS data
+  FROM semanal_agg
+),
+-- Dimensões
+dimensoes AS (
+  SELECT jsonb_build_object(
+    'anos', COALESCE((
+      SELECT jsonb_agg(DISTINCT ano_iso ORDER BY ano_iso DESC)
+      FROM filtered_data
+      WHERE ano_iso IS NOT NULL
+    ), '[]'::jsonb),
+    'semanas', COALESCE((
+      SELECT jsonb_agg(DISTINCT (ano_iso || '-W' || LPAD(semana_numero::text, 2, '0')) ORDER BY (ano_iso || '-W' || LPAD(semana_numero::text, 2, '0')) DESC)
+      FROM filtered_data
+      WHERE semana_numero IS NOT NULL AND ano_iso IS NOT NULL
+    ), '[]'::jsonb),
+    'pracas', COALESCE((
+      SELECT jsonb_agg(DISTINCT praca ORDER BY praca)
+      FROM filtered_data
+      WHERE praca IS NOT NULL
+    ), '[]'::jsonb),
+    'sub_pracas', COALESCE((
+      SELECT jsonb_agg(DISTINCT sub_praca ORDER BY sub_praca)
+      FROM filtered_data
+      WHERE sub_praca IS NOT NULL
+    ), '[]'::jsonb),
+    'origens', COALESCE((
+      SELECT jsonb_agg(DISTINCT origem ORDER BY origem)
+      FROM filtered_data
+      WHERE origem IS NOT NULL
+    ), '[]'::jsonb)
+  ) AS data
 )
 SELECT jsonb_build_object(
-  'totais', (SELECT data FROM totais),
-  'geral', (
-    SELECT jsonb_build_object(
-      'corridas_ofertadas', ofertadas,
-      'corridas_aceitas', aceitas,
-      'corridas_rejeitadas', rejeitadas,
-      'corridas_completadas', completadas,
-      'horas_a_entregar', ROUND((horas_planejadas_segundos::numeric / 3600), 2),
-      'horas_entregues', ROUND((horas_entregues_segundos::numeric / 3600), 2),
-      'aderencia_percentual', CASE 
-        WHEN horas_planejadas_segundos > 0 
-        THEN ROUND((horas_entregues_segundos::numeric / horas_planejadas_segundos) * 100, 2)
-        ELSE 0 
-      END
-    )
-    FROM geral_agg
-  ),
-  'dia', (SELECT data FROM dia),
-  'turno', (SELECT data FROM turno),
-  'sub_praca', (SELECT data FROM sub_praca),
-  'origem', (SELECT data FROM origem)
-);
+  'totais', totais.data,
+  'semanal', semanal.data,
+  'dia', dia.data,
+  'turno', turno.data,
+  'sub_praca', sub_praca.data,
+  'origem', origem.data,
+  'dimensoes', dimensoes.data
+)
+FROM totais
+CROSS JOIN semanal
+CROSS JOIN dia
+CROSS JOIN turno
+CROSS JOIN sub_praca
+CROSS JOIN origem
+CROSS JOIN dimensoes;
 $$;
+
+-- Conceder permissões
+GRANT EXECUTE ON FUNCTION public.dashboard_resumo(integer, integer, text, text, text)
+  TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.listar_entregadores(integer, integer, text, text, text)
+  TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.listar_valores_entregadores(integer, integer, text, text, text)
+  TO anon, authenticated, service_role;
 

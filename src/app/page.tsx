@@ -5867,6 +5867,8 @@ export default function DashboardPage() {
   const [pracas, setPracas] = useState<FilterOption[]>([]);
   const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
   const [origens, setOrigens] = useState<FilterOption[]>([]);
+  // Armazenar dimensões originais completas para sempre manter todas as opções disponíveis
+  const [dimensoesOriginais, setDimensoesOriginais] = useState<DimensoesDashboard | null>(null);
   const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null, subPracas: [], origens: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -6168,15 +6170,27 @@ export default function DashboardPage() {
         setAderenciaOrigem(origemFiltrado);
 
         const dimensoes = resumo?.dimensoes;
-        // Garantir que anos e semanas sempre sejam arrays
-        setAnosDisponiveis(Array.isArray(dimensoes?.anos) ? dimensoes.anos : []);
-        setSemanasDisponiveis(Array.isArray(dimensoes?.semanas) ? dimensoes.semanas : []);
         
-        // Filtrar praças, sub-praças e origens baseado nas permissões do usuário
-        // Garantir que sempre sejam arrays
-        let pracasDisponiveis = Array.isArray(dimensoes?.pracas) ? dimensoes.pracas : [];
-        let subPracasDisponiveis = Array.isArray(dimensoes?.sub_pracas) ? dimensoes.sub_pracas : [];
-        let origensDisponiveis = Array.isArray(dimensoes?.origens) ? dimensoes.origens : [];
+        // Armazenar dimensões originais na primeira vez ou atualizar se necessário
+        if (dimensoes && (!dimensoesOriginais || 
+            JSON.stringify(dimensoes.pracas) !== JSON.stringify(dimensoesOriginais.pracas) ||
+            JSON.stringify(dimensoes.sub_pracas) !== JSON.stringify(dimensoesOriginais.sub_pracas) ||
+            JSON.stringify(dimensoes.origens) !== JSON.stringify(dimensoesOriginais.origens))) {
+          setDimensoesOriginais(dimensoes);
+        }
+        
+        // Usar dimensões originais se disponíveis, senão usar as atuais
+        const dimensoesParaUsar = dimensoesOriginais || dimensoes;
+        
+        // Garantir que anos e semanas sempre sejam arrays
+        setAnosDisponiveis(Array.isArray(dimensoesParaUsar?.anos) ? dimensoesParaUsar.anos : []);
+        setSemanasDisponiveis(Array.isArray(dimensoesParaUsar?.semanas) ? dimensoesParaUsar.semanas : []);
+        
+        // IMPORTANTE: SEMPRE usar as dimensões originais completas para manter TODAS as opções
+        // Nunca filtrar baseado nos dados retornados, pois isso impede seleção múltipla
+        let pracasDisponiveis = Array.isArray(dimensoesParaUsar?.pracas) ? dimensoesParaUsar.pracas : [];
+        let subPracasDisponiveis = Array.isArray(dimensoesParaUsar?.sub_pracas) ? dimensoesParaUsar.sub_pracas : [];
+        let origensDisponiveis = Array.isArray(dimensoesParaUsar?.origens) ? dimensoesParaUsar.origens : [];
         
         // Se não for admin, filtrar apenas praças atribuídas
         if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
@@ -6186,28 +6200,26 @@ export default function DashboardPage() {
             currentUser.assigned_pracas.includes(p)
           );
           
-          // Filtrar sub-praças disponíveis nos dropdowns
+          // Filtrar sub-praças baseado nas praças permitidas
           subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
             pracasPermitidas.some(praca => sp.toUpperCase().includes(praca))
           );
           
-          // Filtrar origens disponíveis nos dropdowns
-          // Como origem não tem referência à praça, vamos manter apenas as que aparecem nos dados filtrados
-          const origensNoDados = new Set(origemFiltrado.map((item: any) => item.origem));
-          origensDisponiveis = origensDisponiveis.filter((origem: string) => origensNoDados.has(origem));
+          // Para origens: manter TODAS as origens das dimensões originais
+          // Não filtrar, pois isso impede seleção múltipla
         }
         
-        // Filtrar sub praças e origens baseado na praça selecionada (para admin também)
+        // Se houver praça selecionada, mostrar apenas sub praças daquela praça
+        // MAS manter TODAS as origens para permitir seleção múltipla
         if (filters.praca) {
           const pracaSelecionada = filters.praca.toUpperCase();
+          // Filtrar sub-praças para mostrar apenas as da praça selecionada
           subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
             sp.toUpperCase().includes(pracaSelecionada)
           );
           
-          // Para origens, usar apenas as que aparecem nos dados retornados do backend
-          // O backend já filtra por praça, então as origens retornadas são apenas daquela praça
-          const origensDaPraca = new Set(origemFiltrado.map((item: any) => item.origem));
-          origensDisponiveis = origensDisponiveis.filter((origem: string) => origensDaPraca.has(origem));
+          // IMPORTANTE: NÃO filtrar origens mesmo quando há praça selecionada
+          // Manter todas as origens para permitir seleção múltipla
         }
         
         setPracas(pracasDisponiveis.map((p: string) => ({ value: p, label: p })));
