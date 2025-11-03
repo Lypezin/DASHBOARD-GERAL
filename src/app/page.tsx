@@ -559,27 +559,54 @@ const FiltroMultiSelect = React.memo(({
             {options.length === 0 ? (
               <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">Nenhuma opção disponível</div>
             ) : (
-              options.map((option) => {
-                const isSelected = selectedValues.includes(option.value);
-                return (
-                  <label
-                    key={option.value}
-                    className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 ${
-                      isSelected ? 'bg-blue-100 dark:bg-blue-900/30' : ''
-                    }`}
+              <>
+                {/* Botões de Selecionar Todas / Desmarcar Todas */}
+                <div className="sticky top-0 bg-blue-50 dark:bg-blue-900/30 border-b border-blue-200 dark:border-blue-800 px-2 py-1.5 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onChange(options.map(opt => opt.value));
+                    }}
+                    className="flex-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded transition-colors dark:text-blue-300 dark:bg-blue-800 dark:hover:bg-blue-700"
                   >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleOption(option.value)}
-                      className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 dark:border-blue-700 dark:bg-slate-800"
-                    />
-                    <span className={`text-xs sm:text-sm ${isSelected ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-slate-700 dark:text-slate-300'}`}>
-                      {option.label}
-                    </span>
-                  </label>
-                );
-              })
+                    Selecionar Todas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onChange([]);
+                    }}
+                    className="flex-1 px-2 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded transition-colors dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700"
+                  >
+                    Desmarcar Todas
+                  </button>
+                </div>
+                {options.map((option) => {
+                  const isSelected = selectedValues.includes(option.value);
+                  return (
+                    <label
+                      key={option.value}
+                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 ${
+                        isSelected ? 'bg-blue-100 dark:bg-blue-900/30' : ''
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleOption(option.value)}
+                        className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 dark:border-blue-700 dark:bg-slate-800"
+                      />
+                      <span className={`text-xs sm:text-sm ${isSelected ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                        {option.label}
+                      </span>
+                    </label>
+                  );
+                })}
+              </>
             )}
           </div>
         )}
@@ -6168,6 +6195,19 @@ export default function DashboardPage() {
           // Como origem não tem referência à praça, vamos manter apenas as que aparecem nos dados filtrados
           const origensNoDados = new Set(origemFiltrado.map((item: any) => item.origem));
           origensDisponiveis = origensDisponiveis.filter((origem: string) => origensNoDados.has(origem));
+        }
+        
+        // Filtrar sub praças e origens baseado na praça selecionada (para admin também)
+        if (filters.praca) {
+          const pracaSelecionada = filters.praca.toUpperCase();
+          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
+            sp.toUpperCase().includes(pracaSelecionada)
+          );
+          
+          // Para origens, usar apenas as que aparecem nos dados retornados do backend
+          // O backend já filtra por praça, então as origens retornadas são apenas daquela praça
+          const origensDaPraca = new Set(origemFiltrado.map((item: any) => item.origem));
+          origensDisponiveis = origensDisponiveis.filter((origem: string) => origensDaPraca.has(origem));
         }
         
         setPracas(pracasDisponiveis.map((p: string) => ({ value: p, label: p })));
