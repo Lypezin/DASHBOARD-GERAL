@@ -4734,6 +4734,63 @@ function EntregadoresView({
     };
   }, [searchTerm, entregadoresData]);
 
+  // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
+  // Usar useMemo para evitar recriação desnecessária
+  const dataToDisplay = useMemo(() => {
+    return (searchTerm.trim() && searchResults.length > 0) ? searchResults : (entregadoresData?.entregadores || []);
+  }, [searchTerm, searchResults, entregadoresData]);
+
+  // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
+  // IMPORTANTE: useMemo deve estar antes de qualquer early return (regras dos hooks do React)
+  const sortedEntregadores: Entregador[] = useMemo(() => {
+    if (!dataToDisplay || dataToDisplay.length === 0) return [];
+    
+    // Criar uma cópia do array para não mutar o original
+    const dataCopy = [...dataToDisplay];
+    
+    return dataCopy.sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      
+      // Tratar valores nulos/undefined - colocar no final
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+      
+      // Se for campo de string (nome_entregador ou id_entregador)
+      if (sortField === 'nome_entregador' || sortField === 'id_entregador') {
+        const aStr = String(aValue).toLowerCase().trim();
+        const bStr = String(bValue).toLowerCase().trim();
+        const comparison = aStr.localeCompare(bStr, 'pt-BR', { sensitivity: 'base', numeric: true });
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+      
+      // Para valores numéricos (todos os outros campos)
+      // Garantir conversão correta para número
+      const aNum = Number(aValue) || 0;
+      const bNum = Number(bValue) || 0;
+      
+      // Comparação numérica precisa
+      const comparison = aNum - bNum;
+      
+      // Se os números forem iguais, manter ordem estável usando nome como desempate
+      if (comparison === 0) {
+        return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
+      }
+      
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [dataToDisplay, sortField, sortDirection]);
+
+  const handleSort = (field: keyof Entregador) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -4752,33 +4809,6 @@ function EntregadoresView({
       </div>
     );
   }
-
-  const handleSort = (field: keyof Entregador) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
-  };
-
-  // Usar resultados da pesquisa se houver termo de busca, senão usar dados originais
-  const dataToDisplay = searchTerm.trim() ? searchResults : entregadoresData.entregadores;
-
-  const sortedEntregadores = [...dataToDisplay].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
-    
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === 'asc' 
-        ? aValue.localeCompare(bValue) 
-        : bValue.localeCompare(aValue);
-    }
-    
-    const aNum = Number(aValue) || 0;
-    const bNum = Number(bValue) || 0;
-    return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
-  });
 
   const SortIcon = ({ field }: { field: keyof Entregador }) => {
     if (sortField !== field) {
@@ -4991,11 +5021,15 @@ function EntregadoresView({
               </tr>
             </thead>
             <tbody>
-              {sortedEntregadores.map((entregador, index) => (
+              {sortedEntregadores.map((entregador, index) => {
+                // Garantir que o número seja sempre sequencial (ranking)
+                const ranking = index + 1;
+                
+                return (
                 <tr
-                  key={entregador.id_entregador}
+                  key={`${entregador.id_entregador}-${sortField}-${sortDirection}-${ranking}`}
                   className={`border-b border-blue-100 transition-colors hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-950/20 ${
-                    index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/30 dark:bg-slate-800/30'
+                    ranking % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/30 dark:bg-slate-800/30'
                   }`}
                 >
                   <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{entregador.nome_entregador}</td>
@@ -5018,7 +5052,8 @@ function EntregadoresView({
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
