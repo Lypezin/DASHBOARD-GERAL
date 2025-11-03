@@ -4392,40 +4392,11 @@ function ValoresView({
     };
   }, [searchTerm, valoresData]);
 
-  if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 sm:h-16 sm:w-16 animate-spin rounded-full border-3 sm:border-4 border-blue-200 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-400"></div>
-          <p className="mt-4 text-sm sm:text-base lg:text-lg font-semibold text-blue-700 dark:text-blue-300">Carregando valores...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!valoresData || valoresData.length === 0) {
-    return (
-      <div className="rounded-xl sm:rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8 text-center shadow-lg dark:border-amber-900 dark:bg-amber-950/30 animate-fade-in">
-        <div className="text-5xl sm:text-6xl mb-4">💰</div>
-        <p className="text-lg sm:text-xl font-bold text-amber-900 dark:text-amber-100">Nenhum valor encontrado</p>
-        <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">Tente ajustar os filtros para ver os dados.</p>
-      </div>
-    );
-  }
-
-  const handleSort = (field: keyof ValoresEntregador) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
-  };
-
   // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
-  const dataToDisplay = (searchTerm.trim() && searchResults.length > 0) ? searchResults : valoresData;
+  const dataToDisplay = (searchTerm.trim() && searchResults.length > 0) ? searchResults : (valoresData || []);
 
   // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
+  // IMPORTANTE: useMemo deve estar antes de qualquer early return (regras dos hooks do React)
   const sortedValores: ValoresEntregador[] = useMemo(() => {
     if (!dataToDisplay || dataToDisplay.length === 0) return [];
     
@@ -4456,6 +4427,36 @@ function ValoresView({
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }, [dataToDisplay, sortField, sortDirection]);
+
+  const handleSort = (field: keyof ValoresEntregador) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 sm:h-16 sm:w-16 animate-spin rounded-full border-3 sm:border-4 border-blue-200 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-400"></div>
+          <p className="mt-4 text-sm sm:text-base lg:text-lg font-semibold text-blue-700 dark:text-blue-300">Carregando valores...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!valoresData || valoresData.length === 0) {
+    return (
+      <div className="rounded-xl sm:rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8 text-center shadow-lg dark:border-amber-900 dark:bg-amber-950/30 animate-fade-in">
+        <div className="text-5xl sm:text-6xl mb-4">💰</div>
+        <p className="text-lg sm:text-xl font-bold text-amber-900 dark:text-amber-100">Nenhum valor encontrado</p>
+        <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">Tente ajustar os filtros para ver os dados.</p>
+      </div>
+    );
+  }
 
   const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
     if (sortField !== field) {
