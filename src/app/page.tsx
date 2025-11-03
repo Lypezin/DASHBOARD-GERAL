@@ -4393,7 +4393,10 @@ function ValoresView({
   }, [searchTerm, valoresData]);
 
   // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
-  const dataToDisplay = (searchTerm.trim() && searchResults.length > 0) ? searchResults : (valoresData || []);
+  // Usar useMemo para evitar recriação desnecessária
+  const dataToDisplay = useMemo(() => {
+    return (searchTerm.trim() && searchResults.length > 0) ? searchResults : (valoresData || []);
+  }, [searchTerm, searchResults, valoresData]);
 
   // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
   // IMPORTANTE: useMemo deve estar antes de qualquer early return (regras dos hooks do React)
@@ -4428,8 +4431,8 @@ function ValoresView({
       // Comparação numérica precisa
       const comparison = aNum - bNum;
       
-      // Se os números forem iguais, manter ordem estável (pode usar nome como desempate)
-      if (comparison === 0 && sortField !== 'nome_entregador') {
+      // Se os números forem iguais, manter ordem estável usando nome como desempate
+      if (comparison === 0) {
         return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
       }
       
