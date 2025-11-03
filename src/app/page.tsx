@@ -111,6 +111,8 @@ interface Filters {
   praca: string | null;
   subPraca: string | null;
   origem: string | null;
+  subPracas: string[];
+  origens: string[];
 }
 
 interface DimensoesDashboard {
@@ -267,12 +269,21 @@ function formatarHorasParaHMS(horasDecimais: string | number): string {
 }
 
 function buildFilterPayload(filters: Filters) {
+  // Para compatibilidade com backend, se houver seleção múltipla, usar array, senão usar valor único
+  const subPraca = filters.subPracas && filters.subPracas.length > 0 
+    ? (filters.subPracas.length === 1 ? filters.subPracas[0] : filters.subPracas.join(','))
+    : filters.subPraca;
+    
+  const origem = filters.origens && filters.origens.length > 0
+    ? (filters.origens.length === 1 ? filters.origens[0] : filters.origens.join(','))
+    : filters.origem;
+
   return {
     p_ano: filters.ano,
     p_semana: filters.semana,
     p_praca: filters.praca,
-    p_sub_praca: filters.subPraca,
-    p_origem: filters.origem,
+    p_sub_praca: subPraca,
+    p_origem: origem,
   };
 }
 
@@ -459,6 +470,126 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
 
 FiltroSelect.displayName = 'FiltroSelect';
 
+// Componente de seleção múltipla para Origem e Sub Praça
+const FiltroMultiSelect = React.memo(({ 
+  label, 
+  placeholder, 
+  options, 
+  selectedValues, 
+  onChange, 
+  disabled = false 
+}: {
+  label: string;
+  placeholder: string;
+  options: FilterOption[];
+  selectedValues: string[];
+  onChange: (values: string[]) => void;
+  disabled?: boolean;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Fechar ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
+
+  const toggleOption = (value: string) => {
+    if (disabled) return;
+    
+    const newValues = selectedValues.includes(value)
+      ? selectedValues.filter(v => v !== value)
+      : [...selectedValues, value];
+    onChange(newValues);
+  };
+
+  const displayText = selectedValues.length === 0 
+    ? placeholder
+    : selectedValues.length === 1
+    ? options.find(opt => opt.value === selectedValues[0])?.label || selectedValues[0]
+    : `${selectedValues.length} selecionados`;
+
+  return (
+    <div className="flex flex-col gap-1 sm:gap-1.5 relative" ref={containerRef}>
+      <label className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">
+        {label}
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          className={`w-full appearance-none rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white px-2.5 sm:px-3 py-2 sm:py-2.5 pr-8 sm:pr-10 text-left text-xs sm:text-sm font-medium text-blue-900 shadow-sm transition-all hover:border-blue-400 hover:shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 dark:hover:border-blue-600 dark:focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-blue-200 ${selectedValues.length > 0 ? 'font-semibold' : ''}`}
+          onClick={() => !disabled && setIsOpen(!isOpen)}
+          disabled={disabled}
+        >
+          <span className="block truncate">{displayText}</span>
+        </button>
+        <div className="pointer-events-none absolute right-2 sm:right-3 top-1/2 -translate-y-1/2">
+          <svg className={`h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+        {selectedValues.length > 0 && !disabled && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onChange([]);
+            }}
+            className="absolute right-7 sm:right-9 top-1/2 -translate-y-1/2 rounded-full p-0.5 sm:p-1 text-slate-400 transition-all hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/30 dark:hover:text-rose-400 z-10"
+            title="Limpar seleção"
+          >
+            <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+        
+        {isOpen && (
+          <div className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
+            {options.length === 0 ? (
+              <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">Nenhuma opção disponível</div>
+            ) : (
+              options.map((option) => {
+                const isSelected = selectedValues.includes(option.value);
+                return (
+                  <label
+                    key={option.value}
+                    className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 ${
+                      isSelected ? 'bg-blue-100 dark:bg-blue-900/30' : ''
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleOption(option.value)}
+                      className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 dark:border-blue-700 dark:bg-slate-800"
+                    />
+                    <span className={`text-xs sm:text-sm ${isSelected ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                      {option.label}
+                    </span>
+                  </label>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+FiltroMultiSelect.displayName = 'FiltroMultiSelect';
+
 function FiltroBar({
   filters,
   setFilters,
@@ -508,6 +639,8 @@ function FiltroBar({
       praca: currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1 ? currentUser.assigned_pracas[0] : null,
       subPraca: null,
       origem: null,
+      subPracas: [],
+      origens: [],
     });
   };
 
@@ -556,19 +689,31 @@ function FiltroBar({
         onChange={(value) => handleChange('praca', value)}
         disabled={shouldDisablePracaFilter}
       />
-      <FiltroSelect
+      <FiltroMultiSelect
         label="Sub praça"
-        value={filters.subPraca ?? ''}
+        selectedValues={filters.subPracas || []}
         options={subPracas}
         placeholder="Todas"
-        onChange={(value) => handleChange('subPraca', value)}
+        onChange={(values) => {
+          setFilters((prev) => ({
+            ...prev,
+            subPracas: values,
+            subPraca: values.length === 1 ? values[0] : null,
+          }));
+        }}
       />
-      <FiltroSelect
+      <FiltroMultiSelect
         label="Origem"
-        value={filters.origem ?? ''}
+        selectedValues={filters.origens || []}
         options={origens}
         placeholder="Todas"
-        onChange={(value) => handleChange('origem', value)}
+        onChange={(values) => {
+          setFilters((prev) => ({
+            ...prev,
+            origens: values,
+            origem: values.length === 1 ? values[0] : null,
+          }));
+        }}
       />
       </div>
       
@@ -5582,15 +5727,15 @@ function PrioridadePromoView({
                 </th>
                 <th 
                   className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
-                  onClick={() => handleSort('percentual_aceitas')}
-                >
-                  % Aceitas <SortIcon field="percentual_aceitas" />
-                </th>
-                <th 
-                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
                   onClick={() => handleSort('corridas_rejeitadas')}
                 >
                   Rejeitadas <SortIcon field="corridas_rejeitadas" />
+                </th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('percentual_aceitas')}
+                >
+                  % Aceitas <SortIcon field="percentual_aceitas" />
                 </th>
                 <th 
                   className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
@@ -5635,6 +5780,7 @@ function PrioridadePromoView({
                   <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{entregador.nome_entregador}</td>
                   <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{entregador.corridas_ofertadas}</td>
                   <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{entregador.corridas_aceitas}</td>
+                  <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{entregador.corridas_rejeitadas}</td>
                   <td className="px-6 py-4">
                     <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getAceitasBg(percentualAceitas)}`}>
                       <span className={`text-lg font-bold ${getAceitasColor(percentualAceitas)}`}>
@@ -5642,7 +5788,6 @@ function PrioridadePromoView({
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{entregador.corridas_rejeitadas}</td>
                   <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{entregador.corridas_completadas}</td>
                   <td className="px-6 py-4">
                     <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getCompletadasBg(percentualCompletadas)}`}>
@@ -5695,7 +5840,7 @@ export default function DashboardPage() {
   const [pracas, setPracas] = useState<FilterOption[]>([]);
   const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
   const [origens, setOrigens] = useState<FilterOption[]>([]);
-  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null });
+  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null, subPracas: [], origens: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
