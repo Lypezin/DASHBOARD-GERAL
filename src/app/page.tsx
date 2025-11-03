@@ -4422,35 +4422,40 @@ function ValoresView({
     }
   };
 
-  // Usar resultados da pesquisa se houver termo de busca, senão usar dados originais
-  const dataToDisplay = searchTerm.trim() ? searchResults : valoresData;
+  // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
+  const dataToDisplay = (searchTerm.trim() && searchResults.length > 0) ? searchResults : valoresData;
 
-  const sortedValores = [...dataToDisplay].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
+  // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
+  const sortedValores: ValoresEntregador[] = useMemo(() => {
+    if (!dataToDisplay || dataToDisplay.length === 0) return [];
     
-    // Tratar valores nulos/undefined
-    if (aValue == null && bValue == null) return 0;
-    if (aValue == null) return 1;
-    if (bValue == null) return -1;
-    
-    // Se ambos são strings (nome_entregador ou id_entregador)
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      const comparison = aValue.localeCompare(bValue, 'pt-BR', { sensitivity: 'base' });
+    return [...dataToDisplay].sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      
+      // Tratar valores nulos/undefined
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+      
+      // Se ambos são strings (nome_entregador ou id_entregador)
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue, 'pt-BR', { sensitivity: 'base' });
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+      
+      // Para valores numéricos (total_taxas, numero_corridas_aceitas, taxa_media)
+      const aNum = typeof aValue === 'number' ? aValue : parseFloat(String(aValue)) || 0;
+      const bNum = typeof bValue === 'number' ? bValue : parseFloat(String(bValue)) || 0;
+      
+      if (isNaN(aNum) && isNaN(bNum)) return 0;
+      if (isNaN(aNum)) return 1;
+      if (isNaN(bNum)) return -1;
+      
+      const comparison = aNum - bNum;
       return sortDirection === 'asc' ? comparison : -comparison;
-    }
-    
-    // Para valores numéricos (total_taxas, numero_corridas_aceitas, taxa_media)
-    const aNum = typeof aValue === 'number' ? aValue : parseFloat(String(aValue)) || 0;
-    const bNum = typeof bValue === 'number' ? bValue : parseFloat(String(bValue)) || 0;
-    
-    if (isNaN(aNum) && isNaN(bNum)) return 0;
-    if (isNaN(aNum)) return 1;
-    if (isNaN(bNum)) return -1;
-    
-    const comparison = aNum - bNum;
-    return sortDirection === 'asc' ? comparison : -comparison;
-  });
+    });
+  }, [dataToDisplay, sortField, sortDirection]);
 
   const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
     if (sortField !== field) {
