@@ -5073,7 +5073,7 @@ function PrioridadePromoView({
   entregadoresData: EntregadoresData | null;
   loading: boolean;
 }) {
-  const [sortField, setSortField] = useState<keyof Entregador>('aderencia_percentual');
+  const [sortField, setSortField] = useState<keyof Entregador | 'percentual_aceitas' | 'percentual_completadas'>('aderencia_percentual');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Entregador[]>([]);
@@ -5083,6 +5083,19 @@ function PrioridadePromoView({
   const [filtroRejeicao, setFiltroRejeicao] = useState<string>('');
   const [filtroCompletadas, setFiltroCompletadas] = useState<string>('');
   const [filtroAceitas, setFiltroAceitas] = useState<string>('');
+
+  // Funções para calcular percentuais
+  const calcularPercentualAceitas = (entregador: Entregador): number => {
+    const ofertadas = entregador.corridas_ofertadas || 0;
+    if (ofertadas === 0) return 0;
+    return (entregador.corridas_aceitas / ofertadas) * 100;
+  };
+
+  const calcularPercentualCompletadas = (entregador: Entregador): number => {
+    const aceitas = entregador.corridas_aceitas || 0;
+    if (aceitas === 0) return 0;
+    return (entregador.corridas_completadas / aceitas) * 100;
+  };
 
   // Pesquisa com debounce
   useEffect(() => {
@@ -5191,8 +5204,29 @@ function PrioridadePromoView({
     const dataCopy = [...dataFiltrada];
     
     return dataCopy.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      // Campos calculados que precisam de tratamento especial
+      if (sortField === 'percentual_aceitas') {
+        const aPercent = calcularPercentualAceitas(a);
+        const bPercent = calcularPercentualAceitas(b);
+        const comparison = aPercent - bPercent;
+        if (comparison === 0) {
+          return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
+        }
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+      
+      if (sortField === 'percentual_completadas') {
+        const aPercent = calcularPercentualCompletadas(a);
+        const bPercent = calcularPercentualCompletadas(b);
+        const comparison = aPercent - bPercent;
+        if (comparison === 0) {
+          return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
+        }
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+      
+      const aValue = a[sortField as keyof Entregador];
+      const bValue = b[sortField as keyof Entregador];
       
       // Tratar valores nulos/undefined - colocar no final
       if (aValue == null && bValue == null) return 0;
@@ -5224,11 +5258,11 @@ function PrioridadePromoView({
     });
   }, [dataFiltrada, sortField, sortDirection]);
 
-  const handleSort = (field: keyof Entregador) => {
+  const handleSort = (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      setSortField(field);
+      setSortField(field as keyof Entregador | 'percentual_aceitas' | 'percentual_completadas');
       setSortDirection('desc');
     }
   };
@@ -5252,7 +5286,7 @@ function PrioridadePromoView({
     );
   }
 
-  const SortIcon = ({ field }: { field: keyof Entregador }) => {
+  const SortIcon = ({ field }: { field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas' }) => {
     if (sortField !== field) {
       return <span className="ml-1 text-slate-400">⇅</span>;
     }
@@ -5280,6 +5314,31 @@ function PrioridadePromoView({
   const getRejeicaoBg = (rejeicao: number) => {
     if (rejeicao <= 10) return 'bg-emerald-50 dark:bg-emerald-950/30';
     if (rejeicao <= 30) return 'bg-amber-50 dark:bg-amber-950/30';
+    return 'bg-rose-50 dark:bg-rose-950/30';
+  };
+
+  // Funções para colorir percentuais de aceitas e completadas
+  const getAceitasColor = (percentual: number) => {
+    if (percentual >= 90) return 'text-emerald-700 dark:text-emerald-400';
+    if (percentual >= 70) return 'text-amber-700 dark:text-amber-400';
+    return 'text-rose-700 dark:text-rose-400';
+  };
+
+  const getAceitasBg = (percentual: number) => {
+    if (percentual >= 90) return 'bg-emerald-50 dark:bg-emerald-950/30';
+    if (percentual >= 70) return 'bg-amber-50 dark:bg-amber-950/30';
+    return 'bg-rose-50 dark:bg-rose-950/30';
+  };
+
+  const getCompletadasColor = (percentual: number) => {
+    if (percentual >= 95) return 'text-emerald-700 dark:text-emerald-400';
+    if (percentual >= 80) return 'text-amber-700 dark:text-amber-400';
+    return 'text-rose-700 dark:text-rose-400';
+  };
+
+  const getCompletadasBg = (percentual: number) => {
+    if (percentual >= 95) return 'bg-emerald-50 dark:bg-emerald-950/30';
+    if (percentual >= 80) return 'bg-amber-50 dark:bg-amber-950/30';
     return 'bg-rose-50 dark:bg-rose-950/30';
   };
 
@@ -5523,6 +5582,12 @@ function PrioridadePromoView({
                 </th>
                 <th 
                   className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('percentual_aceitas')}
+                >
+                  % Aceitas <SortIcon field="percentual_aceitas" />
+                </th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
                   onClick={() => handleSort('corridas_rejeitadas')}
                 >
                   Rejeitadas <SortIcon field="corridas_rejeitadas" />
@@ -5532,6 +5597,12 @@ function PrioridadePromoView({
                   onClick={() => handleSort('corridas_completadas')}
                 >
                   Completadas <SortIcon field="corridas_completadas" />
+                </th>
+                <th 
+                  className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
+                  onClick={() => handleSort('percentual_completadas')}
+                >
+                  % Completadas <SortIcon field="percentual_completadas" />
                 </th>
                 <th 
                   className="cursor-pointer px-6 py-4 text-center text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50"
@@ -5551,6 +5622,8 @@ function PrioridadePromoView({
               {sortedEntregadores.map((entregador, index) => {
                 // Garantir que o número seja sempre sequencial (ranking)
                 const ranking = index + 1;
+                const percentualAceitas = calcularPercentualAceitas(entregador);
+                const percentualCompletadas = calcularPercentualCompletadas(entregador);
                 
                 return (
                 <tr
@@ -5562,8 +5635,22 @@ function PrioridadePromoView({
                   <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{entregador.nome_entregador}</td>
                   <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{entregador.corridas_ofertadas}</td>
                   <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{entregador.corridas_aceitas}</td>
+                  <td className="px-6 py-4">
+                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getAceitasBg(percentualAceitas)}`}>
+                      <span className={`text-lg font-bold ${getAceitasColor(percentualAceitas)}`}>
+                        {percentualAceitas.toFixed(2)}%
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{entregador.corridas_rejeitadas}</td>
                   <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{entregador.corridas_completadas}</td>
+                  <td className="px-6 py-4">
+                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getCompletadasBg(percentualCompletadas)}`}>
+                      <span className={`text-lg font-bold ${getCompletadasColor(percentualCompletadas)}`}>
+                        {percentualCompletadas.toFixed(2)}%
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4">
                     <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getAderenciaBg(entregador.aderencia_percentual ?? 0)}`}>
                       <span className={`text-lg font-bold ${getAderenciaColor(entregador.aderencia_percentual ?? 0)}`}>
