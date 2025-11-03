@@ -4400,30 +4400,39 @@ function ValoresView({
   const sortedValores: ValoresEntregador[] = useMemo(() => {
     if (!dataToDisplay || dataToDisplay.length === 0) return [];
     
-    return [...dataToDisplay].sort((a, b) => {
+    // Criar uma cópia do array para não mutar o original
+    const dataCopy = [...dataToDisplay];
+    
+    return dataCopy.sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
       
-      // Tratar valores nulos/undefined
+      // Tratar valores nulos/undefined - colocar no final
       if (aValue == null && bValue == null) return 0;
       if (aValue == null) return 1;
       if (bValue == null) return -1;
       
-      // Se ambos são strings (nome_entregador ou id_entregador)
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        const comparison = aValue.localeCompare(bValue, 'pt-BR', { sensitivity: 'base' });
+      // Se for campo de string (nome_entregador ou id_entregador)
+      if (sortField === 'nome_entregador' || sortField === 'id_entregador') {
+        const aStr = String(aValue).toLowerCase().trim();
+        const bStr = String(bValue).toLowerCase().trim();
+        const comparison = aStr.localeCompare(bStr, 'pt-BR', { sensitivity: 'base', numeric: true });
         return sortDirection === 'asc' ? comparison : -comparison;
       }
       
       // Para valores numéricos (total_taxas, numero_corridas_aceitas, taxa_media)
-      const aNum = typeof aValue === 'number' ? aValue : parseFloat(String(aValue)) || 0;
-      const bNum = typeof bValue === 'number' ? bValue : parseFloat(String(bValue)) || 0;
+      // Garantir conversão correta para número
+      const aNum = Number(aValue) || 0;
+      const bNum = Number(bValue) || 0;
       
-      if (isNaN(aNum) && isNaN(bNum)) return 0;
-      if (isNaN(aNum)) return 1;
-      if (isNaN(bNum)) return -1;
-      
+      // Comparação numérica precisa
       const comparison = aNum - bNum;
+      
+      // Se os números forem iguais, manter ordem estável (pode usar nome como desempate)
+      if (comparison === 0 && sortField !== 'nome_entregador') {
+        return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
+      }
+      
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }, [dataToDisplay, sortField, sortDirection]);
