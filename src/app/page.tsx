@@ -3784,7 +3784,18 @@ function EvolucaoView({
     );
   }
 
-  const dadosAtivos = viewMode === 'mensal' ? evolucaoMensal : evolucaoSemanal;
+  // Ordenar e garantir que todos os dados sejam exibidos
+  const dadosAtivos = viewMode === 'mensal' 
+    ? [...evolucaoMensal].sort((a, b) => {
+        // Ordenar por ano e mês
+        if (a.ano !== b.ano) return a.ano - b.ano;
+        return a.mes - b.mes;
+      })
+    : [...evolucaoSemanal].sort((a, b) => {
+        // Ordenar por ano e semana
+        if (a.ano !== b.ano) return a.ano - b.ano;
+        return a.semana - b.semana;
+      });
 
   // Função para converter segundos em horas decimais para o gráfico
   const segundosParaHoras = (segundos: number): number => {
@@ -3793,9 +3804,11 @@ function EvolucaoView({
 
   // Dados do gráfico com estilo premium
   const chartData = {
-    labels: viewMode === 'mensal' 
-      ? evolucaoMensal.map(d => d.mes_nome)
-      : evolucaoSemanal.map(d => `S${d.semana}`),
+    labels: dadosAtivos.map(d => 
+      viewMode === 'mensal' 
+        ? (d as EvolucaoMensal).mes_nome 
+        : `S${(d as EvolucaoSemanal).semana}`
+    ),
     datasets: [
       {
         label: '🚗 Corridas Completadas',
@@ -4067,12 +4080,12 @@ function EvolucaoView({
           display: false,
         },
         ticks: {
-          maxTicksLimit: isSemanal ? 13 : 12,
-          autoSkip: true,
-          maxRotation: 0,
-          minRotation: 0,
+          maxTicksLimit: isSemanal ? 52 : 12, // Mostrar todas as semanas (até 52) ou todos os meses (12)
+          autoSkip: dadosAtivos.length <= (isSemanal ? 52 : 12) ? false : true, // Desabilitar autoSkip se houver poucos dados
+          maxRotation: isSemanal ? 45 : 0, // Permitir rotação para semanas para melhor visualização
+          minRotation: isSemanal ? 45 : 0,
           font: {
-            size: 12,
+            size: isSemanal ? 10 : 12, // Font menor para semanas quando houver muitos dados
             weight: '700' as any,
             family: "'Inter', 'system-ui', sans-serif",
           },
@@ -4175,7 +4188,7 @@ function EvolucaoView({
                   Desempenho {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
                 </h4>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                  Análise detalhada de corridas e horas trabalhadas
+                  Análise detalhada de corridas e horas trabalhadas ({dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} exibidos)
                 </p>
               </div>
               
@@ -5456,15 +5469,26 @@ export default function DashboardPage() {
             supabase.rpc('listar_evolucao_semanal', {
               p_praca: pracaSelecionada,
               p_ano: anoEvolucao,
-              p_limite_semanas: 52
+              p_limite_semanas: 53 // Aumentado para 53 para cobrir anos bissextos com semanas extras
             })
           ]);
 
           if (mensalResult.error) throw mensalResult.error;
           if (semanalResult.error) throw semanalResult.error;
 
-          setEvolucaoMensal(mensalResult.data || []);
-          setEvolucaoSemanal(semanalResult.data || []);
+          const dadosMensais = mensalResult.data || [];
+          const dadosSemanais = semanalResult.data || [];
+
+          // Log para debug
+          console.log('📊 Dados de Evolução carregados:', {
+            mensais: dadosMensais.length,
+            semanais: dadosSemanais.length,
+            ano: anoEvolucao,
+            praca: pracaSelecionada
+          });
+
+          setEvolucaoMensal(dadosMensais);
+          setEvolucaoSemanal(dadosSemanais);
         } catch (err: any) {
           console.error('Erro ao buscar Evolução:', err);
           setEvolucaoMensal([]);
