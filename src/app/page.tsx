@@ -113,6 +113,7 @@ interface Filters {
   origem: string | null;
   subPracas: string[];
   origens: string[];
+  semanas: number[];
 }
 
 interface DimensoesDashboard {
@@ -278,9 +279,13 @@ function buildFilterPayload(filters: Filters) {
     ? (filters.origens.length === 1 ? filters.origens[0] : filters.origens.join(','))
     : filters.origem;
 
+  const semana = filters.semanas && filters.semanas.length > 0
+    ? (filters.semanas.length === 1 ? String(filters.semanas[0]) : filters.semanas.join(','))
+    : (filters.semana !== null ? String(filters.semana) : null);
+
   return {
     p_ano: filters.ano,
-    p_semana: filters.semana,
+    p_semana: semana,
     p_praca: filters.praca,
     p_sub_praca: subPraca,
     p_origem: origem,
@@ -668,10 +673,11 @@ function FiltroBar({
       origem: null,
       subPracas: [],
       origens: [],
+      semanas: [],
     });
   };
 
-  const hasActiveFilters = filters.ano !== null || filters.semana !== null || filters.subPraca !== null || filters.origem !== null ||
+  const hasActiveFilters = filters.ano !== null || filters.semana !== null || (filters.semanas && filters.semanas.length > 0) || filters.subPraca !== null || filters.origem !== null ||
     (currentUser?.is_admin && filters.praca !== null);
 
   // Verificar se deve desabilitar o filtro de praça (somente não-admin com 1 praça)
@@ -687,15 +693,23 @@ function FiltroBar({
         placeholder="Todos"
         onChange={(value) => handleChange('ano', value)}
       />
-      <FiltroSelect
+      <FiltroMultiSelect
         label="Semana"
-        value={
-          filters.semana !== null 
-            ? semanas.find(s => {
-                const match = s.match(/W(\d+)/);
-                return match && Number(match[1]) === filters.semana;
-              }) || ''
-            : ''
+        selectedValues={
+          filters.semanas && filters.semanas.length > 0
+            ? filters.semanas.map(s => {
+                const semanaStr = semanas.find(se => {
+                  const match = se.match(/W(\d+)/);
+                  return match && Number(match[1]) === s;
+                });
+                return semanaStr || '';
+              }).filter(s => s !== '')
+            : (filters.semana !== null
+                ? semanas.filter(s => {
+                    const match = s.match(/W(\d+)/);
+                    return match && Number(match[1]) === filters.semana;
+                  })
+                : [])
         }
         options={semanas.map((sem) => {
           const match = sem.match(/W(\d+)/);
@@ -706,7 +720,20 @@ function FiltroBar({
           };
         })}
         placeholder="Todas"
-        onChange={(value) => handleChange('semana', value)}
+        onChange={(values) => {
+          setFilters((prev) => {
+            const semanasNumeros = values.map(v => {
+              const match = v.match(/W(\d+)/);
+              return match ? Number(match[1]) : null;
+            }).filter(n => n !== null) as number[];
+            
+            return {
+              ...prev,
+              semanas: semanasNumeros,
+              semana: semanasNumeros.length === 1 ? semanasNumeros[0] : null,
+            };
+          });
+        }}
       />
       <FiltroSelect
         label="Praça"
@@ -5869,7 +5896,7 @@ export default function DashboardPage() {
   const [origens, setOrigens] = useState<FilterOption[]>([]);
   // Armazenar dimensões originais completas para sempre manter todas as opções disponíveis
   const [dimensoesOriginais, setDimensoesOriginais] = useState<DimensoesDashboard | null>(null);
-  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null, subPracas: [], origens: [] });
+  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null, subPracas: [], origens: [], semanas: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
