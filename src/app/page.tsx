@@ -5951,6 +5951,30 @@ export default function DashboardPage() {
     }
   }, [activeTab, filters]);
 
+  // Buscar dados para Prioridade/Promo quando a aba estiver ativa (usa os mesmos dados dos entregadores)
+  useEffect(() => {
+    if (activeTab === 'prioridade') {
+      async function fetchPrioridade() {
+        setLoadingPrioridade(true);
+        try {
+          const params = buildFilterPayload(filters);
+          const { data: prioridadeResult, error: prioridadeError } = await supabase.rpc('listar_entregadores', params);
+          
+          if (prioridadeError) throw prioridadeError;
+          
+          setPrioridadeData(prioridadeResult as EntregadoresData);
+        } catch (err: any) {
+          console.error('Erro ao buscar dados de Prioridade:', err);
+          setPrioridadeData(null);
+        } finally {
+          setLoadingPrioridade(false);
+        }
+      }
+      
+      fetchPrioridade();
+    }
+  }, [activeTab, filters]);
+
   // Buscar dados de Valores quando a aba estiver ativa
   useEffect(() => {
     if (activeTab === 'valores') {
