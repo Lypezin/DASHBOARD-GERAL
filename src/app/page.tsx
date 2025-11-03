@@ -6098,8 +6098,9 @@ export default function DashboardPage() {
             }
           }
           
-          // Marcar loading como false após obter usuário
-          setLoading(false);
+          // Para admin: não carregar dados imediatamente se não estiver nas abas que precisam
+          // Para não-admin: carregar dados normalmente (será feito pelo useEffect que monitora filters)
+          // Não precisamos fazer nada aqui, o useEffect que monitora activeTab e filters cuidará disso
         }
       } catch (err) {
         console.error('Erro ao buscar perfil do usuário:', err);
@@ -6110,10 +6111,84 @@ export default function DashboardPage() {
     checkUserAndFetchData();
   }, []);
 
+  // Cache simples para evitar recarregar dados iguais
+  const cacheKeyRef = useRef<string>('');
+  const cachedDataRef = useRef<DashboardResumoData | null>(null);
+
   useEffect(() => {
     async function fetchData() {
       // Só carregar dados se estiver nas abas que precisam
       if (!['dashboard', 'analise'].includes(activeTab)) {
+        return;
+      }
+      
+      // Criar chave de cache baseada nos filtros
+      const cacheKey = JSON.stringify(buildFilterPayload(filters));
+      
+      // Se os dados já estão em cache e os filtros não mudaram, não recarregar
+      if (cacheKeyRef.current === cacheKey && cachedDataRef.current) {
+        console.log('✅ Usando dados em cache');
+        const resumo = cachedDataRef.current;
+        
+        // Aplicar dados do cache
+        const safeNumber = (value: number | string | null | undefined) =>
+          value === null || value === undefined ? 0 : Number(value);
+        
+        const totalsRow = resumo?.totais;
+        setTotals(
+          totalsRow
+            ? {
+                ofertadas: safeNumber(totalsRow.corridas_ofertadas),
+                aceitas: safeNumber(totalsRow.corridas_aceitas),
+                rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
+                completadas: safeNumber(totalsRow.corridas_completadas),
+              }
+            : { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }
+        );
+
+        setAderenciaSemanal(resumo?.semanal ?? []);
+        setAderenciaDia(resumo?.dia ?? []);
+        setAderenciaTurno(resumo?.turno ?? []);
+        setAderenciaSubPraca(resumo?.sub_praca ?? []);
+        setAderenciaOrigem(resumo?.origem ?? []);
+        
+        const dimensoes = resumo?.dimensoes;
+        if (dimensoes && (!dimensoesOriginais || 
+            JSON.stringify(dimensoes.pracas) !== JSON.stringify(dimensoesOriginais.pracas))) {
+          setDimensoesOriginais(dimensoes);
+        }
+        
+        const dimensoesParaUsar = dimensoesOriginais || dimensoes;
+        setAnosDisponiveis(Array.isArray(dimensoesParaUsar?.anos) ? dimensoesParaUsar.anos : []);
+        setSemanasDisponiveis(Array.isArray(dimensoesParaUsar?.semanas) ? dimensoesParaUsar.semanas : []);
+        
+        let pracasDisponiveis = Array.isArray(dimensoesParaUsar?.pracas) ? dimensoesParaUsar.pracas : [];
+        let subPracasDisponiveis = Array.isArray(dimensoesParaUsar?.sub_pracas) ? dimensoesParaUsar.sub_pracas : [];
+        let origensDisponiveis = Array.isArray(dimensoesParaUsar?.origens) ? dimensoesParaUsar.origens : [];
+        
+        if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+          const pracasPermitidas = currentUser.assigned_pracas.map(p => p.toUpperCase());
+          pracasDisponiveis = pracasDisponiveis.filter((p: string) => 
+            currentUser.assigned_pracas.includes(p)
+          );
+          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
+            pracasPermitidas.some(praca => sp.toUpperCase().includes(praca))
+          );
+        }
+        
+        if (filters.praca) {
+          const pracaSelecionada = filters.praca.toUpperCase();
+          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
+            sp.toUpperCase().includes(pracaSelecionada)
+          );
+        }
+        
+        setPracas(pracasDisponiveis.map((p: string) => ({ value: p, label: p })));
+        setSubPracas(subPracasDisponiveis.map((sp: string) => ({ value: sp, label: sp })));
+        setOrigens(origensDisponiveis.map((origem: string) => ({ value: origem, label: origem })));
+        
+        setError(null);
+        setLoading(false);
         return;
       }
       
@@ -6140,6 +6215,10 @@ export default function DashboardPage() {
         if (resumoError) {
           throw resumoError;
         }
+        
+        // Salvar no cache
+        cacheKeyRef.current = cacheKey;
+        cachedDataRef.current = resumoData as DashboardResumoData | null;
 
         const resumo = resumoData as DashboardResumoData | null;
 
@@ -6271,16 +6350,22 @@ export default function DashboardPage() {
       }
     }
 
-    fetchData();
+    // Debounce para evitar múltiplas chamadas rápidas
+    const timeoutId = setTimeout(() => {
+      fetchData();
+    }, 300); // Aguardar 300ms antes de fazer a requisição
 
     return () => {
+      clearTimeout(timeoutId);
       abortRef.current?.abort();
     };
-  }, [filters, currentUser, activeTab]);
+  }, [filters, currentUser, activeTab, dimensoesOriginais]);
 
-  // Buscar dados da UTR quando a aba estiver ativa
+  // Buscar dados da UTR quando a aba estiver ativa (com debounce)
   useEffect(() => {
-    if (activeTab === 'utr') {
+    if (activeTab !== 'utr') return;
+    
+    const timeoutId = setTimeout(async () => {
       async function fetchUtr() {
         setLoadingUtr(true);
         try {
@@ -6299,12 +6384,16 @@ export default function DashboardPage() {
       }
       
       fetchUtr();
-    }
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
   }, [activeTab, filters]);
 
-  // Buscar dados dos Entregadores quando a aba estiver ativa
+  // Buscar dados dos Entregadores quando a aba estiver ativa (com debounce)
   useEffect(() => {
-    if (activeTab === 'entregadores') {
+    if (activeTab !== 'entregadores') return;
+    
+    const timeoutId = setTimeout(async () => {
       async function fetchEntregadores() {
         setLoadingEntregadores(true);
         try {
@@ -6323,12 +6412,16 @@ export default function DashboardPage() {
       }
       
       fetchEntregadores();
-    }
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
   }, [activeTab, filters]);
 
-  // Buscar dados para Prioridade/Promo quando a aba estiver ativa (usa os mesmos dados dos entregadores)
+  // Buscar dados para Prioridade/Promo quando a aba estiver ativa (com debounce)
   useEffect(() => {
-    if (activeTab === 'prioridade') {
+    if (activeTab !== 'prioridade') return;
+    
+    const timeoutId = setTimeout(async () => {
       async function fetchPrioridade() {
         setLoadingPrioridade(true);
         try {
@@ -6347,12 +6440,16 @@ export default function DashboardPage() {
       }
       
       fetchPrioridade();
-    }
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
   }, [activeTab, filters]);
 
-  // Buscar dados de Valores quando a aba estiver ativa
+  // Buscar dados de Valores quando a aba estiver ativa (com debounce)
   useEffect(() => {
-    if (activeTab === 'valores') {
+    if (activeTab !== 'valores') return;
+    
+    const timeoutId = setTimeout(async () => {
       async function fetchValores() {
         setLoadingValores(true);
         try {
@@ -6371,7 +6468,9 @@ export default function DashboardPage() {
       }
       
       fetchValores();
-    }
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
   }, [activeTab, filters]);
 
   // Buscar anos disponíveis ao carregar
