@@ -4632,15 +4632,19 @@ function ValoresView({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-              {sortedValores.map((entregador, index) => (
+              {sortedValores.map((entregador, index) => {
+                // Garantir que o número seja sempre sequencial (ranking)
+                const ranking = index + 1;
+                
+                return (
                 <tr 
-                  key={entregador.id_entregador}
+                  key={`${entregador.id_entregador}-${sortField}-${sortDirection}-${ranking}`}
                   className="group transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/20"
                 >
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-xs sm:text-sm font-bold text-white shadow-sm">
-                        {index + 1}
+                        {ranking}
                       </div>
                       <span className="font-medium text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-none">{entregador.nome_entregador}</span>
                     </div>
@@ -4661,7 +4665,8 @@ function ValoresView({
                     </span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
