@@ -2276,7 +2276,7 @@ function ComparacaoView({
   const [loading, setLoading] = useState(false);
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
   const [utrComparacao, setUtrComparacao] = useState<any[]>([]);
-  const [todasSemanas, setTodasSemanas] = useState<number[]>([]);
+  const [todasSemanas, setTodasSemanas] = useState<(number | string)[]>([]);
   
   // Estados para controlar visualização (tabela/gráfico)
   const [viewModeDetalhada, setViewModeDetalhada] = useState<'table' | 'chart'>('table');
@@ -2321,15 +2321,24 @@ function ComparacaoView({
     }
   }, [currentUser]);
 
-  const toggleSemana = (semana: number) => {
+  const toggleSemana = (semana: number | string) => {
     setSemanasSelecionadas(prev => {
-      const semanaStr = String(semana);
+      // Extrair número da semana se for formato S2025-W44
+      let semanaStr = String(semana);
+      if (semanaStr.includes('W')) {
+        const match = semanaStr.match(/W(\d+)/);
+        semanaStr = match ? match[1] : semanaStr;
+      } else {
+        // Se já for número, converter para string
+        semanaStr = String(semana);
+      }
+      
       if (prev.includes(semanaStr)) {
         return prev.filter(s => s !== semanaStr);
       } else {
         return [...prev, semanaStr].sort((a, b) => {
-          const numA = typeof a === 'string' ? parseInt(a, 10) : a;
-          const numB = typeof b === 'string' ? parseInt(b, 10) : b;
+          const numA = parseInt(a, 10);
+          const numB = parseInt(b, 10);
           return numA - numB;
         });
       }
@@ -2460,24 +2469,34 @@ function ComparacaoView({
             Semanas (selecione 2 ou mais)
           </label>
           <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
-            {todasSemanas.map((semana) => (
-              <label
-                key={semana}
-                className={`flex cursor-pointer items-center justify-center rounded-lg border-2 p-3 text-center transition-all hover:scale-105 ${
-                  semanasSelecionadas.includes(String(semana))
-                    ? 'border-blue-600 bg-blue-600 text-white shadow-md'
-                    : 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  className="hidden"
-                  checked={semanasSelecionadas.includes(String(semana))}
-                  onChange={() => toggleSemana(semana)}
-                />
-                <span className="text-sm font-bold">S{semana}</span>
-              </label>
-            ))}
+            {todasSemanas.map((semana) => {
+              // Extrair número da semana para comparação e exibição
+              const semanaStr = String(semana);
+              let semanaNumStr = semanaStr;
+              if (semanaStr.includes('W')) {
+                const match = semanaStr.match(/W(\d+)/);
+                semanaNumStr = match ? match[1] : semanaStr;
+              }
+              
+              return (
+                <label
+                  key={semanaStr}
+                  className={`flex cursor-pointer items-center justify-center rounded-lg border-2 p-3 text-center transition-all hover:scale-105 ${
+                    semanasSelecionadas.includes(semanaNumStr)
+                      ? 'border-blue-600 bg-blue-600 text-white shadow-md'
+                      : 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={semanasSelecionadas.includes(semanaNumStr)}
+                    onChange={() => toggleSemana(semana)}
+                  />
+                  <span className="text-sm font-bold">{semanaNumStr}</span>
+                </label>
+              );
+            })}
           </div>
         </div>
 
