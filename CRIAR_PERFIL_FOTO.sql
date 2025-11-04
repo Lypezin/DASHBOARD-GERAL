@@ -39,6 +39,7 @@ USING (auth.uid() = id)
 WITH CHECK (auth.uid() = id);
 
 -- 4. Criar função para atualizar avatar
+-- IMPORTANTE: O search_path deve incluir 'auth' para acessar auth.users
 CREATE OR REPLACE FUNCTION public.update_user_avatar(
   p_user_id UUID,
   p_avatar_url TEXT
@@ -46,12 +47,17 @@ CREATE OR REPLACE FUNCTION public.update_user_avatar(
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, auth
 AS $$
 BEGIN
   -- Verificar se o usuário está tentando atualizar seu próprio perfil
   IF p_user_id != auth.uid() THEN
     RAISE EXCEPTION 'Você só pode atualizar seu próprio perfil';
+  END IF;
+
+  -- Verificar se o usuário existe em auth.users
+  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = p_user_id) THEN
+    RAISE EXCEPTION 'Usuário não encontrado';
   END IF;
 
   -- Upsert (insert ou update) do perfil

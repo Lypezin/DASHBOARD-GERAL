@@ -215,7 +215,8 @@ export default function PerfilPage() {
       console.log('🔍 FilePath:', filePath);
 
       // Atualizar perfil do usuário
-      // Primeiro, tentar atualizar diretamente na tabela
+      // IMPORTANTE: Incluir apenas as colunas que existem na tabela
+      // Não incluir colunas como 'email' que podem ter constraints
       const { data: upsertData, error: updateError } = await supabase
         .from('user_profiles')
         .upsert({
