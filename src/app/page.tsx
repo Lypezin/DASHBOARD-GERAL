@@ -4817,6 +4817,56 @@ function ValoresView({
     }
   };
 
+  // IMPORTANTE: Todos os hooks devem estar ANTES de qualquer early return
+  // Debug: log dos dados recebidos
+  useEffect(() => {
+    console.log('📊 ValoresView - valoresData recebido:', valoresData);
+    console.log('📊 ValoresView - total de itens:', valoresData?.length || 0);
+    if (valoresData && valoresData.length > 0) {
+      console.log('📊 ValoresView - primeiro item:', valoresData[0]);
+    }
+  }, [valoresData]);
+
+  // Calcular estatísticas gerais
+  // Garantir que dataToDisplay seja array antes de fazer reduce
+  const dataArray = Array.isArray(dataToDisplay) ? dataToDisplay : [];
+  
+  // Debug do dataToDisplay
+  useEffect(() => {
+    console.log('📊 ValoresView - dataToDisplay:', dataToDisplay);
+    console.log('📊 ValoresView - dataArray.length:', dataArray.length);
+  }, [dataToDisplay, dataArray.length]);
+  
+  // Calcular totais usando useMemo para evitar recálculos desnecessários
+  const totalGeral = useMemo(() => {
+    return dataArray.reduce((sum, e) => {
+      const valor = Number(e?.total_taxas) || 0;
+      return sum + valor;
+    }, 0);
+  }, [dataArray]);
+
+  const totalCorridas = useMemo(() => {
+    return dataArray.reduce((sum, e) => {
+      const valor = Number(e?.numero_corridas_aceitas) || 0;
+      return sum + valor;
+    }, 0);
+  }, [dataArray]);
+
+  const taxaMediaGeral = useMemo(() => {
+    return totalCorridas > 0 ? totalGeral / totalCorridas : 0;
+  }, [totalGeral, totalCorridas]);
+
+  const totalEntregadores = useMemo(() => dataArray.length, [dataArray]);
+
+  // Função auxiliar para ícone de ordenação
+  const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
+    if (sortField !== field) {
+      return <span className="ml-1 text-slate-400">⇅</span>;
+    }
+    return <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+  };
+
+  // Early returns APÓS todos os hooks
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -4837,43 +4887,6 @@ function ValoresView({
       </div>
     );
   }
-
-  const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
-    if (sortField !== field) {
-      return <span className="ml-1 text-slate-400">⇅</span>;
-    }
-    return <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
-  };
-
-  // Debug: log dos dados recebidos
-  useEffect(() => {
-    console.log('📊 ValoresView - valoresData recebido:', valoresData);
-    console.log('📊 ValoresView - total de itens:', valoresData?.length || 0);
-    if (valoresData && valoresData.length > 0) {
-      console.log('📊 ValoresView - primeiro item:', valoresData[0]);
-    }
-  }, [valoresData]);
-
-  // Calcular estatísticas gerais
-  // Garantir que dataToDisplay seja array antes de fazer reduce
-  const dataArray = Array.isArray(dataToDisplay) ? dataToDisplay : [];
-  
-  // Debug do dataToDisplay
-  useEffect(() => {
-    console.log('📊 ValoresView - dataToDisplay:', dataToDisplay);
-    console.log('📊 ValoresView - dataArray.length:', dataArray.length);
-  }, [dataToDisplay, dataArray.length]);
-  
-  const totalGeral = dataArray.reduce((sum, e) => {
-    const valor = Number(e?.total_taxas) || 0;
-    return sum + valor;
-  }, 0);
-  const totalCorridas = dataArray.reduce((sum, e) => {
-    const valor = Number(e?.numero_corridas_aceitas) || 0;
-    return sum + valor;
-  }, 0);
-  const taxaMediaGeral = totalCorridas > 0 ? totalGeral / totalCorridas : 0;
-  const totalEntregadores = dataArray.length;
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
@@ -6567,6 +6580,8 @@ export default function DashboardPage() {
       clearTimeout(timeoutId);
       abortRef.current?.abort();
     };
+    // filterPayload já contém todos os dados de filters, então não precisamos incluir filters nas dependências
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterPayload, currentUser, activeTab, dimensoesOriginais]);
 
   // Buscar dados da UTR quando a aba estiver ativa (com debounce)
