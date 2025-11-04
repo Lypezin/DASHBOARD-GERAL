@@ -259,6 +259,9 @@ interface EvolucaoSemanal {
 // Funções auxiliares
 // =================================================================================
 
+// Variável para controlar logs em desenvolvimento
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 // Função para converter horas decimais em hh:mm:ss
 function formatarHorasParaHMS(horasDecimais: string | number): string {
   const horas = typeof horasDecimais === 'string' ? parseFloat(horasDecimais) : horasDecimais;
@@ -271,6 +274,20 @@ function formatarHorasParaHMS(horasDecimais: string | number): string {
   const segundos = Math.round((minutosDecimais - minutosInteiros) * 60);
   
   return `${String(horasInteiras).padStart(2, '0')}:${String(minutosInteiros).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+}
+
+// Função utilitária para converter valores para número de forma segura
+function safeNumber(value: number | string | null | undefined): number {
+  return value === null || value === undefined ? 0 : Number(value);
+}
+
+// Função para comparar arrays de forma eficiente (melhor que JSON.stringify)
+function arraysEqual<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }
 
 function buildFilterPayload(filters: Filters) {
@@ -2513,14 +2530,10 @@ function ComparacaoView({
       const resultadosDados = await Promise.all(promessasDados);
       const resultadosUtr = await Promise.all(promessasUtr);
       
-      console.log('📊 Dados Comparação:', resultadosDados);
-      console.log('🎯 UTR Comparação RAW:', resultadosUtr);
-      console.log('🎯 UTR Estrutura:', resultadosUtr.map(r => ({
-        semana: r.semana,
-        utr: r.utr,
-        tipo: typeof r.utr,
-        keys: r.utr ? Object.keys(r.utr) : []
-      })));
+      if (IS_DEV) {
+        console.log('📊 Dados Comparação:', resultadosDados.length, 'semanas');
+        console.log('🎯 UTR Comparação:', resultadosUtr.length, 'semanas');
+      }
       
       setDadosComparacao(resultadosDados.map(r => r.dados));
       setUtrComparacao(resultadosUtr);
@@ -3891,7 +3904,7 @@ function ComparacaoView({
                           utrValue = item.utr;
                         }
                         
-                        console.log(`📊 UTR Semana ${item.semana}:`, utrValue, 'Estrutura completa:', JSON.stringify(item.utr));
+                        if (IS_DEV) console.log(`📊 UTR Semana ${item.semana}:`, utrValue);
                         
                         return (
                           <td key={idx} className="px-6 py-4 text-center">
@@ -4843,14 +4856,6 @@ function ValoresView({
   };
 
   // IMPORTANTE: Todos os hooks devem estar ANTES de qualquer early return
-  // Debug: log dos dados recebidos
-  useEffect(() => {
-    console.log('📊 ValoresView - valoresData recebido:', valoresData);
-    console.log('📊 ValoresView - total de itens:', valoresData?.length || 0);
-    if (valoresData && valoresData.length > 0) {
-      console.log('📊 ValoresView - primeiro item:', valoresData[0]);
-    }
-  }, [valoresData]);
 
   // Calcular estatísticas gerais
   // Garantir que dataToDisplay seja array antes de fazer reduce
@@ -4858,8 +4863,9 @@ function ValoresView({
   
   // Debug do dataToDisplay
   useEffect(() => {
-    console.log('📊 ValoresView - dataToDisplay:', dataToDisplay);
-    console.log('📊 ValoresView - dataArray.length:', dataArray.length);
+    if (IS_DEV) {
+      console.log('📊 ValoresView - dataArray.length:', dataArray.length);
+    }
   }, [dataToDisplay, dataArray.length]);
   
   // Calcular totais usando useMemo para evitar recálculos desnecessários
@@ -6162,16 +6168,18 @@ export default function DashboardPage() {
     
     // Se houver apenas uma semana, retornar ela
     if (aderenciaSemanal.length === 1) {
-      console.log('🎯 Aderência Geral (1 semana):', aderenciaSemanal[0]);
+      if (IS_DEV) console.log('🎯 Aderência Geral (1 semana):', aderenciaSemanal[0]);
       return aderenciaSemanal[0];
     }
     
     // Se houver múltiplas semanas, calcular a soma total
-    const totalHorasAEntregar = aderenciaSemanal.reduce((acc, semana) => 
-      acc + parseFloat(semana.horas_a_entregar || '0'), 0
-    );
-    const totalHorasEntregues = aderenciaSemanal.reduce((acc, semana) => 
-      acc + parseFloat(semana.horas_entregues || '0'), 0
+    // Otimizar: fazer em um único reduce
+    const { totalHorasAEntregar, totalHorasEntregues } = aderenciaSemanal.reduce(
+      (acc, semana) => ({
+        totalHorasAEntregar: acc.totalHorasAEntregar + parseFloat(semana.horas_a_entregar || '0'),
+        totalHorasEntregues: acc.totalHorasEntregues + parseFloat(semana.horas_entregues || '0')
+      }),
+      { totalHorasAEntregar: 0, totalHorasEntregues: 0 }
     );
     
     const aderenciaPercentual = totalHorasAEntregar > 0 
@@ -6185,13 +6193,15 @@ export default function DashboardPage() {
       aderencia_percentual: aderenciaPercentual
     };
     
-    console.log('🎯 Aderência Geral (múltiplas semanas):', resultado);
-    console.log('📋 Detalhamento:', {
-      qtdSemanas: aderenciaSemanal.length,
-      totalHorasAEntregar,
-      totalHorasEntregues,
-      aderenciaPercentual
-    });
+    if (IS_DEV) {
+      console.log('🎯 Aderência Geral (múltiplas semanas):', resultado);
+      console.log('📋 Detalhamento:', {
+        qtdSemanas: aderenciaSemanal.length,
+        totalHorasAEntregar,
+        totalHorasEntregues,
+        aderenciaPercentual
+      });
+    }
     
     return resultado;
   }, [aderenciaSemanal]);
@@ -6375,12 +6385,8 @@ export default function DashboardPage() {
       
       // Se os dados já estão em cache e os filtros não mudaram, não recarregar
       if (cacheKeyRef.current === cacheKey && cachedDataRef.current) {
-        console.log('✅ Usando dados em cache');
+        if (IS_DEV) console.log('✅ Usando dados em cache');
         const resumo = cachedDataRef.current;
-        
-        // Aplicar dados do cache
-        const safeNumber = (value: number | string | null | undefined) =>
-          value === null || value === undefined ? 0 : Number(value);
         
         const totalsRow = resumo?.totais;
         setTotals(
@@ -6402,7 +6408,7 @@ export default function DashboardPage() {
         
         const dimensoes = resumo?.dimensoes;
         if (dimensoes && (!dimensoesOriginais || 
-            JSON.stringify(dimensoes.pracas) !== JSON.stringify(dimensoesOriginais.pracas))) {
+            !arraysEqual(dimensoes.pracas || [], dimensoesOriginais.pracas || []))) {
           setDimensoesOriginais(dimensoes);
         }
         
@@ -6436,10 +6442,13 @@ export default function DashboardPage() {
           (resumo?.turno ?? []).map((t: AderenciaTurno) => t.periodo).filter((p: string | null | undefined): p is string => p != null && p !== '')
         )).sort();
         
-        setPracas(pracasDisponiveis.map((p: string) => ({ value: p, label: p })));
-        setSubPracas(subPracasDisponiveis.map((sp: string) => ({ value: sp, label: sp })));
-        setOrigens(origensDisponiveis.map((origem: string) => ({ value: origem, label: origem })));
-        setTurnos(turnosDisponiveis.map((t: string) => ({ value: t, label: t })));
+        // Otimizar: criar arrays de FilterOption de forma eficiente
+        const toFilterOption = (value: string) => ({ value, label: value });
+        
+        setPracas(pracasDisponiveis.map(toFilterOption));
+        setSubPracas(subPracasDisponiveis.map(toFilterOption));
+        setOrigens(origensDisponiveis.map(toFilterOption));
+        setTurnos(turnosDisponiveis.map(toFilterOption));
         
         setError(null);
         setLoading(false);
@@ -6450,17 +6459,19 @@ export default function DashboardPage() {
       setError(null);
 
       const params = filterPayload;
-      console.log('🔍 Filtros aplicados:', filters);
-      console.log('📤 Parâmetros enviados ao backend:', params);
+      if (IS_DEV) {
+        console.log('🔍 Filtros aplicados:', filters);
+        console.log('📤 Parâmetros enviados ao backend:', params);
+      }
 
       try {
         abortRef.current?.abort();
         const controller = new AbortController();
         abortRef.current = controller;
 
-        console.log('🚀 Chamando dashboard_resumo...');
+        if (IS_DEV) console.log('🚀 Chamando dashboard_resumo...');
         const { data: resumoData, error: resumoError } = await supabase.rpc('dashboard_resumo', params);
-        console.log('✅ Resposta recebida:', { data: resumoData, error: resumoError });
+        if (IS_DEV) console.log('✅ Resposta recebida:', { data: resumoData, error: resumoError });
 
         if (controller.signal.aborted) {
           return;
@@ -6475,9 +6486,6 @@ export default function DashboardPage() {
         cachedDataRef.current = resumoData as DashboardResumoData | null;
 
         const resumo = resumoData as DashboardResumoData | null;
-
-        const safeNumber = (value: number | string | null | undefined) =>
-          value === null || value === undefined ? 0 : Number(value);
 
         const totalsRow = resumo?.totais;
         setTotals(
@@ -6520,8 +6528,10 @@ export default function DashboardPage() {
           origemFiltrado = origemFiltrado;
         }
 
-        console.log('📊 Dados Semanal recebidos:', semanalFiltrado);
-        console.log('📊 Quantidade de semanas:', semanalFiltrado.length);
+        if (IS_DEV) {
+          console.log('📊 Dados Semanal recebidos:', semanalFiltrado);
+          console.log('📊 Quantidade de semanas:', semanalFiltrado.length);
+        }
         
         setAderenciaSemanal(semanalFiltrado);
         setAderenciaDia(diaFiltrado);
@@ -6532,10 +6542,11 @@ export default function DashboardPage() {
         const dimensoes = resumo?.dimensoes;
         
         // Armazenar dimensões originais na primeira vez ou atualizar se necessário
+        // Usar comparação eficiente de arrays ao invés de JSON.stringify
         if (dimensoes && (!dimensoesOriginais || 
-            JSON.stringify(dimensoes.pracas) !== JSON.stringify(dimensoesOriginais.pracas) ||
-            JSON.stringify(dimensoes.sub_pracas) !== JSON.stringify(dimensoesOriginais.sub_pracas) ||
-            JSON.stringify(dimensoes.origens) !== JSON.stringify(dimensoesOriginais.origens))) {
+            !arraysEqual(dimensoes.pracas || [], dimensoesOriginais.pracas || []) ||
+            !arraysEqual(dimensoes.sub_pracas || [], dimensoesOriginais.sub_pracas || []) ||
+            !arraysEqual(dimensoes.origens || [], dimensoesOriginais.origens || []))) {
           setDimensoesOriginais(dimensoes);
         }
         
@@ -6594,10 +6605,13 @@ export default function DashboardPage() {
           // Manter todas as origens para permitir seleção múltipla
         }
         
-        setPracas(pracasDisponiveis.map((p: string) => ({ value: p, label: p })));
-        setSubPracas(subPracasDisponiveis.map((sp: string) => ({ value: sp, label: sp })));
-        setOrigens(origensDisponiveis.map((origem: string) => ({ value: origem, label: origem })));
-        setTurnos(turnosDisponiveis.map((t: string) => ({ value: t, label: t })));
+        // Otimizar: criar arrays de FilterOption de forma eficiente
+        const toFilterOption = (value: string) => ({ value, label: value });
+        
+        setPracas(pracasDisponiveis.map(toFilterOption));
+        setSubPracas(subPracasDisponiveis.map(toFilterOption));
+        setOrigens(origensDisponiveis.map(toFilterOption));
+        setTurnos(turnosDisponiveis.map(toFilterOption));
 
         setError(null);
       } catch (err: any) {
@@ -6727,21 +6741,13 @@ export default function DashboardPage() {
           
           if (valoresError) throw valoresError;
           
-          console.log('📊 Resultado bruto de listar_valores_entregadores:', valoresResult);
-          console.log('📊 Tipo do resultado:', typeof valoresResult);
-          console.log('📊 É array?', Array.isArray(valoresResult));
-          console.log('📊 Chaves do objeto:', valoresResult ? Object.keys(valoresResult) : 'null/undefined');
-          if (valoresResult && typeof valoresResult === 'object' && !Array.isArray(valoresResult)) {
-            console.log('📊 Estrutura completa do objeto:', JSON.stringify(valoresResult, null, 2));
-          }
-          
           // Verificar se o resultado é um objeto com propriedade 'valores' (estrutura esperada)
           let valoresArray: ValoresEntregador[] = [];
           
           if (Array.isArray(valoresResult)) {
             // Se já for um array, usar diretamente
             valoresArray = valoresResult;
-            console.log('✅ Resultado é array direto, usando:', valoresArray.length, 'itens');
+            if (IS_DEV) console.log('✅ Resultado é array direto, usando:', valoresArray.length, 'itens');
           } else if (valoresResult && typeof valoresResult === 'object') {
             // Se for um objeto, verificar diferentes estruturas possíveis
             const obj = valoresResult as any;
@@ -6749,31 +6755,25 @@ export default function DashboardPage() {
             // IMPORTANTE: A função SQL retorna { "entregadores": [...] } - verificar PRIMEIRO
             if ('entregadores' in obj && Array.isArray(obj.entregadores)) {
               valoresArray = obj.entregadores;
-              console.log('✅ Encontrado em obj.entregadores:', valoresArray.length, 'itens');
             }
             // Verificar propriedade 'valores' (estrutura alternativa)
             else if ('valores' in obj && Array.isArray(obj.valores)) {
               valoresArray = obj.valores;
-              console.log('✅ Encontrado em obj.valores:', valoresArray.length, 'itens');
             } 
             // Verificar propriedade 'valores_entregadores'
             else if ('valores_entregadores' in obj && Array.isArray(obj.valores_entregadores)) {
               valoresArray = obj.valores_entregadores;
-              console.log('✅ Encontrado em obj.valores_entregadores:', valoresArray.length, 'itens');
             }
             // Verificar propriedade 'data'
             else if ('data' in obj && Array.isArray(obj.data)) {
               valoresArray = obj.data;
-              console.log('✅ Encontrado em obj.data:', valoresArray.length, 'itens');
             }
             // Verificar propriedade 'result' ou 'results'
             else if ('result' in obj && Array.isArray(obj.result)) {
               valoresArray = obj.result;
-              console.log('✅ Encontrado em obj.result:', valoresArray.length, 'itens');
             }
             else if ('results' in obj && Array.isArray(obj.results)) {
               valoresArray = obj.results;
-              console.log('✅ Encontrado em obj.results:', valoresArray.length, 'itens');
             }
             // Tentar converter o objeto em array se os valores forem objetos com id_entregador
             else {
@@ -6783,13 +6783,11 @@ export default function DashboardPage() {
               );
               if (arrayLike.length > 0) {
                 valoresArray = arrayLike as ValoresEntregador[];
-                console.log('✅ Convertido de valores do objeto:', valoresArray.length, 'itens');
               } else {
                 // Se não encontrou array, pode ser que o objeto seja um único registro
                 if ('id_entregador' in obj || 'nome_entregador' in obj) {
                   valoresArray = [obj as ValoresEntregador];
-                  console.log('✅ Objeto único convertido para array');
-                } else {
+                } else if (IS_DEV) {
                   console.warn('⚠️ Não foi possível extrair array do objeto. Estrutura:', Object.keys(obj));
                 }
               }
@@ -6797,13 +6795,10 @@ export default function DashboardPage() {
           } else if (valoresResult) {
             // Se for um único valor, colocar em array
             valoresArray = [valoresResult as ValoresEntregador];
-            console.log('✅ Valor único convertido para array');
           }
           
-          console.log('📊 Array final processado:', valoresArray);
-          console.log('📊 Total de entregadores:', valoresArray.length);
-          if (valoresArray.length > 0) {
-            console.log('📊 Primeiro item do array:', valoresArray[0]);
+          if (IS_DEV && valoresArray.length > 0) {
+            console.log('📊 Valores processados:', valoresArray.length, 'entregadores');
           }
           
           setValoresData(valoresArray);
