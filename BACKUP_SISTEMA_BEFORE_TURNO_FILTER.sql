@@ -1,11 +1,18 @@
 -- =====================================================================
--- ADICIONAR FILTRO DE TURNO AO SISTEMA
+-- BACKUP COMPLETO DO SISTEMA - ANTES DO FILTRO DE TURNO
 -- =====================================================================
--- Adiciona suporte ao parâmetro p_turno em todas as funções
--- Seguindo a mesma lógica dos filtros de sub_praca e origem
+-- Data do Backup: $(date)
+-- Descrição: Backup completo de todas as funções do sistema
+-- antes da adição do filtro de turno
+-- 
+-- INSTRUÇÕES PARA RESTAURAÇÃO:
+-- 1. Execute este script completo no seu banco de dados
+-- 2. Isso restaurará todas as funções para o estado anterior
 -- =====================================================================
 
--- Remover funções existentes
+-- =====================================================================
+-- Remover funções existentes antes de restaurar
+-- =====================================================================
 DO $$ 
 DECLARE
   func_record RECORD;
@@ -53,14 +60,15 @@ EXCEPTION WHEN OTHERS THEN
   NULL;
 END $$;
 
--- Recriar dashboard_resumo com suporte a p_turno
+-- =====================================================================
+-- RESTAURAR: dashboard_resumo (versão ANTES do filtro de turno)
+-- =====================================================================
 CREATE OR REPLACE FUNCTION public.dashboard_resumo(
   p_ano integer DEFAULT NULL,
   p_semana integer DEFAULT NULL,
   p_praca text DEFAULT NULL,
   p_sub_praca text DEFAULT NULL,
-  p_origem text DEFAULT NULL,
-  p_turno text DEFAULT NULL
+  p_origem text DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE sql
@@ -102,12 +110,6 @@ WITH filtered_data AS (
       OR p_origem = ''
       OR (p_origem NOT LIKE '%,%' AND origem = p_origem)
       OR (p_origem LIKE '%,%' AND origem = ANY(string_to_array(p_origem, ',')))
-    )
-    AND (
-      p_turno IS NULL 
-      OR p_turno = ''
-      OR (p_turno NOT LIKE '%,%' AND periodo = p_turno)
-      OR (p_turno LIKE '%,%' AND periodo = ANY(string_to_array(p_turno, ',')))
     )
 ),
 dados_sem_duplicatas AS (
@@ -353,11 +355,6 @@ dimensoes AS (
       SELECT jsonb_agg(DISTINCT origem ORDER BY origem)
       FROM filtered_data
       WHERE origem IS NOT NULL
-    ), '[]'::jsonb),
-    'turnos', COALESCE((
-      SELECT jsonb_agg(DISTINCT periodo ORDER BY periodo)
-      FROM filtered_data
-      WHERE periodo IS NOT NULL
     ), '[]'::jsonb)
   ) AS data
 )
@@ -380,15 +377,14 @@ CROSS JOIN dimensoes;
 $$;
 
 -- =====================================================================
--- Atualizar listar_entregadores com suporte a p_turno
+-- RESTAURAR: listar_entregadores (versão ANTES do filtro de turno)
 -- =====================================================================
 CREATE OR REPLACE FUNCTION public.listar_entregadores(
   p_ano integer DEFAULT NULL,
   p_semana integer DEFAULT NULL,
   p_praca text DEFAULT NULL,
   p_sub_praca text DEFAULT NULL,
-  p_origem text DEFAULT NULL,
-  p_turno text DEFAULT NULL
+  p_origem text DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE sql
@@ -440,11 +436,6 @@ WITH entregadores_agg AS (
       OR (p_origem NOT LIKE '%,%' AND origem = p_origem)
       OR (p_origem LIKE '%,%' AND origem = ANY(string_to_array(p_origem, ',')))
     )
-    AND (
-      (p_turno IS NULL OR p_turno = '')
-      OR (p_turno NOT LIKE '%,%' AND periodo = p_turno)
-      OR (p_turno LIKE '%,%' AND periodo = ANY(string_to_array(p_turno, ',')))
-    )
   GROUP BY id_da_pessoa_entregadora, pessoa_entregadora
 )
 SELECT jsonb_build_object(
@@ -478,15 +469,14 @@ FROM entregadores_agg;
 $$;
 
 -- =====================================================================
--- Atualizar listar_valores_entregadores com suporte a p_turno
+-- RESTAURAR: listar_valores_entregadores (versão ANTES do filtro de turno)
 -- =====================================================================
 CREATE OR REPLACE FUNCTION public.listar_valores_entregadores(
   p_ano integer DEFAULT NULL,
   p_semana integer DEFAULT NULL,
   p_praca text DEFAULT NULL,
   p_sub_praca text DEFAULT NULL,
-  p_origem text DEFAULT NULL,
-  p_turno text DEFAULT NULL
+  p_origem text DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE sql
@@ -523,12 +513,6 @@ WITH dados_sem_duplicatas AS (
       OR (p_origem NOT LIKE '%,%' AND origem = p_origem)
       OR (p_origem LIKE '%,%' AND origem = ANY(string_to_array(p_origem, ',')))
     )
-    AND (
-      p_turno IS NULL 
-      OR p_turno = ''
-      OR (p_turno NOT LIKE '%,%' AND periodo = p_turno)
-      OR (p_turno LIKE '%,%' AND periodo = ANY(string_to_array(p_turno, ',')))
-    )
   ORDER BY id_da_pessoa_entregadora, data_do_periodo, periodo, praca, sub_praca, origem, numero_de_corridas_aceitas DESC
 ),
 valores_agg AS (
@@ -564,15 +548,16 @@ FROM valores_agg;
 $$;
 
 -- =====================================================================
--- Atualizar calcular_utr com suporte a p_turno
+-- RESTAURAR: calcular_utr (versão ANTES do filtro de turno)
 -- =====================================================================
+-- Nota: Esta função pode não existir ainda. Se não existir, ela será criada.
+-- Se existir com parâmetros diferentes, será restaurada para esta versão.
 CREATE OR REPLACE FUNCTION public.calcular_utr(
   p_ano integer DEFAULT NULL,
   p_semana integer DEFAULT NULL,
   p_praca text DEFAULT NULL,
   p_sub_praca text DEFAULT NULL,
-  p_origem text DEFAULT NULL,
-  p_turno text DEFAULT NULL
+  p_origem text DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE sql
@@ -605,12 +590,6 @@ WITH filtered_data AS (
       OR p_origem = ''
       OR (p_origem NOT LIKE '%,%' AND origem = p_origem)
       OR (p_origem LIKE '%,%' AND origem = ANY(string_to_array(p_origem, ',')))
-    )
-    AND (
-      p_turno IS NULL 
-      OR p_turno = ''
-      OR (p_turno NOT LIKE '%,%' AND periodo = p_turno)
-      OR (p_turno LIKE '%,%' AND periodo = ANY(string_to_array(p_turno, ',')))
     )
 ),
 utr_geral AS (
@@ -714,13 +693,21 @@ SELECT jsonb_build_object(
 $$;
 
 -- =====================================================================
--- Conceder permissões
+-- Restaurar permissões
 -- =====================================================================
-GRANT EXECUTE ON FUNCTION public.dashboard_resumo(integer, integer, text, text, text, text)
+GRANT EXECUTE ON FUNCTION public.dashboard_resumo(integer, integer, text, text, text)
   TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.listar_entregadores(integer, integer, text, text, text, text)
+GRANT EXECUTE ON FUNCTION public.listar_entregadores(integer, integer, text, text, text)
   TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.listar_valores_entregadores(integer, integer, text, text, text, text)
+GRANT EXECUTE ON FUNCTION public.listar_valores_entregadores(integer, integer, text, text, text)
   TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.calcular_utr(integer, integer, text, text, text, text)
+GRANT EXECUTE ON FUNCTION public.calcular_utr(integer, integer, text, text, text)
   TO anon, authenticated, service_role;
+
+-- =====================================================================
+-- FIM DO BACKUP
+-- =====================================================================
+-- Este backup restaura o sistema para o estado ANTES da adição do filtro de turno
+-- Execute este script se precisar reverter as mudanças
+-- =====================================================================
+
