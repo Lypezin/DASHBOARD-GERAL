@@ -20,7 +20,19 @@ export default function RegistroPage() {
     setLoading(true);
     setError(null);
 
-    // Validações
+    // Validações melhoradas
+    if (!fullName.trim()) {
+      setError('Por favor, informe seu nome completo');
+      setLoading(false);
+      return;
+    }
+
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Por favor, informe um email válido');
+      setLoading(false);
+      return;
+    }
+
     if (password.length < 6) {
       setError('A senha deve ter no mínimo 6 caracteres');
       setLoading(false);
@@ -36,11 +48,11 @@ export default function RegistroPage() {
     try {
       // Criar usuário no Supabase Auth
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           data: {
-            full_name: fullName,
+            full_name: fullName.trim(),
           },
         },
       });

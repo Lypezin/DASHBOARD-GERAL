@@ -6420,16 +6420,27 @@ export default function DashboardPage() {
         let subPracasDisponiveis = Array.isArray(dimensoesParaUsar?.sub_pracas) ? dimensoesParaUsar.sub_pracas : [];
         let origensDisponiveis = Array.isArray(dimensoesParaUsar?.origens) ? dimensoesParaUsar.origens : [];
         
+        // Otimizar: usar Set para filtros O(1) ao invés de O(n)
         if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-          const pracasPermitidas = currentUser.assigned_pracas.map(p => p.toUpperCase());
+          const pracasPermitidasSet = new Set(currentUser.assigned_pracas);
+          const pracasPermitidasUpperSet = new Set(
+            currentUser.assigned_pracas.map(p => p.toUpperCase())
+          );
+          
+          // Filtrar praças usando Set (O(1) lookup)
           pracasDisponiveis = pracasDisponiveis.filter((p: string) => 
-            currentUser.assigned_pracas.includes(p)
+            pracasPermitidasSet.has(p)
           );
-          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
-            pracasPermitidas.some(praca => sp.toUpperCase().includes(praca))
-          );
+          
+          // Filtrar sub-praças de forma otimizada
+          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) => {
+            const spUpper = sp.toUpperCase();
+            // Verificar se alguma praça permitida está contida na sub-praça
+            return Array.from(pracasPermitidasUpperSet).some(praca => spUpper.includes(praca));
+          });
         }
         
+        // Otimizar: cache do toUpperCase para evitar recálculos
         if (filters.praca) {
           const pracaSelecionada = filters.praca.toUpperCase();
           subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
@@ -6507,18 +6518,22 @@ export default function DashboardPage() {
         let origemFiltrado = resumo?.origem ?? [];
         
         // Se não for admin e tiver praças atribuídas, filtrar TODOS os dados
+        // Otimizar: criar Set uma única vez para reutilizar
         if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-          const pracasPermitidas = currentUser.assigned_pracas.map(p => p.toUpperCase());
+          const pracasPermitidasSet = new Set(
+            currentUser.assigned_pracas.map(p => p.toUpperCase())
+          );
           
           // Filtrar turno (não tem referência direta à praça, então mantém todos se já filtrou no backend)
           // O backend já deve estar filtrando pelo p_praca, então mantemos
           turnoFiltrado = turnoFiltrado;
           
           // Filtrar sub-praças (sub-praças contêm o nome da praça principal)
-          subPracaFiltrado = subPracaFiltrado.filter((item: any) => {
-            return pracasPermitidas.some(praca => 
-              item.sub_praca?.toUpperCase().includes(praca)
-            );
+          // Otimizar: usar Set para melhor performance
+          subPracaFiltrado = subPracaFiltrado.filter((item: AderenciaSubPraca) => {
+            if (!item.sub_praca) return false;
+            const subPracaUpper = item.sub_praca.toUpperCase();
+            return Array.from(pracasPermitidasSet).some(praca => subPracaUpper.includes(praca));
           });
           
           // Filtrar origens - CORRIGIDO: agora filtra de verdade
@@ -6575,23 +6590,31 @@ export default function DashboardPage() {
           )).sort();
         }
         
+        // Otimizar: usar Set para filtros O(1) ao invés de O(n)
         // Se não for admin, filtrar apenas praças atribuídas
         if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-          const pracasPermitidas = currentUser.assigned_pracas.map(p => p.toUpperCase());
+          const pracasPermitidasSet = new Set(currentUser.assigned_pracas);
+          const pracasPermitidasUpperSet = new Set(
+            currentUser.assigned_pracas.map(p => p.toUpperCase())
+          );
           
+          // Filtrar praças usando Set (O(1) lookup)
           pracasDisponiveis = pracasDisponiveis.filter((p: string) => 
-            currentUser.assigned_pracas.includes(p)
+            pracasPermitidasSet.has(p)
           );
           
-          // Filtrar sub-praças baseado nas praças permitidas
-          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
-            pracasPermitidas.some(praca => sp.toUpperCase().includes(praca))
-          );
+          // Filtrar sub-praças de forma otimizada
+          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) => {
+            const spUpper = sp.toUpperCase();
+            // Verificar se alguma praça permitida está contida na sub-praça
+            return Array.from(pracasPermitidasUpperSet).some(praca => spUpper.includes(praca));
+          });
           
           // Para origens: manter TODAS as origens das dimensões originais
           // Não filtrar, pois isso impede seleção múltipla
         }
         
+        // Otimizar: cache do toUpperCase para evitar recálculos
         // Se houver praça selecionada, mostrar apenas sub praças daquela praça
         // MAS manter TODAS as origens para permitir seleção múltipla
         if (filters.praca) {
