@@ -227,6 +227,7 @@ interface UsuarioOnline {
   ultima_atividade: string;
   segundos_inativo: number;
   acoes_ultima_hora: number;
+  is_active?: boolean;
 }
 
 interface MonitoramentoData {
@@ -755,8 +756,8 @@ function FiltroBar({
               }).filter(s => s !== '')
             : (filters.semana !== null
                 ? semanas.filter(s => {
-                    const match = s.match(/W(\d+)/);
-                    return match && Number(match[1]) === filters.semana;
+                const match = s.match(/W(\d+)/);
+                return match && Number(match[1]) === filters.semana;
                   })
                 : [])
         }
@@ -1920,14 +1921,14 @@ function MonitoramentoView() {
       let atividadesData: any[] = [];
       try {
         const { data: atividadesResponse, error: atividadesError } = await supabase
-          .from('user_activity')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50);
-        
+        .from('user_activity')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
         if (!atividadesError && atividadesResponse) {
           atividadesData = atividadesResponse;
-          setAtividades(atividadesData);
+        setAtividades(atividadesData);
         }
       } catch (err) {
         console.warn('Erro ao buscar atividades (pode não estar disponível):', err);
@@ -1968,11 +1969,13 @@ function MonitoramentoView() {
           aba_atual: u.current_tab || null,
           pracas: pracas,
           ultima_acao: descricaoAcao,
+          filtros: filtros,
+          ultima_atividade: u.last_action_type || descricaoAcao,
           segundos_inativo: Math.floor(Math.max(0, segundosInativo)),
           acoes_ultima_hora: acoesUltimaHora,
           is_active: u.is_active !== false
-        };
-      }).filter((u): u is UsuarioOnline => u !== null); // Filtrar nulos
+        } as UsuarioOnline;
+      }).filter((u: UsuarioOnline | null): u is UsuarioOnline => u !== null); // Filtrar nulos
       
       setUsuarios(usuariosMapeados);
     } catch (err: any) {
@@ -2023,21 +2026,36 @@ function MonitoramentoView() {
     if (!timestamp) return 'Data desconhecida';
     
     try {
-      const date = new Date(timestamp);
+    const date = new Date(timestamp);
       if (isNaN(date.getTime())) return 'Data inválida';
       
-      const agora = new Date();
-      const diff = Math.floor((agora.getTime() - date.getTime()) / 1000);
-      
+    const agora = new Date();
+    const diff = Math.floor((agora.getTime() - date.getTime()) / 1000);
+    
       if (diff < 0) return 'Agora';
-      if (diff < 60) return `${diff}s atrás`;
-      if (diff < 3600) return `${Math.floor(diff / 60)}m atrás`;
-      if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
-      return date.toLocaleDateString('pt-BR');
+    if (diff < 60) return `${diff}s atrás`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m atrás`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
+    return date.toLocaleDateString('pt-BR');
     } catch (err) {
       return 'Data inválida';
     }
   };
+
+  // IMPORTANTE: Todos os hooks devem ser chamados ANTES de qualquer early return
+  // Calcular estatísticas (otimizado com useMemo)
+  const usuariosAtivos = useMemo(() => usuarios.filter(u => u.segundos_inativo < 60).length, [usuarios]);
+  const usuariosInativos = useMemo(() => usuarios.length - usuariosAtivos, [usuarios, usuariosAtivos]);
+  const totalAcoes = useMemo(() => usuarios.reduce((sum, u) => sum + u.acoes_ultima_hora, 0), [usuarios]);
+  
+  // Filtrar usuários (otimizado com useMemo)
+  const usuariosFiltrados = useMemo(() => {
+    return usuarios.filter(u => {
+      if (filtroStatus === 'ativos') return u.segundos_inativo < 60;
+      if (filtroStatus === 'inativos') return u.segundos_inativo >= 60;
+      return true;
+    });
+  }, [usuarios, filtroStatus]);
 
   if (loading && usuarios.length === 0) {
     return (
@@ -2072,20 +2090,6 @@ function MonitoramentoView() {
       </div>
     );
   }
-
-  // Calcular estatísticas (otimizado com useMemo)
-  const usuariosAtivos = useMemo(() => usuarios.filter(u => u.segundos_inativo < 60).length, [usuarios]);
-  const usuariosInativos = useMemo(() => usuarios.length - usuariosAtivos, [usuarios, usuariosAtivos]);
-  const totalAcoes = useMemo(() => usuarios.reduce((sum, u) => sum + u.acoes_ultima_hora, 0), [usuarios]);
-  
-  // Filtrar usuários (otimizado com useMemo)
-  const usuariosFiltrados = useMemo(() => {
-    return usuarios.filter(u => {
-      if (filtroStatus === 'ativos') return u.segundos_inativo < 60;
-      if (filtroStatus === 'inativos') return u.segundos_inativo >= 60;
-      return true;
-    });
-  }, [usuarios, filtroStatus]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -2310,22 +2314,22 @@ function MonitoramentoView() {
                     (ativ.action_details || ativ.action_type || 'Ação desconhecida');
                   
                   return (
-                    <div
-                      key={`${ativ.user_id}-${ativ.created_at}-${idx}`}
-                      className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium text-slate-900 dark:text-white truncate">
+                  <div
+                    key={`${ativ.user_id}-${ativ.created_at}-${idx}`}
+                    className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-slate-900 dark:text-white truncate">
                             {actionDescription}
-                          </p>
-                          <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
-                            {formatarTimestamp(ativ.created_at)}
-                          </p>
-                        </div>
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                          {formatarTimestamp(ativ.created_at)}
+                        </p>
                       </div>
                     </div>
+                  </div>
                   );
                 }).filter(Boolean)
               ) : (
@@ -2564,22 +2568,22 @@ function ComparacaoView({
               }
               
               return (
-                <label
+              <label
                   key={semanaStr}
-                  className={`flex cursor-pointer items-center justify-center rounded-lg border-2 p-3 text-center transition-all hover:scale-105 ${
+                className={`flex cursor-pointer items-center justify-center rounded-lg border-2 p-3 text-center transition-all hover:scale-105 ${
                     semanasSelecionadas.includes(semanaNumStr)
-                      ? 'border-blue-600 bg-blue-600 text-white shadow-md'
-                      : 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="hidden"
+                    ? 'border-blue-600 bg-blue-600 text-white shadow-md'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  className="hidden"
                     checked={semanasSelecionadas.includes(semanaNumStr)}
-                    onChange={() => toggleSemana(semana)}
-                  />
+                  onChange={() => toggleSemana(semana)}
+                />
                   <span className="text-sm font-bold">{semanaNumStr}</span>
-                </label>
+              </label>
               );
             })}
           </div>
@@ -5595,8 +5599,8 @@ function PrioridadePromoView({
       
       // Para valores numéricos (todos os outros campos)
       // Garantir conversão correta para número
-      const aNum = Number(aValue) || 0;
-      const bNum = Number(bValue) || 0;
+    const aNum = Number(aValue) || 0;
+    const bNum = Number(bValue) || 0;
       
       // Comparação numérica precisa
       const comparison = aNum - bNum;
@@ -6268,6 +6272,10 @@ export default function DashboardPage() {
   const cacheKeyRef = useRef<string>('');
   const cachedDataRef = useRef<DashboardResumoData | null>(null);
 
+  // Memoizar buildFilterPayload para evitar recálculos desnecessários
+  // IMPORTANTE: Deve estar ANTES dos useEffects que o utilizam
+  const filterPayload = useMemo(() => buildFilterPayload(filters), [filters]);
+
   useEffect(() => {
     async function fetchData() {
       // Só carregar dados se estiver nas abas que precisam
@@ -6276,7 +6284,7 @@ export default function DashboardPage() {
       }
       
       // Criar chave de cache baseada nos filtros
-      const cacheKey = JSON.stringify(buildFilterPayload(filters));
+      const cacheKey = JSON.stringify(filterPayload);
       
       // Se os dados já estão em cache e os filtros não mudaram, não recarregar
       if (cacheKeyRef.current === cacheKey && cachedDataRef.current) {
@@ -6505,17 +6513,14 @@ export default function DashboardPage() {
 
     // Debounce para evitar múltiplas chamadas rápidas
     const timeoutId = setTimeout(() => {
-      fetchData();
+    fetchData();
     }, 300); // Aguardar 300ms antes de fazer a requisição
 
     return () => {
       clearTimeout(timeoutId);
       abortRef.current?.abort();
     };
-  }, [filters, currentUser, activeTab, dimensoesOriginais]);
-
-  // Memoizar buildFilterPayload para evitar recálculos desnecessários
-  const filterPayload = useMemo(() => buildFilterPayload(filters), [filters]);
+  }, [filterPayload, currentUser, activeTab, dimensoesOriginais]);
 
   // Buscar dados da UTR quando a aba estiver ativa (com debounce)
   useEffect(() => {
@@ -6541,7 +6546,7 @@ export default function DashboardPage() {
       
       fetchUtr();
     }, 300);
-    
+
     return () => clearTimeout(timeoutId);
   }, [activeTab, filterPayload]);
 
@@ -6762,16 +6767,16 @@ export default function DashboardPage() {
               {activeTab !== 'comparacao' && (
                 <>
                   <div className="relative" style={{ isolation: 'isolate', zIndex: 99999, position: 'relative' }}>
-                    <FiltroBar
-                      filters={filters}
-                      setFilters={setFilters}
-                      anos={anosDisponiveis}
-                      semanas={semanasDisponiveis}
-                      pracas={pracas}
-                      subPracas={subPracas}
-                      origens={origens}
-                      currentUser={currentUser}
-                    />
+                  <FiltroBar
+                    filters={filters}
+                    setFilters={setFilters}
+                    anos={anosDisponiveis}
+                    semanas={semanasDisponiveis}
+                    pracas={pracas}
+                    subPracas={subPracas}
+                    origens={origens}
+                    currentUser={currentUser}
+                  />
                   </div>
                   <div className="my-3 sm:my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700" style={{ position: 'relative', zIndex: 1 }}></div>
                 </>
