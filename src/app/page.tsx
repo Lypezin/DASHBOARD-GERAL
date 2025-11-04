@@ -517,39 +517,37 @@ const FiltroMultiSelect = React.memo(({
     }
   }, [isOpen]);
 
-  // Atualizar posição do dropdown quando aberto - useLayoutEffect executa de forma síncrona após o DOM ser atualizado
+  // Atualizar posição do dropdown quando aberto
   useLayoutEffect(() => {
     if (isOpen && buttonRef.current && dropdownRef.current) {
       const updatePosition = () => {
         if (buttonRef.current && dropdownRef.current) {
-          const rect = buttonRef.current.getBoundingClientRect();
-          // getBoundingClientRect retorna coordenadas relativas ao viewport (perfeito para position: fixed)
-          dropdownRef.current.style.top = `${rect.bottom + 4}px`;
-          dropdownRef.current.style.left = `${rect.left}px`;
-          dropdownRef.current.style.width = `${rect.width}px`;
+          // O dropdown e o botão estão dentro do mesmo container <div className="relative">
+          // Então podemos calcular a posição relativa usando offsetTop e offsetHeight
+          const buttonTop = buttonRef.current.offsetTop;
+          const buttonHeight = buttonRef.current.offsetHeight;
+          const buttonWidth = buttonRef.current.offsetWidth;
+          
+          // Posicionar logo abaixo do botão (buttonTop + buttonHeight + espaçamento)
+          dropdownRef.current.style.top = `${buttonTop + buttonHeight + 4}px`;
+          dropdownRef.current.style.left = `${buttonRef.current.offsetLeft}px`;
+          dropdownRef.current.style.width = `${buttonWidth}px`;
         }
       };
       
       // Executar imediatamente (useLayoutEffect já garante que o DOM está atualizado)
       updatePosition();
       
-      // Atualizar em caso de scroll ou resize
-      const handleScroll = () => {
-        if (buttonRef.current && dropdownRef.current) {
-          updatePosition();
-        }
-      };
+      // Atualizar em caso de resize
       const handleResize = () => {
         if (buttonRef.current && dropdownRef.current) {
           updatePosition();
         }
       };
       
-      window.addEventListener('scroll', handleScroll, true);
       window.addEventListener('resize', handleResize);
       
       return () => {
-        window.removeEventListener('scroll', handleScroll, true);
         window.removeEventListener('resize', handleResize);
       };
     }
@@ -610,7 +608,7 @@ const FiltroMultiSelect = React.memo(({
         {isOpen && (
           <div 
             ref={dropdownRef}
-            className="fixed z-[99999] max-h-60 overflow-auto rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white shadow-2xl dark:border-blue-800 dark:bg-slate-900" 
+            className="absolute z-[99999] max-h-60 overflow-auto rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white shadow-2xl dark:border-blue-800 dark:bg-slate-900" 
           >
             {options.length === 0 ? (
               <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">Nenhuma opção disponível</div>
