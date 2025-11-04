@@ -4731,9 +4731,10 @@ function ValoresView({
       } catch (err) {
         console.error('Erro ao pesquisar valores:', err);
         // Fallback para pesquisa local
-        const filtered = valoresData.filter(e => 
-          e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          e.id_entregador.toLowerCase().includes(searchTerm.toLowerCase())
+        const valoresArray = Array.isArray(valoresData) ? valoresData : [];
+        const filtered = valoresArray.filter(e => 
+          e?.nome_entregador?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          e?.id_entregador?.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setSearchResults(filtered);
       } finally {
@@ -4750,14 +4751,23 @@ function ValoresView({
 
   // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
   // Usar useMemo para evitar recriação desnecessária
+  // IMPORTANTE: Garantir que sempre seja um array para evitar erros de iteração
   const dataToDisplay = useMemo(() => {
-    return (searchTerm.trim() && searchResults.length > 0) ? searchResults : (valoresData || []);
+    // Garantir que valoresData seja sempre um array
+    const valoresArray = Array.isArray(valoresData) ? valoresData : [];
+    
+    if (searchTerm.trim() && Array.isArray(searchResults) && searchResults.length > 0) {
+      return searchResults;
+    }
+    
+    return valoresArray;
   }, [searchTerm, searchResults, valoresData]);
 
   // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
   // IMPORTANTE: useMemo deve estar antes de qualquer early return (regras dos hooks do React)
   const sortedValores: ValoresEntregador[] = useMemo(() => {
-    if (!dataToDisplay || dataToDisplay.length === 0) return [];
+    // Garantir que dataToDisplay seja sempre um array antes de fazer spread
+    if (!Array.isArray(dataToDisplay) || dataToDisplay.length === 0) return [];
     
     // Criar uma cópia do array para não mutar o original
     const dataCopy = [...dataToDisplay];
@@ -4834,10 +4844,12 @@ function ValoresView({
   };
 
   // Calcular estatísticas gerais
-  const totalGeral = dataToDisplay.reduce((sum, e) => sum + e.total_taxas, 0);
-  const totalCorridas = dataToDisplay.reduce((sum, e) => sum + e.numero_corridas_aceitas, 0);
+  // Garantir que dataToDisplay seja array antes de fazer reduce
+  const dataArray = Array.isArray(dataToDisplay) ? dataToDisplay : [];
+  const totalGeral = dataArray.reduce((sum, e) => sum + (e?.total_taxas || 0), 0);
+  const totalCorridas = dataArray.reduce((sum, e) => sum + (e?.numero_corridas_aceitas || 0), 0);
   const taxaMediaGeral = totalCorridas > 0 ? totalGeral / totalCorridas : 0;
-  const totalEntregadores = dataToDisplay.length;
+  const totalEntregadores = dataArray.length;
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
@@ -6618,7 +6630,9 @@ export default function DashboardPage() {
           
           if (valoresError) throw valoresError;
           
-          setValoresData(valoresResult || []);
+          // Garantir que sempre seja um array, mesmo se o backend retornar null ou outro tipo
+          const valoresArray = Array.isArray(valoresResult) ? valoresResult : (valoresResult ? [valoresResult] : []);
+          setValoresData(valoresArray);
         } catch (err: any) {
           console.error('Erro ao buscar Valores:', err);
           setValoresData([]);
