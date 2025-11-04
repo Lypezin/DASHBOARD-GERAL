@@ -52,24 +52,58 @@ export default function PerfilPage() {
       // Buscar avatar_url da tabela de perfil se existir
       if (profile?.id) {
         try {
+          console.log('🔍 Buscando avatar_url para usuário:', profile.id);
+          
           const { data: profileData, error: profileDataError } = await supabase
             .from('user_profiles')
-            .select('avatar_url')
+            .select('avatar_url, id, updated_at')
             .eq('id', profile.id)
             .single();
           
+          console.log('📥 Resultado da busca:', { profileData, profileDataError });
+          
           // Se não houver erro e tiver avatar_url, usar
           if (!profileDataError && profileData?.avatar_url) {
+            console.log('✅ Avatar encontrado:', profileData.avatar_url);
             setUser(prev => prev ? { ...prev, avatar_url: profileData.avatar_url } : null);
             setPreviewUrl(profileData.avatar_url);
           } else if (profileDataError) {
-            // Se der erro 400 ou a tabela não existir, apenas logar (não é crítico)
-            console.warn('Não foi possível buscar avatar_url:', profileDataError);
-            // Não definir erro aqui, pois o perfil pode não ter foto ainda
+            // Se der erro, logar detalhes
+            console.warn('⚠️ Não foi possível buscar avatar_url:', {
+              error: profileDataError,
+              code: profileDataError.code,
+              message: profileDataError.message,
+              details: profileDataError.details,
+              hint: profileDataError.hint
+            });
+            
+            // Se o erro for porque não existe registro, criar um registro vazio
+            if (profileDataError.code === 'PGRST116') {
+              console.log('📝 Registro não existe, criando registro vazio...');
+              try {
+                const { error: createError } = await supabase
+                  .from('user_profiles')
+                  .insert({
+                    id: profile.id,
+                    avatar_url: null,
+                    updated_at: new Date().toISOString()
+                  });
+                
+                if (createError) {
+                  console.warn('⚠️ Erro ao criar registro vazio:', createError);
+                } else {
+                  console.log('✅ Registro vazio criado com sucesso');
+                }
+              } catch (err) {
+                console.warn('⚠️ Erro ao criar registro:', err);
+              }
+            }
+          } else if (profileData && !profileData.avatar_url) {
+            console.log('ℹ️ Usuário não tem avatar ainda');
           }
         } catch (err) {
           // Ignorar erros ao buscar avatar_url (pode ser que a tabela não exista ainda)
-          console.warn('Erro ao buscar avatar_url:', err);
+          console.warn('⚠️ Erro ao buscar avatar_url:', err);
         }
       }
     } catch (err) {
@@ -177,9 +211,12 @@ export default function PerfilPage() {
         .from('avatars')
         .getPublicUrl(filePath);
 
+      console.log('🔍 URL pública gerada:', publicUrl);
+      console.log('🔍 FilePath:', filePath);
+
       // Atualizar perfil do usuário
-      // Primeiro, verificar se a tabela user_profiles existe e tem a coluna avatar_url
-      const { error: updateError } = await supabase
+      // Primeiro, tentar atualizar diretamente na tabela
+      const { data: upsertData, error: updateError } = await supabase
         .from('user_profiles')
         .upsert({
           id: authUser.id,
@@ -187,9 +224,14 @@ export default function PerfilPage() {
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'id'
-        });
+        })
+        .select();
+
+      console.log('💾 Resultado do upsert:', { upsertData, updateError });
 
       if (updateError) {
+        console.error('❌ Erro no upsert direto:', updateError);
+        
         // Se não conseguir atualizar na tabela, tentar atualizar via RPC
         const { error: rpcError } = await supabase.rpc('update_user_avatar', {
           p_user_id: authUser.id,
@@ -197,20 +239,24 @@ export default function PerfilPage() {
         });
 
         if (rpcError) {
-          console.warn('Erro ao atualizar avatar via RPC:', rpcError);
-          // Mesmo assim, atualizar o estado local para mostrar a imagem
-          setUser(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
-          setSuccess('Foto atualizada com sucesso! (Nota: pode levar alguns minutos para aparecer em todos os lugares)');
+          console.error('❌ Erro ao atualizar avatar via RPC:', rpcError);
+          throw new Error(`Erro ao salvar URL da foto: ${rpcError.message}`);
         } else {
-          setSuccess('Foto atualizada com sucesso!');
-          setUser(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
-          setPreviewUrl(publicUrl);
+          console.log('✅ Avatar atualizado via RPC com sucesso');
         }
       } else {
-        setSuccess('Foto atualizada com sucesso!');
-        setUser(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
-        setPreviewUrl(publicUrl);
+        console.log('✅ Avatar atualizado na tabela com sucesso');
+        
+        // Verificar se o registro foi criado/atualizado
+        if (upsertData && upsertData.length > 0) {
+          console.log('✅ Dados confirmados na tabela:', upsertData[0]);
+        }
       }
+
+      // Atualizar estado local
+      setSuccess('Foto atualizada com sucesso!');
+      setUser(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      setPreviewUrl(publicUrl);
 
       // Limpar input
       if (fileInputRef.current) {
