@@ -4845,11 +4845,33 @@ function ValoresView({
     return <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
   };
 
+  // Debug: log dos dados recebidos
+  useEffect(() => {
+    console.log('📊 ValoresView - valoresData recebido:', valoresData);
+    console.log('📊 ValoresView - total de itens:', valoresData?.length || 0);
+    if (valoresData && valoresData.length > 0) {
+      console.log('📊 ValoresView - primeiro item:', valoresData[0]);
+    }
+  }, [valoresData]);
+
   // Calcular estatísticas gerais
   // Garantir que dataToDisplay seja array antes de fazer reduce
   const dataArray = Array.isArray(dataToDisplay) ? dataToDisplay : [];
-  const totalGeral = dataArray.reduce((sum, e) => sum + (e?.total_taxas || 0), 0);
-  const totalCorridas = dataArray.reduce((sum, e) => sum + (e?.numero_corridas_aceitas || 0), 0);
+  
+  // Debug do dataToDisplay
+  useEffect(() => {
+    console.log('📊 ValoresView - dataToDisplay:', dataToDisplay);
+    console.log('📊 ValoresView - dataArray.length:', dataArray.length);
+  }, [dataToDisplay, dataArray.length]);
+  
+  const totalGeral = dataArray.reduce((sum, e) => {
+    const valor = Number(e?.total_taxas) || 0;
+    return sum + valor;
+  }, 0);
+  const totalCorridas = dataArray.reduce((sum, e) => {
+    const valor = Number(e?.numero_corridas_aceitas) || 0;
+    return sum + valor;
+  }, 0);
   const taxaMediaGeral = totalCorridas > 0 ? totalGeral / totalCorridas : 0;
   const totalEntregadores = dataArray.length;
 
@@ -5010,11 +5032,12 @@ function ValoresView({
                 const ranking = index + 1;
                 
                 // Garantir que todos os valores numéricos existam antes de usar
-                const totalTaxas = entregador.total_taxas ?? 0;
-                const numeroCorridas = entregador.numero_corridas_aceitas ?? 0;
-                const taxaMedia = entregador.taxa_media ?? 0;
-                const nomeEntregador = entregador.nome_entregador || 'N/A';
-                const idEntregador = entregador.id_entregador || `entregador-${index}`;
+                // Converter para número para garantir que seja numérico
+                const totalTaxas = Number(entregador.total_taxas) || 0;
+                const numeroCorridas = Number(entregador.numero_corridas_aceitas) || 0;
+                const taxaMedia = Number(entregador.taxa_media) || 0;
+                const nomeEntregador = String(entregador.nome_entregador || entregador.id_entregador || 'N/A');
+                const idEntregador = String(entregador.id_entregador || `entregador-${index}`);
                 
                 return (
                 <tr 
@@ -6642,8 +6665,36 @@ export default function DashboardPage() {
           
           if (valoresError) throw valoresError;
           
-          // Garantir que sempre seja um array, mesmo se o backend retornar null ou outro tipo
-          const valoresArray = Array.isArray(valoresResult) ? valoresResult : (valoresResult ? [valoresResult] : []);
+          console.log('📊 Resultado bruto de listar_valores_entregadores:', valoresResult);
+          console.log('📊 Tipo do resultado:', typeof valoresResult);
+          console.log('📊 É array?', Array.isArray(valoresResult));
+          
+          // Verificar se o resultado é um objeto com propriedade 'valores' (estrutura esperada)
+          let valoresArray: ValoresEntregador[] = [];
+          
+          if (Array.isArray(valoresResult)) {
+            // Se já for um array, usar diretamente
+            valoresArray = valoresResult;
+          } else if (valoresResult && typeof valoresResult === 'object') {
+            // Se for um objeto, verificar se tem propriedade 'valores'
+            if ('valores' in valoresResult && Array.isArray((valoresResult as any).valores)) {
+              valoresArray = (valoresResult as any).valores;
+            } else if ('valores_entregadores' in valoresResult && Array.isArray((valoresResult as any).valores_entregadores)) {
+              valoresArray = (valoresResult as any).valores_entregadores;
+            } else {
+              // Tentar converter o objeto em array se tiver estrutura de array
+              valoresArray = Object.values(valoresResult).filter((item: any) => 
+                item && typeof item === 'object' && 'id_entregador' in item
+              ) as ValoresEntregador[];
+            }
+          } else if (valoresResult) {
+            // Se for um único valor, colocar em array
+            valoresArray = [valoresResult];
+          }
+          
+          console.log('📊 Array final processado:', valoresArray);
+          console.log('📊 Total de entregadores:', valoresArray.length);
+          
           setValoresData(valoresArray);
         } catch (err: any) {
           console.error('Erro ao buscar Valores:', err);
