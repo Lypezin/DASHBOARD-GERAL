@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import {
   Chart as ChartJS,
@@ -517,8 +517,8 @@ const FiltroMultiSelect = React.memo(({
     }
   }, [isOpen]);
 
-  // Atualizar posição do dropdown quando aberto
-  useEffect(() => {
+  // Atualizar posição do dropdown quando aberto - useLayoutEffect executa de forma síncrona após o DOM ser atualizado
+  useLayoutEffect(() => {
     if (isOpen && buttonRef.current && dropdownRef.current) {
       const updatePosition = () => {
         if (buttonRef.current && dropdownRef.current) {
@@ -530,17 +530,19 @@ const FiltroMultiSelect = React.memo(({
         }
       };
       
-      // Usar requestAnimationFrame para garantir que o DOM está atualizado
-      requestAnimationFrame(() => {
-        updatePosition();
-      });
+      // Executar imediatamente (useLayoutEffect já garante que o DOM está atualizado)
+      updatePosition();
       
       // Atualizar em caso de scroll ou resize
       const handleScroll = () => {
-        requestAnimationFrame(updatePosition);
+        if (buttonRef.current && dropdownRef.current) {
+          updatePosition();
+        }
       };
       const handleResize = () => {
-        requestAnimationFrame(updatePosition);
+        if (buttonRef.current && dropdownRef.current) {
+          updatePosition();
+        }
       };
       
       window.addEventListener('scroll', handleScroll, true);
