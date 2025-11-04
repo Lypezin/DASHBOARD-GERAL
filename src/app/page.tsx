@@ -6683,6 +6683,10 @@ export default function DashboardPage() {
           console.log('📊 Resultado bruto de listar_valores_entregadores:', valoresResult);
           console.log('📊 Tipo do resultado:', typeof valoresResult);
           console.log('📊 É array?', Array.isArray(valoresResult));
+          console.log('📊 Chaves do objeto:', valoresResult ? Object.keys(valoresResult) : 'null/undefined');
+          if (valoresResult && typeof valoresResult === 'object' && !Array.isArray(valoresResult)) {
+            console.log('📊 Estrutura completa do objeto:', JSON.stringify(valoresResult, null, 2));
+          }
           
           // Verificar se o resultado é um objeto com propriedade 'valores' (estrutura esperada)
           let valoresArray: ValoresEntregador[] = [];
@@ -6690,25 +6694,70 @@ export default function DashboardPage() {
           if (Array.isArray(valoresResult)) {
             // Se já for um array, usar diretamente
             valoresArray = valoresResult;
+            console.log('✅ Resultado é array direto, usando:', valoresArray.length, 'itens');
           } else if (valoresResult && typeof valoresResult === 'object') {
-            // Se for um objeto, verificar se tem propriedade 'valores'
-            if ('valores' in valoresResult && Array.isArray((valoresResult as any).valores)) {
-              valoresArray = (valoresResult as any).valores;
-            } else if ('valores_entregadores' in valoresResult && Array.isArray((valoresResult as any).valores_entregadores)) {
-              valoresArray = (valoresResult as any).valores_entregadores;
-            } else {
-              // Tentar converter o objeto em array se tiver estrutura de array
-              valoresArray = Object.values(valoresResult).filter((item: any) => 
-                item && typeof item === 'object' && 'id_entregador' in item
-              ) as ValoresEntregador[];
+            // Se for um objeto, verificar diferentes estruturas possíveis
+            const obj = valoresResult as any;
+            
+            // IMPORTANTE: A função SQL retorna { "entregadores": [...] } - verificar PRIMEIRO
+            if ('entregadores' in obj && Array.isArray(obj.entregadores)) {
+              valoresArray = obj.entregadores;
+              console.log('✅ Encontrado em obj.entregadores:', valoresArray.length, 'itens');
+            }
+            // Verificar propriedade 'valores' (estrutura alternativa)
+            else if ('valores' in obj && Array.isArray(obj.valores)) {
+              valoresArray = obj.valores;
+              console.log('✅ Encontrado em obj.valores:', valoresArray.length, 'itens');
+            } 
+            // Verificar propriedade 'valores_entregadores'
+            else if ('valores_entregadores' in obj && Array.isArray(obj.valores_entregadores)) {
+              valoresArray = obj.valores_entregadores;
+              console.log('✅ Encontrado em obj.valores_entregadores:', valoresArray.length, 'itens');
+            }
+            // Verificar propriedade 'data'
+            else if ('data' in obj && Array.isArray(obj.data)) {
+              valoresArray = obj.data;
+              console.log('✅ Encontrado em obj.data:', valoresArray.length, 'itens');
+            }
+            // Verificar propriedade 'result' ou 'results'
+            else if ('result' in obj && Array.isArray(obj.result)) {
+              valoresArray = obj.result;
+              console.log('✅ Encontrado em obj.result:', valoresArray.length, 'itens');
+            }
+            else if ('results' in obj && Array.isArray(obj.results)) {
+              valoresArray = obj.results;
+              console.log('✅ Encontrado em obj.results:', valoresArray.length, 'itens');
+            }
+            // Tentar converter o objeto em array se os valores forem objetos com id_entregador
+            else {
+              const values = Object.values(obj);
+              const arrayLike = values.filter((item: any) => 
+                item && typeof item === 'object' && ('id_entregador' in item || 'nome_entregador' in item)
+              );
+              if (arrayLike.length > 0) {
+                valoresArray = arrayLike as ValoresEntregador[];
+                console.log('✅ Convertido de valores do objeto:', valoresArray.length, 'itens');
+              } else {
+                // Se não encontrou array, pode ser que o objeto seja um único registro
+                if ('id_entregador' in obj || 'nome_entregador' in obj) {
+                  valoresArray = [obj as ValoresEntregador];
+                  console.log('✅ Objeto único convertido para array');
+                } else {
+                  console.warn('⚠️ Não foi possível extrair array do objeto. Estrutura:', Object.keys(obj));
+                }
+              }
             }
           } else if (valoresResult) {
             // Se for um único valor, colocar em array
-            valoresArray = [valoresResult];
+            valoresArray = [valoresResult as ValoresEntregador];
+            console.log('✅ Valor único convertido para array');
           }
           
           console.log('📊 Array final processado:', valoresArray);
           console.log('📊 Total de entregadores:', valoresArray.length);
+          if (valoresArray.length > 0) {
+            console.log('📊 Primeiro item do array:', valoresArray[0]);
+          }
           
           setValoresData(valoresArray);
         } catch (err: any) {
