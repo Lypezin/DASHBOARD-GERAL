@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import {
   Chart as ChartJS,
@@ -1896,77 +1896,116 @@ function AnaliseView({
 function MonitoramentoView() {
   const [usuarios, setUsuarios] = useState<UsuarioOnline[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'ativos' | 'inativos'>('todos');
   const [atividades, setAtividades] = useState<any[]>([]);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchMonitoramento = async () => {
+  const fetchMonitoramento = useCallback(async () => {
     try {
+      setError(null);
+      
       // Buscar usuários online
       const { data, error } = await supabase.rpc('listar_usuarios_online');
       
-      if (error) throw error;
-      
-      // Buscar atividades recentes (últimas 50)
-      const { data: atividadesData, error: atividadesError } = await supabase
-        .from('user_activity')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-      
-      if (!atividadesError && atividadesData) {
-        setAtividades(atividadesData);
+      if (error) {
+        console.error('Erro ao buscar usuários online:', error);
+        setError('Erro ao carregar usuários online. Tente novamente.');
+        setUsuarios([]);
+        return;
       }
       
-      // Mapear os dados da API para o formato esperado
-      const usuariosMapeados = (data || []).map((u: any) => {
-        // Segundos de inatividade já vem como número do backend
-        const segundosInativo = u.seconds_inactive || 0;
+      // Buscar atividades recentes (últimas 50) - com tratamento de erro não bloqueante
+      let atividadesData: any[] = [];
+      try {
+        const { data: atividadesResponse, error: atividadesError } = await supabase
+          .from('user_activity')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
         
-        // Extrair praças dos filtros
+        if (!atividadesError && atividadesResponse) {
+          atividadesData = atividadesResponse;
+          setAtividades(atividadesData);
+        }
+      } catch (err) {
+        console.warn('Erro ao buscar atividades (pode não estar disponível):', err);
+        // Não bloquear a funcionalidade principal se atividades falhar
+      }
+      
+      // Mapear os dados da API para o formato esperado com validações
+      const usuariosMapeados: UsuarioOnline[] = (data || []).map((u: any): UsuarioOnline | null => {
+        // Validações de segurança
+        if (!u || !u.user_id) return null;
+        
+        // Segundos de inatividade já vem como número do backend
+        const segundosInativo = typeof u.seconds_inactive === 'number' ? u.seconds_inactive : 0;
+        
+        // Extrair praças dos filtros com validação
         const filtros = u.filters_applied || {};
-        const pracas = filtros.p_praca ? [filtros.p_praca] : (filtros.praca ? [filtros.praca] : []);
+        let pracas: string[] = [];
+        if (filtros.p_praca) {
+          pracas = Array.isArray(filtros.p_praca) ? filtros.p_praca : [filtros.p_praca];
+        } else if (filtros.praca) {
+          pracas = Array.isArray(filtros.praca) ? filtros.praca : [filtros.praca];
+        }
         
         // A descrição detalhada já vem do backend (action_details)
-        const descricaoAcao = u.action_details || u.last_action_type || 'Atividade desconhecida';
+        const descricaoAcao = u.action_details || u.last_action_type || u.action_type || 'Atividade desconhecida';
         
-        // Contar ações da última hora
+        // Contar ações da última hora com validação
         const umaHoraAtras = new Date();
         umaHoraAtras.setHours(umaHoraAtras.getHours() - 1);
-        const acoesUltimaHora = atividadesData?.filter((a: any) => 
-          a.user_id === u.user_id && new Date(a.created_at) > umaHoraAtras
-        ).length || 0;
+        const acoesUltimaHora = atividadesData.filter((a: any) => 
+          a && a.user_id === u.user_id && a.created_at && new Date(a.created_at) > umaHoraAtras
+        ).length;
         
         return {
-          user_id: u.user_id,
-          nome: u.user_name || u.user_email?.split('@')[0] || 'Usuário',
-          email: u.user_email,
-          aba_atual: u.current_tab,
+          user_id: u.user_id || '',
+          nome: u.user_name || (u.user_email ? u.user_email.split('@')[0] : 'Usuário'),
+          email: u.user_email || '',
+          aba_atual: u.current_tab || null,
           pracas: pracas,
           ultima_acao: descricaoAcao,
-          segundos_inativo: Math.floor(segundosInativo),
+          segundos_inativo: Math.floor(Math.max(0, segundosInativo)),
           acoes_ultima_hora: acoesUltimaHora,
-          is_active: u.is_active
+          is_active: u.is_active !== false
         };
-      });
+      }).filter((u): u is UsuarioOnline => u !== null); // Filtrar nulos
       
       setUsuarios(usuariosMapeados);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao buscar monitoramento:', err);
+      setError(err?.message || 'Erro desconhecido ao carregar monitoramento');
       setUsuarios([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchMonitoramento();
     
-    if (autoRefresh) {
-      const interval = setInterval(fetchMonitoramento, 10000); // Atualizar a cada 10 segundos
-      return () => clearInterval(interval);
+    // Limpar intervalo anterior se existir
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
-  }, [autoRefresh]);
+    
+    if (autoRefresh) {
+      intervalRef.current = setInterval(() => {
+        fetchMonitoramento();
+      }, 10000); // Atualizar a cada 10 segundos
+    }
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [autoRefresh, fetchMonitoramento]);
 
   const formatarTempo = (segundos: number) => {
     if (segundos < 60) return `${Math.floor(segundos)}s`;
@@ -1980,18 +2019,27 @@ function MonitoramentoView() {
     return 'bg-slate-400';
   };
 
-  const formatarTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const agora = new Date();
-    const diff = Math.floor((agora.getTime() - date.getTime()) / 1000);
+  const formatarTimestamp = (timestamp: string | null | undefined) => {
+    if (!timestamp) return 'Data desconhecida';
     
-    if (diff < 60) return `${diff}s atrás`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m atrás`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
-    return date.toLocaleDateString('pt-BR');
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return 'Data inválida';
+      
+      const agora = new Date();
+      const diff = Math.floor((agora.getTime() - date.getTime()) / 1000);
+      
+      if (diff < 0) return 'Agora';
+      if (diff < 60) return `${diff}s atrás`;
+      if (diff < 3600) return `${Math.floor(diff / 60)}m atrás`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
+      return date.toLocaleDateString('pt-BR');
+    } catch (err) {
+      return 'Data inválida';
+    }
   };
 
-  if (loading) {
+  if (loading && usuarios.length === 0) {
     return (
       <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
         <div className="text-center">
@@ -2002,17 +2050,42 @@ function MonitoramentoView() {
     );
   }
 
-  // Calcular estatísticas
-  const usuariosAtivos = usuarios.filter(u => u.segundos_inativo < 60).length;
-  const usuariosInativos = usuarios.length - usuariosAtivos;
-  const totalAcoes = usuarios.reduce((sum, u) => sum + u.acoes_ultima_hora, 0);
+  // Mostrar erro se houver e não houver usuários
+  if (error && usuarios.length === 0) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center animate-fade-in">
+        <div className="max-w-sm mx-auto rounded-xl border border-rose-200 bg-white p-6 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
+          <div className="text-4xl">⚠️</div>
+          <p className="mt-4 text-lg font-bold text-rose-900 dark:text-rose-100">Erro ao carregar monitoramento</p>
+          <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              fetchMonitoramento();
+            }}
+            className="mt-4 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-rose-700"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Calcular estatísticas (otimizado com useMemo)
+  const usuariosAtivos = useMemo(() => usuarios.filter(u => u.segundos_inativo < 60).length, [usuarios]);
+  const usuariosInativos = useMemo(() => usuarios.length - usuariosAtivos, [usuarios, usuariosAtivos]);
+  const totalAcoes = useMemo(() => usuarios.reduce((sum, u) => sum + u.acoes_ultima_hora, 0), [usuarios]);
   
-  // Filtrar usuários
-  const usuariosFiltrados = usuarios.filter(u => {
-    if (filtroStatus === 'ativos') return u.segundos_inativo < 60;
-    if (filtroStatus === 'inativos') return u.segundos_inativo >= 60;
-    return true;
-  });
+  // Filtrar usuários (otimizado com useMemo)
+  const usuariosFiltrados = useMemo(() => {
+    return usuarios.filter(u => {
+      if (filtroStatus === 'ativos') return u.segundos_inativo < 60;
+      if (filtroStatus === 'inativos') return u.segundos_inativo >= 60;
+      return true;
+    });
+  }, [usuarios, filtroStatus]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -2114,10 +2187,14 @@ function MonitoramentoView() {
               <span>Auto-atualizar (10s)</span>
             </label>
             <button
-              onClick={fetchMonitoramento}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-indigo-700 hover:scale-105 active:scale-95"
+              onClick={() => {
+                setLoading(true);
+                fetchMonitoramento();
+              }}
+              disabled={loading}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-indigo-700 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              🔄 Atualizar
+              {loading ? '⏳ Atualizando...' : '🔄 Atualizar'}
             </button>
           </div>
         </div>
@@ -2220,29 +2297,37 @@ function MonitoramentoView() {
             
             <div className="max-h-[600px] space-y-2 overflow-auto p-4">
               {atividades.length > 0 ? (
-                atividades.map((ativ, idx) => (
-                  <div
-                    key={`${ativ.user_id}-${ativ.created_at}-${idx}`}
-                    className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-slate-900 dark:text-white truncate">
-                          {ativ.action_type === 'tab_change' && `Mudou para aba: ${ativ.filters_applied?.aba || 'desconhecida'}`}
-                          {ativ.action_type === 'filter_change' && 'Alterou filtros'}
-                          {ativ.action_type === 'login' && 'Fez login'}
-                          {ativ.action_type === 'heartbeat' && 'Ativo no sistema'}
-                          {ativ.action_type === 'page_visibility' && (ativ.details?.visible ? 'Voltou para a aba' : 'Saiu da aba')}
-                          {!['tab_change', 'filter_change', 'login', 'heartbeat', 'page_visibility'].includes(ativ.action_type) && (ativ.action_details || ativ.action_type)}
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
-                          {formatarTimestamp(ativ.created_at)}
-                        </p>
+                atividades.map((ativ, idx) => {
+                  // Validação de dados antes de renderizar
+                  if (!ativ || !ativ.user_id || !ativ.created_at) return null;
+                  
+                  const actionDescription = 
+                    ativ.action_type === 'tab_change' ? `Mudou para aba: ${ativ.filters_applied?.aba || 'desconhecida'}` :
+                    ativ.action_type === 'filter_change' ? 'Alterou filtros' :
+                    ativ.action_type === 'login' ? 'Fez login' :
+                    ativ.action_type === 'heartbeat' ? 'Ativo no sistema' :
+                    ativ.action_type === 'page_visibility' ? (ativ.details?.visible ? 'Voltou para a aba' : 'Saiu da aba') :
+                    (ativ.action_details || ativ.action_type || 'Ação desconhecida');
+                  
+                  return (
+                    <div
+                      key={`${ativ.user_id}-${ativ.created_at}-${idx}`}
+                      className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium text-slate-900 dark:text-white truncate">
+                            {actionDescription}
+                          </p>
+                          <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                            {formatarTimestamp(ativ.created_at)}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                }).filter(Boolean)
               ) : (
                 <div className="py-8 text-center">
                   <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -5949,7 +6034,7 @@ function PrioridadePromoView({
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade'>('dashboard');
-  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`);
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
@@ -6263,7 +6348,7 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
 
-      const params = buildFilterPayload(filters);
+      const params = filterPayload;
       console.log('🔍 Filtros aplicados:', filters);
       console.log('📤 Parâmetros enviados ao backend:', params);
 
@@ -6429,6 +6514,9 @@ export default function DashboardPage() {
     };
   }, [filters, currentUser, activeTab, dimensoesOriginais]);
 
+  // Memoizar buildFilterPayload para evitar recálculos desnecessários
+  const filterPayload = useMemo(() => buildFilterPayload(filters), [filters]);
+
   // Buscar dados da UTR quando a aba estiver ativa (com debounce)
   useEffect(() => {
     if (activeTab !== 'utr') return;
@@ -6437,8 +6525,7 @@ export default function DashboardPage() {
       async function fetchUtr() {
         setLoadingUtr(true);
         try {
-          const params = buildFilterPayload(filters);
-          const { data: utrResult, error: utrError } = await supabase.rpc('calcular_utr', params);
+          const { data: utrResult, error: utrError } = await supabase.rpc('calcular_utr', filterPayload);
           
           if (utrError) throw utrError;
           
@@ -6446,6 +6533,7 @@ export default function DashboardPage() {
         } catch (err: any) {
           console.error('Erro ao buscar UTR:', err);
           setUtrData(null);
+          // Não mostrar erro ao usuário aqui, apenas logar - o componente UtrView já trata dados nulos
         } finally {
           setLoadingUtr(false);
         }
@@ -6455,7 +6543,7 @@ export default function DashboardPage() {
     }, 300);
     
     return () => clearTimeout(timeoutId);
-  }, [activeTab, filters]);
+  }, [activeTab, filterPayload]);
 
   // Buscar dados dos Entregadores quando a aba estiver ativa (com debounce)
   useEffect(() => {
@@ -6465,8 +6553,7 @@ export default function DashboardPage() {
       async function fetchEntregadores() {
         setLoadingEntregadores(true);
         try {
-          const params = buildFilterPayload(filters);
-          const { data: entregadoresResult, error: entregadoresError } = await supabase.rpc('listar_entregadores', params);
+          const { data: entregadoresResult, error: entregadoresError } = await supabase.rpc('listar_entregadores', filterPayload);
           
           if (entregadoresError) throw entregadoresError;
           
@@ -6474,6 +6561,7 @@ export default function DashboardPage() {
         } catch (err: any) {
           console.error('Erro ao buscar Entregadores:', err);
           setEntregadoresData(null);
+          // Não mostrar erro ao usuário aqui, apenas logar - o componente EntregadoresView já trata dados nulos
         } finally {
           setLoadingEntregadores(false);
         }
@@ -6483,7 +6571,7 @@ export default function DashboardPage() {
     }, 300);
     
     return () => clearTimeout(timeoutId);
-  }, [activeTab, filters]);
+  }, [activeTab, filterPayload]);
 
   // Buscar dados para Prioridade/Promo quando a aba estiver ativa (com debounce)
   useEffect(() => {
@@ -6493,8 +6581,7 @@ export default function DashboardPage() {
       async function fetchPrioridade() {
         setLoadingPrioridade(true);
         try {
-          const params = buildFilterPayload(filters);
-          const { data: prioridadeResult, error: prioridadeError } = await supabase.rpc('listar_entregadores', params);
+          const { data: prioridadeResult, error: prioridadeError } = await supabase.rpc('listar_entregadores', filterPayload);
           
           if (prioridadeError) throw prioridadeError;
           
@@ -6502,6 +6589,7 @@ export default function DashboardPage() {
         } catch (err: any) {
           console.error('Erro ao buscar dados de Prioridade:', err);
           setPrioridadeData(null);
+          // Não mostrar erro ao usuário aqui, apenas logar - o componente PrioridadePromoView já trata dados nulos
         } finally {
           setLoadingPrioridade(false);
         }
@@ -6511,7 +6599,7 @@ export default function DashboardPage() {
     }, 300);
     
     return () => clearTimeout(timeoutId);
-  }, [activeTab, filters]);
+  }, [activeTab, filterPayload]);
 
   // Buscar dados de Valores quando a aba estiver ativa (com debounce)
   useEffect(() => {
@@ -6521,8 +6609,7 @@ export default function DashboardPage() {
       async function fetchValores() {
         setLoadingValores(true);
         try {
-          const params = buildFilterPayload(filters);
-          const { data: valoresResult, error: valoresError } = await supabase.rpc('listar_valores_entregadores', params);
+          const { data: valoresResult, error: valoresError } = await supabase.rpc('listar_valores_entregadores', filterPayload);
           
           if (valoresError) throw valoresError;
           
@@ -6530,6 +6617,7 @@ export default function DashboardPage() {
         } catch (err: any) {
           console.error('Erro ao buscar Valores:', err);
           setValoresData([]);
+          // Não mostrar erro ao usuário aqui, apenas logar - o componente ValoresView já trata dados vazios
         } finally {
           setLoadingValores(false);
         }
@@ -6539,7 +6627,7 @@ export default function DashboardPage() {
     }, 300);
     
     return () => clearTimeout(timeoutId);
-  }, [activeTab, filters]);
+  }, [activeTab, filterPayload]);
 
   // Buscar anos disponíveis ao carregar
   useEffect(() => {
