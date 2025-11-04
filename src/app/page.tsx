@@ -111,8 +111,10 @@ interface Filters {
   praca: string | null;
   subPraca: string | null;
   origem: string | null;
+  turno: string | null;
   subPracas: string[];
   origens: string[];
+  turnos: string[];
   semanas: number[];
 }
 
@@ -122,6 +124,7 @@ interface DimensoesDashboard {
   pracas: string[];
   sub_pracas: string[];
   origens: string[];
+  turnos?: string[];
 }
 
 interface DashboardResumoData {
@@ -280,6 +283,10 @@ function buildFilterPayload(filters: Filters) {
     ? (filters.origens.length === 1 ? filters.origens[0] : filters.origens.join(','))
     : filters.origem;
 
+  const turno = filters.turnos && filters.turnos.length > 0
+    ? (filters.turnos.length === 1 ? filters.turnos[0] : filters.turnos.join(','))
+    : filters.turno;
+
   const semana = filters.semanas && filters.semanas.length > 0
     ? (filters.semanas.length === 1 ? String(filters.semanas[0]) : filters.semanas.join(','))
     : (filters.semana !== null ? String(filters.semana) : null);
@@ -290,6 +297,7 @@ function buildFilterPayload(filters: Filters) {
     p_praca: filters.praca,
     p_sub_praca: subPraca,
     p_origem: origem,
+    p_turno: turno,
   };
 }
 
@@ -680,6 +688,7 @@ function FiltroBar({
   pracas,
   subPracas,
   origens,
+  turnos,
   currentUser,
 }: {
   filters: Filters;
@@ -689,6 +698,7 @@ function FiltroBar({
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
+  turnos: FilterOption[];
   currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
 }) {
   const handleChange = (key: keyof Filters, rawValue: string | null) => {
@@ -721,13 +731,15 @@ function FiltroBar({
       praca: currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1 ? currentUser.assigned_pracas[0] : null,
       subPraca: null,
       origem: null,
+      turno: null,
       subPracas: [],
       origens: [],
+      turnos: [],
       semanas: [],
     });
   };
 
-  const hasActiveFilters = filters.ano !== null || filters.semana !== null || (filters.semanas && filters.semanas.length > 0) || filters.subPraca !== null || filters.origem !== null ||
+  const hasActiveFilters = filters.ano !== null || filters.semana !== null || (filters.semanas && filters.semanas.length > 0) || filters.subPraca !== null || filters.origem !== null || filters.turno !== null || (filters.turnos && filters.turnos.length > 0) ||
     (currentUser?.is_admin && filters.praca !== null);
 
   // Verificar se deve desabilitar o filtro de praça (somente não-admin com 1 praça)
@@ -735,7 +747,7 @@ function FiltroBar({
 
   return (
     <div className="space-y-3 sm:space-y-4 relative" style={{ isolation: 'isolate' }}>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
       <FiltroSelect
         label="Ano"
         value={filters.ano !== null ? String(filters.ano) : ''}
@@ -816,6 +828,19 @@ function FiltroBar({
             ...prev,
             origens: values,
             origem: values.length === 1 ? values[0] : null,
+          }));
+        }}
+      />
+      <FiltroMultiSelect
+        label="Turno"
+        selectedValues={filters.turnos || []}
+        options={turnos}
+        placeholder="Todos"
+        onChange={(values) => {
+          setFilters((prev) => ({
+            ...prev,
+            turnos: values,
+            turno: values.length === 1 ? values[0] : null,
           }));
         }}
       />
@@ -6111,9 +6136,10 @@ export default function DashboardPage() {
   const [pracas, setPracas] = useState<FilterOption[]>([]);
   const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
   const [origens, setOrigens] = useState<FilterOption[]>([]);
+  const [turnos, setTurnos] = useState<FilterOption[]>([]);
   // Armazenar dimensões originais completas para sempre manter todas as opções disponíveis
   const [dimensoesOriginais, setDimensoesOriginais] = useState<DimensoesDashboard | null>(null);
-  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null, subPracas: [], origens: [], semanas: [] });
+  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null, turno: null, subPracas: [], origens: [], turnos: [], semanas: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -6197,6 +6223,7 @@ export default function DashboardPage() {
           if (filtersApplied.praca) filtros.push(`Praça: ${filtersApplied.praca}`);
           if (filtersApplied.sub_praca) filtros.push(`Sub-Praça: ${filtersApplied.sub_praca}`);
           if (filtersApplied.origem) filtros.push(`Origem: ${filtersApplied.origem}`);
+          if (filtersApplied.turno) filtros.push(`Turno: ${filtersApplied.turno}`);
           
           if (filtros.length > 0) {
             descricaoDetalhada = `Filtrou: ${filtros.join(', ')} na aba ${nomeAba}`;
@@ -6404,9 +6431,15 @@ export default function DashboardPage() {
           );
         }
         
+        // Extrair turnos únicos dos dados de turno recebidos
+        const turnosDisponiveis = Array.from(new Set(
+          (resumo?.turno ?? []).map((t: AderenciaTurno) => t.periodo).filter((p: string | null | undefined): p is string => p != null && p !== '')
+        )).sort();
+        
         setPracas(pracasDisponiveis.map((p: string) => ({ value: p, label: p })));
         setSubPracas(subPracasDisponiveis.map((sp: string) => ({ value: sp, label: sp })));
         setOrigens(origensDisponiveis.map((origem: string) => ({ value: origem, label: origem })));
+        setTurnos(turnosDisponiveis.map((t: string) => ({ value: t, label: t })));
         
         setError(null);
         setLoading(false);
@@ -6519,6 +6552,18 @@ export default function DashboardPage() {
         let subPracasDisponiveis = Array.isArray(dimensoesParaUsar?.sub_pracas) ? dimensoesParaUsar.sub_pracas : [];
         let origensDisponiveis = Array.isArray(dimensoesParaUsar?.origens) ? dimensoesParaUsar.origens : [];
         
+        // Extrair turnos únicos dos dados de turno recebidos
+        // Se estiver nas dimensões, usar, senão extrair dos dados recebidos
+        let turnosDisponiveis: string[] = [];
+        if (Array.isArray(dimensoesParaUsar?.turnos) && dimensoesParaUsar.turnos.length > 0) {
+          turnosDisponiveis = dimensoesParaUsar.turnos;
+        } else {
+          // Extrair dos dados de turno recebidos
+          turnosDisponiveis = Array.from(new Set(
+            (turnoFiltrado ?? []).map((t: AderenciaTurno) => t.periodo).filter((p: string | null | undefined): p is string => p != null && p !== '')
+          )).sort();
+        }
+        
         // Se não for admin, filtrar apenas praças atribuídas
         if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
           const pracasPermitidas = currentUser.assigned_pracas.map(p => p.toUpperCase());
@@ -6552,6 +6597,7 @@ export default function DashboardPage() {
         setPracas(pracasDisponiveis.map((p: string) => ({ value: p, label: p })));
         setSubPracas(subPracasDisponiveis.map((sp: string) => ({ value: sp, label: sp })));
         setOrigens(origensDisponiveis.map((origem: string) => ({ value: origem, label: origem })));
+        setTurnos(turnosDisponiveis.map((t: string) => ({ value: t, label: t })));
 
         setError(null);
       } catch (err: any) {
@@ -6566,6 +6612,7 @@ export default function DashboardPage() {
         setAderenciaTurno([]);
         setAderenciaSubPraca([]);
         setAderenciaOrigem([]);
+        setTurnos([]);
       } finally {
         setLoading(false);
       }
@@ -6916,6 +6963,7 @@ export default function DashboardPage() {
                     pracas={pracas}
                     subPracas={subPracas}
                     origens={origens}
+                    turnos={turnos}
                     currentUser={currentUser}
                   />
                   </div>
