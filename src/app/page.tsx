@@ -4698,7 +4698,9 @@ function ValoresView({
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Função para formatar valores em Real
-  const formatarReal = (valor: number) => {
+  // IMPORTANTE: Aceita null/undefined e retorna valor padrão
+  const formatarReal = (valor: number | null | undefined) => {
+    if (valor == null || isNaN(valor)) return 'R$ 0,00';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -5001,12 +5003,22 @@ function ValoresView({
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {sortedValores.map((entregador, index) => {
+                // Validação de segurança: garantir que entregador existe
+                if (!entregador) return null;
+                
                 // Garantir que o número seja sempre sequencial (ranking)
                 const ranking = index + 1;
                 
+                // Garantir que todos os valores numéricos existam antes de usar
+                const totalTaxas = entregador.total_taxas ?? 0;
+                const numeroCorridas = entregador.numero_corridas_aceitas ?? 0;
+                const taxaMedia = entregador.taxa_media ?? 0;
+                const nomeEntregador = entregador.nome_entregador || 'N/A';
+                const idEntregador = entregador.id_entregador || `entregador-${index}`;
+                
                 return (
                 <tr 
-                  key={`${entregador.id_entregador}-${sortField}-${sortDirection}-${ranking}`}
+                  key={`${idEntregador}-${sortField}-${sortDirection}-${ranking}`}
                   className="group transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/20"
                 >
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm">
@@ -5014,27 +5026,27 @@ function ValoresView({
                       <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-xs sm:text-sm font-bold text-white shadow-sm">
                         {ranking}
                       </div>
-                      <span className="font-medium text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-none">{entregador.nome_entregador}</span>
+                      <span className="font-medium text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-none">{nomeEntregador}</span>
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                     <span className="inline-flex items-center rounded-lg bg-emerald-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100">
-                      {formatarReal(entregador.total_taxas)}
+                      {formatarReal(totalTaxas)}
                     </span>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                     <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs sm:text-sm">
-                      {entregador.numero_corridas_aceitas.toLocaleString('pt-BR')}
+                      {numeroCorridas.toLocaleString('pt-BR')}
                     </span>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                     <span className="inline-flex items-center rounded-lg bg-blue-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold text-blue-900 dark:bg-blue-950/50 dark:text-blue-100">
-                      {formatarReal(entregador.taxa_media)}
+                      {formatarReal(taxaMedia)}
                     </span>
                   </td>
                 </tr>
                 );
-              })}
+              }).filter(Boolean)}
             </tbody>
           </table>
         </div>
