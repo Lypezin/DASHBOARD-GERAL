@@ -89,9 +89,9 @@ CREATE TRIGGER update_user_profiles_updated_at
 CREATE INDEX IF NOT EXISTS idx_user_profiles_id ON public.user_profiles(id);
 
 -- =====================================================================
--- NOTA IMPORTANTE: CONFIGURAÇÃO DO SUPABASE STORAGE
+-- CONFIGURAÇÃO DO SUPABASE STORAGE
 -- =====================================================================
--- Você precisa criar o bucket "avatars" no Supabase Storage:
+-- PASSO 1: Criar o bucket "avatars" no Supabase Storage
 -- 
 -- 1. Vá para: https://supabase.com/dashboard/project/[SEU_PROJETO]/storage/buckets
 -- 2. Clique em "New bucket"
@@ -100,39 +100,9 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_id ON public.user_profiles(id);
 -- 5. File size limit: 5MB (ou o tamanho que preferir)
 -- 6. Allowed MIME types: image/jpeg, image/png, image/gif, image/webp
 --
--- Após criar o bucket, configure as políticas:
---
--- Política para SELECT (público):
--- CREATE POLICY "Public Avatar Access"
--- ON storage.objects FOR SELECT
--- USING (bucket_id = 'avatars');
---
--- Política para INSERT (autenticado):
--- CREATE POLICY "Users can upload own avatar"
--- ON storage.objects FOR INSERT
--- WITH CHECK (
---   bucket_id = 'avatars' 
---   AND auth.uid()::text = (storage.foldername(name))[1]
--- );
---
--- Política para UPDATE (autenticado):
--- CREATE POLICY "Users can update own avatar"
--- ON storage.objects FOR UPDATE
--- USING (
---   bucket_id = 'avatars' 
---   AND auth.uid()::text = (storage.foldername(name))[1]
--- )
--- WITH CHECK (
---   bucket_id = 'avatars' 
---   AND auth.uid()::text = (storage.foldername(name))[1]
--- );
---
--- Política para DELETE (autenticado):
--- CREATE POLICY "Users can delete own avatar"
--- ON storage.objects FOR DELETE
--- USING (
---   bucket_id = 'avatars' 
---   AND auth.uid()::text = (storage.foldername(name))[1]
--- );
+-- PASSO 2: Executar o arquivo CONFIGURAR_STORAGE_AVATARS.sql
+-- 
+-- Após criar o bucket, execute o arquivo CONFIGURAR_STORAGE_AVATARS.sql
+-- que contém todas as políticas de segurança necessárias.
 -- =====================================================================
 

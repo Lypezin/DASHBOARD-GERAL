@@ -51,15 +51,25 @@ export default function PerfilPage() {
       
       // Buscar avatar_url da tabela de perfil se existir
       if (profile?.id) {
-        const { data: profileData, error: profileDataError } = await supabase
-          .from('user_profiles')
-          .select('avatar_url')
-          .eq('id', profile.id)
-          .single();
-        
-        if (!profileDataError && profileData?.avatar_url) {
-          setUser(prev => prev ? { ...prev, avatar_url: profileData.avatar_url } : null);
-          setPreviewUrl(profileData.avatar_url);
+        try {
+          const { data: profileData, error: profileDataError } = await supabase
+            .from('user_profiles')
+            .select('avatar_url')
+            .eq('id', profile.id)
+            .single();
+          
+          // Se não houver erro e tiver avatar_url, usar
+          if (!profileDataError && profileData?.avatar_url) {
+            setUser(prev => prev ? { ...prev, avatar_url: profileData.avatar_url } : null);
+            setPreviewUrl(profileData.avatar_url);
+          } else if (profileDataError) {
+            // Se der erro 400 ou a tabela não existir, apenas logar (não é crítico)
+            console.warn('Não foi possível buscar avatar_url:', profileDataError);
+            // Não definir erro aqui, pois o perfil pode não ter foto ainda
+          }
+        } catch (err) {
+          // Ignorar erros ao buscar avatar_url (pode ser que a tabela não exista ainda)
+          console.warn('Erro ao buscar avatar_url:', err);
         }
       }
     } catch (err) {
@@ -116,12 +126,17 @@ export default function PerfilPage() {
           if (user.avatar_url.includes('/avatars/')) {
             const urlParts = user.avatar_url.split('/avatars/');
             if (urlParts.length > 1) {
-              oldFilePath = `avatars/${urlParts[1]}`;
+              // O caminho dentro do bucket não deve incluir "avatars/"
+              // A URL completa é: .../storage/v1/object/public/avatars/{user_id}/{filename}
+              // Então precisamos apenas de {user_id}/{filename}
+              oldFilePath = urlParts[1];
             }
           } else {
+            // Se não conseguir extrair, tentar extrair o nome do arquivo da URL
             const urlParts = user.avatar_url.split('/');
             const fileName = urlParts[urlParts.length - 1];
-            oldFilePath = `avatars/${authUser.id}/${fileName}`;
+            // Se não tiver o user_id no caminho, usar o ID do usuário atual
+            oldFilePath = `${authUser.id}/${fileName}`;
           }
           
           if (oldFilePath) {
@@ -136,10 +151,11 @@ export default function PerfilPage() {
       }
 
       // Criar nome único para o arquivo
-      // Estrutura: avatars/{user_id}/{timestamp}.{ext}
+      // IMPORTANTE: Quando usamos .from('avatars'), o caminho NÃO deve incluir "avatars/"
+      // Estrutura: {user_id}/{timestamp}.{ext}
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${authUser.id}/${fileName}`;
+      const filePath = `${authUser.id}/${fileName}`;
 
       // Upload para Supabase Storage
       const { error: uploadError } = await supabase.storage
@@ -221,17 +237,20 @@ export default function PerfilPage() {
 
       // Extrair caminho do arquivo da URL
       // A URL pode estar em diferentes formatos, então vamos tentar extrair o caminho
+      // IMPORTANTE: Quando usamos .from('avatars'), o caminho NÃO deve incluir "avatars/"
       let filePath = '';
       if (user.avatar_url.includes('/avatars/')) {
         const urlParts = user.avatar_url.split('/avatars/');
         if (urlParts.length > 1) {
-          filePath = `avatars/${urlParts[1]}`;
+          // O caminho dentro do bucket não deve incluir "avatars/"
+          filePath = urlParts[1];
         }
       } else {
-        // Se não conseguir extrair, usar o padrão: avatars/{user_id}/{filename}
+        // Se não conseguir extrair, tentar extrair o nome do arquivo da URL
         const urlParts = user.avatar_url.split('/');
         const fileName = urlParts[urlParts.length - 1];
-        filePath = `avatars/${authUser.id}/${fileName}`;
+        // Se não tiver o user_id no caminho, usar o ID do usuário atual
+        filePath = `${authUser.id}/${fileName}`;
       }
 
       // Remover do storage

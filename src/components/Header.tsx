@@ -149,18 +149,20 @@ export function Header() {
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium hover:shadow-lg"
+              className="flex items-center gap-2 sm:gap-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium hover:shadow-lg"
             >
               {avatarUrl || user.avatar_url ? (
                 <img
                   src={avatarUrl || user.avatar_url || ''}
                   alt={user.full_name}
-                  className="h-6 w-6 sm:h-7 sm:w-7 rounded-full object-cover border-2 border-white/30"
+                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover border-2 border-white/40 shadow-md"
                 />
               ) : (
-                <span className="text-base sm:text-lg">👤</span>
+                <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
+                  <span className="text-base sm:text-lg">👤</span>
+                </div>
               )}
-              <span className="text-sm sm:text-base max-w-[80px] sm:max-w-none truncate">{user.full_name.split(' ')[0]}</span>
+              <span className="text-sm sm:text-base font-medium">Conta</span>
               <span className="text-xs hidden sm:inline transition-transform duration-200" style={{transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)'}}>▼</span>
             </button>
 
