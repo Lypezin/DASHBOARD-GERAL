@@ -11,12 +11,14 @@ interface UserProfile {
   email: string;
   is_admin: boolean;
   is_approved: boolean;
+  avatar_url?: string | null;
 }
 
 export function Header() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     checkUser();
@@ -56,6 +58,27 @@ export function Header() {
       }
 
       setUser(profile);
+      
+      // Buscar avatar_url da tabela de perfil se existir
+      if (profile?.id) {
+        try {
+          const { data: profileData, error: profileDataError } = await supabase
+            .from('user_profiles')
+            .select('avatar_url')
+            .eq('id', profile.id)
+            .single();
+          
+          if (!profileDataError && profileData?.avatar_url) {
+            setAvatarUrl(profileData.avatar_url);
+            setUser(prev => prev ? { ...prev, avatar_url: profileData.avatar_url } : null);
+          } else if (profile.avatar_url) {
+            setAvatarUrl(profile.avatar_url);
+          }
+        } catch (err) {
+          // Se a tabela não existir ou houver erro, continuar sem avatar
+          console.warn('Não foi possível carregar avatar:', err);
+        }
+      }
     } catch (err) {
       console.error('Erro ao carregar perfil:', err);
       await supabase.auth.signOut();
@@ -128,7 +151,15 @@ export function Header() {
               onClick={() => setShowMenu(!showMenu)}
               className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium hover:shadow-lg"
             >
-              <span className="text-base sm:text-lg">👤</span>
+              {avatarUrl || user.avatar_url ? (
+                <img
+                  src={avatarUrl || user.avatar_url || ''}
+                  alt={user.full_name}
+                  className="h-6 w-6 sm:h-7 sm:w-7 rounded-full object-cover border-2 border-white/30"
+                />
+              ) : (
+                <span className="text-base sm:text-lg">👤</span>
+              )}
               <span className="text-sm sm:text-base max-w-[80px] sm:max-w-none truncate">{user.full_name.split(' ')[0]}</span>
               <span className="text-xs hidden sm:inline transition-transform duration-200" style={{transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)'}}>▼</span>
             </button>
@@ -136,15 +167,38 @@ export function Header() {
             {showMenu && (
               <div className="absolute right-0 mt-3 w-60 sm:w-64 rounded-xl border border-slate-200/50 bg-white shadow-2xl z-50 animate-scale-in overflow-hidden">
                 <div className="border-b border-slate-200 p-4 bg-gradient-to-br from-slate-50 to-blue-50">
-                  <p className="font-bold text-base text-slate-900">{user.full_name}</p>
-                  <p className="text-xs text-slate-600 truncate mt-0.5">{user.email}</p>
+                  <div className="flex items-center gap-3 mb-3">
+                    {avatarUrl || user.avatar_url ? (
+                      <img
+                        src={avatarUrl || user.avatar_url || ''}
+                        alt={user.full_name}
+                        className="h-12 w-12 rounded-full object-cover border-2 border-white shadow-md"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                        {user.full_name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-base text-slate-900 truncate">{user.full_name}</p>
+                      <p className="text-xs text-slate-600 truncate mt-0.5">{user.email}</p>
+                    </div>
+                  </div>
                   {user.is_admin && (
-                    <span className="mt-2.5 inline-flex items-center gap-1 rounded-full gradient-primary px-3 py-1 text-xs font-bold text-white shadow-md">
+                    <span className="inline-flex items-center gap-1 rounded-full gradient-primary px-3 py-1 text-xs font-bold text-white shadow-md">
                       <span>⭐</span>
                       <span>Administrador</span>
                     </span>
                   )}
                 </div>
+                <Link
+                  href="/perfil"
+                  onClick={() => setShowMenu(false)}
+                  className="w-full p-4 text-left text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-all flex items-center gap-2.5 group border-b border-slate-100"
+                >
+                  <span className="text-lg group-hover:scale-110 transition-transform">⚙️</span>
+                  <span>Meu Perfil</span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full p-4 text-left text-sm font-bold text-rose-600 hover:bg-rose-50 transition-all rounded-b-xl flex items-center gap-2.5 group"
