@@ -1953,27 +1953,76 @@ function MonitoramentoView() {
       const { data, error } = await supabase.rpc('listar_usuarios_online');
       
       if (error) {
-        if (IS_DEV) console.error('Erro ao buscar usuários online:', error);
-        setError('Erro ao carregar usuários online. Tente novamente.');
+        if (IS_DEV) {
+          console.error('Erro ao buscar usuários online:', error);
+          if (error.code === '42883') {
+            console.error('Função listar_usuarios_online não existe no banco de dados.');
+          }
+        }
+        
+        // Se a função não existir, mostrar mensagem específica
+        if (error.code === '42883') {
+          setError('Função de monitoramento não configurada. Entre em contato com o administrador.');
+        } else {
+          setError('Erro ao carregar usuários online. Tente novamente.');
+        }
         setUsuarios([]);
         return;
+      }
+      
+      // Validar dados recebidos
+      if (!data || !Array.isArray(data)) {
+        if (IS_DEV) console.warn('Dados de usuários online inválidos:', data);
+        setUsuarios([]);
+        return;
+      }
+      
+      if (IS_DEV && data.length > 0) {
+        console.log(`✅ ${data.length} usuário(s) online encontrado(s)`);
       }
       
       // Buscar atividades recentes (últimas 50) - com tratamento de erro não bloqueante
       let atividadesData: any[] = [];
       try {
         const { data: atividadesResponse, error: atividadesError } = await supabase
-        .from('user_activity')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
+          .from('user_activity')
+          .select('id, user_id, action_type, action_details, tab_name, filters_applied, created_at, session_id')
+          .order('created_at', { ascending: false })
+          .limit(50);
       
-        if (!atividadesError && atividadesResponse) {
+        if (atividadesError) {
+          if (IS_DEV) {
+            console.warn('Erro ao buscar atividades:', atividadesError);
+            // Se a tabela não existir, código 42P01
+            if (atividadesError.code === '42P01') {
+              console.warn('Tabela user_activity não existe. As atividades serão registradas quando a tabela for criada.');
+            }
+          }
+          setAtividades([]);
+        } else if (atividadesResponse && Array.isArray(atividadesResponse)) {
           atividadesData = atividadesResponse;
-        setAtividades(atividadesData);
+          setAtividades(atividadesData);
+          if (IS_DEV) {
+            if (atividadesData.length > 0) {
+              console.log(`✅ ${atividadesData.length} atividades carregadas`);
+            } else {
+              console.log('ℹ️ Nenhuma atividade encontrada na tabela user_activity');
+            }
+          }
+        } else {
+          setAtividades([]);
+          if (IS_DEV && !atividadesError) {
+            console.warn('Resposta de atividades inválida:', atividadesResponse);
+          }
         }
-      } catch (err) {
-        if (IS_DEV) console.warn('Erro ao buscar atividades (pode não estar disponível):', err);
+      } catch (err: any) {
+        if (IS_DEV) {
+          console.warn('Erro ao buscar atividades (pode não estar disponível):', err);
+          if (err?.code === '42P01') {
+            console.warn('Tabela user_activity não existe no banco de dados.');
+          }
+        }
+        setAtividades([]);
         // Não bloquear a funcionalidade principal se atividades falhar
       }
       
@@ -2347,37 +2396,81 @@ function MonitoramentoView() {
                   // Validação de dados antes de renderizar
                   if (!ativ || !ativ.user_id || !ativ.created_at) return null;
                   
-                  const actionDescription = 
-                    ativ.action_type === 'tab_change' ? `Mudou para aba: ${ativ.filters_applied?.aba || 'desconhecida'}` :
-                    ativ.action_type === 'filter_change' ? 'Alterou filtros' :
-                    ativ.action_type === 'login' ? 'Fez login' :
-                    ativ.action_type === 'heartbeat' ? 'Ativo no sistema' :
-                    ativ.action_type === 'page_visibility' ? (ativ.details?.visible ? 'Voltou para a aba' : 'Saiu da aba') :
-                    (ativ.action_details || ativ.action_type || 'Ação desconhecida');
+                  // Buscar nome do usuário da lista de usuários online
+                  const usuario = usuarios.find(u => u.user_id === ativ.user_id);
+                  const nomeUsuario = usuario?.nome || usuario?.email || 'Usuário desconhecido';
+                  
+                  // Determinar descrição da ação
+                  let actionDescription = '';
+                  let actionIcon = '📝';
+                  
+                  if (ativ.action_details) {
+                    // Se tiver action_details, usar diretamente
+                    actionDescription = ativ.action_details;
+                  } else if (ativ.action_type) {
+                    // Senão, construir baseado no tipo
+                    switch (ativ.action_type) {
+                      case 'tab_change':
+                        actionDescription = `Acessou a aba: ${ativ.tab_name || 'desconhecida'}`;
+                        actionIcon = '🔄';
+                        break;
+                      case 'filter_change':
+                        actionDescription = 'Alterou filtros';
+                        actionIcon = '🔍';
+                        break;
+                      case 'login':
+                        actionDescription = 'Fez login no sistema';
+                        actionIcon = '🔐';
+                        break;
+                      case 'heartbeat':
+                        actionDescription = `Ativo na aba ${ativ.tab_name || 'sistema'}`;
+                        actionIcon = '💓';
+                        break;
+                      case 'page_visible':
+                        actionDescription = `Voltou para a aba ${ativ.tab_name || 'sistema'}`;
+                        actionIcon = '👁️';
+                        break;
+                      case 'page_hidden':
+                        actionDescription = `Saiu da aba ${ativ.tab_name || 'sistema'}`;
+                        actionIcon = '👋';
+                        break;
+                      default:
+                        actionDescription = ativ.action_type || 'Ação desconhecida';
+                    }
+                  } else {
+                    actionDescription = 'Ação desconhecida';
+                  }
                   
                   return (
-                  <div
-                    key={`${ativ.user_id}-${ativ.created_at}-${idx}`}
-                    className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-slate-900 dark:text-white truncate">
+                    <div
+                      key={ativ.id || `${ativ.user_id}-${ativ.created_at}-${idx}`}
+                      className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="mt-0.5 text-xs shrink-0">{actionIcon}</div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                            {nomeUsuario}
+                          </p>
+                          <p className="text-xs text-slate-700 dark:text-slate-300 mt-0.5">
                             {actionDescription}
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
-                          {formatarTimestamp(ativ.created_at)}
-                        </p>
+                          </p>
+                          <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                            {formatarTimestamp(ativ.created_at)}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
                   );
                 }).filter(Boolean)
               ) : (
                 <div className="py-8 text-center">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                  <div className="text-4xl mb-2">📭</div>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                     Nenhuma atividade registrada
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    As atividades aparecerão aqui quando os usuários interagirem com o sistema
                   </p>
                 </div>
               )}
