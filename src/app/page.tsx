@@ -4279,20 +4279,32 @@ function EvolucaoView({
   onAnoChange: (ano: number) => void;
 }) {
   const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
-  const [metricType, setMetricType] = useState<'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'>('completadas');
+  const [selectedMetrics, setSelectedMetrics] = useState<Set<'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'>>(new Set(['completadas']));
   const isSemanal = viewMode === 'semanal';
 
-  // Ajustar métrica quando mudar o modo de visualização
+  // Ajustar métricas quando mudar o modo de visualização
   useEffect(() => {
-    // Se estava em UTR e mudou para mensal, voltar para completadas
-    if (metricType === 'utr' && viewMode === 'mensal') {
-      setMetricType('completadas');
-    }
-    // Se mudou para semanal mas não tem dados de UTR e estava em UTR, voltar para completadas
-    if (metricType === 'utr' && viewMode === 'semanal' && utrSemanal.length === 0) {
-      setMetricType('completadas');
-    }
-  }, [viewMode, utrSemanal.length, metricType]);
+    setSelectedMetrics(prev => {
+      const newSet = new Set(prev);
+      // Se estava em UTR e mudou para mensal, remover UTR
+      if (viewMode === 'mensal' && newSet.has('utr')) {
+        newSet.delete('utr');
+        // Se não sobrou nenhuma métrica, adicionar completadas
+        if (newSet.size === 0) {
+          newSet.add('completadas');
+        }
+      }
+      // Se mudou para semanal mas não tem dados de UTR e estava em UTR, remover UTR
+      if (viewMode === 'semanal' && newSet.has('utr') && utrSemanal.length === 0) {
+        newSet.delete('utr');
+        // Se não sobrou nenhuma métrica, adicionar completadas
+        if (newSet.size === 0) {
+          newSet.add('completadas');
+        }
+      }
+      return newSet;
+    });
+  }, [viewMode, utrSemanal.length]);
   
   // Detectar tema atual para ajustar cores do gráfico
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -4402,125 +4414,183 @@ function EvolucaoView({
       });
   }, [utrSemanal, anoSelecionado]);
 
-  // Dados do gráfico com estilo premium (otimizado com useMemo)
-  const chartData = useMemo(() => {
-    // Determinar labels e dados baseado na métrica selecionada
-    let labels: string[] = [];
-    let data: number[] = [];
-    let label: string = '';
-    let borderColor: string = '';
-    let backgroundColor: any;
-    let pointColor: string = '';
-    let yAxisID: string = 'y';
+  // Helper function para obter configuração de métrica
+  const getMetricConfig = useCallback((metric: 'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr') => {
+    const baseLabels = viewMode === 'mensal'
+      ? dadosAtivos.map(d => (d as EvolucaoMensal).mes_nome)
+      : dadosAtivos.map(d => `S${(d as EvolucaoSemanal).semana}`);
 
-    if (metricType === 'utr' && viewMode === 'semanal' && dadosUtrAtivos.length > 0) {
-      labels = dadosUtrAtivos.map(d => d.semana_label);
-      data = dadosUtrAtivos.map(d => d.utr);
-      label = '🎯 UTR (Taxa de Utilização de Recursos)';
-      borderColor = 'rgba(168, 85, 247, 1)';
-      backgroundColor = gradientPurple;
-      pointColor = 'rgb(168, 85, 247)';
-    } else if (metricType === 'horas') {
-      labels = dadosAtivos.map(d => 
-      viewMode === 'mensal' 
-        ? (d as EvolucaoMensal).mes_nome 
-        : `S${(d as EvolucaoSemanal).semana}`
-      );
-      data = dadosAtivos.map(d => segundosParaHoras(d.total_segundos));
-      label = '⏱️ Horas Trabalhadas';
-      borderColor = 'rgba(34, 197, 94, 1)';
-      backgroundColor = gradientGreen;
-      pointColor = 'rgb(34, 197, 94)';
-    } else if (metricType === 'ofertadas') {
-      labels = dadosAtivos.map(d => 
-        viewMode === 'mensal' 
-          ? (d as EvolucaoMensal).mes_nome 
-          : `S${(d as EvolucaoSemanal).semana}`
-      );
-      data = dadosAtivos.map(d => (d as any).corridas_ofertadas || (d as any).total_corridas || 0);
-      label = '📢 Corridas Ofertadas';
-      borderColor = 'rgba(59, 130, 246, 1)';
-      backgroundColor = gradientBlue;
-      pointColor = 'rgb(59, 130, 246)';
-    } else if (metricType === 'aceitas') {
-      labels = dadosAtivos.map(d => 
-        viewMode === 'mensal' 
-          ? (d as EvolucaoMensal).mes_nome 
-          : `S${(d as EvolucaoSemanal).semana}`
-      );
-      data = dadosAtivos.map(d => (d as any).corridas_aceitas || 0);
-      label = '✅ Corridas Aceitas';
-      borderColor = 'rgba(34, 197, 94, 1)';
-      backgroundColor = gradientGreen;
-      pointColor = 'rgb(34, 197, 94)';
-    } else if (metricType === 'rejeitadas') {
-      labels = dadosAtivos.map(d => 
-        viewMode === 'mensal' 
-          ? (d as EvolucaoMensal).mes_nome 
-          : `S${(d as EvolucaoSemanal).semana}`
-      );
-      data = dadosAtivos.map(d => (d as any).corridas_rejeitadas || 0);
-      label = '❌ Corridas Rejeitadas';
-      borderColor = 'rgba(239, 68, 68, 1)';
-      backgroundColor = gradientRed;
-      pointColor = 'rgb(239, 68, 68)';
-    } else {
-      // Default: completadas
-      labels = dadosAtivos.map(d => 
-        viewMode === 'mensal' 
-          ? (d as EvolucaoMensal).mes_nome 
-          : `S${(d as EvolucaoSemanal).semana}`
-      );
-      data = dadosAtivos.map(d => (d as any).corridas_completadas || (d as any).total_corridas || 0);
-      label = '🚗 Corridas Completadas';
-      borderColor = 'rgba(59, 130, 246, 1)';
-      backgroundColor = gradientBlue;
-      pointColor = 'rgb(59, 130, 246)';
+    switch (metric) {
+      case 'utr':
+        if (viewMode === 'semanal' && dadosUtrAtivos.length > 0) {
+          return {
+            labels: dadosUtrAtivos.map(d => d.semana_label),
+            data: dadosUtrAtivos.map(d => d.utr),
+            label: '🎯 UTR (Taxa de Utilização)',
+            borderColor: 'rgba(168, 85, 247, 1)',
+            backgroundColor: gradientPurple,
+            pointColor: 'rgb(168, 85, 247)',
+            yAxisID: 'y',
+            useUtrData: true,
+          };
+        }
+        return null;
+      case 'horas':
+        return {
+          labels: baseLabels,
+          data: dadosAtivos.map(d => segundosParaHoras(d.total_segundos)),
+          label: '⏱️ Horas Trabalhadas',
+          borderColor: 'rgba(34, 197, 94, 1)',
+          backgroundColor: gradientGreen,
+          pointColor: 'rgb(34, 197, 94)',
+          yAxisID: 'y',
+          useUtrData: false,
+        };
+      case 'ofertadas':
+        return {
+          labels: baseLabels,
+          data: dadosAtivos.map(d => (d as any).corridas_ofertadas || (d as any).total_corridas || 0),
+          label: '📢 Corridas Ofertadas',
+          borderColor: 'rgba(59, 130, 246, 1)',
+          backgroundColor: gradientBlue,
+          pointColor: 'rgb(59, 130, 246)',
+          yAxisID: 'y',
+          useUtrData: false,
+        };
+      case 'aceitas':
+        return {
+          labels: baseLabels,
+          data: dadosAtivos.map(d => (d as any).corridas_aceitas || 0),
+          label: '✅ Corridas Aceitas',
+          borderColor: 'rgba(34, 197, 94, 1)',
+          backgroundColor: gradientGreen,
+          pointColor: 'rgb(34, 197, 94)',
+          yAxisID: 'y',
+          useUtrData: false,
+        };
+      case 'rejeitadas':
+        return {
+          labels: baseLabels,
+          data: dadosAtivos.map(d => (d as any).corridas_rejeitadas || 0),
+          label: '❌ Corridas Rejeitadas',
+          borderColor: 'rgba(239, 68, 68, 1)',
+          backgroundColor: gradientRed,
+          pointColor: 'rgb(239, 68, 68)',
+          yAxisID: 'y',
+          useUtrData: false,
+        };
+      case 'completadas':
+      default:
+        return {
+          labels: baseLabels,
+          data: dadosAtivos.map(d => (d as any).corridas_completadas || (d as any).total_corridas || 0),
+        label: '🚗 Corridas Completadas',
+        borderColor: 'rgba(59, 130, 246, 1)',
+          backgroundColor: gradientBlue,
+          pointColor: 'rgb(59, 130, 246)',
+        yAxisID: 'y',
+          useUtrData: false,
+        };
+    }
+  }, [dadosAtivos, dadosUtrAtivos, viewMode, gradientBlue, gradientGreen, gradientPurple, gradientRed, segundosParaHoras]);
+
+  // Dados do gráfico com múltiplas métricas (otimizado com useMemo)
+  const chartData = useMemo(() => {
+    // Se não há métricas selecionadas, retornar gráfico vazio
+    if (selectedMetrics.size === 0) {
+      return {
+        labels: [],
+        datasets: [],
+      };
     }
 
-    return {
-      labels,
-    datasets: [
-      {
-          label,
-          data,
-          borderColor,
-          backgroundColor,
-          yAxisID,
+    // Obter configurações para todas as métricas selecionadas
+    const metricConfigs = Array.from(selectedMetrics)
+      .map(metric => getMetricConfig(metric))
+      .filter(config => config !== null) as Array<{
+        labels: string[];
+        data: number[];
+        label: string;
+        borderColor: string;
+        backgroundColor: any;
+        pointColor: string;
+        yAxisID: string;
+        useUtrData: boolean;
+      }>;
+
+    if (metricConfigs.length === 0) {
+      return {
+        labels: [],
+        datasets: [],
+      };
+    }
+
+    // Usar labels da primeira métrica (ou da UTR se estiver presente, pois pode ter labels diferentes)
+    const utrConfig = metricConfigs.find(c => c.useUtrData);
+    const baseLabels = utrConfig?.labels || metricConfigs[0].labels;
+
+    // Criar datasets para cada métrica selecionada
+    const datasets = metricConfigs.map((config) => {
+      // Para UTR, usar dados próprios; para outras, alinhar com baseLabels
+      let data = config.data;
+      if (!config.useUtrData && utrConfig && baseLabels.length !== config.data.length) {
+        // Se temos UTR e outras métricas, precisamos alinhar os dados
+        // Mapear dados para os labels corretos
+        const labelMap = new Map();
+        config.labels.forEach((label, idx) => {
+          labelMap.set(label, config.data[idx]);
+        });
+        data = baseLabels.map(label => labelMap.get(label) || 0);
+      } else if (config.useUtrData && baseLabels.length !== config.data.length) {
+        // Se UTR tem labels diferentes, alinhar outras métricas
+        data = config.data;
+      }
+
+      return {
+        label: config.label,
+        data,
+        borderColor: config.borderColor,
+        backgroundColor: config.backgroundColor,
+        yAxisID: config.yAxisID,
         tension: 0.4,
         cubicInterpolationMode: 'monotone' as const,
         pointRadius: isSemanal ? 4 : 6,
         pointHoverRadius: isSemanal ? 8 : 10,
         pointHitRadius: 15,
-          pointBackgroundColor: pointColor,
+        pointBackgroundColor: config.pointColor,
         pointBorderColor: '#fff',
         pointBorderWidth: 3,
-          pointHoverBackgroundColor: pointColor,
+        pointHoverBackgroundColor: config.pointColor,
         pointHoverBorderColor: '#fff',
         pointHoverBorderWidth: 4,
-        pointStyle: 'circle',
+        pointStyle: 'circle' as const,
         borderWidth: 3,
         fill: true,
         spanGaps: true,
         segment: {
           borderColor: (ctx: any) => {
-              if (!ctx.p0 || !ctx.p1) return borderColor;
+            if (!ctx.p0 || !ctx.p1) return config.borderColor;
             const value0 = ctx.p0.parsed.y;
             const value1 = ctx.p1.parsed.y;
-              
-              // Para UTR, usar cores baseadas no valor
-              if (metricType === 'utr') {
-                return value1 >= 1 ? 'rgb(34, 197, 94)' : value1 >= 0.5 ? 'rgb(251, 191, 36)' : 'rgb(239, 68, 68)';
-              }
-              
-              // Para outras métricas, usar verde quando aumenta
-              return value1 > value0 ? (metricType === 'horas' ? 'rgba(16, 185, 129, 1)' : 'rgba(34, 197, 94, 0.8)') : borderColor;
+            
+            // Para UTR, usar cores baseadas no valor
+            if (config.useUtrData) {
+              const avg = (value0 + value1) / 2;
+              if (avg >= 1) return 'rgba(34, 197, 94, 1)'; // Verde para UTR >= 1
+              if (avg >= 0.5) return 'rgba(251, 191, 36, 1)'; // Amarelo para UTR >= 0.5
+              return 'rgba(239, 68, 68, 1)'; // Vermelho para UTR < 0.5
+            }
+            return config.borderColor;
           },
         },
-      },
-    ],
-  };
-  }, [dadosAtivos, dadosUtrAtivos, viewMode, isSemanal, metricType, anoSelecionado, gradientBlue, gradientGreen, gradientPurple, gradientRed, segundosParaHoras]);
+      };
+    });
+
+    return {
+      labels: baseLabels,
+      datasets,
+    };
+  }, [selectedMetrics, getMetricConfig, isSemanal]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
@@ -4657,33 +4727,23 @@ function EvolucaoView({
         position: 'left' as const,
         title: {
           display: true,
-          text: metricType === 'utr' 
+          text: selectedMetrics.size === 1 && selectedMetrics.has('utr')
             ? '🎯 UTR (Corridas/Hora)' 
-            : metricType === 'horas'
+            : selectedMetrics.size === 1 && selectedMetrics.has('horas')
             ? '⏱️ Horas Trabalhadas'
-            : metricType === 'ofertadas'
+            : selectedMetrics.size === 1 && selectedMetrics.has('ofertadas')
             ? '📢 Corridas Ofertadas'
-            : metricType === 'aceitas'
+            : selectedMetrics.size === 1 && selectedMetrics.has('aceitas')
             ? '✅ Corridas Aceitas'
-            : metricType === 'rejeitadas'
+            : selectedMetrics.size === 1 && selectedMetrics.has('rejeitadas')
             ? '❌ Corridas Rejeitadas'
-            : '🚗 Corridas Completadas',
+            : 'Métricas Selecionadas',
           font: {
             size: 13,
             weight: 'bold' as const,
             family: "'Inter', 'system-ui', sans-serif",
           },
-          color: metricType === 'utr' 
-            ? 'rgb(168, 85, 247)' 
-            : metricType === 'horas'
-            ? 'rgb(34, 197, 94)'
-            : metricType === 'ofertadas'
-            ? 'rgb(59, 130, 246)'
-            : metricType === 'aceitas'
-            ? 'rgb(34, 197, 94)'
-            : metricType === 'rejeitadas'
-            ? 'rgb(239, 68, 68)'
-            : 'rgb(59, 130, 246)',
+          color: isDarkMode ? 'rgb(226, 232, 240)' : 'rgb(51, 65, 85)',
           padding: { top: 0, bottom: 8 },
         },
         grid: {
@@ -4699,17 +4759,7 @@ function EvolucaoView({
           display: false,
         },
         ticks: {
-          color: metricType === 'utr' 
-            ? 'rgb(168, 85, 247)' 
-            : metricType === 'horas'
-            ? 'rgb(34, 197, 94)'
-            : metricType === 'ofertadas'
-            ? 'rgb(59, 130, 246)'
-            : metricType === 'aceitas'
-            ? 'rgb(34, 197, 94)'
-            : metricType === 'rejeitadas'
-            ? 'rgb(239, 68, 68)'
-            : 'rgb(59, 130, 246)',
+          color: isDarkMode ? 'rgb(226, 232, 240)' : 'rgb(51, 65, 85)',
           font: {
             size: 12,
             weight: 'bold' as const,
@@ -4717,9 +4767,12 @@ function EvolucaoView({
           },
           padding: 8,
           callback: function(value: any) {
-            if (metricType === 'utr') {
+            // Se tiver UTR selecionado, formatar como decimal
+            if (selectedMetrics.has('utr') && selectedMetrics.size === 1) {
               return value.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
-            } else if (metricType === 'horas') {
+            }
+            // Se tiver horas selecionado, formatar com 'h'
+            if (selectedMetrics.has('horas') && selectedMetrics.size === 1) {
               return value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + 'h';
             }
             return value.toLocaleString('pt-BR');
@@ -4759,7 +4812,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  }), [isSemanal, dadosAtivos.length, isDarkMode, metricType]);
+  }), [isSemanal, dadosAtivos.length, isDarkMode, selectedMetrics]);
 
   // Early return APÓS todos os hooks
   if (loading) {
@@ -4882,31 +4935,83 @@ function EvolucaoView({
                 </button>
                 </div>
 
-                {/* Seletor de Métrica */}
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Métrica:</label>
-                  <select
-                    value={metricType}
-                    onChange={(e) => {
-                      const newMetric = e.target.value as 'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr';
-                      // Se selecionar UTR mas não estiver no modo semanal ou não houver dados, voltar para completadas
-                      if (newMetric === 'utr' && (viewMode !== 'semanal' || utrSemanal.length === 0)) {
-                        setMetricType('completadas');
-                      } else {
-                        setMetricType(newMetric);
-                      }
-                    }}
-                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                  >
-                    <option value="ofertadas">📢 Corridas Ofertadas</option>
-                    <option value="aceitas">✅ Corridas Aceitas</option>
-                    <option value="completadas">🚗 Corridas Completadas</option>
-                    <option value="rejeitadas">❌ Corridas Rejeitadas</option>
-                    <option value="horas">⏱️ Horas Trabalhadas</option>
+                {/* Seletor de Métricas (Múltipla Seleção) */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Métricas:</label>
+                  <div className="flex flex-wrap gap-2">
+                    {(['ofertadas', 'aceitas', 'completadas', 'rejeitadas', 'horas'] as const).map(metric => {
+                      const labels: Record<typeof metric, string> = {
+                        ofertadas: '📢 Ofertadas',
+                        aceitas: '✅ Aceitas',
+                        completadas: '🚗 Completadas',
+                        rejeitadas: '❌ Rejeitadas',
+                        horas: '⏱️ Horas',
+                      };
+                      return (
+                        <label
+                          key={metric}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
+                            selectedMetrics.has(metric)
+                              ? 'bg-blue-50 border-blue-300 dark:bg-blue-950/30 dark:border-blue-700'
+                              : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-700 hover:border-blue-400'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedMetrics.has(metric)}
+                            onChange={(e) => {
+                              const newSet = new Set(selectedMetrics);
+                              if (e.target.checked) {
+                                newSet.add(metric);
+                              } else {
+                                newSet.delete(metric);
+                                // Garantir que pelo menos uma métrica esteja selecionada
+                                if (newSet.size === 0) {
+                                  newSet.add('completadas');
+                                }
+                              }
+                              setSelectedMetrics(newSet);
+                            }}
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            {labels[metric]}
+                          </span>
+                        </label>
+                      );
+                    })}
                     {viewMode === 'semanal' && utrSemanal.length > 0 && (
-                      <option value="utr">🎯 UTR (Taxa de Utilização)</option>
+                      <label
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
+                          selectedMetrics.has('utr')
+                            ? 'bg-purple-50 border-purple-300 dark:bg-purple-950/30 dark:border-purple-700'
+                            : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-700 hover:border-purple-400'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedMetrics.has('utr')}
+                          onChange={(e) => {
+                            const newSet = new Set(selectedMetrics);
+                            if (e.target.checked) {
+                              newSet.add('utr');
+                            } else {
+                              newSet.delete('utr');
+                              // Garantir que pelo menos uma métrica esteja selecionada
+                              if (newSet.size === 0) {
+                                newSet.add('completadas');
+                              }
+                            }
+                            setSelectedMetrics(newSet);
+                          }}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                        />
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          🎯 UTR
+                        </span>
+                      </label>
                     )}
-                  </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4922,79 +5027,57 @@ function EvolucaoView({
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
         </div>
         
-        {((metricType === 'utr' && dadosUtrAtivos.length > 0) || (metricType !== 'utr' && dadosAtivos.length > 0)) ? (
+        {((selectedMetrics.has('utr') && dadosUtrAtivos.length > 0) || (!selectedMetrics.has('utr') && dadosAtivos.length > 0) || (selectedMetrics.size > 0)) ? (
           <div className="relative z-10">
             {/* Título do gráfico */}
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h4 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span className={`inline-flex items-center justify-center w-10 h-10 rounded-xl text-white text-lg shadow-lg ${
-                    metricType === 'utr' 
-                      ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
-                      : metricType === 'horas'
-                      ? 'bg-gradient-to-br from-emerald-500 to-teal-600'
-                      : metricType === 'ofertadas'
-                      ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                      : metricType === 'aceitas'
-                      ? 'bg-gradient-to-br from-emerald-500 to-teal-600'
-                      : metricType === 'rejeitadas'
-                      ? 'bg-gradient-to-br from-red-500 to-rose-600'
-                      : 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                  }`}>
-                    {metricType === 'utr' ? '🎯' : metricType === 'horas' ? '⏱️' : metricType === 'ofertadas' ? '📢' : metricType === 'aceitas' ? '✅' : metricType === 'rejeitadas' ? '❌' : '🚗'}
+                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-white text-lg shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+                    📊
                   </span>
-                  {metricType === 'utr' 
-                    ? 'Evolução de UTR' 
-                    : metricType === 'horas'
-                    ? 'Evolução de Horas Trabalhadas'
-                    : metricType === 'ofertadas'
-                    ? 'Evolução de Corridas Ofertadas'
-                    : metricType === 'aceitas'
-                    ? 'Evolução de Corridas Aceitas'
-                    : metricType === 'rejeitadas'
-                    ? 'Evolução de Corridas Rejeitadas'
-                    : 'Evolução de Corridas Completadas'} {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
+                  Evolução {selectedMetrics.size === 1 ? 'de ' + (selectedMetrics.has('utr') ? 'UTR' : selectedMetrics.has('horas') ? 'Horas Trabalhadas' : selectedMetrics.has('ofertadas') ? 'Corridas Ofertadas' : selectedMetrics.has('aceitas') ? 'Corridas Aceitas' : selectedMetrics.has('rejeitadas') ? 'Corridas Rejeitadas' : 'Corridas Completadas') : 'de Métricas'} {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
                 </h4>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                  {metricType === 'utr' && viewMode === 'semanal' && dadosUtrAtivos.length > 0
+                  {selectedMetrics.has('utr') && viewMode === 'semanal' && dadosUtrAtivos.length > 0 && selectedMetrics.size === 1
                     ? `Análise detalhada de UTR por semana (${dadosUtrAtivos.length} semanas exibidas)`
-                    : `Análise detalhada ${metricType === 'horas' ? 'de horas trabalhadas' : metricType === 'ofertadas' ? 'de corridas ofertadas' : metricType === 'aceitas' ? 'de corridas aceitas' : metricType === 'rejeitadas' ? 'de corridas rejeitadas' : 'de corridas completadas'} (${dadosAtivos.length} ${viewMode === 'mensal' ? 'meses' : 'semanas'} exibidos)`}
+                    : `Análise detalhada de ${selectedMetrics.size} ${selectedMetrics.size === 1 ? 'métrica' : 'métricas'} (${selectedMetrics.has('utr') && dadosUtrAtivos.length > 0 ? dadosUtrAtivos.length : dadosAtivos.length} ${viewMode === 'mensal' ? 'meses' : 'semanas'} exibidos)`}
                 </p>
               </div>
               
-              {/* Indicador de métrica */}
-              <div className="hidden lg:flex items-center gap-4">
-                {metricType === 'utr' && (
+              {/* Indicadores de métricas selecionadas */}
+              <div className="hidden lg:flex items-center gap-2 flex-wrap">
+                {selectedMetrics.has('utr') && (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
                     <div className="w-3 h-3 rounded-full bg-purple-500 shadow-md"></div>
                     <span className="text-xs font-bold text-purple-700 dark:text-purple-300">UTR</span>
                   </div>
                 )}
-                {metricType === 'horas' && (
+                {selectedMetrics.has('horas') && (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
                     <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
                     <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Horas</span>
                   </div>
                 )}
-                {metricType === 'ofertadas' && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                  <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
+                {selectedMetrics.has('ofertadas') && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
                     <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Ofertadas</span>
-                </div>
+                  </div>
                 )}
-                {metricType === 'aceitas' && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                  <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
+                {selectedMetrics.has('aceitas') && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
                     <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Aceitas</span>
-                </div>
+                  </div>
                 )}
-                {metricType === 'completadas' && (
+                {selectedMetrics.has('completadas') && (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
                     <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
                     <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Completadas</span>
                   </div>
                 )}
-                {metricType === 'rejeitadas' && (
+                {selectedMetrics.has('rejeitadas') && (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
                     <div className="w-3 h-3 rounded-full bg-red-500 shadow-md"></div>
                     <span className="text-xs font-bold text-red-700 dark:text-red-300">Rejeitadas</span>
