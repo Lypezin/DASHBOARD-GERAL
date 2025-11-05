@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
@@ -93,6 +93,34 @@ export function Header() {
     await supabase.auth.signOut();
     router.push('/login');
   };
+
+  // Fechar modal ao pressionar ESC
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showHistory) {
+        setShowHistory(false);
+      }
+    };
+
+    if (showHistory) {
+      document.addEventListener('keydown', handleEscape);
+      // Prevenir scroll do body quando modal está aberto
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showHistory]);
+
+  // Handler para fechar modal ao clicar fora
+  const handleBackdropClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Fechar apenas se clicar diretamente no backdrop (não no conteúdo do modal)
+    if (e.target === e.currentTarget) {
+      setShowHistory(false);
+    }
+  }, []);
 
   // Não mostrar header nas páginas de login/registro
   if (typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname === '/registro')) {
@@ -229,29 +257,35 @@ export function Header() {
       {/* Modal de Histórico de Atualizações */}
       {showHistory && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in"
-          onClick={() => setShowHistory(false)}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4"
+          onClick={handleBackdropClick}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
         >
           <div 
-            className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-scale-in"
+            className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden animate-scale-in transform transition-all"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header do Modal */}
-            <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-4 border-b border-white/20">
+            <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-5 border-b border-white/20 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">📋</span>
+                  <div className="bg-white/20 rounded-xl p-2 backdrop-blur-sm">
+                    <span className="text-3xl">📋</span>
+                  </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">Histórico de Atualizações</h2>
+                    <h2 id="modal-title" className="text-xl font-bold text-white">Histórico de Atualizações</h2>
                     <p className="text-sm text-blue-100">Registro de melhorias e mudanças no sistema</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowHistory(false)}
-                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-all duration-200 hover:scale-110"
-                  title="Fechar"
+                  className="text-white hover:bg-white/30 rounded-xl p-2.5 transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg hover:shadow-xl border-2 border-white/30 hover:border-white/50"
+                  title="Fechar (ESC)"
+                  aria-label="Fechar modal"
                 >
-                  <span className="text-2xl">✕</span>
+                  <span className="text-2xl font-bold block leading-none">✕</span>
                 </button>
               </div>
             </div>
@@ -328,10 +362,10 @@ export function Header() {
                     </div>
                   </div>
 
-                  {/* Data mais antiga */}
+                  {/* 03/11/2025 */}
                   <div className="relative pl-8 border-l-4 border-purple-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-purple-500 rounded-full border-4 border-white dark:border-slate-900"></div>
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-xl p-4 shadow-sm">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-purple-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg font-bold text-purple-700 dark:text-purple-300">03/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">15:30</span>
@@ -341,12 +375,71 @@ export function Header() {
                       </p>
                     </div>
                   </div>
+
+                  {/* 02/11/2025 */}
+                  <div className="relative pl-8 border-l-4 border-pink-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-pink-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-pink-700 dark:text-pink-300">02/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">13:15</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementado sistema de notificações em tempo real e melhorias na visualização de dados com gráficos interativos e exportação de relatórios.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative pl-8 border-l-4 border-pink-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-pink-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-pink-700 dark:text-pink-300">02/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">10:45</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Adicionadas funcionalidades de filtros avançados e melhorias na performance de consultas ao banco de dados, reduzindo tempo de carregamento em até 40%.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 01/11/2025 */}
+                  <div className="relative pl-8 border-l-4 border-rose-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-rose-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-rose-700 dark:text-rose-300">01/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">16:20</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Lançamento inicial do sistema de dashboard com funcionalidades básicas de visualização de dados, autenticação de usuários e controle de acesso.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative pl-8 border-l-4 border-rose-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-rose-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-rose-700 dark:text-rose-300">01/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">09:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Estrutura inicial do projeto criada com Next.js, TypeScript, Tailwind CSS e integração com Supabase para gerenciamento de dados e autenticação.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Rodapé do Modal */}
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-                  <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-                    O sistema é continuamente atualizado para melhorar a experiência do usuário e adicionar novas funcionalidades.
+                <div className="pt-6 border-t-2 border-slate-200 dark:border-slate-800 mt-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl p-4 border border-blue-200 dark:border-blue-900">
+                    <p className="text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                      <span className="text-blue-600 dark:text-blue-400">💡</span> O sistema é continuamente atualizado para melhorar a experiência do usuário e adicionar novas funcionalidades.
+                    </p>
+                  </div>
+                  <p className="text-center text-xs text-slate-500 dark:text-slate-500 mt-3">
+                    Pressione <kbd className="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded text-xs font-mono">ESC</kbd> ou clique fora para fechar
                   </p>
                 </div>
               </div>
