@@ -52,8 +52,17 @@ export default function PerfilPage() {
         return;
       }
 
-      setUser(profile);
-      setEditedName(profile.full_name);
+      // Se o perfil não tiver full_name ou estiver vazio, buscar de user_metadata
+      let fullName = profile.full_name;
+      if (!fullName || fullName.trim() === '') {
+        fullName = authUser.user_metadata?.full_name || authUser.user_metadata?.fullName || authUser.email?.split('@')[0] || 'Usuário';
+      }
+
+      // Atualizar o perfil com o nome correto
+      const updatedProfile = { ...profile, full_name: fullName };
+
+      setUser(updatedProfile);
+      setEditedName(fullName);
       
       // Buscar created_at do auth.users (já temos o authUser da linha 38)
       let userCreatedAt: string | null = null;
@@ -387,33 +396,63 @@ export default function PerfilPage() {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) throw new Error('Usuário não autenticado');
 
-      // Atualizar o nome no Supabase Auth (user_metadata)
+      const trimmedName = editedName.trim();
+      if (!trimmedName) {
+        throw new Error('O nome não pode estar vazio');
+      }
+
+      // Primeiro, tentar atualizar via RPC (se existir)
+      try {
+        const { data: rpcData, error: rpcError } = await supabase.rpc('update_user_full_name', {
+          p_user_id: authUser.id,
+          p_full_name: trimmedName
+        }) as { data: { success?: boolean; error?: string } | null; error: any };
+
+        if (!rpcError && rpcData && (rpcData as any).success) {
+          // RPC funcionou, continuar
+          if (IS_DEV) console.log('✅ Nome atualizado via RPC');
+        } else if (rpcError) {
+          // Se a função não existir ou der erro, continuar com auth.updateUser
+          if (IS_DEV) console.warn('Função update_user_full_name não disponível ou erro:', rpcError);
+        }
+      } catch (err) {
+        // Ignorar erros de RPC e continuar com auth.updateUser
+        if (IS_DEV) console.warn('Erro ao atualizar nome via RPC:', err);
+      }
+
+      // Sempre atualizar também no Supabase Auth (user_metadata) como fallback
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           ...authUser.user_metadata,
-          full_name: editedName.trim()
+          full_name: trimmedName
         }
       });
 
       if (updateError) throw updateError;
 
-      // Atualizar no perfil também (se houver função RPC para isso)
+      // Atualizar também na tabela user_profiles diretamente (se existir)
       try {
-        // Tentar atualizar via RPC se existir
-        const { error: rpcError } = await supabase.rpc('update_user_full_name', {
-          p_user_id: authUser.id,
-          p_full_name: editedName.trim()
-        });
+        const { error: profileUpdateError } = await supabase
+          .from('user_profiles')
+          .upsert({
+            id: authUser.id,
+            full_name: trimmedName,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          });
 
-        if (rpcError && IS_DEV) {
-          console.warn('Função update_user_full_name não existe ou deu erro:', rpcError);
+        if (profileUpdateError && IS_DEV) {
+          console.warn('Erro ao atualizar user_profiles:', profileUpdateError);
         }
       } catch (err) {
-        // Ignorar erros de RPC, o importante é atualizar no auth
-        if (IS_DEV) console.warn('Erro ao atualizar nome via RPC:', err);
+        // Ignorar se a tabela não existir
+        if (IS_DEV) console.warn('Erro ao atualizar user_profiles:', err);
       }
 
-      setUser(prev => prev ? { ...prev, full_name: editedName.trim() } : null);
+      // Recarregar o perfil para garantir que está atualizado
+      await checkUser();
+
       setSuccess('Nome atualizado com sucesso!');
       setIsEditingName(false);
     } catch (err: any) {
