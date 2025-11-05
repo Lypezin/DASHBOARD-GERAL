@@ -310,6 +310,91 @@ export function Header() {
               <div className="space-y-6">
                 {/* Histórico de Atualizações - Mais Recente Primeiro */}
                 <div className="space-y-4">
+                  {/* 05/11/2025 - Melhorias na Guia de Evolução */}
+                  {/* 13:00 */}
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">13:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Corrigidos problemas de renderização e travamentos na guia de Evolução. Implementadas otimizações de performance, simplificação de animações e validações de segurança para garantir renderização correta dos gráficos mesmo sem dados.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 12:30 */}
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">12:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Melhoradas significativamente a estética e animações dos gráficos de evolução. Adicionados gradientes sutis, efeitos de brilho, animações mais suaves e otimizadas para melhor experiência visual e performance.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 12:15 */}
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">12:15</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Corrigido problema de exibição da opção UTR na guia de Evolução. Agora a opção UTR aparece sempre no modo semanal, com indicação visual quando os dados estão disponíveis ou não, e está incluída no cache de dados.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 12:00 */}
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">12:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementada seleção múltipla de métricas na guia de Evolução. Agora é possível selecionar e visualizar várias métricas simultaneamente no mesmo gráfico (ofertadas, aceitas, completadas, rejeitadas, horas e UTR), permitindo análise comparativa completa.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 11:30 */}
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">11:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Adicionadas novas métricas à guia de Evolução: Corridas Ofertadas, Corridas Aceitas, Corridas Rejeitadas, além das já existentes (Completadas, Horas Trabalhadas e UTR). Atualizadas funções SQL `listar_evolucao_mensal` e `listar_evolucao_semanal` para retornar todas as métricas.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 12:10 */}
+                  <div className="relative pl-8 border-l-4 border-blue-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">12:10</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Corrigido erro de build relacionado à propriedade `drawBorder` no Chart.js. Removidas todas as ocorrências dessa propriedade inválida das configurações de grid dos gráficos.
+                      </p>
+                    </div>
+                  </div>
+
                   {/* 04/11/2025 - Sistema de Refresh Automático de MVs */}
                   {/* 17:30 */}
                   <div className="relative pl-8 border-l-4 border-emerald-500">
