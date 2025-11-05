@@ -255,6 +255,15 @@ interface EvolucaoSemanal {
   total_segundos: number;
 }
 
+interface UtrSemanal {
+  ano: number;
+  semana: number;
+  semana_label: string;
+  tempo_horas: number;
+  total_corridas: number;
+  utr: number;
+}
+
 // =================================================================================
 // Funções auxiliares
 // =================================================================================
@@ -4249,6 +4258,7 @@ function UtrView({
 function EvolucaoView({
   evolucaoMensal,
   evolucaoSemanal,
+  utrSemanal,
   loading,
   anoSelecionado,
   anosDisponiveis,
@@ -4256,13 +4266,27 @@ function EvolucaoView({
 }: {
   evolucaoMensal: EvolucaoMensal[];
   evolucaoSemanal: EvolucaoSemanal[];
+  utrSemanal: UtrSemanal[];
   loading: boolean;
   anoSelecionado: number;
   anosDisponiveis: number[];
   onAnoChange: (ano: number) => void;
 }) {
   const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
+  const [metricType, setMetricType] = useState<'corridas' | 'horas' | 'utr'>('corridas');
   const isSemanal = viewMode === 'semanal';
+
+  // Ajustar métrica quando mudar o modo de visualização
+  useEffect(() => {
+    // Se estava em UTR e mudou para mensal, voltar para corridas
+    if (metricType === 'utr' && viewMode === 'mensal') {
+      setMetricType('corridas');
+    }
+    // Se mudou para semanal mas não tem dados de UTR e estava em UTR, voltar para corridas
+    if (metricType === 'utr' && viewMode === 'semanal' && utrSemanal.length === 0) {
+      setMetricType('corridas');
+    }
+  }, [viewMode, utrSemanal.length, metricType]);
   
   // Detectar tema atual para ajustar cores do gráfico
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -4318,6 +4342,18 @@ function EvolucaoView({
     return gradient;
   }, []);
 
+  const gradientPurple = useCallback((context: any) => {
+    const chart = context.chart;
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return 'rgba(168, 85, 247, 0.2)';
+    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    gradient.addColorStop(0, 'rgba(196, 181, 253, 0.5)');    // Roxo vibrante mais intenso
+    gradient.addColorStop(0.3, 'rgba(168, 85, 247, 0.35)');  // Roxo médio
+    gradient.addColorStop(0.7, 'rgba(139, 92, 246, 0.15)');   // Roxo escuro suave
+    gradient.addColorStop(1, 'rgba(124, 58, 237, 0.00)');     // Transparente
+    return gradient;
+  }, []);
+
   // Memoizar conversão de segundos para horas
   const segundosParaHoras = useCallback((segundos: number): number => {
     return segundos / 3600;
@@ -4339,77 +4375,91 @@ function EvolucaoView({
   }, [viewMode, evolucaoMensal, evolucaoSemanal]);
 
   // Dados do gráfico com estilo premium (otimizado com useMemo)
-  const chartData = useMemo(() => ({
-    labels: dadosAtivos.map(d => 
-      viewMode === 'mensal' 
-        ? (d as EvolucaoMensal).mes_nome 
-        : `S${(d as EvolucaoSemanal).semana}`
-    ),
-    datasets: [
-      {
-        label: '🚗 Corridas Completadas',
-        data: dadosAtivos.map(d => d.total_corridas),
-        borderColor: 'rgba(59, 130, 246, 1)',
-        backgroundColor: (ctx: any) => gradientBlue(ctx),
-        yAxisID: 'y',
-        tension: 0.4,
-        cubicInterpolationMode: 'monotone' as const,
-        pointRadius: isSemanal ? 4 : 6,
-        pointHoverRadius: isSemanal ? 8 : 10,
-        pointHitRadius: 15,
-        pointBackgroundColor: 'rgb(59, 130, 246)',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 3,
-        pointHoverBackgroundColor: 'rgb(37, 99, 235)',
-        pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 4,
-        pointStyle: 'circle',
-        borderWidth: 3,
-        fill: true,
-        spanGaps: true,
-        segment: {
-          borderColor: (ctx: any) => {
-            // Criar efeito de gradiente na linha
-            if (!ctx.p0 || !ctx.p1) return 'rgb(59, 130, 246)';
-            const value0 = ctx.p0.parsed.y;
-            const value1 = ctx.p1.parsed.y;
-            return value1 > value0 ? 'rgba(34, 197, 94, 0.8)' : 'rgba(59, 130, 246, 1)';
+  const chartData = useMemo(() => {
+    // Determinar labels e dados baseado na métrica selecionada
+    let labels: string[] = [];
+    let data: number[] = [];
+    let label: string = '';
+    let borderColor: string = '';
+    let backgroundColor: any;
+    let pointColor: string = '';
+    let yAxisID: string = 'y';
+
+    if (metricType === 'utr' && viewMode === 'semanal' && dadosUtrAtivos.length > 0) {
+      labels = dadosUtrAtivos.map(d => d.semana_label);
+      data = dadosUtrAtivos.map(d => d.utr);
+      label = '🎯 UTR (Taxa de Utilização de Recursos)';
+      borderColor = 'rgba(168, 85, 247, 1)';
+      backgroundColor = gradientPurple;
+      pointColor = 'rgb(168, 85, 247)';
+    } else if (metricType === 'horas') {
+      labels = dadosAtivos.map(d => 
+        viewMode === 'mensal' 
+          ? (d as EvolucaoMensal).mes_nome 
+          : `S${(d as EvolucaoSemanal).semana}`
+      );
+      data = dadosAtivos.map(d => segundosParaHoras(d.total_segundos));
+      label = '⏱️ Horas Trabalhadas';
+      borderColor = 'rgba(34, 197, 94, 1)';
+      backgroundColor = gradientGreen;
+      pointColor = 'rgb(34, 197, 94)';
+    } else {
+      // Default: corridas
+      labels = dadosAtivos.map(d => 
+        viewMode === 'mensal' 
+          ? (d as EvolucaoMensal).mes_nome 
+          : `S${(d as EvolucaoSemanal).semana}`
+      );
+      data = dadosAtivos.map(d => d.total_corridas);
+      label = '🚗 Corridas Completadas';
+      borderColor = 'rgba(59, 130, 246, 1)';
+      backgroundColor = gradientBlue;
+      pointColor = 'rgb(59, 130, 246)';
+    }
+
+    return {
+      labels,
+      datasets: [
+        {
+          label,
+          data,
+          borderColor,
+          backgroundColor,
+          yAxisID,
+          tension: 0.4,
+          cubicInterpolationMode: 'monotone' as const,
+          pointRadius: isSemanal ? 4 : 6,
+          pointHoverRadius: isSemanal ? 8 : 10,
+          pointHitRadius: 15,
+          pointBackgroundColor: pointColor,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 3,
+          pointHoverBackgroundColor: pointColor,
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 4,
+          pointStyle: 'circle',
+          borderWidth: 3,
+          fill: true,
+          spanGaps: true,
+          segment: {
+            borderColor: (ctx: any) => {
+              if (!ctx.p0 || !ctx.p1) return borderColor;
+              const value0 = ctx.p0.parsed.y;
+              const value1 = ctx.p1.parsed.y;
+              
+              // Para UTR, usar cores baseadas no valor
+              if (metricType === 'utr') {
+                return value1 >= 1 ? 'rgb(34, 197, 94)' : value1 >= 0.5 ? 'rgb(251, 191, 36)' : 'rgb(239, 68, 68)';
+              }
+              
+              // Para outras métricas, usar verde quando aumenta
+              return value1 > value0 ? (metricType === 'horas' ? 'rgba(16, 185, 129, 1)' : 'rgba(34, 197, 94, 0.8)') : borderColor;
+            },
           },
         },
-      },
-      {
-        label: '⏱️ Horas Trabalhadas',
-        data: dadosAtivos.map(d => segundosParaHoras(d.total_segundos)),
-        borderColor: 'rgba(34, 197, 94, 1)',
-        backgroundColor: (ctx: any) => gradientGreen(ctx),
-        yAxisID: 'y1',
-        tension: 0.4,
-        cubicInterpolationMode: 'monotone' as const,
-        pointRadius: isSemanal ? 4 : 6,
-        pointHoverRadius: isSemanal ? 8 : 10,
-        pointHitRadius: 15,
-        pointBackgroundColor: 'rgb(34, 197, 94)',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 3,
-        pointHoverBackgroundColor: 'rgb(22, 163, 74)',
-        pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 4,
-        pointStyle: 'circle',
-        borderWidth: 3,
-        fill: true,
-        spanGaps: true,
-        segment: {
-          borderColor: (ctx: any) => {
-            // Criar efeito de gradiente na linha
-            if (!ctx.p0 || !ctx.p1) return 'rgb(34, 197, 94)';
-            const value0 = ctx.p0.parsed.y;
-            const value1 = ctx.p1.parsed.y;
-            return value1 > value0 ? 'rgba(16, 185, 129, 1)' : 'rgba(34, 197, 94, 1)';
-          },
-        },
-      },
-    ],
-  }), [dadosAtivos, viewMode, isSemanal, gradientBlue, gradientGreen, segundosParaHoras]);
+      ],
+    };
+  }, [dadosAtivos, dadosUtrAtivos, viewMode, isSemanal, metricType, gradientBlue, gradientGreen, gradientPurple, segundosParaHoras]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
@@ -4512,6 +4562,8 @@ function EvolucaoView({
               const horasDecimais = context.parsed.y;
               const totalSegundos = Math.round(horasDecimais * 3600);
               label += formatarHorasParaHMS(totalSegundos / 3600);
+            } else if (context.dataset.label.includes('UTR')) {
+              label += context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             } else {
               label += context.parsed.y.toLocaleString('pt-BR') + ' corridas';
             }
@@ -4542,13 +4594,21 @@ function EvolucaoView({
         position: 'left' as const,
         title: {
           display: true,
-          text: '🚗 Corridas Completadas',
+          text: metricType === 'utr' 
+            ? '🎯 UTR (Corridas/Hora)' 
+            : metricType === 'horas'
+            ? '⏱️ Horas Trabalhadas'
+            : '🚗 Corridas Completadas',
           font: {
             size: 13,
             weight: 'bold' as const,
             family: "'Inter', 'system-ui', sans-serif",
           },
-          color: 'rgb(59, 130, 246)',
+          color: metricType === 'utr' 
+            ? 'rgb(168, 85, 247)' 
+            : metricType === 'horas'
+            ? 'rgb(34, 197, 94)'
+            : 'rgb(59, 130, 246)',
           padding: { top: 0, bottom: 8 },
         },
         grid: {
@@ -4565,7 +4625,11 @@ function EvolucaoView({
           display: false,
         },
         ticks: {
-          color: 'rgb(59, 130, 246)',
+          color: metricType === 'utr' 
+            ? 'rgb(168, 85, 247)' 
+            : metricType === 'horas'
+            ? 'rgb(34, 197, 94)'
+            : 'rgb(59, 130, 246)',
           font: {
             size: 12,
             weight: 'bold' as const,
@@ -4573,41 +4637,12 @@ function EvolucaoView({
           },
           padding: 8,
           callback: function(value: any) {
+            if (metricType === 'utr') {
+              return value.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+            } else if (metricType === 'horas') {
+              return value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + 'h';
+            }
             return value.toLocaleString('pt-BR');
-          }
-        },
-      },
-      y1: {
-        type: 'linear' as const,
-        display: true,
-        position: 'right' as const,
-        title: {
-          display: true,
-          text: '⏱️ Horas Trabalhadas',
-          font: {
-            size: 13,
-            weight: 'bold' as const,
-            family: "'Inter', 'system-ui', sans-serif",
-          },
-          color: 'rgb(34, 197, 94)',
-          padding: { top: 0, bottom: 8 },
-        },
-        grid: {
-          drawOnChartArea: false,
-        },
-        border: {
-          display: false,
-        },
-        ticks: {
-          color: 'rgb(34, 197, 94)',
-          font: {
-            size: 12,
-            weight: 'bold' as const,
-            family: "'Inter', 'system-ui', sans-serif",
-          },
-          padding: 8,
-          callback: function(value: any) {
-            return value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + 'h';
           }
         },
       },
@@ -4645,7 +4680,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  }), [isSemanal, dadosAtivos.length, isDarkMode]);
+  }), [isSemanal, dadosAtivos.length, isDarkMode, metricType]);
 
   // Early return APÓS todos os hooks
   if (loading) {
@@ -4744,27 +4779,53 @@ function EvolucaoView({
               </div>
 
               {/* Toggle Mensal/Semanal */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setViewMode('mensal')}
-                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                    viewMode === 'mensal'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  📅 Mensal
-                </button>
-                <button
-                  onClick={() => setViewMode('semanal')}
-                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                    viewMode === 'semanal'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  📊 Semanal
-                </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setViewMode('mensal')}
+                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                      viewMode === 'mensal'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    📅 Mensal
+                  </button>
+                  <button
+                    onClick={() => setViewMode('semanal')}
+                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                      viewMode === 'semanal'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    📊 Semanal
+                  </button>
+                </div>
+
+                {/* Seletor de Métrica */}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Métrica:</label>
+                  <select
+                    value={metricType}
+                    onChange={(e) => {
+                      const newMetric = e.target.value as 'corridas' | 'horas' | 'utr';
+                      // Se selecionar UTR mas não estiver no modo semanal ou não houver dados, voltar para corridas
+                      if (newMetric === 'utr' && (viewMode !== 'semanal' || utrSemanal.length === 0)) {
+                        setMetricType('corridas');
+                      } else {
+                        setMetricType(newMetric);
+                      }
+                    }}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  >
+                    <option value="corridas">🚗 Corridas Completadas</option>
+                    <option value="horas">⏱️ Horas Trabalhadas</option>
+                    {viewMode === 'semanal' && utrSemanal.length > 0 && (
+                      <option value="utr">🎯 UTR (Taxa de Utilização)</option>
+                    )}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -4779,32 +4840,54 @@ function EvolucaoView({
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
         </div>
         
-        {dadosAtivos.length > 0 ? (
+        {((metricType === 'utr' && dadosUtrAtivos.length > 0) || (metricType !== 'utr' && dadosAtivos.length > 0)) ? (
           <div className="relative z-10">
             {/* Título do gráfico */}
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h4 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg shadow-lg">
-                    📈
+                  <span className={`inline-flex items-center justify-center w-10 h-10 rounded-xl text-white text-lg shadow-lg ${
+                    metricType === 'utr' 
+                      ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
+                      : metricType === 'horas'
+                      ? 'bg-gradient-to-br from-emerald-500 to-teal-600'
+                      : 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                  }`}>
+                    {metricType === 'utr' ? '🎯' : metricType === 'horas' ? '⏱️' : '📈'}
                   </span>
-                  Desempenho {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
+                  {metricType === 'utr' 
+                    ? 'Evolução de UTR' 
+                    : metricType === 'horas'
+                    ? 'Evolução de Horas Trabalhadas'
+                    : 'Evolução de Corridas Completadas'} {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
                 </h4>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                  Análise detalhada de corridas e horas trabalhadas ({dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} exibidos)
+                  {metricType === 'utr' && viewMode === 'semanal' && dadosUtrAtivos.length > 0
+                    ? `Análise detalhada de UTR por semana (${dadosUtrAtivos.length} semanas exibidas)`
+                    : `Análise detalhada ${metricType === 'horas' ? 'de horas trabalhadas' : 'de corridas completadas'} (${dadosAtivos.length} ${viewMode === 'mensal' ? 'meses' : 'semanas'} exibidos)`}
                 </p>
               </div>
               
-              {/* Indicadores de linha */}
+              {/* Indicador de métrica */}
               <div className="hidden lg:flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                  <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
-                  <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Corridas</span>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                  <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
-                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Horas</span>
-                </div>
+                {metricType === 'utr' && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                    <div className="w-3 h-3 rounded-full bg-purple-500 shadow-md"></div>
+                    <span className="text-xs font-bold text-purple-700 dark:text-purple-300">UTR</span>
+                  </div>
+                )}
+                {metricType === 'horas' && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
+                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Horas</span>
+                  </div>
+                )}
+                {metricType === 'corridas' && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
+                    <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Corridas</span>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -4923,6 +5006,260 @@ function EvolucaoView({
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 📅
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gráfico de Evolução de UTR por Semana - REMOVIDO (agora integrado no gráfico principal com seletor de métrica) */}
+      {false && utrSemanal.length > 0 && (
+        <div className="relative rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-purple-50/20 p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-purple-950/10 overflow-hidden mt-6">
+          {/* Elementos decorativos de fundo */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="relative z-10">
+            {/* Título do gráfico */}
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h4 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-lg shadow-lg">
+                    🎯
+                  </span>
+                  Evolução de UTR por Semana
+                </h4>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                  Taxa de Utilização de Recursos (UTR) semanal ({utrSemanal.length} semanas exibidas)
+                </p>
+              </div>
+              
+              {/* Indicador de linha */}
+              <div className="hidden lg:flex items-center gap-4">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                  <div className="w-3 h-3 rounded-full bg-purple-500 shadow-md"></div>
+                  <span className="text-xs font-bold text-purple-700 dark:text-purple-300">UTR</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Container do gráfico */}
+            <div className="h-[550px] rounded-xl bg-white/50 dark:bg-slate-900/50 p-4 backdrop-blur-sm">
+              <Line 
+                data={{
+                  labels: utrSemanal
+                    .filter(d => d.ano === anoSelecionado)
+                    .sort((a, b) => a.semana - b.semana)
+                    .map(d => d.semana_label),
+                  datasets: [
+                    {
+                      label: 'UTR (Taxa de Utilização de Recursos)',
+                      data: utrSemanal
+                        .filter(d => d.ano === anoSelecionado)
+                        .sort((a, b) => a.semana - b.semana)
+                        .map(d => d.utr),
+                      borderColor: 'rgb(168, 85, 247)',
+                      backgroundColor: (context: any) => {
+                        const chart = context.chart;
+                        const { ctx, chartArea } = chart;
+                        if (!chartArea) return 'rgba(168, 85, 247, 0.2)';
+                        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        gradient.addColorStop(0, 'rgba(196, 181, 253, 0.5)');
+                        gradient.addColorStop(0.3, 'rgba(168, 85, 247, 0.35)');
+                        gradient.addColorStop(0.7, 'rgba(139, 92, 246, 0.15)');
+                        gradient.addColorStop(1, 'rgba(124, 58, 237, 0.00)');
+                        return gradient;
+                      },
+                      fill: true,
+                      tension: 0.4,
+                      cubicInterpolationMode: 'monotone' as const,
+                      pointRadius: 6,
+                      pointHoverRadius: 10,
+                      pointBackgroundColor: 'rgb(168, 85, 247)',
+                      pointBorderColor: '#fff',
+                      pointBorderWidth: 2,
+                      pointHoverBorderWidth: 3,
+                      segment: {
+                        borderColor: (ctx: any) => {
+                          const value = ctx.p1.parsed.y;
+                          return value >= 1 ? 'rgb(34, 197, 94)' : value >= 0.5 ? 'rgb(251, 191, 36)' : 'rgb(239, 68, 68)';
+                        },
+                      },
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  layout: {
+                    padding: {
+                      top: 12,
+                      right: 16,
+                      bottom: 8,
+                      left: 12,
+                    },
+                  },
+                  animation: {
+                    duration: 1200,
+                    easing: 'easeInOutQuart' as const,
+                  },
+                  interaction: {
+                    mode: 'index' as const,
+                    intersect: false,
+                    axis: 'x' as const,
+                  },
+                  plugins: {
+                    legend: {
+                      position: 'top' as const,
+                      align: 'center' as const,
+                      labels: {
+                        font: {
+                          size: 14,
+                          weight: 'bold' as const,
+                          family: "'Inter', 'system-ui', sans-serif",
+                        },
+                        padding: 16,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 12,
+                        boxHeight: 12,
+                        color: isDarkMode ? 'rgb(226, 232, 240)' : 'rgb(51, 65, 85)',
+                      },
+                    },
+                    tooltip: {
+                      enabled: true,
+                      backgroundColor: 'rgba(15, 23, 42, 0.97)',
+                      titleColor: 'rgba(255, 255, 255, 1)',
+                      bodyColor: 'rgba(226, 232, 240, 1)',
+                      padding: 20,
+                      titleFont: {
+                        size: 16,
+                        weight: 'bold' as const,
+                        family: "'Inter', 'system-ui', sans-serif",
+                      },
+                      bodyFont: {
+                        size: 15,
+                        weight: '600' as any,
+                        family: "'Inter', 'system-ui', sans-serif",
+                      },
+                      borderColor: 'rgba(148, 163, 184, 0.5)',
+                      borderWidth: 2,
+                      cornerRadius: 12,
+                      displayColors: true,
+                      boxWidth: 14,
+                      boxHeight: 14,
+                      boxPadding: 6,
+                      usePointStyle: true,
+                      callbacks: {
+                        title: function(context: any) {
+                          const label = context[0]?.label || '';
+                          return `📊 ${label}`;
+                        },
+                        label: function(context: any) {
+                          let label = context.dataset.label || '';
+                          if (label) {
+                            label += ': ';
+                          }
+                          label += context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                          return label;
+                        },
+                        afterLabel: function(context: any) {
+                          const dataIndex = context.dataIndex;
+                          if (dataIndex > 0) {
+                            const currentValue = context.parsed.y;
+                            const previousValue = context.dataset.data[dataIndex - 1];
+                            if (previousValue && previousValue !== 0) {
+                              const variation = ((currentValue - previousValue) / previousValue * 100);
+                              const arrow = variation > 0 ? '📈' : variation < 0 ? '📉' : '➡️';
+                              const sign = variation > 0 ? '+' : '';
+                              return `${arrow} ${sign}${variation.toFixed(1)}% vs anterior`;
+                            }
+                          }
+                          return '';
+                        },
+                      }
+                    },
+                  },
+                  scales: {
+                    y: {
+                      type: 'linear' as const,
+                      display: true,
+                      position: 'left' as const,
+                      title: {
+                        display: true,
+                        text: '🎯 UTR (Corridas/Hora)',
+                        font: {
+                          size: 13,
+                          weight: 'bold' as const,
+                          family: "'Inter', 'system-ui', sans-serif",
+                        },
+                        color: 'rgb(168, 85, 247)',
+                        padding: { top: 0, bottom: 8 },
+                      },
+                      grid: {
+                        color: (context: any) => {
+                          if (context.tick.value === 0) return 'rgba(100, 116, 139, 0)';
+                          return isDarkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.15)';
+                        },
+                        lineWidth: 1,
+                        drawBorder: false,
+                        drawTicks: false,
+                      },
+                      border: {
+                        display: false,
+                      },
+                      ticks: {
+                        color: 'rgb(168, 85, 247)',
+                        font: {
+                          size: 12,
+                          weight: 'bold' as const,
+                          family: "'Inter', 'system-ui', sans-serif",
+                        },
+                        padding: 8,
+                        callback: function(value: any) {
+                          return value.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+                        }
+                      },
+                    },
+                    x: {
+                      grid: {
+                        display: false,
+                        drawBorder: false,
+                      },
+                      border: {
+                        display: false,
+                      },
+                      ticks: {
+                        maxTicksLimit: 52,
+                        autoSkip: utrSemanal.length <= 52 ? false : true,
+                        maxRotation: 45,
+                        minRotation: 45,
+                        font: {
+                          size: 10,
+                          weight: '700' as any,
+                          family: "'Inter', 'system-ui', sans-serif",
+                        },
+                        color: isDarkMode ? 'rgb(203, 213, 225)' : 'rgb(71, 85, 105)',
+                        padding: 10,
+                      },
+                    },
+                  },
+                  elements: {
+                    line: {
+                      borderCapStyle: 'round' as const,
+                      borderJoinStyle: 'round' as const,
+                    },
+                    point: {
+                      hoverBorderWidth: 4,
+                      radius: 6,
+                      hoverRadius: 10,
+                    },
+                  },
+                }}
+                redraw={false}
+                updateMode="none"
+              />
             </div>
           </div>
         </div>
@@ -6369,6 +6706,8 @@ export default function DashboardPage() {
   const [loadingValores, setLoadingValores] = useState(false);
   const [evolucaoMensal, setEvolucaoMensal] = useState<EvolucaoMensal[]>([]);
   const [evolucaoSemanal, setEvolucaoSemanal] = useState<EvolucaoSemanal[]>([]);
+  const [utrSemanal, setUtrSemanal] = useState<UtrSemanal[]>([]);
+  const [loadingUtrSemanal, setLoadingUtrSemanal] = useState(false);
   const [loadingEvolucao, setLoadingEvolucao] = useState(false);
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
 
@@ -7093,8 +7432,8 @@ export default function DashboardPage() {
         try {
           const pracaSelecionada = filters.praca || null;
 
-          // Buscar dados mensais e semanais em paralelo
-          const [mensalResult, semanalResult] = await Promise.all([
+          // Buscar dados mensais, semanais e UTR semanal em paralelo
+          const [mensalResult, semanalResult, utrSemanalResult] = await Promise.all([
             supabase.rpc('listar_evolucao_mensal', {
               p_praca: pracaSelecionada,
               p_ano: anoEvolucao
@@ -7103,14 +7442,24 @@ export default function DashboardPage() {
               p_praca: pracaSelecionada,
               p_ano: anoEvolucao,
               p_limite_semanas: 53 // Aumentado para 53 para cobrir anos bissextos com semanas extras
+            }),
+            supabase.rpc('listar_utr_semanal', {
+              p_praca: pracaSelecionada,
+              p_ano: anoEvolucao,
+              p_limite_semanas: 53
             })
           ]);
 
           if (mensalResult.error) throw mensalResult.error;
           if (semanalResult.error) throw semanalResult.error;
+          if (utrSemanalResult.error) {
+            // UTR semanal pode não existir ainda, então apenas logar o erro
+            if (IS_DEV) console.warn('Função listar_utr_semanal não disponível:', utrSemanalResult.error);
+          }
 
           const dadosMensais = mensalResult.data || [];
           const dadosSemanais = semanalResult.data || [];
+          const dadosUtrSemanal = utrSemanalResult.data || [];
 
           // Salvar no cache
           evolucaoCacheRef.current.set(cacheKey, { mensal: dadosMensais, semanal: dadosSemanais });
@@ -7128,6 +7477,7 @@ export default function DashboardPage() {
             console.log('📊 Dados de Evolução carregados:', {
               mensais: dadosMensais.length,
               semanais: dadosSemanais.length,
+              utrSemanal: dadosUtrSemanal.length,
               ano: anoEvolucao,
               praca: pracaSelecionada
             });
@@ -7135,10 +7485,12 @@ export default function DashboardPage() {
 
           setEvolucaoMensal(dadosMensais);
           setEvolucaoSemanal(dadosSemanais);
+          setUtrSemanal(dadosUtrSemanal);
         } catch (err: any) {
           if (IS_DEV) console.error('Erro ao buscar Evolução:', err);
           setEvolucaoMensal([]);
           setEvolucaoSemanal([]);
+          setUtrSemanal([]);
         } finally {
           setLoadingEvolucao(false);
         }
@@ -7313,6 +7665,7 @@ export default function DashboardPage() {
                 <EvolucaoView
                   evolucaoMensal={evolucaoMensal}
                   evolucaoSemanal={evolucaoSemanal}
+                  utrSemanal={utrSemanal}
                   loading={loadingEvolucao}
                   anoSelecionado={anoEvolucao}
                   anosDisponiveis={anosDisponiveis}
