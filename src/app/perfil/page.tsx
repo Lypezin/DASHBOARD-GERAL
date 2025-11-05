@@ -55,8 +55,7 @@ export default function PerfilPage() {
       setUser(profile);
       setEditedName(profile.full_name);
       
-      // Buscar created_at do auth.users primeiro
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      // Buscar created_at do auth.users (já temos o authUser da linha 38)
       let userCreatedAt: string | null = null;
       if (authUser?.created_at) {
         userCreatedAt = authUser.created_at;
