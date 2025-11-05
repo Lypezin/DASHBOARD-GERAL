@@ -297,13 +297,13 @@ export function Header() {
               <div className="space-y-6">
                 {/* Histórico de Atualizações - Mais Recente Primeiro */}
                 <div className="space-y-4">
-                  {/* 05/11/2025 - Ordenado por hora (mais recente primeiro) */}
+                  {/* 04/11/2025 - Sistema de Refresh Automático de MVs */}
                   {/* 17:30 */}
                   <div className="relative pl-8 border-l-4 border-emerald-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">17:30</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
@@ -317,7 +317,7 @@ export function Header() {
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">17:00</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
@@ -331,7 +331,7 @@ export function Header() {
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">16:30</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
@@ -345,7 +345,7 @@ export function Header() {
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">16:00</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
@@ -359,7 +359,7 @@ export function Header() {
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">15:45</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
@@ -373,7 +373,7 @@ export function Header() {
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">05/11/2025</span>
+                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">10:00</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
@@ -387,7 +387,7 @@ export function Header() {
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">05/11/2025</span>
+                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">09:30</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
@@ -396,14 +396,14 @@ export function Header() {
                     </div>
                   </div>
 
-                  {/* 04/11/2025 */}
-                  {/* 16:45 */}
+                  {/* 03/11/2025 */}
+                  {/* 16:00 */}
                   <div className="relative pl-8 border-l-4 border-indigo-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">04/11/2025</span>
-                        <span className="text-sm text-slate-600 dark:text-slate-400">16:45</span>
+                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">03/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">16:00</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
                         Implementadas otimizações de performance em todo o sistema, incluindo memoização de componentes, cache de requisições e debounce em chamadas de API para melhorar a responsividade.
@@ -416,7 +416,7 @@ export function Header() {
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">04/11/2025</span>
+                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">03/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">14:20</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
@@ -430,7 +430,7 @@ export function Header() {
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">04/11/2025</span>
+                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">03/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">11:00</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
@@ -439,43 +439,300 @@ export function Header() {
                     </div>
                   </div>
 
-                  {/* 03/11/2025 */}
+                  {/* 02/11/2025 */}
+                  {/* 15:30 */}
                   <div className="relative pl-8 border-l-4 border-purple-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-purple-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-purple-700 dark:text-purple-300">03/11/2025</span>
+                        <span className="text-lg font-bold text-purple-700 dark:text-purple-300">02/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">15:30</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
-                        Melhorias gerais na interface do usuário, incluindo melhor responsividade, feedback visual aprimorado e correções de bugs visuais.
+                        Implementada guia de Monitoramento para administradores, exibindo usuários online em tempo real e atividades recentes do sistema com informações detalhadas de ações realizadas.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 10:00 */}
+                  <div className="relative pl-8 border-l-4 border-purple-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-purple-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-purple-700 dark:text-purple-300">02/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">10:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Adicionada guia de Evolução com visualização de dados mensais e semanais, gráficos interativos mostrando evolução de corridas completadas e horas trabalhadas ao longo do tempo.
                       </p>
                     </div>
                   </div>
 
                   {/* 01/11/2025 */}
-                  <div className="relative pl-8 border-l-4 border-rose-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-rose-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
-                    <div className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                  {/* 16:00 */}
+                  <div className="relative pl-8 border-l-4 border-pink-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-pink-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-rose-700 dark:text-rose-300">01/11/2025</span>
-                        <span className="text-sm text-slate-600 dark:text-slate-400">16:20</span>
+                        <span className="text-lg font-bold text-pink-700 dark:text-pink-300">01/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">16:00</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
-                        Lançamento inicial do sistema de dashboard com funcionalidades básicas de visualização de dados, autenticação de usuários e controle de acesso.
+                        Implementada guia de Prioridade/Promo com análise detalhada de entregadores por categoria, exibindo métricas específicas de prioridade e promoção com filtros avançados.
                       </p>
                     </div>
                   </div>
 
+                  {/* 10:30 */}
+                  <div className="relative pl-8 border-l-4 border-pink-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-pink-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-pink-700 dark:text-pink-300">01/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">10:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Criada guia de Valores com análise financeira detalhada de entregadores, exibindo valores totais, médios e por categoria com gráficos e tabelas interativas.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 31/10/2025 */}
+                  {/* 14:00 */}
                   <div className="relative pl-8 border-l-4 border-rose-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-rose-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-rose-700 dark:text-rose-300">01/11/2025</span>
+                        <span className="text-lg font-bold text-rose-700 dark:text-rose-300">31/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">14:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementada guia de Entregadores com lista completa de entregadores, métricas individuais de desempenho, filtros por status e visualização detalhada de cada entregador.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 30/10/2025 */}
+                  {/* 15:00 */}
+                  <div className="relative pl-8 border-l-4 border-orange-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-orange-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-orange-700 dark:text-orange-300">30/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">15:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Adicionada guia de UTR (Unidade de Tempo Real) com análise de eficiência de entregadores, cálculo de UTR por período e visualização de métricas de produtividade.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 29/10/2025 */}
+                  {/* 11:00 */}
+                  <div className="relative pl-8 border-l-4 border-amber-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-amber-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-amber-700 dark:text-amber-300">29/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">11:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Criada guia de Comparação com análise comparativa entre diferentes períodos, praças e métricas, permitindo visualização lado a lado de dados históricos.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 28/10/2025 */}
+                  {/* 16:30 */}
+                  <div className="relative pl-8 border-l-4 border-yellow-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-yellow-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-yellow-50 to-lime-50 dark:from-yellow-950/30 dark:to-lime-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">28/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">16:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementada guia de Análise com visualizações detalhadas de dados, gráficos interativos e análises profundas de métricas de aderência e desempenho.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 27/10/2025 */}
+                  {/* 13:00 */}
+                  <div className="relative pl-8 border-l-4 border-lime-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-lime-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-lime-700 dark:text-lime-300">27/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">13:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Adicionados filtros avançados de Sub-Praça e Origem ao sistema, permitindo análises mais granulares e específicas dos dados de corridas.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 26/10/2025 */}
+                  {/* 10:00 */}
+                  <div className="relative pl-8 border-l-4 border-green-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-green-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-green-700 dark:text-green-300">26/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">10:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementado filtro de Praça com suporte a múltiplas seleções, permitindo análise comparativa entre diferentes praças simultaneamente.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 25/10/2025 */}
+                  {/* 14:30 */}
+                  <div className="relative pl-8 border-l-4 border-teal-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-teal-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-teal-700 dark:text-teal-300">25/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">14:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Adicionados filtros de Ano e Semana ao dashboard principal, permitindo navegação temporal e análise de períodos específicos.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 24/10/2025 */}
+                  {/* 09:00 */}
+                  <div className="relative pl-8 border-l-4 border-cyan-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-cyan-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-cyan-50 to-sky-50 dark:from-cyan-950/30 dark:to-sky-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-cyan-700 dark:text-cyan-300">24/10/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">09:00</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
-                        Estrutura inicial do projeto criada com Next.js, TypeScript, Tailwind CSS e integração com Supabase para gerenciamento de dados e autenticação.
+                        Criado sistema de Materialized Views para otimização de performance, incluindo MVs para dashboard admin, lite e micro, melhorando significativamente a velocidade de consultas.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 23/10/2025 */}
+                  {/* 15:00 */}
+                  <div className="relative pl-8 border-l-4 border-sky-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-sky-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-sky-700 dark:text-sky-300">23/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">15:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementado painel administrativo com funcionalidades de gerenciamento de usuários, aprovação de contas, controle de acesso por praça e visualização de permissões.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 22/10/2025 */}
+                  {/* 11:30 */}
+                  <div className="relative pl-8 border-l-4 border-blue-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">22/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">11:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Adicionada página de perfil de usuário com edição de informações pessoais, upload de avatar e gerenciamento de preferências de conta.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 21/10/2025 */}
+                  {/* 10:00 */}
+                  <div className="relative pl-8 border-l-4 border-indigo-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">21/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">10:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Criada página de upload de dados com suporte a arquivos Excel (.xlsx, .xls), processamento em lote, validação de dados e tratamento de erros de importação.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 20/10/2025 */}
+                  {/* 14:00 */}
+                  <div className="relative pl-8 border-l-4 border-purple-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-purple-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-purple-700 dark:text-purple-300">20/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">14:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementado dashboard principal com visualização de aderência geral, métricas de corridas, gráficos de aderência por dia, turno, sub-praça e origem, com cards interativos e responsivos.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 19/10/2025 */}
+                  {/* 09:30 */}
+                  <div className="relative pl-8 border-l-4 border-pink-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-pink-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-pink-700 dark:text-pink-300">19/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">09:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Criadas funções SQL no Supabase para cálculo de aderência, agregação de dados e consultas otimizadas, incluindo `dashboard_resumo`, `calcular_utr`, `listar_entregadores` e outras funções essenciais.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 18/10/2025 */}
+                  {/* 16:00 */}
+                  <div className="relative pl-8 border-l-4 border-rose-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-rose-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-rose-700 dark:text-rose-300">18/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">16:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementado sistema de autenticação completo com Supabase Auth, incluindo login, registro, controle de acesso baseado em roles (admin/usuário) e aprovação de contas.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 17/10/2025 */}
+                  {/* 10:30 */}
+                  <div className="relative pl-8 border-l-4 border-red-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-red-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-red-700 dark:text-red-300">17/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">10:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Criada estrutura de banco de dados no Supabase com tabelas principais: `dados_corridas`, `user_profiles`, `user_activity`, configuração de RLS (Row Level Security) e políticas de acesso.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 16/10/2025 */}
+                  {/* 09:00 */}
+                  <div className="relative pl-8 border-l-4 border-slate-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-slate-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-slate-700 dark:text-slate-300">16/10/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">09:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Projeto inicial criado com Next.js 14, TypeScript, Tailwind CSS e integração com Supabase. Configuração inicial do ambiente de desenvolvimento, estrutura de pastas e componentes base do sistema.
                       </p>
                     </div>
                   </div>
