@@ -4238,6 +4238,7 @@ function EvolucaoView({
   const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
   const isSemanal = viewMode === 'semanal';
 
+  // IMPORTANTE: Todos os hooks devem ser chamados ANTES de qualquer early return
   // Gradientes vibrantes e modernos com múltiplas paradas de cor (otimizado com useCallback)
   const gradientBlue = useCallback((context: any) => {
     const chart = context.chart;
@@ -4263,67 +4264,10 @@ function EvolucaoView({
     return gradient;
   }, []);
 
-  if (loading) {
-    return (
-      <div className="space-y-6 animate-fade-in">
-        {/* Header Skeleton */}
-        <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
-          <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-blue-950/30">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-                <div className="h-4 w-64 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-              </div>
-              <div className="flex gap-3">
-                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
-                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Gráfico Skeleton */}
-        <div className="relative rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10 overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
-          </div>
-          
-          <div className="relative z-10">
-            <div className="mb-6 space-y-2">
-              <div className="h-7 w-56 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-              <div className="h-4 w-80 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-            </div>
-            
-            <div className="h-[550px] rounded-xl bg-white/50 dark:bg-slate-900/50 p-4 backdrop-blur-sm">
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-400"></div>
-                  <div className="space-y-2">
-                    <p className="text-lg font-semibold text-blue-700 dark:text-blue-300">Carregando dados de evolução...</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Aguarde enquanto buscamos as informações</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Cards Skeleton */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 via-slate-100/50 to-slate-100/30 p-6 shadow-lg dark:border-slate-800/50 dark:from-slate-950/40 dark:via-slate-900/30 dark:to-slate-950/20">
-              <div className="space-y-3">
-                <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-                <div className="h-12 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-                <div className="h-3 w-40 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // Memoizar conversão de segundos para horas
+  const segundosParaHoras = useCallback((segundos: number): number => {
+    return segundos / 3600;
+  }, []);
 
   // Ordenar e garantir que todos os dados sejam exibidos (otimizado com useMemo)
   const dadosAtivos = useMemo(() => {
@@ -4339,10 +4283,6 @@ function EvolucaoView({
           return a.semana - b.semana;
         });
   }, [viewMode, evolucaoMensal, evolucaoSemanal]);
-  // Memoizar conversão de segundos para horas
-  const segundosParaHoras = useCallback((segundos: number): number => {
-    return segundos / 3600;
-  }, []);
 
   // Dados do gráfico com estilo premium (otimizado com useMemo)
   const chartData = useMemo(() => ({
@@ -4415,7 +4355,7 @@ function EvolucaoView({
         },
       },
     ],
-  }), [dadosAtivos, viewMode, isSemanal]);
+  }), [dadosAtivos, viewMode, isSemanal, gradientBlue, gradientGreen, segundosParaHoras]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
@@ -4651,6 +4591,69 @@ function EvolucaoView({
       },
     },
   }), [isSemanal, dadosAtivos.length]);
+
+  // Early return APÓS todos os hooks
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* Header Skeleton */}
+        <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+          <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-blue-950/30">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2">
+                <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-4 w-64 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+              </div>
+              <div className="flex gap-3">
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Gráfico Skeleton */}
+        <div className="relative rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10 overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="relative z-10">
+            <div className="mb-6 space-y-2">
+              <div className="h-7 w-56 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+              <div className="h-4 w-80 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+            </div>
+            
+            <div className="h-[550px] rounded-xl bg-white/50 dark:bg-slate-900/50 p-4 backdrop-blur-sm">
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-400"></div>
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-blue-700 dark:text-blue-300">Carregando dados de evolução...</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Aguarde enquanto buscamos as informações</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cards Skeleton */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 via-slate-100/50 to-slate-100/30 p-6 shadow-lg dark:border-slate-800/50 dark:from-slate-950/40 dark:via-slate-900/30 dark:to-slate-950/20">
+              <div className="space-y-3">
+                <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-12 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-3 w-40 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
