@@ -376,29 +376,16 @@ export function Header() {
                     </div>
                   </div>
 
-                  {/* 02/11/2025 */}
-                  <div className="relative pl-8 border-l-4 border-pink-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-pink-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
-                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                  {/* 06/11/2025 - Atualização de Materialized Views */}
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-pink-700 dark:text-pink-300">02/11/2025</span>
-                        <span className="text-sm text-slate-600 dark:text-slate-400">13:15</span>
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">06/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">15:30</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
-                        Implementado sistema de notificações em tempo real e melhorias na visualização de dados com gráficos interativos e exportação de relatórios.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="relative pl-8 border-l-4 border-pink-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-pink-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
-                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-pink-700 dark:text-pink-300">02/11/2025</span>
-                        <span className="text-sm text-slate-600 dark:text-slate-400">10:45</span>
-                      </div>
-                      <p className="text-slate-700 dark:text-slate-300 font-medium">
-                        Adicionadas funcionalidades de filtros avançados e melhorias na performance de consultas ao banco de dados, reduzindo tempo de carregamento em até 40%.
+                        Implementado sistema automatizado de refresh de Materialized Views (MVs) após importação de dados. Criada função `refresh_dashboard_mvs()` para atualizar todas as MVs, sistema de triggers para marcar necessidade de refresh e agendamento via pg_cron para atualização automática periódica, eliminando a necessidade de refresh manual após cada importação.
                       </p>
                     </div>
                   </div>
