@@ -257,14 +257,14 @@ export function Header() {
       {/* Modal de Histórico de Atualizações */}
       {showHistory && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4 overflow-y-auto"
           onClick={handleBackdropClick}
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
         >
           <div 
-            className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden animate-scale-in transform transition-all"
+            className="relative w-full max-w-4xl my-8 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden animate-scale-in transform transition-all"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header do Modal */}
@@ -291,11 +291,12 @@ export function Header() {
             </div>
 
             {/* Conteúdo do Modal */}
-            <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
+            <div className="overflow-y-auto max-h-[calc(90vh-180px)] p-6">
               <div className="space-y-6">
                 {/* Histórico de Atualizações - Mais Recente Primeiro */}
                 <div className="space-y-4">
-                  {/* 05/11/2025 - Sistema de Refresh Automático de MVs */}
+                  {/* 05/11/2025 - Ordenado por hora (mais recente primeiro) */}
+                  {/* 17:30 */}
                   <div className="relative pl-8 border-l-4 border-emerald-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -309,6 +310,7 @@ export function Header() {
                     </div>
                   </div>
 
+                  {/* 17:00 */}
                   <div className="relative pl-8 border-l-4 border-emerald-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -322,6 +324,7 @@ export function Header() {
                     </div>
                   </div>
 
+                  {/* 16:30 */}
                   <div className="relative pl-8 border-l-4 border-emerald-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -335,6 +338,7 @@ export function Header() {
                     </div>
                   </div>
 
+                  {/* 16:00 */}
                   <div className="relative pl-8 border-l-4 border-emerald-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -348,6 +352,7 @@ export function Header() {
                     </div>
                   </div>
 
+                  {/* 15:45 */}
                   <div className="relative pl-8 border-l-4 border-emerald-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -361,10 +366,10 @@ export function Header() {
                     </div>
                   </div>
 
-                  {/* 05/11/2025 */}
+                  {/* 10:00 */}
                   <div className="relative pl-8 border-l-4 border-blue-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900"></div>
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg font-bold text-blue-700 dark:text-blue-300">05/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">10:00</span>
@@ -375,9 +380,10 @@ export function Header() {
                     </div>
                   </div>
 
+                  {/* 09:30 */}
                   <div className="relative pl-8 border-l-4 border-blue-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900"></div>
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg font-bold text-blue-700 dark:text-blue-300">05/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">09:30</span>
@@ -389,9 +395,10 @@ export function Header() {
                   </div>
 
                   {/* 04/11/2025 */}
+                  {/* 16:45 */}
                   <div className="relative pl-8 border-l-4 border-indigo-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900"></div>
-                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">16:45</span>
@@ -402,9 +409,10 @@ export function Header() {
                     </div>
                   </div>
 
+                  {/* 14:20 */}
                   <div className="relative pl-8 border-l-4 border-indigo-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900"></div>
-                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">14:20</span>
@@ -415,9 +423,10 @@ export function Header() {
                     </div>
                   </div>
 
+                  {/* 11:00 */}
                   <div className="relative pl-8 border-l-4 border-indigo-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900"></div>
-                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">04/11/2025</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">11:00</span>
