@@ -7063,7 +7063,9 @@ export default function DashboardPage() {
           // Limitar cache a 10 entradas (LRU simples)
           if (evolucaoCacheRef.current.size > 10) {
             const firstKey = evolucaoCacheRef.current.keys().next().value;
-            evolucaoCacheRef.current.delete(firstKey);
+            if (firstKey !== undefined) {
+              evolucaoCacheRef.current.delete(firstKey);
+            }
           }
 
           // Log para debug
