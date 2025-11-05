@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -18,6 +19,7 @@ interface UserProfile {
 
 export function Header() {
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -157,16 +159,27 @@ export function Header() {
               <span className="text-sm sm:text-base hidden xs:inline">Dashboard</span>
             </Link>
             
-            <button
-              onClick={() => setShowHistory(true)}
-              className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
-              title="Histórico de Atualizações"
-            >
-              <span className="text-base sm:text-lg">📋</span>
-              <span className="text-sm sm:text-base hidden md:inline">Histórico</span>
-            </button>
-            
-            {user.is_admin && (
+          <button
+            onClick={() => setShowHistory(true)}
+            className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
+            title="Histórico de Atualizações"
+          >
+            <span className="text-base sm:text-lg">📋</span>
+            <span className="text-sm sm:text-base hidden md:inline">Histórico</span>
+          </button>
+
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
+            title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
+          >
+            <span className="text-base sm:text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
+            <span className="text-sm sm:text-base hidden md:inline">
+              {theme === 'dark' ? 'Escuro' : 'Claro'}
+            </span>
+          </button>
+          
+          {user.is_admin && (
               <>
                 <Link
                   href="/upload"

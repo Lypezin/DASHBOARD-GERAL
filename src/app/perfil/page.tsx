@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -14,10 +15,12 @@ interface UserProfile {
   is_admin: boolean;
   is_approved: boolean;
   avatar_url?: string | null;
+  created_at?: string;
 }
 
 export default function PerfilPage() {
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -25,6 +28,10 @@ export default function PerfilPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [memberSince, setMemberSince] = useState<string | null>(null);
 
   const checkUser = useCallback(async () => {
     try {
@@ -46,6 +53,15 @@ export default function PerfilPage() {
       }
 
       setUser(profile);
+      setEditedName(profile.full_name);
+      
+      // Buscar created_at do auth.users primeiro
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      let userCreatedAt: string | null = null;
+      if (authUser?.created_at) {
+        userCreatedAt = authUser.created_at;
+        setMemberSince(authUser.created_at);
+      }
       
       // Buscar avatar_url da tabela de perfil se existir
       if (profile?.id) {
@@ -54,9 +70,14 @@ export default function PerfilPage() {
           
           const { data: profileData, error: profileDataError } = await supabase
             .from('user_profiles')
-            .select('avatar_url, id, updated_at')
+            .select('avatar_url, id, updated_at, created_at')
             .eq('id', profile.id)
             .single();
+          
+          // Se não tiver created_at do auth, usar do profile
+          if (!userCreatedAt && profileData?.created_at) {
+            setMemberSince(profileData.created_at);
+          }
           
           if (IS_DEV) console.log('📥 Resultado da busca:', { profileData, profileDataError });
           
@@ -348,6 +369,82 @@ export default function PerfilPage() {
     }
   };
 
+  const handleSaveName = async () => {
+    if (!user || !editedName.trim()) {
+      setError('O nome não pode estar vazio.');
+      return;
+    }
+
+    if (editedName.trim() === user.full_name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    setSavingName(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('Usuário não autenticado');
+
+      // Atualizar o nome no Supabase Auth (user_metadata)
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          ...authUser.user_metadata,
+          full_name: editedName.trim()
+        }
+      });
+
+      if (updateError) throw updateError;
+
+      // Atualizar no perfil também (se houver função RPC para isso)
+      try {
+        // Tentar atualizar via RPC se existir
+        const { error: rpcError } = await supabase.rpc('update_user_full_name', {
+          p_user_id: authUser.id,
+          p_full_name: editedName.trim()
+        });
+
+        if (rpcError && IS_DEV) {
+          console.warn('Função update_user_full_name não existe ou deu erro:', rpcError);
+        }
+      } catch (err) {
+        // Ignorar erros de RPC, o importante é atualizar no auth
+        if (IS_DEV) console.warn('Erro ao atualizar nome via RPC:', err);
+      }
+
+      setUser(prev => prev ? { ...prev, full_name: editedName.trim() } : null);
+      setSuccess('Nome atualizado com sucesso!');
+      setIsEditingName(false);
+    } catch (err: any) {
+      if (IS_DEV) console.error('Erro ao atualizar nome:', err);
+      setError(err.message || 'Erro ao atualizar nome. Tente novamente.');
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+  const handleCancelEditName = () => {
+    setEditedName(user?.full_name || '');
+    setIsEditingName(false);
+    setError(null);
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch {
+      return 'N/A';
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
@@ -412,9 +509,59 @@ export default function PerfilPage() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Nome Completo
                   </label>
-                  <div className="rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white">
-                    {user.full_name}
-                  </div>
+                  {isEditingName ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={editedName}
+                        onChange={(e) => setEditedName(e.target.value)}
+                        disabled={savingName}
+                        className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-50"
+                        placeholder="Digite seu nome"
+                        maxLength={100}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSaveName}
+                          disabled={savingName || !editedName.trim()}
+                          className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
+                        >
+                          {savingName ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                              <span>Salvando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>✓</span>
+                              <span>Salvar</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={handleCancelEditName}
+                          disabled={savingName}
+                          className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-semibold rounded-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white">
+                        {user.full_name}
+                      </div>
+                      <button
+                        onClick={() => setIsEditingName(true)}
+                        className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                        title="Editar nome"
+                      >
+                        <span>✏️</span>
+                        <span className="hidden sm:inline">Editar</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -423,7 +570,23 @@ export default function PerfilPage() {
                   <div className="rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white">
                     {user.email}
                   </div>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    O e-mail não pode ser alterado
+                  </p>
                 </div>
+                {memberSince && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Membro desde
+                    </label>
+                    <div className="rounded-lg border border-slate-300 dark:border-slate-600 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 px-4 py-3 text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span>📅</span>
+                        <span className="font-medium">{formatDate(memberSince)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {user.is_admin && (
                   <div>
                     <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-1 text-xs font-bold text-white shadow-md">
@@ -432,6 +595,44 @@ export default function PerfilPage() {
                     </span>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Configurações de Tema */}
+            <div className="mb-8">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Aparência</h2>
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-white">Tema</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                      Alterar entre tema claro e escuro
+                    </p>
+                  </div>
+                  <button
+                    onClick={toggleTheme}
+                    className="relative inline-flex h-8 w-14 items-center rounded-full bg-slate-300 dark:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    role="switch"
+                    aria-checked={theme === 'dark'}
+                    aria-label="Alternar tema"
+                  >
+                    <span
+                      className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform ${
+                        theme === 'dark' ? 'translate-x-7' : 'translate-x-1'
+                      }`}
+                    >
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        {theme === 'dark' ? '🌙' : '☀️'}
+                      </span>
+                    </span>
+                  </button>
+                </div>
+                <div className="mt-3 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                  <span>Tema atual:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white capitalize">
+                    {theme === 'dark' ? '🌙 Escuro' : '☀️ Claro'}
+                  </span>
+                </div>
               </div>
             </div>
 
