@@ -4414,6 +4414,37 @@ function EvolucaoView({
       });
   }, [utrSemanal, anoSelecionado]);
 
+  // Função para traduzir meses para português
+  const traduzirMes = useCallback((mesNome: string): string => {
+    const meses: Record<string, string> = {
+      'January': 'Janeiro',
+      'February': 'Fevereiro',
+      'March': 'Março',
+      'April': 'Abril',
+      'May': 'Maio',
+      'June': 'Junho',
+      'July': 'Julho',
+      'August': 'Agosto',
+      'September': 'Setembro',
+      'October': 'Outubro',
+      'November': 'Novembro',
+      'December': 'Dezembro',
+      'January ': 'Janeiro',
+      'February ': 'Fevereiro',
+      'March ': 'Março',
+      'April ': 'Abril',
+      'May ': 'Maio',
+      'June ': 'Junho',
+      'July ': 'Julho',
+      'August ': 'Agosto',
+      'September ': 'Setembro',
+      'October ': 'Outubro',
+      'November ': 'Novembro',
+      'December ': 'Dezembro',
+    };
+    return meses[mesNome] || mesNome;
+  }, []);
+
   // Helper function para obter configuração de métrica
   const getMetricConfig = useCallback((metric: 'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'): {
     labels: string[];
@@ -4426,7 +4457,7 @@ function EvolucaoView({
     useUtrData: boolean;
   } | null => {
     const baseLabels = viewMode === 'mensal'
-      ? dadosAtivos.map(d => (d as EvolucaoMensal).mes_nome)
+      ? dadosAtivos.map(d => traduzirMes((d as EvolucaoMensal).mes_nome))
       : dadosAtivos.map(d => `S${(d as EvolucaoSemanal).semana}`);
 
     switch (metric) {
@@ -4449,9 +4480,19 @@ function EvolucaoView({
           labels: baseLabels,
           data: dadosAtivos.map(d => segundosParaHoras(d.total_segundos)),
           label: '⏱️ Horas Trabalhadas',
-          borderColor: 'rgba(34, 197, 94, 1)',
-          backgroundColor: gradientGreen,
-          pointColor: 'rgb(34, 197, 94)',
+          borderColor: 'rgba(20, 184, 166, 1)', // Teal/verde-azulado
+          backgroundColor: (context: any) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return 'rgba(20, 184, 166, 0.2)';
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, 'rgba(45, 212, 191, 0.5)');
+            gradient.addColorStop(0.3, 'rgba(20, 184, 166, 0.35)');
+            gradient.addColorStop(0.7, 'rgba(15, 118, 110, 0.15)');
+            gradient.addColorStop(1, 'rgba(13, 148, 136, 0.00)');
+            return gradient;
+          },
+          pointColor: 'rgb(20, 184, 166)',
           yAxisID: 'y',
           useUtrData: false,
         };
@@ -4460,9 +4501,19 @@ function EvolucaoView({
           labels: baseLabels,
           data: dadosAtivos.map(d => (d as any).corridas_ofertadas || (d as any).total_corridas || 0),
           label: '📢 Corridas Ofertadas',
-          borderColor: 'rgba(59, 130, 246, 1)',
-          backgroundColor: gradientBlue,
-          pointColor: 'rgb(59, 130, 246)',
+          borderColor: 'rgba(14, 165, 233, 1)', // Cyan/azul claro
+          backgroundColor: (context: any) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return 'rgba(14, 165, 233, 0.2)';
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, 'rgba(56, 189, 248, 0.5)');
+            gradient.addColorStop(0.3, 'rgba(14, 165, 233, 0.35)');
+            gradient.addColorStop(0.7, 'rgba(2, 132, 199, 0.15)');
+            gradient.addColorStop(1, 'rgba(3, 105, 161, 0.00)');
+            return gradient;
+          },
+          pointColor: 'rgb(14, 165, 233)',
           yAxisID: 'y',
           useUtrData: false,
         };
@@ -4471,7 +4522,7 @@ function EvolucaoView({
           labels: baseLabels,
           data: dadosAtivos.map(d => (d as any).corridas_aceitas || 0),
           label: '✅ Corridas Aceitas',
-          borderColor: 'rgba(34, 197, 94, 1)',
+          borderColor: 'rgba(34, 197, 94, 1)', // Verde
           backgroundColor: gradientGreen,
           pointColor: 'rgb(34, 197, 94)',
           yAxisID: 'y',
@@ -4493,15 +4544,25 @@ function EvolucaoView({
         return {
           labels: baseLabels,
           data: dadosAtivos.map(d => (d as any).corridas_completadas || (d as any).total_corridas || 0),
-        label: '🚗 Corridas Completadas',
-        borderColor: 'rgba(59, 130, 246, 1)',
-          backgroundColor: gradientBlue,
-          pointColor: 'rgb(59, 130, 246)',
-        yAxisID: 'y',
+          label: '🚗 Corridas Completadas',
+          borderColor: 'rgba(37, 99, 235, 1)', // Azul escuro
+          backgroundColor: (context: any) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return 'rgba(37, 99, 235, 0.2)';
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)');
+            gradient.addColorStop(0.3, 'rgba(37, 99, 235, 0.35)');
+            gradient.addColorStop(0.7, 'rgba(30, 64, 175, 0.15)');
+            gradient.addColorStop(1, 'rgba(29, 78, 216, 0.00)');
+            return gradient;
+          },
+          pointColor: 'rgb(37, 99, 235)',
+          yAxisID: 'y',
           useUtrData: false,
         };
     }
-  }, [dadosAtivos, dadosUtrAtivos, viewMode, gradientBlue, gradientGreen, gradientPurple, gradientRed, segundosParaHoras]);
+  }, [dadosAtivos, dadosUtrAtivos, viewMode, gradientGreen, gradientPurple, gradientRed, segundosParaHoras, traduzirMes]);
 
   // Dados do gráfico com múltiplas métricas (otimizado com useMemo)
   const chartData = useMemo(() => {
@@ -4972,12 +5033,20 @@ function EvolucaoView({
                         rejeitadas: '❌ Rejeitadas',
                         horas: '⏱️ Horas',
                       };
+                      const colors: Record<typeof metric, { bg: string; border: string; dot: string }> = {
+                        ofertadas: { bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-300 dark:border-cyan-700', dot: 'bg-cyan-500' },
+                        aceitas: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-300 dark:border-emerald-700', dot: 'bg-emerald-500' },
+                        completadas: { bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-300 dark:border-blue-700', dot: 'bg-blue-500' },
+                        rejeitadas: { bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-300 dark:border-red-700', dot: 'bg-red-500' },
+                        horas: { bg: 'bg-teal-50 dark:bg-teal-950/30', border: 'border-teal-300 dark:border-teal-700', dot: 'bg-teal-500' },
+                      };
+                      const metricColors = colors[metric];
                       return (
                         <label
                           key={metric}
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
                             selectedMetrics.has(metric)
-                              ? 'bg-blue-50 border-blue-300 dark:bg-blue-950/30 dark:border-blue-700'
+                              ? `${metricColors.bg} ${metricColors.border}`
                               : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-700 hover:border-blue-400'
                           }`}
                         >
@@ -4997,9 +5066,16 @@ function EvolucaoView({
                               }
                               setSelectedMetrics(newSet);
                             }}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            className={`w-4 h-4 rounded focus:ring-2 ${
+                              metric === 'ofertadas' ? 'text-cyan-600 focus:ring-cyan-500' :
+                              metric === 'aceitas' ? 'text-emerald-600 focus:ring-emerald-500' :
+                              metric === 'completadas' ? 'text-blue-600 focus:ring-blue-500' :
+                              metric === 'rejeitadas' ? 'text-red-600 focus:ring-red-500' :
+                              'text-teal-600 focus:ring-teal-500'
+                            }`}
                           />
-                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                            <span className={`w-3 h-3 rounded-full ${metricColors.dot} shadow-md`}></span>
                             {labels[metric]}
                           </span>
                         </label>
@@ -5011,14 +5087,15 @@ function EvolucaoView({
                           selectedMetrics.has('utr')
                             ? 'bg-purple-50 border-purple-300 dark:bg-purple-950/30 dark:border-purple-700'
                             : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-700 hover:border-purple-400'
-                        } ${utrSemanal.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        title={utrSemanal.length === 0 ? 'Dados de UTR não disponíveis' : ''}
+                        } ${dadosUtrAtivos.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title={dadosUtrAtivos.length === 0 ? `Dados de UTR não disponíveis para o ano ${anoSelecionado}. Tente selecionar outro ano ou verifique se há dados cadastrados.` : 'Selecionar UTR'}
                       >
                         <input
                           type="checkbox"
                           checked={selectedMetrics.has('utr')}
-                          disabled={utrSemanal.length === 0}
+                          disabled={dadosUtrAtivos.length === 0}
                           onChange={(e) => {
+                            if (dadosUtrAtivos.length === 0) return;
                             const newSet = new Set(selectedMetrics);
                             if (e.target.checked) {
                               newSet.add('utr');
@@ -5033,8 +5110,9 @@ function EvolucaoView({
                           }}
                           className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
                         />
-                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                          🎯 UTR {utrSemanal.length > 0 ? `(${utrSemanal.length})` : '(indisponível)'}
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                          <span className="w-3 h-3 rounded-full bg-purple-500 shadow-md"></span>
+                          🎯 UTR {dadosUtrAtivos.length > 0 ? `(${dadosUtrAtivos.length})` : '(indisponível)'}
                         </span>
                       </label>
                     )}
@@ -5087,21 +5165,27 @@ function EvolucaoView({
                   </div>
                 )}
                 {selectedMetrics.has('ofertadas') && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                  <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
-                    <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Ofertadas</span>
-                </div>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800">
+                    <div className="w-3 h-3 rounded-full bg-cyan-500 shadow-md"></div>
+                    <span className="text-xs font-bold text-cyan-700 dark:text-cyan-300">Ofertadas</span>
+                  </div>
                 )}
                 {selectedMetrics.has('aceitas') && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                  <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
                     <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Aceitas</span>
-                </div>
+                  </div>
                 )}
                 {selectedMetrics.has('completadas') && (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
                     <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
                     <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Completadas</span>
+                  </div>
+                )}
+                {selectedMetrics.has('horas') && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800">
+                    <div className="w-3 h-3 rounded-full bg-teal-500 shadow-md"></div>
+                    <span className="text-xs font-bold text-teal-700 dark:text-teal-300">Horas</span>
                   </div>
                 )}
                 {selectedMetrics.has('rejeitadas') && (
@@ -7689,9 +7773,25 @@ export default function DashboardPage() {
 
           if (utrSemanalResult.error) {
             // UTR semanal pode não existir ainda, então apenas logar o erro
-            if (IS_DEV) console.warn('Função listar_utr_semanal não disponível:', utrSemanalResult.error);
-          } else if (IS_DEV && dadosUtrSemanal.length > 0) {
-            console.log('✅ Dados UTR carregados:', dadosUtrSemanal.length, 'semanas');
+            if (IS_DEV) {
+              console.warn('⚠️ Função listar_utr_semanal não disponível ou erro:', utrSemanalResult.error);
+              console.warn('⚠️ Detalhes do erro:', {
+                message: utrSemanalResult.error.message,
+                code: utrSemanalResult.error.code,
+                details: utrSemanalResult.error.details,
+                hint: utrSemanalResult.error.hint
+              });
+            }
+          } else {
+            if (IS_DEV) {
+              if (dadosUtrSemanal.length > 0) {
+                console.log('✅ Dados UTR carregados:', dadosUtrSemanal.length, 'semanas');
+                console.log('📊 Primeiros dados UTR:', dadosUtrSemanal.slice(0, 3));
+              } else {
+                console.warn('⚠️ Função listar_utr_semanal retornou array vazio. Verifique se há dados para o ano/praça selecionados.');
+                console.warn('⚠️ Parâmetros da chamada:', { praca: pracaSelecionada, ano: anoEvolucao });
+              }
+            }
           }
 
           // Salvar no cache
