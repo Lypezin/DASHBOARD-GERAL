@@ -1438,7 +1438,6 @@ function AnaliseView({
         grid: {
           color: isDarkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.12)',
           lineWidth: 1,
-          drawBorder: false,
         },
         border: {
           display: false,
@@ -1459,7 +1458,6 @@ function AnaliseView({
       x: {
         grid: {
           display: false,
-          drawBorder: false,
         },
         border: {
           display: false,
@@ -4628,7 +4626,6 @@ function EvolucaoView({
             return isDarkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.15)';
           },
           lineWidth: 1,
-          drawBorder: false,
           drawTicks: false,
         },
         border: {
@@ -4659,7 +4656,6 @@ function EvolucaoView({
       x: {
         grid: {
           display: false,
-          drawBorder: false,
         },
         border: {
           display: false,
@@ -5234,7 +5230,6 @@ function EvolucaoView({
                     x: {
                       grid: {
                         display: false,
-                        drawBorder: false,
                       },
                       border: {
                         display: false,
