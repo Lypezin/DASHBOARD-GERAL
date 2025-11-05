@@ -295,6 +295,72 @@ export function Header() {
               <div className="space-y-6">
                 {/* Histórico de Atualizações - Mais Recente Primeiro */}
                 <div className="space-y-4">
+                  {/* 05/11/2025 - Sistema de Refresh Automático de MVs */}
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">17:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementado sistema completo de automação de refresh de Materialized Views: função `refresh_dashboard_mvs()` para atualizar todas as MVs, tabela de controle `mv_refresh_control`, trigger automático que marca necessidade de refresh após INSERT/UPDATE/DELETE em `dados_corridas`, e agendamento via pg_cron para execução periódica a cada 5 minutos, eliminando completamente a necessidade de refresh manual.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">17:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Resolvido problema de timeout ao atualizar Materialized Views. Implementada função `refresh_dashboard_mvs()` sem CONCURRENTLY para evitar conflitos de lock, com `statement_timeout = '0'` para permitir execução completa mesmo em volumes grandes de dados.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">16:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Criada função centralizada `refresh_dashboard_mvs()` para atualizar todas as Materialized Views do sistema de uma vez: `mv_planejado_detalhe`, `mv_entregue_detalhe`, `mv_aderencia_agregada`, `mv_aderencia_dia`, `mv_aderencia_semana`, `mv_corridas_detalhe`, `mv_dashboard_admin`, `mv_dashboard_lite` e `mv_dashboard_micro`.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">16:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Diagnosticado e resolvido problema onde dados importados não apareciam no dashboard. Identificado que Materialized Views (MVs) não se atualizam automaticamente após importação. Implementado processo de refresh manual e posteriormente automatizado para garantir atualização imediata dos dados após cada importação.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative pl-8 border-l-4 border-emerald-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">15:45</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Identificado que guia de Evolução utiliza funções `listar_evolucao_mensal` e `listar_evolucao_semanal` que leem diretamente de `dados_corridas`, não necessitando de refresh de MV específica. Documentado quais MVs são necessárias para cada funcionalidade do dashboard.
+                      </p>
+                    </div>
+                  </div>
+
                   {/* 05/11/2025 */}
                   <div className="relative pl-8 border-l-4 border-blue-500">
                     <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900"></div>
@@ -372,20 +438,6 @@ export function Header() {
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
                         Melhorias gerais na interface do usuário, incluindo melhor responsividade, feedback visual aprimorado e correções de bugs visuais.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 06/11/2025 - Atualização de Materialized Views */}
-                  <div className="relative pl-8 border-l-4 border-emerald-500">
-                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 shadow-md"></div>
-                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">06/11/2025</span>
-                        <span className="text-sm text-slate-600 dark:text-slate-400">15:30</span>
-                      </div>
-                      <p className="text-slate-700 dark:text-slate-300 font-medium">
-                        Implementado sistema automatizado de refresh de Materialized Views (MVs) após importação de dados. Criada função `refresh_dashboard_mvs()` para atualizar todas as MVs, sistema de triggers para marcar necessidade de refresh e agendamento via pg_cron para atualização automática periódica, eliminando a necessidade de refresh manual após cada importação.
                       </p>
                     </div>
                   </div>
