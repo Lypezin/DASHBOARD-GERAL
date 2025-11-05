@@ -4480,19 +4480,19 @@ function EvolucaoView({
           labels: baseLabels,
           data: dadosAtivos.map(d => segundosParaHoras(d.total_segundos)),
           label: '⏱️ Horas Trabalhadas',
-          borderColor: 'rgba(20, 184, 166, 1)', // Teal/verde-azulado
+          borderColor: 'rgba(251, 146, 60, 1)', // Laranja (bem diferente do verde)
           backgroundColor: (context: any) => {
             const chart = context.chart;
             const { ctx, chartArea } = chart;
-            if (!chartArea) return 'rgba(20, 184, 166, 0.2)';
+            if (!chartArea) return 'rgba(251, 146, 60, 0.2)';
             const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, 'rgba(45, 212, 191, 0.5)');
-            gradient.addColorStop(0.3, 'rgba(20, 184, 166, 0.35)');
-            gradient.addColorStop(0.7, 'rgba(15, 118, 110, 0.15)');
-            gradient.addColorStop(1, 'rgba(13, 148, 136, 0.00)');
+            gradient.addColorStop(0, 'rgba(253, 186, 116, 0.5)');
+            gradient.addColorStop(0.3, 'rgba(251, 146, 60, 0.35)');
+            gradient.addColorStop(0.7, 'rgba(234, 88, 12, 0.15)');
+            gradient.addColorStop(1, 'rgba(194, 65, 12, 0.00)');
             return gradient;
           },
-          pointColor: 'rgb(20, 184, 166)',
+          pointColor: 'rgb(251, 146, 60)',
           yAxisID: 'y',
           useUtrData: false,
         };
@@ -4522,9 +4522,19 @@ function EvolucaoView({
           labels: baseLabels,
           data: dadosAtivos.map(d => (d as any).corridas_aceitas || 0),
           label: '✅ Corridas Aceitas',
-          borderColor: 'rgba(34, 197, 94, 1)', // Verde
-          backgroundColor: gradientGreen,
-          pointColor: 'rgb(34, 197, 94)',
+          borderColor: 'rgba(16, 185, 129, 1)', // Verde esmeralda mais vibrante
+          backgroundColor: (context: any) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return 'rgba(16, 185, 129, 0.2)';
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, 'rgba(52, 211, 153, 0.5)');
+            gradient.addColorStop(0.3, 'rgba(16, 185, 129, 0.35)');
+            gradient.addColorStop(0.7, 'rgba(5, 150, 105, 0.15)');
+            gradient.addColorStop(1, 'rgba(4, 120, 87, 0.00)');
+            return gradient;
+          },
+          pointColor: 'rgb(16, 185, 129)',
           yAxisID: 'y',
           useUtrData: false,
         };
@@ -5038,7 +5048,7 @@ function EvolucaoView({
                         aceitas: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-300 dark:border-emerald-700', dot: 'bg-emerald-500' },
                         completadas: { bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-300 dark:border-blue-700', dot: 'bg-blue-500' },
                         rejeitadas: { bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-300 dark:border-red-700', dot: 'bg-red-500' },
-                        horas: { bg: 'bg-teal-50 dark:bg-teal-950/30', border: 'border-teal-300 dark:border-teal-700', dot: 'bg-teal-500' },
+                        horas: { bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-300 dark:border-orange-700', dot: 'bg-orange-500' },
                       };
                       const metricColors = colors[metric];
                       return (
@@ -5071,7 +5081,7 @@ function EvolucaoView({
                               metric === 'aceitas' ? 'text-emerald-600 focus:ring-emerald-500' :
                               metric === 'completadas' ? 'text-blue-600 focus:ring-blue-500' :
                               metric === 'rejeitadas' ? 'text-red-600 focus:ring-red-500' :
-                              'text-teal-600 focus:ring-teal-500'
+                              'text-orange-600 focus:ring-orange-500'
                             }`}
                           />
                           <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
@@ -5087,15 +5097,30 @@ function EvolucaoView({
                           selectedMetrics.has('utr')
                             ? 'bg-purple-50 border-purple-300 dark:bg-purple-950/30 dark:border-purple-700'
                             : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-700 hover:border-purple-400'
-                        } ${dadosUtrAtivos.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        title={dadosUtrAtivos.length === 0 ? `Dados de UTR não disponíveis para o ano ${anoSelecionado}. Tente selecionar outro ano ou verifique se há dados cadastrados.` : 'Selecionar UTR'}
+                        } ${dadosUtrAtivos.length === 0 && utrSemanal.length === 0 ? 'opacity-50 cursor-not-allowed' : dadosUtrAtivos.length === 0 && utrSemanal.length > 0 ? 'opacity-75' : ''}`}
+                        title={
+                          dadosUtrAtivos.length === 0 && utrSemanal.length === 0
+                            ? 'Dados de UTR não disponíveis. Verifique se a função SQL listar_utr_semanal está configurada corretamente.'
+                            : dadosUtrAtivos.length === 0 && utrSemanal.length > 0
+                            ? `Dados de UTR disponíveis para outros anos, mas não para ${anoSelecionado}. Anos disponíveis: ${[...new Set(utrSemanal.map(d => d.ano))].join(', ')}`
+                            : `Selecionar UTR (${dadosUtrAtivos.length} semanas disponíveis)`
+                        }
                       >
                         <input
                           type="checkbox"
                           checked={selectedMetrics.has('utr')}
                           disabled={dadosUtrAtivos.length === 0}
                           onChange={(e) => {
-                            if (dadosUtrAtivos.length === 0) return;
+                            if (dadosUtrAtivos.length === 0) {
+                              if (IS_DEV) {
+                                console.warn('⚠️ Tentativa de selecionar UTR sem dados disponíveis');
+                                console.warn('- Ano selecionado:', anoSelecionado);
+                                console.warn('- Total UTR semanal:', utrSemanal.length);
+                                console.warn('- Anos disponíveis:', [...new Set(utrSemanal.map(d => d.ano))]);
+                                console.warn('- Dados filtrados:', dadosUtrAtivos.length);
+                              }
+                              return;
+                            }
                             const newSet = new Set(selectedMetrics);
                             if (e.target.checked) {
                               newSet.add('utr');
@@ -5112,7 +5137,13 @@ function EvolucaoView({
                         />
                         <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                           <span className="w-3 h-3 rounded-full bg-purple-500 shadow-md"></span>
-                          🎯 UTR {dadosUtrAtivos.length > 0 ? `(${dadosUtrAtivos.length})` : '(indisponível)'}
+                          🎯 UTR {
+                            dadosUtrAtivos.length > 0 
+                              ? `(${dadosUtrAtivos.length})` 
+                              : utrSemanal.length > 0 
+                                ? `(sem dados para ${anoSelecionado})` 
+                                : '(indisponível)'
+                          }
                         </span>
                       </label>
                     )}
@@ -5183,9 +5214,9 @@ function EvolucaoView({
                   </div>
                 )}
                 {selectedMetrics.has('horas') && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800">
-                    <div className="w-3 h-3 rounded-full bg-teal-500 shadow-md"></div>
-                    <span className="text-xs font-bold text-teal-700 dark:text-teal-300">Horas</span>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800">
+                    <div className="w-3 h-3 rounded-full bg-orange-500 shadow-md"></div>
+                    <span className="text-xs font-bold text-orange-700 dark:text-orange-300">Horas</span>
                   </div>
                 )}
                 {selectedMetrics.has('rejeitadas') && (
@@ -7809,20 +7840,22 @@ export default function DashboardPage() {
             }
           }
 
-          // Log para debug
-          if (IS_DEV) {
-          console.log('📊 Dados de Evolução carregados:', {
-            mensais: dadosMensais.length,
-            semanais: dadosSemanais.length,
-              utrSemanal: dadosUtrSemanal.length,
-            ano: anoEvolucao,
-            praca: pracaSelecionada
-          });
-          }
-
           setEvolucaoMensal(dadosMensais);
           setEvolucaoSemanal(dadosSemanais);
           setUtrSemanal(dadosUtrSemanal);
+          
+          // Log detalhado para debug da UTR
+          if (IS_DEV) {
+            console.log('📊 Estado após carregamento:');
+            console.log('- Total UTR semanal carregado:', dadosUtrSemanal.length);
+            console.log('- Anos disponíveis nos dados UTR:', [...new Set(dadosUtrSemanal.map((d: UtrSemanal) => d.ano))]);
+            console.log('- Ano selecionado:', anoEvolucao);
+            const dadosFiltrados = dadosUtrSemanal.filter((d: UtrSemanal) => d.ano === anoEvolucao);
+            console.log('- Dados UTR filtrados para ano selecionado:', dadosFiltrados.length);
+            if (dadosFiltrados.length > 0) {
+              console.log('- Primeiros dados filtrados:', dadosFiltrados.slice(0, 3));
+            }
+          }
         } catch (err: any) {
           if (IS_DEV) console.error('Erro ao buscar Evolução:', err);
           setEvolucaoMensal([]);
