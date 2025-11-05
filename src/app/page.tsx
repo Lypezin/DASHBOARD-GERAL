@@ -2405,6 +2405,7 @@ function ComparacaoView({
   const [semanasSelecionadas, setSemanasSelecionadas] = useState<string[]>([]);
   const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
   const [utrComparacao, setUtrComparacao] = useState<any[]>([]);
   const [todasSemanas, setTodasSemanas] = useState<(number | string)[]>([]);
@@ -2480,6 +2481,7 @@ function ComparacaoView({
     if (semanasSelecionadas.length < 2) return;
 
     setLoading(true);
+    setError(null);
     try {
       // Buscar dados para cada semana selecionada
       const promessasDados = semanasSelecionadas.map(async (semana) => {
