@@ -21,6 +21,7 @@ export function Header() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -127,6 +128,15 @@ export function Header() {
             <span className="text-sm sm:text-base hidden xs:inline">Dashboard</span>
           </Link>
           
+          <button
+            onClick={() => setShowHistory(true)}
+            className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
+            title="Histórico de Atualizações"
+          >
+            <span className="text-base sm:text-lg">📋</span>
+            <span className="text-sm sm:text-base hidden md:inline">Histórico</span>
+          </button>
+          
           {user.is_admin && (
             <>
               <Link
@@ -215,6 +225,135 @@ export function Header() {
           </div>
         </nav>
       </div>
+
+      {/* Modal de Histórico de Atualizações */}
+      {showHistory && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowHistory(false)}
+        >
+          <div 
+            className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header do Modal */}
+            <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-4 border-b border-white/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">📋</span>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Histórico de Atualizações</h2>
+                    <p className="text-sm text-blue-100">Registro de melhorias e mudanças no sistema</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-all duration-200 hover:scale-110"
+                  title="Fechar"
+                >
+                  <span className="text-2xl">✕</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Conteúdo do Modal */}
+            <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
+              <div className="space-y-6">
+                {/* Histórico de Atualizações - Mais Recente Primeiro */}
+                <div className="space-y-4">
+                  {/* 05/11/2025 */}
+                  <div className="relative pl-8 border-l-4 border-blue-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900"></div>
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">10:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Foi otimizada a guia de Evolução, melhorando significativamente o tempo de carregamento e a visualização dos gráficos com gradientes modernos e animações aprimoradas.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative pl-8 border-l-4 border-blue-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-blue-500 rounded-full border-4 border-white dark:border-slate-900"></div>
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">05/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">09:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Corrigido problema na guia de Monitor onde as atividades recentes não apareciam. Agora o sistema exibe corretamente todas as ações dos usuários com ícones e descrições detalhadas.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 04/11/2025 */}
+                  <div className="relative pl-8 border-l-4 border-indigo-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900"></div>
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">04/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">16:45</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Implementadas otimizações de performance em todo o sistema, incluindo memoização de componentes, cache de requisições e debounce em chamadas de API para melhorar a responsividade.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative pl-8 border-l-4 border-indigo-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900"></div>
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">04/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">14:20</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Adicionado filtro de TURNO ao sistema, permitindo filtrar dados por turno específico ou múltiplos turnos, seguindo a mesma lógica dos demais filtros existentes.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative pl-8 border-l-4 border-indigo-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-indigo-500 rounded-full border-4 border-white dark:border-slate-900"></div>
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">04/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">11:00</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Realizada auditoria completa do sistema, corrigindo bugs, melhorando validações de formulários, prevenindo memory leaks e adicionando tratamento de erros mais robusto.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Data mais antiga */}
+                  <div className="relative pl-8 border-l-4 border-purple-500">
+                    <div className="absolute -left-2.5 top-0 w-5 h-5 bg-purple-500 rounded-full border-4 border-white dark:border-slate-900"></div>
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold text-purple-700 dark:text-purple-300">03/11/2025</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">15:30</span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">
+                        Melhorias gerais na interface do usuário, incluindo melhor responsividade, feedback visual aprimorado e correções de bugs visuais.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rodapé do Modal */}
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                  <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+                    O sistema é continuamente atualizado para melhorar a experiência do usuário e adicionar novas funcionalidades.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
