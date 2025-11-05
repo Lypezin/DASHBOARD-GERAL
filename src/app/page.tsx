@@ -1150,6 +1150,32 @@ function AnaliseView({
   const [viewModeLocal, setViewModeLocal] = useState<'subpraca' | 'origem'>('subpraca');
   const [viewModeLocalVis, setViewModeLocalVis] = useState<'table' | 'chart'>('table');
   
+  // Detectar tema atual para ajustar cores do gráfico
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  useEffect(() => {
+    const checkTheme = () => {
+      if (typeof window !== 'undefined') {
+        setIsDarkMode(document.documentElement.classList.contains('dark'));
+      }
+    };
+    
+    checkTheme();
+    
+    const observer = new MutationObserver(() => {
+      checkTheme();
+    });
+    
+    if (typeof window !== 'undefined') {
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+    
+    return () => observer.disconnect();
+  }, []);
+  
   const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
   const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
   const taxaRejeicao = totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0;
@@ -1294,7 +1320,7 @@ function AnaliseView({
     ],
   };
 
-  const chartOptions = {
+  const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: true,
     layout: {
@@ -1336,7 +1362,7 @@ function AnaliseView({
           pointStyle: 'circle',
           boxWidth: 12,
           boxHeight: 12,
-          color: 'rgb(51, 65, 85)',
+          color: isDarkMode ? 'rgb(226, 232, 240)' : 'rgb(51, 65, 85)',
         },
       },
       tooltip: {
@@ -1401,7 +1427,7 @@ function AnaliseView({
       y: {
         beginAtZero: true,
         grid: {
-          color: 'rgba(148, 163, 184, 0.12)',
+          color: isDarkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.12)',
           lineWidth: 1,
           drawBorder: false,
         },
@@ -1414,7 +1440,7 @@ function AnaliseView({
             weight: 'bold' as const,
             family: "'Inter', 'system-ui', sans-serif",
           },
-          color: 'rgb(71, 85, 105)',
+          color: isDarkMode ? 'rgb(203, 213, 225)' : 'rgb(71, 85, 105)',
           padding: 8,
           callback: function(value: any) {
             return new Intl.NumberFormat('pt-BR').format(value);
@@ -1435,7 +1461,7 @@ function AnaliseView({
             weight: '700' as any,
             family: "'Inter', 'system-ui', sans-serif",
           },
-          color: 'rgb(71, 85, 105)',
+          color: isDarkMode ? 'rgb(203, 213, 225)' : 'rgb(71, 85, 105)',
           padding: 8,
         },
       },
@@ -1449,7 +1475,7 @@ function AnaliseView({
         hoverBorderWidth: 3,
       },
     },
-  };
+  }), [isDarkMode]);
 
   const ViewToggleButton = React.memo(({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
     <button
@@ -4237,6 +4263,34 @@ function EvolucaoView({
 }) {
   const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
   const isSemanal = viewMode === 'semanal';
+  
+  // Detectar tema atual para ajustar cores do gráfico
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  useEffect(() => {
+    // Detectar tema inicial
+    const checkTheme = () => {
+      if (typeof window !== 'undefined') {
+        setIsDarkMode(document.documentElement.classList.contains('dark'));
+      }
+    };
+    
+    checkTheme();
+    
+    // Observar mudanças no tema
+    const observer = new MutationObserver(() => {
+      checkTheme();
+    });
+    
+    if (typeof window !== 'undefined') {
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+    
+    return () => observer.disconnect();
+  }, []);
 
   // IMPORTANTE: Todos os hooks devem ser chamados ANTES de qualquer early return
   // Gradientes vibrantes e modernos com múltiplas paradas de cor (otimizado com useCallback)
@@ -4402,7 +4456,7 @@ function EvolucaoView({
           pointStyle: 'circle',
           boxWidth: 12,
           boxHeight: 12,
-          color: 'rgb(51, 65, 85)',
+          color: isDarkMode ? 'rgb(226, 232, 240)' : 'rgb(51, 65, 85)',
           generateLabels: (chart: any) => {
             const datasets = chart.data.datasets;
             return datasets.map((dataset: any, i: number) => ({
@@ -4499,8 +4553,9 @@ function EvolucaoView({
         },
         grid: {
           color: (context: any) => {
-            // Grid com opacidade alternada
-            return context.tick.value === 0 ? 'rgba(100, 116, 139, 0)' : 'rgba(148, 163, 184, 0.15)';
+            // Grid com opacidade alternada e adaptado ao tema
+            if (context.tick.value === 0) return 'rgba(100, 116, 139, 0)';
+            return isDarkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.15)';
           },
           lineWidth: 1,
           drawBorder: false,
@@ -4574,7 +4629,7 @@ function EvolucaoView({
             weight: '700' as any,
             family: "'Inter', 'system-ui', sans-serif",
           },
-          color: 'rgb(71, 85, 105)',
+          color: isDarkMode ? 'rgb(203, 213, 225)' : 'rgb(71, 85, 105)',
           padding: 10,
         },
       },
@@ -4590,7 +4645,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  }), [isSemanal, dadosAtivos.length]);
+  }), [isSemanal, dadosAtivos.length, isDarkMode]);
 
   // Early return APÓS todos os hooks
   if (loading) {
