@@ -319,7 +319,7 @@ export function Header() {
                         <span className="text-sm text-slate-600 dark:text-slate-400">17:00</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 font-medium">
-                        Resolvido problema de timeout ao atualizar Materialized Views. Implementada função `refresh_dashboard_mvs()` sem CONCURRENTLY para evitar conflitos de lock, com `statement_timeout = '0'` para permitir execução completa mesmo em volumes grandes de dados.
+                        Resolvido problema de timeout ao atualizar Materialized Views. Implementada função `refresh_dashboard_mvs()` sem CONCURRENTLY para evitar conflitos de lock, com `statement_timeout = &apos;0&apos;` para permitir execução completa mesmo em volumes grandes de dados.
                       </p>
                     </div>
                   </div>
