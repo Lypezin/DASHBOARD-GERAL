@@ -5043,7 +5043,7 @@ function EvolucaoView({
                   Total de Corridas
                 </p>
                 <p className="mt-3 text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">
-                  {dadosAtivos.reduce((sum, d) => sum + d.total_corridas, 0).toLocaleString('pt-BR')}
+                  {dadosAtivos.reduce((sum, d) => sum + ((d as any).corridas_completadas || (d as any).total_corridas || 0), 0).toLocaleString('pt-BR')}
                 </p>
                 <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
                   {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} analisadas
@@ -5087,7 +5087,7 @@ function EvolucaoView({
                   Média {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
                 </p>
                 <p className="mt-3 text-4xl font-black text-purple-900 dark:text-purple-100 tracking-tight">
-                  {(dadosAtivos.reduce((sum, d) => sum + d.total_corridas, 0) / dadosAtivos.length).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                  {dadosAtivos.length > 0 ? (dadosAtivos.reduce((sum, d) => sum + ((d as any).corridas_completadas || (d as any).total_corridas || 0), 0) / dadosAtivos.length).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                 </p>
                 <p className="mt-1 text-xs text-purple-600/70 dark:text-purple-400/70 font-medium">
                   Corridas por período

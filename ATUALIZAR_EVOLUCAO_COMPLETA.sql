@@ -1,6 +1,10 @@
 -- Atualizar funções de evolução para retornar todas as métricas
 -- (ofertadas, aceitas, completadas, rejeitadas, horas)
 
+-- Remover funções antigas primeiro (necessário quando mudamos o tipo de retorno)
+DROP FUNCTION IF EXISTS listar_evolucao_mensal(text, integer);
+DROP FUNCTION IF EXISTS listar_evolucao_semanal(text, integer, integer);
+
 -- Função de Evolução Mensal com todas as métricas
 CREATE OR REPLACE FUNCTION listar_evolucao_mensal(
   p_praca TEXT DEFAULT NULL,
