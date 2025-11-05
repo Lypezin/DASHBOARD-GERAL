@@ -4552,19 +4552,19 @@ function EvolucaoView({
         borderColor: config.borderColor,
         backgroundColor: config.backgroundColor,
         yAxisID: config.yAxisID,
-        tension: 0.4,
+        tension: 0.5,
         cubicInterpolationMode: 'monotone' as const,
-        pointRadius: isSemanal ? 4 : 6,
-        pointHoverRadius: isSemanal ? 8 : 10,
-        pointHitRadius: 15,
+        pointRadius: isSemanal ? 5 : 7,
+        pointHoverRadius: isSemanal ? 10 : 12,
+        pointHitRadius: 20,
         pointBackgroundColor: config.pointColor,
         pointBorderColor: '#fff',
-        pointBorderWidth: 3,
+        pointBorderWidth: 3.5,
         pointHoverBackgroundColor: config.pointColor,
         pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 4,
+        pointHoverBorderWidth: 5,
         pointStyle: 'circle' as const,
-        borderWidth: 3,
+        borderWidth: 3.5,
         fill: true,
         spanGaps: true,
         segment: {
@@ -4605,16 +4605,22 @@ function EvolucaoView({
       },
     },
     animation: {
-      duration: dadosAtivos.length > 20 ? 800 : 1200, // Animação mais rápida para muitos dados
-      easing: 'easeInOutQuart' as const,
+      duration: dadosAtivos.length > 20 ? 1000 : 1500, // Animação mais suave
+      easing: 'easeOutQuart' as const,
       delay: (context: any) => {
-        // Reduzir delay para muitos dados para melhor performance
-        const baseDelay = dadosAtivos.length > 20 ? 10 : 30;
+        // Animação em cascata mais suave
+        const baseDelay = dadosAtivos.length > 20 ? 8 : 20;
         let delay = 0;
         if (context.type === 'data' && context.mode === 'default') {
-          delay = context.dataIndex * baseDelay + context.datasetIndex * 50;
+          delay = context.dataIndex * baseDelay + context.datasetIndex * 30;
         }
         return delay;
+      },
+      onProgress: (animation: any) => {
+        // Adicionar efeito de pulso durante a animação
+        if (animation.animationObject.currentStep === 0) {
+          // Início da animação
+        }
       },
     },
     interaction: {
@@ -4980,17 +4986,19 @@ function EvolucaoView({
                         </label>
                       );
                     })}
-                    {viewMode === 'semanal' && utrSemanal.length > 0 && (
+                    {viewMode === 'semanal' && (
                       <label
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
                           selectedMetrics.has('utr')
                             ? 'bg-purple-50 border-purple-300 dark:bg-purple-950/30 dark:border-purple-700'
                             : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-700 hover:border-purple-400'
-                        }`}
+                        } ${utrSemanal.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title={utrSemanal.length === 0 ? 'Dados de UTR não disponíveis' : ''}
                       >
                         <input
                           type="checkbox"
                           checked={selectedMetrics.has('utr')}
+                          disabled={utrSemanal.length === 0}
                           onChange={(e) => {
                             const newSet = new Set(selectedMetrics);
                             if (e.target.checked) {
@@ -5004,10 +5012,10 @@ function EvolucaoView({
                             }
                             setSelectedMetrics(newSet);
                           }}
-                          className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
                         />
                         <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                          🎯 UTR
+                          🎯 UTR {utrSemanal.length > 0 ? `(${utrSemanal.length})` : '(indisponível)'}
                         </span>
                       </label>
                     )}
@@ -5087,13 +5095,17 @@ function EvolucaoView({
             </div>
             
             {/* Container do gráfico com altura aumentada e melhor performance */}
-            <div className="h-[550px] rounded-xl bg-white/50 dark:bg-slate-900/50 p-4 backdrop-blur-sm">
-              <Line 
-                data={chartData} 
-                options={chartOptions}
-                redraw={false}
-                updateMode="none"
-              />
+            <div className="relative h-[550px] rounded-xl bg-white/80 dark:bg-slate-900/80 p-6 backdrop-blur-md shadow-inner border border-slate-200/50 dark:border-slate-700/50">
+              {/* Efeito de brilho sutil */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
+              <div className="relative z-10 h-full">
+                <Line 
+                  data={chartData} 
+                  options={chartOptions}
+                  redraw={false}
+                  updateMode="none"
+                />
+              </div>
             </div>
           </div>
         ) : (
@@ -7597,7 +7609,7 @@ export default function DashboardPage() {
   }, []);
 
   // Cache para dados de evolução
-  const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[] }>>(new Map());
+  const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[] }>>(new Map());
 
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
@@ -7614,6 +7626,7 @@ export default function DashboardPage() {
       if (IS_DEV) console.log('✅ Usando dados de evolução em cache');
       setEvolucaoMensal(cachedData.mensal);
       setEvolucaoSemanal(cachedData.semanal);
+      setUtrSemanal(cachedData.utrSemanal || []);
       setLoadingEvolucao(false);
       return;
     }
@@ -7645,17 +7658,23 @@ export default function DashboardPage() {
 
           if (mensalResult.error) throw mensalResult.error;
           if (semanalResult.error) throw semanalResult.error;
+          const dadosMensais = mensalResult.data || [];
+          const dadosSemanais = semanalResult.data || [];
+          const dadosUtrSemanal = utrSemanalResult.error ? [] : (utrSemanalResult.data || []);
+
           if (utrSemanalResult.error) {
             // UTR semanal pode não existir ainda, então apenas logar o erro
             if (IS_DEV) console.warn('Função listar_utr_semanal não disponível:', utrSemanalResult.error);
+          } else if (IS_DEV && dadosUtrSemanal.length > 0) {
+            console.log('✅ Dados UTR carregados:', dadosUtrSemanal.length, 'semanas');
           }
 
-          const dadosMensais = mensalResult.data || [];
-          const dadosSemanais = semanalResult.data || [];
-          const dadosUtrSemanal = utrSemanalResult.data || [];
-
           // Salvar no cache
-          evolucaoCacheRef.current.set(cacheKey, { mensal: dadosMensais, semanal: dadosSemanais });
+          evolucaoCacheRef.current.set(cacheKey, { 
+            mensal: dadosMensais, 
+            semanal: dadosSemanais,
+            utrSemanal: dadosUtrSemanal,
+          });
           
           // Limitar cache a 10 entradas (LRU simples)
           if (evolucaoCacheRef.current.size > 10) {
