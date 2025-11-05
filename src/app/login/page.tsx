@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -45,7 +47,7 @@ export default function LoginPage() {
       router.push('/');
       router.refresh();
     } catch (err: any) {
-      console.error('Erro no login:', err);
+      if (IS_DEV) console.error('Erro no login:', err);
       setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
     } finally {
       setLoading(false);

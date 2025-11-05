@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 interface User {
   id: string;
   full_name: string;
@@ -78,7 +80,7 @@ export default function AdminPage() {
       if (usersPromise.status === 'fulfilled' && !usersPromise.value.error) {
         setUsers(usersPromise.value.data || []);
       } else {
-        console.warn('Erro ao buscar usuários:', usersPromise.status === 'fulfilled' ? usersPromise.value.error : usersPromise.reason);
+        if (IS_DEV) console.warn('Erro ao buscar usuários:', usersPromise.status === 'fulfilled' ? usersPromise.value.error : usersPromise.reason);
         setUsers([]);
       }
 
@@ -86,7 +88,7 @@ export default function AdminPage() {
       if (pendingPromise.status === 'fulfilled' && !pendingPromise.value.error) {
         setPendingUsers(pendingPromise.value.data || []);
       } else {
-        console.warn('Erro ao buscar usuários pendentes:', pendingPromise.status === 'fulfilled' ? pendingPromise.value.error : pendingPromise.reason);
+        if (IS_DEV) console.warn('Erro ao buscar usuários pendentes:', pendingPromise.status === 'fulfilled' ? pendingPromise.value.error : usersPromise.reason);
         setPendingUsers([]);
       }
 
@@ -94,11 +96,11 @@ export default function AdminPage() {
       if (pracasPromise.status === 'fulfilled') {
         setPracasDisponiveis(pracasPromise.value);
       } else {
-        console.warn('Erro ao buscar praças:', pracasPromise.reason);
+        if (IS_DEV) console.warn('Erro ao buscar praças:', pracasPromise.reason);
         setPracasDisponiveis([]);
       }
     } catch (err: any) {
-      console.error('Erro ao carregar dados:', err);
+      if (IS_DEV) console.error('Erro ao carregar dados:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -131,7 +133,7 @@ export default function AdminPage() {
         return pracas;
       }
     } catch (err) {
-      console.warn('Função list_pracas_disponiveis falhou, tentando fallback:', err);
+      if (IS_DEV) console.warn('Função list_pracas_disponiveis falhou, tentando fallback:', err);
     }
 
     // Fallback 1: Buscar da materialized view
@@ -150,7 +152,7 @@ export default function AdminPage() {
         return uniquePracas;
       }
     } catch (err) {
-      console.warn('Fallback MV falhou, tentando dados_corridas:', err);
+      if (IS_DEV) console.warn('Fallback MV falhou, tentando dados_corridas:', err);
     }
 
     // Fallback 2: Buscar diretamente da tabela principal
@@ -170,7 +172,7 @@ export default function AdminPage() {
         return uniquePracas;
       }
     } catch (err) {
-      console.error('Todos os métodos de busca de praças falharam:', err);
+      if (IS_DEV) console.error('Todos os métodos de busca de praças falharam:', err);
     }
 
     // Se tudo falhar, retornar lista vazia

@@ -173,7 +173,9 @@ export default function UploadPage() {
 
         successCount++;
       } catch (error: any) {
-        console.error(`Erro no arquivo ${file.name}:`, error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`Erro no arquivo ${file.name}:`, error);
+        }
         errorCount++;
       }
     }
@@ -197,9 +199,13 @@ export default function UploadPage() {
       setTimeout(async () => {
         try {
           await supabase.rpc('refresh_mv_aderencia_async');
-          console.log('Refresh da materialized view iniciado em segundo plano');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Refresh da materialized view iniciado em segundo plano');
+          }
         } catch (e) {
-          console.warn('Refresh assíncrono não disponível, será processado automaticamente');
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Refresh assíncrono não disponível, será processado automaticamente');
+          }
         }
       }, 1000);
     } catch (e) {

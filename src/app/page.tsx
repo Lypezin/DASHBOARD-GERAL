@@ -1953,7 +1953,7 @@ function MonitoramentoView() {
       const { data, error } = await supabase.rpc('listar_usuarios_online');
       
       if (error) {
-        console.error('Erro ao buscar usuários online:', error);
+        if (IS_DEV) console.error('Erro ao buscar usuários online:', error);
         setError('Erro ao carregar usuários online. Tente novamente.');
         setUsuarios([]);
         return;
@@ -1973,7 +1973,7 @@ function MonitoramentoView() {
         setAtividades(atividadesData);
         }
       } catch (err) {
-        console.warn('Erro ao buscar atividades (pode não estar disponível):', err);
+        if (IS_DEV) console.warn('Erro ao buscar atividades (pode não estar disponível):', err);
         // Não bloquear a funcionalidade principal se atividades falhar
       }
       
@@ -2021,7 +2021,7 @@ function MonitoramentoView() {
       
       setUsuarios(usuariosMapeados);
     } catch (err: any) {
-      console.error('Erro ao buscar monitoramento:', err);
+      if (IS_DEV) console.error('Erro ao buscar monitoramento:', err);
       setError(err?.message || 'Erro desconhecido ao carregar monitoramento');
       setUsuarios([]);
     } finally {
@@ -2439,7 +2439,7 @@ function ComparacaoView({
           setTodasSemanas(data);
         }
       } catch (err) {
-        console.error('Erro ao buscar semanas:', err);
+        if (IS_DEV) console.error('Erro ao buscar semanas:', err);
       }
     }
     fetchTodasSemanas();
@@ -2539,7 +2539,8 @@ function ComparacaoView({
       setUtrComparacao(resultadosUtr);
       
     } catch (error) {
-      console.error('Erro ao comparar semanas:', error);
+      if (IS_DEV) console.error('Erro ao comparar semanas:', error);
+      setError('Erro ao comparar semanas. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -4769,7 +4770,7 @@ function ValoresView({
         if (error) throw error;
         setSearchResults(data || []);
       } catch (err) {
-        console.error('Erro ao pesquisar valores:', err);
+        if (IS_DEV) console.error('Erro ao pesquisar valores:', err);
         // Fallback para pesquisa local
         const valoresArray = Array.isArray(valoresData) ? valoresData : [];
         const filtered = valoresArray.filter(e => 
@@ -4858,15 +4859,10 @@ function ValoresView({
   // IMPORTANTE: Todos os hooks devem estar ANTES de qualquer early return
 
   // Calcular estatísticas gerais
-  // Garantir que dataToDisplay seja array antes de fazer reduce
-  const dataArray = Array.isArray(dataToDisplay) ? dataToDisplay : [];
-  
-  // Debug do dataToDisplay
-  useEffect(() => {
-    if (IS_DEV) {
-      console.log('📊 ValoresView - dataArray.length:', dataArray.length);
-    }
-  }, [dataToDisplay, dataArray.length]);
+  // Garantir que dataToDisplay seja array antes de fazer reduce (otimizado com useMemo)
+  const dataArray = useMemo(() => {
+    return Array.isArray(dataToDisplay) ? dataToDisplay : [];
+  }, [dataToDisplay]);
   
   // Calcular totais usando useMemo para evitar recálculos desnecessários
   const totalGeral = useMemo(() => {
@@ -5162,7 +5158,7 @@ function EntregadoresView({
         if (error) throw error;
         setSearchResults(data?.entregadores || []);
       } catch (err) {
-        console.error('Erro ao pesquisar entregadores:', err);
+        if (IS_DEV) console.error('Erro ao pesquisar entregadores:', err);
         // Fallback para pesquisa local
         const filtered = (entregadoresData?.entregadores || []).filter(e => 
           e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -5566,7 +5562,7 @@ function PrioridadePromoView({
         if (error) throw error;
         setSearchResults(data?.entregadores || []);
       } catch (err) {
-        console.error('Erro ao pesquisar entregadores:', err);
+        if (IS_DEV) console.error('Erro ao pesquisar entregadores:', err);
         // Fallback para pesquisa local
         const filtered = (entregadoresData?.entregadores || []).filter(e => 
           e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -6270,7 +6266,7 @@ export default function DashboardPage() {
     } catch (error) {
       // Silenciosamente falha se a função não existir ainda
       if (error && typeof error === 'object' && 'code' in error && error.code !== '42883') {
-        console.error('Erro ao registrar atividade:', error);
+        if (IS_DEV) console.error('Erro ao registrar atividade:', error);
       }
     }
   };
@@ -6357,7 +6353,7 @@ export default function DashboardPage() {
           // Não precisamos fazer nada aqui, o useEffect que monitora activeTab e filters cuidará disso
         }
       } catch (err) {
-        console.error('Erro ao buscar perfil do usuário:', err);
+        if (IS_DEV) console.error('Erro ao buscar perfil do usuário:', err);
         setLoading(false);
       }
     }
@@ -6641,7 +6637,7 @@ export default function DashboardPage() {
         if (err?.name === 'AbortError') {
           return;
         }
-        console.error('Erro ao buscar dados do dashboard:', err);
+        if (IS_DEV) console.error('Erro ao buscar dados do dashboard:', err);
         setError('Não foi possível carregar os dados. Verifique os filtros ou tente novamente.');
         setTotals(null);
         setAderenciaSemanal([]);
@@ -6682,7 +6678,7 @@ export default function DashboardPage() {
           
           setUtrData(utrResult as UtrData);
         } catch (err: any) {
-          console.error('Erro ao buscar UTR:', err);
+          if (IS_DEV) console.error('Erro ao buscar UTR:', err);
           setUtrData(null);
           // Não mostrar erro ao usuário aqui, apenas logar - o componente UtrView já trata dados nulos
         } finally {
@@ -6710,7 +6706,7 @@ export default function DashboardPage() {
           
           setEntregadoresData(entregadoresResult as EntregadoresData);
         } catch (err: any) {
-          console.error('Erro ao buscar Entregadores:', err);
+          if (IS_DEV) console.error('Erro ao buscar Entregadores:', err);
           setEntregadoresData(null);
           // Não mostrar erro ao usuário aqui, apenas logar - o componente EntregadoresView já trata dados nulos
         } finally {
@@ -6738,7 +6734,7 @@ export default function DashboardPage() {
           
           setPrioridadeData(prioridadeResult as EntregadoresData);
         } catch (err: any) {
-          console.error('Erro ao buscar dados de Prioridade:', err);
+          if (IS_DEV) console.error('Erro ao buscar dados de Prioridade:', err);
           setPrioridadeData(null);
           // Não mostrar erro ao usuário aqui, apenas logar - o componente PrioridadePromoView já trata dados nulos
         } finally {
@@ -6826,7 +6822,7 @@ export default function DashboardPage() {
           
           setValoresData(valoresArray);
         } catch (err: any) {
-          console.error('Erro ao buscar Valores:', err);
+          if (IS_DEV) console.error('Erro ao buscar Valores:', err);
           setValoresData([]);
           // Não mostrar erro ao usuário aqui, apenas logar - o componente ValoresView já trata dados vazios
         } finally {
@@ -6848,7 +6844,7 @@ export default function DashboardPage() {
         if (error) throw error;
         setAnosDisponiveis(data || []);
       } catch (err: any) {
-        console.error('Erro ao buscar anos disponíveis:', err);
+        if (IS_DEV) console.error('Erro ao buscar anos disponíveis:', err);
         setAnosDisponiveis([new Date().getFullYear()]);
       }
     }
@@ -6883,17 +6879,19 @@ export default function DashboardPage() {
           const dadosSemanais = semanalResult.data || [];
 
           // Log para debug
-          console.log('📊 Dados de Evolução carregados:', {
-            mensais: dadosMensais.length,
-            semanais: dadosSemanais.length,
-            ano: anoEvolucao,
-            praca: pracaSelecionada
-          });
+          if (IS_DEV) {
+            console.log('📊 Dados de Evolução carregados:', {
+              mensais: dadosMensais.length,
+              semanais: dadosSemanais.length,
+              ano: anoEvolucao,
+              praca: pracaSelecionada
+            });
+          }
 
           setEvolucaoMensal(dadosMensais);
           setEvolucaoSemanal(dadosSemanais);
         } catch (err: any) {
-          console.error('Erro ao buscar Evolução:', err);
+          if (IS_DEV) console.error('Erro ao buscar Evolução:', err);
           setEvolucaoMensal([]);
           setEvolucaoSemanal([]);
         } finally {

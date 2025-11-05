@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 interface UserProfile {
   id: string;
   full_name: string;
@@ -52,7 +54,7 @@ export default function PerfilPage() {
       // Buscar avatar_url da tabela de perfil se existir
       if (profile?.id) {
         try {
-          console.log('🔍 Buscando avatar_url para usuário:', profile.id);
+          if (IS_DEV) console.log('🔍 Buscando avatar_url para usuário:', profile.id);
           
           const { data: profileData, error: profileDataError } = await supabase
             .from('user_profiles')
@@ -60,26 +62,28 @@ export default function PerfilPage() {
             .eq('id', profile.id)
             .single();
           
-          console.log('📥 Resultado da busca:', { profileData, profileDataError });
+          if (IS_DEV) console.log('📥 Resultado da busca:', { profileData, profileDataError });
           
           // Se não houver erro e tiver avatar_url, usar
           if (!profileDataError && profileData?.avatar_url) {
-            console.log('✅ Avatar encontrado:', profileData.avatar_url);
+            if (IS_DEV) console.log('✅ Avatar encontrado:', profileData.avatar_url);
             setUser(prev => prev ? { ...prev, avatar_url: profileData.avatar_url } : null);
             setPreviewUrl(profileData.avatar_url);
           } else if (profileDataError) {
             // Se der erro, logar detalhes
-            console.warn('⚠️ Não foi possível buscar avatar_url:', {
-              error: profileDataError,
-              code: profileDataError.code,
-              message: profileDataError.message,
-              details: profileDataError.details,
-              hint: profileDataError.hint
-            });
+            if (IS_DEV) {
+              console.warn('⚠️ Não foi possível buscar avatar_url:', {
+                error: profileDataError,
+                code: profileDataError.code,
+                message: profileDataError.message,
+                details: profileDataError.details,
+                hint: profileDataError.hint
+              });
+            }
             
             // Se o erro for porque não existe registro, criar um registro vazio
             if (profileDataError.code === 'PGRST116') {
-              console.log('📝 Registro não existe, criando registro vazio...');
+              if (IS_DEV) console.log('📝 Registro não existe, criando registro vazio...');
               try {
                 const { error: createError } = await supabase
                   .from('user_profiles')
@@ -90,24 +94,24 @@ export default function PerfilPage() {
                   });
                 
                 if (createError) {
-                  console.warn('⚠️ Erro ao criar registro vazio:', createError);
+                  if (IS_DEV) console.warn('⚠️ Erro ao criar registro vazio:', createError);
                 } else {
-                  console.log('✅ Registro vazio criado com sucesso');
+                  if (IS_DEV) console.log('✅ Registro vazio criado com sucesso');
                 }
               } catch (err) {
-                console.warn('⚠️ Erro ao criar registro:', err);
+                if (IS_DEV) console.warn('⚠️ Erro ao criar registro:', err);
               }
             }
           } else if (profileData && !profileData.avatar_url) {
-            console.log('ℹ️ Usuário não tem avatar ainda');
+            if (IS_DEV) console.log('ℹ️ Usuário não tem avatar ainda');
           }
         } catch (err) {
           // Ignorar erros ao buscar avatar_url (pode ser que a tabela não exista ainda)
-          console.warn('⚠️ Erro ao buscar avatar_url:', err);
+          if (IS_DEV) console.warn('⚠️ Erro ao buscar avatar_url:', err);
         }
       }
     } catch (err) {
-      console.error('Erro ao carregar perfil:', err);
+      if (IS_DEV) console.error('Erro ao carregar perfil:', err);
       setError('Erro ao carregar perfil. Tente novamente.');
     } finally {
       setLoading(false);
@@ -180,7 +184,7 @@ export default function PerfilPage() {
           }
         } catch (err) {
           // Continuar mesmo se não conseguir remover a foto antiga
-          console.warn('Não foi possível remover foto antiga:', err);
+          if (IS_DEV) console.warn('Não foi possível remover foto antiga:', err);
         }
       }
 
@@ -211,8 +215,10 @@ export default function PerfilPage() {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      console.log('🔍 URL pública gerada:', publicUrl);
-      console.log('🔍 FilePath:', filePath);
+      if (IS_DEV) {
+        console.log('🔍 URL pública gerada:', publicUrl);
+        console.log('🔍 FilePath:', filePath);
+      }
 
       // Atualizar perfil do usuário
       // IMPORTANTE: Incluir apenas as colunas que existem na tabela
@@ -228,10 +234,10 @@ export default function PerfilPage() {
         })
         .select();
 
-      console.log('💾 Resultado do upsert:', { upsertData, updateError });
+      if (IS_DEV) console.log('💾 Resultado do upsert:', { upsertData, updateError });
 
       if (updateError) {
-        console.error('❌ Erro no upsert direto:', updateError);
+        if (IS_DEV) console.error('❌ Erro no upsert direto:', updateError);
         
         // Se não conseguir atualizar na tabela, tentar atualizar via RPC
         const { error: rpcError } = await supabase.rpc('update_user_avatar', {
@@ -240,16 +246,16 @@ export default function PerfilPage() {
         });
 
         if (rpcError) {
-          console.error('❌ Erro ao atualizar avatar via RPC:', rpcError);
+          if (IS_DEV) console.error('❌ Erro ao atualizar avatar via RPC:', rpcError);
           throw new Error(`Erro ao salvar URL da foto: ${rpcError.message}`);
         } else {
-          console.log('✅ Avatar atualizado via RPC com sucesso');
+          if (IS_DEV) console.log('✅ Avatar atualizado via RPC com sucesso');
         }
       } else {
-        console.log('✅ Avatar atualizado na tabela com sucesso');
+        if (IS_DEV) console.log('✅ Avatar atualizado na tabela com sucesso');
         
         // Verificar se o registro foi criado/atualizado
-        if (upsertData && upsertData.length > 0) {
+        if (IS_DEV && upsertData && upsertData.length > 0) {
           console.log('✅ Dados confirmados na tabela:', upsertData[0]);
         }
       }
@@ -264,7 +270,7 @@ export default function PerfilPage() {
         fileInputRef.current.value = '';
       }
     } catch (err: any) {
-      console.error('Erro ao fazer upload:', err);
+      if (IS_DEV) console.error('Erro ao fazer upload:', err);
       setError(err.message || 'Erro ao fazer upload da imagem. Tente novamente.');
     } finally {
       setUploading(false);
@@ -306,7 +312,7 @@ export default function PerfilPage() {
         .remove([filePath]);
 
       if (deleteError) {
-        console.warn('Erro ao remover arquivo do storage:', deleteError);
+        if (IS_DEV) console.warn('Erro ao remover arquivo do storage:', deleteError);
       }
 
       // Atualizar perfil
@@ -327,7 +333,7 @@ export default function PerfilPage() {
         });
 
         if (rpcError) {
-          console.warn('Erro ao remover avatar via RPC:', rpcError);
+          if (IS_DEV) console.warn('Erro ao remover avatar via RPC:', rpcError);
         }
       }
 
@@ -335,7 +341,7 @@ export default function PerfilPage() {
       setPreviewUrl(null);
       setSuccess('Foto removida com sucesso!');
     } catch (err: any) {
-      console.error('Erro ao remover foto:', err);
+      if (IS_DEV) console.error('Erro ao remover foto:', err);
       setError(err.message || 'Erro ao remover foto. Tente novamente.');
     } finally {
       setUploading(false);

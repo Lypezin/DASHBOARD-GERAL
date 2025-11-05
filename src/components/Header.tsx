@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 interface UserProfile {
   id: string;
   full_name: string;
@@ -76,11 +78,11 @@ export function Header() {
           }
         } catch (err) {
           // Se a tabela não existir ou houver erro, continuar sem avatar
-          console.warn('Não foi possível carregar avatar:', err);
+          if (IS_DEV) console.warn('Não foi possível carregar avatar:', err);
         }
       }
     } catch (err) {
-      console.error('Erro ao carregar perfil:', err);
+      if (IS_DEV) console.error('Erro ao carregar perfil:', err);
       await supabase.auth.signOut();
       router.push('/login');
     }
