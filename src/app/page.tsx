@@ -4362,17 +4362,27 @@ function EvolucaoView({
   // Ordenar e garantir que todos os dados sejam exibidos (otimizado com useMemo)
   const dadosAtivos = useMemo(() => {
     return viewMode === 'mensal' 
-      ? [...evolucaoMensal].sort((a, b) => {
+      ? [...evolucaoMensal].filter(d => d.ano === anoSelecionado).sort((a, b) => {
           // Ordenar por ano e mês
           if (a.ano !== b.ano) return a.ano - b.ano;
           return a.mes - b.mes;
         })
-      : [...evolucaoSemanal].sort((a, b) => {
+      : [...evolucaoSemanal].filter(d => d.ano === anoSelecionado).sort((a, b) => {
           // Ordenar por ano e semana
           if (a.ano !== b.ano) return a.ano - b.ano;
           return a.semana - b.semana;
         });
-  }, [viewMode, evolucaoMensal, evolucaoSemanal]);
+  }, [viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado]);
+
+  // Dados de UTR filtrados por ano
+  const dadosUtrAtivos = useMemo(() => {
+    return utrSemanal
+      .filter(d => d.ano === anoSelecionado)
+      .sort((a, b) => {
+        if (a.ano !== b.ano) return a.ano - b.ano;
+        return a.semana - b.semana;
+      });
+  }, [utrSemanal, anoSelecionado]);
 
   // Dados do gráfico com estilo premium (otimizado com useMemo)
   const chartData = useMemo(() => {
@@ -4459,7 +4469,7 @@ function EvolucaoView({
         },
       ],
     };
-  }, [dadosAtivos, dadosUtrAtivos, viewMode, isSemanal, metricType, gradientBlue, gradientGreen, gradientPurple, segundosParaHoras]);
+  }, [dadosAtivos, dadosUtrAtivos, viewMode, isSemanal, metricType, anoSelecionado, gradientBlue, gradientGreen, gradientPurple, segundosParaHoras]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
