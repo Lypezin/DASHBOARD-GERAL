@@ -4238,62 +4238,114 @@ function EvolucaoView({
   const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
   const isSemanal = viewMode === 'semanal';
 
-  // Gradientes vibrantes e modernos com múltiplas paradas de cor
-  const gradientBlue = (context: any) => {
+  // Gradientes vibrantes e modernos com múltiplas paradas de cor (otimizado com useCallback)
+  const gradientBlue = useCallback((context: any) => {
     const chart = context.chart;
     const { ctx, chartArea } = chart;
     if (!chartArea) return 'rgba(59, 130, 246, 0.2)';
     const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, 'rgba(96, 165, 250, 0.45)');    // Azul vibrante
-    gradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.25)');  // Azul médio
-    gradient.addColorStop(0.85, 'rgba(37, 99, 235, 0.08)');   // Azul escuro suave
-    gradient.addColorStop(1, 'rgba(30, 64, 175, 0.00)');     // Transparente
+    gradient.addColorStop(0, 'rgba(96, 165, 250, 0.5)');    // Azul vibrante mais intenso
+    gradient.addColorStop(0.3, 'rgba(59, 130, 246, 0.35)'); // Azul médio
+    gradient.addColorStop(0.7, 'rgba(37, 99, 235, 0.15)');  // Azul escuro suave
+    gradient.addColorStop(1, 'rgba(30, 64, 175, 0.00)');    // Transparente
     return gradient;
-  };
+  }, []);
 
-  const gradientGreen = (context: any) => {
+  const gradientGreen = useCallback((context: any) => {
     const chart = context.chart;
     const { ctx, chartArea } = chart;
     if (!chartArea) return 'rgba(34, 197, 94, 0.2)';
     const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, 'rgba(74, 222, 128, 0.45)');    // Verde vibrante
-    gradient.addColorStop(0.5, 'rgba(34, 197, 94, 0.25)');   // Verde médio
-    gradient.addColorStop(0.85, 'rgba(22, 163, 74, 0.08)');   // Verde escuro suave
-    gradient.addColorStop(1, 'rgba(20, 83, 45, 0.00)');      // Transparente
+    gradient.addColorStop(0, 'rgba(74, 222, 128, 0.5)');    // Verde vibrante mais intenso
+    gradient.addColorStop(0.3, 'rgba(34, 197, 94, 0.35)');  // Verde médio
+    gradient.addColorStop(0.7, 'rgba(22, 163, 74, 0.15)');   // Verde escuro suave
+    gradient.addColorStop(1, 'rgba(20, 83, 45, 0.00)');     // Transparente
     return gradient;
-  };
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando evolução...</p>
+      <div className="space-y-6 animate-fade-in">
+        {/* Header Skeleton */}
+        <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+          <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-blue-950/30">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2">
+                <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-4 w-64 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+              </div>
+              <div className="flex gap-3">
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Gráfico Skeleton */}
+        <div className="relative rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10 overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="relative z-10">
+            <div className="mb-6 space-y-2">
+              <div className="h-7 w-56 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+              <div className="h-4 w-80 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+            </div>
+            
+            <div className="h-[550px] rounded-xl bg-white/50 dark:bg-slate-900/50 p-4 backdrop-blur-sm">
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-400"></div>
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-blue-700 dark:text-blue-300">Carregando dados de evolução...</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Aguarde enquanto buscamos as informações</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cards Skeleton */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 via-slate-100/50 to-slate-100/30 p-6 shadow-lg dark:border-slate-800/50 dark:from-slate-950/40 dark:via-slate-900/30 dark:to-slate-950/20">
+              <div className="space-y-3">
+                <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-12 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-3 w-40 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
-  // Ordenar e garantir que todos os dados sejam exibidos
-  const dadosAtivos = viewMode === 'mensal' 
-    ? [...evolucaoMensal].sort((a, b) => {
-        // Ordenar por ano e mês
-        if (a.ano !== b.ano) return a.ano - b.ano;
-        return a.mes - b.mes;
-      })
-    : [...evolucaoSemanal].sort((a, b) => {
-        // Ordenar por ano e semana
-        if (a.ano !== b.ano) return a.ano - b.ano;
-        return a.semana - b.semana;
-      });
-
-  // Função para converter segundos em horas decimais para o gráfico
-  const segundosParaHoras = (segundos: number): number => {
+  // Ordenar e garantir que todos os dados sejam exibidos (otimizado com useMemo)
+  const dadosAtivos = useMemo(() => {
+    return viewMode === 'mensal' 
+      ? [...evolucaoMensal].sort((a, b) => {
+          // Ordenar por ano e mês
+          if (a.ano !== b.ano) return a.ano - b.ano;
+          return a.mes - b.mes;
+        })
+      : [...evolucaoSemanal].sort((a, b) => {
+          // Ordenar por ano e semana
+          if (a.ano !== b.ano) return a.ano - b.ano;
+          return a.semana - b.semana;
+        });
+  }, [viewMode, evolucaoMensal, evolucaoSemanal]);
+  // Memoizar conversão de segundos para horas
+  const segundosParaHoras = useCallback((segundos: number): number => {
     return segundos / 3600;
-  };
+  }, []);
 
-  // Dados do gráfico com estilo premium
-  const chartData = {
+  // Dados do gráfico com estilo premium (otimizado com useMemo)
+  const chartData = useMemo(() => ({
     labels: dadosAtivos.map(d => 
       viewMode === 'mensal' 
         ? (d as EvolucaoMensal).mes_nome 
@@ -4363,9 +4415,10 @@ function EvolucaoView({
         },
       },
     ],
-  };
+  }), [dadosAtivos, viewMode, isSemanal]);
 
-  const chartOptions = {
+  // Opções do gráfico otimizadas (useMemo para evitar recriação)
+  const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     layout: {
@@ -4377,12 +4430,14 @@ function EvolucaoView({
       },
     },
     animation: {
-      duration: 1200,
+      duration: dadosAtivos.length > 20 ? 800 : 1200, // Animação mais rápida para muitos dados
       easing: 'easeInOutQuart' as const,
       delay: (context: any) => {
+        // Reduzir delay para muitos dados para melhor performance
+        const baseDelay = dadosAtivos.length > 20 ? 10 : 30;
         let delay = 0;
         if (context.type === 'data' && context.mode === 'default') {
-          delay = context.dataIndex * 30 + context.datasetIndex * 100;
+          delay = context.dataIndex * baseDelay + context.datasetIndex * 50;
         }
         return delay;
       },
@@ -4595,7 +4650,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  };
+  }), [isSemanal, dadosAtivos.length]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -4695,9 +4750,14 @@ function EvolucaoView({
               </div>
             </div>
             
-            {/* Container do gráfico com altura aumentada */}
+            {/* Container do gráfico com altura aumentada e melhor performance */}
             <div className="h-[550px] rounded-xl bg-white/50 dark:bg-slate-900/50 p-4 backdrop-blur-sm">
-              <Line data={chartData} options={chartOptions} />
+              <Line 
+                data={chartData} 
+                options={chartOptions}
+                redraw={false}
+                updateMode="none"
+              />
             </div>
           </div>
         ) : (
@@ -6946,9 +7006,30 @@ export default function DashboardPage() {
     fetchAnosDisponiveis();
   }, []);
 
-  // Buscar dados de Evolução quando a aba estiver ativa
+  // Cache para dados de evolução
+  const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[] }>>(new Map());
+
+  // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
-    if (activeTab === 'evolucao') {
+    if (activeTab !== 'evolucao') {
+      return;
+    }
+
+    // Criar chave de cache
+    const cacheKey = `${anoEvolucao}-${filters.praca || 'all'}`;
+    
+    // Verificar cache primeiro
+    const cachedData = evolucaoCacheRef.current.get(cacheKey);
+    if (cachedData) {
+      if (IS_DEV) console.log('✅ Usando dados de evolução em cache');
+      setEvolucaoMensal(cachedData.mensal);
+      setEvolucaoSemanal(cachedData.semanal);
+      setLoadingEvolucao(false);
+      return;
+    }
+
+    // Debounce para evitar múltiplas chamadas
+    const timeoutId = setTimeout(async () => {
       async function fetchEvolucao() {
         setLoadingEvolucao(true);
         try {
@@ -6973,6 +7054,15 @@ export default function DashboardPage() {
           const dadosMensais = mensalResult.data || [];
           const dadosSemanais = semanalResult.data || [];
 
+          // Salvar no cache
+          evolucaoCacheRef.current.set(cacheKey, { mensal: dadosMensais, semanal: dadosSemanais });
+          
+          // Limitar cache a 10 entradas (LRU simples)
+          if (evolucaoCacheRef.current.size > 10) {
+            const firstKey = evolucaoCacheRef.current.keys().next().value;
+            evolucaoCacheRef.current.delete(firstKey);
+          }
+
           // Log para debug
           if (IS_DEV) {
             console.log('📊 Dados de Evolução carregados:', {
@@ -6995,7 +7085,9 @@ export default function DashboardPage() {
       }
 
       fetchEvolucao();
-    }
+    }, 300); // Debounce de 300ms
+
+    return () => clearTimeout(timeoutId);
   }, [activeTab, filters.praca, anoEvolucao]);
 
   return (
