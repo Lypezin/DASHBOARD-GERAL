@@ -4415,7 +4415,16 @@ function EvolucaoView({
   }, [utrSemanal, anoSelecionado]);
 
   // Helper function para obter configuração de métrica
-  const getMetricConfig = useCallback((metric: 'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr') => {
+  const getMetricConfig = useCallback((metric: 'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'): {
+    labels: string[];
+    data: number[];
+    label: string;
+    borderColor: string;
+    backgroundColor: any;
+    pointColor: string;
+    yAxisID: string;
+    useUtrData: boolean;
+  } | null => {
     const baseLabels = viewMode === 'mensal'
       ? dadosAtivos.map(d => (d as EvolucaoMensal).mes_nome)
       : dadosAtivos.map(d => `S${(d as EvolucaoSemanal).semana}`);
@@ -4504,93 +4513,117 @@ function EvolucaoView({
       };
     }
 
-    // Obter configurações para todas as métricas selecionadas
-    const metricConfigs = Array.from(selectedMetrics)
-      .map(metric => getMetricConfig(metric))
-      .filter(config => config !== null) as Array<{
-        labels: string[];
-        data: number[];
-        label: string;
-        borderColor: string;
-        backgroundColor: any;
-        pointColor: string;
-        yAxisID: string;
-        useUtrData: boolean;
-      }>;
-
-    if (metricConfigs.length === 0) {
+    // Verificar se há dados disponíveis
+    const hasData = dadosAtivos.length > 0 || dadosUtrAtivos.length > 0;
+    if (!hasData) {
       return {
         labels: [],
         datasets: [],
       };
     }
 
-    // Usar labels da primeira métrica (ou da UTR se estiver presente, pois pode ter labels diferentes)
-    const utrConfig = metricConfigs.find(c => c.useUtrData);
-    const baseLabels = utrConfig?.labels || metricConfigs[0].labels;
+    try {
+      // Obter configurações para todas as métricas selecionadas
+      const metricConfigs = Array.from(selectedMetrics)
+        .map(metric => getMetricConfig(metric))
+        .filter(config => config !== null) as Array<{
+          labels: string[];
+          data: number[];
+          label: string;
+          borderColor: string;
+          backgroundColor: any;
+          pointColor: string;
+          yAxisID: string;
+          useUtrData: boolean;
+        }>;
 
-    // Criar datasets para cada métrica selecionada
-    const datasets = metricConfigs.map((config) => {
-      // Para UTR, usar dados próprios; para outras, alinhar com baseLabels
-      let data = config.data;
-      if (!config.useUtrData && utrConfig && baseLabels.length !== config.data.length) {
-        // Se temos UTR e outras métricas, precisamos alinhar os dados
-        // Mapear dados para os labels corretos
-        const labelMap = new Map();
-        config.labels.forEach((label, idx) => {
-          labelMap.set(label, config.data[idx]);
-        });
-        data = baseLabels.map(label => labelMap.get(label) || 0);
-      } else if (config.useUtrData && baseLabels.length !== config.data.length) {
-        // Se UTR tem labels diferentes, alinhar outras métricas
-        data = config.data;
+      if (metricConfigs.length === 0) {
+        return {
+          labels: [],
+          datasets: [],
+        };
       }
 
-      return {
-        label: config.label,
-        data,
-        borderColor: config.borderColor,
-        backgroundColor: config.backgroundColor,
-        yAxisID: config.yAxisID,
-        tension: 0.5,
+      // Usar labels da primeira métrica (ou da UTR se estiver presente, pois pode ter labels diferentes)
+      const utrConfig = metricConfigs.find(c => c.useUtrData);
+      const baseLabels = utrConfig?.labels || metricConfigs[0].labels;
+
+      if (!baseLabels || baseLabels.length === 0) {
+        return {
+          labels: [],
+          datasets: [],
+        };
+      }
+
+      // Criar datasets para cada métrica selecionada
+      const datasets = metricConfigs.map((config) => {
+        // Para UTR, usar dados próprios; para outras, alinhar com baseLabels
+        let data = config.data || [];
+        if (!config.useUtrData && utrConfig && baseLabels.length !== config.data.length) {
+          // Se temos UTR e outras métricas, precisamos alinhar os dados
+          // Mapear dados para os labels corretos
+          const labelMap = new Map();
+          config.labels.forEach((label, idx) => {
+            labelMap.set(label, config.data[idx]);
+          });
+          data = baseLabels.map(label => labelMap.get(label) || 0);
+        } else if (config.useUtrData && baseLabels.length !== config.data.length) {
+          // Se UTR tem labels diferentes, alinhar outras métricas
+          data = config.data || [];
+        }
+
+        return {
+          label: config.label,
+          data,
+          borderColor: config.borderColor,
+          backgroundColor: config.backgroundColor,
+          yAxisID: config.yAxisID,
+          tension: 0.5,
         cubicInterpolationMode: 'monotone' as const,
-        pointRadius: isSemanal ? 5 : 7,
-        pointHoverRadius: isSemanal ? 10 : 12,
-        pointHitRadius: 20,
-        pointBackgroundColor: config.pointColor,
+          pointRadius: isSemanal ? 5 : 7,
+          pointHoverRadius: isSemanal ? 10 : 12,
+          pointHitRadius: 20,
+          pointBackgroundColor: config.pointColor,
         pointBorderColor: '#fff',
-        pointBorderWidth: 3.5,
-        pointHoverBackgroundColor: config.pointColor,
+          pointBorderWidth: 3.5,
+          pointHoverBackgroundColor: config.pointColor,
         pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 5,
-        pointStyle: 'circle' as const,
-        borderWidth: 3.5,
+          pointHoverBorderWidth: 5,
+          pointStyle: 'circle' as const,
+          borderWidth: 3.5,
         fill: true,
         spanGaps: true,
         segment: {
           borderColor: (ctx: any) => {
-            if (!ctx.p0 || !ctx.p1) return config.borderColor;
+              if (!ctx.p0 || !ctx.p1) return config.borderColor;
             const value0 = ctx.p0.parsed.y;
             const value1 = ctx.p1.parsed.y;
-            
-            // Para UTR, usar cores baseadas no valor
-            if (config.useUtrData) {
-              const avg = (value0 + value1) / 2;
-              if (avg >= 1) return 'rgba(34, 197, 94, 1)'; // Verde para UTR >= 1
-              if (avg >= 0.5) return 'rgba(251, 191, 36, 1)'; // Amarelo para UTR >= 0.5
-              return 'rgba(239, 68, 68, 1)'; // Vermelho para UTR < 0.5
-            }
-            return config.borderColor;
+              
+              // Para UTR, usar cores baseadas no valor
+              if (config.useUtrData) {
+                const avg = (value0 + value1) / 2;
+                if (avg >= 1) return 'rgba(34, 197, 94, 1)'; // Verde para UTR >= 1
+                if (avg >= 0.5) return 'rgba(251, 191, 36, 1)'; // Amarelo para UTR >= 0.5
+                return 'rgba(239, 68, 68, 1)'; // Vermelho para UTR < 0.5
+              }
+              return config.borderColor;
+            },
           },
-        },
-      };
-    });
+        };
+      });
 
-    return {
-      labels: baseLabels,
-      datasets,
-    };
-  }, [selectedMetrics, getMetricConfig, isSemanal]);
+      return {
+        labels: baseLabels,
+        datasets,
+      };
+    } catch (error) {
+      if (IS_DEV) console.error('Erro ao criar chartData:', error);
+      return {
+        labels: [],
+        datasets: [],
+      };
+    }
+  }, [selectedMetrics, getMetricConfig, isSemanal, dadosAtivos.length, dadosUtrAtivos.length]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
@@ -4605,23 +4638,9 @@ function EvolucaoView({
       },
     },
     animation: {
-      duration: dadosAtivos.length > 20 ? 1000 : 1500, // Animação mais suave
+      duration: 800, // Animação mais rápida para evitar travamentos
       easing: 'easeOutQuart' as const,
-      delay: (context: any) => {
-        // Animação em cascata mais suave
-        const baseDelay = dadosAtivos.length > 20 ? 8 : 20;
-        let delay = 0;
-        if (context.type === 'data' && context.mode === 'default') {
-          delay = context.dataIndex * baseDelay + context.datasetIndex * 30;
-        }
-        return delay;
-      },
-      onProgress: (animation: any) => {
-        // Adicionar efeito de pulso durante a animação
-        if (animation.animationObject.currentStep === 0) {
-          // Início da animação
-        }
-      },
+      delay: 0, // Sem delay para melhor performance
     },
     interaction: {
       mode: 'index' as const,
@@ -4779,7 +4798,7 @@ function EvolucaoView({
             }
             // Se tiver horas selecionado, formatar com 'h'
             if (selectedMetrics.has('horas') && selectedMetrics.size === 1) {
-              return value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + 'h';
+            return value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + 'h';
             }
             return value.toLocaleString('pt-BR');
           }
@@ -4818,7 +4837,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  }), [isSemanal, dadosAtivos.length, isDarkMode, selectedMetrics]);
+  }), [isSemanal, dadosAtivos.length, dadosUtrAtivos.length, isDarkMode, selectedMetrics]);
 
   // Early return APÓS todos os hooks
   if (loading) {
@@ -5035,7 +5054,7 @@ function EvolucaoView({
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
         </div>
         
-        {((selectedMetrics.has('utr') && dadosUtrAtivos.length > 0) || (!selectedMetrics.has('utr') && dadosAtivos.length > 0) || (selectedMetrics.size > 0)) ? (
+        {chartData.datasets.length > 0 && chartData.labels.length > 0 ? (
           <div className="relative z-10">
             {/* Título do gráfico */}
             <div className="mb-6 flex items-center justify-between">
@@ -5068,16 +5087,16 @@ function EvolucaoView({
                   </div>
                 )}
                 {selectedMetrics.has('ofertadas') && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                    <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                  <div className="w-3 h-3 rounded-full bg-blue-500 shadow-md"></div>
                     <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Ofertadas</span>
-                  </div>
+                </div>
                 )}
                 {selectedMetrics.has('aceitas') && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
                     <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Aceitas</span>
-                  </div>
+                </div>
                 )}
                 {selectedMetrics.has('completadas') && (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
@@ -5099,12 +5118,18 @@ function EvolucaoView({
               {/* Efeito de brilho sutil */}
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
               <div className="relative z-10 h-full">
-                <Line 
-                  data={chartData} 
-                  options={chartOptions}
-                  redraw={false}
-                  updateMode="none"
-                />
+                {chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
+                  <Line 
+                    data={chartData} 
+                    options={chartOptions}
+                    redraw={false}
+                    updateMode="none"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-slate-500 dark:text-slate-400">Preparando dados do gráfico...</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
