@@ -80,7 +80,14 @@ export default function AdminPage() {
       if (usersPromise.status === 'fulfilled' && !usersPromise.value.error) {
         setUsers(usersPromise.value.data || []);
       } else {
-        if (IS_DEV) console.warn('Erro ao buscar usuários:', usersPromise.status === 'fulfilled' ? usersPromise.value.error : usersPromise.reason);
+        if (IS_DEV) {
+          const errorMsg = usersPromise.status === 'fulfilled' 
+            ? usersPromise.value.error 
+            : usersPromise.status === 'rejected' 
+              ? usersPromise.reason 
+              : 'Erro desconhecido';
+          console.warn('Erro ao buscar usuários:', errorMsg);
+        }
         setUsers([]);
       }
 
@@ -88,7 +95,14 @@ export default function AdminPage() {
       if (pendingPromise.status === 'fulfilled' && !pendingPromise.value.error) {
         setPendingUsers(pendingPromise.value.data || []);
       } else {
-        if (IS_DEV) console.warn('Erro ao buscar usuários pendentes:', pendingPromise.status === 'fulfilled' ? pendingPromise.value.error : usersPromise.reason);
+        if (IS_DEV) {
+          const errorMsg = pendingPromise.status === 'fulfilled' 
+            ? pendingPromise.value.error 
+            : pendingPromise.status === 'rejected' 
+              ? pendingPromise.reason 
+              : 'Erro desconhecido';
+          console.warn('Erro ao buscar usuários pendentes:', errorMsg);
+        }
         setPendingUsers([]);
       }
 
@@ -96,7 +110,12 @@ export default function AdminPage() {
       if (pracasPromise.status === 'fulfilled') {
         setPracasDisponiveis(pracasPromise.value);
       } else {
-        if (IS_DEV) console.warn('Erro ao buscar praças:', pracasPromise.reason);
+        if (IS_DEV) {
+          const errorMsg = pracasPromise.status === 'rejected' 
+            ? pracasPromise.reason 
+            : 'Erro desconhecido';
+          console.warn('Erro ao buscar praças:', errorMsg);
+        }
         setPracasDisponiveis([]);
       }
     } catch (err: any) {
