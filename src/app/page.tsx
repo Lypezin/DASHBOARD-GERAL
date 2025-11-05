@@ -5213,7 +5213,6 @@ function EvolucaoView({
                           return isDarkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.15)';
                         },
                         lineWidth: 1,
-                        drawBorder: false,
                         drawTicks: false,
                       },
                       border: {
