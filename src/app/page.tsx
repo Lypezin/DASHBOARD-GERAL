@@ -391,10 +391,10 @@ const TabButton = React.memo(({ label, icon, active, onClick }: { label: string;
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 relative flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap overflow-hidden ${
+      className={`shrink-0 relative flex items-center gap-2 sm:gap-2.5 rounded-xl px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap overflow-hidden ${
         active
-          ? 'bg-white text-blue-700 shadow-lg dark:bg-slate-800 dark:text-blue-300 border-2 border-blue-400 dark:border-blue-600'
-          : 'bg-white/50 text-slate-700 hover:bg-white hover:shadow-md dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800 border border-transparent'
+          ? 'bg-white text-blue-700 shadow-lg ring-2 ring-blue-500/20 dark:bg-slate-800 dark:text-blue-300 dark:ring-blue-600/30 border border-blue-200 dark:border-blue-700'
+          : 'bg-white/60 backdrop-blur-sm text-slate-700 hover:bg-white hover:shadow-md hover:ring-1 hover:ring-slate-300 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:ring-slate-600 border border-slate-200/50 dark:border-slate-700/50'
       }`}
     >
       {active && (
@@ -431,8 +431,8 @@ function MetricCard({
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 lg:p-6 shadow-md transition-all duration-300 hover-lift hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
-      <div className={`absolute right-0 top-0 h-24 w-24 sm:h-32 sm:w-32 rounded-full bg-gradient-to-br ${colorClasses[color]} opacity-10 blur-3xl transition-opacity group-hover:opacity-20`}></div>
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200/50 bg-white/90 backdrop-blur-sm p-5 sm:p-6 lg:p-7 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-slate-300 dark:border-slate-700/50 dark:bg-slate-900/90">
+      <div className={`absolute right-0 top-0 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br ${colorClasses[color]} opacity-10 blur-3xl transition-opacity group-hover:opacity-25`}></div>
       
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -451,7 +451,7 @@ function MetricCard({
             </div>
           )}
         </div>
-        <div className={`flex h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-xl sm:text-2xl lg:text-3xl text-white shadow-lg transition-transform group-hover:rotate-3 group-hover:scale-110`}>
+        <div className={`flex h-14 w-14 sm:h-16 sm:w-16 lg:h-18 lg:w-18 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-2xl sm:text-3xl lg:text-4xl text-white shadow-xl ring-2 ring-white/20 transition-all duration-300 group-hover:rotate-6 group-hover:scale-110 group-hover:shadow-2xl`}>
           {icon}
         </div>
       </div>
@@ -474,7 +474,7 @@ const AderenciaCard = React.memo(({
   const bgClass = getAderenciaBgColor(percentual);
 
   return (
-    <div className={`group rounded-xl sm:rounded-2xl border p-3 sm:p-4 lg:p-5 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${bgClass} overflow-hidden`}>
+    <div className={`group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-4 sm:p-5 lg:p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 ${bgClass} overflow-hidden`}>
       <div className="mb-3 sm:mb-4 flex items-center justify-between gap-2">
         <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300 truncate flex-1 min-w-0" title={title}>{title}</h3>
         <span className={`shrink-0 rounded-full px-2 sm:px-3 py-1 text-sm sm:text-base lg:text-lg font-bold ${colorClass} bg-white/50 dark:bg-slate-900/50`}>
@@ -958,7 +958,8 @@ function DashboardView({
     <div className="space-y-6">
       {/* Aderência Geral Redesenhada */}
       {aderenciaGeral && (
-        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-blue-200 bg-white p-4 sm:p-6 lg:p-8 shadow-xl dark:border-blue-800 dark:bg-slate-900 animate-slide-up">
+        <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 lg:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 animate-slide-up">
+          <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/10"></div>
           <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex-1 w-full">
@@ -1067,7 +1068,7 @@ function DashboardView({
       </div>
 
       {/* Aderência por Dia */}
-      <div className="rounded-xl sm:rounded-2xl border border-blue-200 bg-white p-4 sm:p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 shadow-xl transition-all duration-300 hover:shadow-2xl dark:border-white/10 dark:bg-slate-900/90">
         <div className="mb-4 sm:mb-6 flex items-center gap-2">
           <span className="text-lg sm:text-xl">📅</span>
           <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
@@ -1106,7 +1107,7 @@ function DashboardView({
       </div>
 
       {/* Aderência por Turno/Sub-Praça/Origem */}
-      <div className="rounded-xl sm:rounded-2xl border border-blue-200 bg-white p-4 sm:p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 shadow-xl transition-all duration-300 hover:shadow-2xl dark:border-white/10 dark:bg-slate-900/90">
         <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-lg sm:text-xl">📊</span>
@@ -5307,7 +5308,8 @@ function EvolucaoView({
       {dadosAtivos.length > 0 && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {/* Total de Corridas */}
-          <div className="group relative rounded-2xl border border-blue-200/50 bg-gradient-to-br from-blue-50 via-blue-100/50 to-indigo-100/30 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-blue-900/50 dark:from-blue-950/40 dark:via-blue-900/30 dark:to-indigo-950/20 overflow-hidden">
+          <div className="group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-blue-100/30 to-indigo-100/20 dark:from-blue-950/20 dark:via-blue-900/10 dark:to-indigo-950/10"></div>
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start justify-between">
               <div className="flex-1">
@@ -5329,7 +5331,8 @@ function EvolucaoView({
           </div>
 
           {/* Total de Horas */}
-          <div className="group relative rounded-2xl border border-emerald-200/50 bg-gradient-to-br from-emerald-50 via-emerald-100/50 to-teal-100/30 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-emerald-900/50 dark:from-emerald-950/40 dark:via-emerald-900/30 dark:to-teal-950/20 overflow-hidden">
+          <div className="group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-emerald-100/30 to-teal-100/20 dark:from-emerald-950/20 dark:via-emerald-900/10 dark:to-teal-950/10"></div>
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start justify-between">
               <div className="flex-1">
@@ -5351,7 +5354,8 @@ function EvolucaoView({
           </div>
 
           {/* Média de Corridas */}
-          <div className="group relative rounded-2xl border border-purple-200/50 bg-gradient-to-br from-purple-50 via-purple-100/50 to-pink-100/30 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-purple-900/50 dark:from-purple-950/40 dark:via-purple-900/30 dark:to-pink-950/20 overflow-hidden">
+          <div className="group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-purple-100/30 to-pink-100/20 dark:from-purple-950/20 dark:via-purple-900/10 dark:to-pink-950/10"></div>
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start justify-between">
               <div className="flex-1">
@@ -5373,7 +5377,8 @@ function EvolucaoView({
           </div>
 
           {/* Período */}
-          <div className="group relative rounded-2xl border border-amber-200/50 bg-gradient-to-br from-amber-50 via-amber-100/50 to-orange-100/30 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-amber-900/50 dark:from-amber-950/40 dark:via-amber-900/30 dark:to-orange-950/20 overflow-hidden">
+          <div className="group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 via-amber-100/30 to-orange-100/20 dark:from-amber-950/20 dark:via-amber-900/10 dark:to-orange-950/10"></div>
             <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start justify-between">
               <div className="flex-1">
@@ -7917,31 +7922,40 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-[1920px] px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         {/* Header Principal Redesenhado */}
         <header className="mb-4 sm:mb-6 lg:mb-8 animate-fade-in">
-          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-blue-100 bg-white shadow-xl dark:border-blue-900/30 dark:bg-slate-900">
+          <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/80 backdrop-blur-xl shadow-2xl transition-all duration-300 hover:shadow-3xl dark:border-white/10 dark:bg-slate-900/80">
+            {/* Glow effect */}
+            <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
+            
+            {/* Background gradient */}
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5"></div>
+            
+            {/* Shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            
             <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-6 lg:p-8">
-              <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0 flex-1">
-                <div className="flex h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
-                  <span className="text-2xl sm:text-2xl lg:text-3xl">📊</span>
+              <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 min-w-0 flex-1">
+                <div className="flex h-14 w-14 sm:h-16 sm:w-16 lg:h-20 lg:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-lg ring-2 ring-white/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <span className="text-3xl sm:text-3xl lg:text-4xl">📊</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent dark:from-white dark:to-blue-200 truncate">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-indigo-200 truncate">
                     Dashboard Operacional
                   </h1>
-                  <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">
+                  <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm lg:text-base font-semibold text-slate-600 dark:text-slate-400 truncate">
                     Sistema de Análise e Monitoramento em Tempo Real
                   </p>
                 </div>
               </div>
-              <div className="hidden md:flex items-center gap-3 lg:gap-4 shrink-0">
+              <div className="hidden md:flex items-center gap-4 lg:gap-5 shrink-0">
                 <div className="text-right">
-                  <p className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">Última atualização</p>
-                  <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Última atualização</p>
+                  <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                     {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shrink-0">
-                  <span className="text-lg sm:text-xl">🟢</span>
+                <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shrink-0 shadow-lg ring-2 ring-emerald-500/20">
+                  <div className="absolute inset-0 rounded-xl bg-emerald-400/50 animate-ping"></div>
+                  <span className="relative text-xl sm:text-2xl">🟢</span>
                 </div>
               </div>
             </div>
@@ -7976,7 +7990,10 @@ export default function DashboardPage() {
         {totals && !loading && !error && (
           <div className="space-y-4 sm:space-y-6 animate-fade-in">
             {/* Header com filtros e tabs */}
-            <div className="glass-strong rounded-2xl border border-blue-200 p-3 sm:p-4 lg:p-6 shadow-xl transition-all hover:shadow-2xl dark:border-blue-900 animate-slide-down" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="group relative rounded-2xl border border-white/20 bg-white/80 backdrop-blur-xl p-4 sm:p-5 lg:p-7 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/80 animate-slide-down" style={{ position: 'relative', zIndex: 1 }}>
+              {/* Subtle glow */}
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
+              <div className="relative" style={{ position: 'relative', zIndex: 1 }}>
               {activeTab !== 'comparacao' && (
                 <>
                   <div className="relative" style={{ isolation: 'isolate', zIndex: 99999, position: 'relative' }}>

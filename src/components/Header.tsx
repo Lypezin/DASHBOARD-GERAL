@@ -136,7 +136,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-xl backdrop-blur-lg animate-slide-down">
+      <header className="sticky top-0 z-50 border-b border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl backdrop-blur-xl animate-slide-down">
         <div className="container mx-auto flex h-16 md:h-18 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group" prefetch={false}>
             <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2 sm:p-2.5 group-hover:bg-white/25 group-hover:scale-105 transition-all duration-300 shadow-lg">
