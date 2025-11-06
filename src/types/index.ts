@@ -6,17 +6,24 @@ export interface Totals {
 }
 
 export interface AderenciaSemanal {
-  semana_ano: string;
+  semana: string;
   horas_a_entregar: string;
   horas_entregues: string;
   aderencia_percentual: number;
 }
 
 export interface AderenciaDia {
-  dia_semana: string;
+  dia_iso: number;
+  dia_da_semana: string;
   horas_a_entregar: string;
   horas_entregues: string;
   aderencia_percentual: number;
+  corridas_ofertadas?: number;
+  corridas_aceitas?: number;
+  corridas_rejeitadas?: number;
+  corridas_completadas?: number;
+  taxa_aceitacao?: number;
+  taxa_completude?: number;
 }
 
 export interface AderenciaTurno {

@@ -5,6 +5,14 @@ export const safeNumber = (value: any): number => {
   return isNaN(num) ? 0 : num;
 };
 
+export const arraysEqual = <T>(a: T[], b: T[]): boolean => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+};
+
 export const buildFilterPayload = (filters: Filters) => {
   const MAX_ARRAY_SIZE = 50;
   
@@ -15,7 +23,7 @@ export const buildFilterPayload = (filters: Filters) => {
   } else if (filters.subPraca) {
     subPraca = filters.subPraca.length > 100 ? filters.subPraca.substring(0, 100) : filters.subPraca;
   }
-    
+  
   let origem: string | null = null;
   if (filters.origens && filters.origens.length > 0) {
     const limited = filters.origens.slice(0, MAX_ARRAY_SIZE);
@@ -35,13 +43,13 @@ export const buildFilterPayload = (filters: Filters) => {
   let semana: string | null = null;
   if (filters.semanas && filters.semanas.length > 0) {
     const limited = filters.semanas.slice(0, MAX_ARRAY_SIZE);
-    semana = limited.length === 1 ? String(limited[0]) : limited.map(s => String(s)).join(',');
-  } else if (filters.semana !== null) {
+    semana = limited.length === 1 ? String(limited[0]) : limited.map((s) => String(s)).join(',');
+  } else if (filters.semana !== null && filters.semana !== undefined) {
     semana = String(filters.semana);
   }
 
   let ano: number | null = filters.ano;
-  if (ano !== null && (isNaN(ano) || ano < 2000 || ano > 2100)) {
+  if (ano !== null && (Number.isNaN(ano) || ano < 2000 || ano > 2100)) {
     ano = null;
   }
 
@@ -57,5 +65,5 @@ export const buildFilterPayload = (filters: Filters) => {
     p_sub_praca: subPraca,
     p_origem: origem,
     p_turno: turno,
-  };
+  } as const;
 };
