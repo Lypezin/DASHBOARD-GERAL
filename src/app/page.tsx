@@ -7797,7 +7797,7 @@ export default function DashboardPage() {
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
     if (activeTab !== 'evolucao') {
-      return;
+      return undefined;
     }
 
     // Criar chave de cache
@@ -7811,7 +7811,7 @@ export default function DashboardPage() {
       setEvolucaoSemanal(cachedData.semanal);
       setUtrSemanal(cachedData.utrSemanal || []);
       setLoadingEvolucao(false);
-      return;
+      return undefined;
     }
 
     // Debounce para evitar múltiplas chamadas
