@@ -88,6 +88,7 @@ ChartJS.register(
 // Componente Principal
 // =================================================================================
 
+const IS_DEV = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade' | 'comparacao'>('dashboard');
@@ -101,7 +102,7 @@ export default function DashboardPage() {
     utrData, loadingUtr, entregadoresData, loadingEntregadores, prioridadeData, loadingPrioridade,
     valoresData, loadingValores, evolucaoMensal, evolucaoSemanal, utrSemanal, loadingEvolucao,
     aderenciaGeral
-  } = useDashboardData(filters, activeTab, anoEvolucao);
+  } = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
   
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
 
@@ -114,20 +115,31 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', sessionId)
-          .single();
-
-        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-          throw error;
+        const { data: profile, error } = await supabase.rpc('get_current_user_profile') as { data: { is_admin: boolean; assigned_pracas: string[] } | null; error: any };
+        
+        if (error) {
+          if (IS_DEV) console.error('Erro ao buscar perfil do usuário:', error);
+          setCurrentUser(null);
+          return;
         }
 
-        if (data) {
-          setCurrentUser(data);
+        if (profile) {
+          setCurrentUser(profile);
+          // Aplicar filtro automático se não for admin e tiver apenas uma praça
+          if (!profile.is_admin && profile.assigned_pracas.length === 1) {
+            setFilters(prev => {
+              // Só atualizar se ainda não tiver a praça definida
+              if (prev.praca !== profile.assigned_pracas[0]) {
+                return {
+                  ...prev,
+                  praca: profile.assigned_pracas[0]
+                };
+              }
+              return prev;
+            });
+          }
         } else {
-          setCurrentUser(null); // No user found
+          setCurrentUser(null);
         }
       } catch (err) {
         safeLog.error('Erro ao buscar usuário', err);
@@ -135,10 +147,8 @@ export default function DashboardPage() {
       }
     };
 
-    if (sessionId) {
-      fetchUser();
-    }
-  }, [sessionId]);
+    fetchUser();
+  }, []);
 
   return (
     <div className="min-h-screen">

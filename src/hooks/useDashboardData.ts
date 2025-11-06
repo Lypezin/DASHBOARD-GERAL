@@ -9,7 +9,7 @@ import { buildFilterPayload, safeNumber } from '@/utils/helpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export function useDashboardData(initialFilters: Filters, activeTab: string, anoEvolucao: number) {
+export function useDashboardData(initialFilters: Filters, activeTab: string, anoEvolucao: number, currentUser?: { is_admin: boolean; assigned_pracas: string[] } | null) {
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
@@ -44,7 +44,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[] }>>(new Map());
   const dashboardDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const filterPayload = useMemo(() => buildFilterPayload(initialFilters), [initialFilters]);
+  const filterPayload = useMemo(() => buildFilterPayload(initialFilters, currentUser), [initialFilters, currentUser]);
 
   // Buscar anos e semanas disponíveis
   useEffect(() => {
@@ -92,7 +92,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       setError(null);
       try {
         const { data, error } = await supabase.rpc('dashboard_resumo', filterPayload as any);
-        if (error) throw error;
+        if (error) {
+          if (IS_DEV) console.error('Erro ao carregar dashboard_resumo:', error);
+          throw error;
+        }
         
         cachedDataRef.current = data;
         cacheKeyRef.current = payloadKey;
@@ -123,7 +126,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       } finally {
         setLoading(false);
       }
-    }, 300);
+    }, 150);
 
     return () => {
       if (dashboardDebounceRef.current) clearTimeout(dashboardDebounceRef.current);
@@ -150,7 +153,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'entregadores':
             setLoadingEntregadores(true);
             try {
-              const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              const { data, error } = await supabase.rpc('pesquisar_entregadores', { 
+                termo_busca: '',
+                ...filterPayload
+              } as any);
               if (error) throw error;
               const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
               setEntregadoresData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
@@ -164,7 +170,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'valores':
             setLoadingValores(true);
             try {
-              const { data, error } = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
+              const { data, error } = await supabase.rpc('pesquisar_valores_entregadores', { 
+                termo_busca: '',
+                ...filterPayload
+              } as any);
               if (error) throw error;
               setValoresData(Array.isArray(data) ? data : []);
             } catch (err: any) {
@@ -177,7 +186,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'prioridade':
             setLoadingPrioridade(true);
             try {
-              const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              const { data, error } = await supabase.rpc('pesquisar_entregadores', { 
+                termo_busca: '',
+                ...filterPayload
+              } as any);
               if (error) throw error;
               const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
               setPrioridadeData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });

@@ -13,7 +13,7 @@ export const arraysEqual = <T>(a: T[], b: T[]): boolean => {
   return true;
 };
 
-export const buildFilterPayload = (filters: Filters) => {
+export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: boolean; assigned_pracas: string[] } | null) => {
   const MAX_ARRAY_SIZE = 50;
   
   let subPraca: string | null = null;
@@ -56,6 +56,11 @@ export const buildFilterPayload = (filters: Filters) => {
   let praca: string | null = filters.praca;
   if (praca && praca.length > 100) {
     praca = praca.substring(0, 100);
+  }
+
+  // Aplicar permissões: se não for admin e tiver apenas uma praça, forçar essa praça
+  if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
+    praca = currentUser.assigned_pracas[0];
   }
 
   return {
