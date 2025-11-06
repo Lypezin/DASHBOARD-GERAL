@@ -4,17 +4,20 @@ const TabButton = React.memo(({ label, icon, active, onClick }: { label: string;
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 relative flex items-center gap-2 sm:gap-2.5 rounded-xl px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap overflow-hidden ${
+      className={`group shrink-0 relative flex items-center gap-2 sm:gap-2.5 rounded-xl px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap overflow-hidden ${
         active
-          ? 'bg-white text-blue-700 shadow-lg ring-2 ring-blue-500/20 dark:bg-slate-800 dark:text-blue-300 dark:ring-blue-600/30 border border-blue-200 dark:border-blue-700'
-          : 'bg-white/60 backdrop-blur-sm text-slate-700 hover:bg-white hover:shadow-md hover:ring-1 hover:ring-slate-300 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:ring-slate-600 border border-slate-200/50 dark:border-slate-700/50'
+          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl ring-2 ring-blue-500/50 transform scale-105 dark:from-blue-500 dark:to-indigo-500'
+          : 'bg-white/80 backdrop-blur-sm text-slate-700 hover:bg-white hover:shadow-lg hover:ring-2 hover:ring-blue-300/50 hover:scale-105 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:ring-blue-600/50 border border-slate-200/50 dark:border-slate-700/50'
       }`}
     >
       {active && (
-        <div className="absolute -bottom-0.5 left-1/2 h-1 w-8 sm:w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 animate-pulse rounded-xl"></div>
       )}
-      <span className="text-sm sm:text-base">{icon}</span>
-      <span className="hidden xs:inline sm:inline truncate">{label}</span>
+      <span className="relative z-10 text-lg sm:text-xl transform transition-transform group-hover:scale-110">{icon}</span>
+      <span className="relative z-10 hidden xs:inline sm:inline truncate">{label}</span>
+      {!active && (
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-indigo-600/0 group-hover:from-blue-600/5 group-hover:to-indigo-600/5 transition-all duration-300 rounded-xl"></div>
+      )}
     </button>
   );
 });

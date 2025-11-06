@@ -32,6 +32,8 @@ import EntregadoresView from '@/components/views/EntregadoresView';
 import PrioridadePromoView from '@/components/views/PrioridadePromoView';
 import MonitoramentoView from '@/components/views/MonitoramentoView';
 import ComparacaoView from '@/components/views/ComparacaoView';
+import ConquistaNotificacao from '@/components/ConquistaNotificacao';
+import ConquistasModal from '@/components/ConquistasModal';
 import {
   Totals,
   AderenciaSemanal,
@@ -60,6 +62,7 @@ import { buildFilterPayload, safeNumber, arraysEqual } from '@/utils/helpers';
 // Hook Imports
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUserActivity } from '@/hooks/useUserActivity';
+import { useConquistas } from '@/hooks/useConquistas';
 
 // Registrar componentes do Chart.js
 ChartJS.register(
@@ -96,6 +99,7 @@ export default function DashboardPage() {
   const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null, turno: null, subPracas: [], origens: [], turnos: [], semanas: [] });
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
+  const [showConquistasModal, setShowConquistasModal] = useState(false);
 
   const {
     totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem,
@@ -106,11 +110,21 @@ export default function DashboardPage() {
   } = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
   
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
+  const { conquistas, conquistasNovas, loading: loadingConquistas, stats, verificarConquistas, marcarVisualizada, removerConquistaNova } = useConquistas();
 
-  // Lógica para registrar atividade do usuário
+  // Lógica para registrar atividade do usuário e verificar conquistas
   useEffect(() => {
     registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
-  }, [activeTab, registrarAtividade, filters]);
+    // Verificar conquistas após mudança de aba
+    setTimeout(() => verificarConquistas(), 1000);
+  }, [activeTab, registrarAtividade, filters, verificarConquistas]);
+
+  // Verificar conquistas ao aplicar filtros
+  useEffect(() => {
+    if (filters.ano || filters.praca || filters.semana) {
+      setTimeout(() => verificarConquistas(), 500);
+    }
+  }, [filters, verificarConquistas]);
 
   // Lógica para buscar dados do usuário
   useEffect(() => {
@@ -151,8 +165,38 @@ export default function DashboardPage() {
     fetchUser();
   }, []);
 
+  // Remover notificação de conquista e marcar como visualizada
+  const handleFecharConquista = useCallback((codigo: string, conquistaId: string) => {
+    removerConquistaNova(codigo);
+    marcarVisualizada(conquistaId);
+  }, [removerConquistaNova, marcarVisualizada]);
+
   return (
     <div className="min-h-screen">
+      {/* Notificações de conquistas */}
+      {conquistasNovas.map((conquista, index) => {
+        const conquistaCompleta = conquistas.find(c => c.codigo === conquista.conquista_codigo);
+        return (
+          <div
+            key={`${conquista.conquista_codigo}-${index}`}
+            style={{ bottom: `${4 + index * 140}px` }}
+          >
+            <ConquistaNotificacao
+              conquista={conquista}
+              onClose={() => handleFecharConquista(conquista.conquista_codigo, conquistaCompleta?.conquista_id || '')}
+            />
+          </div>
+        );
+      })}
+
+      {/* Modal de conquistas */}
+      {showConquistasModal && (
+        <ConquistasModal
+          conquistas={conquistas}
+          stats={stats}
+          onClose={() => setShowConquistasModal(false)}
+        />
+      )}
       <div className="mx-auto max-w-[1920px] px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         {/* Header Principal Redesenhado */}
         <header className="mb-4 sm:mb-6 lg:mb-8 animate-fade-in">
@@ -181,6 +225,26 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="hidden md:flex items-center gap-4 lg:gap-5 shrink-0">
+                {/* Botão de Conquistas */}
+                <button
+                  onClick={() => setShowConquistasModal(true)}
+                  className="relative group flex flex-col items-center gap-1 px-4 py-2 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  title="Ver conquistas"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🏆</span>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-white leading-none">Conquistas</p>
+                      <p className="text-lg font-black text-white leading-none">{stats.conquistadas}/{stats.total}</p>
+                    </div>
+                  </div>
+                  {conquistasNovas.length > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white animate-pulse">
+                      {conquistasNovas.length}
+                    </span>
+                  )}
+                </button>
+                
                 <div className="text-right">
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Última atualização</p>
                   <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">

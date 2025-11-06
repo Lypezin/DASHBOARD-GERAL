@@ -60,9 +60,20 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
     praca = praca.substring(0, 100);
   }
 
-  // Aplicar permissões: se não for admin e tiver apenas uma praça, forçar essa praça
-  if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
-    praca = currentUser.assigned_pracas[0];
+  // Aplicar permissões: se não for admin, forçar as praças atribuídas
+  if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+    // Se tiver apenas uma praça, usar ela
+    if (currentUser.assigned_pracas.length === 1) {
+      praca = currentUser.assigned_pracas[0];
+    } 
+    // Se tiver múltiplas praças e nenhuma selecionada, usar a primeira
+    else if (!praca) {
+      praca = currentUser.assigned_pracas[0];
+    }
+    // Se tiver praça selecionada, validar se está nas praças permitidas
+    else if (!currentUser.assigned_pracas.includes(praca)) {
+      praca = currentUser.assigned_pracas[0];
+    }
   }
 
   return {
