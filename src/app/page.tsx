@@ -7796,8 +7796,14 @@ export default function DashboardPage() {
 
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+
     if (activeTab !== 'evolucao') {
-      return undefined;
+      return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      };
     }
 
     // Criar chave de cache
@@ -7811,11 +7817,15 @@ export default function DashboardPage() {
       setEvolucaoSemanal(cachedData.semanal);
       setUtrSemanal(cachedData.utrSemanal || []);
       setLoadingEvolucao(false);
-      return undefined;
+      return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      };
     }
 
     // Debounce para evitar múltiplas chamadas
-    const timeoutId = setTimeout(async () => {
+    timeoutId = setTimeout(async () => {
       setLoadingEvolucao(true);
       try {
         const pracaSelecionada = filters.praca || null;
@@ -7886,7 +7896,11 @@ export default function DashboardPage() {
       }
     }, 300);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [activeTab, filters.praca, anoEvolucao]);
 
   return (
