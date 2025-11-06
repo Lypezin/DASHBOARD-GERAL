@@ -3,8 +3,20 @@ import { supabase } from '@/lib/supabaseClient';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export function useUserActivity(activeTab: string, filters: any, currentUser: { is_admin: boolean; assigned_pracas: string[] } | null, sessionId: string) {
+export function useUserActivity(activeTab: string, filters: any, currentUser: { is_admin: boolean; assigned_pracas: string[] } | null) {
   const [isPageVisible, setIsPageVisible] = useState(true);
+  const [sessionId, setSessionId] = useState<string>('');
+
+  // Obter sessionId do Supabase
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        setSessionId(session.user.id);
+      }
+    };
+    getSession();
+  }, []);
 
   const registrarAtividade = async (actionType: string, actionDetails: any = {}, tabName: string | null = null, filtersApplied: any = {}) => {
     try {
@@ -117,5 +129,5 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     }
   }, [currentUser, isPageVisible, activeTab, filters]);
 
-  return { isPageVisible, registrarAtividade };
+  return { sessionId, isPageVisible, registrarAtividade };
 }
