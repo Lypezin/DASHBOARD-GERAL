@@ -7822,32 +7822,32 @@ export default function DashboardPage() {
 
     // Debounce para evitar múltiplas chamadas
     timeoutId = setTimeout(async () => {
-        setLoadingEvolucao(true);
-        try {
-          const pracaSelecionada = filters.praca || null;
+      setLoadingEvolucao(true);
+      try {
+        const pracaSelecionada = filters.praca || null;
 
         // Buscar dados mensais, semanais e UTR semanal em paralelo
         const [mensalResult, semanalResult, utrSemanalResult] = await Promise.all([
-            supabase.rpc('listar_evolucao_mensal', {
-              p_praca: pracaSelecionada,
-              p_ano: anoEvolucao
-            }),
-            supabase.rpc('listar_evolucao_semanal', {
-              p_praca: pracaSelecionada,
-              p_ano: anoEvolucao,
+          supabase.rpc('listar_evolucao_mensal', {
+            p_praca: pracaSelecionada,
+            p_ano: anoEvolucao
+          }),
+          supabase.rpc('listar_evolucao_semanal', {
+            p_praca: pracaSelecionada,
+            p_ano: anoEvolucao,
             p_limite_semanas: 53
           }),
           supabase.rpc('listar_utr_semanal', {
             p_praca: pracaSelecionada,
             p_ano: anoEvolucao,
             p_limite_semanas: 53
-            })
-          ]);
+          })
+        ]);
 
-          if (mensalResult.error) throw mensalResult.error;
-          if (semanalResult.error) throw semanalResult.error;
-          const dadosMensais = mensalResult.data || [];
-          const dadosSemanais = semanalResult.data || [];
+        if (mensalResult.error) throw mensalResult.error;
+        if (semanalResult.error) throw semanalResult.error;
+        const dadosMensais = mensalResult.data || [];
+        const dadosSemanais = semanalResult.data || [];
         const dadosUtrSemanal = utrSemanalResult.error ? [] : (utrSemanalResult.data || []);
 
         if (utrSemanalResult.error) {
@@ -7879,17 +7879,17 @@ export default function DashboardPage() {
           }
         }
 
-          setEvolucaoMensal(dadosMensais);
-          setEvolucaoSemanal(dadosSemanais);
+        setEvolucaoMensal(dadosMensais);
+        setEvolucaoSemanal(dadosSemanais);
         setUtrSemanal(dadosUtrSemanal);
-        } catch (err: any) {
+      } catch (err: any) {
         if (IS_DEV) console.error('Erro ao buscar Evolução:', err);
-          setEvolucaoMensal([]);
-          setEvolucaoSemanal([]);
+        setEvolucaoMensal([]);
+        setEvolucaoSemanal([]);
         setUtrSemanal([]);
-        } finally {
-          setLoadingEvolucao(false);
-        }
+      } finally {
+        setLoadingEvolucao(false);
+      }
     }, 300);
 
     return () => {
