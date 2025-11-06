@@ -184,16 +184,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'valores':
             setLoadingValores(true);
             try {
-              // Tentar listar_valores primeiro (nova função)
-              let result = await supabase.rpc('listar_valores', filterPayload as any);
+              // Usar listar_valores_entregadores (nome correto da função)
+              const { data, error } = await supabase.rpc('listar_valores_entregadores', filterPayload as any);
               
-              // Se não funcionar, tentar pesquisar_valores_entregadores (função antiga)
-              if (result.error) {
-                result = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
-              }
-              
-              if (result.error) throw result.error;
-              setValoresData(Array.isArray(result.data) ? result.data : []);
+              if (error) throw error;
+              setValoresData(Array.isArray(data) ? data : []);
             } catch (err: any) {
               if (IS_DEV) console.error('Erro ao carregar valores:', err);
               setValoresData([]);
