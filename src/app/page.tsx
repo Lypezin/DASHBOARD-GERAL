@@ -7803,12 +7803,9 @@ export default function DashboardPage() {
         if (timeoutId) clearTimeout(timeoutId);
       };
     }
-
-    // Criar chave de cache
     const cacheKey = `${anoEvolucao}-${filters.praca || 'all'}`;
-    
-    // Verificar cache primeiro
     const cachedData = evolucaoCacheRef.current.get(cacheKey);
+    
     if (cachedData) {
       if (IS_DEV) console.log('✅ Usando dados de evolução em cache');
       setEvolucaoMensal(cachedData.mensal);
@@ -7820,13 +7817,10 @@ export default function DashboardPage() {
       };
     }
 
-    // Debounce para evitar múltiplas chamadas
     timeoutId = setTimeout(async () => {
       setLoadingEvolucao(true);
       try {
         const pracaSelecionada = filters.praca || null;
-
-        // Buscar dados mensais, semanais e UTR semanal em paralelo
         const [mensalResult, semanalResult, utrSemanalResult] = await Promise.all([
           supabase.rpc('listar_evolucao_mensal', {
             p_praca: pracaSelecionada,
@@ -7850,28 +7844,22 @@ export default function DashboardPage() {
         const dadosSemanais = semanalResult.data || [];
         const dadosUtrSemanal = utrSemanalResult.error ? [] : (utrSemanalResult.data || []);
 
-        if (utrSemanalResult.error) {
-          if (IS_DEV) {
-            console.warn('⚠️ Função listar_utr_semanal não disponível ou erro:', utrSemanalResult.error);
-          }
-        } else {
-          if (IS_DEV) {
-            if (dadosUtrSemanal.length > 0) {
-              console.log('✅ Dados UTR carregados:', dadosUtrSemanal.length, 'semanas');
-            } else {
-              console.warn('⚠️ Função listar_utr_semanal retornou array vazio.');
-            }
+        if (utrSemanalResult.error && IS_DEV) {
+          console.warn('⚠️ Função listar_utr_semanal não disponível ou erro:', utrSemanalResult.error);
+        } else if (IS_DEV) {
+          if (dadosUtrSemanal.length > 0) {
+            console.log('✅ Dados UTR carregados:', dadosUtrSemanal.length, 'semanas');
+          } else {
+            console.warn('⚠️ Função listar_utr_semanal retornou array vazio.');
           }
         }
 
-        // Salvar no cache
         evolucaoCacheRef.current.set(cacheKey, { 
           mensal: dadosMensais, 
           semanal: dadosSemanais,
           utrSemanal: dadosUtrSemanal,
         });
         
-        // Limitar cache a 10 entradas (LRU simples)
         if (evolucaoCacheRef.current.size > 10) {
           const firstKey = evolucaoCacheRef.current.keys().next().value;
           if (firstKey !== undefined) {
