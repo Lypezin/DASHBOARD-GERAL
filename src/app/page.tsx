@@ -6925,7 +6925,12 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null);
 
-        const { data, error } = await supabase.rpc('dashboard_resumo', filterPayload as any);
+        // Remover chaves nulas para evitar erros no RPC
+        const payloadClean = Object.fromEntries(
+          Object.entries(filterPayload as any).filter(([, v]) => v !== null && v !== undefined && v !== '')
+        );
+
+        const { data, error } = await supabase.rpc('dashboard_resumo', payloadClean as any);
         if (error) throw error;
 
         if (isCancelled) return;
@@ -7056,11 +7061,15 @@ export default function DashboardPage() {
       if (activeTab !== 'evolucao') return;
       try {
         setLoadingEvolucao(true);
-        const { data: evoMensal, error: errMensal } = await supabase.rpc('listar_evolucao_mensal', filterPayload as any);
+        const payloadClean = Object.fromEntries(
+          Object.entries(filterPayload as any).filter(([, v]) => v !== null && v !== undefined && v !== '')
+        );
+        const payloadMensal = { ...payloadClean, p_ano: payloadClean['p_ano'] ?? anoEvolucao } as any;
+        const { data: evoMensal, error: errMensal } = await supabase.rpc('listar_evolucao_mensal', payloadMensal);
         if (errMensal) throw errMensal;
-        const { data: evoSemanal, error: errSemanal } = await supabase.rpc('listar_evolucao_semanal', filterPayload as any);
+        const { data: evoSemanal, error: errSemanal } = await supabase.rpc('listar_evolucao_semanal', payloadMensal);
         if (errSemanal) throw errSemanal;
-        const { data: utrSem, error: errUtrSem } = await supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao });
+        const { data: utrSem, error: errUtrSem } = await supabase.rpc('listar_utr_semanal', { p_ano: payloadMensal.p_ano });
         if (errUtrSem) {
           // Se a função não existir, apenas ignore os dados de UTR semanal
           if (errUtrSem.code !== '42883') throw errUtrSem;
