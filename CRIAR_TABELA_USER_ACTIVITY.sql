@@ -41,12 +41,11 @@ CREATE POLICY "Usuários podem inserir suas próprias atividades" ON public.user
 --     )
 --   );
 
--- Remover função antiga se existir (com qualquer assinatura)
-DROP FUNCTION IF EXISTS public.registrar_atividade(TEXT, TEXT, TEXT, TEXT);
-DROP FUNCTION IF EXISTS public.registrar_atividade(TEXT, TEXT, TEXT, TEXT, JSONB);
-DROP FUNCTION IF EXISTS public.registrar_atividade(UUID, TEXT, TEXT, TEXT, JSONB);
+-- IMPORTANTE: Se der erro de "function name is not unique"
+-- Execute primeiro o arquivo LIMPAR_FUNCAO_REGISTRAR_ATIVIDADE.sql
+-- Depois volte e execute este arquivo
 
--- Função para registrar atividade (nova versão)
+-- Função para registrar atividade
 CREATE OR REPLACE FUNCTION public.registrar_atividade(
   p_session_id TEXT,
   p_action_type TEXT,
