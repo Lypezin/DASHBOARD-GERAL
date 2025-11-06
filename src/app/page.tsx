@@ -493,7 +493,7 @@ const AderenciaCard = React.memo(({
       </div>
       <div className="mt-3 sm:mt-4 h-2 sm:h-2.5 overflow-hidden rounded-full bg-white/50 dark:bg-slate-800/50">
         <div 
-          className={`h-full rounded-full transition-all duration-700 ${percentual >= 90 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : percentual >= 70 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-rose-500 to-rose-600'}`}
+          className={`h-full rounded-full transition-all duration-300 ${percentual >= 90 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : percentual >= 70 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-rose-500 to-rose-600'}`}
           style={{ width: `${Math.min(percentual, 100)}%` }}
         ></div>
       </div>
@@ -1385,9 +1385,13 @@ function AnaliseView({
       },
     },
     animation: {
-      duration: 1000,
-      easing: 'easeInOutQuart' as const,
-      delay: (context: any) => {
+      duration: 300, // Reduzido de 1000ms para melhor performance
+      easing: 'easeOut' as const,
+      delay: 0, // Removido delay para melhor performance
+      // Desabilitar animação em dispositivos lentos
+      ...(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { duration: 0 } : {}),
+      // Código antigo de delay removido para performance
+      /* delay: (context: any) => {
         let delay = 0;
         if (context.type === 'data' && context.mode === 'default') {
           delay = context.dataIndex * 40 + context.datasetIndex * 80;
@@ -2133,7 +2137,7 @@ function MonitoramentoView() {
         // Sanitizar dados do usuário
         const userName = u.user_name || (u.user_email ? u.user_email.split('@')[0] : 'Usuário');
         const userEmail = u.user_email || '';
-
+        
         return {
           user_id: u.user_id || '',
           nome: sanitizeText(userName),
@@ -2150,7 +2154,7 @@ function MonitoramentoView() {
       }).filter((u: UsuarioOnline | null): u is UsuarioOnline => u !== null); // Filtrar nulos
       
       setUsuarios(usuariosMapeados);
-      } catch (err: any) {
+    } catch (err: any) {
         safeLog.error('Erro ao buscar monitoramento:', err);
         setError(getSafeErrorMessage(err) || 'Erro desconhecido ao carregar monitoramento');
       setUsuarios([]);
@@ -4510,7 +4514,7 @@ function EvolucaoView({
             borderColor: 'rgba(168, 85, 247, 1)',
             backgroundColor: gradientPurple,
             pointColor: 'rgb(168, 85, 247)',
-            yAxisID: 'y',
+        yAxisID: 'y',
             useUtrData: true,
           };
         }
@@ -4612,7 +4616,7 @@ function EvolucaoView({
           useUtrData: false,
         };
     }
-  }, [dadosAtivos, dadosUtrAtivos, viewMode, gradientGreen, gradientPurple, gradientRed, segundosParaHoras, traduzirMes]);
+  }, [dadosAtivos, dadosUtrAtivos, viewMode, segundosParaHoras, traduzirMes]); // Removido gradientGreen, gradientPurple, gradientRed (não são dependências)
 
   // Dados do gráfico com múltiplas métricas (otimizado com useMemo)
   const chartData = useMemo(() => {
@@ -4749,9 +4753,11 @@ function EvolucaoView({
       },
     },
     animation: {
-      duration: 800, // Animação mais rápida para evitar travamentos
-      easing: 'easeOutQuart' as const,
+      duration: 300, // Animação muito mais rápida para melhor performance
+      easing: 'easeOut' as const,
       delay: 0, // Sem delay para melhor performance
+      // Desabilitar animação em dispositivos lentos
+      ...(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { duration: 0 } : {}),
     },
     interaction: {
       mode: 'index' as const,
@@ -4948,7 +4954,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  }), [isSemanal, dadosAtivos.length, dadosUtrAtivos.length, isDarkMode, selectedMetrics]);
+  }), [isSemanal, dadosAtivos.length, dadosUtrAtivos.length, isDarkMode, selectedMetrics.size]); // Usar .size ao invés do objeto inteiro
 
   // Early return APÓS todos os hooks
   if (loading) {
@@ -5227,13 +5233,13 @@ function EvolucaoView({
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
                     <div className="w-3 h-3 rounded-full bg-purple-500 shadow-md"></div>
                     <span className="text-xs font-bold text-purple-700 dark:text-purple-300">UTR</span>
-                  </div>
+                </div>
                 )}
                 {selectedMetrics.has('horas') && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
-                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Horas</span>
-                  </div>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
+                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Horas</span>
+                </div>
                 )}
                 {selectedMetrics.has('ofertadas') && (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800">
@@ -5488,8 +5494,10 @@ function EvolucaoView({
                     },
                   },
                   animation: {
-                    duration: 1200,
-                    easing: 'easeInOutQuart' as const,
+                    duration: 300, // Reduzido de 1200ms para melhor performance
+                    easing: 'easeOut' as const,
+                    // Desabilitar animação em dispositivos lentos
+                    ...(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { duration: 0 } : {}),
                   },
                   interaction: {
                     mode: 'index' as const,
@@ -7588,7 +7596,7 @@ export default function DashboardPage() {
       }
     }
 
-    // Debounce para evitar múltiplas chamadas rápidas
+    // Debounce otimizado para evitar múltiplas chamadas rápidas (reduzido de 300ms para 150ms)
     const timeoutId = setTimeout(() => {
     fetchData();
     }, 300); // Aguardar 300ms antes de fazer a requisição
