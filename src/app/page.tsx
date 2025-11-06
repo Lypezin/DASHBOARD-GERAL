@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
+import { sanitizeText } from '@/lib/sanitize';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -308,27 +310,61 @@ function arraysEqual<T>(a: T[], b: T[]): boolean {
 }
 
 function buildFilterPayload(filters: Filters) {
-  // Para compatibilidade com backend, se houver seleção múltipla, usar array, senão usar valor único
-  const subPraca = filters.subPracas && filters.subPracas.length > 0 
-    ? (filters.subPracas.length === 1 ? filters.subPracas[0] : filters.subPracas.join(','))
-    : filters.subPraca;
+  // Limitar tamanho de arrays para prevenir ataques de DoS
+  const MAX_ARRAY_SIZE = 50;
+  
+  // Validar e limitar sub-praças
+  let subPraca: string | null = null;
+  if (filters.subPracas && filters.subPracas.length > 0) {
+    const limited = filters.subPracas.slice(0, MAX_ARRAY_SIZE);
+    subPraca = limited.length === 1 ? limited[0] : limited.join(',');
+  } else if (filters.subPraca) {
+    subPraca = filters.subPraca.length > 100 ? filters.subPraca.substring(0, 100) : filters.subPraca;
+  }
     
-  const origem = filters.origens && filters.origens.length > 0
-    ? (filters.origens.length === 1 ? filters.origens[0] : filters.origens.join(','))
-    : filters.origem;
+  // Validar e limitar origens
+  let origem: string | null = null;
+  if (filters.origens && filters.origens.length > 0) {
+    const limited = filters.origens.slice(0, MAX_ARRAY_SIZE);
+    origem = limited.length === 1 ? limited[0] : limited.join(',');
+  } else if (filters.origem) {
+    origem = filters.origem.length > 100 ? filters.origem.substring(0, 100) : filters.origem;
+  }
 
-  const turno = filters.turnos && filters.turnos.length > 0
-    ? (filters.turnos.length === 1 ? filters.turnos[0] : filters.turnos.join(','))
-    : filters.turno;
+  // Validar e limitar turnos
+  let turno: string | null = null;
+  if (filters.turnos && filters.turnos.length > 0) {
+    const limited = filters.turnos.slice(0, MAX_ARRAY_SIZE);
+    turno = limited.length === 1 ? limited[0] : limited.join(',');
+  } else if (filters.turno) {
+    turno = filters.turno.length > 100 ? filters.turno.substring(0, 100) : filters.turno;
+  }
 
-  const semana = filters.semanas && filters.semanas.length > 0
-    ? (filters.semanas.length === 1 ? String(filters.semanas[0]) : filters.semanas.join(','))
-    : (filters.semana !== null ? String(filters.semana) : null);
+  // Validar e limitar semanas
+  let semana: string | null = null;
+  if (filters.semanas && filters.semanas.length > 0) {
+    const limited = filters.semanas.slice(0, MAX_ARRAY_SIZE);
+    semana = limited.length === 1 ? String(limited[0]) : limited.map(s => String(s)).join(',');
+  } else if (filters.semana !== null) {
+    semana = String(filters.semana);
+  }
+
+  // Validar ano
+  let ano: number | null = filters.ano;
+  if (ano !== null && (isNaN(ano) || ano < 2000 || ano > 2100)) {
+    ano = null;
+  }
+
+  // Validar e limitar praça
+  let praca: string | null = filters.praca;
+  if (praca && praca.length > 100) {
+    praca = praca.substring(0, 100);
+  }
 
   return {
-    p_ano: filters.ano,
+    p_ano: ano,
     p_semana: semana,
-    p_praca: filters.praca,
+    p_praca: praca,
     p_sub_praca: subPraca,
     p_origem: origem,
     p_turno: turno,
@@ -2005,7 +2041,7 @@ function MonitoramentoView() {
         if (error.code === '42883') {
           setError('Função de monitoramento não configurada. Entre em contato com o administrador.');
         } else {
-        setError('Erro ao carregar usuários online. Tente novamente.');
+        setError(getSafeErrorMessage(error) || 'Erro ao carregar usuários online. Tente novamente.');
         }
         setUsuarios([]);
         return;
@@ -2094,10 +2130,14 @@ function MonitoramentoView() {
           a && a.user_id === u.user_id && a.created_at && new Date(a.created_at) > umaHoraAtras
         ).length;
         
+        // Sanitizar dados do usuário
+        const userName = u.user_name || (u.user_email ? u.user_email.split('@')[0] : 'Usuário');
+        const userEmail = u.user_email || '';
+
         return {
           user_id: u.user_id || '',
-          nome: u.user_name || (u.user_email ? u.user_email.split('@')[0] : 'Usuário'),
-          email: u.user_email || '',
+          nome: sanitizeText(userName),
+          email: sanitizeText(userEmail),
           aba_atual: u.current_tab || null,
           pracas: pracas,
           ultima_acao: descricaoAcao,
@@ -2110,9 +2150,9 @@ function MonitoramentoView() {
       }).filter((u: UsuarioOnline | null): u is UsuarioOnline => u !== null); // Filtrar nulos
       
       setUsuarios(usuariosMapeados);
-    } catch (err: any) {
-      if (IS_DEV) console.error('Erro ao buscar monitoramento:', err);
-      setError(err?.message || 'Erro desconhecido ao carregar monitoramento');
+      } catch (err: any) {
+        safeLog.error('Erro ao buscar monitoramento:', err);
+        setError(getSafeErrorMessage(err) || 'Erro desconhecido ao carregar monitoramento');
       setUsuarios([]);
     } finally {
       setLoading(false);
@@ -2675,8 +2715,8 @@ function ComparacaoView({
       setUtrComparacao(resultadosUtr);
       
     } catch (error) {
-      if (IS_DEV) console.error('Erro ao comparar semanas:', error);
-      setError('Erro ao comparar semanas. Tente novamente.');
+      safeLog.error('Erro ao comparar semanas:', error);
+      setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -7534,8 +7574,8 @@ export default function DashboardPage() {
         if (err?.name === 'AbortError') {
           return;
         }
-        if (IS_DEV) console.error('Erro ao buscar dados do dashboard:', err);
-        setError('Não foi possível carregar os dados. Verifique os filtros ou tente novamente.');
+        safeLog.error('Erro ao buscar dados do dashboard:', err);
+        setError(getSafeErrorMessage(err) || 'Não foi possível carregar os dados. Verifique os filtros ou tente novamente.');
         setTotals(null);
         setAderenciaSemanal([]);
         setAderenciaDia([]);

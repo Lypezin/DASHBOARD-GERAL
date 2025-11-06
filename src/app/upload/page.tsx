@@ -27,6 +27,20 @@ const COLUMN_MAP: { [key: string]: string } = {
 };
 
 const BATCH_SIZE = 500;
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_FILES = 10; // Máximo de arquivos por upload
+const ALLOWED_MIME_TYPES = [
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-excel', // .xls
+  'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
+];
+const ALLOWED_EXTENSIONS = ['xlsx', 'xls', 'xlsm'];
+
+// Assinaturas de arquivo (magic bytes)
+const EXCEL_SIGNATURES = {
+  XLSX: '504b0304', // ZIP signature (XLSX é um arquivo ZIP)
+  XLS: 'd0cf11e0a1b11ae1', // OLE2 signature (XLS antigo)
+};
 
 function excelSerialToISODate(serial: number): string {
   const utc_days = Math.floor(serial - 25569);
@@ -57,10 +71,86 @@ export default function UploadPage() {
   const [progressLabel, setProgressLabel] = useState('');
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const validateFile = async (file: File): Promise<{ valid: boolean; error?: string }> => {
+    // Validar quantidade de arquivos
+    if (files.length >= MAX_FILES) {
+      return { valid: false, error: `Máximo de ${MAX_FILES} arquivos permitidos por upload.` };
+    }
+
+    // Validar tamanho
+    if (file.size > MAX_FILE_SIZE) {
+      return { valid: false, error: `Arquivo "${file.name}" excede o tamanho máximo de ${MAX_FILE_SIZE / 1024 / 1024}MB.` };
+    }
+
+    if (file.size === 0) {
+      return { valid: false, error: `Arquivo "${file.name}" está vazio.` };
+    }
+
+    // Validar extensão
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
+      return { valid: false, error: `Extensão "${extension}" não permitida. Use apenas .xlsx, .xls ou .xlsm.` };
+    }
+
+    // Validar tipo MIME (se disponível)
+    if (file.type && !ALLOWED_MIME_TYPES.includes(file.type)) {
+      return { valid: false, error: `Tipo de arquivo "${file.type}" não permitido.` };
+    }
+
+    // Validar magic bytes (assinatura do arquivo)
+    try {
+      const arrayBuffer = await file.slice(0, 8).arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const signature = Array.from(uint8Array)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+        .toUpperCase();
+
+      const isValidSignature = 
+        signature.startsWith(EXCEL_SIGNATURES.XLSX) || 
+        signature.startsWith(EXCEL_SIGNATURES.XLS);
+
+      if (!isValidSignature) {
+        return { valid: false, error: `Arquivo "${file.name}" não é um Excel válido.` };
+      }
+    } catch (err) {
+      return { valid: false, error: `Erro ao validar arquivo "${file.name}".` };
+    }
+
+    return { valid: true };
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
-    if (selectedFiles && selectedFiles.length > 0) {
-      setFiles(Array.from(selectedFiles));
+    if (!selectedFiles || selectedFiles.length === 0) {
+      return;
+    }
+
+    // Validar quantidade total
+    if (files.length + selectedFiles.length > MAX_FILES) {
+      setMessage(`⚠️ Máximo de ${MAX_FILES} arquivos permitidos. Você tentou adicionar ${selectedFiles.length} arquivo(s), mas já tem ${files.length}.`);
+      return;
+    }
+
+    // Validar cada arquivo
+    const validFiles: File[] = [];
+    const errors: string[] = [];
+
+    for (const file of Array.from(selectedFiles)) {
+      const validation = await validateFile(file);
+      if (validation.valid) {
+        validFiles.push(file);
+      } else {
+        errors.push(validation.error || `Arquivo "${file.name}" inválido.`);
+      }
+    }
+
+    if (errors.length > 0) {
+      setMessage(`⚠️ ${errors.length} arquivo(s) rejeitado(s):\n${errors.join('\n')}`);
+    }
+
+    if (validFiles.length > 0) {
+      setFiles(prev => [...prev, ...validFiles]);
       setMessage('');
       setProgress(0);
       setProgressLabel('');
