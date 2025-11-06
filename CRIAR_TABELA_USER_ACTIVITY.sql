@@ -32,13 +32,14 @@ CREATE POLICY "Usuários podem ver suas próprias atividades" ON public.user_act
 CREATE POLICY "Usuários podem inserir suas próprias atividades" ON public.user_activity
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Admins podem ver todas as atividades" ON public.user_activity
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.users
-      WHERE id = auth.uid() AND is_admin = true
-    )
-  );
+-- Política para admins (comentada - adicionar depois se necessário)
+-- CREATE POLICY "Admins podem ver todas as atividades" ON public.user_activity
+--   FOR SELECT USING (
+--     EXISTS (
+--       SELECT 1 FROM auth.users
+--       WHERE id = auth.uid()
+--     )
+--   );
 
 -- Função para registrar atividade
 CREATE OR REPLACE FUNCTION public.registrar_atividade(
