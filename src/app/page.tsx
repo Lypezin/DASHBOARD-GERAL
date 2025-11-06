@@ -7649,86 +7649,87 @@ export default function DashboardPage() {
 
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
-    if (activeTab !== 'evolucao') {
-      return;
-    }
+    let timeoutId: NodeJS.Timeout | null = null;
 
-    const cacheKey = `${anoEvolucao}-${filters.praca || 'all'}`;
-    const cachedData = evolucaoCacheRef.current.get(cacheKey);
-    
-    if (cachedData) {
-      if (IS_DEV) console.log('✅ Usando dados de evolução em cache');
-      setEvolucaoMensal(cachedData.mensal);
-      setEvolucaoSemanal(cachedData.semanal);
-      setUtrSemanal(cachedData.utrSemanal || []);
-      setLoadingEvolucao(false);
-      return;
-    }
-
-    const timeoutId = setTimeout(async () => {
-      setLoadingEvolucao(true);
-      try {
-        const pracaSelecionada = filters.praca || null;
-        const [mensalResult, semanalResult, utrSemanalResult] = await Promise.all([
-          supabase.rpc('listar_evolucao_mensal', {
-            p_praca: pracaSelecionada,
-            p_ano: anoEvolucao
-          }),
-          supabase.rpc('listar_evolucao_semanal', {
-            p_praca: pracaSelecionada,
-            p_ano: anoEvolucao,
-            p_limite_semanas: 53
-          }),
-          supabase.rpc('listar_utr_semanal', {
-            p_praca: pracaSelecionada,
-            p_ano: anoEvolucao,
-            p_limite_semanas: 53
-          })
-        ]);
-
-        if (mensalResult.error) throw mensalResult.error;
-        if (semanalResult.error) throw semanalResult.error;
-        const dadosMensais = mensalResult.data || [];
-        const dadosSemanais = semanalResult.data || [];
-        const dadosUtrSemanal = utrSemanalResult.error ? [] : (utrSemanalResult.data || []);
-
-        if (utrSemanalResult.error && IS_DEV) {
-          console.warn('⚠️ Função listar_utr_semanal não disponível ou erro:', utrSemanalResult.error);
-        } else if (IS_DEV) {
-          if (dadosUtrSemanal.length > 0) {
-            console.log('✅ Dados UTR carregados:', dadosUtrSemanal.length, 'semanas');
-          } else {
-            console.warn('⚠️ Função listar_utr_semanal retornou array vazio.');
-          }
-        }
-
-        evolucaoCacheRef.current.set(cacheKey, { 
-          mensal: dadosMensais, 
-          semanal: dadosSemanais,
-          utrSemanal: dadosUtrSemanal,
-        });
-        
-        if (evolucaoCacheRef.current.size > 10) {
-          const firstKey = evolucaoCacheRef.current.keys().next().value;
-          if (firstKey !== undefined) {
-            evolucaoCacheRef.current.delete(firstKey);
-          }
-        }
-
-        setEvolucaoMensal(dadosMensais);
-        setEvolucaoSemanal(dadosSemanais);
-        setUtrSemanal(dadosUtrSemanal);
-      } catch (err: any) {
-        if (IS_DEV) console.error('Erro ao buscar Evolução:', err);
-        setEvolucaoMensal([]);
-        setEvolucaoSemanal([]);
-        setUtrSemanal([]);
-      } finally {
+    if (activeTab === 'evolucao') {
+      const cacheKey = `${anoEvolucao}-${filters.praca || 'all'}`;
+      const cachedData = evolucaoCacheRef.current.get(cacheKey);
+      
+      if (cachedData) {
+        if (IS_DEV) console.log('✅ Usando dados de evolução em cache');
+        setEvolucaoMensal(cachedData.mensal);
+        setEvolucaoSemanal(cachedData.semanal);
+        setUtrSemanal(cachedData.utrSemanal || []);
         setLoadingEvolucao(false);
-      }
-    }, 300);
+      } else {
+        timeoutId = setTimeout(async () => {
+          setLoadingEvolucao(true);
+          try {
+            const pracaSelecionada = filters.praca || null;
+            const [mensalResult, semanalResult, utrSemanalResult] = await Promise.all([
+              supabase.rpc('listar_evolucao_mensal', {
+                p_praca: pracaSelecionada,
+                p_ano: anoEvolucao
+              }),
+              supabase.rpc('listar_evolucao_semanal', {
+                p_praca: pracaSelecionada,
+                p_ano: anoEvolucao,
+                p_limite_semanas: 53
+              }),
+              supabase.rpc('listar_utr_semanal', {
+                p_praca: pracaSelecionada,
+                p_ano: anoEvolucao,
+                p_limite_semanas: 53
+              })
+            ]);
 
-    return () => clearTimeout(timeoutId);
+            if (mensalResult.error) throw mensalResult.error;
+            if (semanalResult.error) throw semanalResult.error;
+            const dadosMensais = mensalResult.data || [];
+            const dadosSemanais = semanalResult.data || [];
+            const dadosUtrSemanal = utrSemanalResult.error ? [] : (utrSemanalResult.data || []);
+
+            if (utrSemanalResult.error && IS_DEV) {
+              console.warn('⚠️ Função listar_utr_semanal não disponível ou erro:', utrSemanalResult.error);
+            } else if (IS_DEV) {
+              if (dadosUtrSemanal.length > 0) {
+                console.log('✅ Dados UTR carregados:', dadosUtrSemanal.length, 'semanas');
+              } else {
+                console.warn('⚠️ Função listar_utr_semanal retornou array vazio.');
+              }
+            }
+
+            evolucaoCacheRef.current.set(cacheKey, { 
+              mensal: dadosMensais, 
+              semanal: dadosSemanais,
+              utrSemanal: dadosUtrSemanal,
+            });
+            
+            if (evolucaoCacheRef.current.size > 10) {
+              const firstKey = evolucaoCacheRef.current.keys().next().value;
+              if (firstKey !== undefined) {
+                evolucaoCacheRef.current.delete(firstKey);
+              }
+            }
+
+            setEvolucaoMensal(dadosMensais);
+            setEvolucaoSemanal(dadosSemanais);
+            setUtrSemanal(dadosUtrSemanal);
+          } catch (err: any) {
+            if (IS_DEV) console.error('Erro ao buscar Evolução:', err);
+            setEvolucaoMensal([]);
+            setEvolucaoSemanal([]);
+            setUtrSemanal([]);
+          } finally {
+            setLoadingEvolucao(false);
+          }
+        }, 300);
+      }
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [activeTab, filters.praca, anoEvolucao]);
 
   return (
