@@ -1,5 +1,6 @@
 import React from 'react';
-import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor } from '@/utils/formatters';
+import { getAderenciaColor, getAderenciaBgColor } from '@/utils/formatters';
+import { formatarHorasParaHMS } from '@/utils/formatters';
 
 const AderenciaCard = React.memo(({ 
   title, 

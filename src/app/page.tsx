@@ -17,6 +17,13 @@ import {
   ArcElement,
 } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import FiltroSelect from '@/components/FiltroSelect';
+import FiltroMultiSelect from '@/components/FiltroMultiSelect';
+import TabButton from '@/components/TabButton';
+import MetricCard from '@/components/MetricCard';
+import AderenciaCard from '@/components/AderenciaCard';
+import DashboardView from '@/components/views/DashboardView';
+import AnaliseView from '@/components/views/AnaliseView';
 
 // Registrar componentes do Chart.js
 ChartJS.register(
@@ -384,568 +391,10 @@ function getAderenciaBgColor(value: number): string {
 }
 
 // =================================================================================
-// Componentes UI
-// =================================================================================
-
-const TabButton = React.memo(({ label, icon, active, onClick }: { label: string; icon: string; active: boolean; onClick: () => void }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`shrink-0 relative flex items-center gap-2 sm:gap-2.5 rounded-xl px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap overflow-hidden ${
-        active
-          ? 'bg-white text-blue-700 shadow-lg ring-2 ring-blue-500/20 dark:bg-slate-800 dark:text-blue-300 dark:ring-blue-600/30 border border-blue-200 dark:border-blue-700'
-          : 'bg-white/60 backdrop-blur-sm text-slate-700 hover:bg-white hover:shadow-md hover:ring-1 hover:ring-slate-300 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:ring-slate-600 border border-slate-200/50 dark:border-slate-700/50'
-      }`}
-    >
-      {active && (
-        <div className="absolute -bottom-0.5 left-1/2 h-1 w-8 sm:w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-      )}
-      <span className="text-sm sm:text-base">{icon}</span>
-      <span className="hidden xs:inline sm:inline truncate">{label}</span>
-    </button>
-  );
-});
-
-TabButton.displayName = 'TabButton';
-
-function MetricCard({ 
-  title, 
-  value, 
-  icon, 
-  percentage,
-  percentageLabel,
-  color = 'blue'
-}: { 
-  title: string; 
-  value: number; 
-  icon: string; 
-  percentage?: number;
-  percentageLabel?: string;
-  color?: string;
-}) {
-  const colorClasses: Record<string, string> = {
-    blue: 'from-blue-500 to-cyan-500',
-    green: 'from-emerald-500 to-teal-500',
-    red: 'from-rose-500 to-pink-500',
-    purple: 'from-violet-500 to-purple-500',
-  };
-
-  return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-200/50 bg-white/90 backdrop-blur-sm p-5 sm:p-6 lg:p-7 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-slate-300 dark:border-slate-700/50 dark:bg-slate-900/90">
-      <div className={`absolute right-0 top-0 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br ${colorClasses[color]} opacity-10 blur-3xl transition-opacity group-hover:opacity-25`}></div>
-      
-      <div className="relative flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">{title}</p>
-          <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white">{value.toLocaleString('pt-BR')}</p>
-          {percentage !== undefined && (
-            <div className="mt-2 sm:mt-3 flex items-center gap-2 flex-wrap">
-              <div className="rounded-lg bg-blue-50 px-2 py-1 dark:bg-blue-950/30">
-                <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-                  {percentage.toFixed(1)}%
-                </span>
-              </div>
-              {percentageLabel && (
-                <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{percentageLabel}</span>
-              )}
-            </div>
-          )}
-        </div>
-        <div className={`flex h-14 w-14 sm:h-16 sm:w-16 lg:h-18 lg:w-18 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-2xl sm:text-3xl lg:text-4xl text-white shadow-xl ring-2 ring-white/20 transition-all duration-300 group-hover:rotate-6 group-hover:scale-110 group-hover:shadow-2xl`}>
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-}
-const AderenciaCard = React.memo(({ 
-  title, 
-  planejado, 
-  entregue, 
-  percentual 
-}: { 
-  title: string; 
-  planejado: string; 
-  entregue: string; 
-  percentual: number;
-}) => {
-  const colorClass = getAderenciaColor(percentual);
-  const bgClass = getAderenciaBgColor(percentual);
-
-  return (
-    <div className={`group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-4 sm:p-5 lg:p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 ${bgClass} overflow-hidden`}>
-      <div className="mb-3 sm:mb-4 flex items-center justify-between gap-2">
-        <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300 truncate flex-1 min-w-0" title={title}>{title}</h3>
-        <span className={`shrink-0 rounded-full px-2 sm:px-3 py-1 text-sm sm:text-base lg:text-lg font-bold ${colorClass} bg-white/50 dark:bg-slate-900/50`}>
-          {(percentual ?? 0).toFixed(1)}%
-        </span>
-      </div>
-      <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-        <div className="flex items-center justify-between gap-2 rounded-lg bg-white/30 px-2 sm:px-3 py-1.5 sm:py-2 dark:bg-slate-900/30">
-          <span className="font-medium text-slate-600 dark:text-slate-400 shrink-0">Planejado:</span>
-          <span className="font-mono text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">{formatarHorasParaHMS(planejado)}</span>
-        </div>
-        <div className="flex items-center justify-between gap-2 rounded-lg bg-white/30 px-2 sm:px-3 py-1.5 sm:py-2 dark:bg-slate-900/30">
-          <span className="font-medium text-slate-600 dark:text-slate-400 shrink-0">Entregue:</span>
-          <span className="font-mono text-sm sm:text-base font-bold text-blue-600 dark:text-blue-400 truncate">{formatarHorasParaHMS(entregue)}</span>
-        </div>
-      </div>
-      <div className="mt-3 sm:mt-4 h-2 sm:h-2.5 overflow-hidden rounded-full bg-white/50 dark:bg-slate-800/50">
-        <div 
-          className={`h-full rounded-full transition-all duration-300 ${percentual >= 90 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : percentual >= 70 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-rose-500 to-rose-600'}`}
-          style={{ width: `${Math.min(percentual, 100)}%` }}
-        ></div>
-      </div>
-    </div>
-  );
-});
-AderenciaCard.displayName = 'AderenciaCard';
-
-const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange, disabled = false }: {
-  label: string;
-  placeholder: string;
-  options: FilterOption[];
-  value: string;
-  onChange: (value: string | null) => void;
-  disabled?: boolean;
-}) => {
-  return (
-    <label className="flex flex-col gap-1 sm:gap-1.5">
-      <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">{label}</span>
-      <div className="relative">
-        <select
-          className="w-full appearance-none rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white px-2.5 sm:px-3 py-2 sm:py-2.5 pr-8 sm:pr-10 text-xs sm:text-sm font-medium text-blue-900 shadow-sm transition-all hover:border-blue-400 hover:shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 dark:hover:border-blue-600 dark:focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-blue-200"
-          value={value}
-          onChange={(e) => onChange(e.target.value || null)}
-          disabled={disabled}
-        >
-          <option value="">{placeholder}</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <div className="pointer-events-none absolute right-2 sm:right-3 top-1/2 -translate-y-1/2">
-          <svg className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-        {value && !disabled && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onChange(null);
-            }}
-            className="absolute right-7 sm:right-9 top-1/2 -translate-y-1/2 rounded-full p-0.5 sm:p-1 text-slate-400 transition-all hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
-            title="Limpar filtro"
-          >
-            <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
-      </div>
-    </label>
-  );
-});
-FiltroSelect.displayName = 'FiltroSelect';
-// Componente de seleção múltipla para Origem e Sub Praça
-const FiltroMultiSelect = React.memo(({ 
-  label, 
-  placeholder, 
-  options, 
-  selectedValues, 
-  onChange, 
-  disabled = false 
-}: {
-  label: string;
-  placeholder: string;
-  options: FilterOption[];
-  selectedValues: string[];
-  onChange: (values: string[]) => void;
-  disabled?: boolean;
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Fechar ao clicar fora
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node;
-      if (
-        containerRef.current && 
-        !containerRef.current.contains(target) &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(target)
-      ) {
-        setIsOpen(false);
-      }
-    }
-
-    if (isOpen) {
-      // Usar capture phase para garantir que capture antes de outros elementos
-      document.addEventListener('mousedown', handleClickOutside, true);
-      return () => document.removeEventListener('mousedown', handleClickOutside, true);
-    }
-  }, [isOpen]);
-
-  // Atualizar posição do dropdown quando aberto
-  useLayoutEffect(() => {
-    if (isOpen && buttonRef.current && dropdownRef.current) {
-      const updatePosition = () => {
-        if (buttonRef.current && dropdownRef.current) {
-          // O dropdown e o botão estão dentro do mesmo container <div className="relative">
-          // Então podemos calcular a posição relativa usando offsetTop e offsetHeight
-          const buttonTop = buttonRef.current.offsetTop;
-          const buttonHeight = buttonRef.current.offsetHeight;
-          const buttonWidth = buttonRef.current.offsetWidth;
-          
-          // Posicionar logo abaixo do botão (buttonTop + buttonHeight + espaçamento)
-          dropdownRef.current.style.top = `${buttonTop + buttonHeight + 4}px`;
-          dropdownRef.current.style.left = `${buttonRef.current.offsetLeft}px`;
-          dropdownRef.current.style.width = `${buttonWidth}px`;
-        }
-      };
-      
-      // Executar imediatamente (useLayoutEffect já garante que o DOM está atualizado)
-      updatePosition();
-      
-      // Atualizar em caso de resize
-      const handleResize = () => {
-        if (buttonRef.current && dropdownRef.current) {
-          updatePosition();
-        }
-      };
-      
-      window.addEventListener('resize', handleResize);
-      
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
-    }
-  }, [isOpen]);
-
-  const toggleOption = (value: string) => {
-    if (disabled) return;
-    
-    const newValues = selectedValues.includes(value)
-      ? selectedValues.filter(v => v !== value)
-      : [...selectedValues, value];
-    onChange(newValues);
-  };
-
-  const displayText = selectedValues.length === 0 
-    ? placeholder
-    : selectedValues.length === 1
-    ? options.find(opt => opt.value === selectedValues[0])?.label || selectedValues[0]
-    : `${selectedValues.length} selecionados`;
-
-  return (
-    <div className="flex flex-col gap-1 sm:gap-1.5 relative" ref={containerRef} style={{ zIndex: isOpen ? 99999 : 'auto' }}>
-      <label className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">
-        {label}
-      </label>
-      <div className="relative">
-        <button
-          ref={buttonRef}
-          type="button"
-          className={`w-full appearance-none rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white px-2.5 sm:px-3 py-2 sm:py-2.5 pr-8 sm:pr-10 text-left text-xs sm:text-sm font-medium text-blue-900 shadow-sm transition-all hover:border-blue-400 hover:shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-100 dark:hover:border-blue-600 dark:focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-blue-200 ${selectedValues.length > 0 ? 'font-semibold' : ''}`}
-          onClick={() => !disabled && setIsOpen(!isOpen)}
-          disabled={disabled}
-        >
-          <span className="block truncate">{displayText}</span>
-        </button>
-        <div className="pointer-events-none absolute right-2 sm:right-3 top-1/2 -translate-y-1/2">
-          <svg className={`h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-        {selectedValues.length > 0 && !disabled && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onChange([]);
-            }}
-            className="absolute right-7 sm:right-9 top-1/2 -translate-y-1/2 rounded-full p-0.5 sm:p-1 text-slate-400 transition-all hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/30 dark:hover:text-rose-400 z-10"
-            title="Limpar seleção"
-          >
-            <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
-        
-        {isOpen && (
-          <div 
-            ref={dropdownRef}
-            className="absolute z-[99999] max-h-60 overflow-auto rounded-lg sm:rounded-xl border-2 border-blue-200 bg-white shadow-2xl dark:border-blue-800 dark:bg-slate-900" 
-          >
-            {options.length === 0 ? (
-              <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">Nenhuma opção disponível</div>
-            ) : (
-              <>
-                {/* Botões de Selecionar Todas / Desmarcar Todas */}
-                <div className="sticky top-0 bg-blue-50 dark:bg-blue-900/30 border-b border-blue-200 dark:border-blue-800 px-2 py-1.5 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onChange(options.map(opt => opt.value));
-                    }}
-                    className="flex-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded transition-colors dark:text-blue-300 dark:bg-blue-800 dark:hover:bg-blue-700"
-                  >
-                    Selecionar Todas
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onChange([]);
-                    }}
-                    className="flex-1 px-2 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded transition-colors dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700"
-                  >
-                    Desmarcar Todas
-                  </button>
-                </div>
-                {options.map((option) => {
-                  const isSelected = selectedValues.includes(option.value);
-                  return (
-                    <label
-                      key={option.value}
-                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 ${
-                        isSelected ? 'bg-blue-100 dark:bg-blue-900/30' : ''
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleOption(option.value)}
-                        className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 dark:border-blue-700 dark:bg-slate-800"
-                      />
-                      <span className={`text-xs sm:text-sm ${isSelected ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-slate-700 dark:text-slate-300'}`}>
-                        {option.label}
-                      </span>
-                    </label>
-                  );
-                })}
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
-FiltroMultiSelect.displayName = 'FiltroMultiSelect';
-
-function FiltroBar({
-  filters,
-  setFilters,
-  anos,
-  semanas,
-  pracas,
-  subPracas,
-  origens,
-  turnos,
-  currentUser,
-}: {
-  filters: Filters;
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
-  anos: number[];
-  semanas: string[];
-  pracas: FilterOption[];
-  subPracas: FilterOption[];
-  origens: FilterOption[];
-  turnos: FilterOption[];
-  currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
-}) {
-  const handleChange = (key: keyof Filters, rawValue: string | null) => {
-    setFilters((prev) => {
-      let processedValue: any = null;
-      
-      if (rawValue && rawValue !== '') {
-        if (key === 'ano') {
-          processedValue = Number(rawValue);
-        } else if (key === 'semana') {
-          // Extrair número da semana do formato "2025-W43"
-          const match = rawValue.match(/W(\d+)/);
-          processedValue = match ? Number(match[1]) : Number(rawValue);
-        } else {
-          processedValue = rawValue;
-        }
-      }
-      
-      return {
-        ...prev,
-        [key]: processedValue,
-      };
-    });
-  };
-
-  const handleClearFilters = () => {
-    setFilters({
-      ano: null,
-      semana: null,
-      praca: currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1 ? currentUser.assigned_pracas[0] : null,
-      subPraca: null,
-      origem: null,
-      turno: null,
-      subPracas: [],
-      origens: [],
-      turnos: [],
-      semanas: [],
-    });
-  };
-
-  const hasActiveFilters = filters.ano !== null || filters.semana !== null || (filters.semanas && filters.semanas.length > 0) || filters.subPraca !== null || filters.origem !== null || filters.turno !== null || (filters.turnos && filters.turnos.length > 0) ||
-    (currentUser?.is_admin && filters.praca !== null);
-
-  // Verificar se deve desabilitar o filtro de praça (somente não-admin com 1 praça)
-  const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
-
-  return (
-    <div className="space-y-3 sm:space-y-4 relative" style={{ isolation: 'isolate' }}>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
-      <FiltroSelect
-        label="Ano"
-        value={filters.ano !== null ? String(filters.ano) : ''}
-        options={anos.map((ano) => ({ value: String(ano), label: String(ano) }))}
-        placeholder="Todos"
-        onChange={(value) => handleChange('ano', value)}
-      />
-      <FiltroMultiSelect
-        label="Semana"
-        selectedValues={
-          filters.semanas && filters.semanas.length > 0
-            ? filters.semanas.map(s => {
-                const semanaStr = semanas.find(se => {
-                  const match = se.match(/W(\d+)/);
-                  return match && Number(match[1]) === s;
-                });
-                return semanaStr || '';
-              }).filter(s => s !== '')
-            : (filters.semana !== null
-                ? semanas.filter(s => {
-                const match = s.match(/W(\d+)/);
-                return match && Number(match[1]) === filters.semana;
-                  })
-                : [])
-        }
-        options={semanas.map((sem) => {
-          const match = sem.match(/W(\d+)/);
-          const semanaNum = match ? match[1] : sem;
-          return { 
-            value: sem, 
-            label: `Semana ${semanaNum}` 
-          };
-        })}
-        placeholder="Todas"
-        onChange={(values) => {
-          setFilters((prev) => {
-            const semanasNumeros = values.map(v => {
-              const match = v.match(/W(\d+)/);
-              return match ? Number(match[1]) : null;
-            }).filter(n => n !== null) as number[];
-            
-            return {
-              ...prev,
-              semanas: semanasNumeros,
-              semana: semanasNumeros.length === 1 ? semanasNumeros[0] : null,
-            };
-          });
-        }}
-      />
-      <FiltroSelect
-        label="Praça"
-        value={filters.praca ?? ''}
-        options={pracas}
-        placeholder="Todas"
-        onChange={(value) => handleChange('praca', value)}
-        disabled={shouldDisablePracaFilter}
-      />
-      <FiltroMultiSelect
-        label="Sub praça"
-        selectedValues={filters.subPracas || []}
-        options={subPracas}
-        placeholder="Todas"
-        onChange={(values) => {
-          setFilters((prev) => ({
-            ...prev,
-            subPracas: values,
-            subPraca: values.length === 1 ? values[0] : null,
-          }));
-        }}
-      />
-      <FiltroMultiSelect
-        label="Origem"
-        selectedValues={filters.origens || []}
-        options={origens}
-        placeholder="Todas"
-        onChange={(values) => {
-          setFilters((prev) => ({
-            ...prev,
-            origens: values,
-            origem: values.length === 1 ? values[0] : null,
-          }));
-        }}
-      />
-      <FiltroMultiSelect
-        label="Turno"
-        selectedValues={filters.turnos || []}
-        options={turnos}
-        placeholder="Todos"
-        onChange={(values) => {
-          setFilters((prev) => ({
-            ...prev,
-            turnos: values,
-            turno: values.length === 1 ? values[0] : null,
-          }));
-        }}
-      />
-      </div>
-      
-      {/* Botão Limpar Filtros */}
-      {hasActiveFilters && (
-        <div className="flex justify-center sm:justify-end animate-scale-in">
-          <button
-            onClick={handleClearFilters}
-            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105 hover:from-rose-600 hover:to-pink-700 active:scale-95"
-          >
-            <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span className="hidden xs:inline">Limpar Todos os Filtros</span>
-            <span className="xs:hidden">Limpar Filtros</span>
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-// =================================================================================
 // Views Principais
 // =================================================================================
 
-function DashboardView({
-  aderenciaGeral,
-  aderenciaDia,
-  aderenciaTurno,
-  aderenciaSubPraca,
-  aderenciaOrigem,
-}: {
-  aderenciaGeral?: AderenciaSemanal;
-  aderenciaDia: AderenciaDia[];
-  aderenciaTurno: AderenciaTurno[];
-  aderenciaSubPraca: AderenciaSubPraca[];
-  aderenciaOrigem: AderenciaOrigem[];
-}) {
+function AnaliseView({ totals }: { totals: Totals }) {
   const [viewMode, setViewMode] = useState<'turno' | 'sub_praca' | 'origem'>('turno');
 
   return (
@@ -2251,53 +1700,33 @@ function MonitoramentoView() {
     <div className="space-y-6 animate-fade-in">
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-indigo-900 dark:from-indigo-950/30 dark:to-purple-950/30">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl text-white shadow-md">
-              👥
-            </div>
-            <div>
-              <p className="text-xs font-medium text-indigo-700 dark:text-indigo-300">Total Online</p>
-              <p className="text-3xl font-bold text-indigo-900 dark:text-indigo-100">{usuarios.length}</p>
-            </div>
-          </div>
-        </div>
+        <MetricCard
+          title="Total Online"
+          value={usuarios.length}
+          icon="👥"
+          color="blue"
+        />
 
-        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-emerald-900 dark:from-emerald-950/30 dark:to-teal-950/30">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-2xl text-white shadow-md">
-              ✅
-            </div>
-            <div>
-              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Ativos</p>
-              <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">{usuariosAtivos}</p>
-            </div>
-          </div>
-        </div>
+        <MetricCard
+          title="Ativos"
+          value={usuariosAtivos}
+          icon="✅"
+          color="green"
+        />
 
-        <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-amber-900 dark:from-amber-950/30 dark:to-orange-950/30">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-2xl text-white shadow-md">
-              ⏸️
-            </div>
-            <div>
-              <p className="text-xs font-medium text-amber-700 dark:text-amber-300">Inativos</p>
-              <p className="text-3xl font-bold text-amber-900 dark:text-amber-100">{usuariosInativos}</p>
-            </div>
-          </div>
-        </div>
+        <MetricCard
+          title="Inativos"
+          value={usuariosInativos}
+          icon="⏸️"
+          color="red"
+        />
 
-        <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-purple-900 dark:from-purple-950/30 dark:to-pink-950/30">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-2xl text-white shadow-md">
-              ⚡
-            </div>
-            <div>
-              <p className="text-xs font-medium text-purple-700 dark:text-purple-300">Ações (1h)</p>
-              <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">{totalAcoes}</p>
-            </div>
-          </div>
-        </div>
+        <MetricCard
+          title="Ações (1h)"
+          value={totalAcoes}
+          icon="⚡"
+          color="purple"
+        />
       </div>
 
       {/* Controles */}
@@ -2821,47 +2250,26 @@ function ComparacaoView({
         <div className="space-y-6">
           {/* Cards Comparativos no Topo */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-500 to-indigo-600 p-6 shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
-                  <span className="text-2xl">📊</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-blue-100">Aderência Média</p>
-                  <p className="text-2xl font-bold text-white">
-                    {(dadosComparacao.reduce((sum, d) => sum + (d.semanal[0]?.aderencia_percentual ?? 0), 0) / dadosComparacao.length).toFixed(1)}%
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-500 to-green-600 p-6 shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
-                  <span className="text-2xl">🚗</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-emerald-100">Total de Corridas</p>
-                  <p className="text-2xl font-bold text-white">
-                    {dadosComparacao.reduce((sum, d) => sum + (d.totais?.corridas_completadas ?? 0), 0).toLocaleString('pt-BR')}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-500 to-pink-600 p-6 shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
-                  <span className="text-2xl">⏱️</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-purple-100">Horas Entregues</p>
-                  <p className="text-xl font-bold font-mono text-white">
-                    {formatarHorasParaHMS(
-                      dadosComparacao.reduce((sum, d) => sum + parseFloat(d.semanal[0]?.horas_entregues ?? '0'), 0).toString()
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <MetricCard
+              title="Aderência Média"
+              value={(dadosComparacao.reduce((sum, d) => sum + (d.semanal[0]?.aderencia_percentual ?? 0), 0) / dadosComparacao.length).toFixed(1)}
+              icon="📊"
+              color="blue"
+            />
+            <MetricCard
+              title="Total de Corridas"
+              value={dadosComparacao.reduce((sum, d) => sum + (d.totais?.corridas_completadas ?? 0), 0).toLocaleString('pt-BR')}
+              icon="🚗"
+              color="green"
+            />
+            <MetricCard
+              title="Horas Entregues"
+              value={formatarHorasParaHMS(
+                dadosComparacao.reduce((sum, d) => sum + parseFloat(d.semanal[0]?.horas_entregues ?? '0'), 0).toString()
+              )}
+              icon="⏱️"
+              color="purple"
+            />
           </div>
           {/* Tabela de Comparação Completa */}
           <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
@@ -3946,7 +3354,7 @@ function ComparacaoView({
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-950/20">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-900 dark:bg-amber-950/20">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">⚠️</span>
                 <div>
@@ -5116,7 +4524,7 @@ function EvolucaoView({
             {/* Container do gráfico com altura aumentada e melhor performance */}
             <div className="relative h-[550px] rounded-xl bg-white/80 dark:bg-slate-900/80 p-6 backdrop-blur-md shadow-inner border border-slate-200/50 dark:border-slate-700/50">
               {/* Efeito de brilho sutil */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-50/50 via-blue-100/30 to-indigo-100/20 dark:from-blue-950/20 dark:via-blue-900/10 dark:to-indigo-950/10"></div>
               <div className="relative z-10 h-full w-full">
                 {chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
                   <Line 
@@ -5248,8 +4656,6 @@ function EvolucaoView({
     </div>
   );
 }
-// =================================================================================
-// View Valores
 // =================================================================================
 
 function ValoresView({
@@ -5486,53 +4892,30 @@ function ValoresView({
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <div className="rounded-xl sm:rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4 sm:p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-emerald-900 dark:from-emerald-950/30 dark:to-teal-950/30">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xl sm:text-2xl text-white shadow-md">
-              💰
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-300 truncate">Total Geral</p>
-              <p className="text-base sm:text-xl lg:text-2xl font-bold text-emerald-900 dark:text-emerald-100 truncate">{formatarReal(totalGeral)}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="rounded-xl sm:rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-blue-900 dark:from-blue-950/30 dark:to-indigo-950/30">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-xl sm:text-2xl text-white shadow-md">
-              👥
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs font-medium text-blue-700 dark:text-blue-300 truncate">Entregadores</p>
-              <p className="text-base sm:text-xl lg:text-2xl font-bold text-blue-900 dark:text-blue-100">{totalEntregadores}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="rounded-xl sm:rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4 sm:p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-purple-900 dark:from-purple-950/30 dark:to-pink-950/30">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-xl sm:text-2xl text-white shadow-md">
-              🚗
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs font-medium text-purple-700 dark:text-purple-300 truncate">Total Corridas</p>
-              <p className="text-base sm:text-xl lg:text-2xl font-bold text-purple-900 dark:text-purple-100">{totalCorridas.toLocaleString('pt-BR')}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="rounded-xl sm:rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 sm:p-6 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl dark:border-amber-900 dark:from-amber-950/30 dark:to-orange-950/30">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-xl sm:text-2xl text-white shadow-md">
-              📊
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs font-medium text-amber-700 dark:text-amber-300 truncate">Taxa Média</p>
-              <p className="text-base sm:text-xl lg:text-2xl font-bold text-amber-900 dark:text-amber-100 truncate">{formatarReal(taxaMediaGeral)}</p>
-            </div>
-          </div>
-        </div>
+        <MetricCard
+          title="Total Geral"
+          value={totalGeral}
+          icon="💰"
+          color="green"
+        />
+        <MetricCard
+          title="Entregadores"
+          value={totalEntregadores}
+          icon="👥"
+          color="blue"
+        />
+        <MetricCard
+          title="Total Corridas"
+          value={totalCorridas}
+          icon="🚗"
+          color="purple"
+        />
+        <MetricCard
+          title="Taxa Média"
+          value={taxaMediaGeral}
+          icon="📊"
+          color="red"
+        />
       </div>
 
       {/* Tabela de Valores */}
@@ -5875,66 +5258,36 @@ function EntregadoresView({
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-2xl text-white shadow-md">
-              👥
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalEntregadores}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Entregadores</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 text-2xl text-white shadow-md">
-              📢
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalOfertadas}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Ofertadas</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-2xl text-white shadow-md">
-              ✅
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalAceitas}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Aceitas</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 text-2xl text-white shadow-md">
-              ❌
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalRejeitadas}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Rejeitadas</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 text-2xl text-white shadow-md">
-              🏁
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalCompletadas}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Completadas</p>
-            </div>
-          </div>
-        </div>
-
+        <MetricCard
+          title="Entregadores"
+          value={totalEntregadores}
+          icon="👥"
+          color="blue"
+        />
+        <MetricCard
+          title="Ofertadas"
+          value={totalOfertadas}
+          icon="📢"
+          color="purple"
+        />
+        <MetricCard
+          title="Aceitas"
+          value={totalAceitas}
+          icon="✅"
+          color="green"
+        />
+        <MetricCard
+          title="Rejeitadas"
+          value={totalRejeitadas}
+          icon="❌"
+          color="red"
+        />
+        <MetricCard
+          title="Completadas"
+          value={totalCompletadas}
+          icon="🏁"
+          color="cyan"
+        />
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -6473,66 +5826,36 @@ function PrioridadePromoView({
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-2xl text-white shadow-md">
-              👥
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalEntregadores}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Entregadores</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 text-2xl text-white shadow-md">
-              📢
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalOfertadas}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Ofertadas</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-2xl text-white shadow-md">
-              ✅
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalAceitas}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Aceitas</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 text-2xl text-white shadow-md">
-              ❌
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalRejeitadas}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Rejeitadas</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 text-2xl text-white shadow-md">
-              🏁
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalCompletadas}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Completadas</p>
-            </div>
-          </div>
-        </div>
-
+        <MetricCard
+          title="Entregadores"
+          value={totalEntregadores}
+          icon="👥"
+          color="blue"
+        />
+        <MetricCard
+          title="Ofertadas"
+          value={totalOfertadas}
+          icon="📢"
+          color="purple"
+        />
+        <MetricCard
+          title="Aceitas"
+          value={totalAceitas}
+          icon="✅"
+          color="green"
+        />
+        <MetricCard
+          title="Rejeitadas"
+          value={totalRejeitadas}
+          icon="❌"
+          color="red"
+        />
+        <MetricCard
+          title="Completadas"
+          value={totalCompletadas}
+          icon="🏁"
+          color="cyan"
+        />
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -7310,7 +6633,6 @@ export default function DashboardPage() {
       clearTimeout(timeoutId);
     };
   }, [activeTab]);
-
   // Buscar semanas disponíveis ao carregar
   useEffect(() => {
     const fetchSemanasDisponiveis = async () => {
@@ -7331,7 +6653,6 @@ export default function DashboardPage() {
     };
     fetchSemanasDisponiveis();
   }, []);
-
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-[1920px] px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
@@ -7514,10 +6835,6 @@ export default function DashboardPage() {
                   anosDisponiveis={anosDisponiveis}
                   onAnoChange={setAnoEvolucao}
                 />
-              )}
-              
-              {activeTab === 'monitoramento' && currentUser?.is_admin && (
-                <MonitoramentoView />
               )}
             </main>
           </div>
