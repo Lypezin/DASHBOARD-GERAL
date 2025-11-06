@@ -209,10 +209,10 @@ function DashboardView({
             {dataToRender.map((item, index) => (
               <AderenciaCard
                 key={`${viewMode}-${index}`}
-                titulo={item.label}
-                aderenciaPercentual={item.aderencia}
-                horasAEntregar={item.horasAEntregar}
-                horasEntregues={item.horasEntregues}
+                title={item.label}
+                percentual={item.aderencia}
+                planejado={item.horasAEntregar}
+                entregue={item.horasEntregues}
               />
             ))}
           </div>
