@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
 import AderenciaCard from '../AderenciaCard';
-import { formatarHorasParaHMS } from '@/utils/formatters';
-import { Bar } from 'react-chartjs-2';
+import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor } from '@/utils/formatters';
 
 function DashboardView({
   aderenciaGeral,
@@ -18,63 +17,6 @@ function DashboardView({
   aderenciaOrigem: AderenciaOrigem[];
 }) {
   const [viewMode, setViewMode] = useState<'turno' | 'sub_praca' | 'origem'>('turno');
-
-  // Dados para o gráfico de aderência por dia
-  const chartDiaData = useMemo(() => ({
-    labels: aderenciaDia.map(d => d.dia_da_semana || 'N/A'),
-    datasets: [{
-      label: 'Aderência %',
-      data: aderenciaDia.map(d => d.aderencia_percentual || 0),
-      backgroundColor: aderenciaDia.map(d => {
-        const aderencia = d.aderencia_percentual || 0;
-        if (aderencia >= 95) return 'rgba(34, 197, 94, 0.8)';
-        if (aderencia >= 85) return 'rgba(251, 191, 36, 0.8)';
-        return 'rgba(239, 68, 68, 0.8)';
-      }),
-      borderColor: aderenciaDia.map(d => {
-        const aderencia = d.aderencia_percentual || 0;
-        if (aderencia >= 95) return 'rgb(34, 197, 94)';
-        if (aderencia >= 85) return 'rgb(251, 191, 36)';
-        return 'rgb(239, 68, 68)';
-      }),
-      borderWidth: 2,
-      borderRadius: 8,
-    }]
-  }), [aderenciaDia]);
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        padding: 12,
-        titleColor: 'rgb(226, 232, 240)',
-        bodyColor: 'rgb(226, 232, 240)',
-        borderColor: 'rgb(51, 65, 85)',
-        borderWidth: 1,
-        displayColors: false,
-        callbacks: {
-          label: function(context: any) {
-            return `Aderência: ${context.parsed.y.toFixed(1)}%`;
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-        grid: { color: 'rgba(148, 163, 184, 0.1)' },
-        ticks: { color: 'rgb(100, 116, 139)', callback: (value: any) => value + '%' }
-      },
-      x: {
-        grid: { display: false },
-        ticks: { color: 'rgb(100, 116, 139)' }
-      }
-    }
-  };
 
   // Dados para renderização com base no viewMode
   const dataToRender = useMemo(() => {
@@ -104,6 +46,17 @@ function DashboardView({
         return [];
     }
   }, [viewMode, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
+
+  // Ordem dos dias da semana
+  const diasDaSemanaOrdem = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+  
+  const aderenciaDiaOrdenada = useMemo(() => {
+    return [...aderenciaDia].sort((a, b) => {
+      const indexA = diasDaSemanaOrdem.indexOf(a.dia_da_semana);
+      const indexB = diasDaSemanaOrdem.indexOf(b.dia_da_semana);
+      return indexA - indexB;
+    });
+  }, [aderenciaDia]);
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
@@ -147,20 +100,60 @@ function DashboardView({
         </div>
       )}
 
-      {/* Gráfico Aderência Diária */}
-      {aderenciaDia.length > 0 && (
+      {/* Aderência por Dia da Semana - CARTÕES */}
+      {aderenciaDiaOrdenada.length > 0 && (
         <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-4 sm:p-6 lg:p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10">
           <div className="mb-4 sm:mb-6 flex items-center gap-3">
             <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg">
-              <span className="text-xl sm:text-2xl">📈</span>
+              <span className="text-xl sm:text-2xl">📅</span>
             </div>
             <div>
               <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Distribuição semanal de performance</p>
             </div>
           </div>
-          <div className="h-64 sm:h-80 lg:h-96">
-            <Bar data={chartDiaData} options={chartOptions} />
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
+            {aderenciaDiaOrdenada.map((dia, index) => {
+              const aderencia = dia.aderencia_percentual || 0;
+              const bgColor = getAderenciaBgColor(aderencia);
+              const textColor = getAderenciaColor(aderencia);
+              
+              return (
+                <div
+                  key={`dia-${index}`}
+                  className="group relative overflow-hidden rounded-xl border-2 bg-white p-4 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl dark:bg-slate-900"
+                  style={{ borderColor: textColor }}
+                >
+                  <div className="absolute inset-0 opacity-5" style={{ backgroundColor: textColor }}></div>
+                  <div className="relative">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-2xl">📆</span>
+                      <div 
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white shadow-md"
+                        style={{ backgroundColor: textColor }}
+                      >
+                        {dia.dia_iso}
+                      </div>
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">{dia.dia_da_semana}</h4>
+                    <div className="text-3xl font-black mb-2" style={{ color: textColor }}>
+                      {aderencia.toFixed(1)}%
+                    </div>
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">Planejado:</span>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">{formatarHorasParaHMS(dia.horas_a_entregar)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">Entregue:</span>
+                        <span className="font-semibold" style={{ color: textColor }}>{formatarHorasParaHMS(dia.horas_entregues)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -216,10 +209,10 @@ function DashboardView({
             {dataToRender.map((item, index) => (
               <AderenciaCard
                 key={`${viewMode}-${index}`}
-                title={item.label}
-                percentual={item.aderencia}
-                planejado={item.horasAEntregar}
-                entregue={item.horasEntregues}
+                titulo={item.label}
+                aderenciaPercentual={item.aderencia}
+                horasAEntregar={item.horasAEntregar}
+                horasEntregues={item.horasEntregues}
               />
             ))}
           </div>

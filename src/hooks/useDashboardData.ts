@@ -188,7 +188,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               const { data, error } = await supabase.rpc('listar_valores_entregadores', filterPayload as any);
               
               if (error) throw error;
-              setValoresData(Array.isArray(data) ? data : []);
+              
+              // A função retorna um array direto de ValoresEntregador
+              const valores = Array.isArray(data) ? data : [];
+              setValoresData(valores);
             } catch (err: any) {
               if (IS_DEV) console.error('Erro ao carregar valores:', err);
               setValoresData([]);
@@ -257,7 +260,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       }
     };
 
-    const timeoutId = setTimeout(() => fetchDataForTab(activeTab), 100);
+    // Delay de 200ms para evitar múltiplas requisições ao trocar de aba
+    const timeoutId = setTimeout(() => fetchDataForTab(activeTab), 200);
     return () => clearTimeout(timeoutId);
   }, [activeTab, filterPayload, anoEvolucao]);
   

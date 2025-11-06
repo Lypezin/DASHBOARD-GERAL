@@ -277,7 +277,13 @@ export default function DashboardPage() {
                 />
               )}
               {activeTab === 'analise' && totals && (
-                <AnaliseView totals={totals} />
+                <AnaliseView 
+                  totals={totals}
+                  aderenciaDia={aderenciaDia}
+                  aderenciaTurno={aderenciaTurno}
+                  aderenciaSubPraca={aderenciaSubPraca}
+                  aderenciaOrigem={aderenciaOrigem}
+                />
               )}
               {activeTab === 'utr' && (
                 <UtrView

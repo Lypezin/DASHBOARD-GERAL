@@ -27,9 +27,13 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   }, [wrapperRef]);
 
   const handleSelect = (value: string) => {
-    const newSelected = selected.includes(value)
+    // Evitar duplicatas: verificar se já existe
+    const isAlreadySelected = selected.includes(value);
+    
+    const newSelected = isAlreadySelected
       ? selected.filter(item => item !== value)
       : [...selected, value];
+    
     onSelectionChange(newSelected);
   };
 
