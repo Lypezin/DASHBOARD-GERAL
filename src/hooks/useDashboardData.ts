@@ -189,8 +189,25 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               if (error) throw error;
               
-              // A função retorna um array direto de ValoresEntregador
-              const valores = Array.isArray(data) ? data : [];
+              // A função retorna JSONB, então precisa acessar o array interno
+              let valores = [];
+              if (data && typeof data === 'object') {
+                // Pode ser array direto ou {valores: [...]}
+                if (Array.isArray(data)) {
+                  valores = data;
+                } else if (Array.isArray(data.valores)) {
+                  valores = data.valores;
+                } else if (Array.isArray(data.entregadores)) {
+                  // Mapear de entregadores para valores
+                  valores = data.entregadores.map((e: any) => ({
+                    id_entregador: e.id_entregador,
+                    nome_entregador: e.nome_entregador,
+                    total_taxas: e.total_taxas || 0,
+                    numero_corridas_aceitas: e.numero_corridas_aceitas || 0,
+                    taxa_media: e.taxa_media || 0
+                  }));
+                }
+              }
               setValoresData(valores);
             } catch (err: any) {
               if (IS_DEV) console.error('Erro ao carregar valores:', err);
@@ -231,31 +248,45 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             return;
           }
           setLoadingEvolucao(true);
-          // Carregar dados de evolução - usar apenas p_ano, não outros filtros
-          Promise.all([
-            supabase.rpc('listar_evolucao_mensal', { p_ano: anoEvolucao } as any),
-            supabase.rpc('listar_evolucao_semanal', { p_ano: anoEvolucao } as any),
-            supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao } as any)
-          ]).then(([mensalRes, semanalRes, utrSemanalRes]) => {
+          try {
+            // Carregar dados de evolução - usar apenas p_ano, não outros filtros
+            const [mensalRes, semanalRes, utrSemanalRes] = await Promise.all([
+              supabase.rpc('listar_evolucao_mensal', { p_ano: anoEvolucao } as any),
+              supabase.rpc('listar_evolucao_semanal', { p_ano: anoEvolucao } as any),
+              supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao } as any)
+            ]);
+            
             // Verificar erros em cada resposta
-            if (mensalRes.error && IS_DEV) console.error('Erro ao carregar evolução mensal:', mensalRes.error);
-            if (semanalRes.error && IS_DEV) console.error('Erro ao carregar evolução semanal:', semanalRes.error);
-            if (utrSemanalRes.error && IS_DEV) console.error('Erro ao carregar UTR semanal:', utrSemanalRes.error);
+            if (mensalRes.error) {
+              if (IS_DEV) console.error('Erro ao carregar evolução mensal:', mensalRes.error);
+            }
+            if (semanalRes.error) {
+              if (IS_DEV) console.error('Erro ao carregar evolução semanal:', semanalRes.error);
+            }
+            if (utrSemanalRes.error) {
+              if (IS_DEV) console.error('Erro ao carregar UTR semanal:', utrSemanalRes.error);
+            }
             
             const mensal = Array.isArray(mensalRes.data) ? mensalRes.data : [];
             const semanal = Array.isArray(semanalRes.data) ? semanalRes.data : [];
             const utr = Array.isArray(utrSemanalRes.data) ? utrSemanalRes.data : [];
             
+            if (IS_DEV) {
+              console.log('Evolução carregada:', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
+            }
+            
             evolucaoCacheRef.current.set(cacheKey, { mensal, semanal, utrSemanal: utr });
             setEvolucaoMensal(mensal);
             setEvolucaoSemanal(semanal);
             setUtrSemanal(utr);
-          }).catch(err => {
+          } catch (err) {
             if (IS_DEV) console.error('Erro ao carregar evolução:', err);
             setEvolucaoMensal([]);
             setEvolucaoSemanal([]);
             setUtrSemanal([]);
-          }).finally(() => setLoadingEvolucao(false));
+          } finally {
+            setLoadingEvolucao(false);
+          }
           break;
       }
     };
