@@ -6986,6 +6986,126 @@ export default function DashboardPage() {
     // Temporarily disabled to debug build error
   }, [activeTab, filters.praca, anoEvolucao]);
 
+  // Carregar UTR (aba UTR)
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (activeTab !== 'utr') return;
+      try {
+        setLoadingUtr(true);
+        const { data, error } = await supabase.rpc('calcular_utr', filterPayload as any);
+        if (error) throw error;
+        if (!cancelled) setUtrData(data as UtrData);
+      } catch (err) {
+        if (IS_DEV) console.error('Erro ao carregar UTR:', err);
+        if (!cancelled) setUtrData(null);
+      } finally {
+        if (!cancelled) setLoadingUtr(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [activeTab, filterPayload]);
+
+  // Carregar Entregadores (aba Entregadores)
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (activeTab !== 'entregadores') return;
+      try {
+        setLoadingEntregadores(true);
+        const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+        if (error) throw error;
+        if (!cancelled) setEntregadoresData({ entregadores: data || [], total: Array.isArray(data) ? data.length : 0 });
+      } catch (err) {
+        if (IS_DEV) console.error('Erro ao carregar entregadores:', err);
+        if (!cancelled) setEntregadoresData({ entregadores: [], total: 0 });
+      } finally {
+        if (!cancelled) setLoadingEntregadores(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [activeTab]);
+
+  // Carregar Valores (aba Valores)
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (activeTab !== 'valores') return;
+      try {
+        setLoadingValores(true);
+        const { data, error } = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
+        if (error) throw error;
+        if (!cancelled) setValoresData(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (IS_DEV) console.error('Erro ao carregar valores:', err);
+        if (!cancelled) setValoresData([]);
+      } finally {
+        if (!cancelled) setLoadingValores(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [activeTab]);
+
+  // Carregar dados de Evolução (aba Evolução)
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (activeTab !== 'evolucao') return;
+      try {
+        setLoadingEvolucao(true);
+        const { data: evoMensal, error: errMensal } = await supabase.rpc('listar_evolucao_mensal', filterPayload as any);
+        if (errMensal) throw errMensal;
+        const { data: evoSemanal, error: errSemanal } = await supabase.rpc('listar_evolucao_semanal', filterPayload as any);
+        if (errSemanal) throw errSemanal;
+        const { data: utrSem, error: errUtrSem } = await supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao });
+        if (errUtrSem) {
+          // Se a função não existir, apenas ignore os dados de UTR semanal
+          if (errUtrSem.code !== '42883') throw errUtrSem;
+        }
+        if (!cancelled) {
+          setEvolucaoMensal(Array.isArray(evoMensal) ? evoMensal : []);
+          setEvolucaoSemanal(Array.isArray(evoSemanal) ? evoSemanal : []);
+          setUtrSemanal(Array.isArray(utrSem) ? utrSem : []);
+        }
+      } catch (err) {
+        if (IS_DEV) console.error('Erro ao carregar evolução:', err);
+        if (!cancelled) {
+          setEvolucaoMensal([]);
+          setEvolucaoSemanal([]);
+          setUtrSemanal([]);
+        }
+      } finally {
+        if (!cancelled) setLoadingEvolucao(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [activeTab, filterPayload, anoEvolucao]);
+
+  // Carregar dados de Prioridade (aba Prioridade/Promo)
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (activeTab !== 'prioridade') return;
+      try {
+        setLoadingPrioridade(true);
+        const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+        if (error) throw error;
+        if (!cancelled) setPrioridadeData({ entregadores: data || [], total: Array.isArray(data) ? data.length : 0 });
+      } catch (err) {
+        if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', err);
+        if (!cancelled) setPrioridadeData({ entregadores: [], total: 0 });
+      } finally {
+        if (!cancelled) setLoadingPrioridade(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [activeTab]);
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-[1920px] px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
