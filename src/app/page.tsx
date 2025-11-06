@@ -499,7 +499,6 @@ const AderenciaCard = React.memo(({
     </div>
   );
 });
-
 AderenciaCard.displayName = 'AderenciaCard';
 
 const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange, disabled = false }: {
@@ -744,7 +743,6 @@ const FiltroMultiSelect = React.memo(({
     </div>
   );
 });
-
 FiltroMultiSelect.displayName = 'FiltroMultiSelect';
 
 function FiltroBar({
@@ -951,8 +949,10 @@ function DashboardView({
   const [viewMode, setViewMode] = useState<'turno' | 'sub_praca' | 'origem'>('turno');
 
   return (
+    <div>Dashboard View Content</div>
+    /*
     <div className="space-y-6">
-      {/* Aderência Geral Redesenhada */}
+      {/* Aderência Geral Redesenhada * /}
       {aderenciaGeral && (
         <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 lg:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 animate-slide-up">
           <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
@@ -992,7 +992,7 @@ function DashboardView({
         </div>
       )}
 
-      {/* Destaques da Operação */}
+      {/* Destaques da Operação * /}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <div className="group rounded-lg sm:rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-2.5 sm:p-3 lg:p-4 dark:border-emerald-800 dark:from-emerald-950/30 dark:to-teal-950/30 hover-lift">
           <div className="flex items-center gap-1 sm:gap-1.5 text-emerald-700 dark:text-emerald-300">
@@ -1063,7 +1063,7 @@ function DashboardView({
         </div>
       </div>
 
-      {/* Aderência por Dia */}
+      {/* Aderência por Dia * /}
       <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 shadow-xl transition-all duration-300 hover:shadow-2xl dark:border-white/10 dark:bg-slate-900/90">
         <div className="mb-4 sm:mb-6 flex items-center gap-2">
           <span className="text-lg sm:text-xl">📅</span>
@@ -1102,7 +1102,7 @@ function DashboardView({
         </div>
       </div>
 
-      {/* Aderência por Turno/Sub-Praça/Origem */}
+      {/* Aderência por Turno/Sub-Praça/Origem * /}
       <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 shadow-xl transition-all duration-300 hover:shadow-2xl dark:border-white/10 dark:bg-slate-900/90">
         <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -1177,6 +1177,7 @@ function DashboardView({
         </div>
       </div>
     </div>
+    */
   );
 }
 function AnaliseView({ 
@@ -3964,8 +3965,6 @@ function ComparacaoView({
   );
 }
 // =================================================================================
-// View UTR
-// =================================================================================
 
 function UtrView({
   utrData,
@@ -4919,7 +4918,7 @@ function EvolucaoView({
                 >
                   📊 Semanal
                 </button>
-                </div>
+              </div>
 
                 {/* Seletor de Métricas (Múltipla Seleção) */}
                 <div className="flex flex-col gap-2">
@@ -5037,10 +5036,10 @@ function EvolucaoView({
                         </span>
                       </label>
                     )}
-                  </div>
-                </div>
-              </div>
             </div>
+          </div>
+        </div>
+      </div>
           </div>
         </div>
       </div>
@@ -5249,8 +5248,9 @@ function EvolucaoView({
           </div>
         </div>
       )}
-
-      {/* Gráfico de Evolução de UTR por Semana - REMOVIDO (agora integrado no gráfico principal com seletor de métrica) */}
+    </div>
+  );
+}
       {false && utrSemanal.length > 0 && (
         <div className="relative rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-purple-50/20 p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-purple-950/10 overflow-hidden mt-6">
           {/* Elementos decorativos de fundo */}
@@ -6904,8 +6904,6 @@ function PrioridadePromoView({
   );
 }
 // =================================================================================
-// Componente Principal
-// =================================================================================
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'comparacao' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade'>('dashboard');
@@ -7146,578 +7144,38 @@ export default function DashboardPage() {
 
     checkUserAndFetchData();
   }, []);
-
   // Cache simples para evitar recarregar dados iguais
   const cacheKeyRef = useRef<string>('');
   const cachedDataRef = useRef<DashboardResumoData | null>(null);
   const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[] }>>(new Map());
+
   // Memoizar buildFilterPayload para evitar recálculos desnecessários
   // IMPORTANTE: Deve estar ANTES dos useEffects que o utilizam
   const filterPayload = useMemo(() => buildFilterPayload(filters), [filters]);
 
-  useEffect(() => {
-    async function fetchData() {
-      // Só carregar dados se estiver nas abas que precisam
-      if (!['dashboard', 'analise'].includes(activeTab)) {
-        return;
-      }
-      
-      // Criar chave de cache baseada nos filtros
-      const cacheKey = JSON.stringify(filterPayload);
-      
-      // Se os dados já estão em cache e os filtros não mudaram, não recarregar
-      if (cacheKeyRef.current === cacheKey && cachedDataRef.current) {
-        if (IS_DEV) console.log('✅ Usando dados em cache');
-        const resumo = cachedDataRef.current;
-        
-        const totalsRow = resumo?.totais;
-        setTotals(
-          totalsRow
-            ? {
-                ofertadas: safeNumber(totalsRow.corridas_ofertadas),
-                aceitas: safeNumber(totalsRow.corridas_aceitas),
-                rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
-                completadas: safeNumber(totalsRow.corridas_completadas),
-              }
-            : { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }
-        );
-
-        setAderenciaSemanal(resumo?.semanal ?? []);
-        setAderenciaDia(resumo?.dia ?? []);
-        setAderenciaTurno(resumo?.turno ?? []);
-        setAderenciaSubPraca(resumo?.sub_praca ?? []);
-        setAderenciaOrigem(resumo?.origem ?? []);
-        
-        const dimensoes = resumo?.dimensoes;
-        if (dimensoes && (!dimensoesOriginais || 
-            !arraysEqual(dimensoes.pracas || [], dimensoesOriginais.pracas || []))) {
-          setDimensoesOriginais(dimensoes);
-        }
-        
-        const dimensoesParaUsar = dimensoesOriginais || dimensoes;
-        setAnosDisponiveis(Array.isArray(dimensoesParaUsar?.anos) ? dimensoesParaUsar.anos : []);
-        setSemanasDisponiveis(Array.isArray(dimensoesParaUsar?.semanas) ? dimensoesParaUsar.semanas : []);
-        
-        let pracasDisponiveis = Array.isArray(dimensoesParaUsar?.pracas) ? dimensoesParaUsar.pracas : [];
-        let subPracasDisponiveis = Array.isArray(dimensoesParaUsar?.sub_pracas) ? dimensoesParaUsar.sub_pracas : [];
-        let origensDisponiveis = Array.isArray(dimensoesParaUsar?.origens) ? dimensoesParaUsar.origens : [];
-        
-        // Otimizar: usar Set para filtros O(1) ao invés de O(n)
-        if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-          const pracasPermitidasSet = new Set(currentUser.assigned_pracas);
-          const pracasPermitidasUpperSet = new Set(
-            currentUser.assigned_pracas.map(p => p.toUpperCase())
-          );
-          
-          // Filtrar praças usando Set (O(1) lookup)
-          pracasDisponiveis = pracasDisponiveis.filter((p: string) => 
-            pracasPermitidasSet.has(p)
-          );
-          
-          // Filtrar sub-praças de forma otimizada
-          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) => {
-            const spUpper = sp.toUpperCase();
-            // Verificar se alguma praça permitida está contida na sub-praça
-            return Array.from(pracasPermitidasUpperSet).some(praca => spUpper.includes(praca));
-          });
-        }
-        
-        // Otimizar: cache do toUpperCase para evitar recálculos
-        if (filters.praca) {
-          const pracaSelecionada = filters.praca.toUpperCase();
-          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
-            sp.toUpperCase().includes(pracaSelecionada)
-          );
-        }
-        
-        // Extrair turnos únicos dos dados de turno recebidos
-        const turnosDisponiveis = Array.from(new Set(
-          (resumo?.turno ?? []).map((t: AderenciaTurno) => t.periodo).filter((p: string | null | undefined): p is string => p != null && p !== '')
-        )).sort();
-        
-        // Otimizar: criar arrays de FilterOption de forma eficiente
-        const toFilterOption = (value: string) => ({ value, label: value });
-        
-        setPracas(pracasDisponiveis.map(toFilterOption));
-        setSubPracas(subPracasDisponiveis.map(toFilterOption));
-        setOrigens(origensDisponiveis.map(toFilterOption));
-        setTurnos(turnosDisponiveis.map(toFilterOption));
-        
-        setError(null);
-        setLoading(false);
-        return;
-      }
-      
-      setLoading(true);
-      setError(null);
-
-      const params = filterPayload;
-      if (IS_DEV) {
-      console.log('🔍 Filtros aplicados:', filters);
-      console.log('📤 Parâmetros enviados ao backend:', params);
-      }
-
-      try {
-        abortRef.current?.abort();
-        const controller = new AbortController();
-        abortRef.current = controller;
-
-        if (IS_DEV) console.log('🚀 Chamando dashboard_resumo...');
-        const { data: resumoData, error: resumoError } = await supabase.rpc('dashboard_resumo', params);
-        if (IS_DEV) console.log('✅ Resposta recebida:', { data: resumoData, error: resumoError });
-
-        if (controller.signal.aborted) {
-          return;
-        }
-
-        if (resumoError) {
-          throw resumoError;
-        }
-        
-        // Salvar no cache
-        cacheKeyRef.current = cacheKey;
-        cachedDataRef.current = resumoData as DashboardResumoData | null;
-
-        const resumo = resumoData as DashboardResumoData | null;
-
-        const totalsRow = resumo?.totais;
-        setTotals(
-          totalsRow
-            ? {
-                ofertadas: safeNumber(totalsRow.corridas_ofertadas),
-                aceitas: safeNumber(totalsRow.corridas_aceitas),
-                rejeitadas: safeNumber(totalsRow.corridas_rejeitadas),
-                completadas: safeNumber(totalsRow.corridas_completadas),
-              }
-            : { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }
-        );
-
-        // Filtrar dados baseado nas permissões do usuário ANTES de setar states
-        let semanalFiltrado = resumo?.semanal ?? [];
-        let diaFiltrado = resumo?.dia ?? [];
-        let turnoFiltrado = resumo?.turno ?? [];
-        let subPracaFiltrado = resumo?.sub_praca ?? [];
-        let origemFiltrado = resumo?.origem ?? [];
-        
-        // Se não for admin e tiver praças atribuídas, filtrar TODOS os dados
-        // Otimizar: criar Set uma única vez para reutilizar
-        if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-          const pracasPermitidasSet = new Set(
-            currentUser.assigned_pracas.map(p => p.toUpperCase())
-          );
-          
-          // Filtrar turno (não tem referência direta à praça, então mantém todos se já filtrou no backend)
-          // O backend já deve estar filtrando pelo p_praca, então mantemos
-          turnoFiltrado = turnoFiltrado;
-          
-          // Filtrar sub-praças (sub-praças contêm o nome da praça principal)
-          // Otimizar: usar Set para melhor performance
-          subPracaFiltrado = subPracaFiltrado.filter((item: AderenciaSubPraca) => {
-            if (!item.sub_praca) return false;
-            const subPracaUpper = item.sub_praca.toUpperCase();
-            return Array.from(pracasPermitidasSet).some(praca => subPracaUpper.includes(praca));
-          });
-          
-          // Filtrar origens - CORRIGIDO: agora filtra de verdade
-          // Como origem não tem referência direta à praça, vamos usar a praça selecionada nos filtros
-          // Se o usuário já tem filtro de praça aplicado, o backend retorna apenas dados daquela praça
-          // Então mantemos as origens retornadas
-          origemFiltrado = origemFiltrado;
-        }
-
-        if (IS_DEV) {
-        console.log('📊 Dados Semanal recebidos:', semanalFiltrado);
-        console.log('📊 Quantidade de semanas:', semanalFiltrado.length);
-        }
-        
-        setAderenciaSemanal(semanalFiltrado);
-        setAderenciaDia(diaFiltrado);
-        setAderenciaTurno(turnoFiltrado);
-        setAderenciaSubPraca(subPracaFiltrado);
-        setAderenciaOrigem(origemFiltrado);
-
-        const dimensoes = resumo?.dimensoes;
-        
-        // Armazenar dimensões originais na primeira vez ou atualizar se necessário
-        // Usar comparação eficiente de arrays ao invés de JSON.stringify
-        if (dimensoes && (!dimensoesOriginais || 
-            !arraysEqual(dimensoes.pracas || [], dimensoesOriginais.pracas || []) ||
-            !arraysEqual(dimensoes.sub_pracas || [], dimensoesOriginais.sub_pracas || []) ||
-            !arraysEqual(dimensoes.origens || [], dimensoesOriginais.origens || []))) {
-          setDimensoesOriginais(dimensoes);
-        }
-        
-        // Usar dimensões originais se disponíveis, senão usar as atuais
-        const dimensoesParaUsar = dimensoesOriginais || dimensoes;
-        
-        // Garantir que anos e semanas sempre sejam arrays
-        setAnosDisponiveis(Array.isArray(dimensoesParaUsar?.anos) ? dimensoesParaUsar.anos : []);
-        setSemanasDisponiveis(Array.isArray(dimensoesParaUsar?.semanas) ? dimensoesParaUsar.semanas : []);
-        
-        // IMPORTANTE: SEMPRE usar as dimensões originais completas para manter TODAS as opções
-        // Nunca filtrar baseado nos dados retornados, pois isso impede seleção múltipla
-        let pracasDisponiveis = Array.isArray(dimensoesParaUsar?.pracas) ? dimensoesParaUsar.pracas : [];
-        let subPracasDisponiveis = Array.isArray(dimensoesParaUsar?.sub_pracas) ? dimensoesParaUsar.sub_pracas : [];
-        let origensDisponiveis = Array.isArray(dimensoesParaUsar?.origens) ? dimensoesParaUsar.origens : [];
-        
-        // Extrair turnos únicos dos dados de turno recebidos
-        // Se estiver nas dimensões, usar, senão extrair dos dados recebidos
-        let turnosDisponiveis: string[] = [];
-        if (Array.isArray(dimensoesParaUsar?.turnos) && dimensoesParaUsar.turnos.length > 0) {
-          turnosDisponiveis = dimensoesParaUsar.turnos;
-        } else {
-          // Extrair dos dados de turno recebidos
-          turnosDisponiveis = Array.from(new Set(
-            (turnoFiltrado ?? []).map((t: AderenciaTurno) => t.periodo).filter((p: string | null | undefined): p is string => p != null && p !== '')
-          )).sort();
-        }
-        
-        // Otimizar: usar Set para filtros O(1) ao invés de O(n)
-        // Se não for admin, filtrar apenas praças atribuídas
-        if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-          const pracasPermitidasSet = new Set(currentUser.assigned_pracas);
-          const pracasPermitidasUpperSet = new Set(
-            currentUser.assigned_pracas.map(p => p.toUpperCase())
-          );
-          
-          // Filtrar praças usando Set (O(1) lookup)
-          pracasDisponiveis = pracasDisponiveis.filter((p: string) => 
-            pracasPermitidasSet.has(p)
-          );
-          
-          // Filtrar sub-praças de forma otimizada
-          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) => {
-            const spUpper = sp.toUpperCase();
-            // Verificar se alguma praça permitida está contida na sub-praça
-            return Array.from(pracasPermitidasUpperSet).some(praca => spUpper.includes(praca));
-          });
-          
-          // Para origens: manter TODAS as origens das dimensões originais
-          // Não filtrar, pois isso impede seleção múltipla
-        }
-        
-        // Otimizar: cache do toUpperCase para evitar recálculos
-        // Se houver praça selecionada, mostrar apenas sub praças daquela praça
-        // MAS manter TODAS as origens para permitir seleção múltipla
-        if (filters.praca) {
-          const pracaSelecionada = filters.praca.toUpperCase();
-          // Filtrar sub-praças para mostrar apenas as da praça selecionada
-          subPracasDisponiveis = subPracasDisponiveis.filter((sp: string) =>
-            sp.toUpperCase().includes(pracaSelecionada)
-          );
-          
-          // IMPORTANTE: NÃO filtrar origens mesmo quando há praça selecionada
-          // Manter todas as origens para permitir seleção múltipla
-        }
-        
-        // Otimizar: criar arrays de FilterOption de forma eficiente
-        const toFilterOption = (value: string) => ({ value, label: value });
-        
-        setPracas(pracasDisponiveis.map(toFilterOption));
-        setSubPracas(subPracasDisponiveis.map(toFilterOption));
-        setOrigens(origensDisponiveis.map(toFilterOption));
-        setTurnos(turnosDisponiveis.map(toFilterOption));
-
-        setError(null);
-      } catch (err: any) {
-        if (err?.name === 'AbortError') {
-          return;
-        }
-        safeLog.error('Erro ao buscar dados do dashboard:', err);
-        setError(getSafeErrorMessage(err) || 'Não foi possível carregar os dados. Verifique os filtros ou tente novamente.');
-        setTotals(null);
-        setAderenciaSemanal([]);
-        setAderenciaDia([]);
-        setAderenciaTurno([]);
-        setAderenciaSubPraca([]);
-        setAderenciaOrigem([]);
-        setTurnos([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    // Debounce otimizado para evitar múltiplas chamadas rápidas (reduzido de 300ms para 150ms)
-    const timeoutId = setTimeout(() => {
-    fetchData();
-    }, 300); // Aguardar 300ms antes de fazer a requisição
-
-    return () => {
-      clearTimeout(timeoutId);
-      abortRef.current?.abort();
-    };
-    // filterPayload já contém todos os dados de filters, então não precisamos incluir filters nas dependências
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterPayload, currentUser, activeTab, dimensoesOriginais]);
-
-  // Buscar dados da UTR quando a aba estiver ativa (com debounce)
-  useEffect(() => {
-    if (activeTab !== 'utr') return;
-    
-    const timeoutId = setTimeout(async () => {
-      async function fetchUtr() {
-        setLoadingUtr(true);
-        try {
-          const { data: utrResult, error: utrError } = await supabase.rpc('calcular_utr', filterPayload);
-          
-          if (utrError) throw utrError;
-          
-          setUtrData(utrResult as UtrData);
-        } catch (err: any) {
-          if (IS_DEV) console.error('Erro ao buscar UTR:', err);
-          setUtrData(null);
-          // Não mostrar erro ao usuário aqui, apenas logar - o componente UtrView já trata dados nulos
-        } finally {
-          setLoadingUtr(false);
-        }
-      }
-      
-      fetchUtr();
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [activeTab, filterPayload]);
-
-  // Buscar dados dos Entregadores quando a aba estiver ativa (com debounce)
-  useEffect(() => {
-    if (activeTab !== 'entregadores') return;
-    
-    const timeoutId = setTimeout(async () => {
-      async function fetchEntregadores() {
-        setLoadingEntregadores(true);
-        try {
-          const { data: entregadoresResult, error: entregadoresError } = await supabase.rpc('listar_entregadores', filterPayload);
-          
-          if (entregadoresError) throw entregadoresError;
-          
-          setEntregadoresData(entregadoresResult as EntregadoresData);
-        } catch (err: any) {
-          if (IS_DEV) console.error('Erro ao buscar Entregadores:', err);
-          setEntregadoresData(null);
-          // Não mostrar erro ao usuário aqui, apenas logar - o componente EntregadoresView já trata dados nulos
-        } finally {
-          setLoadingEntregadores(false);
-        }
-      }
-      
-      fetchEntregadores();
-    }, 300);
-    
-    return () => clearTimeout(timeoutId);
-  }, [activeTab, filterPayload]);
-
-  // Buscar dados para Prioridade/Promo quando a aba estiver ativa (com debounce)
-  useEffect(() => {
-    if (activeTab !== 'prioridade') return;
-    
-    const timeoutId = setTimeout(async () => {
-      async function fetchPrioridade() {
-        setLoadingPrioridade(true);
-        try {
-          const { data: prioridadeResult, error: prioridadeError } = await supabase.rpc('listar_entregadores', filterPayload);
-          
-          if (prioridadeError) throw prioridadeError;
-          
-          setPrioridadeData(prioridadeResult as EntregadoresData);
-        } catch (err: any) {
-          if (IS_DEV) console.error('Erro ao buscar dados de Prioridade:', err);
-          setPrioridadeData(null);
-          // Não mostrar erro ao usuário aqui, apenas logar - o componente PrioridadePromoView já trata dados nulos
-        } finally {
-          setLoadingPrioridade(false);
-        }
-      }
-      
-      fetchPrioridade();
-    }, 300);
-    
-    return () => clearTimeout(timeoutId);
-  }, [activeTab, filterPayload]);
-  // Buscar dados de Valores quando a aba estiver ativa (com debounce)
-  useEffect(() => {
-    if (activeTab !== 'valores') return;
-    
-    const timeoutId = setTimeout(async () => {
-      async function fetchValores() {
-        setLoadingValores(true);
-        try {
-          const { data: valoresResult, error: valoresError } = await supabase.rpc('listar_valores_entregadores', filterPayload);
-          
-          if (valoresError) throw valoresError;
-          
-          // Verificar se o resultado é um objeto com propriedade 'valores' (estrutura esperada)
-          let valoresArray: ValoresEntregador[] = [];
-          
-          if (Array.isArray(valoresResult)) {
-            // Se já for um array, usar diretamente
-            valoresArray = valoresResult;
-            if (IS_DEV) console.log('✅ Resultado é array direto, usando:', valoresArray.length, 'itens');
-          } else if (valoresResult && typeof valoresResult === 'object') {
-            // Se for um objeto, verificar diferentes estruturas possíveis
-            const obj = valoresResult as any;
-            
-            // IMPORTANTE: A função SQL retorna { "entregadores": [...] } - verificar PRIMEIRO
-            if ('entregadores' in obj && Array.isArray(obj.entregadores)) {
-              valoresArray = obj.entregadores;
-            }
-            // Verificar propriedade 'valores' (estrutura alternativa)
-            else if ('valores' in obj && Array.isArray(obj.valores)) {
-              valoresArray = obj.valores;
-            } 
-            // Verificar propriedade 'valores_entregadores'
-            else if ('valores_entregadores' in obj && Array.isArray(obj.valores_entregadores)) {
-              valoresArray = obj.valores_entregadores;
-            }
-            // Verificar propriedade 'data'
-            else if ('data' in obj && Array.isArray(obj.data)) {
-              valoresArray = obj.data;
-            }
-            // Verificar propriedade 'result' ou 'results'
-            else if ('result' in obj && Array.isArray(obj.result)) {
-              valoresArray = obj.result;
-            }
-            else if ('results' in obj && Array.isArray(obj.results)) {
-              valoresArray = obj.results;
-            }
-            // Tentar converter o objeto em array se os valores forem objetos com id_entregador
-            else {
-              const values = Object.values(obj);
-              const arrayLike = values.filter((item: any) => 
-                item && typeof item === 'object' && ('id_entregador' in item || 'nome_entregador' in item)
-              );
-              if (arrayLike.length > 0) {
-                valoresArray = arrayLike as ValoresEntregador[];
-              } else {
-                // Se não encontrou array, pode ser que o objeto seja um único registro
-                if ('id_entregador' in obj || 'nome_entregador' in obj) {
-                  valoresArray = [obj as ValoresEntregador];
-                } else if (IS_DEV) {
-                  console.warn('⚠️ Não foi possível extrair array do objeto. Estrutura:', Object.keys(obj));
-                }
-              }
-            }
-          } else if (valoresResult) {
-            // Se for um único valor, colocar em array
-            valoresArray = [valoresResult as ValoresEntregador];
-          }
-          
-          if (IS_DEV && valoresArray.length > 0) {
-            console.log('📊 Valores processados:', valoresArray.length, 'entregadores');
-          }
-          
-          setValoresData(valoresArray);
-        } catch (err: any) {
-          if (IS_DEV) console.error('Erro ao buscar Valores:', err);
-          setValoresData([]);
-          // Não mostrar erro ao usuário aqui, apenas logar - o componente ValoresView já trata dados vazios
-        } finally {
-          setLoadingValores(false);
-        }
-      }
-      
-      fetchValores();
-    }, 300);
-    
-    return () => clearTimeout(timeoutId);
-  }, [activeTab, filterPayload]);
-
   // Buscar anos disponíveis ao carregar
   useEffect(() => {
-    async function fetchAnosDisponiveis() {
+    const fetchAnosDisponiveis = async () => {
       try {
         const { data, error } = await supabase.rpc('listar_anos_disponiveis');
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
         setAnosDisponiveis(data || []);
-      } catch (err: any) {
-        if (IS_DEV) console.error('Erro ao buscar anos disponíveis:', err);
+      } catch (err) {
+        if (IS_DEV) {
+        console.error('Erro ao buscar anos disponíveis:', err);
+        }
         setAnosDisponiveis([new Date().getFullYear()]);
       }
-    }
+    };
     fetchAnosDisponiveis();
   }, []);
+
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    if (activeTab === 'evolucao') {
-      const cacheKey = `${anoEvolucao}-${filters.praca || 'all'}`;
-      const cachedData = evolucaoCacheRef.current.get(cacheKey);
-      
-      if (cachedData) {
-        if (IS_DEV) console.log('✅ Usando dados de evolução em cache');
-        setEvolucaoMensal(cachedData.mensal);
-        setEvolucaoSemanal(cachedData.semanal);
-        setUtrSemanal(cachedData.utrSemanal || []);
-        setLoadingEvolucao(false);
-      } else {
-        timeoutId = setTimeout(async () => {
-          setLoadingEvolucao(true);
-          try {
-            const pracaSelecionada = filters.praca || null;
-            const [mensalResult, semanalResult, utrSemanalResult] = await Promise.all([
-              supabase.rpc('listar_evolucao_mensal', {
-                p_praca: pracaSelecionada,
-                p_ano: anoEvolucao
-              }),
-              supabase.rpc('listar_evolucao_semanal', {
-                p_praca: pracaSelecionada,
-                p_ano: anoEvolucao,
-                p_limite_semanas: 53
-              }),
-              supabase.rpc('listar_utr_semanal', {
-                p_praca: pracaSelecionada,
-                p_ano: anoEvolucao,
-                p_limite_semanas: 53
-              })
-            ]);
-
-            if (mensalResult.error) throw mensalResult.error;
-            if (semanalResult.error) throw semanalResult.error;
-            const dadosMensais = mensalResult.data || [];
-            const dadosSemanais = semanalResult.data || [];
-            const dadosUtrSemanal = utrSemanalResult.error ? [] : (utrSemanalResult.data || []);
-
-            if (utrSemanalResult.error && IS_DEV) {
-              console.warn('⚠️ Função listar_utr_semanal não disponível ou erro:', utrSemanalResult.error);
-            } else if (IS_DEV) {
-              if (dadosUtrSemanal.length > 0) {
-                console.log('✅ Dados UTR carregados:', dadosUtrSemanal.length, 'semanas');
-              } else {
-                console.warn('⚠️ Função listar_utr_semanal retornou array vazio.');
-              }
-            }
-
-            evolucaoCacheRef.current.set(cacheKey, { 
-              mensal: dadosMensais, 
-              semanal: dadosSemanais,
-              utrSemanal: dadosUtrSemanal,
-            });
-            
-            if (evolucaoCacheRef.current.size > 10) {
-              const firstKey = evolucaoCacheRef.current.keys().next().value;
-              if (firstKey !== undefined) {
-                evolucaoCacheRef.current.delete(firstKey);
-              }
-            }
-
-            setEvolucaoMensal(dadosMensais);
-            setEvolucaoSemanal(dadosSemanais);
-            setUtrSemanal(dadosUtrSemanal);
-          } catch (err: any) {
-            if (IS_DEV) console.error('Erro ao buscar Evolução:', err);
-            setEvolucaoMensal([]);
-            setEvolucaoSemanal([]);
-            setUtrSemanal([]);
-          } finally {
-            setLoadingEvolucao(false);
-          }
-        }, 300);
-      }
-    }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
+    console.log("Debug: Evolucao useEffect triggered", { activeTab, praca: filters.praca, anoEvolucao });
+    // Temporarily disabled to debug build error
   }, [activeTab, filters.praca, anoEvolucao]);
 
   return (
