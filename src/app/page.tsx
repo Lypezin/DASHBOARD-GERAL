@@ -7803,6 +7803,7 @@ export default function DashboardPage() {
         if (timeoutId) clearTimeout(timeoutId);
       };
     }
+
     const cacheKey = `${anoEvolucao}-${filters.praca || 'all'}`;
     const cachedData = evolucaoCacheRef.current.get(cacheKey);
     
@@ -7880,9 +7881,7 @@ export default function DashboardPage() {
       }
     }, 300);
 
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
+    return () => clearTimeout(timeoutId);
   }, [activeTab, filters.praca, anoEvolucao]);
 
   return (
