@@ -47,7 +47,7 @@ export function validateFilterPayload(payload: any): any {
     if (Array.isArray(payload.p_sub_praca)) {
       subPracas = payload.p_sub_praca;
     } else if (typeof payload.p_sub_praca === 'string') {
-      subPracas = payload.p_sub_praca.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      subPracas = payload.p_sub_praca.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
     } else {
       throw new Error('Sub-praças deve ser um array ou string separada por vírgula.');
     }
@@ -80,7 +80,7 @@ export function validateFilterPayload(payload: any): any {
     if (Array.isArray(payload.p_origem)) {
       origens = payload.p_origem;
     } else if (typeof payload.p_origem === 'string') {
-      origens = payload.p_origem.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      origens = payload.p_origem.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
     } else {
       throw new Error('Origens deve ser um array ou string separada por vírgula.');
     }
@@ -112,7 +112,7 @@ export function validateFilterPayload(payload: any): any {
     if (Array.isArray(payload.p_turno)) {
       turnos = payload.p_turno;
     } else if (typeof payload.p_turno === 'string') {
-      turnos = payload.p_turno.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      turnos = payload.p_turno.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
     } else {
       throw new Error('Turnos deve ser um array ou string separada por vírgula.');
     }
