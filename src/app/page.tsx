@@ -1390,14 +1390,6 @@ function AnaliseView({
       delay: 0, // Removido delay para melhor performance
       // Desabilitar animação em dispositivos lentos
       ...(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { duration: 0 } : {}),
-      // Código antigo de delay removido para performance
-      /* delay: (context: any) => {
-        let delay = 0;
-        if (context.type === 'data' && context.mode === 'default') {
-          delay = context.dataIndex * 40 + context.datasetIndex * 80;
-        }
-        return delay;
-      },
     },
     interaction: {
       mode: 'index' as const,
