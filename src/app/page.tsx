@@ -1386,7 +1386,7 @@ function AnaliseView({
     },
     animation: {
       duration: 300, // Reduzido de 1000ms para melhor performance
-      easing: 'easeOut' as const,
+      easing: 'easeOutCubic' as const, // Corrigido: easeOut não é válido, usando easeOutCubic
       delay: 0, // Removido delay para melhor performance
       // Desabilitar animação em dispositivos lentos
       ...(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { duration: 0 } : {}),
@@ -4746,7 +4746,7 @@ function EvolucaoView({
     },
     animation: {
       duration: 300, // Animação muito mais rápida para melhor performance
-      easing: 'easeOut' as const,
+      easing: 'easeOutCubic' as const, // Corrigido: easeOut não é válido, usando easeOutCubic
       delay: 0, // Sem delay para melhor performance
       // Desabilitar animação em dispositivos lentos
       ...(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { duration: 0 } : {}),
@@ -5487,7 +5487,7 @@ function EvolucaoView({
                   },
                   animation: {
                     duration: 300, // Reduzido de 1200ms para melhor performance
-                    easing: 'easeOut' as const,
+                    easing: 'easeOutCubic' as const, // Corrigido: easeOut não é válido, usando easeOutCubic
                     // Desabilitar animação em dispositivos lentos
                     ...(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { duration: 0 } : {}),
                   },
