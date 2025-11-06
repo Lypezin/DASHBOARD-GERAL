@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import type { Conquista, ConquistaNova } from '@/types/conquistas';
 
-const supabase = createClient();
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useConquistas() {
