@@ -6917,6 +6917,69 @@ export default function DashboardPage() {
     fetchAnosDisponiveis();
   }, []);
 
+  // Buscar dados principais do Dashboard (totais e aderências)
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data, error } = await supabase.rpc('dashboard_resumo', filterPayload as any);
+        if (error) throw error;
+
+        if (isCancelled) return;
+
+        const safeData: DashboardResumoData | null = data || null;
+
+        if (safeData) {
+          setTotals({
+            ofertadas: safeNumber(safeData.totais?.corridas_ofertadas ?? 0),
+            aceitas: safeNumber(safeData.totais?.corridas_aceitas ?? 0),
+            rejeitadas: safeNumber(safeData.totais?.corridas_rejeitadas ?? 0),
+            completadas: safeNumber(safeData.totais?.corridas_completadas ?? 0),
+          });
+
+          setAderenciaSemanal(Array.isArray(safeData.semanal) ? safeData.semanal : []);
+          setAderenciaDia(Array.isArray(safeData.dia) ? safeData.dia : []);
+          setAderenciaTurno(Array.isArray(safeData.turno) ? safeData.turno : []);
+          setAderenciaSubPraca(Array.isArray(safeData.sub_praca) ? safeData.sub_praca : []);
+          setAderenciaOrigem(Array.isArray(safeData.origem) ? safeData.origem : []);
+
+          // Dimensões disponíveis para filtros (quando vierem do backend)
+          if (safeData.dimensoes) {
+            setPracas(Array.isArray(safeData.dimensoes.pracas) ? safeData.dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) })) : []);
+            setSubPracas(Array.isArray(safeData.dimensoes.sub_pracas) ? safeData.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : []);
+            setOrigens(Array.isArray(safeData.dimensoes.origens) ? safeData.dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) })) : []);
+            if (Array.isArray((safeData.dimensoes as any).turnos)) {
+              setTurnos((safeData.dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) })));
+            }
+          }
+        } else {
+          setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
+          setAderenciaSemanal([]);
+          setAderenciaDia([]);
+          setAderenciaTurno([]);
+          setAderenciaSubPraca([]);
+          setAderenciaOrigem([]);
+        }
+      } catch (err: any) {
+        if (!isCancelled) {
+          if (IS_DEV) console.error('Erro ao carregar dashboard_resumo:', err);
+          setError('Não foi possível carregar os dados do dashboard.');
+        }
+      } finally {
+        if (!isCancelled) setLoading(false);
+      }
+    };
+
+    // Evitar buscar durante tela de comparação (opcional); ainda assim mantemos dados atualizados
+    fetchDashboard();
+    return () => {
+      isCancelled = true;
+    };
+  }, [filterPayload]);
+
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
     console.log("Debug: Evolucao useEffect triggered", { activeTab, praca: filters.praca, anoEvolucao });
