@@ -7829,7 +7829,7 @@ export default function DashboardPage() {
           supabase.rpc('listar_evolucao_semanal', {
             p_praca: pracaSelecionada,
             p_ano: anoEvolucao,
-            p_limite_semanas: 53 // Aumentado para 53 para cobrir anos bissextos com semanas extras
+            p_limite_semanas: 53
           }),
           supabase.rpc('listar_utr_semanal', {
             p_praca: pracaSelecionada,
@@ -7845,24 +7845,15 @@ export default function DashboardPage() {
         const dadosUtrSemanal = utrSemanalResult.error ? [] : (utrSemanalResult.data || []);
 
         if (utrSemanalResult.error) {
-          // UTR semanal pode não existir ainda, então apenas logar o erro
           if (IS_DEV) {
             console.warn('⚠️ Função listar_utr_semanal não disponível ou erro:', utrSemanalResult.error);
-            console.warn('⚠️ Detalhes do erro:', {
-              message: utrSemanalResult.error.message,
-              code: utrSemanalResult.error.code,
-              details: utrSemanalResult.error.details,
-              hint: utrSemanalResult.error.hint
-            });
           }
         } else {
           if (IS_DEV) {
             if (dadosUtrSemanal.length > 0) {
               console.log('✅ Dados UTR carregados:', dadosUtrSemanal.length, 'semanas');
-              console.log('📊 Primeiros dados UTR:', dadosUtrSemanal.slice(0, 3));
             } else {
-              console.warn('⚠️ Função listar_utr_semanal retornou array vazio. Verifique se há dados para o ano/praça selecionados.');
-              console.warn('⚠️ Parâmetros da chamada:', { praca: pracaSelecionada, ano: anoEvolucao });
+              console.warn('⚠️ Função listar_utr_semanal retornou array vazio.');
             }
           }
         }
@@ -7885,19 +7876,6 @@ export default function DashboardPage() {
         setEvolucaoMensal(dadosMensais);
         setEvolucaoSemanal(dadosSemanais);
         setUtrSemanal(dadosUtrSemanal);
-        
-        // Log detalhado para debug da UTR
-        if (IS_DEV) {
-          console.log('📊 Estado após carregamento:');
-          console.log('- Total UTR semanal carregado:', dadosUtrSemanal.length);
-          console.log('- Anos disponíveis nos dados UTR:', [...new Set(dadosUtrSemanal.map((d: UtrSemanal) => d.ano))]);
-          console.log('- Ano selecionado:', anoEvolucao);
-          const dadosFiltrados = dadosUtrSemanal.filter((d: UtrSemanal) => d.ano === anoEvolucao);
-          console.log('- Dados UTR filtrados para ano selecionado:', dadosFiltrados.length);
-          if (dadosFiltrados.length > 0) {
-            console.log('- Primeiros dados filtrados:', dadosFiltrados.slice(0, 3));
-          }
-        }
       } catch (err: any) {
         if (IS_DEV) console.error('Erro ao buscar Evolução:', err);
         setEvolucaoMensal([]);
@@ -7906,7 +7884,7 @@ export default function DashboardPage() {
       } finally {
         setLoadingEvolucao(false);
       }
-    }, 300); // Debounce de 300ms
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [activeTab, filters.praca, anoEvolucao]);
