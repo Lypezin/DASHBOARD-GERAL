@@ -40,12 +40,14 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
     turno = filters.turno.length > 100 ? filters.turno.substring(0, 100) : filters.turno;
   }
 
-  let semana: string | null = null;
+  let semana: number | null = null;
   if (filters.semanas && filters.semanas.length > 0) {
-    const limited = filters.semanas.slice(0, MAX_ARRAY_SIZE);
-    semana = limited.length === 1 ? String(limited[0]) : limited.map((s) => String(s)).join(',');
+    // Se houver múltiplas semanas, usar apenas a primeira (a função espera integer, não array)
+    semana = Number(filters.semanas[0]);
+    if (isNaN(semana)) semana = null;
   } else if (filters.semana !== null && filters.semana !== undefined) {
-    semana = String(filters.semana);
+    semana = Number(filters.semana);
+    if (isNaN(semana)) semana = null;
   }
 
   let ano: number | null = filters.ano;

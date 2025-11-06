@@ -120,9 +120,19 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             setTurnos((data.dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) })));
           }
         }
-      } catch (err) {
+      } catch (err: any) {
         if (IS_DEV) console.error('Erro ao carregar dashboard_resumo:', err);
-        setError('Não foi possível carregar os dados do dashboard.');
+        const errorMessage = err?.message || err?.code || 'Não foi possível carregar os dados do dashboard.';
+        setError(errorMessage);
+        // Manter dados anteriores em cache se houver erro
+        if (!cachedDataRef.current) {
+          setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
+          setAderenciaSemanal([]);
+          setAderenciaDia([]);
+          setAderenciaTurno([]);
+          setAderenciaSubPraca([]);
+          setAderenciaOrigem([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -153,10 +163,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'entregadores':
             setLoadingEntregadores(true);
             try {
+              // pesquisar_entregadores só aceita termo_busca, não aceita outros parâmetros
               const { data, error } = await supabase.rpc('pesquisar_entregadores', { 
-                termo_busca: '',
-                ...filterPayload
-              } as any);
+                termo_busca: ''
+              });
               if (error) throw error;
               const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
               setEntregadoresData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
@@ -170,10 +180,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'valores':
             setLoadingValores(true);
             try {
+              // pesquisar_valores_entregadores só aceita termo_busca, não aceita outros parâmetros
               const { data, error } = await supabase.rpc('pesquisar_valores_entregadores', { 
-                termo_busca: '',
-                ...filterPayload
-              } as any);
+                termo_busca: ''
+              });
               if (error) throw error;
               setValoresData(Array.isArray(data) ? data : []);
             } catch (err: any) {
@@ -186,10 +196,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'prioridade':
             setLoadingPrioridade(true);
             try {
+              // pesquisar_entregadores só aceita termo_busca, não aceita outros parâmetros
               const { data, error } = await supabase.rpc('pesquisar_entregadores', { 
-                termo_busca: '',
-                ...filterPayload
-              } as any);
+                termo_busca: ''
+              });
               if (error) throw error;
               const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
               setPrioridadeData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
@@ -207,6 +217,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             setEvolucaoMensal(cached.mensal);
             setEvolucaoSemanal(cached.semanal);
             setUtrSemanal(cached.utrSemanal);
+            setLoadingEvolucao(false);
             return;
           }
           setLoadingEvolucao(true);
@@ -215,15 +226,24 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             supabase.rpc('listar_evolucao_semanal', { ...filterPayload, p_ano: anoEvolucao } as any),
             supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao } as any)
           ]).then(([mensalRes, semanalRes, utrSemanalRes]) => {
-            const mensal = mensalRes.data || [];
-            const semanal = semanalRes.data || [];
-            const utr = utrSemanalRes.data || [];
+            // Verificar erros em cada resposta
+            if (mensalRes.error && IS_DEV) console.error('Erro ao carregar evolução mensal:', mensalRes.error);
+            if (semanalRes.error && IS_DEV) console.error('Erro ao carregar evolução semanal:', semanalRes.error);
+            if (utrSemanalRes.error && IS_DEV) console.error('Erro ao carregar UTR semanal:', utrSemanalRes.error);
+            
+            const mensal = Array.isArray(mensalRes.data) ? mensalRes.data : [];
+            const semanal = Array.isArray(semanalRes.data) ? semanalRes.data : [];
+            const utr = Array.isArray(utrSemanalRes.data) ? utrSemanalRes.data : [];
+            
             evolucaoCacheRef.current.set(cacheKey, { mensal, semanal, utrSemanal: utr });
             setEvolucaoMensal(mensal);
             setEvolucaoSemanal(semanal);
             setUtrSemanal(utr);
           }).catch(err => {
             if (IS_DEV) console.error('Erro ao carregar evolução:', err);
+            setEvolucaoMensal([]);
+            setEvolucaoSemanal([]);
+            setUtrSemanal([]);
           }).finally(() => setLoadingEvolucao(false));
           break;
       }
