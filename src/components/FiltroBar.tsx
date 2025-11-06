@@ -56,11 +56,11 @@ function FiltroBar({
     <div className="space-y-3 sm:space-y-4 relative" style={{ isolation: 'isolate' }}>
       <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
         <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anos.map((ano) => ({ value: String(ano), label: String(ano) }))} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
-        <FiltroMultiSelect label="Semana" selectedValues={filters.semanas ? filters.semanas.map(String) : []} options={semanas.map((sem) => ({ value: sem, label: `Semana ${sem.split('-W')[1]}` }))} placeholder="Todas" onChange={(values) => setFilters(prev => ({...prev, semanas: values.map(Number)}))} />
+        <FiltroMultiSelect label="Semana" selected={filters.semanas ? filters.semanas.map(String) : []} options={semanas.map((sem) => ({ value: sem, label: `Semana ${sem.split('-W')[1]}` }))} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, semanas: values.map(Number)}))} />
         <FiltroSelect label="Praça" value={filters.praca ?? ''} options={pracas} placeholder="Todas" onChange={(value) => handleChange('praca', value)} disabled={shouldDisablePracaFilter} />
-        <FiltroMultiSelect label="Sub praça" selectedValues={filters.subPracas || []} options={subPracas} placeholder="Todas" onChange={(values) => setFilters(prev => ({...prev, subPracas: values}))} />
-        <FiltroMultiSelect label="Origem" selectedValues={filters.origens || []} options={origens} placeholder="Todas" onChange={(values) => setFilters(prev => ({...prev, origens: values}))} />
-        <FiltroMultiSelect label="Turno" selectedValues={filters.turnos || []} options={turnos} placeholder="Todos" onChange={(values) => setFilters(prev => ({...prev, turnos: values}))} />
+        <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, subPracas: values}))} />
+        <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, origens: values}))} />
+        <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({...prev, turnos: values}))} />
       </div>
       {hasActiveFilters && (
         <div className="flex justify-center sm:justify-end animate-scale-in">
