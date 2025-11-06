@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,104 +56,179 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 px-4 py-12 relative overflow-hidden">
-      {/* Elementos decorativos de fundo */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-950 px-4 py-12">
+      {/* Background Animated Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Gradient Orbs */}
+        <div className="absolute -top-40 -left-40 h-80 w-80 animate-pulse rounded-full bg-blue-500/20 blur-3xl"></div>
+        <div className="absolute -bottom-40 -right-40 h-96 w-96 animate-pulse rounded-full bg-indigo-500/20 blur-3xl" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-purple-500/10 blur-3xl" style={{ animationDelay: '2s' }}></div>
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+        
+        {/* Shine Effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite]"></div>
       </div>
-      
-      <div className="w-full max-w-md relative z-10">
-        {/* Logo/Header */}
-        <div className="mb-8 text-center animate-fade-in">
-          <div className="mb-4 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-md shadow-2xl border border-white/20">
-            <span className="text-5xl">📊</span>
+
+      <div className="relative z-10 w-full max-w-md">
+        {/* Logo Section */}
+        <div className="mb-10 text-center">
+          <div className="mb-6 inline-flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-500/20 via-indigo-500/20 to-purple-500/20 backdrop-blur-xl shadow-2xl ring-1 ring-white/10 transition-all duration-500 hover:scale-110 hover:rotate-3">
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
+              <span className="text-4xl">📊</span>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold text-white tracking-tight">Dashboard Operacional</h1>
-          <p className="mt-2 text-lg text-blue-100/90 font-medium">Sistema de Análise de Dados</p>
+          <h1 className="mb-2 bg-gradient-to-r from-white via-blue-100 to-indigo-100 bg-clip-text text-5xl font-black tracking-tight text-transparent">
+            Dashboard
+          </h1>
+          <p className="text-lg font-semibold text-blue-200/90">Sistema de Análise Operacional</p>
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+            <span className="text-xs font-medium text-slate-400">Sistema Online</span>
+          </div>
         </div>
 
-        {/* Card de Login */}
-        <div className="rounded-2xl border border-white/20 bg-white/95 p-8 shadow-2xl backdrop-blur-sm animate-slide-up">
-          <div className="mb-6">
-            <h2 className="text-3xl font-bold text-slate-900">Bem-vindo!</h2>
-            <p className="text-sm text-slate-600 mt-1">Entre com suas credenciais para continuar</p>
-          </div>
-
-          {error && (
-            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 animate-scale-in">
-              <div className="flex items-start gap-3">
-                <span className="text-xl flex-shrink-0">⚠️</span>
-                <p className="font-medium">{error}</p>
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label htmlFor="email" className="mb-2 block text-sm font-bold text-slate-700">
-                📧 Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-slate-900 font-medium transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 hover:border-slate-400 disabled:bg-slate-50 disabled:cursor-not-allowed"
-                placeholder="seu@email.com"
-                disabled={loading}
-              />
+        {/* Login Card */}
+        <div className="group relative">
+          {/* Card Glow */}
+          <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 opacity-20 blur-xl transition-opacity group-hover:opacity-30"></div>
+          
+          <div className="relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-2xl shadow-2xl ring-1 ring-white/20">
+            {/* Card Header */}
+            <div className="mb-8">
+              <h2 className="mb-2 text-3xl font-bold text-white">Bem-vindo de volta</h2>
+              <p className="text-sm font-medium text-slate-400">Entre com suas credenciais para continuar</p>
             </div>
 
-            <div>
-              <label htmlFor="password" className="mb-2 block text-sm font-bold text-slate-700">
-                🔒 Senha
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-slate-900 font-medium transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 hover:border-slate-400 disabled:bg-slate-50 disabled:cursor-not-allowed"
-                placeholder="••••••••"
-                disabled={loading}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3.5 font-bold text-white shadow-lg transition-all hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 active:scale-95"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-3">
-                  <div className="h-5 w-5 animate-spin rounded-full border-3 border-white border-t-transparent"></div>
-                  <span>Entrando...</span>
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 animate-scale-in rounded-2xl border border-rose-500/50 bg-rose-500/10 p-4 backdrop-blur-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500/20">
+                    <span className="text-sm">⚠️</span>
+                  </div>
+                  <p className="flex-1 text-sm font-medium text-rose-200">{error}</p>
                 </div>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  <span>Entrar</span>
-                  <span>→</span>
-                </span>
-              )}
-            </button>
-          </form>
+              </div>
+            )}
 
-          <div className="mt-6 text-center text-sm">
-            <span className="text-slate-600">Não tem uma conta?</span>{' '}
-            <Link href="/registro" className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-all">
-              Cadastre-se aqui
-            </Link>
+            {/* Login Form */}
+            <form onSubmit={handleLogin} className="space-y-6">
+              {/* Email Field */}
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-sm font-semibold text-slate-300">
+                  Email
+                </label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <span className="text-slate-400">📧</span>
+                  </div>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-12 py-3.5 text-white placeholder:text-slate-500 backdrop-blur-sm transition-all duration-200 focus:border-blue-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/20 hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="seu@email.com"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-2">
+                <label htmlFor="password" className="block text-sm font-semibold text-slate-300">
+                  Senha
+                </label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <span className="text-slate-400">🔒</span>
+                  </div>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-12 py-3.5 pr-12 text-white placeholder:text-slate-500 backdrop-blur-sm transition-all duration-200 focus:border-blue-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/20 hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="••••••••"
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-white"
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 py-4 font-bold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 active:scale-[0.98]"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 opacity-0 transition-opacity group-hover:opacity-100"></div>
+                <div className="relative flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                      <span>Entrando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Entrar</span>
+                      <span className="transition-transform group-hover:translate-x-1">→</span>
+                    </>
+                  )}
+                </div>
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="my-6 flex items-center gap-4">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+              <span className="text-xs font-medium text-slate-500">ou</span>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+            </div>
+
+            {/* Register Link */}
+            <div className="text-center">
+              <p className="text-sm text-slate-400">
+                Não tem uma conta?{' '}
+                <Link 
+                  href="/registro" 
+                  className="font-bold text-blue-400 transition-all hover:text-blue-300 hover:underline"
+                >
+                  Criar conta
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-blue-100/80">
-          <p>© 2024 Dashboard Operacional. Todos os direitos reservados.</p>
+        <div className="mt-8 text-center">
+          <p className="text-xs font-medium text-slate-500">
+            © 2024 Dashboard Operacional. Todos os direitos reservados.
+          </p>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%) translateY(0);
+          }
+          100% {
+            transform: translateX(100%) translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
