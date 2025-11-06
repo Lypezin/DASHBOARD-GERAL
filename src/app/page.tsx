@@ -5709,13 +5709,15 @@ function EntregadoresView({
   // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
   // Usar useMemo para evitar recriação desnecessária
   const dataToDisplay = useMemo(() => {
-    return (searchTerm.trim() && searchResults.length > 0) ? searchResults : (entregadoresData?.entregadores || []);
+    const baseData = entregadoresData?.entregadores;
+    const baseArray = Array.isArray(baseData) ? baseData : [];
+    return (searchTerm.trim() && Array.isArray(searchResults) && searchResults.length > 0) ? searchResults : baseArray;
   }, [searchTerm, searchResults, entregadoresData]);
 
   // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
   // IMPORTANTE: useMemo deve estar antes de qualquer early return (regras dos hooks do React)
   const sortedEntregadores: Entregador[] = useMemo(() => {
-    if (!dataToDisplay || dataToDisplay.length === 0) return [];
+    if (!Array.isArray(dataToDisplay) || dataToDisplay.length === 0) return [];
     
     // Criar uma cópia do array para não mutar o original
     const dataCopy = [...dataToDisplay];
@@ -6112,11 +6114,14 @@ function PrioridadePromoView({
   // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
   // Usar useMemo para evitar recriação desnecessária
   const dataToDisplay = useMemo(() => {
-    return (searchTerm.trim() && searchResults.length > 0) ? searchResults : (entregadoresData?.entregadores || []);
+    const baseData = entregadoresData?.entregadores;
+    const baseArray = Array.isArray(baseData) ? baseData : [];
+    return (searchTerm.trim() && Array.isArray(searchResults) && searchResults.length > 0) ? searchResults : baseArray;
   }, [searchTerm, searchResults, entregadoresData]);
 
   // Aplicar filtros de % de aderência, rejeição, completadas e aceitas
   const dataFiltrada = useMemo(() => {
+    if (!Array.isArray(dataToDisplay)) return [];
     let filtered = [...dataToDisplay];
     
     // Filtro por % de aderência (mostrar apenas quem tem o valor ou acima)
@@ -7018,7 +7023,11 @@ export default function DashboardPage() {
         setLoadingEntregadores(true);
         const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
         if (error) throw error;
-        if (!cancelled) setEntregadoresData({ entregadores: data || [], total: Array.isArray(data) ? data.length : 0 });
+        if (!cancelled) {
+          // A RPC pode retornar um array direto ou um objeto com entregadores
+          const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
+          setEntregadoresData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
+        }
       } catch (err) {
         if (IS_DEV) console.error('Erro ao carregar entregadores:', err);
         if (!cancelled) setEntregadoresData({ entregadores: [], total: 0 });
@@ -7100,7 +7109,11 @@ export default function DashboardPage() {
         setLoadingPrioridade(true);
         const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
         if (error) throw error;
-        if (!cancelled) setPrioridadeData({ entregadores: data || [], total: Array.isArray(data) ? data.length : 0 });
+        if (!cancelled) {
+          // A RPC pode retornar um array direto ou um objeto com entregadores
+          const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
+          setPrioridadeData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
+        }
       } catch (err) {
         if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', err);
         if (!cancelled) setPrioridadeData({ entregadores: [], total: 0 });
@@ -7111,6 +7124,27 @@ export default function DashboardPage() {
     load();
     return () => { cancelled = true; };
   }, [activeTab]);
+
+  // Buscar semanas disponíveis ao carregar
+  useEffect(() => {
+    const fetchSemanasDisponiveis = async () => {
+      try {
+        const { data, error } = await supabase.rpc('listar_todas_semanas');
+        if (error) {
+          throw error;
+        }
+        // Converter para array de strings se necessário
+        const semanas = Array.isArray(data) ? data.map(s => String(s)) : [];
+        setSemanasDisponiveis(semanas);
+      } catch (err) {
+        if (IS_DEV) {
+          console.error('Erro ao buscar semanas disponíveis:', err);
+        }
+        setSemanasDisponiveis([]);
+      }
+    };
+    fetchSemanasDisponiveis();
+  }, []);
 
   return (
     <div className="min-h-screen">
