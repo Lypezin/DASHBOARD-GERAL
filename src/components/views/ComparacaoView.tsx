@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { FilterOption, DashboardResumoData } from '@/types';
-import { IS_DEV } from '@/lib/constants';
-import { safeLog, getSafeErrorMessage } from '@/lib/safeLog';
+import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
 import FiltroSelect from '@/components/FiltroSelect';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import MetricCard from '@/components/MetricCard';
 import { Bar, Line } from 'react-chartjs-2';
+
+const IS_DEV = process.env.NODE_ENV === 'development';
 
 function ComparacaoView({
   semanas,
