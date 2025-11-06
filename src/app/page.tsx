@@ -949,10 +949,8 @@ function DashboardView({
   const [viewMode, setViewMode] = useState<'turno' | 'sub_praca' | 'origem'>('turno');
 
   return (
-    <div>Dashboard View Content</div>
-    /*
     <div className="space-y-6">
-      {/* Aderência Geral Redesenhada * /}
+      {/* Aderência Geral Redesenhada */}
       {aderenciaGeral && (
         <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 lg:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 animate-slide-up">
           <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
@@ -992,7 +990,7 @@ function DashboardView({
         </div>
       )}
 
-      {/* Destaques da Operação * /}
+      {/* Destaques da Operação */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <div className="group rounded-lg sm:rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-2.5 sm:p-3 lg:p-4 dark:border-emerald-800 dark:from-emerald-950/30 dark:to-teal-950/30 hover-lift">
           <div className="flex items-center gap-1 sm:gap-1.5 text-emerald-700 dark:text-emerald-300">
@@ -1063,7 +1061,7 @@ function DashboardView({
         </div>
       </div>
 
-      {/* Aderência por Dia * /}
+      {/* Aderência por Dia */}
       <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 shadow-xl transition-all duration-300 hover:shadow-2xl dark:border-white/10 dark:bg-slate-900/90">
         <div className="mb-4 sm:mb-6 flex items-center gap-2">
           <span className="text-lg sm:text-xl">📅</span>
@@ -1102,7 +1100,7 @@ function DashboardView({
         </div>
       </div>
 
-      {/* Aderência por Turno/Sub-Praça/Origem * /}
+      {/* Aderência por Turno/Sub-Praça/Origem */}
       <div className="rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 shadow-xl transition-all duration-300 hover:shadow-2xl dark:border-white/10 dark:bg-slate-900/90">
         <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -1177,7 +1175,6 @@ function DashboardView({
         </div>
       </div>
     </div>
-    */
   );
 }
 function AnaliseView({ 
