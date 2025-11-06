@@ -458,7 +458,6 @@ function MetricCard({
     </div>
   );
 }
-
 const AderenciaCard = React.memo(({ 
   title, 
   planejado, 
@@ -932,7 +931,6 @@ function FiltroBar({
     </div>
   );
 }
-
 // =================================================================================
 // Views Principais
 // =================================================================================
@@ -1370,7 +1368,6 @@ function AnaliseView({
       },
     ],
   };
-
   const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: true,
@@ -1813,7 +1810,6 @@ function AnaliseView({
           )}
         </div>
       )}
-
       {/* Performance por Localização (Sub-Praça e Origem) */}
       {((aderenciaSubPraca && aderenciaSubPraca.length > 0) || (aderenciaOrigem && aderenciaOrigem.length > 0)) && (
         <div className="rounded-xl border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-900">
@@ -2253,7 +2249,6 @@ function MonitoramentoView() {
       </div>
     );
   }
-
   ;return (
     <div className="space-y-6 animate-fade-in">
       {/* Cards de Estatísticas */}
@@ -3304,7 +3299,6 @@ function ComparacaoView({
               </div>
             )}
           </div>
-
           {/* Comparação de Corridas por Dia */}
           <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
             <div className="border-b border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 dark:border-blue-800 dark:from-blue-950/30 dark:to-cyan-950/30">
@@ -3788,7 +3782,6 @@ function ComparacaoView({
                             );
                           })}
                         </tr>
-
                         {/* Horas Planejadas */}
                         <tr className="bg-amber-50/50 dark:bg-amber-950/20">
                           <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
@@ -4153,7 +4146,6 @@ function UtrView({
     </div>
   );
 }
-
 // =================================================================================
 // View Evolução
 // =================================================================================
@@ -5052,7 +5044,6 @@ function EvolucaoView({
           </div>
         </div>
       </div>
-
       {/* Gráfico de Evolução - Visual Premium */}
       <div className="relative rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10 overflow-hidden">
         {/* Elementos decorativos de fundo */}
@@ -6793,7 +6784,6 @@ function PrioridadePromoView({
           </div>
         </div>
       </div>
-
       {/* Tabela de Entregadores */}
       <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
         <div className="max-h-[600px] overflow-auto">
@@ -7161,7 +7151,6 @@ export default function DashboardPage() {
   const cacheKeyRef = useRef<string>('');
   const cachedDataRef = useRef<DashboardResumoData | null>(null);
   const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[] }>>(new Map());
-
   // Memoizar buildFilterPayload para evitar recálculos desnecessários
   // IMPORTANTE: Deve estar ANTES dos useEffects que o utilizam
   const filterPayload = useMemo(() => buildFilterPayload(filters), [filters]);
@@ -7646,7 +7635,6 @@ export default function DashboardPage() {
     }
     fetchAnosDisponiveis();
   }, []);
-
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | null = null;
