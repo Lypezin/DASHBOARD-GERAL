@@ -7050,7 +7050,7 @@ export default function DashboardPage() {
               )}
               {activeTab === 'analise' && (
                 <AnaliseView 
-                  totals={totals} 
+                  totals={totals ?? { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }} 
                   aderenciaGeral={aderenciaGeral}
                   aderenciaDia={aderenciaDia}
                   aderenciaTurno={aderenciaTurno}
