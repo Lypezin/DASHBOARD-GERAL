@@ -5776,10 +5776,20 @@ function EntregadoresView({
     );
   }
 
-  if (!entregadoresData || entregadoresData.entregadores.length === 0) {
+  if (!entregadoresData) {
+    return (
+      <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center dark:border-rose-900 dark:bg-rose-950/30">
+        <p className="text-lg font-semibold text-rose-900 dark:text-rose-100">Erro ao carregar entregadores</p>
+        <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">A função pesquisar_entregadores não está disponível ou ocorreu um erro no servidor (500). Verifique os logs do banco de dados.</p>
+      </div>
+    );
+  }
+
+  if (entregadoresData.entregadores.length === 0) {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
         <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Nenhum entregador encontrado</p>
+        <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">Tente ajustar os filtros para ver os dados.</p>
       </div>
     );
   }
@@ -6254,10 +6264,20 @@ function PrioridadePromoView({
     );
   }
 
-  if (!entregadoresData || entregadoresData.entregadores.length === 0) {
+  if (!entregadoresData) {
+    return (
+      <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center dark:border-rose-900 dark:bg-rose-950/30">
+        <p className="text-lg font-semibold text-rose-900 dark:text-rose-100">Erro ao carregar dados de prioridade</p>
+        <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">A função pesquisar_entregadores não está disponível ou ocorreu um erro no servidor (500). Verifique os logs do banco de dados.</p>
+      </div>
+    );
+  }
+
+  if (entregadoresData.entregadores.length === 0) {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
         <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Nenhum entregador encontrado</p>
+        <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">Tente ajustar os filtros para ver os dados.</p>
       </div>
     );
   }
@@ -6988,10 +7008,7 @@ export default function DashboardPage() {
   }, [filterPayload]);
 
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
-  useEffect(() => {
-    console.log("Debug: Evolucao useEffect triggered", { activeTab, praca: filters.praca, anoEvolucao });
-    // Temporarily disabled to debug build error
-  }, [activeTab, filters.praca, anoEvolucao]);
+  // Removido - agora carregado no useEffect específico abaixo
 
   // Carregar UTR (aba UTR)
   useEffect(() => {
@@ -7021,16 +7038,35 @@ export default function DashboardPage() {
       if (activeTab !== 'entregadores') return;
       try {
         setLoadingEntregadores(true);
-        const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
-        if (error) throw error;
+        // Tentar com termo_busca null primeiro, se falhar tenta com string vazia
+        let data, error;
+        ({ data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: null }));
+        if (error && error.code === '42883') {
+          // Função não existe, tentar com string vazia
+          ({ data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' }));
+        }
+        if (error) {
+          // Se ainda der erro, pode ser que a função precise de filtros ou tenha outro nome
+          if (IS_DEV) console.warn('Erro ao carregar entregadores:', error);
+          throw error;
+        }
         if (!cancelled) {
           // A RPC pode retornar um array direto ou um objeto com entregadores
           const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
           setEntregadoresData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
         }
-      } catch (err) {
+      } catch (err: any) {
         if (IS_DEV) console.error('Erro ao carregar entregadores:', err);
-        if (!cancelled) setEntregadoresData({ entregadores: [], total: 0 });
+        // Se for erro 500, pode ser problema no SQL, mas não mostrar erro genérico
+        if (!cancelled) {
+          // Manter dados vazios mas não mostrar erro se for problema de função não encontrada
+          if (err?.code !== '42883' && err?.code !== 'PGRST116') {
+            setEntregadoresData({ entregadores: [], total: 0 });
+          } else {
+            // Função não existe, deixar null para mostrar mensagem apropriada
+            setEntregadoresData(null);
+          }
+        }
       } finally {
         if (!cancelled) setLoadingEntregadores(false);
       }
@@ -7046,12 +7082,23 @@ export default function DashboardPage() {
       if (activeTab !== 'valores') return;
       try {
         setLoadingValores(true);
-        const { data, error } = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
-        if (error) throw error;
+        let data, error;
+        ({ data, error } = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: null }));
+        if (error && error.code === '42883') {
+          ({ data, error } = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' }));
+        }
+        if (error) {
+          if (IS_DEV) console.warn('Erro ao carregar valores:', error);
+          throw error;
+        }
         if (!cancelled) setValoresData(Array.isArray(data) ? data : []);
-      } catch (err) {
+      } catch (err: any) {
         if (IS_DEV) console.error('Erro ao carregar valores:', err);
-        if (!cancelled) setValoresData([]);
+        if (!cancelled) {
+          // Para erro 500, manter array vazio (problema no SQL)
+          // Para função não encontrada, manter array vazio também
+          setValoresData([]);
+        }
       } finally {
         if (!cancelled) setLoadingValores(false);
       }
@@ -7071,19 +7118,49 @@ export default function DashboardPage() {
           Object.entries(filterPayload as any).filter(([, v]) => v !== null && v !== undefined && v !== '')
         );
         const payloadMensal = { ...payloadClean, p_ano: payloadClean['p_ano'] ?? anoEvolucao } as any;
-        const { data: evoMensal, error: errMensal } = await supabase.rpc('listar_evolucao_mensal', payloadMensal);
-        if (errMensal) throw errMensal;
-        const { data: evoSemanal, error: errSemanal } = await supabase.rpc('listar_evolucao_semanal', payloadMensal);
-        if (errSemanal) throw errSemanal;
-        const { data: utrSem, error: errUtrSem } = await supabase.rpc('listar_utr_semanal', { p_ano: payloadMensal.p_ano });
+        
+        // Tentar carregar evolução mensal (pode não existir)
+        let evoMensal: any[] = [];
+        let evoSemanal: any[] = [];
+        let utrSem: any[] = [];
+        
+        const { data: dataMensal, error: errMensal } = await supabase.rpc('listar_evolucao_mensal', payloadMensal);
+        if (errMensal) {
+          if (errMensal.code === '42883' || errMensal.code === 'PGRST116') {
+            // Função não existe, ignorar
+            if (IS_DEV) console.warn('Função listar_evolucao_mensal não encontrada');
+          } else {
+            throw errMensal;
+          }
+        } else {
+          evoMensal = Array.isArray(dataMensal) ? dataMensal : [];
+        }
+        
+        const { data: dataSemanal, error: errSemanal } = await supabase.rpc('listar_evolucao_semanal', payloadMensal);
+        if (errSemanal) {
+          if (errSemanal.code === '42883' || errSemanal.code === 'PGRST116') {
+            if (IS_DEV) console.warn('Função listar_evolucao_semanal não encontrada');
+          } else {
+            throw errSemanal;
+          }
+        } else {
+          evoSemanal = Array.isArray(dataSemanal) ? dataSemanal : [];
+        }
+        
+        const { data: dataUtrSem, error: errUtrSem } = await supabase.rpc('listar_utr_semanal', { p_ano: payloadMensal.p_ano });
         if (errUtrSem) {
           // Se a função não existir, apenas ignore os dados de UTR semanal
-          if (errUtrSem.code !== '42883') throw errUtrSem;
+          if (errUtrSem.code !== '42883' && errUtrSem.code !== 'PGRST116') {
+            if (IS_DEV) console.warn('Erro ao carregar UTR semanal:', errUtrSem);
+          }
+        } else {
+          utrSem = Array.isArray(dataUtrSem) ? dataUtrSem : [];
         }
+        
         if (!cancelled) {
-          setEvolucaoMensal(Array.isArray(evoMensal) ? evoMensal : []);
-          setEvolucaoSemanal(Array.isArray(evoSemanal) ? evoSemanal : []);
-          setUtrSemanal(Array.isArray(utrSem) ? utrSem : []);
+          setEvolucaoMensal(evoMensal);
+          setEvolucaoSemanal(evoSemanal);
+          setUtrSemanal(utrSem);
         }
       } catch (err) {
         if (IS_DEV) console.error('Erro ao carregar evolução:', err);
@@ -7107,16 +7184,29 @@ export default function DashboardPage() {
       if (activeTab !== 'prioridade') return;
       try {
         setLoadingPrioridade(true);
-        const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
-        if (error) throw error;
+        let data, error;
+        ({ data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: null }));
+        if (error && error.code === '42883') {
+          ({ data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' }));
+        }
+        if (error) {
+          if (IS_DEV) console.warn('Erro ao carregar prioridade:', error);
+          throw error;
+        }
         if (!cancelled) {
           // A RPC pode retornar um array direto ou um objeto com entregadores
           const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
           setPrioridadeData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
         }
-      } catch (err) {
+      } catch (err: any) {
         if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', err);
-        if (!cancelled) setPrioridadeData({ entregadores: [], total: 0 });
+        if (!cancelled) {
+          if (err?.code !== '42883' && err?.code !== 'PGRST116') {
+            setPrioridadeData({ entregadores: [], total: 0 });
+          } else {
+            setPrioridadeData(null);
+          }
+        }
       } finally {
         if (!cancelled) setLoadingPrioridade(false);
       }
@@ -7256,7 +7346,7 @@ export default function DashboardPage() {
                     <TabButton label="Monitor" icon="🔍" active={activeTab === 'monitoramento'} onClick={() => setActiveTab('monitoramento')} />
                   )}
                 </div>
-              </div>
+                </div>
               </div>
             </div>
 
