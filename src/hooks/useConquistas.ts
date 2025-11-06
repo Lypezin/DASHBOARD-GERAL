@@ -92,11 +92,14 @@ export function useConquistas() {
     carregarConquistas();
   }, [carregarConquistas]);
 
-  // Verificar conquistas periodicamente (a cada 30 segundos)
+  // Verificar conquistas periodicamente (a cada 60 segundos para reduzir carga)
   useEffect(() => {
+    // Verificar uma vez ao montar
+    verificarConquistas();
+    
     const interval = setInterval(() => {
       verificarConquistas();
-    }, 30000);
+    }, 60000); // 60 segundos
 
     return () => clearInterval(interval);
   }, [verificarConquistas]);

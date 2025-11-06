@@ -145,7 +145,12 @@ export default function ConquistasModal({ conquistas, stats, onClose }: Conquist
 
         {/* Lista de conquistas */}
         <div className="overflow-y-auto p-6 scrollbar-thin" style={{ maxHeight: 'calc(90vh - 300px)' }}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+            </div>
+          )}
+          {!loading && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {conquistasFiltradas.map(conquista => (
               <div
                 key={conquista.conquista_id}
@@ -221,9 +226,9 @@ export default function ConquistasModal({ conquistas, stats, onClose }: Conquist
                 )}
               </div>
             ))}
-          </div>
+          </div>}
 
-          {conquistasFiltradas.length === 0 && (
+          {!loading && conquistasFiltradas.length === 0 && (
             <div className="text-center py-12">
               <span className="text-6xl mb-4 block">🔍</span>
               <p className="text-lg font-medium text-gray-600 dark:text-gray-400">

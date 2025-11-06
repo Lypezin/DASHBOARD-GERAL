@@ -44,7 +44,14 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[] }>>(new Map());
   const dashboardDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const filterPayload = useMemo(() => buildFilterPayload(initialFilters, currentUser), [initialFilters, currentUser]);
+  const filterPayload = useMemo(() => {
+    const payload = buildFilterPayload(initialFilters, currentUser);
+    if (IS_DEV) {
+      console.log('FilterPayload gerado:', payload);
+      console.log('CurrentUser:', currentUser);
+    }
+    return payload;
+  }, [initialFilters, currentUser]);
 
   // Buscar anos e semanas disponíveis
   useEffect(() => {
