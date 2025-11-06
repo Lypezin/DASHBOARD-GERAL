@@ -132,61 +132,61 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
 
   // Fetch data for specific tabs
   useEffect(() => {
-    const fetchDataForTab = (tab: string) => {
+    const fetchDataForTab = async (tab: string) => {
       switch (tab) {
         case 'utr':
           setLoadingUtr(true);
-          supabase.rpc('calcular_utr', filterPayload as any)
-            .then(({ data, error }) => {
-              if (error) throw error;
-              setUtrData(data);
-            })
-            .catch(err => {
-              if (IS_DEV) console.error('Erro ao carregar UTR:', err);
-              setUtrData(null);
-            })
-            .finally(() => setLoadingUtr(false));
+          try {
+            const { data, error } = await supabase.rpc('calcular_utr', filterPayload as any);
+            if (error) throw error;
+            setUtrData(data);
+          } catch (err: any) {
+            if (IS_DEV) console.error('Erro ao carregar UTR:', err);
+            setUtrData(null);
+          } finally {
+            setLoadingUtr(false);
+          }
           break;
         case 'entregadores':
             setLoadingEntregadores(true);
-            supabase.rpc('pesquisar_entregadores', { termo_busca: '' })
-                .then(({ data, error }) => {
-                    if (error) throw error;
-                    const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
-                    setEntregadoresData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
-                })
-                .catch(err => {
-                    if (IS_DEV) console.error('Erro ao carregar entregadores:', err);
-                    setEntregadoresData(null);
-                })
-                .finally(() => setLoadingEntregadores(false));
+            try {
+              const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              if (error) throw error;
+              const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
+              setEntregadoresData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
+            } catch (err: any) {
+              if (IS_DEV) console.error('Erro ao carregar entregadores:', err);
+              setEntregadoresData(null);
+            } finally {
+              setLoadingEntregadores(false);
+            }
             break;
         case 'valores':
             setLoadingValores(true);
-            supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' })
-                .then(({ data, error }) => {
-                    if (error) throw error;
-                    setValoresData(Array.isArray(data) ? data : []);
-                })
-                .catch(err => {
-                    if (IS_DEV) console.error('Erro ao carregar valores:', err);
-                    setValoresData([]);
-                })
-                .finally(() => setLoadingValores(false));
+            try {
+              const { data, error } = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
+              if (error) throw error;
+              setValoresData(Array.isArray(data) ? data : []);
+            } catch (err: any) {
+              if (IS_DEV) console.error('Erro ao carregar valores:', err);
+              setValoresData([]);
+            } finally {
+              setLoadingValores(false);
+            }
             break;
         case 'prioridade':
             setLoadingPrioridade(true);
-            supabase.rpc('pesquisar_entregadores', { termo_busca: '' })
-                .then(({ data, error }) => {
-                    if (error) throw error;
-                    const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
-                    setPrioridadeData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
-                })
-                .catch(err => {
-                    if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', err);
-                    setPrioridadeData(null);
-                })
-                .finally(() => setLoadingPrioridade(false));
+            try {
+              const { data, error } = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              if (error) throw error;
+              const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
+              setPrioridadeData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
+            } catch (err: any) {
+              if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', err);
+              setPrioridadeData(null);
+            } finally {
+              setLoadingPrioridade(false);
+            }
             break;
         case 'evolucao':
           const cacheKey = `${JSON.stringify(filterPayload)}-${anoEvolucao}`;

@@ -286,13 +286,13 @@ function ComparacaoView({
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <MetricCard
               title="Aderência Média"
-              value={(dadosComparacao.reduce((sum, d) => sum + (d.semanal[0]?.aderencia_percentual ?? 0), 0) / dadosComparacao.length).toFixed(1)}
+              value={Number((dadosComparacao.reduce((sum, d) => sum + (d.semanal[0]?.aderencia_percentual ?? 0), 0) / dadosComparacao.length).toFixed(1))}
               icon="📊"
               color="blue"
             />
             <MetricCard
               title="Total de Corridas"
-              value={dadosComparacao.reduce((sum, d) => sum + (d.totais?.corridas_completadas ?? 0), 0).toLocaleString('pt-BR')}
+              value={dadosComparacao.reduce((sum, d) => sum + (d.totais?.corridas_completadas ?? 0), 0)}
               icon="🚗"
               color="green"
             />
