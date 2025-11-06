@@ -4,6 +4,8 @@ import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabaseClient';
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 const COLUMN_MAP: { [key: string]: string } = {
   data_do_periodo: 'data_do_periodo',
   periodo: 'periodo',
@@ -98,6 +100,8 @@ export default function UploadPage() {
     }
 
     // Validar magic bytes (assinatura do arquivo)
+    // Nota: Esta validação é uma verificação básica. A validação real será feita pela biblioteca XLSX ao tentar ler o arquivo.
+    // Tornamos a validação mais flexível: se a extensão estiver correta, permitimos e deixamos a XLSX validar
     try {
       const arrayBuffer = await file.slice(0, 8).arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -106,15 +110,32 @@ export default function UploadPage() {
         .join('')
         .toUpperCase();
 
-      const isValidSignature = 
-        signature.startsWith(EXCEL_SIGNATURES.XLSX) || 
-        signature.startsWith(EXCEL_SIGNATURES.XLS);
-
-      if (!isValidSignature) {
-        return { valid: false, error: `Arquivo "${file.name}" não é um Excel válido.` };
+      // Verificar assinaturas conhecidas
+      const isZipSignature = signature.startsWith(EXCEL_SIGNATURES.XLSX); // ZIP (XLSX)
+      const isOle2Signature = signature.startsWith(EXCEL_SIGNATURES.XLS.substring(0, 8)); // OLE2 (XLS antigo)
+      
+      // Se não for uma assinatura conhecida, mas a extensão está correta, permitir
+      // A biblioteca XLSX fará a validação real ao tentar ler o arquivo
+      if (!isZipSignature && !isOle2Signature) {
+        // Log para debug em desenvolvimento
+        if (IS_DEV) {
+          console.log(`⚠️ Assinatura não reconhecida para "${file.name}": ${signature.substring(0, 16)}`);
+          console.log(`   Mas a extensão está correta (${extension}), permitindo. A biblioteca XLSX validará ao ler.`);
+        }
+        // Não bloquear - a extensão já foi validada e a XLSX fará a validação real
+      } else {
+        if (IS_DEV) {
+          console.log(`✓ Assinatura válida para "${file.name}": ${isZipSignature ? 'XLSX (ZIP)' : 'XLS (OLE2)'}`);
+        }
       }
     } catch (err) {
-      return { valid: false, error: `Erro ao validar arquivo "${file.name}".` };
+      // Se houver erro ao ler os bytes, não bloquear - deixar a biblioteca XLSX validar
+      // Isso pode acontecer com alguns arquivos ou em certos navegadores
+      if (IS_DEV) {
+        console.warn(`⚠️ Erro ao validar assinatura do arquivo "${file.name}":`, err);
+        console.warn(`   Mas a extensão está correta (${extension}), permitindo. A biblioteca XLSX validará ao ler.`);
+      }
+      // Não bloquear - a extensão já foi validada
     }
 
     return { valid: true };
