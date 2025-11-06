@@ -551,9 +551,7 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
     </label>
   );
 });
-
 FiltroSelect.displayName = 'FiltroSelect';
-
 // Componente de seleção múltipla para Origem e Sub Praça
 const FiltroMultiSelect = React.memo(({ 
   label, 
@@ -1183,7 +1181,6 @@ function DashboardView({
     </div>
   );
 }
-
 function AnaliseView({ 
   totals, 
   aderenciaGeral,
@@ -1537,9 +1534,7 @@ function AnaliseView({
       {label}
     </button>
   ));
-  
   ViewToggleButton.displayName = 'ViewToggleButton';
-
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* Métricas Principais */}
@@ -2009,7 +2004,6 @@ function AnaliseView({
     </div>
   );
 }
-
 function MonitoramentoView() {
   const [usuarios, setUsuarios] = useState<UsuarioOnline[]>([]);
   const [loading, setLoading] = useState(true);
@@ -2260,7 +2254,7 @@ function MonitoramentoView() {
     );
   }
 
-  return (
+  ;return (
     <div className="space-y-6 animate-fade-in">
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -2559,7 +2553,6 @@ function MonitoramentoView() {
     </div>
   );
 }
-
 function ComparacaoView({
   semanas,
   pracas,
@@ -2877,7 +2870,6 @@ function ComparacaoView({
               </div>
             </div>
           </div>
-
           {/* Tabela de Comparação Completa */}
           <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
             <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-blue-950/30">
@@ -3517,138 +3509,7 @@ function ComparacaoView({
               </div>
             )}
           </div>
-
           {/* Comparação por Turno */}
-          {dadosComparacao.some(d => d.turno && d.turno.length > 0) && (
-            <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
-              <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-violet-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-violet-950/30">
-                <div className="flex items-center justify-between">
-                  <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                    <span className="text-xl">🕐</span>
-                    Comparação por Turno
-                  </h3>
-                  <div className="flex gap-2">
-                    <ViewToggleButton
-                      active={viewModeTurno === 'table'}
-                      onClick={() => setViewModeTurno('table')}
-                      label="📋 Tabela"
-                    />
-                    <ViewToggleButton
-                      active={viewModeTurno === 'chart'}
-                      onClick={() => setViewModeTurno('chart')}
-                      label="📊 Gráfico"
-                    />
-                  </div>
-                </div>
-              </div>
-              {viewModeTurno === 'table' ? (
-              <div className="overflow-x-auto p-6">
-                <table className="w-full">
-                  <thead className="bg-slate-50 dark:bg-slate-800/50">
-                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                      <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Turno</th>
-                      {semanasSelecionadas.map((semana, idx) => (
-                        <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                          Semana {semana} {idx > 0 && '(Δ%)'}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {Array.from(new Set(dadosComparacao.flatMap(d => d.turno?.map(t => t.periodo) ?? []))).map((turno, turnoIdx) => (
-                      <tr key={turno} className={turnoIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-violet-50/50 dark:bg-violet-950/20'}>
-                        <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{turno}</td>
-                        {dadosComparacao.map((dados, idx) => {
-                          const turnoData = dados.turno?.find(t => t.periodo === turno);
-                          const aderencia = turnoData?.aderencia_percentual ?? 0;
-                          
-                          // Calcular variação se não for a primeira semana
-                          let variacao = null;
-                          if (idx > 0) {
-                            const dadosAnterior = dadosComparacao[idx - 1];
-                            const turnoDataAnterior = dadosAnterior.turno?.find(t => t.periodo === turno);
-                            const aderenciaAnterior = turnoDataAnterior?.aderencia_percentual ?? 0;
-                            variacao = aderenciaAnterior > 0 ? ((aderencia - aderenciaAnterior) / aderenciaAnterior) * 100 : 0;
-                          }
-                          
-                          return (
-                            <>
-                              <td key={`${idx}-valor`} className="px-6 py-4 text-center">
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                  {aderencia.toFixed(1)}%
-                                </span>
-                              </td>
-                              {idx > 0 && variacao !== null && (
-                                <td key={`${idx}-var`} className="px-6 py-4 text-center">
-                                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
-                                    variacao >= 0 
-                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                      : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                                  }`}>
-                                    {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
-                                  </span>
-                                </td>
-                              )}
-                            </>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              ) : (
-                <div className="p-6">
-                  <Line data={{
-                    labels: Array.from(new Set(dadosComparacao.flatMap(d => d.turno?.map(t => t.periodo) ?? []))),
-                    datasets: semanasSelecionadas.map((semana, idx) => {
-                      const cores = [
-                        { bg: 'rgba(139, 92, 246, 0.2)', border: 'rgb(139, 92, 246)' },
-                        { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgb(16, 185, 129)' },
-                        { bg: 'rgba(251, 146, 60, 0.2)', border: 'rgb(251, 146, 60)' },
-                        { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgb(59, 130, 246)' },
-                        { bg: 'rgba(236, 72, 153, 0.2)', border: 'rgb(236, 72, 153)' },
-                      ];
-                      const cor = cores[idx % cores.length];
-                      const turnos = Array.from(new Set(dadosComparacao.flatMap(d => d.turno?.map(t => t.periodo) ?? [])));
-                      
-                      return {
-                        label: `Semana ${semana}`,
-                        data: turnos.map(turno => {
-                          const dados = dadosComparacao[idx];
-                          const turnoData = dados?.turno?.find(t => t.periodo === turno);
-                          return turnoData?.aderencia_percentual ?? 0;
-                        }),
-                        backgroundColor: cor.bg,
-                        borderColor: cor.border,
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                      };
-                    }),
-                  }} options={{
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                      legend: { position: 'top' as const },
-                      tooltip: {
-                        callbacks: {
-                          label: (context: any) => `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`
-                        }
-                      }
-                    },
-                    scales: {
-                      y: { beginAtZero: true, ticks: { callback: (value: any) => `${value}%` } },
-                      x: { ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 45 } }
-                    }
-                  }} />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Comparação Detalhada de Métricas por Sub-Praça */}
           {dadosComparacao.some(d => d.sub_praca && d.sub_praca.length > 0) && (
             <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
               <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-purple-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-purple-950/30">
@@ -4109,7 +3970,6 @@ function ComparacaoView({
     </div>
   );
 }
-
 // =================================================================================
 // View UTR
 // =================================================================================
@@ -4732,7 +4592,6 @@ function EvolucaoView({
   };
     }
   }, [selectedMetrics, getMetricConfig, isSemanal, dadosAtivos.length, dadosUtrAtivos.length]);
-
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
     responsive: true,
@@ -5303,7 +5162,6 @@ function EvolucaoView({
           </div>
         )}
       </div>
-
       {/* Cards com estatísticas - Design Premium */}
       {dadosAtivos.length > 0 && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -5657,7 +5515,6 @@ function EvolucaoView({
     </div>
   );
 }
-
 // =================================================================================
 // View Valores
 // =================================================================================
@@ -6057,7 +5914,6 @@ function ValoresView({
     </div>
   );
 }
-
 // =================================================================================
 // View Entregadores
 // =================================================================================
@@ -6444,7 +6300,6 @@ function EntregadoresView({
     </div>
   );
 }
-
 // =================================================================================
 // View Prioridade/Promo
 // =================================================================================
@@ -7058,7 +6913,6 @@ function PrioridadePromoView({
     </div>
   );
 }
-
 // =================================================================================
 // Componente Principal
 // =================================================================================
@@ -7690,7 +7544,6 @@ export default function DashboardPage() {
     
     return () => clearTimeout(timeoutId);
   }, [activeTab, filterPayload]);
-
   // Buscar dados de Valores quando a aba estiver ativa (com debounce)
   useEffect(() => {
     if (activeTab !== 'valores') return;
@@ -7796,12 +7649,8 @@ export default function DashboardPage() {
 
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null;
-
     if (activeTab !== 'evolucao') {
-      return () => {
-        if (timeoutId) clearTimeout(timeoutId);
-      };
+      return;
     }
 
     const cacheKey = `${anoEvolucao}-${filters.praca || 'all'}`;
@@ -7813,12 +7662,10 @@ export default function DashboardPage() {
       setEvolucaoSemanal(cachedData.semanal);
       setUtrSemanal(cachedData.utrSemanal || []);
       setLoadingEvolucao(false);
-      return () => {
-        if (timeoutId) clearTimeout(timeoutId);
-      };
+      return;
     }
 
-    timeoutId = setTimeout(async () => {
+    const timeoutId = setTimeout(async () => {
       setLoadingEvolucao(true);
       try {
         const pracaSelecionada = filters.praca || null;
@@ -7899,7 +7746,7 @@ export default function DashboardPage() {
             {/* Shine effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             
-            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-6 lg:p-8">
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 lg:gap-5 p-4 sm:p-6 lg:p-8">
               <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 min-w-0 flex-1">
                 <div className="flex h-14 w-14 sm:h-16 sm:w-16 lg:h-20 lg:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-lg ring-2 ring-white/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                   <span className="text-3xl sm:text-3xl lg:text-4xl">📊</span>
