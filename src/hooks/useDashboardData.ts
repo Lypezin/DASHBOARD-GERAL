@@ -163,16 +163,20 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'entregadores':
             setLoadingEntregadores(true);
             try {
-              // pesquisar_entregadores só aceita termo_busca, não aceita outros parâmetros
-              const { data, error } = await supabase.rpc('pesquisar_entregadores', { 
-                termo_busca: ''
-              });
-              if (error) throw error;
-              const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
+              // Tentar listar_entregadores primeiro (nova função)
+              let result = await supabase.rpc('listar_entregadores', filterPayload as any);
+              
+              // Se não funcionar, tentar pesquisar_entregadores (função antiga)
+              if (result.error) {
+                result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              }
+              
+              if (result.error) throw result.error;
+              const entregadores = Array.isArray(result.data) ? result.data : (result.data?.entregadores || []);
               setEntregadoresData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
             } catch (err: any) {
               if (IS_DEV) console.error('Erro ao carregar entregadores:', err);
-              setEntregadoresData(null);
+              setEntregadoresData({ entregadores: [], total: 0 });
             } finally {
               setLoadingEntregadores(false);
             }
@@ -180,12 +184,16 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'valores':
             setLoadingValores(true);
             try {
-              // pesquisar_valores_entregadores só aceita termo_busca, não aceita outros parâmetros
-              const { data, error } = await supabase.rpc('pesquisar_valores_entregadores', { 
-                termo_busca: ''
-              });
-              if (error) throw error;
-              setValoresData(Array.isArray(data) ? data : []);
+              // Tentar listar_valores primeiro (nova função)
+              let result = await supabase.rpc('listar_valores', filterPayload as any);
+              
+              // Se não funcionar, tentar pesquisar_valores_entregadores (função antiga)
+              if (result.error) {
+                result = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
+              }
+              
+              if (result.error) throw result.error;
+              setValoresData(Array.isArray(result.data) ? result.data : []);
             } catch (err: any) {
               if (IS_DEV) console.error('Erro ao carregar valores:', err);
               setValoresData([]);
@@ -196,16 +204,20 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'prioridade':
             setLoadingPrioridade(true);
             try {
-              // pesquisar_entregadores só aceita termo_busca, não aceita outros parâmetros
-              const { data, error } = await supabase.rpc('pesquisar_entregadores', { 
-                termo_busca: ''
-              });
-              if (error) throw error;
-              const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
+              // Tentar listar_entregadores primeiro (nova função)
+              let result = await supabase.rpc('listar_entregadores', filterPayload as any);
+              
+              // Se não funcionar, tentar pesquisar_entregadores (função antiga)
+              if (result.error) {
+                result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              }
+              
+              if (result.error) throw result.error;
+              const entregadores = Array.isArray(result.data) ? result.data : (result.data?.entregadores || []);
               setPrioridadeData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
             } catch (err: any) {
               if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', err);
-              setPrioridadeData(null);
+              setPrioridadeData({ entregadores: [], total: 0 });
             } finally {
               setLoadingPrioridade(false);
             }
@@ -221,9 +233,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             return;
           }
           setLoadingEvolucao(true);
+          // Carregar dados de evolução - usar apenas p_ano, não outros filtros
           Promise.all([
-            supabase.rpc('listar_evolucao_mensal', { ...filterPayload, p_ano: anoEvolucao } as any),
-            supabase.rpc('listar_evolucao_semanal', { ...filterPayload, p_ano: anoEvolucao } as any),
+            supabase.rpc('listar_evolucao_mensal', { p_ano: anoEvolucao } as any),
+            supabase.rpc('listar_evolucao_semanal', { p_ano: anoEvolucao } as any),
             supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao } as any)
           ]).then(([mensalRes, semanalRes, utrSemanalRes]) => {
             // Verificar erros em cada resposta

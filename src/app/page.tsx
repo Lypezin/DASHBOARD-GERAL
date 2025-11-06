@@ -24,6 +24,7 @@ import TabButton from '@/components/TabButton';
 import MetricCard from '@/components/MetricCard';
 import AderenciaCard from '@/components/AderenciaCard';
 import DashboardView from '@/components/views/DashboardView';
+import AnaliseView from '@/components/views/AnaliseView';
 import UtrView from '@/components/views/UtrView';
 import EvolucaoView from '@/components/views/EvolucaoView';
 import ValoresView from '@/components/views/ValoresView';
@@ -91,7 +92,7 @@ ChartJS.register(
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade' | 'comparacao'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade' | 'comparacao'>('dashboard');
   const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null, turno: null, subPracas: [], origens: [], turnos: [], semanas: [] });
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
@@ -116,13 +117,13 @@ export default function DashboardPage() {
     const fetchUser = async () => {
       try {
         const { data: profile, error } = await supabase.rpc('get_current_user_profile') as { data: { is_admin: boolean; assigned_pracas: string[] } | null; error: any };
-        
-        if (error) {
+      
+      if (error) {
           if (IS_DEV) console.error('Erro ao buscar perfil do usuário:', error);
           setCurrentUser(null);
-          return;
-        }
-
+        return;
+      }
+      
         if (profile) {
           setCurrentUser(profile);
           // Aplicar filtro automático se não for admin e tiver apenas uma praça
@@ -130,15 +131,15 @@ export default function DashboardPage() {
             setFilters(prev => {
               // Só atualizar se ainda não tiver a praça definida
               if (prev.praca !== profile.assigned_pracas[0]) {
-                return {
+        return {
                   ...prev,
                   praca: profile.assigned_pracas[0]
                 };
               }
               return prev;
             });
-          }
-        } else {
+                    }
+                  } else {
           setCurrentUser(null);
         }
       } catch (err) {
@@ -249,6 +250,7 @@ export default function DashboardPage() {
               <div className="relative" style={{ zIndex: 1, position: 'relative' }}>
                 <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
                   <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+                  <TabButton label="Análise" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
                   <TabButton label="UTR" icon="📏" active={activeTab === 'utr'} onClick={() => setActiveTab('utr')} />
                   <TabButton label="Entregadores" icon="👥" active={activeTab === 'entregadores'} onClick={() => setActiveTab('entregadores')} />
                   <TabButton label="Valores" icon="💰" active={activeTab === 'valores'} onClick={() => setActiveTab('valores')} />
@@ -273,6 +275,9 @@ export default function DashboardPage() {
                   aderenciaSubPraca={aderenciaSubPraca}
                   aderenciaOrigem={aderenciaOrigem}
                 />
+              )}
+              {activeTab === 'analise' && totals && (
+                <AnaliseView totals={totals} />
               )}
               {activeTab === 'utr' && (
                 <UtrView
