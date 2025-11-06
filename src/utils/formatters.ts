@@ -22,3 +22,10 @@ export function getAderenciaBgColor(value: number): string {
   if (value >= 70) return 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800';
   return 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800';
 }
+
+// Retorna a cor hexadecimal para uso em style={{ backgroundColor: ... }}
+export function getAderenciaColorHex(value: number, isDark: boolean = false): string {
+  if (value >= 90) return isDark ? '#10b981' : '#059669'; // emerald-400 : emerald-600
+  if (value >= 70) return isDark ? '#fbbf24' : '#d97706'; // amber-400 : amber-600
+  return isDark ? '#fb7185' : '#e11d48'; // rose-400 : rose-600
+}

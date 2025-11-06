@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
 import AderenciaCard from '../AderenciaCard';
-import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor } from '@/utils/formatters';
+import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor, getAderenciaColorHex } from '@/utils/formatters';
+import { useTheme } from '@/contexts/ThemeContext';
 
 function DashboardView({
   aderenciaGeral,
@@ -17,6 +18,7 @@ function DashboardView({
   aderenciaOrigem: AderenciaOrigem[];
 }) {
   const [viewMode, setViewMode] = useState<'turno' | 'sub_praca' | 'origem'>('turno');
+  const { theme } = useTheme();
 
   // Dados para renderização com base no viewMode
   const dataToRender = useMemo(() => {
@@ -118,26 +120,27 @@ function DashboardView({
               const aderencia = dia.aderencia_percentual || 0;
               const bgColor = getAderenciaBgColor(aderencia);
               const textColor = getAderenciaColor(aderencia);
+              const textColorHex = getAderenciaColorHex(aderencia, theme === 'dark');
               
               return (
                 <div
                   key={`dia-${index}`}
                   className="group relative overflow-hidden rounded-xl border-2 bg-white p-4 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl dark:bg-slate-900"
-                  style={{ borderColor: textColor }}
+                  style={{ borderColor: textColorHex }}
                 >
-                  <div className="absolute inset-0 opacity-5" style={{ backgroundColor: textColor }}></div>
+                  <div className="absolute inset-0 opacity-5" style={{ backgroundColor: textColorHex }}></div>
                   <div className="relative">
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-2xl">📆</span>
                       <div 
                         className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white shadow-md"
-                        style={{ backgroundColor: textColor }}
+                        style={{ backgroundColor: textColorHex }}
                       >
                         {dia.dia_iso}
                       </div>
                     </div>
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">{dia.dia_da_semana}</h4>
-                    <div className="text-3xl font-black mb-2" style={{ color: textColor }}>
+                    <div className="text-3xl font-black mb-2" style={{ color: textColorHex }}>
                       {aderencia.toFixed(1)}%
                     </div>
                     <div className="space-y-1 text-xs">
@@ -147,7 +150,7 @@ function DashboardView({
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500 dark:text-slate-400">Entregue:</span>
-                        <span className="font-semibold" style={{ color: textColor }}>{formatarHorasParaHMS(dia.horas_entregues)}</span>
+                        <span className="font-semibold" style={{ color: textColorHex }}>{formatarHorasParaHMS(dia.horas_entregues)}</span>
                       </div>
                     </div>
                   </div>
