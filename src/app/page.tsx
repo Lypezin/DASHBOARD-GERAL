@@ -7306,6 +7306,7 @@ export default function DashboardPage() {
   // Cache simples para evitar recarregar dados iguais
   const cacheKeyRef = useRef<string>('');
   const cachedDataRef = useRef<DashboardResumoData | null>(null);
+  const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[] }>>(new Map());
 
   // Memoizar buildFilterPayload para evitar recálculos desnecessários
   // IMPORTANTE: Deve estar ANTES dos useEffects que o utilizam
@@ -7792,9 +7793,6 @@ export default function DashboardPage() {
     }
     fetchAnosDisponiveis();
   }, []);
-
-  // Cache para dados de evolução
-  const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[] }>>(new Map());
 
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   useEffect(() => {
