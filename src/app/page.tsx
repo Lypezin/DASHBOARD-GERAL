@@ -5117,11 +5117,11 @@ function EvolucaoView({
             <div className="relative h-[550px] rounded-xl bg-white/80 dark:bg-slate-900/80 p-6 backdrop-blur-md shadow-inner border border-slate-200/50 dark:border-slate-700/50">
               {/* Efeito de brilho sutil */}
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
-              <div className="relative z-10 h-full">
+              <div className="relative z-10 h-full w-full">
                 {chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
                   <Line 
                     data={chartData} 
-                    options={{}}
+                    options={chartOptions}
                     redraw={false}
                     updateMode="none"
                   />
