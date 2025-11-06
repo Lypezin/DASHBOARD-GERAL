@@ -21,7 +21,7 @@ function DashboardView({
 
   // Dados para o gráfico de aderência por dia
   const chartDiaData = useMemo(() => ({
-    labels: aderenciaDia.map(d => d.dia_semana || 'N/A'),
+    labels: aderenciaDia.map(d => d.dia_da_semana || 'N/A'),
     datasets: [{
       label: 'Aderência %',
       data: aderenciaDia.map(d => d.aderencia_percentual || 0),
@@ -216,10 +216,10 @@ function DashboardView({
             {dataToRender.map((item, index) => (
               <AderenciaCard
                 key={`${viewMode}-${index}`}
-                titulo={item.label}
-                aderenciaPercentual={item.aderencia}
-                horasAEntregar={item.horasAEntregar}
-                horasEntregues={item.horasEntregues}
+                title={item.label}
+                percentual={item.aderencia}
+                planejado={item.horasAEntregar}
+                entregue={item.horasEntregues}
               />
             ))}
           </div>
