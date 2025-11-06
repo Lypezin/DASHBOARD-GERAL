@@ -1659,7 +1659,7 @@ function AnaliseView({
               </div>
               
               <div className="relative z-10 rounded-xl bg-white/60 dark:bg-slate-900/60 p-6 backdrop-blur-sm shadow-inner">
-                <Line data={barDataDia} options={chartOptions} />
+                <Line data={barDataDia} options={{}} redraw={false} updateMode="none" />
               </div>
             </div>
           )}
@@ -1748,7 +1748,7 @@ function AnaliseView({
                       fill: true,
                     },
                   ],
-                }} options={chartOptions} />
+                }} options={{}} redraw={false} updateMode="none" />
               </div>
             </div>
           ) : (
@@ -1991,7 +1991,7 @@ function AnaliseView({
                       },
                     },
                   },
-                }} />
+                }} redraw={false} updateMode="none" />
               </div>
             </div>
           )}
@@ -5124,7 +5124,7 @@ function EvolucaoView({
                 {chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
                   <Line 
                     data={chartData} 
-                    options={chartOptions}
+                    options={{}}
                     redraw={false}
                     updateMode="none"
                   />
@@ -5244,261 +5244,6 @@ function EvolucaoView({
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 📅
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-      {false && utrSemanal.length > 0 && (
-        <div className="relative rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-purple-50/20 p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-purple-950/10 overflow-hidden mt-6">
-          {/* Elementos decorativos de fundo */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl"></div>
-          </div>
-          
-          <div className="relative z-10">
-            {/* Título do gráfico */}
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h4 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-lg shadow-lg">
-                    🎯
-                  </span>
-                  Evolução de UTR por Semana
-                </h4>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                  Taxa de Utilização de Recursos (UTR) semanal ({utrSemanal.length} semanas exibidas)
-                </p>
-              </div>
-              
-              {/* Indicador de linha */}
-              <div className="hidden lg:flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                  <div className="w-3 h-3 rounded-full bg-purple-500 shadow-md"></div>
-                  <span className="text-xs font-bold text-purple-700 dark:text-purple-300">UTR</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Container do gráfico */}
-            <div className="h-[550px] rounded-xl bg-white/50 dark:bg-slate-900/50 p-4 backdrop-blur-sm">
-              <Line 
-                data={{
-                  labels: utrSemanal
-                    .filter(d => d.ano === anoSelecionado)
-                    .sort((a, b) => a.semana - b.semana)
-                    .map(d => d.semana_label),
-                  datasets: [
-                    {
-                      label: 'UTR (Taxa de Utilização de Recursos)',
-                      data: utrSemanal
-                        .filter(d => d.ano === anoSelecionado)
-                        .sort((a, b) => a.semana - b.semana)
-                        .map(d => d.utr),
-                      borderColor: 'rgb(168, 85, 247)',
-                      backgroundColor: (context: any) => {
-                        const chart = context.chart;
-                        const { ctx, chartArea } = chart;
-                        if (!chartArea) return 'rgba(168, 85, 247, 0.2)';
-                        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                        gradient.addColorStop(0, 'rgba(196, 181, 253, 0.5)');
-                        gradient.addColorStop(0.3, 'rgba(168, 85, 247, 0.35)');
-                        gradient.addColorStop(0.7, 'rgba(139, 92, 246, 0.15)');
-                        gradient.addColorStop(1, 'rgba(124, 58, 237, 0.00)');
-                        return gradient;
-                      },
-                      fill: true,
-                      tension: 0.4,
-                      cubicInterpolationMode: 'monotone' as const,
-                      pointRadius: 6,
-                      pointHoverRadius: 10,
-                      pointBackgroundColor: 'rgb(168, 85, 247)',
-                      pointBorderColor: '#fff',
-                      pointBorderWidth: 2,
-                      pointHoverBorderWidth: 3,
-                      segment: {
-                        borderColor: (ctx: any) => {
-                          const value = ctx.p1.parsed.y;
-                          return value >= 1 ? 'rgb(34, 197, 94)' : value >= 0.5 ? 'rgb(251, 191, 36)' : 'rgb(239, 68, 68)';
-                        },
-                      },
-                    },
-                  ],
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  layout: {
-                    padding: {
-                      top: 12,
-                      right: 16,
-                      bottom: 8,
-                      left: 12,
-                    },
-                  },
-                  animation: {
-                    duration: 300, // Reduzido de 1200ms para melhor performance
-                    easing: 'easeOutCubic' as const, // Corrigido: easeOut não é válido, usando easeOutCubic
-                    // Desabilitar animação em dispositivos lentos
-                    ...(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { duration: 0 } : {}),
-                  },
-                  interaction: {
-                    mode: 'index' as const,
-                    intersect: false,
-                    axis: 'x' as const,
-                  },
-                  plugins: {
-                    legend: {
-                      position: 'top' as const,
-                      align: 'center' as const,
-                      labels: {
-                        font: {
-                          size: 14,
-                          weight: 'bold' as const,
-                          family: "'Inter', 'system-ui', sans-serif",
-                        },
-                        padding: 16,
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        boxWidth: 12,
-                        boxHeight: 12,
-                        color: isDarkMode ? 'rgb(226, 232, 240)' : 'rgb(51, 65, 85)',
-                      },
-                    },
-                    tooltip: {
-                      enabled: true,
-                      backgroundColor: 'rgba(15, 23, 42, 0.97)',
-                      titleColor: 'rgba(255, 255, 255, 1)',
-                      bodyColor: 'rgba(226, 232, 240, 1)',
-                      padding: 20,
-                      titleFont: {
-                        size: 16,
-                        weight: 'bold' as const,
-                        family: "'Inter', 'system-ui', sans-serif",
-                      },
-                      bodyFont: {
-                        size: 15,
-                        weight: '600' as any,
-                        family: "'Inter', 'system-ui', sans-serif",
-                      },
-                      borderColor: 'rgba(148, 163, 184, 0.5)',
-                      borderWidth: 2,
-                      cornerRadius: 12,
-                      displayColors: true,
-                      boxWidth: 14,
-                      boxHeight: 14,
-                      boxPadding: 6,
-                      usePointStyle: true,
-                      callbacks: {
-                        title: function(context: any) {
-                          const label = context[0]?.label || '';
-                          return `📊 ${label}`;
-                        },
-                        label: function(context: any) {
-                          let label = context.dataset.label || '';
-                          if (label) {
-                            label += ': ';
-                          }
-                          label += context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                          return label;
-                        },
-                        afterLabel: function(context: any) {
-                          const dataIndex = context.dataIndex;
-                          if (dataIndex > 0) {
-                            const currentValue = context.parsed.y;
-                            const previousValue = context.dataset.data[dataIndex - 1];
-                            if (previousValue && previousValue !== 0) {
-                              const variation = ((currentValue - previousValue) / previousValue * 100);
-                              const arrow = variation > 0 ? '📈' : variation < 0 ? '📉' : '➡️';
-                              const sign = variation > 0 ? '+' : '';
-                              return `${arrow} ${sign}${variation.toFixed(1)}% vs anterior`;
-                            }
-                          }
-                          return '';
-                        },
-                      }
-                    },
-                  },
-                  scales: {
-                    y: {
-                      type: 'linear' as const,
-                      display: true,
-                      position: 'left' as const,
-                      title: {
-                        display: true,
-                        text: '🎯 UTR (Corridas/Hora)',
-                        font: {
-                          size: 13,
-                          weight: 'bold' as const,
-                          family: "'Inter', 'system-ui', sans-serif",
-                        },
-                        color: 'rgb(168, 85, 247)',
-                        padding: { top: 0, bottom: 8 },
-                      },
-                      grid: {
-                        color: (context: any) => {
-                          if (context.tick.value === 0) return 'rgba(100, 116, 139, 0)';
-                          return isDarkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.15)';
-                        },
-                        lineWidth: 1,
-                        drawTicks: false,
-                      },
-                      border: {
-                        display: false,
-                      },
-                      ticks: {
-                        color: 'rgb(168, 85, 247)',
-                        font: {
-                          size: 12,
-                          weight: 'bold' as const,
-                          family: "'Inter', 'system-ui', sans-serif",
-                        },
-                        padding: 8,
-                        callback: function(value: any) {
-                          return value.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
-                        }
-                      },
-                    },
-                    x: {
-                      grid: {
-                        display: false,
-                      },
-                      border: {
-                        display: false,
-                      },
-                      ticks: {
-                        maxTicksLimit: 52,
-                        autoSkip: utrSemanal.length <= 52 ? false : true,
-                        maxRotation: 45,
-                        minRotation: 45,
-                        font: {
-                          size: 10,
-                          weight: '700' as any,
-                          family: "'Inter', 'system-ui', sans-serif",
-                        },
-                        color: isDarkMode ? 'rgb(203, 213, 225)' : 'rgb(71, 85, 105)',
-                        padding: 10,
-                      },
-                    },
-                  },
-                  elements: {
-                    line: {
-                      borderCapStyle: 'round' as const,
-                      borderJoinStyle: 'round' as const,
-                    },
-                    point: {
-                      hoverBorderWidth: 4,
-                      radius: 6,
-                      hoverRadius: 10,
-                    },
-                  },
-                }}
-                redraw={false}
-                updateMode="none"
-              />
             </div>
           </div>
         </div>
@@ -7288,6 +7033,7 @@ export default function DashboardPage() {
                     <TabButton label="Monitor" icon="🔍" active={activeTab === 'monitoramento'} onClick={() => setActiveTab('monitoramento')} />
                   )}
                 </div>
+              </div>
               </div>
             </div>
 
