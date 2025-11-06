@@ -6915,10 +6915,18 @@ export default function DashboardPage() {
   const cacheKeyRef = useRef<string>('');
   const cachedDataRef = useRef<DashboardResumoData | null>(null);
   const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[] }>>(new Map());
+  const dashboardDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastFilterPayloadRef = useRef<string>('');
 
   // Memoizar buildFilterPayload para evitar recálculos desnecessários
   // IMPORTANTE: Deve estar ANTES dos useEffects que o utilizam
-  const filterPayload = useMemo(() => buildFilterPayload(filters), [filters]);
+  const filterPayload = useMemo(() => {
+    const payload = buildFilterPayload(filters);
+    // Criar uma chave de cache baseada no payload
+    const payloadKey = JSON.stringify(payload);
+    lastFilterPayloadRef.current = payloadKey;
+    return payload;
+  }, [filters]);
 
   // Buscar anos disponíveis ao carregar
   useEffect(() => {
@@ -6939,85 +6947,125 @@ export default function DashboardPage() {
     fetchAnosDisponiveis();
   }, []);
 
-  // Buscar dados principais do Dashboard (totais e aderências)
+  // Buscar dados principais do Dashboard (totais e aderências) com debounce e cache
   useEffect(() => {
+    // Limpar debounce anterior
+    if (dashboardDebounceRef.current) {
+      clearTimeout(dashboardDebounceRef.current);
+    }
+
+    // Criar chave de cache
+    const payloadKey = JSON.stringify(filterPayload);
+    
+    // Verificar cache
+    if (cacheKeyRef.current === payloadKey && cachedDataRef.current) {
+      const cached = cachedDataRef.current;
+      setTotals({
+        ofertadas: safeNumber(cached.totais?.corridas_ofertadas ?? 0),
+        aceitas: safeNumber(cached.totais?.corridas_aceitas ?? 0),
+        rejeitadas: safeNumber(cached.totais?.corridas_rejeitadas ?? 0),
+        completadas: safeNumber(cached.totais?.corridas_completadas ?? 0),
+      });
+      setAderenciaSemanal(Array.isArray(cached.semanal) ? cached.semanal : []);
+      setAderenciaDia(Array.isArray(cached.dia) ? cached.dia : []);
+      setAderenciaTurno(Array.isArray(cached.turno) ? cached.turno : []);
+      setAderenciaSubPraca(Array.isArray(cached.sub_praca) ? cached.sub_praca : []);
+      setAderenciaOrigem(Array.isArray(cached.origem) ? cached.origem : []);
+      return;
+    }
+
     let isCancelled = false;
-    const fetchDashboard = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    
+    // Debounce de 300ms para evitar múltiplas chamadas rápidas
+    dashboardDebounceRef.current = setTimeout(async () => {
+      const fetchDashboard = async () => {
+        try {
+          setLoading(true);
+          setError(null);
 
-        // Remover chaves nulas para evitar erros no RPC
-        const payloadClean = Object.fromEntries(
-          Object.entries(filterPayload as any).filter(([, v]) => v !== null && v !== undefined && v !== '')
-        );
+          // Remover chaves nulas para evitar erros no RPC
+          const payloadClean = Object.fromEntries(
+            Object.entries(filterPayload as any).filter(([, v]) => v !== null && v !== undefined && v !== '')
+          );
 
-        const { data, error } = await supabase.rpc('dashboard_resumo', payloadClean as any);
-        if (error) throw error;
+          const { data, error } = await supabase.rpc('dashboard_resumo', payloadClean as any);
+          if (error) throw error;
 
-        if (isCancelled) return;
+          if (isCancelled) return;
 
-        const safeData: DashboardResumoData | null = data || null;
+          const safeData: DashboardResumoData | null = data || null;
 
-        if (safeData) {
-          setTotals({
-            ofertadas: safeNumber(safeData.totais?.corridas_ofertadas ?? 0),
-            aceitas: safeNumber(safeData.totais?.corridas_aceitas ?? 0),
-            rejeitadas: safeNumber(safeData.totais?.corridas_rejeitadas ?? 0),
-            completadas: safeNumber(safeData.totais?.corridas_completadas ?? 0),
-          });
+          if (safeData) {
+            // Atualizar cache
+            cacheKeyRef.current = payloadKey;
+            cachedDataRef.current = safeData;
 
-          setAderenciaSemanal(Array.isArray(safeData.semanal) ? safeData.semanal : []);
-          setAderenciaDia(Array.isArray(safeData.dia) ? safeData.dia : []);
-          setAderenciaTurno(Array.isArray(safeData.turno) ? safeData.turno : []);
-          setAderenciaSubPraca(Array.isArray(safeData.sub_praca) ? safeData.sub_praca : []);
-          setAderenciaOrigem(Array.isArray(safeData.origem) ? safeData.origem : []);
+            setTotals({
+              ofertadas: safeNumber(safeData.totais?.corridas_ofertadas ?? 0),
+              aceitas: safeNumber(safeData.totais?.corridas_aceitas ?? 0),
+              rejeitadas: safeNumber(safeData.totais?.corridas_rejeitadas ?? 0),
+              completadas: safeNumber(safeData.totais?.corridas_completadas ?? 0),
+            });
 
-          // Dimensões disponíveis para filtros (quando vierem do backend)
-          if (safeData.dimensoes) {
-            setPracas(Array.isArray(safeData.dimensoes.pracas) ? safeData.dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) })) : []);
-            setSubPracas(Array.isArray(safeData.dimensoes.sub_pracas) ? safeData.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : []);
-            setOrigens(Array.isArray(safeData.dimensoes.origens) ? safeData.dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) })) : []);
-            if (Array.isArray((safeData.dimensoes as any).turnos)) {
-              setTurnos((safeData.dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) })));
+            setAderenciaSemanal(Array.isArray(safeData.semanal) ? safeData.semanal : []);
+            setAderenciaDia(Array.isArray(safeData.dia) ? safeData.dia : []);
+            setAderenciaTurno(Array.isArray(safeData.turno) ? safeData.turno : []);
+            setAderenciaSubPraca(Array.isArray(safeData.sub_praca) ? safeData.sub_praca : []);
+            setAderenciaOrigem(Array.isArray(safeData.origem) ? safeData.origem : []);
+
+            // Dimensões disponíveis para filtros (quando vierem do backend)
+            if (safeData.dimensoes) {
+              setPracas(Array.isArray(safeData.dimensoes.pracas) ? safeData.dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) })) : []);
+              setSubPracas(Array.isArray(safeData.dimensoes.sub_pracas) ? safeData.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : []);
+              setOrigens(Array.isArray(safeData.dimensoes.origens) ? safeData.dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) })) : []);
+              if (Array.isArray((safeData.dimensoes as any).turnos)) {
+                setTurnos((safeData.dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) })));
+              }
             }
+          } else {
+            setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
+            setAderenciaSemanal([]);
+            setAderenciaDia([]);
+            setAderenciaTurno([]);
+            setAderenciaSubPraca([]);
+            setAderenciaOrigem([]);
           }
-        } else {
-          setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
-          setAderenciaSemanal([]);
-          setAderenciaDia([]);
-          setAderenciaTurno([]);
-          setAderenciaSubPraca([]);
-          setAderenciaOrigem([]);
+        } catch (err: any) {
+          if (!isCancelled) {
+            if (IS_DEV) console.error('Erro ao carregar dashboard_resumo:', err);
+            setError('Não foi possível carregar os dados do dashboard.');
+          }
+        } finally {
+          if (!isCancelled) setLoading(false);
         }
-      } catch (err: any) {
-        if (!isCancelled) {
-          if (IS_DEV) console.error('Erro ao carregar dashboard_resumo:', err);
-          setError('Não foi possível carregar os dados do dashboard.');
-        }
-      } finally {
-        if (!isCancelled) setLoading(false);
-      }
-    };
+      };
 
-    // Evitar buscar durante tela de comparação (opcional); ainda assim mantemos dados atualizados
-    fetchDashboard();
+      await fetchDashboard();
+    }, 300);
+
     return () => {
       isCancelled = true;
+      if (dashboardDebounceRef.current) {
+        clearTimeout(dashboardDebounceRef.current);
+      }
     };
   }, [filterPayload]);
 
   // Buscar dados de Evolução quando a aba estiver ativa (com debounce e cache)
   // Removido - agora carregado no useEffect específico abaixo
 
-  // Carregar UTR (aba UTR)
+  // Carregar UTR (aba UTR) - apenas quando a aba estiver ativa
   useEffect(() => {
+    if (activeTab !== 'utr') return;
+    
     let cancelled = false;
     const load = async () => {
-      if (activeTab !== 'utr') return;
       try {
         setLoadingUtr(true);
-        const { data, error } = await supabase.rpc('calcular_utr', filterPayload as any);
+        const payloadClean = Object.fromEntries(
+          Object.entries(filterPayload as any).filter(([, v]) => v !== null && v !== undefined && v !== '')
+        );
+        const { data, error } = await supabase.rpc('calcular_utr', payloadClean as any);
         if (error) throw error;
         if (!cancelled) setUtrData(data as UtrData);
       } catch (err) {
@@ -7027,15 +7075,21 @@ export default function DashboardPage() {
         if (!cancelled) setLoadingUtr(false);
       }
     };
-    load();
-    return () => { cancelled = true; };
+    
+    // Pequeno delay para evitar carregamentos simultâneos
+    const timeoutId = setTimeout(load, 100);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [activeTab, filterPayload]);
 
-  // Carregar Entregadores (aba Entregadores)
+  // Carregar Entregadores (aba Entregadores) - apenas quando a aba estiver ativa
   useEffect(() => {
+    if (activeTab !== 'entregadores') return;
+    
     let cancelled = false;
     const load = async () => {
-      if (activeTab !== 'entregadores') return;
       try {
         setLoadingEntregadores(true);
         // Tentar com termo_busca null primeiro, se falhar tenta com string vazia
@@ -7071,15 +7125,21 @@ export default function DashboardPage() {
         if (!cancelled) setLoadingEntregadores(false);
       }
     };
-    load();
-    return () => { cancelled = true; };
+    
+    // Pequeno delay para evitar carregamentos simultâneos
+    const timeoutId = setTimeout(load, 150);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [activeTab]);
 
-  // Carregar Valores (aba Valores)
+  // Carregar Valores (aba Valores) - apenas quando a aba estiver ativa
   useEffect(() => {
+    if (activeTab !== 'valores') return;
+    
     let cancelled = false;
     const load = async () => {
-      if (activeTab !== 'valores') return;
       try {
         setLoadingValores(true);
         let data, error;
@@ -7103,15 +7163,21 @@ export default function DashboardPage() {
         if (!cancelled) setLoadingValores(false);
       }
     };
-    load();
-    return () => { cancelled = true; };
+    
+    // Pequeno delay para evitar carregamentos simultâneos
+    const timeoutId = setTimeout(load, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [activeTab]);
 
-  // Carregar dados de Evolução (aba Evolução)
+  // Carregar dados de Evolução (aba Evolução) - apenas quando a aba estiver ativa
   useEffect(() => {
+    if (activeTab !== 'evolucao') return;
+    
     let cancelled = false;
     const load = async () => {
-      if (activeTab !== 'evolucao') return;
       try {
         setLoadingEvolucao(true);
         const payloadClean = Object.fromEntries(
@@ -7158,6 +7224,14 @@ export default function DashboardPage() {
         }
         
         if (!cancelled) {
+          // Salvar no cache
+          const cacheKey = `${JSON.stringify(filterPayload)}-${anoEvolucao}`;
+          evolucaoCacheRef.current.set(cacheKey, {
+            mensal: evoMensal,
+            semanal: evoSemanal,
+            utrSemanal: utrSem
+          });
+          
           setEvolucaoMensal(evoMensal);
           setEvolucaoSemanal(evoSemanal);
           setUtrSemanal(utrSem);
@@ -7173,15 +7247,32 @@ export default function DashboardPage() {
         if (!cancelled) setLoadingEvolucao(false);
       }
     };
-    load();
-    return () => { cancelled = true; };
+    
+    // Verificar cache primeiro
+    const cacheKey = `${JSON.stringify(filterPayload)}-${anoEvolucao}`;
+    const cached = evolucaoCacheRef.current.get(cacheKey);
+    if (cached) {
+      setEvolucaoMensal(cached.mensal);
+      setEvolucaoSemanal(cached.semanal);
+      setUtrSemanal(cached.utrSemanal);
+      setLoadingEvolucao(false);
+      return;
+    }
+    
+    // Pequeno delay para evitar carregamentos simultâneos
+    const timeoutId = setTimeout(load, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [activeTab, filterPayload, anoEvolucao]);
 
-  // Carregar dados de Prioridade (aba Prioridade/Promo)
+  // Carregar dados de Prioridade (aba Prioridade/Promo) - apenas quando a aba estiver ativa
   useEffect(() => {
+    if (activeTab !== 'prioridade') return;
+    
     let cancelled = false;
     const load = async () => {
-      if (activeTab !== 'prioridade') return;
       try {
         setLoadingPrioridade(true);
         let data, error;
@@ -7211,8 +7302,13 @@ export default function DashboardPage() {
         if (!cancelled) setLoadingPrioridade(false);
       }
     };
-    load();
-    return () => { cancelled = true; };
+    
+    // Pequeno delay para evitar carregamentos simultâneos
+    const timeoutId = setTimeout(load, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [activeTab]);
 
   // Buscar semanas disponíveis ao carregar
