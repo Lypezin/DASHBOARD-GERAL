@@ -7800,9 +7800,7 @@ export default function DashboardPage() {
 
     if (activeTab !== 'evolucao') {
       return () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
+        if (timeoutId) clearTimeout(timeoutId);
       };
     }
 
@@ -7818,9 +7816,7 @@ export default function DashboardPage() {
       setUtrSemanal(cachedData.utrSemanal || []);
       setLoadingEvolucao(false);
       return () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
+        if (timeoutId) clearTimeout(timeoutId);
       };
     }
 
@@ -7897,9 +7893,7 @@ export default function DashboardPage() {
     }, 300);
 
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [activeTab, filters.praca, anoEvolucao]);
 
