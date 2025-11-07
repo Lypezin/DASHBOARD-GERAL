@@ -66,26 +66,34 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
       for (let i = 0; i < slides.length; i++) {
         const slide = slides[i] as HTMLElement;
         
-        // Capturar cada slide individualmente com configurações otimizadas
+        // Forçar o slide a ter dimensões fixas para PDF
+        slide.style.width = '1920px';
+        slide.style.height = '1080px';
+        slide.style.transform = 'scale(1)';
+        slide.style.transformOrigin = 'top left';
+        
+        // Aguardar um momento para o DOM se ajustar
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Capturar cada slide com alta qualidade
         const canvas = await html2canvas(slide, {
-          scale: 1.2, // Reduzido para 1.2 para melhor performance
+          scale: 2, // Alta resolução para qualidade superior
           useCORS: true,
           allowTaint: true,
-          backgroundColor: '#3b82f6', // Cor de fundo azul
-          width: slide.offsetWidth,
-          height: slide.offsetHeight,
-          logging: false, // Desabilitar logs para performance
+          backgroundColor: '#3b82f6',
+          width: 1920,
+          height: 1080,
+          logging: false,
           imageTimeout: 0,
           removeContainer: true,
-          foreignObjectRendering: false, // Melhor compatibilidade
+          foreignObjectRendering: false,
           ignoreElements: (element) => {
-            // Ignorar elementos que podem causar problemas
             return element.tagName === 'IFRAME' || element.tagName === 'OBJECT';
           }
         });
 
-        // Converter para JPEG com qualidade otimizada (85% - boa qualidade, menor tamanho)
-        const imgData = canvas.toDataURL('image/jpeg', 0.85);
+        // Converter para PNG com máxima qualidade
+        const imgData = canvas.toDataURL('image/png');
         
         // Calcular dimensões para ocupar toda a página (sem bordas brancas)
         const imgWidth = canvas.width;
@@ -102,7 +110,13 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
         }
 
         // Adicionar imagem à página
-        pdf.addImage(imgData, 'JPEG', imgX, imgY, scaledWidth, scaledHeight);
+        pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight);
+        
+        // Resetar estilos do slide após captura
+        slide.style.width = '';
+        slide.style.height = '';
+        slide.style.transform = '';
+        slide.style.transformOrigin = '';
       }
 
       pdf.save(`Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`);
@@ -137,16 +151,16 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
         {/* Conteúdo da apresentação */}
         <div ref={contentRef} className="bg-white">
           {/* Slide 1 - Capa */}
-          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
-            <div className="text-center max-w-4xl mx-auto">
-              <div className="mb-12">
-                <h1 className="text-8xl font-black mb-8 leading-tight tracking-wide">RELATÓRIO DE</h1>
-                <h1 className="text-8xl font-black mb-16 leading-tight tracking-wide">RESULTADOS</h1>
+          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px'}}>
+            <div className="text-center w-full px-24">
+              <div className="mb-16">
+                <h1 className="text-[12rem] font-black mb-8 leading-none tracking-wider">RELATÓRIO DE</h1>
+                <h1 className="text-[12rem] font-black mb-20 leading-none tracking-wider">RESULTADOS</h1>
               </div>
-              <div className="space-y-8">
-                <h2 className="text-5xl font-bold tracking-wide">{pracaSelecionada?.toUpperCase() || 'TODAS AS PRAÇAS'}</h2>
-                <h3 className="text-4xl font-semibold">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
-                <div className="text-2xl font-medium opacity-90">
+              <div className="space-y-12">
+                <h2 className="text-7xl font-bold tracking-wide">{pracaSelecionada?.toUpperCase() || 'TODAS AS PRAÇAS'}</h2>
+                <h3 className="text-6xl font-semibold">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                <div className="text-4xl font-medium opacity-90">
                   {new Date(2024, 0, 1 + (parseInt(numeroSemana1) - 1) * 7).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} - {new Date(2024, 0, 7 + (parseInt(numeroSemana1) - 1) * 7).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} & {new Date(2024, 0, 1 + (parseInt(numeroSemana2) - 1) * 7).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} - {new Date(2024, 0, 7 + (parseInt(numeroSemana2) - 1) * 7).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                 </div>
               </div>
@@ -154,90 +168,97 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
           </div>
 
           {/* Slide 2 - Aderência Geral */}
-          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
-            <div className="text-center max-w-7xl mx-auto">
-              <div className="mb-16">
-                <h2 className="text-7xl font-black mb-6">ADERÊNCIA GERAL</h2>
-                <h3 className="text-4xl font-light opacity-80">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px'}}>
+            <div className="text-center w-full px-24">
+              <div className="mb-20">
+                <h2 className="text-9xl font-black mb-8 tracking-wider">ADERÊNCIA GERAL</h2>
+                <h3 className="text-6xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
               </div>
               
-              <div className="flex justify-center items-start gap-24">
+              <div className="flex justify-center items-center gap-32">
                 {/* Semana 1 */}
                 <div className="text-center">
-                  <div className="relative w-80 h-80 mb-8">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                  <div className="relative w-96 h-96 mb-12">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
                       <circle
-                        cx="60"
-                        cy="60"
-                        r="45"
+                        cx="100"
+                        cy="100"
+                        r="80"
                         stroke="rgba(255,255,255,0.2)"
-                        strokeWidth="8"
+                        strokeWidth="12"
                         fill="none"
                       />
                       <circle
-                        cx="60"
-                        cy="60"
-                        r="45"
+                        cx="100"
+                        cy="100"
+                        r="80"
                         stroke="#ffffff"
-                        strokeWidth="8"
+                        strokeWidth="12"
                         fill="none"
-                        strokeDasharray={`${(aderencia1 / 100) * 282.7} 282.7`}
+                        strokeDasharray={`${(aderencia1 / 100) * 502.4} 502.4`}
                         strokeLinecap="round"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center flex items-center justify-center w-full h-full">
-                        <span className="text-7xl font-black leading-none">{aderencia1.toFixed(1)}%</span>
+                      <div className="text-center">
+                        <span className="text-8xl font-black leading-none block">{aderencia1.toFixed(1)}%</span>
                       </div>
                     </div>
                   </div>
-                  <div className="text-4xl font-bold mb-6">SEMANA {numeroSemana1}</div>
-                  <div className="bg-white bg-opacity-10 rounded-2xl p-6 space-y-4">
-                    <div className="text-2xl">
-                      <span className="opacity-80">Planejado:</span>
-                      <div className="font-bold">{formatarHorasParaHMS(horasAEntregar.toString())}</div>
+                  <div className="text-6xl font-bold mb-8">SEMANA {numeroSemana1}</div>
+                  <div className="bg-white bg-opacity-15 rounded-3xl p-8 space-y-6 min-w-[450px]">
+                    <div className="text-3xl">
+                      <span className="opacity-80">🎯 Planejado:</span>
+                      <div className="font-bold text-4xl text-blue-200">{formatarHorasParaHMS(horasAEntregar.toString())}</div>
                     </div>
-                    <div className="text-2xl">
-                      <span className="opacity-80">Entregue:</span>
-                      <div className="font-bold">{formatarHorasParaHMS(horasEntregues1.toString())}</div>
+                    <div className="text-3xl">
+                      <span className="opacity-80">✅ Entregue:</span>
+                      <div className="font-bold text-4xl text-green-300">{formatarHorasParaHMS(horasEntregues1.toString())}</div>
                     </div>
-                    <div className="text-xl opacity-80">
-                      <div>Corridas: {semana1?.totais?.corridas_completadas || 0}/{semana1?.totais?.corridas_ofertadas || 0}</div>
-                      <div>Taxa Aceitação: {semana1?.totais?.corridas_ofertadas ? ((semana1.totais.corridas_aceitas / semana1.totais.corridas_ofertadas) * 100).toFixed(1) : 0}%</div>
+                    <div className="text-2xl opacity-90 space-y-3">
+                      <div className="bg-white bg-opacity-10 rounded-xl p-3">
+                        <span className="opacity-80">🚗 Corridas:</span> <span className="font-bold text-yellow-300">{semana1?.totais?.corridas_completadas || 0}</span>/<span className="font-bold">{semana1?.totais?.corridas_ofertadas || 0}</span>
+                      </div>
+                      <div className="bg-white bg-opacity-10 rounded-xl p-3">
+                        <span className="opacity-80">📈 Taxa Aceitação:</span> <span className="font-bold text-green-300">{semana1?.totais?.corridas_ofertadas ? ((semana1.totais.corridas_aceitas / semana1.totais.corridas_ofertadas) * 100).toFixed(1) : 0}%</span>
+                      </div>
+                      <div className="bg-white bg-opacity-10 rounded-xl p-3">
+                        <span className="opacity-80">❌ Rejeitadas:</span> <span className="font-bold text-red-300">{semana1?.totais?.corridas_rejeitadas || 0}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Semana 2 */}
                 <div className="text-center">
-                  <div className="relative w-80 h-80 mb-8">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                  <div className="relative w-96 h-96 mb-12">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
                       <circle
-                        cx="60"
-                        cy="60"
-                        r="45"
+                        cx="100"
+                        cy="100"
+                        r="80"
                         stroke="rgba(255,255,255,0.2)"
-                        strokeWidth="8"
+                        strokeWidth="12"
                         fill="none"
                       />
                       <circle
-                        cx="60"
-                        cy="60"
-                        r="45"
+                        cx="100"
+                        cy="100"
+                        r="80"
                         stroke="#ffffff"
-                        strokeWidth="8"
+                        strokeWidth="12"
                         fill="none"
-                        strokeDasharray={`${(aderencia2 / 100) * 282.7} 282.7`}
+                        strokeDasharray={`${(aderencia2 / 100) * 502.4} 502.4`}
                         strokeLinecap="round"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center flex items-center justify-center w-full h-full">
-                        <span className="text-7xl font-black leading-none">{aderencia2.toFixed(1)}%</span>
+                      <div className="text-center">
+                        <span className="text-8xl font-black leading-none block">{aderencia2.toFixed(1)}%</span>
                       </div>
                     </div>
                   </div>
-                  <div className="text-4xl font-bold mb-6">SEMANA {numeroSemana2}</div>
+                  <div className="text-6xl font-bold mb-8">SEMANA {numeroSemana2}</div>
                   <div className="bg-white bg-opacity-10 rounded-2xl p-6 space-y-4">
                     <div className="text-2xl">
                       <span className="opacity-80">Planejado:</span>
@@ -281,11 +302,11 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
           </div>
 
           {/* Slide 3 - Sub-Praças */}
-          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
+          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px'}}>
             <div className="text-center max-w-7xl mx-auto">
-              <div className="mb-16">
-                <h2 className="text-7xl font-black mb-6">SUB-PRAÇAS</h2>
-                <h3 className="text-4xl font-light opacity-80">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+              <div className="mb-20">
+                <h2 className="text-9xl font-black mb-8 tracking-wider">SUB-PRAÇAS</h2>
+                <h3 className="text-6xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
               </div>
               
               <div className="grid grid-cols-2 gap-16">
@@ -357,7 +378,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
           </div>
 
           {/* Slide 4 - Aderência Diária - Comparação */}
-          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-8">
+          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px'}}>
             <div className="text-center max-w-full mx-auto w-full">
               <div className="mb-12">
                 <h2 className="text-6xl font-black mb-4">ADERÊNCIA DIÁRIA</h2>
@@ -443,7 +464,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
           </div>
 
           {/* Slide 5 - Turnos */}
-          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-8">
+          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px'}}>
             <div className="text-center max-w-full mx-auto w-full">
               <div className="mb-12">
                 <h2 className="text-6xl font-black mb-6">ADERÊNCIA POR TURNO</h2>
@@ -531,7 +552,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
 
           {/* Slide 6 - Turnos Continuação */}
           {semana1?.turno && semana1.turno.length > 2 && (
-            <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-8">
+            <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px'}}>
               <div className="text-center max-w-full mx-auto w-full">
                 <div className="mb-12">
                   <h2 className="text-6xl font-black mb-6">ADERÊNCIA POR TURNO</h2>
@@ -619,7 +640,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
           )}
 
           {/* Slide 7 - Demanda e Rejeições */}
-          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
+          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px'}}>
             <div className="text-center max-w-7xl mx-auto">
               <div className="mb-20">
                 <h2 className="text-6xl font-black mb-6">DEMANDA E REJEIÇÕES</h2>
@@ -737,5 +758,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
     </div>
   );
 }
+
+export default ApresentacaoView;
 
 export default ApresentacaoView;
