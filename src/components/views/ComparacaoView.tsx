@@ -4,6 +4,7 @@ import { FilterOption, DashboardResumoData } from '@/types';
 import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
 import FiltroSelect from '@/components/FiltroSelect';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+import { buildFilterPayload } from '@/utils/helpers';
 import MetricCard from '@/components/MetricCard';
 import { Bar, Line } from 'react-chartjs-2';
 import ApresentacaoView from '@/components/ApresentacaoView';
@@ -113,14 +114,22 @@ function ComparacaoView({
               ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
               : parseInt(semana, 10))
           : semana;
-        const filtro: any = { p_semana: semanaNumero };
         
-        // Se houver praça selecionada ou se não for admin com 1 praça
-        if (pracaSelecionada) {
-          filtro.p_praca = pracaSelecionada;
-        } else if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
-          filtro.p_praca = currentUser.assigned_pracas[0];
-        }
+        // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
+        const filters = {
+          ano: null,
+          semana: semanaNumero,
+          semanas: [semanaNumero],
+          praca: pracaSelecionada,
+          subPraca: null,
+          origem: null,
+          turno: null,
+          subPracas: [],
+          origens: [],
+          turnos: [],
+        };
+        
+        const filtro = buildFilterPayload(filters, currentUser);
         
         // Buscar dados do dashboard
         const { data, error } = await supabase.rpc('dashboard_resumo', filtro);
@@ -137,13 +146,22 @@ function ComparacaoView({
               ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
               : parseInt(semana, 10))
           : semana;
-        const filtro: any = { p_semana: semanaNumero };
         
-        if (pracaSelecionada) {
-          filtro.p_praca = pracaSelecionada;
-        } else if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
-          filtro.p_praca = currentUser.assigned_pracas[0];
-        }
+        // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
+        const filters = {
+          ano: null,
+          semana: semanaNumero,
+          semanas: [semanaNumero],
+          praca: pracaSelecionada,
+          subPraca: null,
+          origem: null,
+          turno: null,
+          subPracas: [],
+          origens: [],
+          turnos: [],
+        };
+        
+        const filtro = buildFilterPayload(filters, currentUser);
         
         const { data, error } = await supabase.rpc('calcular_utr', filtro);
         if (error) throw error;
