@@ -87,10 +87,10 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
         // Converter para JPEG com qualidade otimizada (85% - boa qualidade, menor tamanho)
         const imgData = canvas.toDataURL('image/jpeg', 0.85);
         
-        // Calcular dimensões mantendo proporção
+        // Calcular dimensões para ocupar toda a página (sem bordas brancas)
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+        const ratio = Math.max(pdfWidth / imgWidth, pdfHeight / imgHeight);
         const scaledWidth = imgWidth * ratio;
         const scaledHeight = imgHeight * ratio;
         const imgX = (pdfWidth - scaledWidth) / 2;
@@ -186,8 +186,8 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <span className="text-6xl font-black leading-none block">{aderencia1.toFixed(1)}%</span>
+                      <div className="text-center flex items-center justify-center w-full h-full">
+                        <span className="text-7xl font-black leading-none">{aderencia1.toFixed(1)}%</span>
                       </div>
                     </div>
                   </div>
@@ -232,8 +232,8 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <span className="text-6xl font-black leading-none block">{aderencia2.toFixed(1)}%</span>
+                      <div className="text-center flex items-center justify-center w-full h-full">
+                        <span className="text-7xl font-black leading-none">{aderencia2.toFixed(1)}%</span>
                       </div>
                     </div>
                   </div>
@@ -356,114 +356,102 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
             </div>
           </div>
 
-          {/* Slide 4 - Aderência Diária - Semana 1 */}
-          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
-            <div className="text-center max-w-7xl mx-auto">
-              <div className="mb-20">
-                <h2 className="text-7xl font-black mb-6">ADERÊNCIA DIÁRIA</h2>
-                <h3 className="text-5xl font-bold mb-4">SEMANA {numeroSemana1}</h3>
-                <h4 className="text-3xl font-light opacity-80">Análise por Dia da Semana</h4>
+          {/* Slide 4 - Aderência Diária - Comparação */}
+          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-8">
+            <div className="text-center max-w-full mx-auto w-full">
+              <div className="mb-12">
+                <h2 className="text-6xl font-black mb-4">ADERÊNCIA DIÁRIA</h2>
+                <h3 className="text-3xl font-light opacity-80">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
               </div>
               
-              <div className="flex justify-center gap-8">
-                {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
-                  const diaData = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
-                  const aderencia = diaData?.aderencia_percentual || 0;
-                  const horasEntregues = parseFloat(diaData?.horas_entregues || '0');
-                  const horasPlanejadas = parseFloat(diaData?.horas_a_entregar || '0');
-                  
-                  return (
-                    <div key={index} className="text-center bg-white bg-opacity-10 rounded-3xl p-6 min-w-[140px]">
-                      <div className="text-xl font-bold mb-4 opacity-90">{dia.toUpperCase()}</div>
-                      <div className="relative w-28 h-28 mx-auto mb-6">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                          <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="6" fill="none" />
-                          <circle
-                            cx="50" cy="50" r="35"
-                            stroke="#ffffff" strokeWidth="6" fill="none"
-                            strokeDasharray={`${(aderencia / 100) * 219.8} 219.8`}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <span className="text-2xl font-black leading-none block">{aderencia.toFixed(1)}%</span>
+              {/* Semana 1 */}
+              <div className="mb-12">
+                <h4 className="text-3xl font-bold mb-6">SEMANA {numeroSemana1}</h4>
+                <div className="flex justify-center gap-4">
+                  {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
+                    const diaData = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
+                    const aderencia = diaData?.aderencia_percentual || 0;
+                    const horasEntregues = parseFloat(diaData?.horas_entregues || '0');
+                    
+                    return (
+                      <div key={index} className="text-center bg-white bg-opacity-10 rounded-2xl p-4 min-w-[120px]">
+                        <div className="text-lg font-bold mb-3 opacity-90">{dia.substring(0,3).toUpperCase()}</div>
+                        <div className="relative w-20 h-20 mx-auto mb-3">
+                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="28" stroke="rgba(255,255,255,0.2)" strokeWidth="5" fill="none" />
+                            <circle
+                              cx="40" cy="40" r="28"
+                              stroke="#ffffff" strokeWidth="5" fill="none"
+                              strokeDasharray={`${(aderencia / 100) * 175.9} 175.9`}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center flex items-center justify-center w-full h-full">
+                              <span className="text-lg font-black leading-none">{aderencia.toFixed(0)}%</span>
+                            </div>
                           </div>
                         </div>
+                        <div className="text-sm font-bold">{formatarHorasParaHMS(horasEntregues.toString())}</div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="text-sm opacity-80">Planejado: {horasPlanejadas.toFixed(1)}h</div>
-                        <div className="text-base font-bold">{formatarHorasParaHMS(horasEntregues.toString())}</div>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Slide 5 - Aderência Diária - Semana 2 com Comparação */}
-          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
-            <div className="text-center max-w-7xl mx-auto">
-              <div className="mb-20">
-                <h2 className="text-7xl font-black mb-6">ADERÊNCIA DIÁRIA</h2>
-                <h3 className="text-5xl font-bold mb-4">SEMANA {numeroSemana2}</h3>
-                <h4 className="text-3xl font-light opacity-80">Comparação com Semana {numeroSemana1}</h4>
-              </div>
-              
-              <div className="flex justify-center gap-8">
-                {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
-                  const diaData1 = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
-                  const diaData2 = semana2?.dia?.find((d: any) => d.dia_da_semana === dia);
-                  const aderencia = diaData2?.aderencia_percentual || 0;
-                  const horasEntregues1 = parseFloat(diaData1?.horas_entregues || '0');
-                  const horasEntregues2 = parseFloat(diaData2?.horas_entregues || '0');
-                  const horasPlanejadas = parseFloat(diaData2?.horas_a_entregar || '0');
-                  const diferenca = calcularDiferenca(horasEntregues1, horasEntregues2);
-                  
-                  return (
-                    <div key={index} className="text-center bg-white bg-opacity-10 rounded-3xl p-6 min-w-[140px]">
-                      <div className="text-xl font-bold mb-4 opacity-90">{dia.toUpperCase()}</div>
-                      <div className="relative w-28 h-28 mx-auto mb-6">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                          <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="6" fill="none" />
-                          <circle
-                            cx="50" cy="50" r="35"
-                            stroke="#ffffff" strokeWidth="6" fill="none"
-                            strokeDasharray={`${(aderencia / 100) * 219.8} 219.8`}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <span className="text-2xl font-black leading-none block">{aderencia.toFixed(1)}%</span>
+              {/* Semana 2 */}
+              <div>
+                <h4 className="text-3xl font-bold mb-6">SEMANA {numeroSemana2}</h4>
+                <div className="flex justify-center gap-4">
+                  {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
+                    const diaData1 = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
+                    const diaData2 = semana2?.dia?.find((d: any) => d.dia_da_semana === dia);
+                    const aderencia = diaData2?.aderencia_percentual || 0;
+                    const horasEntregues1 = parseFloat(diaData1?.horas_entregues || '0');
+                    const horasEntregues2 = parseFloat(diaData2?.horas_entregues || '0');
+                    const diferenca = calcularDiferenca(horasEntregues1, horasEntregues2);
+                    
+                    return (
+                      <div key={index} className="text-center bg-white bg-opacity-10 rounded-2xl p-4 min-w-[120px]">
+                        <div className="text-lg font-bold mb-3 opacity-90">{dia.substring(0,3).toUpperCase()}</div>
+                        <div className="relative w-20 h-20 mx-auto mb-3">
+                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="28" stroke="rgba(255,255,255,0.2)" strokeWidth="5" fill="none" />
+                            <circle
+                              cx="40" cy="40" r="28"
+                              stroke="#ffffff" strokeWidth="5" fill="none"
+                              strokeDasharray={`${(aderencia / 100) * 175.9} 175.9`}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center flex items-center justify-center w-full h-full">
+                              <span className="text-lg font-black leading-none">{aderencia.toFixed(0)}%</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="text-sm opacity-80">Planejado: {horasPlanejadas.toFixed(1)}h</div>
-                        <div className="text-base font-bold">{formatarHorasParaHMS(horasEntregues2.toString())}</div>
-                        <div className={`text-sm font-bold ${diferenca >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                        <div className="text-sm font-bold">{formatarHorasParaHMS(horasEntregues2.toString())}</div>
+                        <div className={`text-xs font-bold mt-1 ${diferenca >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                           {formatarDiferenca(diferenca, true)}
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Slide 6 - Turnos */}
-          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
-            <div className="text-center max-w-7xl mx-auto">
-              <div className="mb-16">
-                <h2 className="text-7xl font-black mb-6">ADERÊNCIA POR TURNO</h2>
-                <h3 className="text-4xl font-light opacity-80">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+          {/* Slide 5 - Turnos */}
+          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-8">
+            <div className="text-center max-w-full mx-auto w-full">
+              <div className="mb-12">
+                <h2 className="text-6xl font-black mb-6">ADERÊNCIA POR TURNO</h2>
+                <h3 className="text-3xl font-light opacity-80">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
               </div>
               
-              <div className="space-y-12">
-                {semana1?.turno?.map((turno: any, index: number) => {
+              <div className="space-y-8">
+                {semana1?.turno?.slice(0, 2).map((turno: any, index: number) => {
                   const turno2 = semana2?.turno?.find((t: any) => t.periodo === turno.periodo);
                   const aderencia1 = turno.aderencia_percentual || 0;
                   const aderencia2 = turno2?.aderencia_percentual || 0;
@@ -473,61 +461,60 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                   const diferencaAderencia = calcularDiferenca(aderencia1, aderencia2);
                   
                   return (
-                    <div key={index} className="bg-white bg-opacity-10 rounded-3xl p-8">
-                      <div className="text-center mb-8">
-                        <h4 className="text-4xl font-bold mb-2">{turno.periodo?.toUpperCase()}</h4>
-                        <div className="text-xl opacity-80">Planejado: {parseFloat(turno.horas_a_entregar || '0').toFixed(2)}h</div>
+                    <div key={index} className="bg-white bg-opacity-10 rounded-3xl p-6">
+                      <div className="text-center mb-6">
+                        <h4 className="text-3xl font-bold mb-2">{turno.periodo?.toUpperCase()}</h4>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-16 items-center">
+                      <div className="flex justify-center gap-16 items-center">
                         {/* Semana 1 */}
                         <div className="text-center">
-                          <div className="text-3xl font-bold mb-4">SEMANA {numeroSemana1}</div>
-                          <div className="relative w-48 h-48 mx-auto mb-6">
+                          <div className="text-2xl font-bold mb-4">SEMANA {numeroSemana1}</div>
+                          <div className="relative w-32 h-32 mx-auto mb-4">
                             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                              <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="6" fill="none" />
+                              <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                               <circle
                                 cx="50" cy="50" r="35"
-                                stroke="#ffffff" strokeWidth="6" fill="none"
+                                stroke="#ffffff" strokeWidth="8" fill="none"
                                 strokeDasharray={`${(aderencia1 / 100) * 219.8} 219.8`}
                                 strokeLinecap="round"
                               />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="text-center">
-                                <span className="text-3xl font-black leading-none block">{aderencia1.toFixed(1)}%</span>
+                              <div className="text-center flex items-center justify-center w-full h-full">
+                                <span className="text-2xl font-black leading-none">{aderencia1.toFixed(1)}%</span>
                               </div>
                             </div>
                           </div>
-                          <div className="text-2xl font-medium">{formatarHorasParaHMS(horas1.toString())}</div>
+                          <div className="text-lg font-medium">{formatarHorasParaHMS(horas1.toString())}</div>
                         </div>
 
                         {/* Semana 2 */}
                         <div className="text-center">
-                          <div className="text-3xl font-bold mb-4">SEMANA {numeroSemana2}</div>
-                          <div className="relative w-48 h-48 mx-auto mb-6">
+                          <div className="text-2xl font-bold mb-4">SEMANA {numeroSemana2}</div>
+                          <div className="relative w-32 h-32 mx-auto mb-4">
                             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                              <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="6" fill="none" />
+                              <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                               <circle
                                 cx="50" cy="50" r="35"
-                                stroke="#ffffff" strokeWidth="6" fill="none"
+                                stroke="#ffffff" strokeWidth="8" fill="none"
                                 strokeDasharray={`${(aderencia2 / 100) * 219.8} 219.8`}
                                 strokeLinecap="round"
                               />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="text-center">
-                                <span className="text-3xl font-black leading-none block">{aderencia2.toFixed(1)}%</span>
+                              <div className="text-center flex items-center justify-center w-full h-full">
+                                <span className="text-2xl font-black leading-none">{aderencia2.toFixed(1)}%</span>
                               </div>
                             </div>
                           </div>
-                          <div className="text-2xl font-medium">{formatarHorasParaHMS(horas2.toString())}</div>
-                          <div className="mt-4 space-y-2">
-                            <div className={`text-xl font-bold ${diferenca >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              Horas: {formatarDiferenca(diferenca, true)}
+                          <div className="text-lg font-medium">{formatarHorasParaHMS(horas2.toString())}</div>
+                          <div className="mt-3 space-y-1">
+                            <div className={`text-lg font-bold ${diferenca >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {formatarDiferenca(diferenca, true)}
                             </div>
-                            <div className={`text-xl font-bold ${diferencaAderencia >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              Aderência: {(() => {
+                            <div className={`text-lg font-bold ${diferencaAderencia >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {(() => {
                                 const sinal = diferencaAderencia >= 0 ? '+' : '';
                                 return `${sinal}${diferencaAderencia.toFixed(1)}%`;
                               })()}
@@ -542,30 +529,123 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
             </div>
           </div>
 
+          {/* Slide 6 - Turnos Continuação */}
+          {semana1?.turno && semana1.turno.length > 2 && (
+            <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-8">
+              <div className="text-center max-w-full mx-auto w-full">
+                <div className="mb-12">
+                  <h2 className="text-6xl font-black mb-6">ADERÊNCIA POR TURNO</h2>
+                  <h3 className="text-3xl font-light opacity-80">CONTINUAÇÃO - SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                </div>
+                
+                <div className="space-y-8">
+                  {semana1.turno.slice(2).map((turno: any, index: number) => {
+                    const turno2 = semana2?.turno?.find((t: any) => t.periodo === turno.periodo);
+                    const aderencia1 = turno.aderencia_percentual || 0;
+                    const aderencia2 = turno2?.aderencia_percentual || 0;
+                    const horas1 = parseFloat(turno.horas_entregues || '0');
+                    const horas2 = parseFloat(turno2?.horas_entregues || '0');
+                    const diferenca = calcularDiferenca(horas1, horas2);
+                    const diferencaAderencia = calcularDiferenca(aderencia1, aderencia2);
+                    
+                    return (
+                      <div key={index} className="bg-white bg-opacity-10 rounded-3xl p-6">
+                        <div className="text-center mb-6">
+                          <h4 className="text-3xl font-bold mb-2">{turno.periodo?.toUpperCase()}</h4>
+                        </div>
+                        
+                        <div className="flex justify-center gap-16 items-center">
+                          {/* Semana 1 */}
+                          <div className="text-center">
+                            <div className="text-2xl font-bold mb-4">SEMANA {numeroSemana1}</div>
+                            <div className="relative w-32 h-32 mx-auto mb-4">
+                              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
+                                <circle
+                                  cx="50" cy="50" r="35"
+                                  stroke="#ffffff" strokeWidth="8" fill="none"
+                                  strokeDasharray={`${(aderencia1 / 100) * 219.8} 219.8`}
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="text-center flex items-center justify-center w-full h-full">
+                                  <span className="text-2xl font-black leading-none">{aderencia1.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-lg font-medium">{formatarHorasParaHMS(horas1.toString())}</div>
+                          </div>
+
+                          {/* Semana 2 */}
+                          <div className="text-center">
+                            <div className="text-2xl font-bold mb-4">SEMANA {numeroSemana2}</div>
+                            <div className="relative w-32 h-32 mx-auto mb-4">
+                              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
+                                <circle
+                                  cx="50" cy="50" r="35"
+                                  stroke="#ffffff" strokeWidth="8" fill="none"
+                                  strokeDasharray={`${(aderencia2 / 100) * 219.8} 219.8`}
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="text-center flex items-center justify-center w-full h-full">
+                                  <span className="text-2xl font-black leading-none">{aderencia2.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-lg font-medium">{formatarHorasParaHMS(horas2.toString())}</div>
+                            <div className="mt-3 space-y-1">
+                              <div className={`text-lg font-bold ${diferenca >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                                {formatarDiferenca(diferenca, true)}
+                              </div>
+                              <div className={`text-lg font-bold ${diferencaAderencia >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                                {(() => {
+                                  const sinal = diferencaAderencia >= 0 ? '+' : '';
+                                  return `${sinal}${diferencaAderencia.toFixed(1)}%`;
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Slide 7 - Demanda e Rejeições */}
           <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
             <div className="text-center max-w-7xl mx-auto">
               <div className="mb-20">
-                <h2 className="text-7xl font-black mb-6">DEMANDA E REJEITES</h2>
-                <h3 className="text-4xl font-light opacity-80">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                <h2 className="text-6xl font-black mb-6">DEMANDA E REJEIÇÕES</h2>
+                <h3 className="text-3xl font-light opacity-80">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
               </div>
               
-              <div className="grid grid-cols-2 gap-24">
+              <div className="grid grid-cols-2 gap-20">
                 {/* Semana 1 */}
                 <div className="text-center">
-                  <h4 className="text-5xl font-bold mb-12">SEMANA {numeroSemana1}</h4>
+                  <h4 className="text-4xl font-bold mb-10">SEMANA {numeroSemana1}</h4>
                   <div className="space-y-6 text-left max-w-md mx-auto">
-                    <div className="text-3xl">
-                      <span className="font-bold">OFERTADAS - </span>
-                      <span className="font-black">{semana1?.totais?.corridas_ofertadas || 0}</span>
+                    <div className="text-2xl bg-white bg-opacity-10 rounded-2xl p-4">
+                      <span className="font-bold">OFERTADAS: </span>
+                      <span className="font-black text-3xl">{semana1?.totais?.corridas_ofertadas || 0}</span>
                     </div>
-                    <div className="text-3xl">
-                      <span className="font-bold">COMPLETADAS - </span>
-                      <span className="font-black">{semana1?.totais?.corridas_completadas || 0}</span>
+                    <div className="text-2xl bg-white bg-opacity-10 rounded-2xl p-4">
+                      <span className="font-bold">ACEITAS: </span>
+                      <span className="font-black text-3xl text-green-300">{semana1?.totais?.corridas_aceitas || 0}</span>
                     </div>
-                    <div className="text-3xl">
-                      <span className="font-bold">REJEITADAS - </span>
-                      <span className="font-black">{semana1?.totais?.corridas_rejeitadas || 0}</span>
+                    <div className="text-2xl bg-white bg-opacity-10 rounded-2xl p-4">
+                      <span className="font-bold">COMPLETADAS: </span>
+                      <span className="font-black text-3xl text-blue-300">{semana1?.totais?.corridas_completadas || 0}</span>
+                    </div>
+                    <div className="text-2xl bg-white bg-opacity-10 rounded-2xl p-4">
+                      <span className="font-bold">REJEITADAS: </span>
+                      <span className="font-black text-3xl text-red-300">{semana1?.totais?.corridas_rejeitadas || 0}</span>
                     </div>
                   </div>
                   
@@ -588,33 +668,34 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
 
                 {/* Semana 2 */}
                 <div className="text-center">
-                  <h4 className="text-5xl font-bold mb-12">SEMANA {numeroSemana2}</h4>
+                  <h4 className="text-4xl font-bold mb-10">SEMANA {numeroSemana2}</h4>
                   <div className="space-y-6 text-left max-w-md mx-auto">
-                    <div className="text-3xl flex justify-between">
-                      <span>
-                        <span className="font-bold">OFERTADAS - </span>
-                        <span className="font-black">{semana2?.totais?.corridas_ofertadas || 0}</span>
-                      </span>
-                      <span className="text-green-300 font-bold">
-                        {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0))}
+                    <div className="text-2xl bg-white bg-opacity-10 rounded-2xl p-4">
+                      <span className="font-bold">OFERTADAS: </span>
+                      <span className="font-black text-3xl">{semana2?.totais?.corridas_ofertadas || 0}</span>
+                      <span className={`ml-3 text-xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                        ({formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0))})
                       </span>
                     </div>
-                    <div className="text-3xl flex justify-between">
-                      <span>
-                        <span className="font-bold">COMPLETADAS - </span>
-                        <span className="font-black">{semana2?.totais?.corridas_completadas || 0}</span>
-                      </span>
-                      <span className="text-green-300 font-bold">
-                        {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0))}
+                    <div className="text-2xl bg-white bg-opacity-10 rounded-2xl p-4">
+                      <span className="font-bold">ACEITAS: </span>
+                      <span className="font-black text-3xl text-green-300">{semana2?.totais?.corridas_aceitas || 0}</span>
+                      <span className={`ml-3 text-xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                        ({formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0))})
                       </span>
                     </div>
-                    <div className="text-3xl flex justify-between">
-                      <span>
-                        <span className="font-bold">REJEITADAS - </span>
-                        <span className="font-black">{semana2?.totais?.corridas_rejeitadas || 0}</span>
+                    <div className="text-2xl bg-white bg-opacity-10 rounded-2xl p-4">
+                      <span className="font-bold">COMPLETADAS: </span>
+                      <span className="font-black text-3xl text-blue-300">{semana2?.totais?.corridas_completadas || 0}</span>
+                      <span className={`ml-3 text-xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                        ({formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0))})
                       </span>
-                      <span className={`font-bold ${calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0) >= 0 ? 'text-red-300' : 'text-green-300'}`}>
-                        {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0))}
+                    </div>
+                    <div className="text-2xl bg-white bg-opacity-10 rounded-2xl p-4">
+                      <span className="font-bold">REJEITADAS: </span>
+                      <span className="font-black text-3xl text-red-300">{semana2?.totais?.corridas_rejeitadas || 0}</span>
+                      <span className={`ml-3 text-xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0) >= 0 ? 'text-red-300' : 'text-green-300'}`}>
+                        ({formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0))})
                       </span>
                     </div>
                   </div>
