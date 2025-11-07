@@ -28,13 +28,13 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     const calculateScale = () => {
       if (previewContainerRef.current && contentRef.current) {
         const container = previewContainerRef.current.getBoundingClientRect();
-        // Considerar padding do container (p-4 = 16px)
+        // Considerar padding do container (p-4 = 16px de cada lado = 32px total)
         const availableWidth = container.width - 32;
         const availableHeight = container.height - 32;
         // Baseado na proporção 16:9 (1920x1080)
         const scaleX = availableWidth / 1920;
         const scaleY = availableHeight / 1080;
-        const scale = Math.min(scaleX, scaleY) * 0.9; // 90% para ter margem confortável
+        const scale = Math.min(scaleX, scaleY) * 0.95; // 95% para ter margem confortável
         setPreviewScale(Math.max(0.1, Math.min(1, scale))); // Limitar entre 0.1 e 1
       }
     };
@@ -137,17 +137,35 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         printContainer.style.position = 'absolute';
         printContainer.style.left = '-9999px';
         printContainer.style.top = '0';
+        printContainer.style.width = '1920px';
+        printContainer.style.height = '1080px';
+        printContainer.style.overflow = 'hidden';
+        printContainer.style.backgroundColor = '#3b82f6';
         
         // Clonar o slide e aplicar as dimensões fixas
         const clone = slide.cloneNode(true) as HTMLElement;
         clone.style.width = '1920px';
         clone.style.height = '1080px';
+        clone.style.position = 'relative';
+        clone.style.opacity = '1';
+        clone.style.visibility = 'visible';
+        clone.style.display = 'block';
+        
+        // Garantir que todos os elementos filhos também estejam visíveis
+        const allElements = clone.querySelectorAll('*');
+        allElements.forEach((el: any) => {
+          if (el.style) {
+            if (el.style.opacity === '0') el.style.opacity = '1';
+            if (el.style.visibility === 'hidden') el.style.visibility = 'visible';
+            if (el.style.display === 'none') el.style.display = '';
+          }
+        });
         
         printContainer.appendChild(clone);
         document.body.appendChild(printContainer);
 
         // Aguardar um momento para garantir a renderização do clone
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // Capturar o clone com alta qualidade
         const canvas = await html2canvas(clone, {
@@ -159,7 +177,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           height: 1080,
           logging: false,
           imageTimeout: 0,
-          removeContainer: true,
+          removeContainer: false,
           foreignObjectRendering: false,
           ignoreElements: (element) => {
             return element.tagName === 'IFRAME' || element.tagName === 'OBJECT';
@@ -261,7 +279,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         </div>
 
         {/* Conteúdo da apresentação */}
-        <div ref={previewContainerRef} className="bg-slate-100 flex-1 overflow-hidden p-4 flex items-center justify-center">
+        <div ref={previewContainerRef} className="bg-slate-100 flex-1 overflow-hidden p-4 flex items-center justify-center" style={{ position: 'relative' }}>
           {/* Container do Slide com ajuste de escala dinâmico */}
           <div 
             ref={contentRef}
@@ -271,6 +289,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
               height: '1080px', 
               transform: `scale(${previewScale})`,
               transformOrigin: 'center center',
+              margin: '0 auto',
             }}
           >
             {/* Slide 1 - Capa */}
