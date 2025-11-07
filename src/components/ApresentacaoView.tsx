@@ -193,7 +193,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         // Calcular dimensões para ocupar toda a página (sem bordas brancas)
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
-        const ratio = Math.max(pdfWidth / imgWidth, pdfHeight / imgHeight);
+        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
         const scaledWidth = imgWidth * ratio;
         const scaledHeight = imgHeight * ratio;
         const imgX = (pdfWidth - scaledWidth) / 2;
@@ -279,7 +279,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         </div>
 
         {/* Conteúdo da apresentação */}
-        <div ref={previewContainerRef} className="bg-slate-100 flex-1 overflow-hidden p-4 flex items-center justify-center" style={{ position: 'relative' }}>
+        <div ref={previewContainerRef} className="bg-slate-100 flex-1 overflow-hidden p-4" style={{ position: 'relative' }}>
           {/* Container do Slide com ajuste de escala dinâmico */}
           <div 
             ref={contentRef}
@@ -287,9 +287,11 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
             style={{ 
               width: '1920px', 
               height: '1080px', 
-              transform: `scale(${previewScale})`,
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: `translate(-50%, -50%) scale(${previewScale})`,
               transformOrigin: 'center center',
-              margin: '0 auto',
             }}
           >
             {/* Slide 1 - Capa */}
