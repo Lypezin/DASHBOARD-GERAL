@@ -203,6 +203,37 @@ function ComparacaoView({
       <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
         <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">🔍 Configurar Comparação</h3>
         
+        {/* Tutorial/Instruções para Apresentação */}
+        <div className="mb-6 rounded-lg border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 p-4 dark:border-purple-700 dark:from-purple-950/30 dark:to-pink-950/30">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 text-2xl">📋</div>
+            <div className="flex-1">
+              <h4 className="mb-2 font-bold text-purple-900 dark:text-purple-300">Como Gerar a Apresentação em PDF</h4>
+              <ol className="space-y-2 text-sm text-purple-800 dark:text-purple-200">
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-purple-600 dark:text-purple-400">1.</span>
+                  <span>Selecione <strong>exatamente 2 semanas</strong> usando os checkboxes abaixo. O botão "📄 Apresentação" só ficará disponível quando exatamente 2 semanas estiverem selecionadas.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-purple-600 dark:text-purple-400">2.</span>
+                  <span>Clique em <strong>"⚖️ Comparar Semanas"</strong> para carregar os dados das semanas selecionadas.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-purple-600 dark:text-purple-400">3.</span>
+                  <span>Após a comparação ser concluída, clique em <strong>"📄 Apresentação"</strong> para abrir o preview da apresentação.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-purple-600 dark:text-purple-400">4.</span>
+                  <span>No preview, você pode navegar pelos slides usando os botões "Anterior" e "Próximo", e então clicar em <strong>"Gerar PDF"</strong> para baixar a apresentação completa em alta qualidade.</span>
+                </li>
+              </ol>
+              <div className="mt-3 rounded-md bg-purple-100 p-2 text-xs text-purple-900 dark:bg-purple-900/50 dark:text-purple-200">
+                <strong>⚠️ Importante:</strong> A apresentação só pode ser gerada com exatamente 2 semanas selecionadas. Se você selecionar 1, 3 ou mais semanas, o botão ficará desabilitado.
+              </div>
+            </div>
+          </div>
+        </div>
+        
         {/* Filtro de Praça */}
         <div className="mb-6">
           <FiltroSelect

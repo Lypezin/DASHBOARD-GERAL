@@ -26,20 +26,32 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 
   useEffect(() => {
     const calculateScale = () => {
-      if (previewContainerRef.current) {
-        const { width, height } = previewContainerRef.current.getBoundingClientRect();
+      if (previewContainerRef.current && contentRef.current) {
+        const container = previewContainerRef.current.getBoundingClientRect();
+        // Considerar padding do container (p-4 = 16px)
+        const availableWidth = container.width - 32;
+        const availableHeight = container.height - 32;
         // Baseado na proporção 16:9 (1920x1080)
-        const scaleX = width / 1920;
-        const scaleY = height / 1080;
-        setPreviewScale(Math.min(scaleX, scaleY) * 0.95); // 95% para ter uma pequena margem
+        const scaleX = availableWidth / 1920;
+        const scaleY = availableHeight / 1080;
+        const scale = Math.min(scaleX, scaleY) * 0.9; // 90% para ter margem confortável
+        setPreviewScale(Math.max(0.1, Math.min(1, scale))); // Limitar entre 0.1 e 1
       }
     };
 
+    // Calcular imediatamente
     calculateScale();
+    
+    // Recalcular após um pequeno delay para garantir que o DOM está renderizado
+    const timeoutId = setTimeout(calculateScale, 100);
+    
     window.addEventListener('resize', calculateScale);
 
-    return () => window.removeEventListener('resize', calculateScale);
-  }, []);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', calculateScale);
+    };
+  }, [currentSlide, dadosComparacao]);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -258,7 +270,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
             {React.Children.toArray(
               <>
                 {/* Slide 1 - Capa */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px'}}>
+                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px', padding: '80px 60px', boxSizing: 'border-box'}}>
                   <div className="text-center w-full px-24">
                     <div className="mb-16">
                       <h1 className="text-[12rem] font-black mb-8 leading-none tracking-wider">RELATÓRIO DE</h1>
@@ -275,17 +287,17 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 </div>
 
                 {/* Slide 2 - Aderência Geral */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center p-12">
-                  <div className="w-full text-center">
-                    <h2 className="text-8xl font-black mb-4 tracking-wider">ADERÊNCIA GERAL</h2>
-                    <h3 className="text-5xl font-light opacity-90 mb-16">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
+                  <div className="w-full text-center mb-12">
+                    <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>ADERÊNCIA GERAL</h2>
+                    <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
                   </div>
                   <div className="w-full flex justify-center items-start gap-16">
                     {/* Semana 1 */}
                     <div className="flex flex-col items-center">
                       <h4 className="text-6xl font-bold mb-8">SEMANA {numeroSemana1}</h4>
-                      <div className="relative w-96 h-96 mb-8">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                      <div className="relative w-96 h-96 mb-8" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120" style={{position: 'absolute', top: 0, left: 0}}>
                           <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.2)" strokeWidth="10" fill="none" />
                           <circle
                             cx="60" cy="60" r="50"
@@ -294,8 +306,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-7xl font-black leading-none">{aderencia1.toFixed(1)}%</span>
+                        <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                          <span className="text-7xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia1.toFixed(1)}%</span>
                         </div>
                       </div>
                       <div className="bg-white bg-opacity-15 rounded-3xl p-6 space-y-4 w-[450px]">
@@ -307,21 +319,14 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                           <span className="opacity-80">✅ Entregue:</span>
                           <span className="font-bold text-4xl text-green-300">{formatarHorasParaHMS(horasEntregues1.toString())}</span>
                         </div>
-                        <div className="border-t border-white/20 my-4"></div>
-                        <div className="space-y-3 text-2xl opacity-90">
-                          <div className="flex justify-between items-center bg-white bg-opacity-10 rounded-xl p-3">
-                            <span>📈 Taxa Aceitação:</span>
-                            <span className="font-bold text-green-300">{semana1?.totais?.corridas_ofertadas ? ((semana1.totais.corridas_aceitas / semana1.totais.corridas_ofertadas) * 100).toFixed(1) : 0}%</span>
-                          </div>
-                        </div>
                       </div>
                     </div>
 
                     {/* Semana 2 */}
                     <div className="flex flex-col items-center">
                       <h4 className="text-6xl font-bold mb-8">SEMANA {numeroSemana2}</h4>
-                      <div className="relative w-96 h-96 mb-8">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                      <div className="relative w-96 h-96 mb-8" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120" style={{position: 'absolute', top: 0, left: 0}}>
                           <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.2)" strokeWidth="10" fill="none" />
                           <circle
                             cx="60" cy="60" r="50"
@@ -330,8 +335,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-7xl font-black leading-none">{aderencia2.toFixed(1)}%</span>
+                        <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                          <span className="text-7xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia2.toFixed(1)}%</span>
                         </div>
                       </div>
                       <div className="bg-white bg-opacity-15 rounded-3xl p-6 space-y-4 w-[450px]">
@@ -344,37 +349,18 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                             <span className="opacity-80">✅ Entregue:</span>
                             <span className="font-bold text-4xl text-green-300">{formatarHorasParaHMS(horasEntregues2.toString())}</span>
                           </div>
-                          <div className={`text-right text-2xl font-bold mt-1 ${calcularDiferenca(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                            {formatarDiferenca(calcularDiferenca(horasEntregues1, horasEntregues2), true)}
+                          <div className="flex flex-col items-end mt-2">
+                            <div className={`text-2xl font-bold ${calcularDiferenca(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {formatarDiferenca(calcularDiferenca(horasEntregues1, horasEntregues2), true)}
+                            </div>
+                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {formatarDiferencaPercentual(calcularDiferencaPercentual(horasEntregues1, horasEntregues2))}
+                            </div>
                           </div>
                         </div>
-                        <div className="border-t border-white/20 my-4"></div>
-                        <div className="space-y-3 text-2xl opacity-90">
-                          <div className="flex justify-between items-center bg-white bg-opacity-10 rounded-xl p-3">
-                            <span>📈 Taxa Aceitação:</span>
-                            <div>
-                              <span className="font-bold text-green-300">{semana2?.totais?.corridas_ofertadas ? ((semana2.totais.corridas_aceitas / semana2.totais.corridas_ofertadas) * 100).toFixed(1) : 0}%</span>
-                              <span className={`ml-2 font-bold ${
-                                calcularDiferenca(
-                                  semana1?.totais?.corridas_ofertadas ? ((semana1.totais.corridas_aceitas / semana1.totais.corridas_ofertadas) * 100) : 0,
-                                  semana2?.totais?.corridas_ofertadas ? ((semana2.totais.corridas_aceitas / semana2.totais.corridas_ofertadas) * 100) : 0
-                                ) >= 0 ? 'text-green-300' : 'text-red-300'
-                              }`}>
-                                {formatarDiferencaPercentual(calcularDiferencaPercentual(
-                                  semana1?.totais?.corridas_ofertadas ? ((semana1.totais.corridas_aceitas / semana1.totais.corridas_ofertadas) * 100) : 0,
-                                  semana2?.totais?.corridas_ofertadas ? ((semana2.totais.corridas_aceitas / semana2.totais.corridas_ofertadas) * 100) : 0
-                                ))}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex justify-between items-center bg-white bg-opacity-10 rounded-xl p-3">
-                            <span>❌ Rejeitadas:</span>
-                            <div>
-                              <span className="font-bold text-red-300">{semana2?.totais?.corridas_rejeitadas || 0}</span>
-                              <span className={`ml-2 font-bold ${calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0) >= 0 ? 'text-red-300' : 'text-green-300'}`}>
-                                ({formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0))})
-                              </span>
-                            </div>
+                        <div className="flex flex-col items-end mt-2">
+                          <div className={`text-2xl font-bold ${calcularDiferencaPercentual(aderencia1, aderencia2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                            Aderência: {formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1, aderencia2))}
                           </div>
                         </div>
                       </div>
@@ -383,10 +369,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 </div>
 
                 {/* Slide 3 - Sub-Praças */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center p-12">
-                  <div className="w-full text-center">
-                    <h2 className="text-8xl font-black mb-4 tracking-wider">SUB-PRAÇAS</h2>
-                    <h3 className="text-5xl font-light opacity-90 mb-16">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
+                  <div className="w-full text-center mb-12">
+                    <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>SUB-PRAÇAS</h2>
+                    <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
                   </div>
                   <div className="w-full grid grid-cols-3 gap-8">
                     {semana1?.sub_praca?.slice(0, 6).map((subPraca: any, index: number) => {
@@ -403,8 +389,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                           <div className="w-full flex justify-around items-center">
                             {/* Semana 1 */}
                             <div className="text-center">
-                              <div className="relative w-32 h-32 mb-3">
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                              <div className="relative w-32 h-32 mb-3" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
                                   <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                                   <circle
                                     cx="50" cy="50" r="40"
@@ -413,8 +399,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                                     strokeLinecap="round"
                                   />
                                 </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <span className="text-2xl font-black leading-none">{aderencia1.toFixed(1)}%</span>
+                                <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                                  <span className="text-2xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia1.toFixed(1)}%</span>
                                 </div>
                               </div>
                               <div className="text-xl font-bold">SEM {numeroSemana1}</div>
@@ -423,8 +409,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 
                             {/* Semana 2 */}
                             <div className="text-center">
-                              <div className="relative w-32 h-32 mb-3">
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                              <div className="relative w-32 h-32 mb-3" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
                                   <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                                   <circle
                                     cx="50" cy="50" r="40"
@@ -433,14 +419,20 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                                     strokeLinecap="round"
                                   />
                                 </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <span className="text-2xl font-black leading-none">{aderencia2.toFixed(1)}%</span>
+                                <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                                  <span className="text-2xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia2.toFixed(1)}%</span>
                                 </div>
                               </div>
                               <div className="text-xl font-bold">SEM {numeroSemana2}</div>
                               <div className="text-lg">{formatarHorasParaHMS(horas2.toString())}</div>
                               <div className={`text-base font-bold mt-1 ${calcularDiferenca(horas1, horas2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                                 {formatarDiferenca(calcularDiferenca(horas1, horas2), true)}
+                              </div>
+                              <div className={`text-sm font-bold mt-1 ${calcularDiferencaPercentual(horas1, horas2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                                {formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2))}
+                              </div>
+                              <div className={`text-sm font-bold mt-1 ${calcularDiferencaPercentual(aderencia1, aderencia2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                                {formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1, aderencia2))}
                               </div>
                             </div>
                           </div>
@@ -451,10 +443,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 </div>
 
                 {/* Slide 4 - Aderência Diária */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center p-12">
-                  <div className="w-full text-center">
-                    <h2 className="text-8xl font-black mb-4 tracking-wider">ADERÊNCIA DIÁRIA</h2>
-                    <h3 className="text-5xl font-light opacity-90 mb-10">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
+                  <div className="w-full text-center mb-12">
+                    <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>ADERÊNCIA DIÁRIA</h2>
+                    <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
                   </div>
                   <div className="w-full space-y-8">
                     {/* Semana 1 */}
@@ -469,8 +461,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                           return (
                             <div key={index} className="text-center bg-white bg-opacity-15 rounded-2xl p-4 w-48">
                               <div className="text-2xl font-bold mb-3 opacity-90">{dia.substring(0,3).toUpperCase()}</div>
-                              <div className="relative w-28 h-28 mx-auto mb-3">
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                              <div className="relative w-28 h-28 mx-auto mb-3" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
                                   <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                                   <circle
                                     cx="50" cy="50" r="40"
@@ -479,8 +471,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                                     strokeLinecap="round"
                                   />
                                 </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <span className="text-2xl font-black leading-none">{aderencia.toFixed(1)}%</span>
+                                <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                                  <span className="text-2xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia.toFixed(1)}%</span>
                                 </div>
                               </div>
                               <div className="text-xl font-bold">{formatarHorasParaHMS(horasEntregues.toString())}</div>
@@ -505,8 +497,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                           return (
                             <div key={index} className="text-center bg-white bg-opacity-15 rounded-2xl p-4 w-48">
                               <div className="text-2xl font-bold mb-3 opacity-90">{dia.substring(0,3).toUpperCase()}</div>
-                              <div className="relative w-28 h-28 mx-auto mb-3">
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                              <div className="relative w-28 h-28 mx-auto mb-3" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
                                   <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                                   <circle
                                     cx="50" cy="50" r="40"
@@ -515,14 +507,26 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                                     strokeLinecap="round"
                                   />
                                 </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <span className="text-2xl font-black leading-none">{aderencia.toFixed(1)}%</span>
+                                <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                                  <span className="text-2xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia.toFixed(1)}%</span>
                                 </div>
                               </div>
                               <div className="text-xl font-bold">{formatarHorasParaHMS(horasEntregues2.toString())}</div>
                               <div className={`text-base font-bold mt-1 ${diferenca >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                                 {formatarDiferenca(diferenca, true)}
                               </div>
+                              <div className={`text-sm font-bold mt-1 ${calcularDiferencaPercentual(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                                {formatarDiferencaPercentual(calcularDiferencaPercentual(horasEntregues1, horasEntregues2))}
+                              </div>
+                              {(() => {
+                                const aderencia1 = diaData1?.aderencia_percentual || 0;
+                                const aderencia2 = diaData2?.aderencia_percentual || 0;
+                                return (
+                                  <div className={`text-sm font-bold mt-1 ${calcularDiferencaPercentual(aderencia1, aderencia2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                                    {formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1, aderencia2))}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           );
                         })}
@@ -539,10 +543,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                   const turnoPar2 = semana1.turno[index + 1];
 
                   return (
-                    <div key={index} className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center p-12">
-                      <div className="w-full text-center">
-                        <h2 className="text-8xl font-black mb-4 tracking-wider">ADERÊNCIA POR TURNO</h2>
-                        <h3 className="text-5xl font-light opacity-90 mb-10">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                    <div key={index} className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
+                      <div className="w-full text-center mb-12">
+                        <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>ADERÊNCIA POR TURNO</h2>
+                        <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
                       </div>
                       <div className="w-full flex justify-center items-center gap-12">
                         {/* Card Turno 1 */}
@@ -560,12 +564,14 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                                 <>
                                   <div className="text-center">
                                     <div className="text-3xl font-bold mb-4">SEM {numeroSemana1}</div>
-                                    <div className="relative w-48 h-48 mb-4">
-                                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                    <div className="relative w-48 h-48 mb-4" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
                                         <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                                         <circle cx="50" cy="50" r="40" stroke="#ffffff" strokeWidth="8" fill="none" strokeDasharray={`${(a1 / 100) * 251.2} 251.2`} strokeLinecap="round" />
                                       </svg>
-                                      <div className="absolute inset-0 flex items-center justify-center"><span className="text-4xl font-black leading-none">{a1.toFixed(1)}%</span></div>
+                                      <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                                        <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{a1.toFixed(1)}%</span>
+                                      </div>
                                     </div>
                                     <div className="text-2xl font-medium">{formatarHorasParaHMS(h1.toString())}</div>
                                   </div>
@@ -639,10 +645,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 
 
                 {/* Slide 7 - Demanda e Rejeições */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center p-12">
-                  <div className="w-full text-center">
-                    <h2 className="text-6xl font-black mb-6">DEMANDA E REJEIÇÕES</h2>
-                    <h3 className="text-5xl font-light opacity-90 mb-20">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
+                  <div className="w-full text-center mb-12">
+                    <h2 className="text-6xl font-black mb-6" style={{lineHeight: '1.1'}}>DEMANDA E REJEIÇÕES</h2>
+                    <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
                   </div>
                   <div className="w-full flex justify-center items-start gap-16">
                     {/* Semana 1 */}
@@ -677,8 +683,13 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                             <span className="font-bold">OFERTADAS:</span>
                             <span className="font-black text-5xl">{semana2?.totais?.corridas_ofertadas || 0}</span>
                           </div>
-                          <div className={`text-right text-2xl font-bold mt-1 ${calcularDiferenca(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                            {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0))}
+                          <div className="flex flex-col items-end mt-1">
+                            <div className={`text-2xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0))}
+                            </div>
+                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {formatarDiferencaPercentual(calcularDiferencaPercentual(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0))}
+                            </div>
                           </div>
                         </div>
                         <div className="text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
@@ -686,11 +697,13 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                             <span className="font-bold">ACEITAS:</span>
                             <span className="font-black text-5xl text-green-300">{semana2?.totais?.corridas_aceitas || 0}</span>
                           </div>
-                          <div className={`text-right text-2xl font-bold mt-1 ${calcularDiferenca(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                            {formatarDiferencaPercentual(calcularDiferencaPercentual(
-                              semana1?.totais?.corridas_ofertadas ? ((semana1.totais.corridas_aceitas / semana1.totais.corridas_ofertadas) * 100) : 0,
-                              semana2?.totais?.corridas_ofertadas ? ((semana2.totais.corridas_aceitas / semana2.totais.corridas_ofertadas) * 100) : 0
-                            ))}
+                          <div className="flex flex-col items-end mt-1">
+                            <div className={`text-2xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0))}
+                            </div>
+                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {formatarDiferencaPercentual(calcularDiferencaPercentual(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0))}
+                            </div>
                           </div>
                         </div>
                         <div className="text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
@@ -698,8 +711,13 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                             <span className="font-bold">COMPLETADAS:</span>
                             <span className="font-black text-5xl text-blue-300">{semana2?.totais?.corridas_completadas || 0}</span>
                           </div>
-                          <div className={`text-right text-2xl font-bold mt-1 ${calcularDiferenca(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                            {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0))}
+                          <div className="flex flex-col items-end mt-1">
+                            <div className={`text-2xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0))}
+                            </div>
+                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              {formatarDiferencaPercentual(calcularDiferencaPercentual(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0))}
+                            </div>
                           </div>
                         </div>
                         <div className="text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
@@ -707,11 +725,13 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                             <span className="font-bold">REJEITADAS:</span>
                             <span className="font-black text-5xl text-red-300">{semana2?.totais?.corridas_rejeitadas || 0}</span>
                           </div>
-                          <div className={`text-right text-2xl font-bold mt-1 ${calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0) >= 0 ? 'text-red-300' : 'text-green-300'}`}>
-                            {formatarDiferencaPercentual(calcularDiferencaPercentual(
-                              semana1?.totais?.corridas_rejeitadas || 0,
-                              semana2?.totais?.corridas_rejeitadas || 0
-                            ))}
+                          <div className="flex flex-col items-end mt-1">
+                            <div className={`text-2xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0) >= 0 ? 'text-red-300' : 'text-green-300'}`}>
+                              {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0))}
+                            </div>
+                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0) >= 0 ? 'text-red-300' : 'text-green-300'}`}>
+                              {formatarDiferencaPercentual(calcularDiferencaPercentual(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0))}
+                            </div>
                           </div>
                         </div>
                       </div>
