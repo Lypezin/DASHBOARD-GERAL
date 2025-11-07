@@ -54,7 +54,12 @@ BEGIN
     FROM public.dados_corridas
     WHERE data_do_periodo IS NOT NULL
       AND (p_ano IS NULL OR ano_iso = p_ano)
-      AND (p_praca IS NULL OR praca = p_praca)
+      AND (
+        p_praca IS NULL
+        OR p_praca = ''
+        OR (p_praca NOT LIKE '%,%' AND praca = p_praca)
+        OR (p_praca LIKE '%,%' AND praca = ANY(string_to_array(p_praca, ',')))
+      )
   ),
   mes_agg AS (
     SELECT
@@ -119,7 +124,12 @@ BEGIN
     FROM public.dados_corridas
     WHERE data_do_periodo IS NOT NULL
       AND (p_ano IS NULL OR ano_iso = p_ano)
-      AND (p_praca IS NULL OR praca = p_praca)
+      AND (
+        p_praca IS NULL
+        OR p_praca = ''
+        OR (p_praca NOT LIKE '%,%' AND praca = p_praca)
+        OR (p_praca LIKE '%,%' AND praca = ANY(string_to_array(p_praca, ',')))
+      )
   ),
   semana_agg AS (
     SELECT

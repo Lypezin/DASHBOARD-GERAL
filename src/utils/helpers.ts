@@ -66,13 +66,17 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
     if (currentUser.assigned_pracas.length === 1) {
       praca = currentUser.assigned_pracas[0];
     } 
-    // Se tiver múltiplas praças e nenhuma selecionada, usar a primeira
+    // Se tiver múltiplas praças e nenhuma selecionada, passar todas as praças permitidas
     else if (!praca) {
-      praca = currentUser.assigned_pracas[0];
+      // Passar todas as praças como string separada por vírgulas para incluir todas
+      const limited = currentUser.assigned_pracas.slice(0, MAX_ARRAY_SIZE);
+      praca = limited.length === 1 ? limited[0] : limited.join(',');
     }
     // Se tiver praça selecionada, validar se está nas praças permitidas
     else if (!currentUser.assigned_pracas.includes(praca)) {
-      praca = currentUser.assigned_pracas[0];
+      // Se a praça selecionada não está permitida, usar todas as praças permitidas
+      const limited = currentUser.assigned_pracas.slice(0, MAX_ARRAY_SIZE);
+      praca = limited.length === 1 ? limited[0] : limited.join(',');
     }
   }
 

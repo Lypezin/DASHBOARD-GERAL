@@ -43,7 +43,12 @@ WITH filtered_data AS MATERIALIZED (
   WHERE data_do_periodo IS NOT NULL
     AND (p_ano IS NULL OR ano_iso = p_ano)
     AND (p_semana IS NULL OR semana_numero = p_semana)
-    AND (p_praca IS NULL OR praca = p_praca)
+    AND (
+      p_praca IS NULL
+      OR p_praca = ''
+      OR (p_praca NOT LIKE '%,%' AND praca = p_praca)
+      OR (p_praca LIKE '%,%' AND praca = ANY(string_to_array(p_praca, ',')))
+    )
     AND (
       p_sub_praca IS NULL
       OR p_sub_praca = ''

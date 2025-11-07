@@ -113,9 +113,18 @@ function sanitizeParams(params: any): any {
     }
   }
 
-  // Limitar tamanho de strings
-  if (sanitized.p_praca && typeof sanitized.p_praca === 'string') {
-    sanitized.p_praca = sanitized.p_praca.substring(0, 100);
+  // Limitar praças (pode ser string única ou múltiplas separadas por vírgula)
+  if (sanitized.p_praca) {
+    if (Array.isArray(sanitized.p_praca)) {
+      sanitized.p_praca = sanitized.p_praca.slice(0, 50).join(',');
+    } else if (typeof sanitized.p_praca === 'string') {
+      if (sanitized.p_praca.includes(',')) {
+        const items = sanitized.p_praca.split(',').slice(0, 50);
+        sanitized.p_praca = items.join(',');
+      } else {
+        sanitized.p_praca = sanitized.p_praca.substring(0, 100);
+      }
+    }
   }
 
   return sanitized;

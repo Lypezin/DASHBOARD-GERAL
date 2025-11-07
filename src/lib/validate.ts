@@ -27,17 +27,42 @@ export function validateFilterPayload(payload: any): any {
     validated.p_semana = semana;
   }
 
-  // Validar praça
+  // Validar praça (pode ser string única ou múltiplas separadas por vírgula)
   if (payload.p_praca) {
-    const praca = String(payload.p_praca).trim();
-    if (praca.length === 0 || praca.length > 100) {
-      throw new Error('Praça inválida. Deve ter entre 1 e 100 caracteres.');
+    let pracas: string[];
+    
+    if (Array.isArray(payload.p_praca)) {
+      pracas = payload.p_praca;
+    } else if (typeof payload.p_praca === 'string') {
+      // Se contém vírgula, tratar como múltiplas praças
+      if (payload.p_praca.includes(',')) {
+        pracas = payload.p_praca.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+      } else {
+        pracas = [payload.p_praca.trim()];
+      }
+    } else {
+      throw new Error('Praça deve ser uma string ou array.');
     }
-    // Permitir apenas letras, números, espaços, hífen e underscore
-    if (!/^[a-zA-Z0-9\s\-_áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]+$/.test(praca)) {
-      throw new Error('Praça contém caracteres inválidos.');
+
+    // Limitar quantidade e tamanho
+    if (pracas.length > 50) {
+      throw new Error('Máximo de 50 praças permitidas.');
     }
-    validated.p_praca = praca;
+
+    pracas = pracas
+      .slice(0, 50)
+      .map((s: string) => {
+        const trimmed = s.trim();
+        if (trimmed.length === 0 || trimmed.length > 100) {
+          throw new Error('Cada praça deve ter entre 1 e 100 caracteres.');
+        }
+        if (!/^[a-zA-Z0-9\s\-_áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]+$/.test(trimmed)) {
+          throw new Error('Praça contém caracteres inválidos.');
+        }
+        return trimmed;
+      });
+
+    validated.p_praca = pracas.length === 1 ? pracas[0] : pracas.join(',');
   }
 
   // Validar sub-praças (array ou string separada por vírgula)

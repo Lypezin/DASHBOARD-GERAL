@@ -117,7 +117,12 @@ WITH entregadores_agg AS (
     AND pessoa_entregadora IS NOT NULL
     AND (p_ano IS NULL OR ano_iso = p_ano)
     AND (p_semana IS NULL OR semana_numero = p_semana)
-    AND (p_praca IS NULL OR praca = p_praca)
+    AND (
+      p_praca IS NULL
+      OR p_praca = ''
+      OR (p_praca NOT LIKE '%,%' AND praca = p_praca)
+      OR (p_praca LIKE '%,%' AND praca = ANY(string_to_array(p_praca, ',')))
+    )
     AND (
       (p_sub_praca IS NULL OR p_sub_praca = '')
       OR (p_sub_praca NOT LIKE '%,%' AND sub_praca = p_sub_praca)
@@ -192,7 +197,12 @@ WITH dados_sem_duplicatas AS (
     AND pessoa_entregadora IS NOT NULL
     AND (p_ano IS NULL OR ano_iso = p_ano)
     AND (p_semana IS NULL OR semana_numero = p_semana)
-    AND (p_praca IS NULL OR praca = p_praca)
+    AND (
+      p_praca IS NULL
+      OR p_praca = ''
+      OR (p_praca NOT LIKE '%,%' AND praca = p_praca)
+      OR (p_praca LIKE '%,%' AND praca = ANY(string_to_array(p_praca, ',')))
+    )
     AND (
       p_sub_praca IS NULL 
       OR (p_sub_praca NOT LIKE '%,%' AND sub_praca = p_sub_praca)
@@ -273,7 +283,12 @@ WITH filtered_data AS (
   WHERE data_do_periodo IS NOT NULL
     AND (p_ano IS NULL OR ano_iso = p_ano)
     AND (p_semana IS NULL OR semana_numero = p_semana)
-    AND (p_praca IS NULL OR praca = p_praca)
+    AND (
+      p_praca IS NULL
+      OR p_praca = ''
+      OR (p_praca NOT LIKE '%,%' AND praca = p_praca)
+      OR (p_praca LIKE '%,%' AND praca = ANY(string_to_array(p_praca, ',')))
+    )
     AND (
       p_sub_praca IS NULL 
       OR p_sub_praca = ''
