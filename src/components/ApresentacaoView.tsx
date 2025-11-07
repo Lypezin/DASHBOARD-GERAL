@@ -397,15 +397,14 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
               const subPracas = semana1?.sub_praca || [];
               const subPracasPorPagina = 2;
               const totalPaginas = Math.ceil(subPracas.length / subPracasPorPagina);
-              const slides: JSX.Element[] = [];
               
-              for (let pagina = 0; pagina < totalPaginas; pagina++) {
+              return Array.from({ length: totalPaginas }, (_, pagina) => {
                 const inicio = pagina * subPracasPorPagina;
                 const fim = inicio + subPracasPorPagina;
                 const subPracasPagina = subPracas.slice(inicio, fim);
                 const slideIndex = 2 + pagina; // Slide 2 é Aderência Geral, então Sub-Praças começam em 2
                 
-                slides.push(
+                return (
                   <div 
                     key={`sub-praca-${pagina}`}
                     className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
@@ -429,12 +428,12 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                     </div>
                     <div className="w-full grid grid-cols-2 gap-12 max-w-[1600px]">
                       {subPracasPagina.map((subPraca: any, index: number) => {
-                      const subPraca2 = semana2?.sub_praca?.find((sp: any) => sp.sub_praca === subPraca.sub_praca);
-                      const aderencia1 = subPraca.aderencia_percentual || 0;
-                      const aderencia2 = subPraca2?.aderencia_percentual || 0;
-                      const horas1 = parseFloat(subPraca.horas_entregues || '0');
-                      const horas2 = parseFloat(subPraca2?.horas_entregues || '0');
-                      
+                        const subPraca2 = semana2?.sub_praca?.find((sp: any) => sp.sub_praca === subPraca.sub_praca);
+                        const aderencia1 = subPraca.aderencia_percentual || 0;
+                        const aderencia2 = subPraca2?.aderencia_percentual || 0;
+                        const horas1 = parseFloat(subPraca.horas_entregues || '0');
+                        const horas2 = parseFloat(subPraca2?.horas_entregues || '0');
+                        
                         return (
                           <div key={`${pagina}-${index}`} className="bg-white bg-opacity-15 p-8 rounded-3xl flex flex-col items-center">
                             <h4 className="text-3xl font-bold mb-4 h-20 flex items-center text-center px-4">{subPraca.sub_praca?.toUpperCase()}</h4>
@@ -492,9 +491,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                     </div>
                   </div>
                 );
-              }
-              
-              return slides;
+              });
             })()}
 
             {/* Slide 4 - Aderência Diária */}
@@ -616,11 +613,11 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
               const totalPaginasSubPracas = Math.ceil(subPracas.length / 2);
               const baseIndexTurnos = 2 + totalPaginasSubPracas + 1; // Depois de Capa, Aderência Geral, Sub-Praças e Aderência Diária
               
-              return semana1?.turno?.map((turno: any, index: number) => {
+              return (semana1?.turno || []).map((turno: any, index: number) => {
                 if (index % 2 !== 0) return null; // Processar em pares
                 
                 const turnoPar1 = turno;
-                const turnoPar2 = semana1.turno[index + 1];
+                const turnoPar2 = semana1.turno?.[index + 1];
                 const slideIndex = baseIndexTurnos + Math.floor(index / 2);
 
                 return (
@@ -741,8 +738,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                       </div>
                     </div>
                   );
-                })}
-              );
+              }).filter(Boolean);
             })()}
 
             {/* Slide 7 - Demanda e Rejeições */}
