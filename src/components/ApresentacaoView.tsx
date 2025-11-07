@@ -53,16 +53,22 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     };
   }, [currentSlide, dadosComparacao]);
 
-  useEffect(() => {
-    if (contentRef.current) {
-      const slides = contentRef.current.querySelectorAll('.slide');
-      setTotalSlides(slides.length);
-    }
-  }, [dadosComparacao]); // Recalcula quando os dados mudam
-
   // Extrair dados das duas semanas
   const semana1 = dadosComparacao[0];
   const semana2 = dadosComparacao[1];
+
+  useEffect(() => {
+    if (contentRef.current && semana1) {
+      const subPracas = semana1?.sub_praca || [];
+      const subPracasPorPagina = 2;
+      const totalPaginasSubPracas = Math.ceil(subPracas.length / subPracasPorPagina);
+      // Capa (1) + Aderência Geral (1) + Sub-Praças (dinâmico) + Aderência Diária (1) + Turnos (dinâmico) + Demanda (1)
+      const turnos = semana1?.turno || [];
+      const totalPaginasTurnos = Math.ceil(turnos.length / 2);
+      const total = 1 + 1 + totalPaginasSubPracas + 1 + totalPaginasTurnos + 1;
+      setTotalSlides(total);
+    }
+  }, [dadosComparacao, semana1]); // Recalcula quando os dados mudam
   
   // Extrair números das semanas corretamente
   const extrairNumeroSemana = (semana: string) => {
@@ -267,10 +273,19 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
               transformOrigin: 'center center',
             }}
           >
-            {React.Children.toArray(
-              <>
-                {/* Slide 1 - Capa */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center" style={{width: '1920px', height: '1080px', padding: '80px 60px', boxSizing: 'border-box'}}>
+            {/* Slide 1 - Capa */}
+            <div 
+              className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center absolute inset-0" 
+              style={{
+                width: '1920px', 
+                height: '1080px', 
+                padding: '80px 60px', 
+                boxSizing: 'border-box',
+                opacity: currentSlide === 0 ? 1 : 0,
+                visibility: currentSlide === 0 ? 'visible' : 'hidden',
+                transition: 'opacity 0.3s ease-in-out'
+              }}
+            >
                   <div className="text-center w-full px-24">
                     <div className="mb-16">
                       <h1 className="text-[12rem] font-black mb-8 leading-none tracking-wider">RELATÓRIO DE</h1>
@@ -284,10 +299,22 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                       </div>
                     </div>
                   </div>
-                </div>
+            </div>
 
-                {/* Slide 2 - Aderência Geral */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
+            {/* Slide 2 - Aderência Geral */}
+            <div 
+              className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
+              style={{
+                padding: '80px 60px', 
+                minHeight: '1080px', 
+                boxSizing: 'border-box',
+                width: '1920px',
+                height: '1080px',
+                opacity: currentSlide === 1 ? 1 : 0,
+                visibility: currentSlide === 1 ? 'visible' : 'hidden',
+                transition: 'opacity 0.3s ease-in-out'
+              }}
+            >
                   <div className="w-full text-center mb-12">
                     <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>ADERÊNCIA GERAL</h2>
                     <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
@@ -296,8 +323,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                     {/* Semana 1 */}
                     <div className="flex flex-col items-center">
                       <h4 className="text-6xl font-bold mb-8">SEMANA {numeroSemana1}</h4>
-                      <div className="relative w-96 h-96 mb-8" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120" style={{position: 'absolute', top: 0, left: 0}}>
+                      <div className="relative w-96 h-96 mb-8">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
                           <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.2)" strokeWidth="10" fill="none" />
                           <circle
                             cx="60" cy="60" r="50"
@@ -306,8 +333,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                          <span className="text-7xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia1.toFixed(1)}%</span>
+                        <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                          <span className="text-7xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{aderencia1.toFixed(1)}%</span>
                         </div>
                       </div>
                       <div className="bg-white bg-opacity-15 rounded-3xl p-6 space-y-4 w-[450px]">
@@ -325,8 +352,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                     {/* Semana 2 */}
                     <div className="flex flex-col items-center">
                       <h4 className="text-6xl font-bold mb-8">SEMANA {numeroSemana2}</h4>
-                      <div className="relative w-96 h-96 mb-8" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120" style={{position: 'absolute', top: 0, left: 0}}>
+                      <div className="relative w-96 h-96 mb-8">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
                           <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.2)" strokeWidth="10" fill="none" />
                           <circle
                             cx="60" cy="60" r="50"
@@ -335,8 +362,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                          <span className="text-7xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia2.toFixed(1)}%</span>
+                        <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                          <span className="text-7xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{aderencia2.toFixed(1)}%</span>
                         </div>
                       </div>
                       <div className="bg-white bg-opacity-15 rounded-3xl p-6 space-y-4 w-[450px]">
@@ -344,106 +371,152 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                           <span className="opacity-80">🎯 Planejado:</span>
                           <span className="font-bold text-4xl text-blue-200">{formatarHorasParaHMS(horasAEntregar.toString())}</span>
                         </div>
-                        <div className="text-3xl">
-                          <div className="flex justify-between items-center">
-                            <span className="opacity-80">✅ Entregue:</span>
-                            <span className="font-bold text-4xl text-green-300">{formatarHorasParaHMS(horasEntregues2.toString())}</span>
-                          </div>
-                          <div className="flex flex-col items-end mt-2">
-                            <div className={`text-2xl font-bold ${calcularDiferenca(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                        <div className="flex justify-between items-center text-3xl">
+                          <span className="opacity-80">✅ Entregue:</span>
+                          <span className="font-bold text-4xl text-green-300">{formatarHorasParaHMS(horasEntregues2.toString())}</span>
+                        </div>
+                        <div className="border-t border-white/20 my-4"></div>
+                        <div className="bg-white bg-opacity-10 rounded-xl p-4">
+                          <div className="text-center">
+                            <div className="text-xl opacity-80 mb-2">Variação de Horas Entregues</div>
+                            <div className={`text-3xl font-black ${calcularDiferenca(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                               {formatarDiferenca(calcularDiferenca(horasEntregues1, horasEntregues2), true)}
                             </div>
-                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                            <div className={`text-xl font-bold mt-1 ${calcularDiferencaPercentual(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                               {formatarDiferencaPercentual(calcularDiferencaPercentual(horasEntregues1, horasEntregues2))}
                             </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end mt-2">
-                          <div className={`text-2xl font-bold ${calcularDiferencaPercentual(aderencia1, aderencia2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                            Aderência: {formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1, aderencia2))}
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+            </div>
 
-                {/* Slide 3 - Sub-Praças */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
-                  <div className="w-full text-center mb-12">
-                    <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>SUB-PRAÇAS</h2>
-                    <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
-                  </div>
-                  <div className="w-full grid grid-cols-3 gap-8">
-                    {semana1?.sub_praca?.slice(0, 6).map((subPraca: any, index: number) => {
+            {/* Slides de Sub-Praças - Múltiplas páginas dinâmicas */}
+            {(() => {
+              const subPracas = semana1?.sub_praca || [];
+              const subPracasPorPagina = 2;
+              const totalPaginas = Math.ceil(subPracas.length / subPracasPorPagina);
+              const slides: JSX.Element[] = [];
+              
+              for (let pagina = 0; pagina < totalPaginas; pagina++) {
+                const inicio = pagina * subPracasPorPagina;
+                const fim = inicio + subPracasPorPagina;
+                const subPracasPagina = subPracas.slice(inicio, fim);
+                const slideIndex = 2 + pagina; // Slide 2 é Aderência Geral, então Sub-Praças começam em 2
+                
+                slides.push(
+                  <div 
+                    key={`sub-praca-${pagina}`}
+                    className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
+                    style={{
+                      padding: '80px 60px', 
+                      minHeight: '1080px', 
+                      boxSizing: 'border-box',
+                      width: '1920px',
+                      height: '1080px',
+                      opacity: currentSlide === slideIndex ? 1 : 0,
+                      visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
+                      transition: 'opacity 0.3s ease-in-out'
+                    }}
+                  >
+                    <div className="w-full text-center mb-12">
+                      <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>SUB-PRAÇAS</h2>
+                      <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                      {totalPaginas > 1 && (
+                        <p className="text-2xl mt-4 opacity-75">Página {pagina + 1} de {totalPaginas}</p>
+                      )}
+                    </div>
+                    <div className="w-full grid grid-cols-2 gap-12 max-w-[1600px]">
+                      {subPracasPagina.map((subPraca: any, index: number) => {
                       const subPraca2 = semana2?.sub_praca?.find((sp: any) => sp.sub_praca === subPraca.sub_praca);
                       const aderencia1 = subPraca.aderencia_percentual || 0;
                       const aderencia2 = subPraca2?.aderencia_percentual || 0;
                       const horas1 = parseFloat(subPraca.horas_entregues || '0');
                       const horas2 = parseFloat(subPraca2?.horas_entregues || '0');
                       
-                      return (
-                        <div key={index} className="bg-white bg-opacity-15 p-6 rounded-3xl flex flex-col items-center">
-                          <h4 className="text-3xl font-bold mb-4 h-16 flex items-center text-center">{subPraca.sub_praca?.toUpperCase()}</h4>
-                          <div className="text-xl mb-4 opacity-80">🎯 {parseFloat(subPraca.horas_a_entregar || '0').toFixed(2)}h</div>
-                          <div className="w-full flex justify-around items-center">
-                            {/* Semana 1 */}
-                            <div className="text-center">
-                              <div className="relative w-32 h-32 mb-3" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
-                                  <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                  <circle
-                                    cx="50" cy="50" r="40"
-                                    stroke="#ffffff" strokeWidth="8" fill="none"
-                                    strokeDasharray={`${(aderencia1 / 100) * 251.2} 251.2`}
-                                    strokeLinecap="round"
-                                  />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                                  <span className="text-2xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia1.toFixed(1)}%</span>
+                        return (
+                          <div key={`${pagina}-${index}`} className="bg-white bg-opacity-15 p-8 rounded-3xl flex flex-col items-center">
+                            <h4 className="text-3xl font-bold mb-4 h-20 flex items-center text-center px-4">{subPraca.sub_praca?.toUpperCase()}</h4>
+                            <div className="text-xl mb-6 opacity-80">🎯 {parseFloat(subPraca.horas_a_entregar || '0').toFixed(2)}h</div>
+                            <div className="w-full flex justify-around items-center gap-8">
+                              {/* Semana 1 */}
+                              <div className="text-center flex-1">
+                                <div className="relative w-40 h-40 mb-4 mx-auto" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
+                                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
+                                    <circle
+                                      cx="50" cy="50" r="40"
+                                      stroke="#ffffff" strokeWidth="8" fill="none"
+                                      strokeDasharray={`${(aderencia1 / 100) * 251.2} 251.2`}
+                                      strokeLinecap="round"
+                                    />
+                                  </svg>
+                                  <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                                    <span className="text-3xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia1.toFixed(1)}%</span>
+                                  </div>
                                 </div>
+                                <div className="text-xl font-bold mb-2">SEM {numeroSemana1}</div>
+                                <div className="text-lg">{formatarHorasParaHMS(horas1.toString())}</div>
                               </div>
-                              <div className="text-xl font-bold">SEM {numeroSemana1}</div>
-                              <div className="text-lg">{formatarHorasParaHMS(horas1.toString())}</div>
-                            </div>
 
-                            {/* Semana 2 */}
-                            <div className="text-center">
-                              <div className="relative w-32 h-32 mb-3" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
-                                  <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                  <circle
-                                    cx="50" cy="50" r="40"
-                                    stroke="#ffffff" strokeWidth="8" fill="none"
-                                    strokeDasharray={`${(aderencia2 / 100) * 251.2} 251.2`}
-                                    strokeLinecap="round"
-                                  />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                                  <span className="text-2xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia2.toFixed(1)}%</span>
+                              {/* Semana 2 */}
+                              <div className="text-center flex-1">
+                                <div className="relative w-40 h-40 mb-4 mx-auto" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
+                                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
+                                    <circle
+                                      cx="50" cy="50" r="40"
+                                      stroke="#ffffff" strokeWidth="8" fill="none"
+                                      strokeDasharray={`${(aderencia2 / 100) * 251.2} 251.2`}
+                                      strokeLinecap="round"
+                                    />
+                                  </svg>
+                                  <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                                    <span className="text-3xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia2.toFixed(1)}%</span>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="text-xl font-bold">SEM {numeroSemana2}</div>
-                              <div className="text-lg">{formatarHorasParaHMS(horas2.toString())}</div>
-                              <div className={`text-base font-bold mt-1 ${calcularDiferenca(horas1, horas2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                                {formatarDiferenca(calcularDiferenca(horas1, horas2), true)}
-                              </div>
-                              <div className={`text-sm font-bold mt-1 ${calcularDiferencaPercentual(horas1, horas2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                                {formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2))}
-                              </div>
-                              <div className={`text-sm font-bold mt-1 ${calcularDiferencaPercentual(aderencia1, aderencia2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                                {formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1, aderencia2))}
+                                <div className="text-xl font-bold mb-2">SEM {numeroSemana2}</div>
+                                <div className="text-lg mb-2">{formatarHorasParaHMS(horas2.toString())}</div>
+                                <div className={`text-lg font-bold mt-2 ${calcularDiferenca(horas1, horas2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                                  {formatarDiferenca(calcularDiferenca(horas1, horas2), true)}
+                                </div>
+                                <div className={`text-base font-bold mt-1 ${calcularDiferencaPercentual(horas1, horas2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                                  {formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2))}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                );
+              }
+              
+              return slides;
+            })()}
 
-                {/* Slide 4 - Aderência Diária */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
+            {/* Slide 4 - Aderência Diária */}
+            {(() => {
+              const subPracas = semana1?.sub_praca || [];
+              const totalPaginasSubPracas = Math.ceil(subPracas.length / 2);
+              const slideIndex = 2 + totalPaginasSubPracas; // Depois de Capa, Aderência Geral e Sub-Praças
+              
+              return (
+                <div 
+                  className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
+                  style={{
+                    padding: '80px 60px', 
+                    minHeight: '1080px', 
+                    boxSizing: 'border-box',
+                    width: '1920px',
+                    height: '1080px',
+                    opacity: currentSlide === slideIndex ? 1 : 0,
+                    visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
+                    transition: 'opacity 0.3s ease-in-out'
+                  }}
+                >
                   <div className="w-full text-center mb-12">
                     <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>ADERÊNCIA DIÁRIA</h2>
                     <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
@@ -534,16 +607,37 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                     </div>
                   </div>
                 </div>
+              );
+            })()}
 
-                {/* Slides de Turnos */}
-                {semana1?.turno?.map((turno: any, index: number) => {
-                  if (index % 2 !== 0) return null; // Processar em pares
-                  
-                  const turnoPar1 = turno;
-                  const turnoPar2 = semana1.turno[index + 1];
+            {/* Slides de Turnos */}
+            {(() => {
+              const subPracas = semana1?.sub_praca || [];
+              const totalPaginasSubPracas = Math.ceil(subPracas.length / 2);
+              const baseIndexTurnos = 2 + totalPaginasSubPracas + 1; // Depois de Capa, Aderência Geral, Sub-Praças e Aderência Diária
+              
+              return semana1?.turno?.map((turno: any, index: number) => {
+                if (index % 2 !== 0) return null; // Processar em pares
+                
+                const turnoPar1 = turno;
+                const turnoPar2 = semana1.turno[index + 1];
+                const slideIndex = baseIndexTurnos + Math.floor(index / 2);
 
-                  return (
-                    <div key={index} className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
+                return (
+                  <div 
+                    key={index} 
+                    className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
+                    style={{
+                      padding: '80px 60px', 
+                      minHeight: '1080px', 
+                      boxSizing: 'border-box',
+                      width: '1920px',
+                      height: '1080px',
+                      opacity: currentSlide === slideIndex ? 1 : 0,
+                      visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
+                      transition: 'opacity 0.3s ease-in-out'
+                    }}
+                  >
                       <div className="w-full text-center mb-12">
                         <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>ADERÊNCIA POR TURNO</h2>
                         <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
@@ -611,22 +705,26 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                                     <div className="text-center">
                                       <div className="text-3xl font-bold mb-4">SEM {numeroSemana1}</div>
                                       <div className="relative w-48 h-48 mb-4">
-                                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
                                           <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                                           <circle cx="50" cy="50" r="40" stroke="#ffffff" strokeWidth="8" fill="none" strokeDasharray={`${(a1 / 100) * 251.2} 251.2`} strokeLinecap="round" />
                                         </svg>
-                                        <div className="absolute inset-0 flex items-center justify-center"><span className="text-4xl font-black leading-none">{a1.toFixed(1)}%</span></div>
+                                        <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                          <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{a1.toFixed(1)}%</span>
+                                        </div>
                                       </div>
                                       <div className="text-2xl font-medium">{formatarHorasParaHMS(h1.toString())}</div>
                                     </div>
                                     <div className="text-center">
                                       <div className="text-3xl font-bold mb-4">SEM {numeroSemana2}</div>
                                       <div className="relative w-48 h-48 mb-4">
-                                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
                                           <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                                           <circle cx="50" cy="50" r="40" stroke="#ffffff" strokeWidth="8" fill="none" strokeDasharray={`${(a2 / 100) * 251.2} 251.2`} strokeLinecap="round" />
                                         </svg>
-                                        <div className="absolute inset-0 flex items-center justify-center"><span className="text-4xl font-black leading-none">{a2.toFixed(1)}%</span></div>
+                                        <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                          <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{a2.toFixed(1)}%</span>
+                                        </div>
                                       </div>
                                       <div className="text-2xl font-medium">{formatarHorasParaHMS(h2.toString())}</div>
                                       <div className={`mt-2 text-xl font-bold ${calcularDiferenca(h1, h2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>{formatarDiferenca(calcularDiferenca(h1, h2), true)}</div>
@@ -642,10 +740,31 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                     </div>
                   )
                 })}
+              );
+            })()}
 
-
-                {/* Slide 7 - Demanda e Rejeições */}
-                <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center" style={{padding: '80px 60px', minHeight: '1080px', boxSizing: 'border-box'}}>
+            {/* Slide 7 - Demanda e Rejeições */}
+            {(() => {
+              const subPracas = semana1?.sub_praca || [];
+              const totalPaginasSubPracas = Math.ceil(subPracas.length / 2);
+              const turnos = semana1?.turno || [];
+              const totalPaginasTurnos = Math.ceil(turnos.length / 2);
+              const slideIndex = 2 + totalPaginasSubPracas + 1 + totalPaginasTurnos; // Depois de todos os slides anteriores
+              
+              return (
+                <div 
+                  className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
+                  style={{
+                    padding: '80px 60px', 
+                    minHeight: '1080px', 
+                    boxSizing: 'border-box',
+                    width: '1920px',
+                    height: '1080px',
+                    opacity: currentSlide === slideIndex ? 1 : 0,
+                    visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
+                    transition: 'opacity 0.3s ease-in-out'
+                  }}
+                >
                   <div className="w-full text-center mb-12">
                     <h2 className="text-6xl font-black mb-6" style={{lineHeight: '1.1'}}>DEMANDA E REJEIÇÕES</h2>
                     <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
@@ -738,19 +857,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                     </div>
                   </div>
                 </div>
-              </>
-            ).map((child, index) => (
-              <div 
-                key={index}
-                className="absolute inset-0 transition-opacity duration-300 ease-in-out"
-                style={{
-                  opacity: currentSlide === index ? 1 : 0,
-                  visibility: currentSlide === index ? 'visible' : 'hidden',
-                }}
-              >
-                {child}
-              </div>
-            ))}
+              );
+            })()}
           </div>
         </div>
       </div>
