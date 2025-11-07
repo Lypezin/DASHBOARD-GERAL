@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, CSSProperties } from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import jsPDF from 'jspdf';
@@ -19,6 +19,12 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const SLIDE_WIDTH = 2100;
+  const SLIDE_HEIGHT = 1485;
+  const slideDimensionsStyle: CSSProperties = {
+    width: `${SLIDE_WIDTH}px`,
+    height: `${SLIDE_HEIGHT}px`,
+  };
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [totalSlides, setTotalSlides] = useState(0);
@@ -31,9 +37,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         // Considerar padding do container (p-4 = 16px de cada lado = 32px total)
         const availableWidth = container.width - 32;
         const availableHeight = container.height - 32;
-        // Baseado na proporção 16:9 (1920x1080)
-        const scaleX = availableWidth / 1920;
-        const scaleY = availableHeight / 1080;
+        // Baseado nas dimensões padronizadas do slide (proporção A4 landscape)
+        const scaleX = availableWidth / SLIDE_WIDTH;
+        const scaleY = availableHeight / SLIDE_HEIGHT;
         const scale = Math.min(scaleX, scaleY) * 0.95; // 95% para ter margem confortável
         setPreviewScale(Math.max(0.1, Math.min(1, scale))); // Limitar entre 0.1 e 1
       }
@@ -137,16 +143,18 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         printContainer.style.position = 'absolute';
         printContainer.style.left = '-9999px';
         printContainer.style.top = '0';
-        printContainer.style.width = '1920px';
-        printContainer.style.height = '1080px';
+        printContainer.style.width = `${SLIDE_WIDTH}px`;
+        printContainer.style.height = `${SLIDE_HEIGHT}px`;
         printContainer.style.overflow = 'hidden';
         printContainer.style.backgroundColor = '#3b82f6';
         
         // Clonar o slide e aplicar as dimensões fixas
         const clone = slide.cloneNode(true) as HTMLElement;
-        clone.style.width = '1920px';
-        clone.style.height = '1080px';
+        clone.style.width = `${SLIDE_WIDTH}px`;
+        clone.style.height = `${SLIDE_HEIGHT}px`;
         clone.style.position = 'relative';
+        clone.style.left = '0';
+        clone.style.top = '0';
         clone.style.opacity = '1';
         clone.style.visibility = 'visible';
         clone.style.display = 'block';
@@ -173,8 +181,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#3b82f6',
-          width: 1920,
-          height: 1080,
+          width: SLIDE_WIDTH,
+          height: SLIDE_HEIGHT,
           logging: false,
           imageTimeout: 0,
           removeContainer: false,
@@ -190,14 +198,11 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         // Converter para JPEG com 90% de qualidade para otimização
         const imgData = canvas.toDataURL('image/jpeg', 0.9);
         
-        // Calcular dimensões para ocupar toda a página (sem bordas brancas)
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        const scaledWidth = imgWidth * ratio;
-        const scaledHeight = imgHeight * ratio;
-        const imgX = (pdfWidth - scaledWidth) / 2;
-        const imgY = (pdfHeight - scaledHeight) / 2;
+        // Preencher toda a página A4 sem bordas (ajuste proporcional mínimo)
+        const imgX = 0;
+        const imgY = 0;
+        const scaledWidth = pdfWidth;
+        const scaledHeight = pdfHeight;
 
         // Adicionar nova página se não for a primeira
         if (i > 0) {
@@ -285,8 +290,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
             ref={contentRef}
             className="relative"
             style={{ 
-              width: '1920px', 
-              height: '1080px', 
+              ...slideDimensionsStyle,
               position: 'absolute',
               top: '50%',
               left: '50%',
@@ -298,8 +302,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
             <div 
               className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center absolute inset-0" 
               style={{
-                width: '1920px', 
-                height: '1080px', 
+                ...slideDimensionsStyle,
                 padding: '80px 60px', 
                 boxSizing: 'border-box',
                 opacity: currentSlide === 0 ? 1 : 0,
@@ -327,10 +330,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
               className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
               style={{
                 padding: '80px 60px', 
-                minHeight: '1080px', 
+                minHeight: `${SLIDE_HEIGHT}px`, 
                 boxSizing: 'border-box',
-                width: '1920px',
-                height: '1080px',
+                ...slideDimensionsStyle,
                 opacity: currentSlide === 1 ? 1 : 0,
                 visibility: currentSlide === 1 ? 'visible' : 'hidden',
                 transition: 'opacity 0.3s ease-in-out'
@@ -431,10 +433,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                     className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
                     style={{
                       padding: '80px 60px', 
-                      minHeight: '1080px', 
+                      minHeight: `${SLIDE_HEIGHT}px`, 
                       boxSizing: 'border-box',
-                      width: '1920px',
-                      height: '1080px',
+                      ...slideDimensionsStyle,
                       opacity: currentSlide === slideIndex ? 1 : 0,
                       visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
                       transition: 'opacity 0.3s ease-in-out'
@@ -526,10 +527,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                   className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
                   style={{
                     padding: '80px 60px', 
-                    minHeight: '1080px', 
+                    minHeight: `${SLIDE_HEIGHT}px`, 
                     boxSizing: 'border-box',
-                    width: '1920px',
-                    height: '1080px',
+                    ...slideDimensionsStyle,
                     opacity: currentSlide === slideIndex ? 1 : 0,
                     visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
                     transition: 'opacity 0.3s ease-in-out'
@@ -647,10 +647,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                     className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
                     style={{
                       padding: '80px 60px', 
-                      minHeight: '1080px', 
+                      minHeight: `${SLIDE_HEIGHT}px`, 
                       boxSizing: 'border-box',
-                      width: '1920px',
-                      height: '1080px',
+                      ...slideDimensionsStyle,
                       opacity: currentSlide === slideIndex ? 1 : 0,
                       visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
                       transition: 'opacity 0.3s ease-in-out'
@@ -775,10 +774,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                   className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
                   style={{
                     padding: '80px 60px', 
-                    minHeight: '1080px', 
+                    minHeight: `${SLIDE_HEIGHT}px`, 
                     boxSizing: 'border-box',
-                    width: '1920px',
-                    height: '1080px',
+                    ...slideDimensionsStyle,
                     opacity: currentSlide === slideIndex ? 1 : 0,
                     visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
                     transition: 'opacity 0.3s ease-in-out'
