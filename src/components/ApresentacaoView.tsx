@@ -658,13 +658,13 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                                 <>
                                   <div className="text-center">
                                     <div className="text-3xl font-bold mb-4">SEM {numeroSemana1}</div>
-                                    <div className="relative w-48 h-48 mb-4" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
+                                    <div className="relative w-48 h-48 mb-4">
+                                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
                                         <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                                         <circle cx="50" cy="50" r="40" stroke="#ffffff" strokeWidth="8" fill="none" strokeDasharray={`${(a1 / 100) * 251.2} 251.2`} strokeLinecap="round" />
                                       </svg>
-                                      <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                                        <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{a1.toFixed(1)}%</span>
+                                      <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                        <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{a1.toFixed(1)}%</span>
                                       </div>
                                     </div>
                                     <div className="text-2xl font-medium">{formatarHorasParaHMS(h1.toString())}</div>
@@ -672,11 +672,13 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                                   <div className="text-center">
                                     <div className="text-3xl font-bold mb-4">SEM {numeroSemana2}</div>
                                     <div className="relative w-48 h-48 mb-4">
-                                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
                                         <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
                                         <circle cx="50" cy="50" r="40" stroke="#ffffff" strokeWidth="8" fill="none" strokeDasharray={`${(a2 / 100) * 251.2} 251.2`} strokeLinecap="round" />
                                       </svg>
-                                      <div className="absolute inset-0 flex items-center justify-center"><span className="text-4xl font-black leading-none">{a2.toFixed(1)}%</span></div>
+                                      <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                        <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{a2.toFixed(1)}%</span>
+                                      </div>
                                     </div>
                                     <div className="text-2xl font-medium">{formatarHorasParaHMS(h2.toString())}</div>
                                     <div className={`mt-2 text-xl font-bold ${calcularDiferenca(h1, h2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>{formatarDiferenca(calcularDiferenca(h1, h2), true)}</div>
@@ -738,7 +740,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                         )}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               );
             })()}
