@@ -760,5 +760,3 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
 }
 
 export default ApresentacaoView;
-
-export default ApresentacaoView;
