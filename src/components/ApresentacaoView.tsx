@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import jsPDF from 'jspdf';
@@ -11,8 +11,14 @@ interface ApresentacaoViewProps {
   onClose: () => void;
 }
 
-function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSelecionada, onClose }: ApresentacaoViewProps) {
+const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
+  dadosComparacao,
+  semanasSelecionadas,
+  pracaSelecionada,
+  onClose,
+}) => {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Extrair dados das duas semanas
   const semana1 = dadosComparacao[0];
@@ -54,6 +60,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
   // Função para gerar PDF otimizada com páginas separadas
   const gerarPDF = async () => {
     if (!contentRef.current) return;
+    setIsGenerating(true);
 
     try {
       const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape
@@ -66,18 +73,26 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
       for (let i = 0; i < slides.length; i++) {
         const slide = slides[i] as HTMLElement;
         
-        // Forçar o slide a ter dimensões fixas para PDF
-        slide.style.width = '1920px';
-        slide.style.height = '1080px';
-        slide.style.transform = 'scale(1)';
-        slide.style.transformOrigin = 'top left';
+        // Criar um container temporário e off-screen
+        const printContainer = document.createElement('div');
+        printContainer.style.position = 'absolute';
+        printContainer.style.left = '-9999px';
+        printContainer.style.top = '0';
         
-        // Aguardar um momento para o DOM se ajustar
+        // Clonar o slide e aplicar as dimensões fixas
+        const clone = slide.cloneNode(true) as HTMLElement;
+        clone.style.width = '1920px';
+        clone.style.height = '1080px';
+        
+        printContainer.appendChild(clone);
+        document.body.appendChild(printContainer);
+
+        // Aguardar um momento para garantir a renderização do clone
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        // Capturar cada slide com alta qualidade
-        const canvas = await html2canvas(slide, {
-          scale: 2, // Alta resolução para qualidade superior
+        // Capturar o clone com alta qualidade
+        const canvas = await html2canvas(clone, {
+          scale: 1.5, // Ótimo balanço entre qualidade e tamanho
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#3b82f6',
@@ -92,8 +107,11 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
           }
         });
 
-        // Converter para PNG com máxima qualidade
-        const imgData = canvas.toDataURL('image/png');
+        // Remover o container temporário do DOM
+        document.body.removeChild(printContainer);
+
+        // Converter para JPEG com 90% de qualidade para otimização
+        const imgData = canvas.toDataURL('image/jpeg', 0.9);
         
         // Calcular dimensões para ocupar toda a página (sem bordas brancas)
         const imgWidth = canvas.width;
@@ -110,25 +128,31 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
         }
 
         // Adicionar imagem à página
-        pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight);
-        
-        // Resetar estilos do slide após captura
-        slide.style.width = '';
-        slide.style.height = '';
-        slide.style.transform = '';
-        slide.style.transformOrigin = '';
+        pdf.addImage(imgData, 'JPEG', imgX, imgY, scaledWidth, scaledHeight);
       }
 
       pdf.save(`Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`);
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF. Tente novamente.');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
+      {isGenerating && (
+        <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50">
+          <svg className="animate-spin h-16 w-16 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <h2 className="text-white text-2xl font-bold">Gerando PDF, por favor aguarde...</h2>
+          <p className="text-white text-lg mt-2">Isso pode levar alguns segundos.</p>
+        </div>
+      )}
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header com botões */}
         <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex justify-between items-center z-10">
           <h2 className="text-xl font-bold text-slate-900">Apresentação - Relatório de Resultados</h2>
