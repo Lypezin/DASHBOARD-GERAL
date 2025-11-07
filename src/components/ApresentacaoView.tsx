@@ -1,8 +1,75 @@
-import React, { useRef, useState, useEffect, CSSProperties } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from './apresentacao/constants';
+import SlideCapa from './apresentacao/slides/SlideCapa';
+import SlideAderenciaGeral from './apresentacao/slides/SlideAderenciaGeral';
+import SlideSubPracas from './apresentacao/slides/SlideSubPracas';
+import SlideAderenciaDiaria from './apresentacao/slides/SlideAderenciaDiaria';
+import SlideTurnos from './apresentacao/slides/SlideTurnos';
+import SlideDemandaRejeicoes from './apresentacao/slides/SlideDemandaRejeicoes';
+
+const SUB_PRACAS_PER_PAGE = 4;
+const TURNOS_PER_PAGE = 3;
+const diasOrdem = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+
+const siglaDia = (dia: string) => dia.slice(0, 3).toUpperCase();
+
+const chunkArray = <T,>(array: T[], size: number): T[][] => {
+  if (size <= 0) return [array];
+  const result: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+};
+
+const formatarNumeroInteiro = (valor: number) =>
+  new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(Number.isFinite(valor) ? valor : 0);
+
+const extrairNumeroSemana = (semana: string) => {
+  if (semana?.includes('-W')) {
+    return semana.split('-W')[1];
+  }
+  return semana;
+};
+
+const calcularPeriodoSemana = (numeroSemana: string) => {
+  const semanaNum = parseInt(numeroSemana, 10);
+  if (Number.isNaN(semanaNum)) return '';
+  const anoAtual = new Date().getFullYear();
+  const primeiraSemana = new Date(anoAtual, 0, 1 + (semanaNum - 1) * 7);
+  const primeiraDiaSemana = primeiraSemana.getDate() - primeiraSemana.getDay() + 1;
+  const inicio = new Date(primeiraSemana.setDate(primeiraDiaSemana));
+  const fim = new Date(inicio);
+  fim.setDate(inicio.getDate() + 6);
+  const formatter = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' });
+  return `${formatter.format(inicio)} - ${formatter.format(fim)}`;
+};
+
+const calcularDiferenca = (valor1: number, valor2: number) => valor2 - valor1;
+
+const formatarDiferenca = (diferenca: number, isTime: boolean = false) => {
+  const sinal = diferenca >= 0 ? '+' : '';
+  if (isTime) {
+    const horas = Math.abs(diferenca);
+    return `${sinal}${diferenca >= 0 ? '' : '-'}${formatarHorasParaHMS(horas.toString())}`;
+  }
+  return `${sinal}${diferenca}`;
+};
+
+const calcularDiferencaPercentual = (valor1: number, valor2: number) => {
+  if (valor1 === 0) return 0;
+  return ((valor2 - valor1) / valor1) * 100;
+};
+
+const formatarDiferencaPercentual = (diferenca: number) => {
+  if (!Number.isFinite(diferenca)) return '(0.0%)';
+  const sinal = diferenca >= 0 ? '+' : '';
+  return `(${sinal}${diferenca.toFixed(1)}%)`;
+};
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
@@ -19,38 +86,25 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
-  const SLIDE_WIDTH = 2100;
-  const SLIDE_HEIGHT = 1485;
-  const slideDimensionsStyle: CSSProperties = {
-    width: `${SLIDE_WIDTH}px`,
-    height: `${SLIDE_HEIGHT}px`,
-  };
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [totalSlides, setTotalSlides] = useState(0);
   const [previewScale, setPreviewScale] = useState(0.5);
 
   useEffect(() => {
     const calculateScale = () => {
       if (previewContainerRef.current && contentRef.current) {
         const container = previewContainerRef.current.getBoundingClientRect();
-        // Considerar padding do container (p-4 = 16px de cada lado = 32px total)
         const availableWidth = container.width - 32;
         const availableHeight = container.height - 32;
-        // Baseado nas dimensões padronizadas do slide (proporção A4 landscape)
         const scaleX = availableWidth / SLIDE_WIDTH;
         const scaleY = availableHeight / SLIDE_HEIGHT;
-        const scale = Math.min(scaleX, scaleY) * 0.95; // 95% para ter margem confortável
-        setPreviewScale(Math.max(0.1, Math.min(1, scale))); // Limitar entre 0.1 e 1
+        const scale = Math.min(scaleX, scaleY) * 0.95;
+        setPreviewScale(Math.max(0.1, Math.min(1, scale)));
       }
     };
 
-    // Calcular imediatamente
     calculateScale();
-    
-    // Recalcular após um pequeno delay para garantir que o DOM está renderizado
     const timeoutId = setTimeout(calculateScale, 100);
-    
     window.addEventListener('resize', calculateScale);
 
     return () => {
@@ -59,86 +113,328 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     };
   }, [currentSlide, dadosComparacao]);
 
-  // Extrair dados das duas semanas
   const semana1 = dadosComparacao[0];
   const semana2 = dadosComparacao[1];
 
-  useEffect(() => {
-    if (contentRef.current && semana1) {
-      const subPracas = semana1?.sub_praca || [];
-      const subPracasPorPagina = 2;
-      const totalPaginasSubPracas = Math.ceil(subPracas.length / subPracasPorPagina);
-      // Capa (1) + Aderência Geral (1) + Sub-Praças (dinâmico) + Aderência Diária (1) + Turnos (dinâmico) + Demanda (1)
-      const turnos = semana1?.turno || [];
-      const totalPaginasTurnos = Math.ceil(turnos.length / 2);
-      const total = 1 + 1 + totalPaginasSubPracas + 1 + totalPaginasTurnos + 1;
-      setTotalSlides(total);
-    }
-  }, [dadosComparacao, semana1]); // Recalcula quando os dados mudam
-  
-  // Extrair números das semanas corretamente
-  const extrairNumeroSemana = (semana: string) => {
-    if (semana.includes('-W')) {
-      return semana.split('-W')[1];
-    }
-    return semana;
-  };
-  
-  const numeroSemana1 = extrairNumeroSemana(semanasSelecionadas[0] || '35');
-  const numeroSemana2 = extrairNumeroSemana(semanasSelecionadas[1] || '36');
+  const numeroSemana1 = extrairNumeroSemana(semanasSelecionadas[0] || '');
+  const numeroSemana2 = extrairNumeroSemana(semanasSelecionadas[1] || '');
 
-  // Calcular diferenças
-  const calcularDiferenca = (valor1: number, valor2: number) => {
-    return valor2 - valor1;
-  };
-
-  const formatarDiferenca = (diferenca: number, isTime: boolean = false) => {
-    const sinal = diferenca >= 0 ? '+' : '';
-    if (isTime) {
-      const horas = Math.abs(diferenca);
-      const horasFormatadas = formatarHorasParaHMS(horas.toString());
-      return `${sinal}${diferenca >= 0 ? '' : '-'}${horasFormatadas}`;
-    }
-    return `${sinal}${diferenca}`;
-  };
-
-  const calcularDiferencaPercentual = (valor1: number, valor2: number) => {
-    if (valor1 === 0) return 0; // Evitar divisão por zero
-    return ((valor2 - valor1) / valor1) * 100;
-  };
-
-  const formatarDiferencaPercentual = (diferenca: number) => {
-    if (isNaN(diferenca) || !isFinite(diferenca)) {
-      return "(0.0%)";
-    }
-    const sinal = diferenca >= 0 ? '+' : '';
-    return `(${sinal}${diferenca.toFixed(1)}%)`;
-  };
-
-  // Dados de aderência geral
   const aderencia1 = semana1?.semanal?.[0]?.aderencia_percentual || 0;
   const aderencia2 = semana2?.semanal?.[0]?.aderencia_percentual || 0;
   const horasEntregues1 = parseFloat(semana1?.semanal?.[0]?.horas_entregues || '0');
   const horasEntregues2 = parseFloat(semana2?.semanal?.[0]?.horas_entregues || '0');
   const horasAEntregar = parseFloat(semana1?.semanal?.[0]?.horas_a_entregar || '0');
 
-  // Função para gerar PDF otimizada com páginas separadas
+  const periodoSemana1 = useMemo(() => calcularPeriodoSemana(numeroSemana1), [numeroSemana1]);
+  const periodoSemana2 = useMemo(() => calcularPeriodoSemana(numeroSemana2), [numeroSemana2]);
+
+  const slides = useMemo(() => {
+    if (!semana1 || !semana2) {
+      return [] as Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
+    }
+
+    const slidesConfig: Array<{ key: string; render: (visible: boolean) => React.ReactNode }> = [];
+
+    const resumoSemana1 = {
+      numeroSemana: numeroSemana1,
+      aderencia: aderencia1,
+      horasPlanejadas: formatarHorasParaHMS(horasAEntregar.toString()),
+      horasEntregues: formatarHorasParaHMS(horasEntregues1.toString()),
+    };
+
+    const resumoSemana2 = {
+      numeroSemana: numeroSemana2,
+      aderencia: aderencia2,
+      horasPlanejadas: formatarHorasParaHMS(horasAEntregar.toString()),
+      horasEntregues: formatarHorasParaHMS(horasEntregues2.toString()),
+    };
+
+    const variacaoResumo = {
+      horasDiferenca: formatarDiferenca(calcularDiferenca(horasEntregues1, horasEntregues2), true),
+      horasPercentual: formatarDiferencaPercentual(calcularDiferencaPercentual(horasEntregues1, horasEntregues2)),
+      positiva: horasEntregues2 >= horasEntregues1,
+    };
+
+    slidesConfig.push({
+      key: 'capa',
+      render: (visible) => (
+        <SlideCapa
+          isVisible={visible}
+          pracaSelecionada={pracaSelecionada}
+          numeroSemana1={numeroSemana1}
+          numeroSemana2={numeroSemana2}
+          periodoSemana1={periodoSemana1}
+          periodoSemana2={periodoSemana2}
+        />
+      ),
+    });
+
+    slidesConfig.push({
+      key: 'aderencia-geral',
+      render: (visible) => (
+        <SlideAderenciaGeral
+          isVisible={visible}
+          semana1={resumoSemana1}
+          semana2={resumoSemana2}
+          variacao={variacaoResumo}
+        />
+      ),
+    });
+
+    const subPracasSemana1 = semana1.sub_praca || [];
+    const subPracasSemana2Map = new Map((semana2.sub_praca || []).map((item) => [item.sub_praca, item]));
+
+    const subPracasComparativo = subPracasSemana1.map((item) => {
+      const referencia = subPracasSemana2Map.get(item.sub_praca) || {};
+      const horasPlanejadas = formatarHorasParaHMS(parseFloat(item.horas_a_entregar || '0').toString());
+      const horasSem1 = parseFloat(item.horas_entregues || '0');
+      const horasSem2 = parseFloat((referencia as any)?.horas_entregues || '0');
+      const aderenciaSem1 = item.aderencia_percentual || 0;
+      const aderenciaSem2 = (referencia as any)?.aderencia_percentual || 0;
+      return {
+        nome: item.sub_praca?.toUpperCase() || 'N/D',
+        horasPlanejadas,
+        semana1: {
+          aderencia: aderenciaSem1,
+          horasEntregues: formatarHorasParaHMS(horasSem1.toString()),
+        },
+        semana2: {
+          aderencia: aderenciaSem2,
+          horasEntregues: formatarHorasParaHMS(horasSem2.toString()),
+        },
+        variacoes: [
+          {
+            label: 'Δ Horas',
+            valor: formatarDiferenca(calcularDiferenca(horasSem1, horasSem2), true),
+            positivo: horasSem2 - horasSem1 >= 0,
+          },
+          {
+            label: '% Horas',
+            valor: formatarDiferencaPercentual(calcularDiferencaPercentual(horasSem1, horasSem2)),
+            positivo: calcularDiferencaPercentual(horasSem1, horasSem2) >= 0,
+          },
+          {
+            label: '% Aderência',
+            valor: formatarDiferencaPercentual(calcularDiferencaPercentual(aderenciaSem1 || 0.0001, aderenciaSem2 || 0)),
+            positivo: calcularDiferencaPercentual(aderenciaSem1 || 0.0001, aderenciaSem2 || 0) >= 0,
+          },
+        ],
+      };
+    });
+
+    const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
+    subPracasPaginas.forEach((pagina, indice) => {
+      slidesConfig.push({
+        key: `sub-pracas-${indice}`,
+        render: (visible) => (
+          <SlideSubPracas
+            isVisible={visible}
+            numeroSemana1={numeroSemana1}
+            numeroSemana2={numeroSemana2}
+            paginaAtual={indice + 1}
+            totalPaginas={subPracasPaginas.length}
+            itens={pagina}
+          />
+        ),
+      });
+    });
+
+    const diasSemana1Map = new Map((semana1.dia || []).map((item) => [item.dia_da_semana, item]));
+    const diasSemana2Map = new Map((semana2.dia || []).map((item) => [item.dia_da_semana, item]));
+
+    const semana1Dias = diasOrdem.map((dia) => {
+      const info = diasSemana1Map.get(dia) || ({} as any);
+      const horas = parseFloat(info?.horas_entregues || '0');
+      return {
+        nome: dia,
+        sigla: siglaDia(dia),
+        aderencia: info?.aderencia_percentual || 0,
+        horasEntregues: formatarHorasParaHMS(horas.toString()),
+      };
+    });
+
+    const semana2Dias = diasOrdem.map((dia) => {
+      const info1 = diasSemana1Map.get(dia) || ({} as any);
+      const info2 = diasSemana2Map.get(dia) || ({} as any);
+      const horas1 = parseFloat(info1?.horas_entregues || '0');
+      const horas2 = parseFloat(info2?.horas_entregues || '0');
+      const aderencia1Dia = info1?.aderencia_percentual || 0;
+      const aderencia2Dia = info2?.aderencia_percentual || 0;
+      return {
+        nome: dia,
+        sigla: siglaDia(dia),
+        aderencia: aderencia2Dia,
+        horasEntregues: formatarHorasParaHMS(horas2.toString()),
+        diferencaHoras: formatarDiferenca(calcularDiferenca(horas1, horas2), true),
+        diferencaHorasPositiva: horas2 - horas1 >= 0,
+        diferencaPercentualHoras: formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2)),
+        diferencaPercentualHorasPositiva: calcularDiferencaPercentual(horas1, horas2) >= 0,
+        diferencaAderencia: formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0)),
+        diferencaAderenciaPositiva: calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0) >= 0,
+      };
+    });
+
+    slidesConfig.push({
+      key: 'aderencia-diaria',
+      render: (visible) => (
+        <SlideAderenciaDiaria
+          isVisible={visible}
+          numeroSemana1={numeroSemana1}
+          numeroSemana2={numeroSemana2}
+          semana1Dias={semana1Dias}
+          semana2Dias={semana2Dias}
+        />
+      ),
+    });
+
+    const turnosSemana1 = semana1.turno || [];
+    const turnosSemana2Map = new Map((semana2.turno || []).map((item) => [item.periodo, item]));
+
+    const turnosComparativo = turnosSemana1.map((turno) => {
+      const referencia = turnosSemana2Map.get(turno.periodo) || ({} as any);
+      const horasSem1 = parseFloat(turno.horas_entregues || '0');
+      const horasSem2 = parseFloat(referencia?.horas_entregues || '0');
+      const aderenciaSem1 = turno.aderencia_percentual || 0;
+      const aderenciaSem2 = referencia?.aderencia_percentual || 0;
+      return {
+        nome: turno.periodo?.toUpperCase() || 'N/D',
+        semana1: {
+          aderencia: aderenciaSem1,
+          horasEntregues: formatarHorasParaHMS(horasSem1.toString()),
+        },
+        semana2: {
+          aderencia: aderenciaSem2,
+          horasEntregues: formatarHorasParaHMS(horasSem2.toString()),
+        },
+        variacoes: [
+          {
+            label: 'Δ Horas',
+            valor: formatarDiferenca(calcularDiferenca(horasSem1, horasSem2), true),
+            positivo: horasSem2 - horasSem1 >= 0,
+          },
+          {
+            label: '% Horas',
+            valor: formatarDiferencaPercentual(calcularDiferencaPercentual(horasSem1, horasSem2)),
+            positivo: calcularDiferencaPercentual(horasSem1, horasSem2) >= 0,
+          },
+          {
+            label: '% Aderência',
+            valor: formatarDiferencaPercentual(calcularDiferencaPercentual(aderenciaSem1 || 0.0001, aderenciaSem2 || 0)),
+            positivo: calcularDiferencaPercentual(aderenciaSem1 || 0.0001, aderenciaSem2 || 0) >= 0,
+          },
+        ],
+      };
+    });
+
+    const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
+    turnosPaginas.forEach((pagina, indice) => {
+      slidesConfig.push({
+        key: `turnos-${indice}`,
+        render: (visible) => (
+          <SlideTurnos
+            isVisible={visible}
+            numeroSemana1={numeroSemana1}
+            numeroSemana2={numeroSemana2}
+            paginaAtual={indice + 1}
+            totalPaginas={turnosPaginas.length}
+            itens={pagina}
+          />
+        ),
+      });
+    });
+
+    const totaisSemana1 = semana1.totais || {};
+    const totaisSemana2 = semana2.totais || {};
+
+    const demandaItens = [
+      {
+        label: 'Ofertadas',
+        icone: '📦',
+        valor1: Number(totaisSemana1.corridas_ofertadas || 0),
+        valor2: Number(totaisSemana2.corridas_ofertadas || 0),
+      },
+      {
+        label: 'Aceitas',
+        icone: '🤝',
+        valor1: Number(totaisSemana1.corridas_aceitas || 0),
+        valor2: Number(totaisSemana2.corridas_aceitas || 0),
+      },
+      {
+        label: 'Completadas',
+        icone: '🏁',
+        valor1: Number(totaisSemana1.corridas_completadas || 0),
+        valor2: Number(totaisSemana2.corridas_completadas || 0),
+      },
+      {
+        label: 'Rejeitadas',
+        icone: '⛔',
+        valor1: Number(totaisSemana1.corridas_rejeitadas || 0),
+        valor2: Number(totaisSemana2.corridas_rejeitadas || 0),
+      },
+    ].map((item) => {
+      const diffValor = calcularDiferenca(item.valor1, item.valor2);
+      const diffPercent = calcularDiferencaPercentual(item.valor1 || 0.0001, item.valor2 || 0);
+      return {
+        label: item.label,
+        icone: item.icone,
+        semana1Valor: formatarNumeroInteiro(item.valor1),
+        semana2Valor: formatarNumeroInteiro(item.valor2),
+        variacaoValor: formatarDiferenca(diffValor),
+        variacaoPositiva: diffValor >= 0,
+        variacaoPercentual: formatarDiferencaPercentual(diffPercent),
+        variacaoPercentualPositiva: diffPercent >= 0,
+      };
+    });
+
+    slidesConfig.push({
+      key: 'demanda',
+      render: (visible) => (
+        <SlideDemandaRejeicoes
+          isVisible={visible}
+          numeroSemana1={numeroSemana1}
+          numeroSemana2={numeroSemana2}
+          itens={demandaItens}
+        />
+      ),
+    });
+
+    return slidesConfig;
+  }, [
+    semana1,
+    semana2,
+    numeroSemana1,
+    numeroSemana2,
+    aderencia1,
+    aderencia2,
+    horasEntregues1,
+    horasEntregues2,
+    horasAEntregar,
+    periodoSemana1,
+    periodoSemana2,
+    pracaSelecionada,
+  ]);
+
+  useEffect(() => {
+    setCurrentSlide((prev) => {
+      if (slides.length === 0) return 0;
+      return Math.min(prev, slides.length - 1);
+    });
+  }, [slides.length]);
+
   const gerarPDF = async () => {
     if (!contentRef.current) return;
     setIsGenerating(true);
 
     try {
-      const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape
+      const pdf = new jsPDF('l', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      // Buscar todos os slides
-      const slides = contentRef.current.querySelectorAll('.slide');
-      
-      for (let i = 0; i < slides.length; i++) {
-        const slide = slides[i] as HTMLElement;
-        
-        // Criar um container temporário e off-screen
+
+      const elementos = contentRef.current.querySelectorAll('.slide');
+
+      for (let i = 0; i < elementos.length; i++) {
+        const slide = elementos[i] as HTMLElement;
+
         const printContainer = document.createElement('div');
         printContainer.style.position = 'absolute';
         printContainer.style.left = '-9999px';
@@ -147,8 +443,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         printContainer.style.height = `${SLIDE_HEIGHT}px`;
         printContainer.style.overflow = 'hidden';
         printContainer.style.backgroundColor = '#3b82f6';
-        
-        // Clonar o slide e aplicar as dimensões fixas
+
         const clone = slide.cloneNode(true) as HTMLElement;
         clone.style.width = `${SLIDE_WIDTH}px`;
         clone.style.height = `${SLIDE_HEIGHT}px`;
@@ -158,8 +453,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         clone.style.opacity = '1';
         clone.style.visibility = 'visible';
         clone.style.display = 'block';
-        
-        // Garantir que todos os elementos filhos também estejam visíveis
+
         const allElements = clone.querySelectorAll('*');
         allElements.forEach((el: any) => {
           if (el.style) {
@@ -168,16 +462,14 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
             if (el.style.display === 'none') el.style.display = '';
           }
         });
-        
+
         printContainer.appendChild(clone);
         document.body.appendChild(printContainer);
 
-        // Aguardar um momento para garantir a renderização do clone
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        // Capturar o clone com alta qualidade
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
         const canvas = await html2canvas(clone, {
-          scale: 1.5, // Ótimo balanço entre qualidade e tamanho
+          scale: 1.5,
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#3b82f6',
@@ -187,29 +479,22 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           imageTimeout: 0,
           removeContainer: false,
           foreignObjectRendering: false,
-          ignoreElements: (element) => {
-            return element.tagName === 'IFRAME' || element.tagName === 'OBJECT';
-          }
+          ignoreElements: (element) => element.tagName === 'IFRAME' || element.tagName === 'OBJECT',
         });
 
-        // Remover o container temporário do DOM
         document.body.removeChild(printContainer);
 
-        // Converter para JPEG com 90% de qualidade para otimização
         const imgData = canvas.toDataURL('image/jpeg', 0.9);
-        
-        // Preencher toda a página A4 sem bordas (ajuste proporcional mínimo)
+
         const imgX = 0;
         const imgY = 0;
         const scaledWidth = pdfWidth;
         const scaledHeight = pdfHeight;
 
-        // Adicionar nova página se não for a primeira
         if (i > 0) {
           pdf.addPage();
         }
 
-        // Adicionar imagem à página
         pdf.addImage(imgData, 'JPEG', imgX, imgY, scaledWidth, scaledHeight);
       }
 
@@ -223,12 +508,21 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   };
 
   const goToNextSlide = () => {
-    setCurrentSlide((prev) => Math.min(prev + 1, totalSlides - 1));
+    setCurrentSlide((prev) => {
+      if (slides.length === 0) return 0;
+      return Math.min(prev + 1, slides.length - 1);
+    });
   };
 
   const goToPrevSlide = () => {
-    setCurrentSlide((prev) => Math.max(prev - 1, 0));
+    setCurrentSlide((prev) => {
+      if (slides.length === 0) return 0;
+      return Math.max(prev - 1, 0);
+    });
   };
+
+  const totalSlides = slides.length;
+  const slideAtualExibicao = totalSlides > 0 ? currentSlide + 1 : 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -243,34 +537,33 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         </div>
       )}
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full h-[95vh] flex flex-col">
-        {/* Header com botões */}
         <div className="sticky top-0 bg-white p-4 border-b border-slate-200 flex justify-between items-center z-10">
           <h3 className="text-xl font-bold text-slate-800">Preview da Apresentação</h3>
           <div className="flex items-center gap-4">
-            {/* Controles de Navegação */}
             <div className="flex items-center gap-2">
               <button
                 onClick={goToPrevSlide}
-                disabled={currentSlide === 0}
+                disabled={currentSlide === 0 || totalSlides === 0}
                 className="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg shadow-sm hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Anterior
               </button>
               <span className="text-slate-600 font-medium text-sm">
-                {currentSlide + 1} / {totalSlides}
+                {slideAtualExibicao} / {totalSlides}
               </span>
               <button
                 onClick={goToNextSlide}
-                disabled={currentSlide === totalSlides - 1}
+                disabled={totalSlides === 0 || currentSlide === totalSlides - 1}
                 className="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg shadow-sm hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Próximo
               </button>
             </div>
-            <div className="h-6 w-px bg-slate-300"></div> {/* Separador */}
+            <div className="h-6 w-px bg-slate-300"></div>
             <button
               onClick={gerarPDF}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+              disabled={totalSlides === 0 || isGenerating}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
               Gerar PDF
             </button>
@@ -283,13 +576,15 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           </div>
         </div>
 
-        {/* Conteúdo da apresentação */}
-        <div ref={previewContainerRef} className="bg-slate-100 flex-1 overflow-hidden p-4" style={{ position: 'relative' }}>
-          {/* Container do Slide com ajuste de escala dinâmico */}
-          <div 
+        <div
+          ref={previewContainerRef}
+          className="bg-slate-100 flex-1 overflow-hidden p-4"
+          style={{ position: 'relative' }}
+        >
+          <div
             ref={contentRef}
             className="relative"
-            style={{ 
+            style={{
               ...slideDimensionsStyle,
               position: 'absolute',
               top: '50%',
@@ -298,584 +593,20 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
               transformOrigin: 'center center',
             }}
           >
-            {/* Slide 1 - Capa */}
-            <div 
-              className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white w-full h-full flex items-center justify-center absolute inset-0" 
-              style={{
-                ...slideDimensionsStyle,
-                padding: '80px 60px', 
-                boxSizing: 'border-box',
-                opacity: currentSlide === 0 ? 1 : 0,
-                visibility: currentSlide === 0 ? 'visible' : 'hidden',
-                transition: 'opacity 0.3s ease-in-out'
-              }}
-            >
-                  <div className="text-center w-full px-24">
-                    <div className="mb-16">
-                      <h1 className="text-[12rem] font-black mb-8 leading-none tracking-wider">RELATÓRIO DE</h1>
-                      <h1 className="text-[12rem] font-black mb-20 leading-none tracking-wider">RESULTADOS</h1>
-                    </div>
-                    <div className="space-y-12">
-                      <h2 className="text-7xl font-bold tracking-wide">{pracaSelecionada?.toUpperCase() || 'TODAS AS PRAÇAS'}</h2>
-                      <h3 className="text-6xl font-semibold">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
-                      <div className="text-4xl font-medium opacity-90">
-                        {new Date(new Date().getFullYear(), 0, 1 + (parseInt(numeroSemana1) - 1) * 7).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} - {new Date(new Date().getFullYear(), 0, 7 + (parseInt(numeroSemana1) - 1) * 7).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} & {new Date(new Date().getFullYear(), 0, 1 + (parseInt(numeroSemana2) - 1) * 7).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} - {new Date(new Date().getFullYear(), 0, 7 + (parseInt(numeroSemana2) - 1) * 7).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-                      </div>
-                    </div>
-                  </div>
-            </div>
-
-            {/* Slide 2 - Aderência Geral */}
-            <div 
-              className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
-              style={{
-                padding: '80px 60px', 
-                minHeight: `${SLIDE_HEIGHT}px`, 
-                boxSizing: 'border-box',
-                ...slideDimensionsStyle,
-                opacity: currentSlide === 1 ? 1 : 0,
-                visibility: currentSlide === 1 ? 'visible' : 'hidden',
-                transition: 'opacity 0.3s ease-in-out'
-              }}
-            >
-                  <div className="w-full text-center mb-12">
-                    <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>ADERÊNCIA GERAL</h2>
-                    <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
-                  </div>
-                  <div className="w-full flex justify-center items-start gap-16">
-                    {/* Semana 1 */}
-                    <div className="flex flex-col items-center">
-                      <h4 className="text-6xl font-bold mb-8">SEMANA {numeroSemana1}</h4>
-                      <div className="relative w-96 h-96 mb-8">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
-                          <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.2)" strokeWidth="10" fill="none" />
-                          <circle
-                            cx="60" cy="60" r="50"
-                            stroke="#ffffff" strokeWidth="10" fill="none"
-                            strokeDasharray={`${(aderencia1 / 100) * 314} 314`}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                          <span className="text-7xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{aderencia1.toFixed(1)}%</span>
-                        </div>
-                      </div>
-                      <div className="bg-white bg-opacity-15 rounded-3xl p-6 space-y-4 w-[450px]">
-                        <div className="flex justify-between items-center text-3xl">
-                          <span className="opacity-80">🎯 Planejado:</span>
-                          <span className="font-bold text-4xl text-blue-200">{formatarHorasParaHMS(horasAEntregar.toString())}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-3xl">
-                          <span className="opacity-80">✅ Entregue:</span>
-                          <span className="font-bold text-4xl text-green-300">{formatarHorasParaHMS(horasEntregues1.toString())}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Semana 2 */}
-                    <div className="flex flex-col items-center">
-                      <h4 className="text-6xl font-bold mb-8">SEMANA {numeroSemana2}</h4>
-                      <div className="relative w-96 h-96 mb-8">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
-                          <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.2)" strokeWidth="10" fill="none" />
-                          <circle
-                            cx="60" cy="60" r="50"
-                            stroke="#ffffff" strokeWidth="10" fill="none"
-                            strokeDasharray={`${(aderencia2 / 100) * 314} 314`}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                          <span className="text-7xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{aderencia2.toFixed(1)}%</span>
-                        </div>
-                      </div>
-                      <div className="bg-white bg-opacity-15 rounded-3xl p-6 space-y-4 w-[450px]">
-                        <div className="flex justify-between items-center text-3xl">
-                          <span className="opacity-80">🎯 Planejado:</span>
-                          <span className="font-bold text-4xl text-blue-200">{formatarHorasParaHMS(horasAEntregar.toString())}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-3xl">
-                          <span className="opacity-80">✅ Entregue:</span>
-                          <span className="font-bold text-4xl text-green-300">{formatarHorasParaHMS(horasEntregues2.toString())}</span>
-                        </div>
-                        <div className="border-t border-white/20 my-4"></div>
-                        <div className="bg-white bg-opacity-10 rounded-xl p-4">
-                          <div className="text-center">
-                            <div className="text-xl opacity-80 mb-2">Variação de Horas Entregues</div>
-                            <div className={`text-3xl font-black ${calcularDiferenca(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              {formatarDiferenca(calcularDiferenca(horasEntregues1, horasEntregues2), true)}
-                            </div>
-                            <div className={`text-xl font-bold mt-1 ${calcularDiferencaPercentual(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              {formatarDiferencaPercentual(calcularDiferencaPercentual(horasEntregues1, horasEntregues2))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-            </div>
-
-            {/* Slides de Sub-Praças - Múltiplas páginas dinâmicas */}
-            {(() => {
-              const subPracas = semana1?.sub_praca || [];
-              const subPracasPorPagina = 2;
-              const totalPaginas = Math.ceil(subPracas.length / subPracasPorPagina);
-              
-              return Array.from({ length: totalPaginas }, (_, pagina) => {
-                const inicio = pagina * subPracasPorPagina;
-                const fim = inicio + subPracasPorPagina;
-                const subPracasPagina = subPracas.slice(inicio, fim);
-                const slideIndex = 2 + pagina; // Slide 2 é Aderência Geral, então Sub-Praças começam em 2
-                
-                return (
-                  <div 
-                    key={`sub-praca-${pagina}`}
-                    className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
-                    style={{
-                      padding: '80px 60px', 
-                      minHeight: `${SLIDE_HEIGHT}px`, 
-                      boxSizing: 'border-box',
-                      ...slideDimensionsStyle,
-                      opacity: currentSlide === slideIndex ? 1 : 0,
-                      visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
-                      transition: 'opacity 0.3s ease-in-out'
-                    }}
-                  >
-                    <div className="w-full text-center mb-12">
-                      <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>SUB-PRAÇAS</h2>
-                      <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
-                      {totalPaginas > 1 && (
-                        <p className="text-2xl mt-4 opacity-75">Página {pagina + 1} de {totalPaginas}</p>
-                      )}
-                    </div>
-                    <div className="w-full grid grid-cols-2 gap-12 max-w-[1600px]">
-                      {subPracasPagina.map((subPraca: any, index: number) => {
-                        const subPraca2 = semana2?.sub_praca?.find((sp: any) => sp.sub_praca === subPraca.sub_praca);
-                        const aderencia1 = subPraca.aderencia_percentual || 0;
-                        const aderencia2 = subPraca2?.aderencia_percentual || 0;
-                        const horas1 = parseFloat(subPraca.horas_entregues || '0');
-                        const horas2 = parseFloat(subPraca2?.horas_entregues || '0');
-                        
-                        return (
-                          <div key={`${pagina}-${index}`} className="bg-white bg-opacity-15 p-8 rounded-3xl flex flex-col items-center">
-                            <h4 className="text-3xl font-bold mb-4 h-20 flex items-center text-center px-4">{subPraca.sub_praca?.toUpperCase()}</h4>
-                            <div className="text-xl mb-6 opacity-80">🎯 {parseFloat(subPraca.horas_a_entregar || '0').toFixed(2)}h</div>
-                            <div className="w-full flex justify-around items-center gap-8">
-                              {/* Semana 1 */}
-                              <div className="text-center flex-1">
-                                <div className="relative w-40 h-40 mb-4 mx-auto" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
-                                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                    <circle
-                                      cx="50" cy="50" r="40"
-                                      stroke="#ffffff" strokeWidth="8" fill="none"
-                                      strokeDasharray={`${(aderencia1 / 100) * 251.2} 251.2`}
-                                      strokeLinecap="round"
-                                    />
-                                  </svg>
-                                  <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                                    <span className="text-3xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia1.toFixed(1)}%</span>
-                                  </div>
-                                </div>
-                                <div className="text-xl font-bold mb-2">SEM {numeroSemana1}</div>
-                                <div className="text-lg">{formatarHorasParaHMS(horas1.toString())}</div>
-                              </div>
-
-                              {/* Semana 2 */}
-                              <div className="text-center flex-1">
-                                <div className="relative w-40 h-40 mb-4 mx-auto" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
-                                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                    <circle
-                                      cx="50" cy="50" r="40"
-                                      stroke="#ffffff" strokeWidth="8" fill="none"
-                                      strokeDasharray={`${(aderencia2 / 100) * 251.2} 251.2`}
-                                      strokeLinecap="round"
-                                    />
-                                  </svg>
-                                  <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                                    <span className="text-3xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia2.toFixed(1)}%</span>
-                                  </div>
-                                </div>
-                                <div className="text-xl font-bold mb-2">SEM {numeroSemana2}</div>
-                                <div className="text-lg mb-2">{formatarHorasParaHMS(horas2.toString())}</div>
-                                <div className={`text-lg font-bold mt-2 ${calcularDiferenca(horas1, horas2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                                  {formatarDiferenca(calcularDiferenca(horas1, horas2), true)}
-                                </div>
-                                <div className={`text-base font-bold mt-1 ${calcularDiferencaPercentual(horas1, horas2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                                  {formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-
-            {/* Slide 4 - Aderência Diária */}
-            {(() => {
-              const subPracas = semana1?.sub_praca || [];
-              const totalPaginasSubPracas = Math.ceil(subPracas.length / 2);
-              const slideIndex = 2 + totalPaginasSubPracas; // Depois de Capa, Aderência Geral e Sub-Praças
-              
-              return (
-                <div 
-                  className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
-                  style={{
-                    padding: '80px 60px', 
-                    minHeight: `${SLIDE_HEIGHT}px`, 
-                    boxSizing: 'border-box',
-                    ...slideDimensionsStyle,
-                    opacity: currentSlide === slideIndex ? 1 : 0,
-                    visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
-                    transition: 'opacity 0.3s ease-in-out'
-                  }}
-                >
-                  <div className="w-full text-center mb-12">
-                    <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>ADERÊNCIA DIÁRIA</h2>
-                    <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
-                  </div>
-                  <div className="w-full space-y-8">
-                    {/* Semana 1 */}
-                    <div className="flex flex-col items-center">
-                      <h4 className="text-4xl font-bold mb-6">SEMANA {numeroSemana1}</h4>
-                      <div className="flex justify-center gap-6">
-                        {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
-                          const diaData = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
-                          const aderencia = diaData?.aderencia_percentual || 0;
-                          const horasEntregues = parseFloat(diaData?.horas_entregues || '0');
-                          
-                          return (
-                            <div key={index} className="text-center bg-white bg-opacity-15 rounded-2xl p-4 w-48">
-                              <div className="text-2xl font-bold mb-3 opacity-90">{dia.substring(0,3).toUpperCase()}</div>
-                              <div className="relative w-28 h-28 mx-auto mb-3" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
-                                  <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                  <circle
-                                    cx="50" cy="50" r="40"
-                                    stroke="#ffffff" strokeWidth="8" fill="none"
-                                    strokeDasharray={`${(aderencia / 100) * 251.2} 251.2`}
-                                    strokeLinecap="round"
-                                  />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                                  <span className="text-2xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia.toFixed(1)}%</span>
-                                </div>
-                              </div>
-                              <div className="text-xl font-bold">{formatarHorasParaHMS(horasEntregues.toString())}</div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Semana 2 */}
-                    <div className="flex flex-col items-center">
-                      <h4 className="text-4xl font-bold mb-6">SEMANA {numeroSemana2}</h4>
-                      <div className="flex justify-center gap-6">
-                        {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
-                          const diaData1 = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
-                          const diaData2 = semana2?.dia?.find((d: any) => d.dia_da_semana === dia);
-                          const aderencia = diaData2?.aderencia_percentual || 0;
-                          const horasEntregues1 = parseFloat(diaData1?.horas_entregues || '0');
-                          const horasEntregues2 = parseFloat(diaData2?.horas_entregues || '0');
-                          const diferenca = calcularDiferenca(horasEntregues1, horasEntregues2);
-                          
-                          return (
-                            <div key={index} className="text-center bg-white bg-opacity-15 rounded-2xl p-4 w-48">
-                              <div className="text-2xl font-bold mb-3 opacity-90">{dia.substring(0,3).toUpperCase()}</div>
-                              <div className="relative w-28 h-28 mx-auto mb-3" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0}}>
-                                  <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                  <circle
-                                    cx="50" cy="50" r="40"
-                                    stroke="#ffffff" strokeWidth="8" fill="none"
-                                    strokeDasharray={`${(aderencia / 100) * 251.2} 251.2`}
-                                    strokeLinecap="round"
-                                  />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                                  <span className="text-2xl font-black" style={{lineHeight: '1', letterSpacing: '0'}}>{aderencia.toFixed(1)}%</span>
-                                </div>
-                              </div>
-                              <div className="text-xl font-bold">{formatarHorasParaHMS(horasEntregues2.toString())}</div>
-                              <div className={`text-base font-bold mt-1 ${diferenca >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                                {formatarDiferenca(diferenca, true)}
-                              </div>
-                              <div className={`text-sm font-bold mt-1 ${calcularDiferencaPercentual(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                                {formatarDiferencaPercentual(calcularDiferencaPercentual(horasEntregues1, horasEntregues2))}
-                              </div>
-                              {(() => {
-                                const aderencia1 = diaData1?.aderencia_percentual || 0;
-                                const aderencia2 = diaData2?.aderencia_percentual || 0;
-                                return (
-                                  <div className={`text-sm font-bold mt-1 ${calcularDiferencaPercentual(aderencia1, aderencia2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                                    {formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1, aderencia2))}
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Slides de Turnos */}
-            {(() => {
-              const subPracas = semana1?.sub_praca || [];
-              const totalPaginasSubPracas = Math.ceil(subPracas.length / 2);
-              const baseIndexTurnos = 2 + totalPaginasSubPracas + 1; // Depois de Capa, Aderência Geral, Sub-Praças e Aderência Diária
-              
-              return (semana1?.turno || []).map((turno: any, index: number) => {
-                if (index % 2 !== 0) return null; // Processar em pares
-                
-                const turnoPar1 = turno;
-                const turnoPar2 = semana1.turno?.[index + 1];
-                const slideIndex = baseIndexTurnos + Math.floor(index / 2);
-
-                return (
-                  <div 
-                    key={index} 
-                    className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
-                    style={{
-                      padding: '80px 60px', 
-                      minHeight: `${SLIDE_HEIGHT}px`, 
-                      boxSizing: 'border-box',
-                      ...slideDimensionsStyle,
-                      opacity: currentSlide === slideIndex ? 1 : 0,
-                      visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
-                      transition: 'opacity 0.3s ease-in-out'
-                    }}
-                  >
-                      <div className="w-full text-center mb-12">
-                        <h2 className="text-8xl font-black mb-6 tracking-wider" style={{lineHeight: '1.1'}}>ADERÊNCIA POR TURNO</h2>
-                        <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
-                      </div>
-                      <div className="w-full flex justify-center items-center gap-12">
-                        {/* Card Turno 1 */}
-                        <div className="bg-white bg-opacity-15 p-8 rounded-3xl w-[800px] flex flex-col items-center">
-                          <h4 className="text-5xl font-bold mb-8">{turnoPar1.periodo?.toUpperCase()}</h4>
-                          <div className="w-full flex justify-around">
-                            {(() => {
-                              const t1s1 = semana1?.turno?.find(t => t.periodo === turnoPar1.periodo);
-                              const t1s2 = semana2?.turno?.find(t => t.periodo === turnoPar1.periodo);
-                              const a1 = t1s1?.aderencia_percentual || 0;
-                              const a2 = t1s2?.aderencia_percentual || 0;
-                              const h1 = parseFloat(t1s1?.horas_entregues || '0');
-                              const h2 = parseFloat(t1s2?.horas_entregues || '0');
-                              return (
-                                <>
-                                  <div className="text-center">
-                                    <div className="text-3xl font-bold mb-4">SEM {numeroSemana1}</div>
-                                    <div className="relative w-48 h-48 mb-4">
-                                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
-                                        <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                        <circle cx="50" cy="50" r="40" stroke="#ffffff" strokeWidth="8" fill="none" strokeDasharray={`${(a1 / 100) * 251.2} 251.2`} strokeLinecap="round" />
-                                      </svg>
-                                      <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                        <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{a1.toFixed(1)}%</span>
-                                      </div>
-                                    </div>
-                                    <div className="text-2xl font-medium">{formatarHorasParaHMS(h1.toString())}</div>
-                                  </div>
-                                  <div className="text-center">
-                                    <div className="text-3xl font-bold mb-4">SEM {numeroSemana2}</div>
-                                    <div className="relative w-48 h-48 mb-4">
-                                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
-                                        <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                        <circle cx="50" cy="50" r="40" stroke="#ffffff" strokeWidth="8" fill="none" strokeDasharray={`${(a2 / 100) * 251.2} 251.2`} strokeLinecap="round" />
-                                      </svg>
-                                      <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                        <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{a2.toFixed(1)}%</span>
-                                      </div>
-                                    </div>
-                                    <div className="text-2xl font-medium">{formatarHorasParaHMS(h2.toString())}</div>
-                                    <div className={`mt-2 text-xl font-bold ${calcularDiferenca(h1, h2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>{formatarDiferenca(calcularDiferenca(h1, h2), true)}</div>
-                                    <div className={`text-xl font-bold ${calcularDiferenca(a1, a2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>{formatarDiferencaPercentual(calcularDiferencaPercentual(a1, a2))}</div>
-                                  </div>
-                                </>
-                              );
-                            })()}
-                          </div>
-                        </div>
-
-                        {/* Card Turno 2 (se existir) */}
-                        {turnoPar2 && (
-                          <div className="bg-white bg-opacity-15 p-8 rounded-3xl w-[800px] flex flex-col items-center">
-                            <h4 className="text-5xl font-bold mb-8">{turnoPar2.periodo?.toUpperCase()}</h4>
-                            <div className="w-full flex justify-around">
-                              {(() => {
-                                const t2s1 = semana1?.turno?.find(t => t.periodo === turnoPar2.periodo);
-                                const t2s2 = semana2?.turno?.find(t => t.periodo === turnoPar2.periodo);
-                                const a1 = t2s1?.aderencia_percentual || 0;
-                                const a2 = t2s2?.aderencia_percentual || 0;
-                                const h1 = parseFloat(t2s1?.horas_entregues || '0');
-                                const h2 = parseFloat(t2s2?.horas_entregues || '0');
-                                return (
-                                  <>
-                                    <div className="text-center">
-                                      <div className="text-3xl font-bold mb-4">SEM {numeroSemana1}</div>
-                                      <div className="relative w-48 h-48 mb-4">
-                                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
-                                          <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                          <circle cx="50" cy="50" r="40" stroke="#ffffff" strokeWidth="8" fill="none" strokeDasharray={`${(a1 / 100) * 251.2} 251.2`} strokeLinecap="round" />
-                                        </svg>
-                                        <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                          <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{a1.toFixed(1)}%</span>
-                                        </div>
-                                      </div>
-                                      <div className="text-2xl font-medium">{formatarHorasParaHMS(h1.toString())}</div>
-                                    </div>
-                                    <div className="text-center">
-                                      <div className="text-3xl font-bold mb-4">SEM {numeroSemana2}</div>
-                                      <div className="relative w-48 h-48 mb-4">
-                                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}>
-                                          <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none" />
-                                          <circle cx="50" cy="50" r="40" stroke="#ffffff" strokeWidth="8" fill="none" strokeDasharray={`${(a2 / 100) * 251.2} 251.2`} strokeLinecap="round" />
-                                        </svg>
-                                        <div className="absolute inset-0 flex items-center justify-center" style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                          <span className="text-4xl font-black" style={{lineHeight: '1', letterSpacing: '0', textAlign: 'center'}}>{a2.toFixed(1)}%</span>
-                                        </div>
-                                      </div>
-                                      <div className="text-2xl font-medium">{formatarHorasParaHMS(h2.toString())}</div>
-                                      <div className={`mt-2 text-xl font-bold ${calcularDiferenca(h1, h2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>{formatarDiferenca(calcularDiferenca(h1, h2), true)}</div>
-                                      <div className={`text-xl font-bold ${calcularDiferenca(a1, a2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>{formatarDiferencaPercentual(calcularDiferencaPercentual(a1, a2))}</div>
-                                    </div>
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-              }).filter(Boolean);
-            })()}
-
-            {/* Slide 7 - Demanda e Rejeições */}
-            {(() => {
-              const subPracas = semana1?.sub_praca || [];
-              const totalPaginasSubPracas = Math.ceil(subPracas.length / 2);
-              const turnos = semana1?.turno || [];
-              const totalPaginasTurnos = Math.ceil(turnos.length / 2);
-              const slideIndex = 2 + totalPaginasSubPracas + 1 + totalPaginasTurnos; // Depois de todos os slides anteriores
-              
-              return (
-                <div 
-                  className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col items-center justify-center absolute inset-0" 
-                  style={{
-                    padding: '80px 60px', 
-                    minHeight: `${SLIDE_HEIGHT}px`, 
-                    boxSizing: 'border-box',
-                    ...slideDimensionsStyle,
-                    opacity: currentSlide === slideIndex ? 1 : 0,
-                    visibility: currentSlide === slideIndex ? 'visible' : 'hidden',
-                    transition: 'opacity 0.3s ease-in-out'
-                  }}
-                >
-                  <div className="w-full text-center mb-12">
-                    <h2 className="text-6xl font-black mb-6" style={{lineHeight: '1.1'}}>DEMANDA E REJEIÇÕES</h2>
-                    <h3 className="text-5xl font-light opacity-90">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
-                  </div>
-                  <div className="w-full flex justify-center items-start gap-16">
-                    {/* Semana 1 */}
-                    <div className="flex flex-col items-center">
-                      <h4 className="text-6xl font-bold mb-10">SEMANA {numeroSemana1}</h4>
-                      <div className="space-y-6 w-[600px]">
-                        <div className="flex justify-between items-center text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
-                          <span className="font-bold">OFERTADAS:</span>
-                          <span className="font-black text-5xl">{semana1?.totais?.corridas_ofertadas || 0}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
-                          <span className="font-bold">ACEITAS:</span>
-                          <span className="font-black text-5xl text-green-300">{semana1?.totais?.corridas_aceitas || 0}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
-                          <span className="font-bold">COMPLETADAS:</span>
-                          <span className="font-black text-5xl text-blue-300">{semana1?.totais?.corridas_completadas || 0}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
-                          <span className="font-bold">REJEITADAS:</span>
-                          <span className="font-black text-5xl text-red-300">{semana1?.totais?.corridas_rejeitadas || 0}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Semana 2 */}
-                    <div className="flex flex-col items-center">
-                      <h4 className="text-6xl font-bold mb-10">SEMANA {numeroSemana2}</h4>
-                      <div className="space-y-6 w-[600px]">
-                        <div className="text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold">OFERTADAS:</span>
-                            <span className="font-black text-5xl">{semana2?.totais?.corridas_ofertadas || 0}</span>
-                          </div>
-                          <div className="flex flex-col items-end mt-1">
-                            <div className={`text-2xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0))}
-                            </div>
-                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              {formatarDiferencaPercentual(calcularDiferencaPercentual(semana1?.totais?.corridas_ofertadas || 0, semana2?.totais?.corridas_ofertadas || 0))}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold">ACEITAS:</span>
-                            <span className="font-black text-5xl text-green-300">{semana2?.totais?.corridas_aceitas || 0}</span>
-                          </div>
-                          <div className="flex flex-col items-end mt-1">
-                            <div className={`text-2xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0))}
-                            </div>
-                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              {formatarDiferencaPercentual(calcularDiferencaPercentual(semana1?.totais?.corridas_aceitas || 0, semana2?.totais?.corridas_aceitas || 0))}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold">COMPLETADAS:</span>
-                            <span className="font-black text-5xl text-blue-300">{semana2?.totais?.corridas_completadas || 0}</span>
-                          </div>
-                          <div className="flex flex-col items-end mt-1">
-                            <div className={`text-2xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0))}
-                            </div>
-                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              {formatarDiferencaPercentual(calcularDiferencaPercentual(semana1?.totais?.corridas_completadas || 0, semana2?.totais?.corridas_completadas || 0))}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-3xl bg-white bg-opacity-15 rounded-2xl p-5">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold">REJEITADAS:</span>
-                            <span className="font-black text-5xl text-red-300">{semana2?.totais?.corridas_rejeitadas || 0}</span>
-                          </div>
-                          <div className="flex flex-col items-end mt-1">
-                            <div className={`text-2xl font-bold ${calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0) >= 0 ? 'text-red-300' : 'text-green-300'}`}>
-                              {formatarDiferenca(calcularDiferenca(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0))}
-                            </div>
-                            <div className={`text-xl font-bold ${calcularDiferencaPercentual(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0) >= 0 ? 'text-red-300' : 'text-green-300'}`}>
-                              {formatarDiferencaPercentual(calcularDiferencaPercentual(semana1?.totais?.corridas_rejeitadas || 0, semana2?.totais?.corridas_rejeitadas || 0))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
+            {totalSlides === 0 ? (
+              <div
+                className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white absolute inset-0 flex items-center justify-center text-4xl font-semibold"
+                style={slideDimensionsStyle}
+              >
+                Nenhum dado disponível.
+              </div>
+            ) : (
+              slides.map((slide, index) => (
+                <React.Fragment key={slide.key}>
+                  {slide.render(currentSlide === index)}
+                </React.Fragment>
+              ))
+            )}
           </div>
         </div>
       </div>
