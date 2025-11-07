@@ -254,12 +254,14 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                             semana2?.totais?.corridas_ofertadas ? ((semana2.totais.corridas_aceitas / semana2.totais.corridas_ofertadas) * 100) : 0
                           ) >= 0 ? 'text-green-300' : 'text-red-300'
                         }`}>
-                          ({formatarDiferenca(
-                            calcularDiferenca(
+                          ({(() => {
+                            const diff = calcularDiferenca(
                               semana1?.totais?.corridas_ofertadas ? ((semana1.totais.corridas_aceitas / semana1.totais.corridas_ofertadas) * 100) : 0,
                               semana2?.totais?.corridas_ofertadas ? ((semana2.totais.corridas_aceitas / semana2.totais.corridas_ofertadas) * 100) : 0
-                            )
-                          ).toFixed(1)}%)
+                            );
+                            const sinal = diff >= 0 ? '+' : '';
+                            return `${sinal}${diff.toFixed(1)}%`;
+                          })()})
                         </span>
                       </div>
                     </div>
@@ -493,7 +495,10 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                               Horas: {formatarDiferenca(diferenca, true)}
                             </div>
                             <div className={`text-xl font-bold ${diferencaAderencia >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              Aderência: {formatarDiferenca(diferencaAderencia).toFixed(1)}%
+                              Aderência: {(() => {
+                                const sinal = diferencaAderencia >= 0 ? '+' : '';
+                                return `${sinal}${diferencaAderencia.toFixed(1)}%`;
+                              })()}
                             </div>
                           </div>
                         </div>
