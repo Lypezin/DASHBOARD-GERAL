@@ -27,7 +27,7 @@ interface SlideAderenciaDiariaProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 70; // r = 70
+  const circumference = 2 * Math.PI * 60; // r = 60 (reduzido para dar espaço ao texto)
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
@@ -47,45 +47,50 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
     const isComparado = 'diferencaHoras' in (extras || {});
 
     return (
-      <div key={`${semanaLabel}-${dia.sigla}`} className="rounded-[32px] bg-white/12 px-8 py-9 flex flex-col items-center gap-6">
-        <span className="text-[3rem] font-semibold opacity-85">{dia.sigla}</span>
-        <div className="relative w-[190px] h-[190px]">
+      <div key={`${semanaLabel}-${dia.sigla}`} className="rounded-[24px] bg-white/12 px-6 py-7 flex flex-col items-center gap-4">
+        <span className="text-[2.2rem] font-semibold opacity-85">{dia.sigla}</span>
+        <div className="relative w-[150px] h-[150px]">
           <svg
             className="w-full h-full transform -rotate-90"
-            viewBox="0 0 200 200"
+            viewBox="0 0 140 140"
             style={{ position: 'absolute', inset: 0 }}
           >
-            <circle cx="100" cy="100" r="70" stroke="rgba(255,255,255,0.2)" strokeWidth="18" fill="none" />
+            <circle cx="70" cy="70" r="60" stroke="rgba(255,255,255,0.2)" strokeWidth="14" fill="none" />
             <circle
-              cx="100"
-              cy="100"
-              r="70"
+              cx="70"
+              cy="70"
+              r="60"
               stroke="#ffffff"
-              strokeWidth="18"
+              strokeWidth="14"
               fill="none"
               strokeDasharray={buildCircleDasharray(dia.aderencia)}
               strokeLinecap="round"
             />
           </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[3.8rem] font-black leading-none">{dia.aderencia.toFixed(1)}%</span>
+          <div className="absolute inset-0 flex items-center justify-center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+            <span className="text-[2.6rem] font-black leading-none" style={{ lineHeight: '1', letterSpacing: '0' }}>
+              {dia.aderencia.toFixed(1)}%
+            </span>
           </div>
         </div>
-        <span className="text-[2.8rem] font-semibold text-emerald-100">{dia.horasEntregues}</span>
+        <span className="text-[2rem] font-semibold text-emerald-100 text-center">{dia.horasEntregues}</span>
         {isComparado && (
-          <div className="w-full space-y-3 text-center">
+          <div className="w-full space-y-2 text-center">
             <p
-              className={`text-[2.4rem] font-bold ${comparativo.diferencaHorasPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
+              className={`text-[1.8rem] font-bold leading-tight ${comparativo.diferencaHorasPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
+              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
             >
               {comparativo.diferencaHoras}
             </p>
             <p
-              className={`text-[2.2rem] font-semibold ${comparativo.diferencaPercentualHorasPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
+              className={`text-[1.6rem] font-semibold leading-tight ${comparativo.diferencaPercentualHorasPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
+              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
             >
               {comparativo.diferencaPercentualHoras}
             </p>
             <p
-              className={`text-[2.1rem] font-semibold ${comparativo.diferencaAderenciaPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
+              className={`text-[1.5rem] font-semibold leading-tight ${comparativo.diferencaAderenciaPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
+              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
             >
               {comparativo.diferencaAderencia}
             </p>
@@ -96,25 +101,25 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
   };
 
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '110px 120px' }}>
-      <header className="text-center mb-16">
-        <h2 className="text-[8.5rem] font-black leading-none tracking-wider mb-6">ADERÊNCIA DIÁRIA</h2>
-        <p className="text-[4.8rem] font-light opacity-90">
+    <SlideWrapper isVisible={isVisible} style={{ padding: '80px 100px' }}>
+      <header className="text-center mb-12">
+        <h2 className="text-[6rem] font-black leading-none tracking-wider mb-4">ADERÊNCIA DIÁRIA</h2>
+        <p className="text-[3.5rem] font-light opacity-90">
           SEMANAS {numeroSemana1} &amp; {numeroSemana2}
         </p>
       </header>
 
-      <section className="space-y-12">
+      <section className="space-y-10">
         <div>
-          <h3 className="text-[3.4rem] font-semibold text-center mb-8">SEMANA {numeroSemana1}</h3>
-          <div className="grid grid-cols-7 gap-6">
+          <h3 className="text-[2.8rem] font-semibold text-center mb-6">SEMANA {numeroSemana1}</h3>
+          <div className="grid grid-cols-7 gap-5">
             {semana1Dias.map((dia) => renderDiaCard(dia, 'sem1'))}
           </div>
         </div>
 
         <div>
-          <h3 className="text-[3.4rem] font-semibold text-center mb-8">SEMANA {numeroSemana2}</h3>
-          <div className="grid grid-cols-7 gap-6">
+          <h3 className="text-[2.8rem] font-semibold text-center mb-6">SEMANA {numeroSemana2}</h3>
+          <div className="grid grid-cols-7 gap-5">
             {semana2Dias.map((dia) =>
               renderDiaCard(dia, 'sem2', {
                 diferencaHoras: dia.diferencaHoras,
