@@ -56,27 +56,37 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
   }
 
   let praca: string | null = filters.praca;
+  // Normalizar string vazia para null
+  if (praca === '' || (praca && praca.trim() === '')) {
+    praca = null;
+  }
   if (praca && praca.length > 100) {
     praca = praca.substring(0, 100);
   }
 
   // Aplicar permissões: se não for admin, forçar as praças atribuídas
   if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-    // Se tiver apenas uma praça, usar ela
+    // Se tiver apenas uma praça, SEMPRE usar ela (ignorar qualquer seleção)
     if (currentUser.assigned_pracas.length === 1) {
       praca = currentUser.assigned_pracas[0];
     } 
-    // Se tiver múltiplas praças e nenhuma selecionada, passar todas as praças permitidas
-    else if (!praca) {
-      // Passar todas as praças como string separada por vírgulas para incluir todas
-      const limited = currentUser.assigned_pracas.slice(0, MAX_ARRAY_SIZE);
-      praca = limited.length === 1 ? limited[0] : limited.join(',');
-    }
-    // Se tiver praça selecionada, validar se está nas praças permitidas
-    else if (!currentUser.assigned_pracas.includes(praca)) {
-      // Se a praça selecionada não está permitida, usar todas as praças permitidas
-      const limited = currentUser.assigned_pracas.slice(0, MAX_ARRAY_SIZE);
-      praca = limited.length === 1 ? limited[0] : limited.join(',');
+    // Se tiver múltiplas praças
+    else {
+      // Se nenhuma praça foi selecionada (null ou vazia), passar todas as praças permitidas
+      if (!praca || praca.trim() === '') {
+        const limited = currentUser.assigned_pracas.slice(0, MAX_ARRAY_SIZE);
+        praca = limited.length === 1 ? limited[0] : limited.join(',');
+      }
+      // Se tiver praça selecionada, validar se está nas praças permitidas
+      else if (!currentUser.assigned_pracas.includes(praca.trim())) {
+        // Se a praça selecionada não está permitida, usar todas as praças permitidas
+        const limited = currentUser.assigned_pracas.slice(0, MAX_ARRAY_SIZE);
+        praca = limited.length === 1 ? limited[0] : limited.join(',');
+      }
+      // Se a praça selecionada está permitida, manter ela (pode ser uma única praça ou múltiplas)
+      else {
+        praca = praca.trim();
+      }
     }
   }
 
