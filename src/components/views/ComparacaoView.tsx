@@ -6,6 +6,7 @@ import FiltroSelect from '@/components/FiltroSelect';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import MetricCard from '@/components/MetricCard';
 import { Bar, Line } from 'react-chartjs-2';
+import ApresentacaoView from '@/components/ApresentacaoView';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -29,6 +30,7 @@ function ComparacaoView({
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
   const [utrComparacao, setUtrComparacao] = useState<any[]>([]);
   const [todasSemanas, setTodasSemanas] = useState<(number | string)[]>([]);
+  const [mostrarApresentacao, setMostrarApresentacao] = useState(false);
   
   // Estados para controlar visualização (tabela/gráfico)
   const [viewModeDetalhada, setViewModeDetalhada] = useState<'table' | 'chart'>('table');
@@ -274,6 +276,15 @@ function ComparacaoView({
               className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 font-semibold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
             >
               {loading ? '⏳ Comparando...' : '⚖️ Comparar Semanas'}
+            </button>
+            
+            <button
+              onClick={() => setMostrarApresentacao(true)}
+              disabled={semanasSelecionadas.length !== 2 || dadosComparacao.length !== 2}
+              className="rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-2.5 font-semibold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+              title={semanasSelecionadas.length !== 2 ? 'Selecione exatamente 2 semanas para gerar a apresentação' : 'Gerar apresentação em PDF'}
+            >
+              📄 Apresentação
             </button>
           </div>
         </div>
@@ -1399,6 +1410,16 @@ function ComparacaoView({
             </div>
           )}
         </div>
+      )}
+
+      {/* Modal de Apresentação */}
+      {mostrarApresentacao && (
+        <ApresentacaoView
+          dadosComparacao={dadosComparacao}
+          semanasSelecionadas={semanasSelecionadas}
+          pracaSelecionada={pracaSelecionada}
+          onClose={() => setMostrarApresentacao(false)}
+        />
       )}
     </div>
   );

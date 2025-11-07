@@ -102,6 +102,17 @@ body {
   animation: slide-down 0.4s ease-out;
 }
 
+/* Estilos para apresentação/PDF */
+.page-break {
+  page-break-before: always;
+}
+
+@media print {
+  .page-break {
+    page-break-before: always;
+  }
+}
+
 .animate-scale-in {
   animation: scale-in 0.3s ease-out;
 }

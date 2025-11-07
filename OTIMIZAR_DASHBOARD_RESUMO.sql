@@ -20,8 +20,9 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 SET statement_timeout = '120000ms'
+SET jit = off
 AS $$
-WITH filtered_data AS (
+WITH filtered_data AS MATERIALIZED (
   SELECT
     ano_iso,
     semana_numero,
@@ -44,25 +45,25 @@ WITH filtered_data AS (
     AND (p_semana IS NULL OR semana_numero = p_semana)
     AND (p_praca IS NULL OR praca = p_praca)
     AND (
-      p_sub_praca IS NULL 
+      p_sub_praca IS NULL
       OR p_sub_praca = ''
       OR (p_sub_praca NOT LIKE '%,%' AND sub_praca = p_sub_praca)
       OR (p_sub_praca LIKE '%,%' AND sub_praca = ANY(string_to_array(p_sub_praca, ',')))
     )
     AND (
-      p_origem IS NULL 
+      p_origem IS NULL
       OR p_origem = ''
       OR (p_origem NOT LIKE '%,%' AND origem = p_origem)
       OR (p_origem LIKE '%,%' AND origem = ANY(string_to_array(p_origem, ',')))
     )
     AND (
-      p_turno IS NULL 
+      p_turno IS NULL
       OR p_turno = ''
       OR (p_turno NOT LIKE '%,%' AND periodo = p_turno)
       OR (p_turno LIKE '%,%' AND periodo = ANY(string_to_array(p_turno, ',')))
     )
 ),
-dados_sem_duplicatas AS (
+planejado_base AS MATERIALIZED (
   SELECT DISTINCT ON (data_do_periodo, periodo, praca, sub_praca, origem)
     ano_iso,
     semana_numero,
@@ -77,68 +78,133 @@ dados_sem_duplicatas AS (
   FROM filtered_data
   ORDER BY data_do_periodo, periodo, praca, sub_praca, origem, numero_minimo_de_entregadores_regulares_na_escala DESC
 ),
--- OTIMIZAÇÃO: Calcular horas planejadas uma única vez por dimensão
-horas_planejadas_origem AS (
-  SELECT 
+aggregated AS MATERIALIZED (
+  SELECT
+    CASE
+      WHEN origem IS NOT NULL THEN 'origem'
+      WHEN sub_praca IS NOT NULL THEN 'sub_praca'
+      WHEN periodo IS NOT NULL THEN 'turno'
+      WHEN dia_iso IS NOT NULL THEN 'dia'
+      WHEN ano_iso IS NOT NULL AND semana_numero IS NOT NULL THEN 'semanal'
+      ELSE 'total'
+    END AS bucket,
     origem,
-    SUM(duracao_segundos * numero_minimo_de_entregadores_regulares_na_escala) AS horas_planejadas_segundos
-  FROM dados_sem_duplicatas
-  WHERE origem IS NOT NULL
-  GROUP BY origem
-),
-horas_planejadas_sub_praca AS (
-  SELECT 
     sub_praca,
-    SUM(duracao_segundos * numero_minimo_de_entregadores_regulares_na_escala) AS horas_planejadas_segundos
-  FROM dados_sem_duplicatas
-  WHERE sub_praca IS NOT NULL
-  GROUP BY sub_praca
-),
-horas_planejadas_turno AS (
-  SELECT 
     periodo,
-    SUM(duracao_segundos * numero_minimo_de_entregadores_regulares_na_escala) AS horas_planejadas_segundos
-  FROM dados_sem_duplicatas
-  WHERE periodo IS NOT NULL
-  GROUP BY periodo
-),
-horas_planejadas_dia AS (
-  SELECT 
     dia_iso,
-    SUM(duracao_segundos * numero_minimo_de_entregadores_regulares_na_escala) AS horas_planejadas_segundos
-  FROM dados_sem_duplicatas
-  GROUP BY dia_iso
-),
-horas_planejadas_semanal AS (
-  SELECT 
     ano_iso,
     semana_numero,
-    SUM(duracao_segundos * numero_minimo_de_entregadores_regulares_na_escala) AS horas_planejadas_segundos
-  FROM dados_sem_duplicatas
-  GROUP BY ano_iso, semana_numero
+    COALESCE(SUM(numero_de_corridas_ofertadas), 0)::numeric AS ofertadas,
+    COALESCE(SUM(numero_de_corridas_aceitas), 0)::numeric AS aceitas,
+    COALESCE(SUM(numero_de_corridas_rejeitadas), 0)::numeric AS rejeitadas,
+    COALESCE(SUM(numero_de_corridas_completadas), 0)::numeric AS completadas,
+    COALESCE(SUM(tempo_absoluto_segundos), 0)::numeric AS horas_entregues_segundos
+  FROM filtered_data
+  GROUP BY GROUPING SETS (
+    (),
+    (origem),
+    (sub_praca),
+    (periodo),
+    (dia_iso),
+    (ano_iso, semana_numero)
+  )
+),
+planejado AS MATERIALIZED (
+  SELECT
+    CASE
+      WHEN origem IS NOT NULL THEN 'origem'
+      WHEN sub_praca IS NOT NULL THEN 'sub_praca'
+      WHEN periodo IS NOT NULL THEN 'turno'
+      WHEN dia_iso IS NOT NULL THEN 'dia'
+      WHEN ano_iso IS NOT NULL AND semana_numero IS NOT NULL THEN 'semanal'
+      ELSE 'total'
+    END AS bucket,
+    origem,
+    sub_praca,
+    periodo,
+    dia_iso,
+    ano_iso,
+    semana_numero,
+    COALESCE(SUM(duracao_segundos * numero_minimo_de_entregadores_regulares_na_escala), 0)::numeric AS horas_planejadas_segundos
+  FROM planejado_base
+  GROUP BY GROUPING SETS (
+    (),
+    (origem),
+    (sub_praca),
+    (periodo),
+    (dia_iso),
+    (ano_iso, semana_numero)
+  )
+),
+metricas AS (
+  SELECT
+    a.bucket,
+    a.origem,
+    a.sub_praca,
+    a.periodo,
+    a.dia_iso,
+    a.ano_iso,
+    a.semana_numero,
+    a.ofertadas,
+    a.aceitas,
+    a.rejeitadas,
+    a.completadas,
+    a.horas_entregues_segundos,
+    COALESCE(p.horas_planejadas_segundos, 0)::numeric AS horas_planejadas_segundos
+  FROM aggregated a
+  LEFT JOIN planejado p
+    ON a.bucket = p.bucket
+    AND a.origem IS NOT DISTINCT FROM p.origem
+    AND a.sub_praca IS NOT DISTINCT FROM p.sub_praca
+    AND a.periodo IS NOT DISTINCT FROM p.periodo
+    AND a.dia_iso IS NOT DISTINCT FROM p.dia_iso
+    AND a.ano_iso IS NOT DISTINCT FROM p.ano_iso
+    AND a.semana_numero IS NOT DISTINCT FROM p.semana_numero
+),
+metricas_normalizadas AS (
+  SELECT
+    bucket,
+    origem,
+    sub_praca,
+    periodo,
+    dia_iso,
+    ano_iso,
+    semana_numero,
+    ofertadas,
+    aceitas,
+    rejeitadas,
+    completadas,
+    horas_planejadas_segundos,
+    horas_entregues_segundos,
+    ROUND(COALESCE(horas_planejadas_segundos, 0) / 3600, 2) AS horas_planejadas_horas,
+    ROUND(COALESCE(horas_entregues_segundos, 0) / 3600, 2) AS horas_entregues_horas,
+    CASE
+      WHEN horas_planejadas_segundos > 0
+      THEN ROUND((horas_entregues_segundos / horas_planejadas_segundos) * 100, 2)
+      ELSE 0
+    END AS aderencia_percentual
+  FROM metricas
 ),
 totais AS (
   SELECT jsonb_build_object(
-    'corridas_ofertadas', COALESCE(SUM(numero_de_corridas_ofertadas), 0),
-    'corridas_aceitas', COALESCE(SUM(numero_de_corridas_aceitas), 0),
-    'corridas_rejeitadas', COALESCE(SUM(numero_de_corridas_rejeitadas), 0),
-    'corridas_completadas', COALESCE(SUM(numero_de_corridas_completadas), 0)
+    'corridas_ofertadas', ofertadas,
+    'corridas_aceitas', aceitas,
+    'corridas_rejeitadas', rejeitadas,
+    'corridas_completadas', completadas
   ) AS data
-  FROM filtered_data
-),
-origem_agg AS (
-  SELECT 
-    fd.origem,
-    COALESCE(SUM(fd.numero_de_corridas_ofertadas), 0) AS ofertadas,
-    COALESCE(SUM(fd.numero_de_corridas_aceitas), 0) AS aceitas,
-    COALESCE(SUM(fd.numero_de_corridas_rejeitadas), 0) AS rejeitadas,
-    COALESCE(SUM(fd.numero_de_corridas_completadas), 0) AS completadas,
-    COALESCE(hpo.horas_planejadas_segundos, 0) AS horas_planejadas_segundos,
-    COALESCE(SUM(fd.tempo_absoluto_segundos), 0) AS horas_entregues_segundos
-  FROM filtered_data fd
-  LEFT JOIN horas_planejadas_origem hpo ON (fd.origem = hpo.origem OR (fd.origem IS NULL AND hpo.origem IS NULL))
-  WHERE fd.origem IS NOT NULL
-  GROUP BY fd.origem, hpo.horas_planejadas_segundos
+  FROM (
+    SELECT
+      COALESCE(ofertadas, 0) AS ofertadas,
+      COALESCE(aceitas, 0) AS aceitas,
+      COALESCE(rejeitadas, 0) AS rejeitadas,
+      COALESCE(completadas, 0) AS completadas
+    FROM metricas_normalizadas
+    WHERE bucket = 'total'
+    UNION ALL
+    SELECT 0, 0, 0, 0
+    WHERE NOT EXISTS (SELECT 1 FROM metricas_normalizadas WHERE bucket = 'total')
+  ) t
+  LIMIT 1
 ),
 origem AS (
   SELECT COALESCE(jsonb_agg(jsonb_build_object(
@@ -147,29 +213,12 @@ origem AS (
     'corridas_aceitas', aceitas,
     'corridas_rejeitadas', rejeitadas,
     'corridas_completadas', completadas,
-    'horas_a_entregar', ROUND((horas_planejadas_segundos::numeric / 3600), 2),
-    'horas_entregues', ROUND((horas_entregues_segundos::numeric / 3600), 2),
-    'aderencia_percentual', CASE 
-      WHEN horas_planejadas_segundos > 0 
-      THEN ROUND((horas_entregues_segundos::numeric / horas_planejadas_segundos) * 100, 2)
-      ELSE 0 
-    END
+    'horas_a_entregar', horas_planejadas_horas,
+    'horas_entregues', horas_entregues_horas,
+    'aderencia_percentual', aderencia_percentual
   ) ORDER BY origem), '[]'::jsonb) AS data
-  FROM origem_agg
-),
-sub_praca_agg AS (
-  SELECT 
-    fd.sub_praca,
-    COALESCE(SUM(fd.numero_de_corridas_ofertadas), 0) AS ofertadas,
-    COALESCE(SUM(fd.numero_de_corridas_aceitas), 0) AS aceitas,
-    COALESCE(SUM(fd.numero_de_corridas_rejeitadas), 0) AS rejeitadas,
-    COALESCE(SUM(fd.numero_de_corridas_completadas), 0) AS completadas,
-    COALESCE(hps.horas_planejadas_segundos, 0) AS horas_planejadas_segundos,
-    COALESCE(SUM(fd.tempo_absoluto_segundos), 0) AS horas_entregues_segundos
-  FROM filtered_data fd
-  LEFT JOIN horas_planejadas_sub_praca hps ON (fd.sub_praca = hps.sub_praca OR (fd.sub_praca IS NULL AND hps.sub_praca IS NULL))
-  WHERE fd.sub_praca IS NOT NULL
-  GROUP BY fd.sub_praca, hps.horas_planejadas_segundos
+  FROM metricas_normalizadas
+  WHERE bucket = 'origem' AND origem IS NOT NULL
 ),
 sub_praca AS (
   SELECT COALESCE(jsonb_agg(jsonb_build_object(
@@ -178,29 +227,12 @@ sub_praca AS (
     'corridas_aceitas', aceitas,
     'corridas_rejeitadas', rejeitadas,
     'corridas_completadas', completadas,
-    'horas_a_entregar', ROUND((horas_planejadas_segundos::numeric / 3600), 2),
-    'horas_entregues', ROUND((horas_entregues_segundos::numeric / 3600), 2),
-    'aderencia_percentual', CASE 
-      WHEN horas_planejadas_segundos > 0 
-      THEN ROUND((horas_entregues_segundos::numeric / horas_planejadas_segundos) * 100, 2)
-      ELSE 0 
-    END
+    'horas_a_entregar', horas_planejadas_horas,
+    'horas_entregues', horas_entregues_horas,
+    'aderencia_percentual', aderencia_percentual
   ) ORDER BY sub_praca), '[]'::jsonb) AS data
-  FROM sub_praca_agg
-),
-turno_agg AS (
-  SELECT 
-    fd.periodo,
-    COALESCE(SUM(fd.numero_de_corridas_ofertadas), 0) AS ofertadas,
-    COALESCE(SUM(fd.numero_de_corridas_aceitas), 0) AS aceitas,
-    COALESCE(SUM(fd.numero_de_corridas_rejeitadas), 0) AS rejeitadas,
-    COALESCE(SUM(fd.numero_de_corridas_completadas), 0) AS completadas,
-    COALESCE(hpt.horas_planejadas_segundos, 0) AS horas_planejadas_segundos,
-    COALESCE(SUM(fd.tempo_absoluto_segundos), 0) AS horas_entregues_segundos
-  FROM filtered_data fd
-  LEFT JOIN horas_planejadas_turno hpt ON fd.periodo = hpt.periodo
-  WHERE fd.periodo IS NOT NULL
-  GROUP BY fd.periodo, hpt.horas_planejadas_segundos
+  FROM metricas_normalizadas
+  WHERE bucket = 'sub_praca' AND sub_praca IS NOT NULL
 ),
 turno AS (
   SELECT COALESCE(jsonb_agg(jsonb_build_object(
@@ -209,38 +241,12 @@ turno AS (
     'corridas_aceitas', aceitas,
     'corridas_rejeitadas', rejeitadas,
     'corridas_completadas', completadas,
-    'horas_a_entregar', ROUND((horas_planejadas_segundos::numeric / 3600), 2),
-    'horas_entregues', ROUND((horas_entregues_segundos::numeric / 3600), 2),
-    'aderencia_percentual', CASE 
-      WHEN horas_planejadas_segundos > 0 
-      THEN ROUND((horas_entregues_segundos::numeric / horas_planejadas_segundos) * 100, 2)
-      ELSE 0 
-    END
+    'horas_a_entregar', horas_planejadas_horas,
+    'horas_entregues', horas_entregues_horas,
+    'aderencia_percentual', aderencia_percentual
   ) ORDER BY periodo), '[]'::jsonb) AS data
-  FROM turno_agg
-),
-dia_agg AS (
-  SELECT 
-    fd.dia_iso,
-    CASE 
-      WHEN fd.dia_iso = 1 THEN 'Segunda'
-      WHEN fd.dia_iso = 2 THEN 'Terça'
-      WHEN fd.dia_iso = 3 THEN 'Quarta'
-      WHEN fd.dia_iso = 4 THEN 'Quinta'
-      WHEN fd.dia_iso = 5 THEN 'Sexta'
-      WHEN fd.dia_iso = 6 THEN 'Sábado'
-      WHEN fd.dia_iso = 7 THEN 'Domingo'
-      ELSE 'Desconhecido'
-    END AS dia_da_semana,
-    COALESCE(SUM(fd.numero_de_corridas_ofertadas), 0) AS ofertadas,
-    COALESCE(SUM(fd.numero_de_corridas_aceitas), 0) AS aceitas,
-    COALESCE(SUM(fd.numero_de_corridas_rejeitadas), 0) AS rejeitadas,
-    COALESCE(SUM(fd.numero_de_corridas_completadas), 0) AS completadas,
-    COALESCE(hpd.horas_planejadas_segundos, 0) AS horas_planejadas_segundos,
-    COALESCE(SUM(fd.tempo_absoluto_segundos), 0) AS horas_entregues_segundos
-  FROM filtered_data fd
-  LEFT JOIN horas_planejadas_dia hpd ON fd.dia_iso = hpd.dia_iso
-  GROUP BY fd.dia_iso, hpd.horas_planejadas_segundos
+  FROM metricas_normalizadas
+  WHERE bucket = 'turno' AND periodo IS NOT NULL
 ),
 dia AS (
   SELECT COALESCE(jsonb_agg(jsonb_build_object(
@@ -253,51 +259,33 @@ dia AS (
       WHEN 5 THEN 'Sexta'
       WHEN 6 THEN 'Sábado'
       WHEN 7 THEN 'Domingo'
-      ELSE 'N/D' END,
+      ELSE 'N/D'
+    END,
     'corridas_ofertadas', ofertadas,
     'corridas_aceitas', aceitas,
     'corridas_rejeitadas', rejeitadas,
     'corridas_completadas', completadas,
-    'horas_a_entregar', ROUND((horas_planejadas_segundos::numeric / 3600), 2),
-    'horas_entregues', ROUND((horas_entregues_segundos::numeric / 3600), 2),
-    'aderencia_percentual', CASE 
-      WHEN horas_planejadas_segundos > 0 
-      THEN ROUND((horas_entregues_segundos::numeric / horas_planejadas_segundos) * 100, 2)
-      ELSE 0 
-    END
+    'horas_a_entregar', horas_planejadas_horas,
+    'horas_entregues', horas_entregues_horas,
+    'aderencia_percentual', aderencia_percentual
   ) ORDER BY dia_iso), '[]'::jsonb) AS data
-  FROM dia_agg
-),
-semanal_agg AS (
-  SELECT 
-    fd.ano_iso,
-    fd.semana_numero,
-    COALESCE(SUM(fd.numero_de_corridas_ofertadas), 0) AS ofertadas,
-    COALESCE(SUM(fd.numero_de_corridas_aceitas), 0) AS aceitas,
-    COALESCE(SUM(fd.numero_de_corridas_rejeitadas), 0) AS rejeitadas,
-    COALESCE(SUM(fd.numero_de_corridas_completadas), 0) AS completadas,
-    COALESCE(hps.horas_planejadas_segundos, 0) AS horas_planejadas_segundos,
-    COALESCE(SUM(fd.tempo_absoluto_segundos), 0) AS horas_entregues_segundos
-  FROM filtered_data fd
-  LEFT JOIN horas_planejadas_semanal hps ON fd.ano_iso = hps.ano_iso AND fd.semana_numero = hps.semana_numero
-  GROUP BY fd.ano_iso, fd.semana_numero, hps.horas_planejadas_segundos
+  FROM metricas_normalizadas
+  WHERE bucket = 'dia' AND dia_iso IS NOT NULL
 ),
 semanal AS (
   SELECT COALESCE(jsonb_agg(jsonb_build_object(
     'semana', 'Semana ' || LPAD(semana_numero::text, 2, '0'),
+    'ano', ano_iso,
     'corridas_ofertadas', ofertadas,
     'corridas_aceitas', aceitas,
     'corridas_rejeitadas', rejeitadas,
     'corridas_completadas', completadas,
-    'horas_a_entregar', ROUND((horas_planejadas_segundos::numeric / 3600), 2),
-    'horas_entregues', ROUND((horas_entregues_segundos::numeric / 3600), 2),
-    'aderencia_percentual', CASE 
-      WHEN horas_planejadas_segundos > 0 
-      THEN ROUND((horas_entregues_segundos::numeric / horas_planejadas_segundos) * 100, 2)
-      ELSE 0 
-    END
+    'horas_a_entregar', horas_planejadas_horas,
+    'horas_entregues', horas_entregues_horas,
+    'aderencia_percentual', aderencia_percentual
   ) ORDER BY ano_iso DESC, semana_numero DESC), '[]'::jsonb) AS data
-  FROM semanal_agg
+  FROM metricas_normalizadas
+  WHERE bucket = 'semanal' AND ano_iso IS NOT NULL AND semana_numero IS NOT NULL
 ),
 dimensoes AS (
   SELECT jsonb_build_object(
