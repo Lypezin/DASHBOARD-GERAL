@@ -68,7 +68,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
         
         // Capturar cada slide individualmente com configurações otimizadas
         const canvas = await html2canvas(slide, {
-          scale: 1.5, // Reduzido de 2 para 1.5
+          scale: 1.2, // Reduzido para 1.2 para melhor performance
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#3b82f6', // Cor de fundo azul
@@ -76,11 +76,16 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
           height: slide.offsetHeight,
           logging: false, // Desabilitar logs para performance
           imageTimeout: 0,
-          removeContainer: true
+          removeContainer: true,
+          foreignObjectRendering: false, // Melhor compatibilidade
+          ignoreElements: (element) => {
+            // Ignorar elementos que podem causar problemas
+            return element.tagName === 'IFRAME' || element.tagName === 'OBJECT';
+          }
         });
 
-        // Converter para PNG com 100% de qualidade
-        const imgData = canvas.toDataURL('image/png'); // PNG com 100% de qualidade
+        // Converter para JPEG com qualidade otimizada (85% - boa qualidade, menor tamanho)
+        const imgData = canvas.toDataURL('image/jpeg', 0.85);
         
         // Calcular dimensões mantendo proporção
         const imgWidth = canvas.width;
@@ -97,7 +102,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
         }
 
         // Adicionar imagem à página
-        pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight);
+        pdf.addImage(imgData, 'JPEG', imgX, imgY, scaledWidth, scaledHeight);
       }
 
       pdf.save(`Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`);
@@ -181,7 +186,9 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-6xl font-black text-center leading-tight">{aderencia1.toFixed(1)}%</span>
+                      <div className="text-center">
+                        <span className="text-6xl font-black leading-none block">{aderencia1.toFixed(1)}%</span>
+                      </div>
                     </div>
                   </div>
                   <div className="text-4xl font-bold mb-6">SEMANA {numeroSemana1}</div>
@@ -225,7 +232,9 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-6xl font-black text-center leading-tight">{aderencia2.toFixed(1)}%</span>
+                      <div className="text-center">
+                        <span className="text-6xl font-black leading-none block">{aderencia2.toFixed(1)}%</span>
+                      </div>
                     </div>
                   </div>
                   <div className="text-4xl font-bold mb-6">SEMANA {numeroSemana2}</div>
@@ -306,7 +315,9 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                               />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-lg font-bold text-center leading-tight">{aderencia1.toFixed(0)}%</span>
+                              <div className="text-center">
+                                <span className="text-lg font-bold leading-none block">{aderencia1.toFixed(0)}%</span>
+                              </div>
                             </div>
                           </div>
                           <div className="text-lg font-bold">SEMANA {numeroSemana1}</div>
@@ -326,7 +337,9 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                               />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-lg font-bold text-center leading-tight">{aderencia2.toFixed(0)}%</span>
+                              <div className="text-center">
+                                <span className="text-lg font-bold leading-none block">{aderencia2.toFixed(0)}%</span>
+                              </div>
                             </div>
                           </div>
                           <div className="text-lg font-bold">SEMANA {numeroSemana2}</div>
@@ -343,90 +356,105 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
             </div>
           </div>
 
-          {/* Slide 4 - Aderência Diária */}
+          {/* Slide 4 - Aderência Diária - Semana 1 */}
           <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
             <div className="text-center max-w-7xl mx-auto">
-              <div className="mb-16">
+              <div className="mb-20">
                 <h2 className="text-7xl font-black mb-6">ADERÊNCIA DIÁRIA</h2>
-                <h3 className="text-4xl font-light opacity-80">SEMANA {numeroSemana1} & {numeroSemana2}</h3>
+                <h3 className="text-5xl font-bold mb-4">SEMANA {numeroSemana1}</h3>
+                <h4 className="text-3xl font-light opacity-80">Análise por Dia da Semana</h4>
               </div>
               
-              {/* Semana 1 */}
-              <div className="mb-16">
-                <h4 className="text-4xl font-bold mb-8">SEMANA {numeroSemana1}</h4>
-                <div className="flex justify-center gap-6">
-                  {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
-                    const diaData = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
-                    const aderencia = diaData?.aderencia_percentual || 0;
-                    const horasEntregues = parseFloat(diaData?.horas_entregues || '0');
-                    
-                    return (
-                      <div key={index} className="text-center">
-                        <div className="text-lg mb-3 opacity-80">{parseFloat(diaData?.horas_a_entregar || '0').toFixed(2)}</div>
-                        <div className="relative w-20 h-20 mb-3">
-                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
-                            <circle cx="40" cy="40" r="25" stroke="rgba(255,255,255,0.2)" strokeWidth="4" fill="none" />
-                            <circle
-                              cx="40" cy="40" r="25"
-                              stroke="#ffffff" strokeWidth="4" fill="none"
-                              strokeDasharray={`${(aderencia / 100) * 157.1} 157.1`}
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xs font-bold text-center leading-tight">{aderencia.toFixed(0)}%</span>
+              <div className="flex justify-center gap-8">
+                {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
+                  const diaData = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
+                  const aderencia = diaData?.aderencia_percentual || 0;
+                  const horasEntregues = parseFloat(diaData?.horas_entregues || '0');
+                  const horasPlanejadas = parseFloat(diaData?.horas_a_entregar || '0');
+                  
+                  return (
+                    <div key={index} className="text-center bg-white bg-opacity-10 rounded-3xl p-6 min-w-[140px]">
+                      <div className="text-xl font-bold mb-4 opacity-90">{dia.toUpperCase()}</div>
+                      <div className="relative w-28 h-28 mx-auto mb-6">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="6" fill="none" />
+                          <circle
+                            cx="50" cy="50" r="35"
+                            stroke="#ffffff" strokeWidth="6" fill="none"
+                            strokeDasharray={`${(aderencia / 100) * 219.8} 219.8`}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <span className="text-2xl font-black leading-none block">{aderencia.toFixed(1)}%</span>
                           </div>
                         </div>
-                        <div className="text-sm font-bold">{dia.toUpperCase()}</div>
-                        <div className="text-xs">{formatarHorasParaHMS(horasEntregues.toString())}</div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Semana 2 */}
-              <div>
-                <h4 className="text-4xl font-bold mb-8">SEMANA {numeroSemana2}</h4>
-                <div className="flex justify-center gap-6">
-                  {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
-                    const diaData1 = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
-                    const diaData2 = semana2?.dia?.find((d: any) => d.dia_da_semana === dia);
-                    const aderencia = diaData2?.aderencia_percentual || 0;
-                    const horasEntregues1 = parseFloat(diaData1?.horas_entregues || '0');
-                    const horasEntregues2 = parseFloat(diaData2?.horas_entregues || '0');
-                    
-                    return (
-                      <div key={index} className="text-center">
-                        <div className="text-lg mb-3 opacity-80">{parseFloat(diaData2?.horas_a_entregar || '0').toFixed(2)}</div>
-                        <div className="relative w-20 h-20 mb-3">
-                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
-                            <circle cx="40" cy="40" r="25" stroke="rgba(255,255,255,0.2)" strokeWidth="4" fill="none" />
-                            <circle
-                              cx="40" cy="40" r="25"
-                              stroke="#ffffff" strokeWidth="4" fill="none"
-                              strokeDasharray={`${(aderencia / 100) * 157.1} 157.1`}
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xs font-bold text-center leading-tight">{aderencia.toFixed(0)}%</span>
-                          </div>
-                        </div>
-                        <div className="text-sm font-bold">{dia.toUpperCase()}</div>
-                        <div className="text-xs">{formatarHorasParaHMS(horasEntregues2.toString())}</div>
-                        <div className={`text-xs font-bold mt-1 ${calcularDiferenca(horasEntregues1, horasEntregues2) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                          {formatarDiferenca(calcularDiferenca(horasEntregues1, horasEntregues2), true)}
-                        </div>
+                      <div className="space-y-2">
+                        <div className="text-sm opacity-80">Planejado: {horasPlanejadas.toFixed(1)}h</div>
+                        <div className="text-base font-bold">{formatarHorasParaHMS(horasEntregues.toString())}</div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Slide 5 - Turnos */}
+          {/* Slide 5 - Aderência Diária - Semana 2 com Comparação */}
+          <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
+            <div className="text-center max-w-7xl mx-auto">
+              <div className="mb-20">
+                <h2 className="text-7xl font-black mb-6">ADERÊNCIA DIÁRIA</h2>
+                <h3 className="text-5xl font-bold mb-4">SEMANA {numeroSemana2}</h3>
+                <h4 className="text-3xl font-light opacity-80">Comparação com Semana {numeroSemana1}</h4>
+              </div>
+              
+              <div className="flex justify-center gap-8">
+                {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, index) => {
+                  const diaData1 = semana1?.dia?.find((d: any) => d.dia_da_semana === dia);
+                  const diaData2 = semana2?.dia?.find((d: any) => d.dia_da_semana === dia);
+                  const aderencia = diaData2?.aderencia_percentual || 0;
+                  const horasEntregues1 = parseFloat(diaData1?.horas_entregues || '0');
+                  const horasEntregues2 = parseFloat(diaData2?.horas_entregues || '0');
+                  const horasPlanejadas = parseFloat(diaData2?.horas_a_entregar || '0');
+                  const diferenca = calcularDiferenca(horasEntregues1, horasEntregues2);
+                  
+                  return (
+                    <div key={index} className="text-center bg-white bg-opacity-10 rounded-3xl p-6 min-w-[140px]">
+                      <div className="text-xl font-bold mb-4 opacity-90">{dia.toUpperCase()}</div>
+                      <div className="relative w-28 h-28 mx-auto mb-6">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="35" stroke="rgba(255,255,255,0.2)" strokeWidth="6" fill="none" />
+                          <circle
+                            cx="50" cy="50" r="35"
+                            stroke="#ffffff" strokeWidth="6" fill="none"
+                            strokeDasharray={`${(aderencia / 100) * 219.8} 219.8`}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <span className="text-2xl font-black leading-none block">{aderencia.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-sm opacity-80">Planejado: {horasPlanejadas.toFixed(1)}h</div>
+                        <div className="text-base font-bold">{formatarHorasParaHMS(horasEntregues2.toString())}</div>
+                        <div className={`text-sm font-bold ${diferenca >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                          {formatarDiferenca(diferenca, true)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Slide 6 - Turnos */}
           <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
             <div className="text-center max-w-7xl mx-auto">
               <div className="mb-16">
@@ -466,7 +494,9 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                               />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-3xl font-black text-center leading-tight">{aderencia1.toFixed(1)}%</span>
+                              <div className="text-center">
+                                <span className="text-3xl font-black leading-none block">{aderencia1.toFixed(1)}%</span>
+                              </div>
                             </div>
                           </div>
                           <div className="text-2xl font-medium">{formatarHorasParaHMS(horas1.toString())}</div>
@@ -486,7 +516,9 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
                               />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-3xl font-black text-center leading-tight">{aderencia2.toFixed(1)}%</span>
+                              <div className="text-center">
+                                <span className="text-3xl font-black leading-none block">{aderencia2.toFixed(1)}%</span>
+                              </div>
                             </div>
                           </div>
                           <div className="text-2xl font-medium">{formatarHorasParaHMS(horas2.toString())}</div>
@@ -510,7 +542,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
             </div>
           </div>
 
-          {/* Slide 6 - Demanda e Rejeites */}
+          {/* Slide 7 - Demanda e Rejeições */}
           <div className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white min-h-screen flex items-center justify-center p-16">
             <div className="text-center max-w-7xl mx-auto">
               <div className="mb-20">
@@ -624,5 +656,7 @@ function ApresentacaoView({ dadosComparacao, semanasSelecionadas, pracaSeleciona
     </div>
   );
 }
+
+export default ApresentacaoView;
 
 export default ApresentacaoView;
