@@ -212,19 +212,19 @@ function ComparacaoView({
               <ol className="space-y-2 text-sm text-purple-800 dark:text-purple-200">
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-purple-600 dark:text-purple-400">1.</span>
-                  <span>Selecione <strong>exatamente 2 semanas</strong> usando os checkboxes abaixo. O botão "📄 Apresentação" só ficará disponível quando exatamente 2 semanas estiverem selecionadas.</span>
+                  <span>Selecione <strong>exatamente 2 semanas</strong> usando os checkboxes abaixo. O botão &quot;📄 Apresentação&quot; só ficará disponível quando exatamente 2 semanas estiverem selecionadas.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-purple-600 dark:text-purple-400">2.</span>
-                  <span>Clique em <strong>"⚖️ Comparar Semanas"</strong> para carregar os dados das semanas selecionadas.</span>
+                  <span>Clique em <strong>&quot;⚖️ Comparar Semanas&quot;</strong> para carregar os dados das semanas selecionadas.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-purple-600 dark:text-purple-400">3.</span>
-                  <span>Após a comparação ser concluída, clique em <strong>"📄 Apresentação"</strong> para abrir o preview da apresentação.</span>
+                  <span>Após a comparação ser concluída, clique em <strong>&quot;📄 Apresentação&quot;</strong> para abrir o preview da apresentação.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-purple-600 dark:text-purple-400">4.</span>
-                  <span>No preview, você pode navegar pelos slides usando os botões "Anterior" e "Próximo", e então clicar em <strong>"Gerar PDF"</strong> para baixar a apresentação completa em alta qualidade.</span>
+                  <span>No preview, você pode navegar pelos slides usando os botões &quot;Anterior&quot; e &quot;Próximo&quot;, e então clicar em <strong>&quot;Gerar PDF&quot;</strong> para baixar a apresentação completa em alta qualidade.</span>
                 </li>
               </ol>
               <div className="mt-3 rounded-md bg-purple-100 p-2 text-xs text-purple-900 dark:bg-purple-900/50 dark:text-purple-200">
