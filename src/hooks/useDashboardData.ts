@@ -49,6 +49,13 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     if (IS_DEV) {
       console.log('FilterPayload gerado:', payload);
       console.log('CurrentUser:', currentUser);
+      console.log('InitialFilters:', initialFilters);
+      
+      // Verificar se o usuário tem restrições
+      if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+        console.log('Usuário restrito detectado. Praças permitidas:', currentUser.assigned_pracas);
+        console.log('Praça no payload:', payload.p_praca);
+      }
     }
     return payload;
   }, [initialFilters, currentUser]);
@@ -224,6 +231,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               if (IS_DEV) {
                 console.log('Dados retornados de listar_entregadores:', data);
+                console.log('Tipo dos dados:', typeof data);
+                if (data && typeof data === 'object') {
+                  console.log('Propriedades do objeto:', Object.keys(data));
+                }
               }
               
               // A função retorna JSONB com estrutura { entregadores: [...] }
@@ -232,15 +243,28 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 if (Array.isArray(data)) {
                   entregadores = data;
                 } else if (data && typeof data === 'object') {
+                  // Verificar se tem a propriedade entregadores
                   if (Array.isArray(data.entregadores)) {
                     entregadores = data.entregadores;
-                  } else if (typeof data === 'string') {
-                    try {
-                      const parsed = JSON.parse(data);
-                      entregadores = Array.isArray(parsed) ? parsed : (parsed.entregadores || []);
-                    } catch (e) {
-                      if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
+                  }
+                  // Se não tem entregadores, mas é um objeto, pode ser que seja o próprio array
+                  else if (Object.keys(data).length > 0) {
+                    // Tentar converter o objeto em array se tiver propriedades numéricas
+                    const keys = Object.keys(data);
+                    if (keys.every(k => !isNaN(Number(k)))) {
+                      entregadores = Object.values(data);
                     }
+                  }
+                } else if (typeof data === 'string') {
+                  try {
+                    const parsed = JSON.parse(data);
+                    if (Array.isArray(parsed)) {
+                      entregadores = parsed;
+                    } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.entregadores)) {
+                      entregadores = parsed.entregadores;
+                    }
+                  } catch (e) {
+                    if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
                   }
                 }
               }
@@ -279,6 +303,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               if (IS_DEV) {
                 console.log('Dados retornados de listar_valores_entregadores:', data);
+                console.log('Tipo dos dados valores:', typeof data);
+                if (data && typeof data === 'object') {
+                  console.log('Propriedades do objeto valores:', Object.keys(data));
+                }
               }
               
               // A função retorna JSONB, então precisa acessar o array interno
@@ -300,14 +328,36 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                       numero_corridas_aceitas: e.numero_corridas_aceitas || e.numero_de_corridas_aceitas || 0,
                       taxa_media: e.taxa_media || (e.total_taxas && e.numero_corridas_aceitas ? e.total_taxas / e.numero_corridas_aceitas : 0)
                     }));
-                  } else if (typeof data === 'string') {
-                    // Se for string JSON, tentar fazer parse
-                    try {
-                      const parsed = JSON.parse(data);
-                      valores = Array.isArray(parsed) ? parsed : (parsed.valores || []);
-                    } catch (e) {
-                      if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
+                  }
+                  // Se não tem valores nem entregadores, mas é um objeto, pode ser que seja o próprio array
+                  else if (Object.keys(data).length > 0) {
+                    // Tentar converter o objeto em array se tiver propriedades numéricas
+                    const keys = Object.keys(data);
+                    if (keys.every(k => !isNaN(Number(k)))) {
+                      valores = Object.values(data);
                     }
+                  }
+                } else if (typeof data === 'string') {
+                  // Se for string JSON, tentar fazer parse
+                  try {
+                    const parsed = JSON.parse(data);
+                    if (Array.isArray(parsed)) {
+                      valores = parsed;
+                    } else if (parsed && typeof parsed === 'object') {
+                      if (Array.isArray(parsed.valores)) {
+                        valores = parsed.valores;
+                      } else if (Array.isArray(parsed.entregadores)) {
+                        valores = parsed.entregadores.map((e: any) => ({
+                          id_entregador: e.id_entregador || e.id_da_pessoa_entregadora,
+                          nome_entregador: e.nome_entregador || e.pessoa_entregadora,
+                          total_taxas: e.total_taxas || e.soma_das_taxas_das_corridas_aceitas || 0,
+                          numero_corridas_aceitas: e.numero_corridas_aceitas || e.numero_de_corridas_aceitas || 0,
+                          taxa_media: e.taxa_media || (e.total_taxas && e.numero_corridas_aceitas ? e.total_taxas / e.numero_corridas_aceitas : 0)
+                        }));
+                      }
+                    }
+                  } catch (e) {
+                    if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
                   }
                 }
               }
@@ -343,6 +393,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               if (IS_DEV) {
                 console.log('Dados retornados de listar_entregadores (prioridade):', data);
+                console.log('Tipo dos dados prioridade:', typeof data);
+                if (data && typeof data === 'object') {
+                  console.log('Propriedades do objeto prioridade:', Object.keys(data));
+                }
               }
               
               // A função retorna JSONB com estrutura { entregadores: [...] }
@@ -351,15 +405,28 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 if (Array.isArray(data)) {
                   entregadores = data;
                 } else if (data && typeof data === 'object') {
+                  // Verificar se tem a propriedade entregadores
                   if (Array.isArray(data.entregadores)) {
                     entregadores = data.entregadores;
-                  } else if (typeof data === 'string') {
-                    try {
-                      const parsed = JSON.parse(data);
-                      entregadores = Array.isArray(parsed) ? parsed : (parsed.entregadores || []);
-                    } catch (e) {
-                      if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
+                  }
+                  // Se não tem entregadores, mas é um objeto, pode ser que seja o próprio array
+                  else if (Object.keys(data).length > 0) {
+                    // Tentar converter o objeto em array se tiver propriedades numéricas
+                    const keys = Object.keys(data);
+                    if (keys.every(k => !isNaN(Number(k)))) {
+                      entregadores = Object.values(data);
                     }
+                  }
+                } else if (typeof data === 'string') {
+                  try {
+                    const parsed = JSON.parse(data);
+                    if (Array.isArray(parsed)) {
+                      entregadores = parsed;
+                    } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.entregadores)) {
+                      entregadores = parsed.entregadores;
+                    }
+                  } catch (e) {
+                    if (IS_DEV) console.warn('Não foi possível fazer parse do JSON (prioridade):', e);
                   }
                 }
               }
@@ -465,9 +532,20 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             
             if (IS_DEV) {
               console.log('Evolução carregada:', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
+              console.log('Ano solicitado:', anoEvolucao);
               if (mensal.length > 0) console.log('Primeiro item mensal:', mensal[0]);
               if (semanal.length > 0) console.log('Primeiro item semanal:', semanal[0]);
               if (utr.length > 0) console.log('Primeiro item utr:', utr[0]);
+              
+              // Verificar se há dados para o ano solicitado
+              const mensalAno = mensal.filter(m => m.ano === anoEvolucao);
+              const semanalAno = semanal.filter(s => s.ano === anoEvolucao);
+              const utrAno = utr.filter(u => u.ano === anoEvolucao);
+              console.log('Dados filtrados por ano:', { 
+                mensalAno: mensalAno.length, 
+                semanalAno: semanalAno.length, 
+                utrAno: utrAno.length 
+              });
             }
             
             evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: utr });
