@@ -222,7 +222,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 console.log('CurrentUser:', currentUser);
               }
               
-              let result = await supabase.rpc('listar_entregadores', filterPayload as any);
+              // listar_entregadores(text/text) NÃO aceita p_turno no seu banco (assinatura: integer, integer, text, text, text)
+              const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
+              const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
+              let result = await supabase.rpc('listar_entregadores', listarEntregadoresPayload);
               
               // Se a função não existir (404/42883), tentar a função antiga
               if (
@@ -422,7 +425,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 console.log('CurrentUser:', currentUser);
               }
               
-              let result = await supabase.rpc('listar_entregadores', filterPayload as any);
+              // listar_entregadores aqui também não aceita p_turno
+              const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
+              const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
+              let result = await supabase.rpc('listar_entregadores', listarEntregadoresPayload);
               
               // Se a função não existir (404/42883), tentar a função antiga
               if (
@@ -524,21 +530,24 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             let utrSemanalRes: any = { data: [], error: null };
             
             try {
-              mensalRes = await supabase.rpc('listar_evolucao_mensal', { p_ano: anoEvolucao });
+              // Assinatura detectada: listar_evolucao_mensal(text, integer) → p_praca, p_ano
+              mensalRes = await supabase.rpc('listar_evolucao_mensal', { p_praca: null, p_ano: anoEvolucao });
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_evolucao_mensal:', err);
               mensalRes = { data: [], error: err };
             }
             
             try {
-              semanalRes = await supabase.rpc('listar_evolucao_semanal', { p_ano: anoEvolucao });
+              // Assinatura detectada: listar_evolucao_semanal(text, integer, integer) → p_praca, p_ano, p_semana
+              semanalRes = await supabase.rpc('listar_evolucao_semanal', { p_praca: null, p_ano: anoEvolucao, p_semana: null });
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
               semanalRes = { data: [], error: err };
             }
             
             try {
-              utrSemanalRes = await supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao });
+              // Assinatura detectada: listar_utr_semanal(integer, text, integer) → p_ano, p_praca, p_semana
+              utrSemanalRes = await supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao, p_praca: null, p_semana: null });
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_utr_semanal:', err);
               utrSemanalRes = { data: [], error: err };
