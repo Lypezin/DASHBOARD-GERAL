@@ -36,7 +36,12 @@ function EvolucaoView({
   // Garantir que Chart.js está registrado quando o componente montar
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      registerChartJS();
+      try {
+        registerChartJS();
+      } catch (error) {
+        if (IS_DEV) console.error('Erro ao registrar Chart.js:', error);
+        setChartError('Erro ao inicializar gráficos. Tente recarregar a página.');
+      }
     }
   }, []);
 
@@ -149,27 +154,41 @@ function EvolucaoView({
 
   // Ordenar e garantir que todos os dados sejam exibidos (otimizado com useMemo)
   const dadosAtivos = useMemo(() => {
-    return viewMode === 'mensal' 
-      ? [...evolucaoMensal].filter(d => d.ano === anoSelecionado).sort((a, b) => {
-        // Ordenar por ano e mês
-        if (a.ano !== b.ano) return a.ano - b.ano;
-        return a.mes - b.mes;
-      })
-      : [...evolucaoSemanal].filter(d => d.ano === anoSelecionado).sort((a, b) => {
-        // Ordenar por ano e semana
-        if (a.ano !== b.ano) return a.ano - b.ano;
-        return a.semana - b.semana;
-      });
+    try {
+      const mensalArray = Array.isArray(evolucaoMensal) ? evolucaoMensal : [];
+      const semanalArray = Array.isArray(evolucaoSemanal) ? evolucaoSemanal : [];
+      
+      return viewMode === 'mensal' 
+        ? [...mensalArray].filter(d => d && d.ano === anoSelecionado).sort((a, b) => {
+            // Ordenar por ano e mês
+            if (a.ano !== b.ano) return a.ano - b.ano;
+            return a.mes - b.mes;
+          })
+        : [...semanalArray].filter(d => d && d.ano === anoSelecionado).sort((a, b) => {
+            // Ordenar por ano e semana
+            if (a.ano !== b.ano) return a.ano - b.ano;
+            return a.semana - b.semana;
+          });
+    } catch (error) {
+      if (IS_DEV) console.error('Erro ao processar dadosAtivos:', error);
+      return [];
+    }
   }, [viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado]);
 
   // Dados de UTR filtrados por ano
   const dadosUtrAtivos = useMemo(() => {
-    return utrSemanal
-      .filter(d => d.ano === anoSelecionado)
-      .sort((a, b) => {
-        if (a.ano !== b.ano) return a.ano - b.ano;
-        return a.semana - b.semana;
-      });
+    try {
+      const utrArray = Array.isArray(utrSemanal) ? utrSemanal : [];
+      return utrArray
+        .filter(d => d && d.ano === anoSelecionado)
+        .sort((a, b) => {
+          if (a.ano !== b.ano) return a.ano - b.ano;
+          return a.semana - b.semana;
+        });
+    } catch (error) {
+      if (IS_DEV) console.error('Erro ao processar dadosUtrAtivos:', error);
+      return [];
+    }
   }, [utrSemanal, anoSelecionado]);
 
   // Função para traduzir meses para português

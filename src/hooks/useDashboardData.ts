@@ -210,6 +210,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             setLoadingEntregadores(true);
             try {
               // Usar listar_entregadores com os filtros corretos (incluindo permissões de praça)
+              if (IS_DEV) {
+                console.log('Chamando listar_entregadores com filterPayload:', filterPayload);
+                console.log('CurrentUser:', currentUser);
+              }
+              
               const { data, error } = await supabase.rpc('listar_entregadores', filterPayload as any);
               
               if (error) {
@@ -217,8 +222,35 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 throw error;
               }
               
-              const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
+              if (IS_DEV) {
+                console.log('Dados retornados de listar_entregadores:', data);
+              }
+              
+              // A função retorna JSONB com estrutura { entregadores: [...] }
+              let entregadores: any[] = [];
+              if (data) {
+                if (Array.isArray(data)) {
+                  entregadores = data;
+                } else if (data && typeof data === 'object') {
+                  if (Array.isArray(data.entregadores)) {
+                    entregadores = data.entregadores;
+                  } else if (typeof data === 'string') {
+                    try {
+                      const parsed = JSON.parse(data);
+                      entregadores = Array.isArray(parsed) ? parsed : (parsed.entregadores || []);
+                    } catch (e) {
+                      if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
+                    }
+                  }
+                }
+              }
+              
               const entregadoresData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
+              
+              if (IS_DEV) {
+                console.log('Entregadores processados:', entregadoresData);
+              }
+              
               setEntregadoresData(entregadoresData);
               tabDataCacheRef.current.set(cacheKey, { data: entregadoresData, timestamp: Date.now() });
             } catch (err: any) {
@@ -231,16 +263,14 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'valores':
             setLoadingValores(true);
             try {
-              // Usar listar_valores_entregadores (nome correto da função)
-              // A função não aceita p_turno, então criar payload sem esse parâmetro
-              const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
-              const valoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
-              
+              // Usar listar_valores_entregadores com todos os parâmetros (incluindo p_turno)
+              // Garantir que p_praca está sendo passado corretamente para respeitar permissões
               if (IS_DEV) {
-                console.log('Chamando listar_valores_entregadores com payload:', valoresPayload);
+                console.log('Chamando listar_valores_entregadores com filterPayload:', filterPayload);
+                console.log('CurrentUser:', currentUser);
               }
               
-              const { data, error } = await supabase.rpc('listar_valores_entregadores', valoresPayload);
+              const { data, error } = await supabase.rpc('listar_valores_entregadores', filterPayload as any);
               
               if (error) {
                 if (IS_DEV) console.error('Erro ao carregar valores:', error);
@@ -299,6 +329,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             setLoadingPrioridade(true);
             try {
               // Usar listar_entregadores com os filtros corretos (incluindo permissões de praça)
+              if (IS_DEV) {
+                console.log('Chamando listar_entregadores (prioridade) com filterPayload:', filterPayload);
+                console.log('CurrentUser:', currentUser);
+              }
+              
               const { data, error } = await supabase.rpc('listar_entregadores', filterPayload as any);
               
               if (error) {
@@ -306,8 +341,35 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 throw error;
               }
               
-              const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
+              if (IS_DEV) {
+                console.log('Dados retornados de listar_entregadores (prioridade):', data);
+              }
+              
+              // A função retorna JSONB com estrutura { entregadores: [...] }
+              let entregadores: any[] = [];
+              if (data) {
+                if (Array.isArray(data)) {
+                  entregadores = data;
+                } else if (data && typeof data === 'object') {
+                  if (Array.isArray(data.entregadores)) {
+                    entregadores = data.entregadores;
+                  } else if (typeof data === 'string') {
+                    try {
+                      const parsed = JSON.parse(data);
+                      entregadores = Array.isArray(parsed) ? parsed : (parsed.entregadores || []);
+                    } catch (e) {
+                      if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
+                    }
+                  }
+                }
+              }
+              
               const prioridadeData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
+              
+              if (IS_DEV) {
+                console.log('Prioridade processada:', prioridadeData);
+              }
+              
               setPrioridadeData(prioridadeData);
               tabDataCacheRef.current.set(cacheKey, { data: prioridadeData, timestamp: Date.now() });
             } catch (err: any) {
@@ -348,12 +410,64 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               if (IS_DEV) console.error('Erro ao carregar UTR semanal:', utrSemanalRes.error);
             }
             
-            const mensal = Array.isArray(mensalRes.data) ? mensalRes.data : [];
-            const semanal = Array.isArray(semanalRes.data) ? semanalRes.data : [];
-            const utr = Array.isArray(utrSemanalRes.data) ? utrSemanalRes.data : [];
+            // Processar dados retornados - podem ser arrays diretos ou objetos JSONB
+            let mensal: any[] = [];
+            let semanal: any[] = [];
+            let utr: any[] = [];
+            
+            // Processar mensal
+            if (mensalRes.data) {
+              if (Array.isArray(mensalRes.data)) {
+                mensal = mensalRes.data;
+              } else if (typeof mensalRes.data === 'object' && mensalRes.data.mensal) {
+                mensal = Array.isArray(mensalRes.data.mensal) ? mensalRes.data.mensal : [];
+              } else if (typeof mensalRes.data === 'string') {
+                try {
+                  const parsed = JSON.parse(mensalRes.data);
+                  mensal = Array.isArray(parsed) ? parsed : (parsed.mensal || []);
+                } catch (e) {
+                  if (IS_DEV) console.warn('Erro ao fazer parse de mensal:', e);
+                }
+              }
+            }
+            
+            // Processar semanal
+            if (semanalRes.data) {
+              if (Array.isArray(semanalRes.data)) {
+                semanal = semanalRes.data;
+              } else if (typeof semanalRes.data === 'object' && semanalRes.data.semanal) {
+                semanal = Array.isArray(semanalRes.data.semanal) ? semanalRes.data.semanal : [];
+              } else if (typeof semanalRes.data === 'string') {
+                try {
+                  const parsed = JSON.parse(semanalRes.data);
+                  semanal = Array.isArray(parsed) ? parsed : (parsed.semanal || []);
+                } catch (e) {
+                  if (IS_DEV) console.warn('Erro ao fazer parse de semanal:', e);
+                }
+              }
+            }
+            
+            // Processar UTR
+            if (utrSemanalRes.data) {
+              if (Array.isArray(utrSemanalRes.data)) {
+                utr = utrSemanalRes.data;
+              } else if (typeof utrSemanalRes.data === 'object' && utrSemanalRes.data.utr) {
+                utr = Array.isArray(utrSemanalRes.data.utr) ? utrSemanalRes.data.utr : [];
+              } else if (typeof utrSemanalRes.data === 'string') {
+                try {
+                  const parsed = JSON.parse(utrSemanalRes.data);
+                  utr = Array.isArray(parsed) ? parsed : (parsed.utr || []);
+                } catch (e) {
+                  if (IS_DEV) console.warn('Erro ao fazer parse de utr:', e);
+                }
+              }
+            }
             
             if (IS_DEV) {
               console.log('Evolução carregada:', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
+              if (mensal.length > 0) console.log('Primeiro item mensal:', mensal[0]);
+              if (semanal.length > 0) console.log('Primeiro item semanal:', semanal[0]);
+              if (utr.length > 0) console.log('Primeiro item utr:', utr[0]);
             }
             
             evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: utr });
