@@ -109,11 +109,22 @@ export default function DashboardPage() {
   // Registrar Chart.js apenas no cliente (após montagem)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      registerChartJS();
-      // Aguardar um pouco para garantir que o registro foi concluído
-      setTimeout(() => {
-        setChartReady(true);
-      }, 100);
+      registerChartJS()
+        .then(() => {
+          // Chart.js está pronto, permitir renderização dos componentes
+          setChartReady(true);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ Chart.js está pronto, componentes podem renderizar');
+          }
+        })
+        .catch((error) => {
+          // Mesmo com erro, permitir renderização para não travar a aplicação
+          console.error('Erro ao registrar Chart.js:', error);
+          setChartReady(true);
+        });
+    } else {
+      // No servidor, marcar como pronto imediatamente (componentes não renderizam no SSR)
+      setChartReady(true);
     }
   }, []);
 
