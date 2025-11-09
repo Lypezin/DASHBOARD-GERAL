@@ -311,8 +311,12 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 console.log('Chamando listar_valores_entregadores com filterPayload:', filterPayload);
                 console.log('CurrentUser:', currentUser);
               }
-              
-              let result = await supabase.rpc('listar_valores_entregadores', filterPayload as any);
+
+              // Assinatura detectada: (integer, integer, text, text, text)
+              const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
+              const listarValoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
+
+              let result = await supabase.rpc('listar_valores_entregadores', listarValoresPayload);
               
               // Se a função não existir (404/42883), tentar a função antiga
               if (
@@ -327,14 +331,14 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 if (IS_DEV) console.log('listar_valores_entregadores não existe, tentando pesquisar_valores_entregadores');
                 result = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
               }
-              
+
               const { data, error } = result;
-              
+
               if (error) {
                 if (IS_DEV) console.error('Erro ao carregar valores:', error);
                 throw error;
               }
-              
+
               if (IS_DEV) {
                 console.log('Dados retornados de listar_valores_entregadores:', data);
                 console.log('Tipo dos dados valores:', typeof data);
@@ -342,7 +346,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                   console.log('Propriedades do objeto valores:', Object.keys(data));
                 }
               }
-              
+
               // A função retorna JSONB, então precisa acessar o array interno
               let valores: any[] = [];
               if (data) {
@@ -395,24 +399,24 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                   }
                 }
               }
-              
+
               // Se ainda não temos dados e usamos a função antiga, aplicar filtro manual
               if (valores.length === 0 && error && (error as any)?.code === '42883' && currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
                 if (IS_DEV) console.log('Aplicando filtro manual de praças para valores');
                 // Não temos dados porque a função antiga não filtra por praça
                 // Retornar array vazio para usuários restritos
               }
-              
-              if (IS_DEV) {
-                console.log('Valores processados:', valores.length, valores);
-              }
-              
+
               // Segurança adicional: se o registro trouxer campo praca, filtrar pelo permitido
               if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
                 const unicaPraca = currentUser.assigned_pracas[0];
                 valores = Array.isArray(valores)
                   ? valores.filter((v: any) => !('praca' in v) || v.praca === unicaPraca)
                   : valores;
+              }
+
+              if (IS_DEV) {
+                console.log('Valores processados:', valores.length, valores);
               }
 
               setValoresData(valores);
