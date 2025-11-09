@@ -147,7 +147,8 @@ export default function DashboardPage() {
         setAnoEvolucao(ultimoAno);
       }
     }
-  }, [anosDisponiveis]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anosDisponiveis]); // anoEvolucao não precisa estar nas dependências - queremos verificar apenas quando anosDisponiveis mudar
 
   // Lógica para registrar atividade do usuário e verificar conquistas
   useEffect(() => {

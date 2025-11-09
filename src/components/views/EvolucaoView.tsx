@@ -406,7 +406,7 @@ function EvolucaoView({
       // Criar datasets para cada métrica selecionada
       const datasets = metricConfigs.map((config) => {
         // Para UTR, usar dados próprios; para outras, alinhar com baseLabels
-        let data = config.data || [];
+        let data: (number | null)[] = config.data || [];
         if (!config.useUtrData && utrConfig && baseLabels.length !== config.data.length) {
           // Se temos UTR e outras métricas, precisamos alinhar os dados
           // Mapear dados para os labels corretos
@@ -425,7 +425,7 @@ function EvolucaoView({
           });
         } else if (config.useUtrData && baseLabels.length !== config.data.length) {
           // Se UTR tem labels diferentes, alinhar outras métricas
-          data = config.data || [];
+          data = (config.data || []) as (number | null)[];
         }
         
         // Garantir que todos os valores são números válidos ou null
