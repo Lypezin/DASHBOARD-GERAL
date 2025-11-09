@@ -224,8 +224,16 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               let result = await supabase.rpc('listar_entregadores', filterPayload as any);
               
-              // Se a função não existir (404), tentar a função antiga
-              if (result.error && (result.error.code === '42883' || result.error.message?.includes('does not exist'))) {
+              // Se a função não existir (404/42883), tentar a função antiga
+              if (
+                result.error && (
+                  (result as any).status === 404 ||
+                  (result.error as any)?.code === '404' ||
+                  (result.error as any)?.code === '42883' ||
+                  (result.error as any)?.message?.toLowerCase?.().includes('not found') ||
+                  (result.error as any)?.message?.includes('does not exist')
+                )
+              ) {
                 if (IS_DEV) console.log('listar_entregadores não existe, tentando pesquisar_entregadores');
                 result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
               }
@@ -303,8 +311,16 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               let result = await supabase.rpc('listar_valores_entregadores', filterPayload as any);
               
-              // Se a função não existir (404), tentar a função antiga
-              if (result.error && (result.error.code === '42883' || result.error.message?.includes('does not exist'))) {
+              // Se a função não existir (404/42883), tentar a função antiga
+              if (
+                result.error && (
+                  (result as any).status === 404 ||
+                  (result.error as any)?.code === '404' ||
+                  (result.error as any)?.code === '42883' ||
+                  (result.error as any)?.message?.toLowerCase?.().includes('not found') ||
+                  (result.error as any)?.message?.includes('does not exist')
+                )
+              ) {
                 if (IS_DEV) console.log('listar_valores_entregadores não existe, tentando pesquisar_valores_entregadores');
                 result = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
               }
@@ -408,8 +424,16 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               let result = await supabase.rpc('listar_entregadores', filterPayload as any);
               
-              // Se a função não existir (404), tentar a função antiga
-              if (result.error && (result.error.code === '42883' || result.error.message?.includes('does not exist'))) {
+              // Se a função não existir (404/42883), tentar a função antiga
+              if (
+                result.error && (
+                  (result as any).status === 404 ||
+                  (result.error as any)?.code === '404' ||
+                  (result.error as any)?.code === '42883' ||
+                  (result.error as any)?.message?.toLowerCase?.().includes('not found') ||
+                  (result.error as any)?.message?.includes('does not exist')
+                )
+              ) {
                 if (IS_DEV) console.log('listar_entregadores não existe para prioridade, tentando pesquisar_entregadores');
                 result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
               }
