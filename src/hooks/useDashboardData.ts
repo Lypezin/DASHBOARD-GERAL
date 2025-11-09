@@ -120,12 +120,12 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         setAderenciaOrigem(Array.isArray(data.origem) ? data.origem : []);
 
         if (data.dimensoes) {
-          let pracasDisponiveis = Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
+          let pracasDisponiveis: FilterOption[] = Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
 
           // Filtrar praças se o usuário não for admin
           if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
             const pracasPermitidas = new Set(currentUser.assigned_pracas);
-            pracasDisponiveis = pracasDisponiveis.filter(p => pracasPermitidas.has(p.value));
+            pracasDisponiveis = pracasDisponiveis.filter((p) => pracasPermitidas.has(p.value));
           }
 
           setPracas(pracasDisponiveis);
