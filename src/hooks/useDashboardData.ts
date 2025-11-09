@@ -120,7 +120,15 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         setAderenciaOrigem(Array.isArray(data.origem) ? data.origem : []);
 
         if (data.dimensoes) {
-          setPracas(Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) })) : []);
+          let pracasDisponiveis = Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
+
+          // Filtrar praças se o usuário não for admin
+          if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+            const pracasPermitidas = new Set(currentUser.assigned_pracas);
+            pracasDisponiveis = pracasDisponiveis.filter(p => pracasPermitidas.has(p.value));
+          }
+
+          setPracas(pracasDisponiveis);
           setSubPracas(Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : []);
           setOrigens(Array.isArray(data.dimensoes.origens) ? data.dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) })) : []);
           if (Array.isArray((data.dimensoes as any).turnos)) {
@@ -148,7 +156,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     return () => {
       if (dashboardDebounceRef.current) clearTimeout(dashboardDebounceRef.current);
     };
-  }, [filterPayload]);
+  }, [filterPayload, currentUser]);
 
   // Cache para dados de abas específicas
   const tabDataCacheRef = useRef<Map<string, { data: any; timestamp: number }>>(new Map());
@@ -337,7 +345,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     // Delay de 200ms para evitar múltiplas requisições ao trocar de aba
     const timeoutId = setTimeout(() => fetchDataForTab(activeTab), 200);
     return () => clearTimeout(timeoutId);
-  }, [activeTab, filterPayload, anoEvolucao]);
+  }, [activeTab, filterPayload, anoEvolucao, currentUser]);
   
   const aderenciaGeral = useMemo(() => {
     if (aderenciaSemanal.length === 0) return undefined;

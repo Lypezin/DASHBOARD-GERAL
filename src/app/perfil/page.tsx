@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
+import Image from 'next/image';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -684,9 +685,11 @@ export default function PerfilPage() {
                   <div className="relative">
                     <div className="h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden border-4 border-white dark:border-slate-700 shadow-lg">
                       {displayUrl ? (
-                        <img
+                        <Image
                           src={displayUrl}
                           alt="Foto de perfil"
+                          width={160}
+                          height={160}
                           className="h-full w-full object-cover"
                         />
                       ) : (

@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
+import Image from 'next/image';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -206,9 +207,11 @@ export function Header() {
                 className="flex items-center gap-2 sm:gap-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium hover:shadow-lg"
               >
                 {avatarUrl || user.avatar_url ? (
-                  <img
+                  <Image
                     src={avatarUrl || user.avatar_url || ''}
                     alt={user.full_name}
+                    width={32}
+                    height={32}
                     className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover border-2 border-white/40 shadow-md"
                   />
                 ) : (
@@ -225,9 +228,11 @@ export function Header() {
                   <div className="border-b border-slate-200 p-4 bg-gradient-to-br from-slate-50 to-blue-50">
                     <div className="flex items-center gap-3 mb-3">
                       {avatarUrl || user.avatar_url ? (
-                        <img
+                        <Image
                           src={avatarUrl || user.avatar_url || ''}
                           alt={user.full_name}
+                          width={48}
+                          height={48}
                           className="h-12 w-12 rounded-full object-cover border-2 border-white shadow-md"
                         />
                       ) : (
