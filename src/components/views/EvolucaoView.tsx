@@ -233,9 +233,18 @@ function EvolucaoView({
     yAxisID: string;
     useUtrData: boolean;
   } | null => {
+    // Filtrar dados com semana/mês válidos e gerar labels
     const baseLabels = viewMode === 'mensal'
-      ? dadosAtivos.map(d => traduzirMes((d as EvolucaoMensal).mes_nome))
-      : dadosAtivos.map(d => `S${(d as EvolucaoSemanal).semana}`);
+      ? dadosAtivos
+          .filter(d => d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
+          .map(d => traduzirMes((d as EvolucaoMensal).mes_nome))
+      : dadosAtivos
+          .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
+          .map(d => {
+            const semana = (d as EvolucaoSemanal).semana;
+            return semana != null && semana !== undefined ? `S${semana}` : null;
+          })
+          .filter((label): label is string => label !== null);
 
     switch (metric) {
       case 'utr':
@@ -255,7 +264,11 @@ function EvolucaoView({
       case 'horas':
         return {
           labels: baseLabels,
-          data: dadosAtivos.map(d => segundosParaHoras(d.total_segundos)),
+          data: dadosAtivos
+            .filter(d => viewMode === 'mensal' 
+              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
+              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
+            .map(d => segundosParaHoras(d.total_segundos)),
           label: '⏱️ Horas Trabalhadas',
           borderColor: 'rgba(251, 146, 60, 1)', // Laranja (bem diferente do verde)
           backgroundColor: (context: any) => {
@@ -276,7 +289,11 @@ function EvolucaoView({
       case 'ofertadas':
         return {
           labels: baseLabels,
-          data: dadosAtivos.map(d => (d as any).corridas_ofertadas || (d as any).total_corridas || 0),
+          data: dadosAtivos
+            .filter(d => viewMode === 'mensal' 
+              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
+              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
+            .map(d => (d as any).corridas_ofertadas || (d as any).total_corridas || 0),
           label: '📢 Corridas Ofertadas',
           borderColor: 'rgba(14, 165, 233, 1)', // Cyan/azul claro
           backgroundColor: (context: any) => {
@@ -297,7 +314,11 @@ function EvolucaoView({
       case 'aceitas':
         return {
           labels: baseLabels,
-          data: dadosAtivos.map(d => (d as any).corridas_aceitas || 0),
+          data: dadosAtivos
+            .filter(d => viewMode === 'mensal' 
+              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
+              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
+            .map(d => (d as any).corridas_aceitas || 0),
           label: '✅ Corridas Aceitas',
           borderColor: 'rgba(16, 185, 129, 1)', // Verde esmeralda mais vibrante
           backgroundColor: (context: any) => {
@@ -318,7 +339,11 @@ function EvolucaoView({
       case 'rejeitadas':
         return {
           labels: baseLabels,
-          data: dadosAtivos.map(d => (d as any).corridas_rejeitadas || 0),
+          data: dadosAtivos
+            .filter(d => viewMode === 'mensal' 
+              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
+              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
+            .map(d => (d as any).corridas_rejeitadas || 0),
           label: '❌ Corridas Rejeitadas',
           borderColor: 'rgba(239, 68, 68, 1)',
           backgroundColor: gradientRed,
@@ -330,7 +355,11 @@ function EvolucaoView({
       default:
         return {
           labels: baseLabels,
-          data: dadosAtivos.map(d => (d as any).corridas_completadas || (d as any).total_corridas || 0),
+          data: dadosAtivos
+            .filter(d => viewMode === 'mensal' 
+              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
+              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
+            .map(d => (d as any).corridas_completadas || (d as any).total_corridas || 0),
           label: '🚗 Corridas Completadas',
           borderColor: 'rgba(37, 99, 235, 1)', // Azul escuro
           backgroundColor: (context: any) => {
@@ -407,25 +436,28 @@ function EvolucaoView({
       const datasets = metricConfigs.map((config) => {
         // Para UTR, usar dados próprios; para outras, alinhar com baseLabels
         let data: (number | null)[] = config.data || [];
-        if (!config.useUtrData && utrConfig && baseLabels.length !== config.data.length) {
-          // Se temos UTR e outras métricas, precisamos alinhar os dados
-          // Mapear dados para os labels corretos
-          const labelMap = new Map();
-          config.labels.forEach((label, idx) => {
-            const value = config.data[idx];
-            // Só mapear valores válidos (não null, undefined ou NaN)
-            if (value != null && !isNaN(value) && isFinite(value)) {
-              labelMap.set(label, value);
-            }
-          });
-          data = baseLabels.map(label => {
-            const value = labelMap.get(label);
-            // Retornar null para valores não encontrados (Chart.js vai tratar como gap)
-            return value != null && !isNaN(value) && isFinite(value) ? value : null;
-          });
-        } else if (config.useUtrData && baseLabels.length !== config.data.length) {
-          // Se UTR tem labels diferentes, alinhar outras métricas
-          data = (config.data || []) as (number | null)[];
+        
+        // Se os labels não correspondem aos baseLabels, precisamos alinhar
+        if (config.labels.length !== baseLabels.length || !config.labels.every((label, idx) => label === baseLabels[idx])) {
+          if (config.useUtrData) {
+            // UTR tem seus próprios labels, manter dados originais
+            data = (config.data || []) as (number | null)[];
+          } else {
+            // Para outras métricas, alinhar com baseLabels usando o mapeamento de labels
+            const labelMap = new Map<string, number>();
+            config.labels.forEach((label, idx) => {
+              const value = config.data[idx];
+              // Só mapear valores válidos (não null, undefined ou NaN)
+              if (value != null && !isNaN(value) && isFinite(value)) {
+                labelMap.set(label, value);
+              }
+            });
+            data = baseLabels.map(label => {
+              const value = labelMap.get(label);
+              // Retornar null para valores não encontrados (Chart.js vai tratar como gap)
+              return value != null && !isNaN(value) && isFinite(value) ? value : null;
+            });
+          }
         }
         
         // Garantir que todos os valores são números válidos ou null
@@ -770,8 +802,8 @@ function EvolucaoView({
           display: false,
         },
         ticks: {
-          maxTicksLimit: isSemanal ? 52 : 12, // Mostrar todas as semanas (até 52) ou todos os meses (12)
-          autoSkip: dadosAtivos.length <= (isSemanal ? 52 : 12) ? false : true, // Desabilitar autoSkip se houver poucos dados
+          maxTicksLimit: isSemanal ? 60 : 12, // Aumentado para 60 semanas para mostrar mais dados
+          autoSkip: false, // Sempre desabilitar autoSkip para mostrar todos os labels
           maxRotation: isSemanal ? 45 : 0, // Permitir rotação para semanas para melhor visualização
           minRotation: isSemanal ? 45 : 0,
           font: {
