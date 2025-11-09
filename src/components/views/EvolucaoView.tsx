@@ -412,13 +412,29 @@ function EvolucaoView({
           // Mapear dados para os labels corretos
           const labelMap = new Map();
           config.labels.forEach((label, idx) => {
-            labelMap.set(label, config.data[idx]);
+            const value = config.data[idx];
+            // Só mapear valores válidos (não null, undefined ou NaN)
+            if (value != null && !isNaN(value) && isFinite(value)) {
+              labelMap.set(label, value);
+            }
           });
-          data = baseLabels.map(label => labelMap.get(label) || 0);
+          data = baseLabels.map(label => {
+            const value = labelMap.get(label);
+            // Retornar null para valores não encontrados (Chart.js vai tratar como gap)
+            return value != null && !isNaN(value) && isFinite(value) ? value : null;
+          });
         } else if (config.useUtrData && baseLabels.length !== config.data.length) {
           // Se UTR tem labels diferentes, alinhar outras métricas
           data = config.data || [];
         }
+        
+        // Garantir que todos os valores são números válidos ou null
+        data = data.map((value: any) => {
+          if (value == null || isNaN(value) || !isFinite(value)) {
+            return null; // Chart.js vai tratar null como gap
+          }
+          return Number(value);
+        });
 
         return {
           label: config.label,
@@ -476,15 +492,16 @@ function EvolucaoView({
   // Calcular min e max dos dados para ajustar a escala do eixo Y
   const yAxisRange = useMemo(() => {
     if (!chartData || !chartData.datasets || chartData.datasets.length === 0) {
-      return { min: 0, max: 100 };
+      return { min: undefined, max: undefined };
     }
 
-    // Coletar todos os valores de todos os datasets
+    // Coletar todos os valores válidos de todos os datasets
     const allValues: number[] = [];
     chartData.datasets.forEach(dataset => {
       if (dataset.data && Array.isArray(dataset.data)) {
         dataset.data.forEach((value: any) => {
-          if (typeof value === 'number' && !isNaN(value) && isFinite(value)) {
+          // Filtrar apenas valores numéricos válidos, finitos e positivos (ignorar null/undefined)
+          if (value != null && typeof value === 'number' && !isNaN(value) && isFinite(value) && value > 0) {
             allValues.push(value);
           }
         });
@@ -492,29 +509,66 @@ function EvolucaoView({
     });
 
     if (allValues.length === 0) {
-      return { min: 0, max: 100 };
+      return { min: undefined, max: undefined };
     }
 
-    const minValue = Math.min(...allValues);
-    const maxValue = Math.max(...allValues);
+    // Ordenar valores para análise
+    const sortedValues = [...allValues].sort((a, b) => a - b);
+    
+    // Calcular quartis para detectar outliers
+    const q1Index = Math.floor(sortedValues.length * 0.25);
+    const q3Index = Math.floor(sortedValues.length * 0.75);
+    const q1 = sortedValues[q1Index];
+    const q3 = sortedValues[q3Index];
+    const iqr = q3 - q1;
+    
+    // Filtrar outliers usando método IQR (Interquartile Range)
+    // Valores fora de Q1 - 1.5*IQR ou Q3 + 1.5*IQR são considerados outliers
+    const lowerBound = q1 - 1.5 * iqr;
+    const upperBound = q3 + 1.5 * iqr;
+    const filteredValues = sortedValues.filter(v => v >= lowerBound && v <= upperBound);
+    
+    // Se após filtrar outliers não sobrou nada, usar todos os valores
+    const valuesToUse = filteredValues.length > 0 ? filteredValues : sortedValues;
+    
+    const minValue = Math.min(...valuesToUse);
+    const maxValue = Math.max(...valuesToUse);
 
-    // Se todos os valores são iguais, criar uma faixa pequena ao redor
-    if (minValue === maxValue) {
-      const padding = Math.max(1, minValue * 0.1);
-      return {
+    // Se a diferença for muito pequena (menos de 1% do valor máximo), criar uma faixa ao redor
+    if (maxValue - minValue < maxValue * 0.01) {
+      const padding = Math.max(maxValue * 0.1, maxValue * 0.05);
+      const result = {
         min: Math.max(0, minValue - padding),
         max: maxValue + padding
       };
+      if (IS_DEV) console.log('Y-axis range (valores muito próximos):', result, 'valores:', { minValue, maxValue });
+      return result;
     }
 
-    // Adicionar padding de 10% acima e abaixo para melhor visualização
+    // Adicionar padding de 8% acima e abaixo para melhor visualização
     const range = maxValue - minValue;
-    const padding = range * 0.1;
+    const padding = range * 0.08;
 
-    return {
+    const result = {
       min: Math.max(0, minValue - padding),
       max: maxValue + padding
     };
+    
+    if (IS_DEV) {
+      console.log('Y-axis range calculado:', result);
+      console.log('Estatísticas:', { 
+        min: minValue, 
+        max: maxValue, 
+        q1, 
+        q3, 
+        iqr,
+        totalValues: allValues.length,
+        filteredValues: valuesToUse.length,
+        firstValues: chartData.datasets[0]?.data?.slice(0, 10)
+      });
+    }
+
+    return result;
   }, [chartData]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
@@ -645,8 +699,15 @@ function EvolucaoView({
         display: true,
         position: 'left' as const,
         beginAtZero: false, // Não forçar começar em zero
-        min: yAxisRange.min, // Usar o mínimo calculado
-        max: yAxisRange.max, // Usar o máximo calculado
+        ...(yAxisRange.min !== undefined && { 
+          suggestedMin: yAxisRange.min, // Usar suggestedMin para dar flexibilidade ao Chart.js
+          min: yAxisRange.min // Mas também definir min para garantir
+        }),
+        ...(yAxisRange.max !== undefined && { 
+          suggestedMax: yAxisRange.max, // Usar suggestedMax para dar flexibilidade ao Chart.js
+          max: yAxisRange.max // Mas também definir max para garantir
+        }),
+        grace: 0, // Remover grace para usar exatamente os valores calculados
         title: {
           display: true,
           text: selectedMetrics.size === 1 && selectedMetrics.has('utr')
