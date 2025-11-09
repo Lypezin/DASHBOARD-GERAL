@@ -407,6 +407,14 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 console.log('Valores processados:', valores.length, valores);
               }
               
+              // Segurança adicional: se o registro trouxer campo praca, filtrar pelo permitido
+              if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
+                const unicaPraca = currentUser.assigned_pracas[0];
+                valores = Array.isArray(valores)
+                  ? valores.filter((v: any) => !('praca' in v) || v.praca === unicaPraca)
+                  : valores;
+              }
+
               setValoresData(valores);
               tabDataCacheRef.current.set(cacheKey, { data: valores, timestamp: Date.now() });
             } catch (err: any) {

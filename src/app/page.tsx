@@ -121,6 +121,16 @@ export default function DashboardPage() {
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
   const { conquistas, conquistasNovas, loading: loadingConquistas, stats, verificarConquistas, marcarVisualizada, removerConquistaNova } = useConquistas();
 
+  // Ajustar automaticamente o ano da evolução para o mais recente disponível quando o atual não existir
+  useEffect(() => {
+    if (Array.isArray(anosDisponiveis) && anosDisponiveis.length > 0) {
+      if (!anosDisponiveis.includes(anoEvolucao)) {
+        const ultimoAno = anosDisponiveis[anosDisponiveis.length - 1];
+        setAnoEvolucao(ultimoAno);
+      }
+    }
+  }, [anosDisponiveis]);
+
   // Lógica para registrar atividade do usuário e verificar conquistas
   useEffect(() => {
     registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
