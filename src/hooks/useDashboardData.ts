@@ -510,8 +510,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             let utrSemanalRes: any = { data: [], error: null };
             
             try {
-              // Função retorna RECORD (tabela), não JSONB - usar .select() em vez de .rpc()
-              const { data, error } = await supabase.rpc('listar_evolucao_mensal', { p_praca: null, p_ano: anoEvolucao });
+              // listar_evolucao_mensal(p_praca text, p_ano integer)
+              const { data, error } = await supabase.rpc('listar_evolucao_mensal', { 
+                p_praca: null, 
+                p_ano: anoEvolucao 
+              });
               mensalRes = { data: data || [], error };
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_evolucao_mensal:', err);
@@ -519,8 +522,12 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             }
             
             try {
-              // Função retorna RECORD (tabela), não JSONB
-              const { data, error } = await supabase.rpc('listar_evolucao_semanal', { p_praca: null, p_ano: anoEvolucao });
+              // listar_evolucao_semanal(p_praca text, p_ano integer, p_limite_semanas integer DEFAULT 53)
+              const { data, error } = await supabase.rpc('listar_evolucao_semanal', { 
+                p_praca: null, 
+                p_ano: anoEvolucao,
+                p_limite_semanas: 53
+              });
               semanalRes = { data: data || [], error };
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
@@ -528,8 +535,12 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             }
             
             try {
-              // Função retorna RECORD (tabela), não JSONB
-              const { data, error } = await supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao, p_praca: null });
+              // listar_utr_semanal(p_ano integer, p_praca text, p_limite_semanas integer DEFAULT 53)
+              const { data, error } = await supabase.rpc('listar_utr_semanal', { 
+                p_ano: anoEvolucao, 
+                p_praca: null,
+                p_limite_semanas: 53
+              });
               utrSemanalRes = { data: data || [], error };
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_utr_semanal:', err);
