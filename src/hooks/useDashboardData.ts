@@ -504,18 +504,51 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               console.log('Carregando evolução para ano:', anoEvolucao);
             }
             
-            // TODAS AS FUNÇÕES DE EVOLUÇÃO TEMPORARIAMENTE DESABILITADAS - causando erro 500
-            if (IS_DEV) {
-              console.log('🚫 Funções de evolução temporariamente desabilitadas devido a erros 500 no Supabase');
-              console.log('Funções com problema: listar_evolucao_mensal, listar_evolucao_semanal, listar_utr_semanal');
-            }
-            
-            // Retornar arrays vazios para manter compatibilidade com o frontend
+            // Carregar dados de evolução com tratamento individual de erros
             let mensalRes: any = { data: [], error: null };
             let semanalRes: any = { data: [], error: null };
-            let utrSemanalRes: any = { data: [], error: null };
+            let utrSemanalRes: any = { data: [], error: null }; // Manter para compatibilidade, mas não carregar
             
-            // Funções de evolução desabilitadas temporariamente - sem erros para verificar
+            try {
+              // listar_evolucao_mensal(p_praca text, p_ano integer)
+              const { data, error } = await supabase.rpc('listar_evolucao_mensal', { 
+                p_praca: null, 
+                p_ano: anoEvolucao 
+              });
+              mensalRes = { data: data || [], error };
+            } catch (err) {
+              if (IS_DEV) console.error('Erro em listar_evolucao_mensal:', err);
+              mensalRes = { data: [], error: err };
+            }
+            
+            try {
+              // listar_evolucao_semanal(p_praca text, p_ano integer, p_limite_semanas integer DEFAULT 53)
+              const { data, error } = await supabase.rpc('listar_evolucao_semanal', { 
+                p_praca: null, 
+                p_ano: anoEvolucao,
+                p_limite_semanas: 53
+              });
+              semanalRes = { data: data || [], error };
+            } catch (err) {
+              if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
+              semanalRes = { data: [], error: err };
+            }
+            
+            // UTR TEMPORARIAMENTE DESABILITADO - causando erro 400/500
+            if (IS_DEV) {
+              console.log('UTR semanal temporariamente desabilitado devido a erros na função');
+            }
+            // Manter utrSemanalRes como array vazio para não quebrar o frontend
+            utrSemanalRes = { data: [], error: null };
+            
+            // Verificar erros em cada resposta
+            if (mensalRes.error) {
+              if (IS_DEV) console.error('Erro ao carregar evolução mensal:', mensalRes.error);
+            }
+            if (semanalRes.error) {
+              if (IS_DEV) console.error('Erro ao carregar evolução semanal:', semanalRes.error);
+            }
+            // UTR desabilitado temporariamente
             
             // Processar dados retornados - as funções retornam RECORD (arrays diretos)
             let mensal: any[] = [];
@@ -538,9 +571,21 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             }
             
             if (IS_DEV) {
-              console.log('📊 Evolução (DESABILITADA):', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
+              console.log('Evolução carregada:', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
               console.log('Ano solicitado:', anoEvolucao);
-              console.log('ℹ️ Todas as funções de evolução estão temporariamente desabilitadas devido a erros 500 no Supabase');
+              if (mensal.length > 0) console.log('Primeiro item mensal:', mensal[0]);
+              if (semanal.length > 0) console.log('Primeiro item semanal:', semanal[0]);
+              if (utr.length > 0) console.log('Primeiro item utr:', utr[0]);
+              
+              // Verificar se há dados para o ano solicitado
+              const mensalAno = mensal.filter(m => m.ano === anoEvolucao);
+              const semanalAno = semanal.filter(s => s.ano === anoEvolucao);
+              const utrAno = utr.filter(u => u.ano === anoEvolucao);
+              console.log('Dados filtrados por ano:', { 
+                mensalAno: mensalAno.length, 
+                semanalAno: semanalAno.length, 
+                utrAno: utrAno.length 
+              });
             }
             
             evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: utr });

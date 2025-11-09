@@ -1042,8 +1042,18 @@ function EvolucaoView({
                     }
                   })()
                 ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-slate-500 dark:text-slate-400">Preparando dados do gráfico...</p>
+                  <div className="relative z-10 flex h-[500px] items-center justify-center">
+                    <div className="text-center">
+                      <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                        <span className="text-4xl">📊</span>
+                      </div>
+                      <p className="text-xl font-bold text-slate-600 dark:text-slate-300">
+                        Nenhum dado disponível para {anoSelecionado}
+                      </p>
+                      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Selecione outro ano para visualizar os dados
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
