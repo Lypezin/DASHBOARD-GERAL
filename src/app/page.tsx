@@ -104,10 +104,17 @@ export default function DashboardPage() {
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
   const [showConquistasModal, setShowConquistasModal] = useState(false);
+  const [chartReady, setChartReady] = useState(false);
 
   // Registrar Chart.js apenas no cliente (após montagem)
   useEffect(() => {
-    registerChartJS();
+    if (typeof window !== 'undefined') {
+      registerChartJS();
+      // Aguardar um pouco para garantir que o registro foi concluído
+      setTimeout(() => {
+        setChartReady(true);
+      }, 100);
+    }
   }, []);
 
   const {
@@ -352,74 +359,85 @@ export default function DashboardPage() {
 
             {/* Conteúdo */}
             <main>
-              {activeTab === 'dashboard' && (
-                <DashboardView
-                  aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
-                  aderenciaDia={aderenciaDia}
-                  aderenciaTurno={aderenciaTurno}
-                  aderenciaSubPraca={aderenciaSubPraca}
-                  aderenciaOrigem={aderenciaOrigem}
-                />
-              )}
-              {activeTab === 'analise' && totals && (
-                <AnaliseView 
-                  totals={totals}
-                  aderenciaDia={aderenciaDia}
-                  aderenciaTurno={aderenciaTurno}
-                  aderenciaSubPraca={aderenciaSubPraca}
-                  aderenciaOrigem={aderenciaOrigem}
-                />
-              )}
-              {activeTab === 'utr' && (
-                <UtrView
-                  utrData={utrData}
-                  loading={loadingUtr}
-                />
-              )}
-              
-              {activeTab === 'entregadores' && (
-                <EntregadoresView
-                  entregadoresData={entregadoresData}
-                  loading={loadingEntregadores}
-                />
-              )}
-              
-              {activeTab === 'valores' && (
-                <ValoresView
-                  valoresData={valoresData}
-                  loading={loadingValores}
-                />
-              )}
-              
-              {activeTab === 'prioridade' && (
-                <PrioridadePromoView
-                  entregadoresData={prioridadeData}
-                  loading={loadingPrioridade}
-                />
-              )}
-              
-              {activeTab === 'evolucao' && (
-                <EvolucaoView
-                  evolucaoMensal={evolucaoMensal}
-                  evolucaoSemanal={evolucaoSemanal}
-                  utrSemanal={utrSemanal}
-                  loading={loadingEvolucao}
-                  anoSelecionado={anoEvolucao}
-                  anosDisponiveis={anosDisponiveis}
-                  onAnoChange={setAnoEvolucao}
-                />
-              )}
-              {activeTab === 'monitoramento' && (
-                <MonitoramentoView />
-              )}
-              {activeTab === 'comparacao' && (
-                <ComparacaoView
-                  semanas={semanasDisponiveis}
-                  pracas={pracas}
-                  subPracas={subPracas}
-                  origens={origens}
-                  currentUser={currentUser}
-                />
+              {!chartReady && (activeTab === 'dashboard' || activeTab === 'analise' || activeTab === 'evolucao' || activeTab === 'comparacao') ? (
+                <div className="flex h-[60vh] items-center justify-center">
+                  <div className="text-center">
+                    <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+                    <p className="mt-4 text-sm font-semibold text-blue-700 dark:text-blue-300">Carregando gráficos...</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {activeTab === 'dashboard' && (
+                    <DashboardView
+                      aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
+                      aderenciaDia={aderenciaDia}
+                      aderenciaTurno={aderenciaTurno}
+                      aderenciaSubPraca={aderenciaSubPraca}
+                      aderenciaOrigem={aderenciaOrigem}
+                    />
+                  )}
+                  {activeTab === 'analise' && totals && (
+                    <AnaliseView 
+                      totals={totals}
+                      aderenciaDia={aderenciaDia}
+                      aderenciaTurno={aderenciaTurno}
+                      aderenciaSubPraca={aderenciaSubPraca}
+                      aderenciaOrigem={aderenciaOrigem}
+                    />
+                  )}
+                  {activeTab === 'utr' && (
+                    <UtrView
+                      utrData={utrData}
+                      loading={loadingUtr}
+                    />
+                  )}
+                  
+                  {activeTab === 'entregadores' && (
+                    <EntregadoresView
+                      entregadoresData={entregadoresData}
+                      loading={loadingEntregadores}
+                    />
+                  )}
+                  
+                  {activeTab === 'valores' && (
+                    <ValoresView
+                      valoresData={valoresData}
+                      loading={loadingValores}
+                    />
+                  )}
+                  
+                  {activeTab === 'prioridade' && (
+                    <PrioridadePromoView
+                      entregadoresData={prioridadeData}
+                      loading={loadingPrioridade}
+                    />
+                  )}
+                  
+                  {activeTab === 'evolucao' && (
+                    <EvolucaoView
+                      evolucaoMensal={evolucaoMensal}
+                      evolucaoSemanal={evolucaoSemanal}
+                      utrSemanal={utrSemanal}
+                      loading={loadingEvolucao}
+                      anoSelecionado={anoEvolucao}
+                      anosDisponiveis={anosDisponiveis}
+                      onAnoChange={setAnoEvolucao}
+                    />
+                  )}
+                  {activeTab === 'monitoramento' && (
+                    <MonitoramentoView />
+                  )}
+                  {activeTab === 'comparacao' && (
+                    <ComparacaoView
+                      semanas={semanasDisponiveis}
+                      pracas={pracas}
+                      subPracas={subPracas}
+                      origens={origens}
+                      currentUser={currentUser}
+                    />
+                  )}
+                </>
               )}
             </main>
           </div>
