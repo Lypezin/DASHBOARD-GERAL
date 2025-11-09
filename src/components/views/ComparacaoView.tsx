@@ -8,8 +8,14 @@ import { buildFilterPayload } from '@/utils/helpers';
 import MetricCard from '@/components/MetricCard';
 import { Bar, Line } from 'react-chartjs-2';
 import ApresentacaoView from '@/components/ApresentacaoView';
+import { registerChartJS } from '@/lib/chartConfig';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+
+// Registrar Chart.js quando o componente for carregado
+if (typeof window !== 'undefined') {
+  registerChartJS();
+}
 
 function ComparacaoView({
   semanas,

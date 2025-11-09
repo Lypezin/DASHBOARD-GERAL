@@ -2,8 +2,14 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { EvolucaoMensal, EvolucaoSemanal, UtrSemanal } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+import { registerChartJS } from '@/lib/chartConfig';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+
+// Registrar Chart.js quando o componente for carregado
+if (typeof window !== 'undefined') {
+  registerChartJS();
+}
 
 function EvolucaoView({
   evolucaoMensal,
@@ -653,7 +659,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  }), [isSemanal, dadosAtivos.length, dadosUtrAtivos.length, isDarkMode, selectedMetrics]);
+  }), [isSemanal, dadosAtivos.length, isDarkMode, selectedMetrics]);
 
   // Early return APÓS todos os hooks
   if (loading) {

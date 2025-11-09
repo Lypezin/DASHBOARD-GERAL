@@ -5,24 +5,13 @@ import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
 import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
 import { sanitizeText } from '@/lib/sanitize';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from 'chart.js';
 import FiltroSelect from '@/components/FiltroSelect';
 import FiltroMultiSelect from '@/components/FiltroMultiSelect';
 import FiltroBar from '@/components/FiltroBar';
 import TabButton from '@/components/TabButton';
 import ConquistaNotificacao from '@/components/ConquistaNotificacao';
 import ConquistasModal from '@/components/ConquistasModal';
+import { registerChartJS } from '@/lib/chartConfig';
 import {
   Totals,
   AderenciaSemanal,
@@ -49,53 +38,48 @@ import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor } from '@/
 import { buildFilterPayload, safeNumber, arraysEqual } from '@/utils/helpers';
 
 // Lazy load de componentes pesados para melhor performance
+// Componentes que usam Chart.js devem ser carregados apenas no cliente (ssr: false)
 const DashboardView = dynamic(() => import('@/components/views/DashboardView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
+  ssr: false
 });
 const AnaliseView = dynamic(() => import('@/components/views/AnaliseView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
+  ssr: false
 });
 const UtrView = dynamic(() => import('@/components/views/UtrView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
+  ssr: false
 });
 const EvolucaoView = dynamic(() => import('@/components/views/EvolucaoView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
+  ssr: false
 });
 const ValoresView = dynamic(() => import('@/components/views/ValoresView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
+  ssr: false
 });
 const EntregadoresView = dynamic(() => import('@/components/views/EntregadoresView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
+  ssr: false
 });
 const PrioridadePromoView = dynamic(() => import('@/components/views/PrioridadePromoView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
+  ssr: false
 });
 const MonitoramentoView = dynamic(() => import('@/components/views/MonitoramentoView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
+  ssr: false
 });
 const ComparacaoView = dynamic(() => import('@/components/views/ComparacaoView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
+  ssr: false
 });
 
 // Hook Imports
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUserActivity } from '@/hooks/useUserActivity';
 import { useConquistas } from '@/hooks/useConquistas';
-
-// Registrar componentes do Chart.js apenas uma vez (evitar re-registro)
-if (!ChartJS.registry.getScale('category')) {
-  ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    LineElement,
-    PointElement,
-    ArcElement,
-    Title,
-    Tooltip,
-    Legend
-  );
-}
 
 // =================================================================================
 // Interfaces e Tipos
@@ -120,6 +104,11 @@ export default function DashboardPage() {
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
   const [showConquistasModal, setShowConquistasModal] = useState(false);
+
+  // Registrar Chart.js apenas no cliente (após montagem)
+  useEffect(() => {
+    registerChartJS();
+  }, []);
 
   const {
     totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem,
