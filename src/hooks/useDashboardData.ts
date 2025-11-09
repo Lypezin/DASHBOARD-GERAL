@@ -222,26 +222,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 console.log('CurrentUser:', currentUser);
               }
               
-              // listar_entregadores(text/text) NÃO aceita p_turno no seu banco (assinatura: integer, integer, text, text, text)
+              // Função existe e aceita: p_ano, p_semana, p_praca, p_sub_praca, p_origem (sem p_turno)
               const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
               const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
-              let result = await supabase.rpc('listar_entregadores', listarEntregadoresPayload);
-              
-              // Se a função não existir (404/42883), tentar a função antiga
-              if (
-                result.error && (
-                  (result as any).status === 404 ||
-                  (result.error as any)?.code === '404' ||
-                  (result.error as any)?.code === '42883' ||
-                  (result.error as any)?.message?.toLowerCase?.().includes('not found') ||
-                  (result.error as any)?.message?.includes('does not exist')
-                )
-              ) {
-                if (IS_DEV) console.log('listar_entregadores não existe, tentando pesquisar_entregadores');
-                result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
-              }
-              
-              const { data, error } = result;
+              const { data, error } = await supabase.rpc('listar_entregadores', listarEntregadoresPayload);
               
               if (error) {
                 if (IS_DEV) console.error('Erro ao carregar entregadores:', error);
@@ -312,27 +296,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 console.log('CurrentUser:', currentUser);
               }
 
-              // Assinatura detectada: (integer, integer, text, text, text)
+              // Função existe e aceita: p_ano, p_semana, p_praca, p_sub_praca, p_origem (sem p_turno)
               const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
               const listarValoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
 
-              let result = await supabase.rpc('listar_valores_entregadores', listarValoresPayload);
-              
-              // Se a função não existir (404/42883), tentar a função antiga
-              if (
-                result.error && (
-                  (result as any).status === 404 ||
-                  (result.error as any)?.code === '404' ||
-                  (result.error as any)?.code === '42883' ||
-                  (result.error as any)?.message?.toLowerCase?.().includes('not found') ||
-                  (result.error as any)?.message?.includes('does not exist')
-                )
-              ) {
-                if (IS_DEV) console.log('listar_valores_entregadores não existe, tentando pesquisar_valores_entregadores');
-                result = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
-              }
-
-              const { data, error } = result;
+              const { data, error } = await supabase.rpc('listar_valores_entregadores', listarValoresPayload);
 
               if (error) {
                 if (IS_DEV) console.error('Erro ao carregar valores:', error);
@@ -542,24 +510,27 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             let utrSemanalRes: any = { data: [], error: null };
             
             try {
-              // Assinatura detectada: listar_evolucao_mensal(text, integer) → p_praca, p_ano
-              mensalRes = await supabase.rpc('listar_evolucao_mensal', { p_praca: null, p_ano: anoEvolucao });
+              // Função retorna RECORD (tabela), não JSONB - usar .select() em vez de .rpc()
+              const { data, error } = await supabase.rpc('listar_evolucao_mensal', { p_praca: null, p_ano: anoEvolucao });
+              mensalRes = { data: data || [], error };
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_evolucao_mensal:', err);
               mensalRes = { data: [], error: err };
             }
             
             try {
-              // Assinatura detectada: listar_evolucao_semanal(text, integer, integer) → p_praca, p_ano, p_semana
-              semanalRes = await supabase.rpc('listar_evolucao_semanal', { p_praca: null, p_ano: anoEvolucao, p_semana: null });
+              // Função retorna RECORD (tabela), não JSONB
+              const { data, error } = await supabase.rpc('listar_evolucao_semanal', { p_praca: null, p_ano: anoEvolucao });
+              semanalRes = { data: data || [], error };
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
               semanalRes = { data: [], error: err };
             }
             
             try {
-              // Assinatura detectada: listar_utr_semanal(integer, text, integer) → p_ano, p_praca, p_semana
-              utrSemanalRes = await supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao, p_praca: null, p_semana: null });
+              // Função retorna RECORD (tabela), não JSONB
+              const { data, error } = await supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao, p_praca: null });
+              utrSemanalRes = { data: data || [], error };
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_utr_semanal:', err);
               utrSemanalRes = { data: [], error: err };
@@ -576,57 +547,24 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               if (IS_DEV) console.error('Erro ao carregar UTR semanal:', utrSemanalRes.error);
             }
             
-            // Processar dados retornados - podem ser arrays diretos ou objetos JSONB
+            // Processar dados retornados - as funções retornam RECORD (arrays diretos)
             let mensal: any[] = [];
             let semanal: any[] = [];
             let utr: any[] = [];
             
-            // Processar mensal
-            if (mensalRes.data) {
-              if (Array.isArray(mensalRes.data)) {
-                mensal = mensalRes.data;
-              } else if (typeof mensalRes.data === 'object' && mensalRes.data.mensal) {
-                mensal = Array.isArray(mensalRes.data.mensal) ? mensalRes.data.mensal : [];
-              } else if (typeof mensalRes.data === 'string') {
-                try {
-                  const parsed = JSON.parse(mensalRes.data);
-                  mensal = Array.isArray(parsed) ? parsed : (parsed.mensal || []);
-                } catch (e) {
-                  if (IS_DEV) console.warn('Erro ao fazer parse de mensal:', e);
-                }
-              }
+            // Processar mensal - função retorna array diretamente
+            if (mensalRes.data && Array.isArray(mensalRes.data)) {
+              mensal = mensalRes.data;
             }
             
-            // Processar semanal
-            if (semanalRes.data) {
-              if (Array.isArray(semanalRes.data)) {
-                semanal = semanalRes.data;
-              } else if (typeof semanalRes.data === 'object' && semanalRes.data.semanal) {
-                semanal = Array.isArray(semanalRes.data.semanal) ? semanalRes.data.semanal : [];
-              } else if (typeof semanalRes.data === 'string') {
-                try {
-                  const parsed = JSON.parse(semanalRes.data);
-                  semanal = Array.isArray(parsed) ? parsed : (parsed.semanal || []);
-                } catch (e) {
-                  if (IS_DEV) console.warn('Erro ao fazer parse de semanal:', e);
-                }
-              }
+            // Processar semanal - função retorna array diretamente  
+            if (semanalRes.data && Array.isArray(semanalRes.data)) {
+              semanal = semanalRes.data;
             }
             
-            // Processar UTR
-            if (utrSemanalRes.data) {
-              if (Array.isArray(utrSemanalRes.data)) {
-                utr = utrSemanalRes.data;
-              } else if (typeof utrSemanalRes.data === 'object' && utrSemanalRes.data.utr) {
-                utr = Array.isArray(utrSemanalRes.data.utr) ? utrSemanalRes.data.utr : [];
-              } else if (typeof utrSemanalRes.data === 'string') {
-                try {
-                  const parsed = JSON.parse(utrSemanalRes.data);
-                  utr = Array.isArray(parsed) ? parsed : (parsed.utr || []);
-                } catch (e) {
-                  if (IS_DEV) console.warn('Erro ao fazer parse de utr:', e);
-                }
-              }
+            // Processar UTR - função retorna array diretamente
+            if (utrSemanalRes.data && Array.isArray(utrSemanalRes.data)) {
+              utr = utrSemanalRes.data;
             }
             
             if (IS_DEV) {
