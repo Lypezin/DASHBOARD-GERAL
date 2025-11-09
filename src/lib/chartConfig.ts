@@ -93,6 +93,22 @@ export function registerChartJS() {
           }
           isRegistered = true;
         }
+
+        // Fallback definitivo: caso alguma escala não tenha sido registrada em runtime,
+        // usar o auto-registrador do Chart.js
+        try {
+          if (!ChartJS?.registry?.getScale('linear') || !ChartJS?.registry?.getScale('category')) {
+            // Isto realiza o auto-registro interno do Chart.js
+            require('chart.js/auto');
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Chart.js auto-registrado via chart.js/auto');
+            }
+          }
+        } catch (autoErr) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Falha no auto-registro do Chart.js:', autoErr);
+          }
+        }
     isImporting = false;
   } catch (error) {
     isImporting = false;
