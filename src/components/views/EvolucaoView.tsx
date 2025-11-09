@@ -353,25 +353,30 @@ function EvolucaoView({
       case 'ofertadas':
         const ofertadasData = baseLabels.map(label => {
           const d = dadosPorLabel.get(label);
-          if (!d) return null;
-          // Tentar diferentes nomes de propriedades que podem existir
-          const value = (d as any).corridas_ofertadas ?? 
-                       (d as any).corridas_ofertadas_total ?? 
-                       (d as any).total_corridas_ofertadas ??
-                       (d as any).total_corridas ?? 
-                       null;
+          if (!d) {
+            if (IS_DEV && label === baseLabels[0]) {
+              console.warn('⚠️ Ofertadas - dado não encontrado para label:', label);
+            }
+            return null;
+          }
+          // Acessar diretamente a propriedade corridas_ofertadas
+          const value = (d as any).corridas_ofertadas;
           if (IS_DEV && label === baseLabels[0]) {
             console.log('📊 Ofertadas - primeiro dado:', { 
               label, 
               d, 
-              value, 
+              value,
+              type: typeof value,
               keys: Object.keys(d),
               corridas_ofertadas: (d as any).corridas_ofertadas,
-              total_corridas: (d as any).total_corridas
+              corridas_aceitas: (d as any).corridas_aceitas,
+              corridas_completadas: (d as any).corridas_completadas
             });
           }
-          // Retornar 0 se o valor for 0, null se não existir
-          return value != null ? Number(value) : null;
+          // Retornar número válido ou null
+          if (value == null || value === undefined) return null;
+          const numValue = Number(value);
+          return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
         });
         if (IS_DEV) {
           const nonNull = ofertadasData.filter(v => v != null);
@@ -380,7 +385,8 @@ function EvolucaoView({
             total: ofertadasData.length,
             nonNull: nonNull.length,
             nonZero: nonZero.length,
-            sample: ofertadasData.slice(0, 10)
+            sample: ofertadasData.slice(0, 10),
+            allValues: ofertadasData
           });
         }
         return {
@@ -407,21 +413,21 @@ function EvolucaoView({
         const aceitasData = baseLabels.map(label => {
           const d = dadosPorLabel.get(label);
           if (!d) return null;
-          // Tentar diferentes nomes de propriedades que podem existir
-          const value = (d as any).corridas_aceitas ?? 
-                       (d as any).corridas_aceitas_total ?? 
-                       (d as any).total_corridas_aceitas ??
-                       null;
+          // Acessar diretamente a propriedade corridas_aceitas
+          const value = (d as any).corridas_aceitas;
           if (IS_DEV && label === baseLabels[0]) {
             console.log('📊 Aceitas - primeiro dado:', { 
               label, 
               d, 
-              value, 
-              keys: Object.keys(d),
-              corridas_aceitas: (d as any).corridas_aceitas
+              value,
+              type: typeof value,
+              keys: Object.keys(d)
             });
           }
-          return value != null ? Number(value) : null;
+          // Retornar número válido ou null
+          if (value == null || value === undefined) return null;
+          const numValue = Number(value);
+          return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
         });
         if (IS_DEV) {
           const nonNull = aceitasData.filter(v => v != null);
@@ -430,7 +436,8 @@ function EvolucaoView({
             total: aceitasData.length,
             nonNull: nonNull.length,
             nonZero: nonZero.length,
-            sample: aceitasData.slice(0, 10)
+            sample: aceitasData.slice(0, 10),
+            allValues: aceitasData
           });
         }
         return {
@@ -457,21 +464,21 @@ function EvolucaoView({
         const rejeitadasData = baseLabels.map(label => {
           const d = dadosPorLabel.get(label);
           if (!d) return null;
-          // Tentar diferentes nomes de propriedades que podem existir
-          const value = (d as any).corridas_rejeitadas ?? 
-                       (d as any).corridas_rejeitadas_total ?? 
-                       (d as any).total_corridas_rejeitadas ??
-                       null;
+          // Acessar diretamente a propriedade corridas_rejeitadas
+          const value = (d as any).corridas_rejeitadas;
           if (IS_DEV && label === baseLabels[0]) {
             console.log('📊 Rejeitadas - primeiro dado:', { 
               label, 
               d, 
-              value, 
-              keys: Object.keys(d),
-              corridas_rejeitadas: (d as any).corridas_rejeitadas
+              value,
+              type: typeof value,
+              keys: Object.keys(d)
             });
           }
-          return value != null ? Number(value) : null;
+          // Retornar número válido ou null
+          if (value == null || value === undefined) return null;
+          const numValue = Number(value);
+          return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
         });
         if (IS_DEV) {
           const nonNull = rejeitadasData.filter(v => v != null);
@@ -480,7 +487,8 @@ function EvolucaoView({
             total: rejeitadasData.length,
             nonNull: nonNull.length,
             nonZero: nonZero.length,
-            sample: rejeitadasData.slice(0, 10)
+            sample: rejeitadasData.slice(0, 10),
+            allValues: rejeitadasData
           });
         }
         return {
@@ -628,12 +636,20 @@ function EvolucaoView({
           });
         }
 
+        // Verificar se há dados válidos para renderizar
+        const hasValidData = data.some(v => v != null && v !== undefined);
+        
+        if (IS_DEV) {
+          console.log(`📊 Dataset ${config.label} - hasValidData:`, hasValidData, 'data sample:', data.slice(0, 5));
+        }
+
         return {
           label: config.label,
           data,
           borderColor: config.borderColor,
           backgroundColor: config.backgroundColor,
           yAxisID: config.yAxisID,
+          type: 'line' as const, // Forçar tipo line explicitamente
           tension: 0.4,
           cubicInterpolationMode: 'monotone' as const,
           pointRadius: isSemanal ? 4 : 6,
@@ -646,11 +662,12 @@ function EvolucaoView({
           pointHoverBorderColor: '#fff',
           pointHoverBorderWidth: 4,
           pointStyle: 'circle' as const,
-          borderWidth: 2.5, // Reduzido para garantir visibilidade
+          borderWidth: 3, // Aumentado para melhor visibilidade
           fill: true,
           spanGaps: true, // Conectar gaps para manter linhas contínuas
           showLine: true, // Garantir que a linha seja mostrada
           hidden: false, // Garantir que o dataset não esteja escondido
+          order: 0, // Garantir ordem de renderização
         segment: {
           borderColor: (ctx: any) => {
               if (!ctx.p0 || !ctx.p1) return config.borderColor;
@@ -684,9 +701,14 @@ function EvolucaoView({
             firstValues: d.data.slice(0, 5),
             borderColor: d.borderColor,
             hasData: d.data.some(v => v != null && v !== 0),
+            hasAnyData: d.data.some(v => v != null),
             minValue: d.data.filter(v => v != null).length > 0 ? Math.min(...d.data.filter(v => v != null) as number[]) : null,
-            maxValue: d.data.filter(v => v != null).length > 0 ? Math.max(...d.data.filter(v => v != null) as number[]) : null
-          }))
+            maxValue: d.data.filter(v => v != null).length > 0 ? Math.max(...d.data.filter(v => v != null) as number[]) : null,
+            showLine: d.showLine,
+            hidden: d.hidden,
+            type: d.type
+          })),
+          fullDatasets: datasets // Log completo dos datasets para debug
         });
       }
 
