@@ -494,20 +494,31 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               console.log('Carregando evolução para ano:', anoEvolucao);
             }
             
-            const [mensalRes, semanalRes, utrSemanalRes] = await Promise.all([
-              supabase.rpc('listar_evolucao_mensal', { p_ano: anoEvolucao }).catch(err => {
-                if (IS_DEV) console.error('Erro em listar_evolucao_mensal:', err);
-                return { data: [], error: err };
-              }),
-              supabase.rpc('listar_evolucao_semanal', { p_ano: anoEvolucao }).catch(err => {
-                if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
-                return { data: [], error: err };
-              }),
-              supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao }).catch(err => {
-                if (IS_DEV) console.error('Erro em listar_utr_semanal:', err);
-                return { data: [], error: err };
-              })
-            ]);
+            // Carregar dados de evolução com tratamento individual de erros
+            let mensalRes = { data: [], error: null };
+            let semanalRes = { data: [], error: null };
+            let utrSemanalRes = { data: [], error: null };
+            
+            try {
+              mensalRes = await supabase.rpc('listar_evolucao_mensal', { p_ano: anoEvolucao });
+            } catch (err) {
+              if (IS_DEV) console.error('Erro em listar_evolucao_mensal:', err);
+              mensalRes = { data: [], error: err };
+            }
+            
+            try {
+              semanalRes = await supabase.rpc('listar_evolucao_semanal', { p_ano: anoEvolucao });
+            } catch (err) {
+              if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
+              semanalRes = { data: [], error: err };
+            }
+            
+            try {
+              utrSemanalRes = await supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao });
+            } catch (err) {
+              if (IS_DEV) console.error('Erro em listar_utr_semanal:', err);
+              utrSemanalRes = { data: [], error: err };
+            }
             
             // Verificar erros em cada resposta
             if (mensalRes.error) {
