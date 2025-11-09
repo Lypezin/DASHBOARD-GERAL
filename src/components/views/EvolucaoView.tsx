@@ -302,7 +302,7 @@ function EvolucaoView({
   // Helper function para obter configuração de métrica
   const getMetricConfig = useCallback((metric: 'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'): {
     labels: string[];
-    data: number[];
+    data: (number | null)[];
     label: string;
     borderColor: string;
     backgroundColor: any;
@@ -469,7 +469,7 @@ function EvolucaoView({
         .map(metric => getMetricConfig(metric))
         .filter(config => config !== null) as Array<{
           labels: string[];
-          data: number[];
+          data: (number | null)[];
           label: string;
           borderColor: string;
           backgroundColor: any;
@@ -592,7 +592,8 @@ function EvolucaoView({
         datasets: [],
   };
     }
-  }, [selectedMetrics, getMetricConfig, isSemanal, dadosAtivos.length, dadosUtrAtivos.length, baseLabels]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels]); // baseLabels é necessário pois é usado diretamente no retorno
 
   // Calcular min e max dos dados para ajustar a escala do eixo Y
   const yAxisRange = useMemo(() => {
@@ -900,7 +901,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  }), [isSemanal, dadosAtivos.length, isDarkMode, selectedMetrics, yAxisRange]);
+  }), [isSemanal, isDarkMode, selectedMetrics, yAxisRange]);
 
   // Early return APÓS todos os hooks
   if (loading) {
