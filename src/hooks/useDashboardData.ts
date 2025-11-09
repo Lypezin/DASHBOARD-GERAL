@@ -378,7 +378,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               }
               
               // Se ainda não temos dados e usamos a função antiga, aplicar filtro manual
-              if (valores.length === 0 && result.error?.code === '42883' && currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+              if (valores.length === 0 && error && (error as any)?.code === '42883' && currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
                 if (IS_DEV) console.log('Aplicando filtro manual de praças para valores');
                 // Não temos dados porque a função antiga não filtra por praça
                 // Retornar array vazio para usuários restritos
