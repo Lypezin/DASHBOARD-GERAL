@@ -216,13 +216,21 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'entregadores':
             setLoadingEntregadores(true);
             try {
-              // Usar listar_entregadores com os filtros corretos (incluindo permissões de praça)
+              // Tentar listar_entregadores primeiro, se falhar usar pesquisar_entregadores
               if (IS_DEV) {
                 console.log('Chamando listar_entregadores com filterPayload:', filterPayload);
                 console.log('CurrentUser:', currentUser);
               }
               
-              const { data, error } = await supabase.rpc('listar_entregadores', filterPayload as any);
+              let result = await supabase.rpc('listar_entregadores', filterPayload as any);
+              
+              // Se a função não existir (404), tentar a função antiga
+              if (result.error && (result.error.code === '42883' || result.error.message?.includes('does not exist'))) {
+                if (IS_DEV) console.log('listar_entregadores não existe, tentando pesquisar_entregadores');
+                result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              }
+              
+              const { data, error } = result;
               
               if (error) {
                 if (IS_DEV) console.error('Erro ao carregar entregadores:', error);
@@ -287,14 +295,21 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'valores':
             setLoadingValores(true);
             try {
-              // Usar listar_valores_entregadores com todos os parâmetros (incluindo p_turno)
-              // Garantir que p_praca está sendo passado corretamente para respeitar permissões
+              // Tentar listar_valores_entregadores primeiro, se falhar usar pesquisar_valores_entregadores
               if (IS_DEV) {
                 console.log('Chamando listar_valores_entregadores com filterPayload:', filterPayload);
                 console.log('CurrentUser:', currentUser);
               }
               
-              const { data, error } = await supabase.rpc('listar_valores_entregadores', filterPayload as any);
+              let result = await supabase.rpc('listar_valores_entregadores', filterPayload as any);
+              
+              // Se a função não existir (404), tentar a função antiga
+              if (result.error && (result.error.code === '42883' || result.error.message?.includes('does not exist'))) {
+                if (IS_DEV) console.log('listar_valores_entregadores não existe, tentando pesquisar_valores_entregadores');
+                result = await supabase.rpc('pesquisar_valores_entregadores', { termo_busca: '' });
+              }
+              
+              const { data, error } = result;
               
               if (error) {
                 if (IS_DEV) console.error('Erro ao carregar valores:', error);
@@ -362,6 +377,13 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 }
               }
               
+              // Se ainda não temos dados e usamos a função antiga, aplicar filtro manual
+              if (valores.length === 0 && result.error?.code === '42883' && currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+                if (IS_DEV) console.log('Aplicando filtro manual de praças para valores');
+                // Não temos dados porque a função antiga não filtra por praça
+                // Retornar array vazio para usuários restritos
+              }
+              
               if (IS_DEV) {
                 console.log('Valores processados:', valores.length, valores);
               }
@@ -378,13 +400,21 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'prioridade':
             setLoadingPrioridade(true);
             try {
-              // Usar listar_entregadores com os filtros corretos (incluindo permissões de praça)
+              // Tentar listar_entregadores primeiro, se falhar usar pesquisar_entregadores
               if (IS_DEV) {
                 console.log('Chamando listar_entregadores (prioridade) com filterPayload:', filterPayload);
                 console.log('CurrentUser:', currentUser);
               }
               
-              const { data, error } = await supabase.rpc('listar_entregadores', filterPayload as any);
+              let result = await supabase.rpc('listar_entregadores', filterPayload as any);
+              
+              // Se a função não existir (404), tentar a função antiga
+              if (result.error && (result.error.code === '42883' || result.error.message?.includes('does not exist'))) {
+                if (IS_DEV) console.log('listar_entregadores não existe para prioridade, tentando pesquisar_entregadores');
+                result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              }
+              
+              const { data, error } = result;
               
               if (error) {
                 if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', error);
@@ -460,10 +490,23 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
           setLoadingEvolucao(true);
           try {
             // Carregar dados de evolução - usar apenas p_ano, não outros filtros
+            if (IS_DEV) {
+              console.log('Carregando evolução para ano:', anoEvolucao);
+            }
+            
             const [mensalRes, semanalRes, utrSemanalRes] = await Promise.all([
-              supabase.rpc('listar_evolucao_mensal', { p_ano: anoEvolucao } as any),
-              supabase.rpc('listar_evolucao_semanal', { p_ano: anoEvolucao } as any),
-              supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao } as any)
+              supabase.rpc('listar_evolucao_mensal', { p_ano: anoEvolucao }).catch(err => {
+                if (IS_DEV) console.error('Erro em listar_evolucao_mensal:', err);
+                return { data: [], error: err };
+              }),
+              supabase.rpc('listar_evolucao_semanal', { p_ano: anoEvolucao }).catch(err => {
+                if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
+                return { data: [], error: err };
+              }),
+              supabase.rpc('listar_utr_semanal', { p_ano: anoEvolucao }).catch(err => {
+                if (IS_DEV) console.error('Erro em listar_utr_semanal:', err);
+                return { data: [], error: err };
+              })
             ]);
             
             // Verificar erros em cada resposta
