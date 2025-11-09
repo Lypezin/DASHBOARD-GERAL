@@ -507,7 +507,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             // Carregar dados de evolução com tratamento individual de erros
             let mensalRes: any = { data: [], error: null };
             let semanalRes: any = { data: [], error: null };
-            let utrSemanalRes: any = { data: [], error: null };
+            let utrSemanalRes: any = { data: [], error: null }; // Manter para compatibilidade, mas não carregar
             
             try {
               // listar_evolucao_mensal(p_praca text, p_ano integer)
@@ -534,29 +534,12 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               semanalRes = { data: [], error: err };
             }
             
-            try {
-              // listar_utr_semanal(p_ano integer, p_praca text, p_limite_semanas integer DEFAULT 53)
-              // Tentar sem p_limite_semanas primeiro (pode ser opcional)
-              let utrResult = await supabase.rpc('listar_utr_semanal', { 
-                p_ano: anoEvolucao, 
-                p_praca: null
-              });
-              
-              // Se der erro, tentar com p_limite_semanas
-              if (utrResult.error) {
-                if (IS_DEV) console.log('Tentando listar_utr_semanal com p_limite_semanas...');
-                utrResult = await supabase.rpc('listar_utr_semanal', { 
-                  p_ano: anoEvolucao, 
-                  p_praca: null,
-                  p_limite_semanas: 53
-                });
-              }
-              
-              utrSemanalRes = { data: utrResult.data || [], error: utrResult.error };
-            } catch (err) {
-              if (IS_DEV) console.error('Erro em listar_utr_semanal:', err);
-              utrSemanalRes = { data: [], error: err };
+            // UTR TEMPORARIAMENTE DESABILITADO - causando erro 400/500
+            if (IS_DEV) {
+              console.log('UTR semanal temporariamente desabilitado devido a erros na função');
             }
+            // Manter utrSemanalRes como array vazio para não quebrar o frontend
+            utrSemanalRes = { data: [], error: null };
             
             // Verificar erros em cada resposta
             if (mensalRes.error) {
@@ -565,9 +548,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             if (semanalRes.error) {
               if (IS_DEV) console.error('Erro ao carregar evolução semanal:', semanalRes.error);
             }
-            if (utrSemanalRes.error) {
-              if (IS_DEV) console.error('Erro ao carregar UTR semanal:', utrSemanalRes.error);
-            }
+            // UTR desabilitado temporariamente
             
             // Processar dados retornados - as funções retornam RECORD (arrays diretos)
             let mensal: any[] = [];
