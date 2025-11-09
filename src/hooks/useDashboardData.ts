@@ -209,16 +209,15 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'entregadores':
             setLoadingEntregadores(true);
             try {
-              // Tentar listar_entregadores primeiro (nova função)
-              let result = await supabase.rpc('listar_entregadores', filterPayload as any);
+              // Usar listar_entregadores com os filtros corretos (incluindo permissões de praça)
+              const { data, error } = await supabase.rpc('listar_entregadores', filterPayload as any);
               
-              // Se não funcionar, tentar pesquisar_entregadores (função antiga)
-              if (result.error) {
-                result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              if (error) {
+                if (IS_DEV) console.error('Erro ao carregar entregadores:', error);
+                throw error;
               }
               
-              if (result.error) throw result.error;
-              const entregadores = Array.isArray(result.data) ? result.data : (result.data?.entregadores || []);
+              const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
               const entregadoresData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
               setEntregadoresData(entregadoresData);
               tabDataCacheRef.current.set(cacheKey, { data: entregadoresData, timestamp: Date.now() });
@@ -233,29 +232,60 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             setLoadingValores(true);
             try {
               // Usar listar_valores_entregadores (nome correto da função)
-              const { data, error } = await supabase.rpc('listar_valores_entregadores', filterPayload as any);
+              // A função não aceita p_turno, então criar payload sem esse parâmetro
+              const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
+              const valoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
               
-              if (error) throw error;
+              if (IS_DEV) {
+                console.log('Chamando listar_valores_entregadores com payload:', valoresPayload);
+              }
+              
+              const { data, error } = await supabase.rpc('listar_valores_entregadores', valoresPayload);
+              
+              if (error) {
+                if (IS_DEV) console.error('Erro ao carregar valores:', error);
+                throw error;
+              }
+              
+              if (IS_DEV) {
+                console.log('Dados retornados de listar_valores_entregadores:', data);
+              }
               
               // A função retorna JSONB, então precisa acessar o array interno
-              let valores = [];
-              if (data && typeof data === 'object') {
-                // Pode ser array direto ou {valores: [...]}
+              let valores: any[] = [];
+              if (data) {
                 if (Array.isArray(data)) {
+                  // Se for array direto
                   valores = data;
-                } else if (Array.isArray(data.valores)) {
-                  valores = data.valores;
-                } else if (Array.isArray(data.entregadores)) {
-                  // Mapear de entregadores para valores
-                  valores = data.entregadores.map((e: any) => ({
-                    id_entregador: e.id_entregador,
-                    nome_entregador: e.nome_entregador,
-                    total_taxas: e.total_taxas || 0,
-                    numero_corridas_aceitas: e.numero_corridas_aceitas || 0,
-                    taxa_media: e.taxa_media || 0
-                  }));
+                } else if (typeof data === 'object') {
+                  // Se for objeto, tentar diferentes propriedades
+                  if (Array.isArray(data.valores)) {
+                    valores = data.valores;
+                  } else if (Array.isArray(data.entregadores)) {
+                    // Mapear de entregadores para valores
+                    valores = data.entregadores.map((e: any) => ({
+                      id_entregador: e.id_entregador || e.id_da_pessoa_entregadora,
+                      nome_entregador: e.nome_entregador || e.pessoa_entregadora,
+                      total_taxas: e.total_taxas || e.soma_das_taxas_das_corridas_aceitas || 0,
+                      numero_corridas_aceitas: e.numero_corridas_aceitas || e.numero_de_corridas_aceitas || 0,
+                      taxa_media: e.taxa_media || (e.total_taxas && e.numero_corridas_aceitas ? e.total_taxas / e.numero_corridas_aceitas : 0)
+                    }));
+                  } else if (typeof data === 'string') {
+                    // Se for string JSON, tentar fazer parse
+                    try {
+                      const parsed = JSON.parse(data);
+                      valores = Array.isArray(parsed) ? parsed : (parsed.valores || []);
+                    } catch (e) {
+                      if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
+                    }
+                  }
                 }
               }
+              
+              if (IS_DEV) {
+                console.log('Valores processados:', valores.length, valores);
+              }
+              
               setValoresData(valores);
               tabDataCacheRef.current.set(cacheKey, { data: valores, timestamp: Date.now() });
             } catch (err: any) {
@@ -268,16 +298,15 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         case 'prioridade':
             setLoadingPrioridade(true);
             try {
-              // Tentar listar_entregadores primeiro (nova função)
-              let result = await supabase.rpc('listar_entregadores', filterPayload as any);
+              // Usar listar_entregadores com os filtros corretos (incluindo permissões de praça)
+              const { data, error } = await supabase.rpc('listar_entregadores', filterPayload as any);
               
-              // Se não funcionar, tentar pesquisar_entregadores (função antiga)
-              if (result.error) {
-                result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
+              if (error) {
+                if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', error);
+                throw error;
               }
               
-              if (result.error) throw result.error;
-              const entregadores = Array.isArray(result.data) ? result.data : (result.data?.entregadores || []);
+              const entregadores = Array.isArray(data) ? data : (data?.entregadores || []);
               const prioridadeData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
               setPrioridadeData(prioridadeData);
               tabDataCacheRef.current.set(cacheKey, { data: prioridadeData, timestamp: Date.now() });
@@ -289,7 +318,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             }
             break;
         case 'evolucao':
-          const evolucaoCacheKey = `${JSON.stringify(filterPayload)}-${anoEvolucao}`;
+          // Cache key apenas com o ano, já que evolução não usa outros filtros
+          const evolucaoCacheKey = `evolucao-${anoEvolucao}`;
           if (evolucaoCacheRef.current.has(evolucaoCacheKey)) {
             const cached = evolucaoCacheRef.current.get(evolucaoCacheKey)!;
             setEvolucaoMensal(cached.mensal);

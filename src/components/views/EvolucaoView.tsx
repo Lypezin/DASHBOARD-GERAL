@@ -30,7 +30,15 @@ function EvolucaoView({
 }) {
   const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
   const [selectedMetrics, setSelectedMetrics] = useState<Set<'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'>>(new Set(['completadas']));
+  const [chartError, setChartError] = useState<string | null>(null);
   const isSemanal = viewMode === 'semanal';
+  
+  // Garantir que Chart.js está registrado quando o componente montar
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      registerChartJS();
+    }
+  }, []);
 
   // Ajustar métricas quando mudar o modo de visualização
   useEffect(() => {
@@ -983,13 +991,37 @@ function EvolucaoView({
               {/* Efeito de brilho sutil */}
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-50/50 via-blue-100/30 to-indigo-100/20 dark:from-blue-950/20 dark:via-blue-900/10 dark:to-indigo-950/10"></div>
               <div className="relative z-10 h-full w-full">
-                {chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
-                  <Line 
-                    data={chartData} 
-                    options={chartOptions}
-                    redraw={false}
-                    updateMode="none"
-                  />
+                {chartError ? (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-red-600 dark:text-red-400 font-semibold mb-2">Erro ao carregar gráfico</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">{chartError}</p>
+                    </div>
+                  </div>
+                ) : chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
+                  (() => {
+                    try {
+                      return (
+                        <Line 
+                          data={chartData} 
+                          options={chartOptions}
+                          redraw={false}
+                          updateMode="none"
+                        />
+                      );
+                    } catch (error: any) {
+                      if (IS_DEV) console.error('Erro ao renderizar gráfico:', error);
+                      setChartError('Erro ao renderizar gráfico. Tente recarregar a página.');
+                      return (
+                        <div className="flex h-full items-center justify-center">
+                          <div className="text-center">
+                            <p className="text-red-600 dark:text-red-400 font-semibold mb-2">Erro ao carregar gráfico</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Tente recarregar a página.</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                  })()
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <p className="text-slate-500 dark:text-slate-400">Preparando dados do gráfico...</p>
