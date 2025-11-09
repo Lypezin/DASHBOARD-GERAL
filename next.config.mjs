@@ -1,5 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Otimizações de performance
+  compress: true,
+  poweredByHeader: false,
+  reactStrictMode: true,
+  
+  // Otimizações de build
+  swcMinify: true,
+  
+  // Otimizações de imagens
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+
+  // Headers de segurança e performance
   async headers() {
     return [
       {
@@ -45,6 +61,11 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()'
+          },
+          // Headers de performance
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
           }
         ],
       },

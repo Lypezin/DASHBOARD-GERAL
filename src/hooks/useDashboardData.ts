@@ -150,9 +150,39 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     };
   }, [filterPayload]);
 
+  // Cache para dados de abas específicas
+  const tabDataCacheRef = useRef<Map<string, { data: any; timestamp: number }>>(new Map());
+  const CACHE_TTL = 30000; // 30 segundos
+
   // Fetch data for specific tabs
   useEffect(() => {
     const fetchDataForTab = async (tab: string) => {
+      const cacheKey = `${tab}-${JSON.stringify(filterPayload)}`;
+      const cached = tabDataCacheRef.current.get(cacheKey);
+      
+      // Usar cache se ainda válido
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        switch (tab) {
+          case 'utr':
+            setUtrData(cached.data);
+            setLoadingUtr(false);
+            break;
+          case 'entregadores':
+            setEntregadoresData(cached.data);
+            setLoadingEntregadores(false);
+            break;
+          case 'valores':
+            setValoresData(cached.data);
+            setLoadingValores(false);
+            break;
+          case 'prioridade':
+            setPrioridadeData(cached.data);
+            setLoadingPrioridade(false);
+            break;
+        }
+        return;
+      }
+
       switch (tab) {
         case 'utr':
           setLoadingUtr(true);
@@ -160,6 +190,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             const { data, error } = await supabase.rpc('calcular_utr', filterPayload as any);
             if (error) throw error;
             setUtrData(data);
+            tabDataCacheRef.current.set(cacheKey, { data, timestamp: Date.now() });
           } catch (err: any) {
             if (IS_DEV) console.error('Erro ao carregar UTR:', err);
             setUtrData(null);
@@ -180,7 +211,9 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               if (result.error) throw result.error;
               const entregadores = Array.isArray(result.data) ? result.data : (result.data?.entregadores || []);
-              setEntregadoresData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
+              const entregadoresData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
+              setEntregadoresData(entregadoresData);
+              tabDataCacheRef.current.set(cacheKey, { data: entregadoresData, timestamp: Date.now() });
             } catch (err: any) {
               if (IS_DEV) console.error('Erro ao carregar entregadores:', err);
               setEntregadoresData({ entregadores: [], total: 0 });
@@ -216,6 +249,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 }
               }
               setValoresData(valores);
+              tabDataCacheRef.current.set(cacheKey, { data: valores, timestamp: Date.now() });
             } catch (err: any) {
               if (IS_DEV) console.error('Erro ao carregar valores:', err);
               setValoresData([]);
@@ -236,7 +270,9 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               if (result.error) throw result.error;
               const entregadores = Array.isArray(result.data) ? result.data : (result.data?.entregadores || []);
-              setPrioridadeData({ entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 });
+              const prioridadeData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
+              setPrioridadeData(prioridadeData);
+              tabDataCacheRef.current.set(cacheKey, { data: prioridadeData, timestamp: Date.now() });
             } catch (err: any) {
               if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', err);
               setPrioridadeData({ entregadores: [], total: 0 });

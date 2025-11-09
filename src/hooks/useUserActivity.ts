@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -82,28 +82,39 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     }
   };
 
-  useEffect(() => {
-    if (currentUser) {
-      registrarAtividade('tab_change', { tab: activeTab }, activeTab, filters);
-    }
-  }, [activeTab, currentUser]);
+  // Usar refs para evitar dependências desnecessárias
+  const activeTabRef = useRef(activeTab);
+  const filtersRef = useRef(filters);
+  const currentUserRef = useRef(currentUser);
 
   useEffect(() => {
-    if (currentUser && Object.values(filters).some(v => v !== null)) {
-      registrarAtividade('filter_change', { filters }, activeTab, filters);
+    activeTabRef.current = activeTab;
+    filtersRef.current = filters;
+    currentUserRef.current = currentUser;
+  }, [activeTab, filters, currentUser]);
+
+  useEffect(() => {
+    if (currentUserRef.current) {
+      registrarAtividade('tab_change', { tab: activeTabRef.current }, activeTabRef.current, filtersRef.current);
     }
-  }, [filters, currentUser]);
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (currentUserRef.current && Object.values(filtersRef.current).some(v => v !== null && v !== undefined && (Array.isArray(v) ? v.length > 0 : true))) {
+      registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current);
+    }
+  }, [JSON.stringify(filters)]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handleVisibilityChange = () => {
       const visible = !document.hidden;
       setIsPageVisible(visible);
       
-      if (currentUser) {
+      if (currentUserRef.current) {
         if (visible) {
-          registrarAtividade('page_visible', {}, activeTab, filters);
+          registrarAtividade('page_visible', {}, activeTabRef.current, filtersRef.current);
         } else {
-          registrarAtividade('page_hidden', {}, activeTab, filters);
+          registrarAtividade('page_hidden', {}, activeTabRef.current, filtersRef.current);
         }
       }
     };
@@ -113,21 +124,21 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [currentUser, activeTab, filters]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (currentUser) {
-      registrarAtividade('login', { dispositivo: 'web' }, activeTab, filters);
+    if (currentUserRef.current) {
+      registrarAtividade('login', { dispositivo: 'web' }, activeTabRef.current, filtersRef.current);
       
       const heartbeatInterval = setInterval(() => {
-        if (currentUser && isPageVisible) {
-          registrarAtividade('heartbeat', {}, activeTab, filters);
+        if (currentUserRef.current && isPageVisible) {
+          registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
         }
       }, 60000); // A cada 1 minuto
 
       return () => clearInterval(heartbeatInterval);
     }
-  }, [currentUser, isPageVisible, activeTab, filters]);
+  }, [currentUser, isPageVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { sessionId, isPageVisible, registrarAtividade };
 }

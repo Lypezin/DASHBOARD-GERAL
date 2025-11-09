@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
 import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
 import { sanitizeText } from '@/lib/sanitize';
@@ -16,22 +17,10 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import { Bar, Line, Doughnut } from 'react-chartjs-2';
 import FiltroSelect from '@/components/FiltroSelect';
 import FiltroMultiSelect from '@/components/FiltroMultiSelect';
 import FiltroBar from '@/components/FiltroBar';
 import TabButton from '@/components/TabButton';
-import MetricCard from '@/components/MetricCard';
-import AderenciaCard from '@/components/AderenciaCard';
-import DashboardView from '@/components/views/DashboardView';
-import AnaliseView from '@/components/views/AnaliseView';
-import UtrView from '@/components/views/UtrView';
-import EvolucaoView from '@/components/views/EvolucaoView';
-import ValoresView from '@/components/views/ValoresView';
-import EntregadoresView from '@/components/views/EntregadoresView';
-import PrioridadePromoView from '@/components/views/PrioridadePromoView';
-import MonitoramentoView from '@/components/views/MonitoramentoView';
-import ComparacaoView from '@/components/views/ComparacaoView';
 import ConquistaNotificacao from '@/components/ConquistaNotificacao';
 import ConquistasModal from '@/components/ConquistasModal';
 import {
@@ -59,23 +48,54 @@ import {
 import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor } from '@/utils/formatters';
 import { buildFilterPayload, safeNumber, arraysEqual } from '@/utils/helpers';
 
+// Lazy load de componentes pesados para melhor performance
+const DashboardView = dynamic(() => import('@/components/views/DashboardView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+});
+const AnaliseView = dynamic(() => import('@/components/views/AnaliseView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+});
+const UtrView = dynamic(() => import('@/components/views/UtrView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+});
+const EvolucaoView = dynamic(() => import('@/components/views/EvolucaoView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+});
+const ValoresView = dynamic(() => import('@/components/views/ValoresView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+});
+const EntregadoresView = dynamic(() => import('@/components/views/EntregadoresView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+});
+const PrioridadePromoView = dynamic(() => import('@/components/views/PrioridadePromoView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+});
+const MonitoramentoView = dynamic(() => import('@/components/views/MonitoramentoView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+});
+const ComparacaoView = dynamic(() => import('@/components/views/ComparacaoView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>
+});
+
 // Hook Imports
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUserActivity } from '@/hooks/useUserActivity';
 import { useConquistas } from '@/hooks/useConquistas';
 
-// Registrar componentes do Chart.js
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
+// Registrar componentes do Chart.js apenas uma vez (evitar re-registro)
+if (!ChartJS.registry.getScale('category')) {
+  ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    LineElement,
+    PointElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend
+  );
+}
 
 // =================================================================================
 // Interfaces e Tipos
@@ -115,16 +135,18 @@ export default function DashboardPage() {
   // Lógica para registrar atividade do usuário e verificar conquistas
   useEffect(() => {
     registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
-    // Verificar conquistas após mudança de aba
-    setTimeout(() => verificarConquistas(), 1000);
-  }, [activeTab, registrarAtividade, filters, verificarConquistas]);
+    // Verificar conquistas após mudança de aba com delay para não sobrecarregar
+    const timeoutId = setTimeout(() => verificarConquistas(), 1000);
+    return () => clearTimeout(timeoutId);
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Verificar conquistas ao aplicar filtros
+  // Verificar conquistas ao aplicar filtros (com debounce)
   useEffect(() => {
     if (filters.ano || filters.praca || filters.semana) {
-      setTimeout(() => verificarConquistas(), 500);
+      const timeoutId = setTimeout(() => verificarConquistas(), 500);
+      return () => clearTimeout(timeoutId);
     }
-  }, [filters, verificarConquistas]);
+  }, [filters.ano, filters.praca, filters.semana]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lógica para buscar dados do usuário
   useEffect(() => {

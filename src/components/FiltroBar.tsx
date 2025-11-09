@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Filters, FilterOption } from '@/types';
 import FiltroSelect from './FiltroSelect';
 import FiltroMultiSelect from './FiltroMultiSelect';
 
-function FiltroBar({
+const FiltroBar = React.memo(function FiltroBar({
   filters,
   setFilters,
   anos,
@@ -24,7 +24,7 @@ function FiltroBar({
   turnos: FilterOption[];
   currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
 }) {
-  const handleChange = (key: keyof Filters, rawValue: string | null) => {
+  const handleChange = useCallback((key: keyof Filters, rawValue: string | null) => {
     setFilters((prev) => {
       let processedValue: any = null;
       if (rawValue && rawValue !== '') {
@@ -36,34 +36,45 @@ function FiltroBar({
       }
       return { ...prev, [key]: processedValue };
     });
-  };
+  }, [setFilters]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setFilters({
       ano: null, semana: null,
       praca: currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1 ? currentUser.assigned_pracas[0] : null,
       subPraca: null, origem: null, turno: null,
       subPracas: [], origens: [], turnos: [], semanas: [],
     });
-  };
+  }, [setFilters, currentUser]);
 
-  const hasActiveFilters = filters.ano !== null || filters.semana !== null || (filters.semanas && filters.semanas.length > 0) || filters.subPraca !== null || filters.origem !== null || filters.turno !== null || (filters.turnos && filters.turnos.length > 0) ||
-    (currentUser?.is_admin && filters.praca !== null);
+  const hasActiveFilters = useMemo(() => {
+    return filters.ano !== null || filters.semana !== null || (filters.semanas && filters.semanas.length > 0) || filters.subPraca !== null || filters.origem !== null || filters.turno !== null || (filters.turnos && filters.turnos.length > 0) ||
+      (currentUser?.is_admin && filters.praca !== null);
+  }, [filters, currentUser]);
 
-  const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
+  const shouldDisablePracaFilter = useMemo(() => {
+    return Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
+  }, [currentUser]);
+
+  const anosOptions = useMemo(() => {
+    return anos.map((ano) => ({ value: String(ano), label: String(ano) }));
+  }, [anos]);
+
+  const semanasOptions = useMemo(() => {
+    return semanas.map((sem) => {
+      const weekNumber = sem.includes('-W') ? sem.split('-W')[1] : sem;
+      return { value: weekNumber, label: `Semana ${weekNumber}` };
+    });
+  }, [semanas]);
 
   return (
     <div className="space-y-3 sm:space-y-4 relative" style={{ isolation: 'isolate' }}>
       <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anos.map((ano) => ({ value: String(ano), label: String(ano) }))} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
+        <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anosOptions} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
         <FiltroMultiSelect 
           label="Semana" 
           selected={filters.semanas ? filters.semanas.map(String) : []} 
-          options={semanas.map((sem) => {
-            // Extrair o número da semana do formato "2024-W01"
-            const weekNumber = sem.includes('-W') ? sem.split('-W')[1] : sem;
-            return { value: weekNumber, label: `Semana ${weekNumber}` };
-          })} 
+          options={semanasOptions} 
           placeholder="Todas" 
           onSelectionChange={(values) => setFilters(prev => ({...prev, semanas: values.map(v => parseInt(v))}))} 
         />
@@ -82,6 +93,8 @@ function FiltroBar({
       )}
     </div>
   );
-}
+});
+
+FiltroBar.displayName = 'FiltroBar';
 
 export default FiltroBar;

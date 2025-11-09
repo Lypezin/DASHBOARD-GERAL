@@ -94,15 +94,20 @@ export function useConquistas() {
 
   // Verificar conquistas periodicamente (a cada 60 segundos para reduzir carga)
   useEffect(() => {
-    // Verificar uma vez ao montar
-    verificarConquistas();
+    // Verificar uma vez ao montar com delay para não sobrecarregar na inicialização
+    const initialTimeout = setTimeout(() => {
+      verificarConquistas();
+    }, 2000); // Delay de 2 segundos na inicialização
     
     const interval = setInterval(() => {
       verificarConquistas();
     }, 60000); // 60 segundos
 
-    return () => clearInterval(interval);
-  }, [verificarConquistas]);
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Estatísticas
   const stats = {
