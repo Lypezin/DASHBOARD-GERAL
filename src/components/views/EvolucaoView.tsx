@@ -222,6 +222,83 @@ function EvolucaoView({
     return meses[mesNome] || mesNome;
   }, []);
 
+  // Criar baseLabels uma vez para todas as métricas (garantir consistência)
+  const baseLabels = useMemo(() => {
+    // Filtrar dados com semana/mês válidos e gerar labels
+    const labels = viewMode === 'mensal'
+      ? dadosAtivos
+          .filter(d => d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
+          .sort((a, b) => {
+            if ((a as EvolucaoMensal).ano !== (b as EvolucaoMensal).ano) {
+              return (a as EvolucaoMensal).ano - (b as EvolucaoMensal).ano;
+            }
+            return (a as EvolucaoMensal).mes - (b as EvolucaoMensal).mes;
+          })
+          .map(d => traduzirMes((d as EvolucaoMensal).mes_nome))
+      : dadosAtivos
+          .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
+          .sort((a, b) => {
+            if ((a as EvolucaoSemanal).ano !== (b as EvolucaoSemanal).ano) {
+              return (a as EvolucaoSemanal).ano - (b as EvolucaoSemanal).ano;
+            }
+            return (a as EvolucaoSemanal).semana - (b as EvolucaoSemanal).semana;
+          })
+          .map(d => {
+            const semana = (d as EvolucaoSemanal).semana;
+            return semana != null && semana !== undefined ? `S${semana}` : null;
+          })
+          .filter((label): label is string => label !== null);
+    
+    if (IS_DEV && viewMode === 'semanal') {
+      const semanas = dadosAtivos
+        .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
+        .map(d => (d as EvolucaoSemanal).semana)
+        .filter((s): s is number => s != null && s !== undefined)
+        .sort((a, b) => a - b);
+      console.log('📊 Semanas processadas:', semanas.length, 'semanas:', semanas);
+      console.log('📊 Semana mínima:', semanas.length > 0 ? Math.min(...semanas) : 'N/A');
+      console.log('📊 Semana máxima:', semanas.length > 0 ? Math.max(...semanas) : 'N/A');
+      console.log('📊 Labels gerados:', labels.length, 'labels:', labels);
+    }
+    
+    return labels;
+  }, [dadosAtivos, viewMode, traduzirMes]);
+
+  // Criar um mapa de dados ordenados por label para facilitar o acesso
+  const dadosPorLabel = useMemo(() => {
+    const map = new Map<string, any>();
+    if (viewMode === 'mensal') {
+      dadosAtivos
+        .filter(d => d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
+        .sort((a, b) => {
+          if ((a as EvolucaoMensal).ano !== (b as EvolucaoMensal).ano) {
+            return (a as EvolucaoMensal).ano - (b as EvolucaoMensal).ano;
+          }
+          return (a as EvolucaoMensal).mes - (b as EvolucaoMensal).mes;
+        })
+        .forEach(d => {
+          const label = traduzirMes((d as EvolucaoMensal).mes_nome);
+          map.set(label, d);
+        });
+    } else {
+      dadosAtivos
+        .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
+        .sort((a, b) => {
+          if ((a as EvolucaoSemanal).ano !== (b as EvolucaoSemanal).ano) {
+            return (a as EvolucaoSemanal).ano - (b as EvolucaoSemanal).ano;
+          }
+          return (a as EvolucaoSemanal).semana - (b as EvolucaoSemanal).semana;
+        })
+        .forEach(d => {
+          const semana = (d as EvolucaoSemanal).semana;
+          if (semana != null && semana !== undefined) {
+            map.set(`S${semana}`, d);
+          }
+        });
+    }
+    return map;
+  }, [dadosAtivos, viewMode, traduzirMes]);
+
   // Helper function para obter configuração de métrica
   const getMetricConfig = useCallback((metric: 'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'): {
     labels: string[];
@@ -233,18 +310,6 @@ function EvolucaoView({
     yAxisID: string;
     useUtrData: boolean;
   } | null => {
-    // Filtrar dados com semana/mês válidos e gerar labels
-    const baseLabels = viewMode === 'mensal'
-      ? dadosAtivos
-          .filter(d => d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
-          .map(d => traduzirMes((d as EvolucaoMensal).mes_nome))
-      : dadosAtivos
-          .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
-          .map(d => {
-            const semana = (d as EvolucaoSemanal).semana;
-            return semana != null && semana !== undefined ? `S${semana}` : null;
-          })
-          .filter((label): label is string => label !== null);
 
     switch (metric) {
       case 'utr':
@@ -264,11 +329,10 @@ function EvolucaoView({
       case 'horas':
         return {
           labels: baseLabels,
-          data: dadosAtivos
-            .filter(d => viewMode === 'mensal' 
-              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
-              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
-            .map(d => segundosParaHoras(d.total_segundos)),
+          data: baseLabels.map(label => {
+            const d = dadosPorLabel.get(label);
+            return d ? segundosParaHoras(d.total_segundos) : null;
+          }),
           label: '⏱️ Horas Trabalhadas',
           borderColor: 'rgba(251, 146, 60, 1)', // Laranja (bem diferente do verde)
           backgroundColor: (context: any) => {
@@ -289,11 +353,11 @@ function EvolucaoView({
       case 'ofertadas':
         return {
           labels: baseLabels,
-          data: dadosAtivos
-            .filter(d => viewMode === 'mensal' 
-              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
-              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
-            .map(d => (d as any).corridas_ofertadas || (d as any).total_corridas || 0),
+          data: baseLabels.map(label => {
+            const d = dadosPorLabel.get(label);
+            if (!d) return null;
+            return (d as any).corridas_ofertadas || (d as any).total_corridas || 0;
+          }),
           label: '📢 Corridas Ofertadas',
           borderColor: 'rgba(14, 165, 233, 1)', // Cyan/azul claro
           backgroundColor: (context: any) => {
@@ -314,11 +378,11 @@ function EvolucaoView({
       case 'aceitas':
         return {
           labels: baseLabels,
-          data: dadosAtivos
-            .filter(d => viewMode === 'mensal' 
-              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
-              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
-            .map(d => (d as any).corridas_aceitas || 0),
+          data: baseLabels.map(label => {
+            const d = dadosPorLabel.get(label);
+            if (!d) return null;
+            return (d as any).corridas_aceitas || 0;
+          }),
           label: '✅ Corridas Aceitas',
           borderColor: 'rgba(16, 185, 129, 1)', // Verde esmeralda mais vibrante
           backgroundColor: (context: any) => {
@@ -339,11 +403,11 @@ function EvolucaoView({
       case 'rejeitadas':
         return {
           labels: baseLabels,
-          data: dadosAtivos
-            .filter(d => viewMode === 'mensal' 
-              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
-              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
-            .map(d => (d as any).corridas_rejeitadas || 0),
+          data: baseLabels.map(label => {
+            const d = dadosPorLabel.get(label);
+            if (!d) return null;
+            return (d as any).corridas_rejeitadas || 0;
+          }),
           label: '❌ Corridas Rejeitadas',
           borderColor: 'rgba(239, 68, 68, 1)',
           backgroundColor: gradientRed,
@@ -355,11 +419,11 @@ function EvolucaoView({
       default:
         return {
           labels: baseLabels,
-          data: dadosAtivos
-            .filter(d => viewMode === 'mensal' 
-              ? (d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
-              : (d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined))
-            .map(d => (d as any).corridas_completadas || (d as any).total_corridas || 0),
+          data: baseLabels.map(label => {
+            const d = dadosPorLabel.get(label);
+            if (!d) return null;
+            return (d as any).corridas_completadas || (d as any).total_corridas || 0;
+          }),
           label: '🚗 Corridas Completadas',
           borderColor: 'rgba(37, 99, 235, 1)', // Azul escuro
           backgroundColor: (context: any) => {
@@ -378,7 +442,7 @@ function EvolucaoView({
           useUtrData: false,
         };
     }
-  }, [dadosAtivos, dadosUtrAtivos, viewMode, segundosParaHoras, traduzirMes, gradientPurple, gradientRed]); // Removido gradientGreen, gradientPurple, gradientRed (não são dependências)
+  }, [baseLabels, dadosPorLabel, dadosUtrAtivos, viewMode, segundosParaHoras, gradientPurple, gradientRed]);
 
   // Dados do gráfico com múltiplas métricas (otimizado com useMemo)
   const chartData = useMemo(() => {
@@ -434,27 +498,27 @@ function EvolucaoView({
 
       // Criar datasets para cada métrica selecionada
       const datasets = metricConfigs.map((config) => {
-        // Para UTR, usar dados próprios; para outras, alinhar com baseLabels
+        // Todas as métricas (exceto UTR) já usam baseLabels e dadosPorLabel, então os dados já estão alinhados
+        // Para UTR, usar dados próprios
         let data: (number | null)[] = config.data || [];
         
-        // Se os labels não correspondem aos baseLabels, precisamos alinhar
-        if (config.labels.length !== baseLabels.length || !config.labels.every((label, idx) => label === baseLabels[idx])) {
-          if (config.useUtrData) {
-            // UTR tem seus próprios labels, manter dados originais
-            data = (config.data || []) as (number | null)[];
-          } else {
-            // Para outras métricas, alinhar com baseLabels usando o mapeamento de labels
+        // Se é UTR e tem labels diferentes, manter dados originais
+        if (config.useUtrData && config.labels.length !== baseLabels.length) {
+          data = (config.data || []) as (number | null)[];
+        } else {
+          // Para outras métricas, os dados já estão alinhados com baseLabels
+          // Garantir que o tamanho corresponde
+          if (data.length !== baseLabels.length) {
+            // Se não corresponde, alinhar manualmente (não deveria acontecer, mas é um fallback)
             const labelMap = new Map<string, number>();
             config.labels.forEach((label, idx) => {
               const value = config.data[idx];
-              // Só mapear valores válidos (não null, undefined ou NaN)
               if (value != null && !isNaN(value) && isFinite(value)) {
                 labelMap.set(label, value);
               }
             });
             data = baseLabels.map(label => {
               const value = labelMap.get(label);
-              // Retornar null para valores não encontrados (Chart.js vai tratar como gap)
               return value != null && !isNaN(value) && isFinite(value) ? value : null;
             });
           }
@@ -508,6 +572,15 @@ function EvolucaoView({
         };
       });
 
+      if (IS_DEV) {
+        console.log('📊 ChartData criado:', {
+          labelsCount: baseLabels.length,
+          datasetsCount: datasets.length,
+          datasetsLabels: datasets.map(d => d.label),
+          selectedMetrics: Array.from(selectedMetrics)
+        });
+      }
+
       return {
         labels: baseLabels,
         datasets,
@@ -519,7 +592,7 @@ function EvolucaoView({
         datasets: [],
   };
     }
-  }, [selectedMetrics, getMetricConfig, isSemanal, dadosAtivos.length, dadosUtrAtivos.length]);
+  }, [selectedMetrics, getMetricConfig, isSemanal, dadosAtivos.length, dadosUtrAtivos.length, baseLabels]);
 
   // Calcular min e max dos dados para ajustar a escala do eixo Y
   const yAxisRange = useMemo(() => {

@@ -523,12 +523,19 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             
             try {
               // listar_evolucao_semanal(p_praca text, p_ano integer, p_limite_semanas integer DEFAULT 53)
+              // Aumentar limite para garantir que todas as semanas sejam retornadas
               const { data, error } = await supabase.rpc('listar_evolucao_semanal', { 
                 p_praca: null, 
                 p_ano: anoEvolucao,
-                p_limite_semanas: 53
+                p_limite_semanas: 60 // Aumentado para garantir semanas 44, 45, etc.
               });
               semanalRes = { data: data || [], error };
+              
+              if (IS_DEV && data) {
+                const semanas = Array.isArray(data) ? data.map((d: any) => d.semana).filter((s: any) => s != null) : [];
+                console.log('Semanas retornadas pela função:', semanas.length, 'semanas:', semanas);
+                console.log('Semana máxima:', semanas.length > 0 ? Math.max(...semanas) : 'N/A');
+              }
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
               semanalRes = { data: [], error: err };
