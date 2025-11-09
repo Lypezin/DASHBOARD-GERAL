@@ -281,9 +281,9 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             }
             break;
         case 'evolucao':
-          const cacheKey = `${JSON.stringify(filterPayload)}-${anoEvolucao}`;
-          if (evolucaoCacheRef.current.has(cacheKey)) {
-            const cached = evolucaoCacheRef.current.get(cacheKey)!;
+          const evolucaoCacheKey = `${JSON.stringify(filterPayload)}-${anoEvolucao}`;
+          if (evolucaoCacheRef.current.has(evolucaoCacheKey)) {
+            const cached = evolucaoCacheRef.current.get(evolucaoCacheKey)!;
             setEvolucaoMensal(cached.mensal);
             setEvolucaoSemanal(cached.semanal);
             setUtrSemanal(cached.utrSemanal);
@@ -318,7 +318,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               console.log('Evolução carregada:', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
             }
             
-            evolucaoCacheRef.current.set(cacheKey, { mensal, semanal, utrSemanal: utr });
+            evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: utr });
             setEvolucaoMensal(mensal);
             setEvolucaoSemanal(semanal);
             setUtrSemanal(utr);

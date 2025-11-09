@@ -653,7 +653,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  }), [isSemanal, dadosAtivos.length, dadosUtrAtivos.length, isDarkMode, selectedMetrics.size]); // Usar .size ao invés do objeto inteiro
+  }), [isSemanal, dadosAtivos.length, dadosUtrAtivos.length, isDarkMode, selectedMetrics]);
 
   // Early return APÓS todos os hooks
   if (loading) {

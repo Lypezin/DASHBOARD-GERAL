@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import type { ConquistaNova } from '@/types/conquistas';
 
 interface ConquistaNotificacaoProps {
@@ -10,6 +10,13 @@ export default function ConquistaNotificacao({ conquista, onClose }: ConquistaNo
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setExiting(true);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  }, [onClose]);
+
   useEffect(() => {
     // Animar entrada
     setTimeout(() => setVisible(true), 100);
@@ -20,14 +27,7 @@ export default function ConquistaNotificacao({ conquista, onClose }: ConquistaNo
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, []);
-
-  const handleClose = () => {
-    setExiting(true);
-    setTimeout(() => {
-      onClose();
-    }, 300);
-  };
+  }, [handleClose]);
 
   const getRaridadeColor = () => {
     // Baseado nos pontos, deduzir raridade

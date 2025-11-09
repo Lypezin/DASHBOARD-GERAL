@@ -50,7 +50,7 @@ function DashboardView({
   }, [viewMode, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
   // Ordem dos dias da semana
-  const diasDaSemanaOrdem = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+  const diasDaSemanaOrdem = useMemo(() => ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'], []);
   
   const aderenciaDiaOrdenada = useMemo(() => {
     return [...aderenciaDia].sort((a, b) => {
@@ -58,7 +58,7 @@ function DashboardView({
       const indexB = diasDaSemanaOrdem.indexOf(b.dia_da_semana);
       return indexA - indexB;
     });
-  }, [aderenciaDia]);
+  }, [aderenciaDia, diasDaSemanaOrdem]);
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
