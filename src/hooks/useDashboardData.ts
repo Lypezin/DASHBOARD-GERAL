@@ -536,12 +536,23 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             
             try {
               // listar_utr_semanal(p_ano integer, p_praca text, p_limite_semanas integer DEFAULT 53)
-              const { data, error } = await supabase.rpc('listar_utr_semanal', { 
+              // Tentar sem p_limite_semanas primeiro (pode ser opcional)
+              let utrResult = await supabase.rpc('listar_utr_semanal', { 
                 p_ano: anoEvolucao, 
-                p_praca: null,
-                p_limite_semanas: 53
+                p_praca: null
               });
-              utrSemanalRes = { data: data || [], error };
+              
+              // Se der erro, tentar com p_limite_semanas
+              if (utrResult.error) {
+                if (IS_DEV) console.log('Tentando listar_utr_semanal com p_limite_semanas...');
+                utrResult = await supabase.rpc('listar_utr_semanal', { 
+                  p_ano: anoEvolucao, 
+                  p_praca: null,
+                  p_limite_semanas: 53
+                });
+              }
+              
+              utrSemanalRes = { data: utrResult.data || [], error: utrResult.error };
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_utr_semanal:', err);
               utrSemanalRes = { data: [], error: err };

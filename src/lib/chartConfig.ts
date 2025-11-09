@@ -32,89 +32,101 @@ export function registerChartJS() {
     return;
   }
 
-  if (isRegistered) {
-    return;
-  }
-
   if (isImporting) {
     return;
   }
 
-      // Importar Chart.js apenas no cliente
+  try {
+    isImporting = true;
+    
+    // MÉTODO 1: Tentar usar chart.js/auto primeiro (mais confiável)
+    try {
+      const autoChart = require('chart.js/auto');
+      if (autoChart && autoChart.Chart) {
+        ChartJS = autoChart.Chart;
+        
+        // Verificar se as escalas estão registradas
+        if (ChartJS?.registry?.getScale('linear') && ChartJS?.registry?.getScale('category')) {
+          isRegistered = true;
+          isImporting = false;
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ Chart.js registrado via chart.js/auto');
+          }
+          return;
+        }
+      }
+    } catch (autoError) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('chart.js/auto falhou, tentando registro manual:', autoError);
+      }
+    }
+
+    // MÉTODO 2: Registro manual como fallback
+    const chartModule = require('chart.js');
+    ChartJS = chartModule.Chart;
+    CategoryScale = chartModule.CategoryScale;
+    LinearScale = chartModule.LinearScale;
+    BarElement = chartModule.BarElement;
+    LineElement = chartModule.LineElement;
+    PointElement = chartModule.PointElement;
+    ArcElement = chartModule.ArcElement;
+    Title = chartModule.Title;
+    Tooltip = chartModule.Tooltip;
+    Legend = chartModule.Legend;
+    Filler = chartModule.Filler;
+
+    // Verificar se já está registrado
+    try {
+      if (ChartJS?.registry?.getScale('category') && ChartJS?.registry?.getScale('linear')) {
+        isRegistered = true;
+        isImporting = false;
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ Chart.js já estava registrado');
+        }
+        return;
+      }
+    } catch (error) {
+      // Registry pode não estar disponível ainda, continuar com registro
+    }
+
+    // Forçar registro manual
+    ChartJS.register(
+      CategoryScale,
+      LinearScale,
+      BarElement,
+      LineElement,
+      PointElement,
+      ArcElement,
+      Title,
+      Tooltip,
+      Legend,
+      Filler
+    );
+    
+    isRegistered = true;
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Chart.js registrado manualmente');
+      
+      // Verificar se o registro funcionou
       try {
-        isImporting = true;
-        // Usar require para importação dinâmica no cliente
-        const chartModule = require('chart.js');
-        ChartJS = chartModule.Chart;
-        CategoryScale = chartModule.CategoryScale;
-        LinearScale = chartModule.LinearScale;
-        BarElement = chartModule.BarElement;
-        LineElement = chartModule.LineElement;
-        PointElement = chartModule.PointElement;
-        ArcElement = chartModule.ArcElement;
-        Title = chartModule.Title;
-        Tooltip = chartModule.Tooltip;
-        Legend = chartModule.Legend;
-        Filler = chartModule.Filler;
+        const hasLinear = ChartJS?.registry?.getScale('linear');
+        const hasCategory = ChartJS?.registry?.getScale('category');
+        console.log('Escalas disponíveis:', { linear: !!hasLinear, category: !!hasCategory });
+      } catch (e) {
+        console.warn('Erro ao verificar escalas:', e);
+      }
+    }
 
-        // Verificar se já está registrado
-        try {
-          if (ChartJS?.registry?.getScale('category') && ChartJS?.registry?.getScale('linear')) {
-            isRegistered = true;
-            isImporting = false;
-            return;
-          }
-        } catch (error) {
-          // Registry pode não estar disponível ainda, continuar com registro
-        }
-
-        try {
-          ChartJS.register(
-            CategoryScale,
-            LinearScale,
-            BarElement,
-            LineElement,
-            PointElement,
-            ArcElement,
-            Title,
-            Tooltip,
-            Legend,
-            Filler
-          );
-          isRegistered = true;
-          
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Chart.js registrado com sucesso');
-          }
-        } catch (error) {
-          // Se já estiver registrado, ignorar erro
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('Chart.js registration warning:', error);
-          }
-          isRegistered = true;
-        }
-
-        // Fallback definitivo: caso alguma escala não tenha sido registrada em runtime,
-        // usar o auto-registrador do Chart.js
-        try {
-          if (!ChartJS?.registry?.getScale('linear') || !ChartJS?.registry?.getScale('category')) {
-            // Isto realiza o auto-registro interno do Chart.js
-            require('chart.js/auto');
-            if (process.env.NODE_ENV === 'development') {
-              console.log('Chart.js auto-registrado via chart.js/auto');
-            }
-          }
-        } catch (autoErr) {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('Falha no auto-registro do Chart.js:', autoErr);
-          }
-        }
     isImporting = false;
   } catch (error) {
     isImporting = false;
     if (process.env.NODE_ENV === 'development') {
-      console.error('Chart.js registration error:', error);
+      console.error('❌ Erro no registro do Chart.js:', error);
     }
+    
+    // MÉTODO 3: Último recurso - definir como registrado para evitar loops
+    isRegistered = true;
   }
 }
 
