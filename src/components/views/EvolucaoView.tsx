@@ -472,6 +472,51 @@ function EvolucaoView({
   };
     }
   }, [selectedMetrics, getMetricConfig, isSemanal, dadosAtivos.length, dadosUtrAtivos.length]);
+
+  // Calcular min e max dos dados para ajustar a escala do eixo Y
+  const yAxisRange = useMemo(() => {
+    if (!chartData || !chartData.datasets || chartData.datasets.length === 0) {
+      return { min: 0, max: 100 };
+    }
+
+    // Coletar todos os valores de todos os datasets
+    const allValues: number[] = [];
+    chartData.datasets.forEach(dataset => {
+      if (dataset.data && Array.isArray(dataset.data)) {
+        dataset.data.forEach((value: any) => {
+          if (typeof value === 'number' && !isNaN(value) && isFinite(value)) {
+            allValues.push(value);
+          }
+        });
+      }
+    });
+
+    if (allValues.length === 0) {
+      return { min: 0, max: 100 };
+    }
+
+    const minValue = Math.min(...allValues);
+    const maxValue = Math.max(...allValues);
+
+    // Se todos os valores são iguais, criar uma faixa pequena ao redor
+    if (minValue === maxValue) {
+      const padding = Math.max(1, minValue * 0.1);
+      return {
+        min: Math.max(0, minValue - padding),
+        max: maxValue + padding
+      };
+    }
+
+    // Adicionar padding de 10% acima e abaixo para melhor visualização
+    const range = maxValue - minValue;
+    const padding = range * 0.1;
+
+    return {
+      min: Math.max(0, minValue - padding),
+      max: maxValue + padding
+    };
+  }, [chartData]);
+
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
     responsive: true,
@@ -599,6 +644,9 @@ function EvolucaoView({
         type: 'linear' as const,
         display: true,
         position: 'left' as const,
+        beginAtZero: false, // Não forçar começar em zero
+        min: yAxisRange.min, // Usar o mínimo calculado
+        max: yAxisRange.max, // Usar o máximo calculado
         title: {
           display: true,
           text: selectedMetrics.size === 1 && selectedMetrics.has('utr')
@@ -686,7 +734,7 @@ function EvolucaoView({
         hoverRadius: isSemanal ? 8 : 10,
       },
     },
-  }), [isSemanal, dadosAtivos.length, isDarkMode, selectedMetrics]);
+  }), [isSemanal, dadosAtivos.length, isDarkMode, selectedMetrics, yAxisRange]);
 
   // Early return APÓS todos os hooks
   if (loading) {
