@@ -1051,15 +1051,18 @@ function EvolucaoView({
           </div>
         ) : (
           <div className="relative z-10 flex h-[500px] items-center justify-center">
-            <div className="text-center">
-              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                <span className="text-4xl">📊</span>
+            <div className="text-center max-w-md mx-auto">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+                <span className="text-4xl">⚠️</span>
               </div>
-              <p className="text-xl font-bold text-slate-600 dark:text-slate-300">
-                Nenhum dado disponível para {anoSelecionado}
+              <p className="text-xl font-bold text-amber-800 dark:text-amber-200">
+                Dados de evolução temporariamente indisponíveis
               </p>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                Selecione outro ano para visualizar os dados
+              <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                As funções de evolução estão sendo ajustadas no servidor.
+              </p>
+              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                Esta funcionalidade será reativada em breve.
               </p>
             </div>
           </div>
