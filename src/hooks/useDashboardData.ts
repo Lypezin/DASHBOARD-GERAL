@@ -495,9 +495,9 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             }
             
             // Carregar dados de evolução com tratamento individual de erros
-            let mensalRes = { data: [], error: null };
-            let semanalRes = { data: [], error: null };
-            let utrSemanalRes = { data: [], error: null };
+            let mensalRes: any = { data: [], error: null };
+            let semanalRes: any = { data: [], error: null };
+            let utrSemanalRes: any = { data: [], error: null };
             
             try {
               mensalRes = await supabase.rpc('listar_evolucao_mensal', { p_ano: anoEvolucao });
