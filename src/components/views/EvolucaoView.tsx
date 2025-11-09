@@ -351,13 +351,41 @@ function EvolucaoView({
           useUtrData: false,
         };
       case 'ofertadas':
+        const ofertadasData = baseLabels.map(label => {
+          const d = dadosPorLabel.get(label);
+          if (!d) return null;
+          // Tentar diferentes nomes de propriedades que podem existir
+          const value = (d as any).corridas_ofertadas ?? 
+                       (d as any).corridas_ofertadas_total ?? 
+                       (d as any).total_corridas_ofertadas ??
+                       (d as any).total_corridas ?? 
+                       null;
+          if (IS_DEV && label === baseLabels[0]) {
+            console.log('📊 Ofertadas - primeiro dado:', { 
+              label, 
+              d, 
+              value, 
+              keys: Object.keys(d),
+              corridas_ofertadas: (d as any).corridas_ofertadas,
+              total_corridas: (d as any).total_corridas
+            });
+          }
+          // Retornar 0 se o valor for 0, null se não existir
+          return value != null ? Number(value) : null;
+        });
+        if (IS_DEV) {
+          const nonNull = ofertadasData.filter(v => v != null);
+          const nonZero = ofertadasData.filter(v => v != null && v !== 0);
+          console.log('📊 Ofertadas - resumo:', {
+            total: ofertadasData.length,
+            nonNull: nonNull.length,
+            nonZero: nonZero.length,
+            sample: ofertadasData.slice(0, 10)
+          });
+        }
         return {
           labels: baseLabels,
-          data: baseLabels.map(label => {
-            const d = dadosPorLabel.get(label);
-            if (!d) return null;
-            return (d as any).corridas_ofertadas || (d as any).total_corridas || 0;
-          }),
+          data: ofertadasData,
           label: '📢 Corridas Ofertadas',
           borderColor: 'rgba(14, 165, 233, 1)', // Cyan/azul claro
           backgroundColor: (context: any) => {
@@ -376,13 +404,38 @@ function EvolucaoView({
           useUtrData: false,
         };
       case 'aceitas':
+        const aceitasData = baseLabels.map(label => {
+          const d = dadosPorLabel.get(label);
+          if (!d) return null;
+          // Tentar diferentes nomes de propriedades que podem existir
+          const value = (d as any).corridas_aceitas ?? 
+                       (d as any).corridas_aceitas_total ?? 
+                       (d as any).total_corridas_aceitas ??
+                       null;
+          if (IS_DEV && label === baseLabels[0]) {
+            console.log('📊 Aceitas - primeiro dado:', { 
+              label, 
+              d, 
+              value, 
+              keys: Object.keys(d),
+              corridas_aceitas: (d as any).corridas_aceitas
+            });
+          }
+          return value != null ? Number(value) : null;
+        });
+        if (IS_DEV) {
+          const nonNull = aceitasData.filter(v => v != null);
+          const nonZero = aceitasData.filter(v => v != null && v !== 0);
+          console.log('📊 Aceitas - resumo:', {
+            total: aceitasData.length,
+            nonNull: nonNull.length,
+            nonZero: nonZero.length,
+            sample: aceitasData.slice(0, 10)
+          });
+        }
         return {
           labels: baseLabels,
-          data: baseLabels.map(label => {
-            const d = dadosPorLabel.get(label);
-            if (!d) return null;
-            return (d as any).corridas_aceitas || 0;
-          }),
+          data: aceitasData,
           label: '✅ Corridas Aceitas',
           borderColor: 'rgba(16, 185, 129, 1)', // Verde esmeralda mais vibrante
           backgroundColor: (context: any) => {
@@ -401,13 +454,38 @@ function EvolucaoView({
           useUtrData: false,
         };
       case 'rejeitadas':
+        const rejeitadasData = baseLabels.map(label => {
+          const d = dadosPorLabel.get(label);
+          if (!d) return null;
+          // Tentar diferentes nomes de propriedades que podem existir
+          const value = (d as any).corridas_rejeitadas ?? 
+                       (d as any).corridas_rejeitadas_total ?? 
+                       (d as any).total_corridas_rejeitadas ??
+                       null;
+          if (IS_DEV && label === baseLabels[0]) {
+            console.log('📊 Rejeitadas - primeiro dado:', { 
+              label, 
+              d, 
+              value, 
+              keys: Object.keys(d),
+              corridas_rejeitadas: (d as any).corridas_rejeitadas
+            });
+          }
+          return value != null ? Number(value) : null;
+        });
+        if (IS_DEV) {
+          const nonNull = rejeitadasData.filter(v => v != null);
+          const nonZero = rejeitadasData.filter(v => v != null && v !== 0);
+          console.log('📊 Rejeitadas - resumo:', {
+            total: rejeitadasData.length,
+            nonNull: nonNull.length,
+            nonZero: nonZero.length,
+            sample: rejeitadasData.slice(0, 10)
+          });
+        }
         return {
           labels: baseLabels,
-          data: baseLabels.map(label => {
-            const d = dadosPorLabel.get(label);
-            if (!d) return null;
-            return (d as any).corridas_rejeitadas || 0;
-          }),
+          data: rejeitadasData,
           label: '❌ Corridas Rejeitadas',
           borderColor: 'rgba(239, 68, 68, 1)',
           backgroundColor: gradientRed,
@@ -486,10 +564,12 @@ function EvolucaoView({
       }
 
       // Usar labels da primeira métrica (ou da UTR se estiver presente, pois pode ter labels diferentes)
+      // IMPORTANTE: Todas as métricas já usam o mesmo baseLabels definido no componente
+      // Mas precisamos garantir que os labels sejam consistentes
       const utrConfig = metricConfigs.find(c => c.useUtrData);
-      const baseLabels = utrConfig?.labels || metricConfigs[0].labels;
+      const chartBaseLabels = utrConfig?.labels || baseLabels; // Usar baseLabels do componente
 
-      if (!baseLabels || baseLabels.length === 0) {
+      if (!chartBaseLabels || chartBaseLabels.length === 0) {
         return {
           labels: [],
           datasets: [],
@@ -503,12 +583,12 @@ function EvolucaoView({
         let data: (number | null)[] = config.data || [];
         
         // Se é UTR e tem labels diferentes, manter dados originais
-        if (config.useUtrData && config.labels.length !== baseLabels.length) {
+        if (config.useUtrData && config.labels.length !== chartBaseLabels.length) {
           data = (config.data || []) as (number | null)[];
         } else {
           // Para outras métricas, os dados já estão alinhados com baseLabels
           // Garantir que o tamanho corresponde
-          if (data.length !== baseLabels.length) {
+          if (data.length !== chartBaseLabels.length) {
             // Se não corresponde, alinhar manualmente (não deveria acontecer, mas é um fallback)
             const labelMap = new Map<string, number>();
             config.labels.forEach((label, idx) => {
@@ -517,7 +597,7 @@ function EvolucaoView({
                 labelMap.set(label, value);
               }
             });
-            data = baseLabels.map(label => {
+            data = chartBaseLabels.map(label => {
               const value = labelMap.get(label);
               return value != null && !isNaN(value) && isFinite(value) ? value : null;
             });
@@ -525,12 +605,28 @@ function EvolucaoView({
         }
         
         // Garantir que todos os valores são números válidos ou null
+        // IMPORTANTE: Não converter 0 para null, pois 0 é um valor válido
         data = data.map((value: any) => {
           if (value == null || isNaN(value) || !isFinite(value)) {
             return null; // Chart.js vai tratar null como gap
           }
-          return Number(value);
+          const numValue = Number(value);
+          // Retornar 0 se for 0, não null
+          return numValue === 0 ? 0 : numValue;
         });
+        
+        if (IS_DEV) {
+          const datasetLabel = config.label;
+          const nonNullValues = data.filter(v => v != null);
+          const zeroValues = data.filter(v => v === 0);
+          console.log(`📊 Dataset ${datasetLabel}:`, {
+            total: data.length,
+            nonNull: nonNullValues.length,
+            zeros: zeroValues.length,
+            hasData: nonNullValues.length > 0,
+            sample: data.slice(0, 10)
+          });
+        }
 
         return {
           label: config.label,
@@ -538,21 +634,23 @@ function EvolucaoView({
           borderColor: config.borderColor,
           backgroundColor: config.backgroundColor,
           yAxisID: config.yAxisID,
-          tension: 0.5,
-        cubicInterpolationMode: 'monotone' as const,
-          pointRadius: isSemanal ? 5 : 7,
-          pointHoverRadius: isSemanal ? 10 : 12,
+          tension: 0.4,
+          cubicInterpolationMode: 'monotone' as const,
+          pointRadius: isSemanal ? 4 : 6,
+          pointHoverRadius: isSemanal ? 8 : 10,
           pointHitRadius: 20,
           pointBackgroundColor: config.pointColor,
-        pointBorderColor: '#fff',
-          pointBorderWidth: 3.5,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
           pointHoverBackgroundColor: config.pointColor,
-        pointHoverBorderColor: '#fff',
-          pointHoverBorderWidth: 5,
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 4,
           pointStyle: 'circle' as const,
-          borderWidth: 3.5,
-        fill: true,
-        spanGaps: true,
+          borderWidth: 2.5, // Reduzido para garantir visibilidade
+          fill: true,
+          spanGaps: true, // Conectar gaps para manter linhas contínuas
+          showLine: true, // Garantir que a linha seja mostrada
+          hidden: false, // Garantir que o dataset não esteja escondido
         segment: {
           borderColor: (ctx: any) => {
               if (!ctx.p0 || !ctx.p1) return config.borderColor;
@@ -574,15 +672,26 @@ function EvolucaoView({
 
       if (IS_DEV) {
         console.log('📊 ChartData criado:', {
-          labelsCount: baseLabels.length,
+          labelsCount: chartBaseLabels.length,
           datasetsCount: datasets.length,
           datasetsLabels: datasets.map(d => d.label),
-          selectedMetrics: Array.from(selectedMetrics)
+          selectedMetrics: Array.from(selectedMetrics),
+          datasetsDetails: datasets.map(d => ({
+            label: d.label,
+            dataLength: d.data.length,
+            nonNullCount: d.data.filter(v => v != null).length,
+            nonZeroCount: d.data.filter(v => v != null && v !== 0).length,
+            firstValues: d.data.slice(0, 5),
+            borderColor: d.borderColor,
+            hasData: d.data.some(v => v != null && v !== 0),
+            minValue: d.data.filter(v => v != null).length > 0 ? Math.min(...d.data.filter(v => v != null) as number[]) : null,
+            maxValue: d.data.filter(v => v != null).length > 0 ? Math.max(...d.data.filter(v => v != null) as number[]) : null
+          }))
         });
       }
 
       return {
-        labels: baseLabels,
+        labels: chartBaseLabels,
         datasets,
       };
     } catch (error) {
@@ -592,7 +701,6 @@ function EvolucaoView({
         datasets: [],
   };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels]); // baseLabels é necessário pois é usado diretamente no retorno
 
   // Calcular min e max dos dados para ajustar a escala do eixo Y
