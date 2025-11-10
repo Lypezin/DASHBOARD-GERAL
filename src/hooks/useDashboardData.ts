@@ -487,12 +487,24 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             }
             break;
         case 'evolucao':
-          // Cache key apenas com o ano, já que evolução não usa outros filtros
-          // Adicionar timestamp para invalidar cache após 1 minuto (dados podem mudar)
-          const evolucaoCacheKey = `evolucao-${anoEvolucao}`;
+          // Cache key com ano E praça, pois diferentes praças retornam dados diferentes
+          // IMPORTANTE: Incluir praça na chave para evitar cache incorreto entre diferentes praças
+          const pracaFilter = filterPayload.p_praca;
+          const evolucaoCacheKey = `evolucao-${anoEvolucao}-${pracaFilter || 'all'}`;
+          
+          // Limpar cache antigo que não inclui praça na chave (compatibilidade)
+          evolucaoCacheRef.current.forEach((value, key) => {
+            if (key.startsWith(`evolucao-${anoEvolucao}-`) && !key.includes(pracaFilter || 'all')) {
+              // Manter apenas para evitar limpar demais
+            } else if (key === `evolucao-${anoEvolucao}`) {
+              // Remover cache antigo sem praça
+              evolucaoCacheRef.current.delete(key);
+            }
+          });
+          
           const cached = evolucaoCacheRef.current.get(evolucaoCacheKey);
-          // Usar cache apenas se existir e tiver menos de 1 minuto
-          if (cached && cached.timestamp && Date.now() - cached.timestamp < 60000) {
+          // Usar cache apenas se existir e tiver menos de 30 segundos (reduzido para forçar atualização)
+          if (cached && cached.timestamp && Date.now() - cached.timestamp < 30000) {
             setEvolucaoMensal(cached.mensal);
             setEvolucaoSemanal(cached.semanal);
             setUtrSemanal(cached.utrSemanal);
@@ -512,7 +524,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             let utrSemanalRes: any = { data: [], error: null }; // Manter para compatibilidade, mas não carregar
             
             // Usar o filterPayload já construído que já aplica as permissões do usuário
-            const pracaFilter = filterPayload.p_praca;
+            // (pracaFilter já foi definido acima para o cache key)
             
             if (IS_DEV) {
               console.log('🔍 [HOOK] Carregando evolução com filtro de praça:', pracaFilter);
@@ -540,12 +552,28 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             try {
               // listar_evolucao_semanal(p_praca text, p_ano integer, p_limite_semanas integer DEFAULT 53)
               // Aumentar limite para garantir que todas as semanas sejam retornadas
+              // IMPORTANTE: Passar pracaFilter explicitamente (não null) para garantir filtro correto
               const { data, error } = await supabase.rpc('listar_evolucao_semanal', { 
-                p_praca: pracaFilter, 
+                p_praca: pracaFilter || null, 
                 p_ano: anoEvolucao,
                 p_limite_semanas: 60 // Aumentado para garantir semanas 44, 45, etc.
               });
               semanalRes = { data: data || [], error };
+              
+              // Log detalhado para debug
+              if (IS_DEV && data && Array.isArray(data) && data.length > 0) {
+                const semana35 = data.find((d: any) => d.semana === 35);
+                if (semana35) {
+                  console.log('🔍 [HOOK] Semana 35 encontrada:', {
+                    ano: semana35.ano,
+                    semana: semana35.semana,
+                    total_segundos: semana35.total_segundos,
+                    horas: (Number(semana35.total_segundos) / 3600).toFixed(2),
+                    praca_filter_usado: pracaFilter,
+                    corridas_completadas: semana35.corridas_completadas
+                  });
+                }
+              }
               
               if (IS_DEV && data) {
                 const semanas = Array.isArray(data) ? data.map((d: any) => d.semana).filter((s: any) => s != null) : [];
