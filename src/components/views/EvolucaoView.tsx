@@ -796,40 +796,70 @@ function EvolucaoView({
         // Usar ordem diferente para cada dataset para garantir que todos apareçam
         const order = index; // Ordem baseada no índice para garantir renderização
         
-        // Para linhas com valores idênticos, usar estilos diferentes para diferenciá-las
+        // Para linhas com valores idênticos, usar estilos MUITO diferentes para diferenciá-las
         // Usar borderWidth e pointRadius diferentes para cada linha para garantir visibilidade
-        const borderWidths = [4, 3, 3, 3, 3]; // Primeira linha mais grossa
-        const pointRadii = isSemanal ? [6, 5, 5, 4, 5] : [8, 7, 7, 6, 7]; // Primeira linha com pontos maiores
-        const borderWidth = borderWidths[index] || 3;
-        const pointRadius = pointRadii[index] || (isSemanal ? 5 : 7);
+        const borderWidths = [5, 4, 4, 3, 4]; // Larguras diferentes e mais grossas
+        const pointRadii = isSemanal ? [7, 6, 6, 5, 6] : [10, 9, 9, 8, 9]; // Pontos maiores e diferentes
+        const borderWidth = borderWidths[index] || 4;
+        const pointRadius = pointRadii[index] || (isSemanal ? 6 : 9);
         
-        // Usar estilos de linha diferentes para diferenciar quando valores são iguais
+        // Usar estilos de linha MUITO diferentes para diferenciar quando valores são iguais
+        // Padrões mais distintos para melhor visibilidade
         const dashPatterns = [
-          [], // Sólida
-          [5, 5], // Tracejada
-          [10, 5], // Pontilhada longa
-          [2, 2], // Pontilhada curta
-          [15, 5, 5, 5], // Traço-ponto
+          [], // Sólida (Completadas)
+          [8, 4], // Tracejada média (Aceitas)
+          [15, 5], // Tracejada longa (Ofertadas)
+          [3, 3], // Pontilhada curta (Rejeitadas)
+          [], // Sólida (Horas)
         ];
+        
+        // Usar opacidades ligeiramente diferentes para linhas sobrepostas
+        const opacities = [1.0, 0.95, 0.90, 1.0, 1.0]; // Pequenas diferenças de opacidade
+        const opacity = opacities[index] || 1.0;
+        
+        // Função para ajustar opacidade de cor (suporta rgba, rgb e hex)
+        const adjustColorOpacity = (color: string, newOpacity: number): string => {
+          // Se já é rgba, substituir opacidade
+          if (color.startsWith('rgba(')) {
+            return color.replace(/,\s*[\d.]+\)$/, `, ${newOpacity})`);
+          }
+          // Se é rgb, converter para rgba
+          if (color.startsWith('rgb(')) {
+            return color.replace('rgb(', 'rgba(').replace(')', `, ${newOpacity})`);
+          }
+          // Se é hex, converter para rgba (simplificado - assume formato #RRGGBB)
+          if (color.startsWith('#')) {
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${newOpacity})`;
+          }
+          // Se não conseguir converter, retornar original
+          return color;
+        };
+        
+        // Ajustar cor da borda com opacidade para melhor diferenciação
+        const borderColorWithOpacity = adjustColorOpacity(config.borderColor, opacity);
+        const pointColorWithOpacity = adjustColorOpacity(config.pointColor, opacity);
         
         return {
           label: config.label,
           data,
-          borderColor: config.borderColor,
+          borderColor: borderColorWithOpacity, // Usar cor com opacidade ajustada
           backgroundColor: config.backgroundColor,
           yAxisID: config.yAxisID,
           type: 'line' as const, // Forçar tipo line explicitamente
           tension: 0.4,
           cubicInterpolationMode: 'monotone' as const,
           pointRadius: pointRadius,
-          pointHoverRadius: isSemanal ? 10 : 12,
-          pointHitRadius: 30, // Aumentado para melhor interação
-          pointBackgroundColor: config.pointColor,
+          pointHoverRadius: isSemanal ? 12 : 14, // Aumentado para melhor visibilidade
+          pointHitRadius: 35, // Aumentado para melhor interação
+          pointBackgroundColor: pointColorWithOpacity, // Aplicar opacidade aos pontos também
           pointBorderColor: '#fff',
-          pointBorderWidth: 3, // Aumentado para melhor visibilidade
+          pointBorderWidth: 4, // Aumentado para melhor visibilidade
           pointHoverBackgroundColor: config.pointColor,
           pointHoverBorderColor: '#fff',
-          pointHoverBorderWidth: 5,
+          pointHoverBorderWidth: 6,
           pointStyle: 'circle' as const,
           borderWidth: borderWidth, // Largura variável para cada linha
           borderDash: dashPatterns[index] || [], // Padrão de linha diferente para cada dataset
@@ -842,10 +872,9 @@ function EvolucaoView({
           stack: undefined, // Não usar stack para evitar sobreposição
           // Adicionar propriedades para garantir renderização
           stepped: false,
-          // clip removido - não é necessário e causa erro de tipo
           segment: {
             borderColor: (ctx: any) => {
-              if (!ctx.p0 || !ctx.p1) return config.borderColor;
+              if (!ctx.p0 || !ctx.p1) return borderColorWithOpacity;
               const value0 = ctx.p0.parsed.y;
               const value1 = ctx.p1.parsed.y;
               
@@ -856,7 +885,7 @@ function EvolucaoView({
                 if (avg >= 0.5) return 'rgba(251, 191, 36, 1)'; // Amarelo para UTR >= 0.5
                 return 'rgba(239, 68, 68, 1)'; // Vermelho para UTR < 0.5
               }
-              return config.borderColor;
+              return borderColorWithOpacity;
             },
             borderWidth: borderWidth,
             borderDash: dashPatterns[index] || [],
@@ -1511,6 +1540,39 @@ function EvolucaoView({
                     ? `Análise detalhada de UTR por semana (${dadosUtrAtivos.length} semanas exibidas)`
                     : `Análise detalhada de ${selectedMetrics.size} ${selectedMetrics.size === 1 ? 'métrica' : 'métricas'} (${selectedMetrics.has('utr') && dadosUtrAtivos.length > 0 ? dadosUtrAtivos.length : dadosAtivos.length} ${viewMode === 'mensal' ? 'meses' : 'semanas'} exibidos)`}
                 </p>
+                {/* Aviso quando métricas têm valores idênticos */}
+                {(() => {
+                  const datasets = chartData?.datasets || [];
+                  const identicalMetrics: string[] = [];
+                  
+                  for (let i = 0; i < datasets.length; i++) {
+                    for (let j = i + 1; j < datasets.length; j++) {
+                      const d1 = datasets[i];
+                      const d2 = datasets[j];
+                      const values1 = d1.data.filter(v => v != null);
+                      const values2 = d2.data.filter(v => v != null);
+                      
+                      if (values1.length === values2.length && values1.length > 0) {
+                        const allEqual = values1.every((v, idx) => v === values2[idx]);
+                        if (allEqual && !identicalMetrics.includes(d1.label) && !identicalMetrics.includes(d2.label)) {
+                          identicalMetrics.push(d1.label, d2.label);
+                        }
+                      }
+                    }
+                  }
+                  
+                  if (identicalMetrics.length > 0) {
+                    return (
+                      <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50/50 p-2 dark:border-amber-800 dark:bg-amber-950/20">
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                          <span className="font-semibold">ℹ️ Nota:</span> Algumas métricas têm valores idênticos e podem aparecer sobrepostas no gráfico. 
+                          Use a legenda para destacar cada métrica individualmente.
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
               
               {/* Indicadores de métricas selecionadas */}
