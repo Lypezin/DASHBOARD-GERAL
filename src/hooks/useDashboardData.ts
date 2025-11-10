@@ -41,7 +41,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
 
   const cacheKeyRef = useRef<string>('');
   const cachedDataRef = useRef<DashboardResumoData | null>(null);
-  const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[] }>>(new Map());
+  const evolucaoCacheRef = useRef<Map<string, { mensal: EvolucaoMensal[]; semanal: EvolucaoSemanal[]; utrSemanal: UtrSemanal[]; timestamp: number }>>(new Map());
   const dashboardDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const filterPayload = useMemo(() => {
@@ -488,9 +488,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             break;
         case 'evolucao':
           // Cache key apenas com o ano, já que evolução não usa outros filtros
+          // Adicionar timestamp para invalidar cache após 1 minuto (dados podem mudar)
           const evolucaoCacheKey = `evolucao-${anoEvolucao}`;
-          if (evolucaoCacheRef.current.has(evolucaoCacheKey)) {
-            const cached = evolucaoCacheRef.current.get(evolucaoCacheKey)!;
+          const cached = evolucaoCacheRef.current.get(evolucaoCacheKey);
+          // Usar cache apenas se existir e tiver menos de 1 minuto
+          if (cached && cached.timestamp && Date.now() - cached.timestamp < 60000) {
             setEvolucaoMensal(cached.mensal);
             setEvolucaoSemanal(cached.semanal);
             setUtrSemanal(cached.utrSemanal);
@@ -685,7 +687,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               });
             }
             
-            evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: utr });
+            evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: utr, timestamp: Date.now() });
             setEvolucaoMensal(mensal);
             setEvolucaoSemanal(semanal);
             setUtrSemanal(utr);

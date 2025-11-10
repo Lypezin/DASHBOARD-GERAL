@@ -50,7 +50,12 @@ BEGIN
       COALESCE(numero_de_corridas_aceitas, 0) AS aceitas,
       COALESCE(numero_de_corridas_completadas, 0) AS completadas,
       COALESCE(numero_de_corridas_rejeitadas, 0) AS rejeitadas,
-      COALESCE(tempo_disponivel_absoluto_segundos, hhmmss_to_seconds(tempo_disponivel_absoluto)) AS tempo_segundos
+      COALESCE(tempo_disponivel_absoluto_segundos, hhmmss_to_seconds(tempo_disponivel_absoluto)) AS tempo_segundos,
+      data_do_periodo,
+      periodo,
+      praca,
+      sub_praca,
+      origem
     FROM public.dados_corridas
     WHERE data_do_periodo IS NOT NULL
       AND (p_ano IS NULL OR ano_iso = p_ano)
@@ -61,19 +66,42 @@ BEGIN
         OR (p_praca LIKE '%,%' AND praca = ANY(string_to_array(p_praca, ',')))
       )
   ),
-  mes_agg AS (
+  -- Remover duplicatas por (data_do_periodo, periodo, praca, sub_praca, origem) para horas
+  -- Isso garante que as horas não sejam contadas múltiplas vezes (mesma lógica do dashboard)
+  horas_sem_duplicatas_mensal AS (
+    SELECT DISTINCT ON (data_do_periodo, periodo, praca, sub_praca, origem)
+      ano_iso,
+      EXTRACT(MONTH FROM data_do_periodo) AS mes_numero,
+      tempo_segundos
+    FROM filtered_data
+    WHERE tempo_segundos IS NOT NULL AND tempo_segundos > 0
+    ORDER BY data_do_periodo, periodo, praca, sub_praca, origem, tempo_segundos DESC
+  ),
+  horas_por_mes AS (
     SELECT
       ano_iso,
       mes_numero,
-      MAX(mes_nome_pt) AS mes_nome,
-      SUM(ofertadas) AS total_ofertadas,
-      SUM(aceitas) AS total_aceitas,
-      SUM(completadas) AS total_completadas,
-      SUM(rejeitadas) AS total_rejeitadas,
-      SUM(tempo_segundos) AS total_segundos
-    FROM filtered_data
-    WHERE ano_iso IS NOT NULL AND mes_numero IS NOT NULL
+      SUM(tempo_segundos) AS total_segundos_horas
+    FROM horas_sem_duplicatas_mensal
     GROUP BY ano_iso, mes_numero
+  ),
+  mes_agg AS (
+    SELECT
+      fd.ano_iso,
+      fd.mes_numero,
+      MAX(fd.mes_nome_pt) AS mes_nome,
+      SUM(fd.ofertadas) AS total_ofertadas,
+      SUM(fd.aceitas) AS total_aceitas,
+      SUM(fd.completadas) AS total_completadas,
+      SUM(fd.rejeitadas) AS total_rejeitadas,
+      -- Usar horas sem duplicatas (mesma lógica do dashboard_resumo)
+      COALESCE(hpm.total_segundos_horas, 0) AS total_segundos
+    FROM filtered_data fd
+    LEFT JOIN horas_por_mes hpm ON 
+      fd.ano_iso = hpm.ano_iso 
+      AND fd.mes_numero = hpm.mes_numero
+    WHERE fd.ano_iso IS NOT NULL AND fd.mes_numero IS NOT NULL
+    GROUP BY fd.ano_iso, fd.mes_numero, hpm.total_segundos_horas
   )
   SELECT
     m.ano_iso AS ano,
@@ -116,6 +144,11 @@ BEGIN
     SELECT
       ano_iso,
       semana_numero,
+      data_do_periodo,
+      periodo,
+      praca,
+      sub_praca,
+      origem,
       COALESCE(numero_de_corridas_ofertadas, 0) AS ofertadas,
       COALESCE(numero_de_corridas_aceitas, 0) AS aceitas,
       COALESCE(numero_de_corridas_completadas, 0) AS completadas,
@@ -131,18 +164,41 @@ BEGIN
         OR (p_praca LIKE '%,%' AND praca = ANY(string_to_array(p_praca, ',')))
       )
   ),
-  semana_agg AS (
+  -- Remover duplicatas por (data_do_periodo, periodo, praca, sub_praca, origem) para horas
+  -- Isso garante que as horas não sejam contadas múltiplas vezes (mesma lógica do dashboard)
+  horas_sem_duplicatas AS (
+    SELECT DISTINCT ON (data_do_periodo, periodo, praca, sub_praca, origem)
+      ano_iso,
+      semana_numero,
+      tempo_segundos
+    FROM filtered_data
+    WHERE tempo_segundos IS NOT NULL AND tempo_segundos > 0
+    ORDER BY data_do_periodo, periodo, praca, sub_praca, origem, tempo_segundos DESC
+  ),
+  horas_por_semana AS (
     SELECT
       ano_iso,
       semana_numero,
-      SUM(ofertadas) AS total_ofertadas,
-      SUM(aceitas) AS total_aceitas,
-      SUM(completadas) AS total_completadas,
-      SUM(rejeitadas) AS total_rejeitadas,
-      SUM(tempo_segundos) AS total_segundos
-    FROM filtered_data
-    WHERE ano_iso IS NOT NULL AND semana_numero IS NOT NULL
+      SUM(tempo_segundos) AS total_segundos_horas
+    FROM horas_sem_duplicatas
     GROUP BY ano_iso, semana_numero
+  ),
+  semana_agg AS (
+    SELECT
+      fd.ano_iso,
+      fd.semana_numero,
+      SUM(fd.ofertadas) AS total_ofertadas,
+      SUM(fd.aceitas) AS total_aceitas,
+      SUM(fd.completadas) AS total_completadas,
+      SUM(fd.rejeitadas) AS total_rejeitadas,
+      -- Usar horas sem duplicatas (mesma lógica do dashboard_resumo)
+      COALESCE(hps.total_segundos_horas, 0) AS total_segundos
+    FROM filtered_data fd
+    LEFT JOIN horas_por_semana hps ON 
+      fd.ano_iso = hps.ano_iso 
+      AND fd.semana_numero = hps.semana_numero
+    WHERE fd.ano_iso IS NOT NULL AND fd.semana_numero IS NOT NULL
+    GROUP BY fd.ano_iso, fd.semana_numero, hps.total_segundos_horas
   )
   SELECT
     s.ano_iso AS ano,
