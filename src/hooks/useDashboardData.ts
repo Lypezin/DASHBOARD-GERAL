@@ -535,6 +535,20 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 const semanas = Array.isArray(data) ? data.map((d: any) => d.semana).filter((s: any) => s != null) : [];
                 console.log('Semanas retornadas pela função:', semanas.length, 'semanas:', semanas);
                 console.log('Semana máxima:', semanas.length > 0 ? Math.max(...semanas) : 'N/A');
+                // Log detalhado dos dados recebidos
+                if (Array.isArray(data) && data.length > 0) {
+                  console.log('📊 Primeiro item semanal recebido:', data[0]);
+                  console.log('📊 Propriedades disponíveis:', Object.keys(data[0]));
+                  console.log('📊 Valores de corridas no primeiro item:', {
+                    ofertadas: data[0].corridas_ofertadas,
+                    aceitas: data[0].corridas_aceitas,
+                    completadas: data[0].corridas_completadas,
+                    rejeitadas: data[0].corridas_rejeitadas
+                  });
+                  // Verificar se há valores não-zero de rejeitadas
+                  const rejeitadasValues = data.map((d: any) => d.corridas_rejeitadas).filter((v: any) => v != null && v !== 0);
+                  console.log('📊 Rejeitadas não-zero encontradas:', rejeitadasValues.length, 'valores:', rejeitadasValues.slice(0, 10));
+                }
               }
             } catch (err) {
               if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
@@ -580,8 +594,25 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             if (IS_DEV) {
               console.log('Evolução carregada:', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
               console.log('Ano solicitado:', anoEvolucao);
-              if (mensal.length > 0) console.log('Primeiro item mensal:', mensal[0]);
-              if (semanal.length > 0) console.log('Primeiro item semanal:', semanal[0]);
+              if (mensal.length > 0) {
+                console.log('Primeiro item mensal:', mensal[0]);
+                console.log('Propriedades mensal:', Object.keys(mensal[0]));
+              }
+              if (semanal.length > 0) {
+                console.log('Primeiro item semanal:', semanal[0]);
+                console.log('Propriedades semanal:', Object.keys(semanal[0]));
+                // Verificar valores de rejeitadas em todos os dados semanais
+                const rejeitadasTotal = semanal.reduce((sum: number, s: any) => sum + (Number(s.corridas_rejeitadas) || 0), 0);
+                const rejeitadasNonZero = semanal.filter((s: any) => Number(s.corridas_rejeitadas) > 0);
+                console.log('📊 Total de rejeitadas (soma):', rejeitadasTotal);
+                console.log('📊 Semanas com rejeitadas > 0:', rejeitadasNonZero.length);
+                if (rejeitadasNonZero.length > 0) {
+                  console.log('📊 Exemplos de semanas com rejeitadas:', rejeitadasNonZero.slice(0, 5).map((s: any) => ({
+                    semana: s.semana,
+                    rejeitadas: s.corridas_rejeitadas
+                  })));
+                }
+              }
               if (utr.length > 0) console.log('Primeiro item utr:', utr[0]);
               
               // Verificar se há dados para o ano solicitado

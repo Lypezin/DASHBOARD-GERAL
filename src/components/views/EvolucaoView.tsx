@@ -463,7 +463,12 @@ function EvolucaoView({
       case 'rejeitadas':
         const rejeitadasData = baseLabels.map(label => {
           const d = dadosPorLabel.get(label);
-          if (!d) return null;
+          if (!d) {
+            if (IS_DEV && label === baseLabels[0]) {
+              console.warn('⚠️ Rejeitadas - dado não encontrado para label:', label);
+            }
+            return null;
+          }
           // Acessar diretamente a propriedade corridas_rejeitadas
           const value = (d as any).corridas_rejeitadas;
           if (IS_DEV && label === baseLabels[0]) {
@@ -472,23 +477,33 @@ function EvolucaoView({
               d, 
               value,
               type: typeof value,
-              keys: Object.keys(d)
+              keys: Object.keys(d),
+              corridas_rejeitadas: (d as any).corridas_rejeitadas,
+              corridas_ofertadas: (d as any).corridas_ofertadas,
+              corridas_aceitas: (d as any).corridas_aceitas,
+              corridas_completadas: (d as any).corridas_completadas
             });
           }
           // Retornar número válido ou null
+          // IMPORTANTE: 0 é um valor válido e deve ser retornado como 0, não null
           if (value == null || value === undefined) return null;
           const numValue = Number(value);
+          // Se for NaN ou não finito, retornar null, caso contrário retornar o valor (incluindo 0)
           return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
         });
         if (IS_DEV) {
           const nonNull = rejeitadasData.filter(v => v != null);
           const nonZero = rejeitadasData.filter(v => v != null && v !== 0);
-          console.log('📊 Rejeitadas - resumo:', {
+          const zeroValues = rejeitadasData.filter(v => v === 0);
+          console.log('📊 Rejeitadas - resumo completo:', {
             total: rejeitadasData.length,
             nonNull: nonNull.length,
             nonZero: nonZero.length,
+            zeros: zeroValues.length,
             sample: rejeitadasData.slice(0, 10),
-            allValues: rejeitadasData
+            allValues: rejeitadasData,
+            minValue: nonNull.length > 0 ? Math.min(...nonNull as number[]) : null,
+            maxValue: nonNull.length > 0 ? Math.max(...nonNull as number[]) : null
           });
         }
         return {
@@ -615,34 +630,46 @@ function EvolucaoView({
         // Garantir que todos os valores são números válidos ou null
         // IMPORTANTE: Não converter 0 para null, pois 0 é um valor válido
         data = data.map((value: any) => {
-          if (value == null || isNaN(value) || !isFinite(value)) {
+          if (value == null || value === undefined) {
             return null; // Chart.js vai tratar null como gap
           }
           const numValue = Number(value);
-          // Retornar 0 se for 0, não null
-          return numValue === 0 ? 0 : numValue;
+          // Verificar se é um número válido
+          if (isNaN(numValue) || !isFinite(numValue)) {
+            return null;
+          }
+          // Retornar o valor numérico (incluindo 0, que é válido)
+          return numValue;
         });
         
         if (IS_DEV) {
           const datasetLabel = config.label;
           const nonNullValues = data.filter(v => v != null);
           const zeroValues = data.filter(v => v === 0);
+          const nonZeroValues = data.filter(v => v != null && v !== 0);
           console.log(`📊 Dataset ${datasetLabel}:`, {
             total: data.length,
             nonNull: nonNullValues.length,
             zeros: zeroValues.length,
+            nonZero: nonZeroValues.length,
             hasData: nonNullValues.length > 0,
-            sample: data.slice(0, 10)
+            hasNonZeroData: nonZeroValues.length > 0,
+            sample: data.slice(0, 10),
+            allValues: data
           });
         }
 
-        // Verificar se há dados válidos para renderizar
+        // IMPORTANTE: Sempre renderizar o dataset, mesmo se todos os valores forem 0
+        // O Chart.js deve mostrar a linha mesmo com valores zero
         const hasValidData = data.some(v => v != null && v !== undefined);
         
         if (IS_DEV) {
           console.log(`📊 Dataset ${config.label} - hasValidData:`, hasValidData, 'data sample:', data.slice(0, 5));
+          console.log(`📊 Dataset ${config.label} - valores completos:`, data);
         }
 
+        // IMPORTANTE: Sempre criar o dataset, mesmo se todos os valores forem 0 ou null
+        // O Chart.js deve renderizar a linha mesmo com valores zero
         return {
           label: config.label,
           data,
@@ -664,15 +691,15 @@ function EvolucaoView({
           pointStyle: 'circle' as const,
           borderWidth: 3, // Aumentado para melhor visibilidade
           fill: true,
-          spanGaps: true, // Conectar gaps para manter linhas contínuas
-          showLine: true, // Garantir que a linha seja mostrada
+          spanGaps: false, // Não conectar gaps - mostrar gaps como null
+          showLine: true, // SEMPRE mostrar a linha, mesmo com valores zero
           hidden: false, // Garantir que o dataset não esteja escondido
           order: 0, // Garantir ordem de renderização
-        segment: {
-          borderColor: (ctx: any) => {
+          segment: {
+            borderColor: (ctx: any) => {
               if (!ctx.p0 || !ctx.p1) return config.borderColor;
-            const value0 = ctx.p0.parsed.y;
-            const value1 = ctx.p1.parsed.y;
+              const value0 = ctx.p0.parsed.y;
+              const value1 = ctx.p1.parsed.y;
               
               // Para UTR, usar cores baseadas no valor
               if (config.useUtrData) {
@@ -682,8 +709,8 @@ function EvolucaoView({
                 return 'rgba(239, 68, 68, 1)'; // Vermelho para UTR < 0.5
               }
               return config.borderColor;
+            },
           },
-        },
         };
       });
 
@@ -732,12 +759,13 @@ function EvolucaoView({
     }
 
     // Coletar todos os valores válidos de todos os datasets
+    // IMPORTANTE: Incluir valores zero também, pois são válidos
     const allValues: number[] = [];
     chartData.datasets.forEach(dataset => {
       if (dataset.data && Array.isArray(dataset.data)) {
         dataset.data.forEach((value: any) => {
-          // Filtrar apenas valores numéricos válidos, finitos e positivos (ignorar null/undefined)
-          if (value != null && typeof value === 'number' && !isNaN(value) && isFinite(value) && value > 0) {
+          // Filtrar apenas valores numéricos válidos e finitos (incluindo 0)
+          if (value != null && typeof value === 'number' && !isNaN(value) && isFinite(value)) {
             allValues.push(value);
           }
         });
@@ -751,28 +779,22 @@ function EvolucaoView({
     // Ordenar valores para análise
     const sortedValues = [...allValues].sort((a, b) => a - b);
     
-    // Calcular quartis para detectar outliers
-    const q1Index = Math.floor(sortedValues.length * 0.25);
-    const q3Index = Math.floor(sortedValues.length * 0.75);
-    const q1 = sortedValues[q1Index];
-    const q3 = sortedValues[q3Index];
-    const iqr = q3 - q1;
-    
-    // Filtrar outliers usando método IQR (Interquartile Range)
-    // Valores fora de Q1 - 1.5*IQR ou Q3 + 1.5*IQR são considerados outliers
-    const lowerBound = q1 - 1.5 * iqr;
-    const upperBound = q3 + 1.5 * iqr;
-    const filteredValues = sortedValues.filter(v => v >= lowerBound && v <= upperBound);
-    
-    // Se após filtrar outliers não sobrou nada, usar todos os valores
-    const valuesToUse = filteredValues.length > 0 ? filteredValues : sortedValues;
-    
-    const minValue = Math.min(...valuesToUse);
-    const maxValue = Math.max(...valuesToUse);
+    const minValue = Math.min(...sortedValues);
+    const maxValue = Math.max(...sortedValues);
+
+    // Se todos os valores forem zero, definir um range mínimo para visualização
+    if (maxValue === 0 && minValue === 0) {
+      const result = {
+        min: 0,
+        max: 10 // Range mínimo para visualizar a linha em zero
+      };
+      if (IS_DEV) console.log('Y-axis range (todos valores zero):', result);
+      return result;
+    }
 
     // Se a diferença for muito pequena (menos de 1% do valor máximo), criar uma faixa ao redor
-    if (maxValue - minValue < maxValue * 0.01) {
-      const padding = Math.max(maxValue * 0.1, maxValue * 0.05);
+    if (maxValue - minValue < maxValue * 0.01 && maxValue > 0) {
+      const padding = Math.max(maxValue * 0.1, 1); // Mínimo de 1 para valores pequenos
       const result = {
         min: Math.max(0, minValue - padding),
         max: maxValue + padding
@@ -783,7 +805,7 @@ function EvolucaoView({
 
     // Adicionar padding de 8% acima e abaixo para melhor visualização
     const range = maxValue - minValue;
-    const padding = range * 0.08;
+    const padding = Math.max(range * 0.08, maxValue * 0.05); // Garantir padding mínimo
 
     const result = {
       min: Math.max(0, minValue - padding),
@@ -794,12 +816,10 @@ function EvolucaoView({
       console.log('Y-axis range calculado:', result);
       console.log('Estatísticas:', { 
         min: minValue, 
-        max: maxValue, 
-        q1, 
-        q3, 
-        iqr,
+        max: maxValue,
         totalValues: allValues.length,
-        filteredValues: valuesToUse.length,
+        zeros: allValues.filter(v => v === 0).length,
+        nonZeros: allValues.filter(v => v !== 0).length,
         firstValues: chartData.datasets[0]?.data?.slice(0, 10)
       });
     }
@@ -934,16 +954,14 @@ function EvolucaoView({
         type: 'linear' as const,
         display: true,
         position: 'left' as const,
-        beginAtZero: false, // Não forçar começar em zero
-        ...(yAxisRange.min !== undefined && { 
-          suggestedMin: yAxisRange.min, // Usar suggestedMin para dar flexibilidade ao Chart.js
-          min: yAxisRange.min // Mas também definir min para garantir
+        beginAtZero: true, // Começar em zero para melhor visualização de valores pequenos (incluindo 0)
+        ...(yAxisRange.min !== undefined && yAxisRange.min >= 0 && { 
+          min: Math.max(0, yAxisRange.min - (yAxisRange.max || 0) * 0.05) // Adicionar pequeno padding abaixo
         }),
         ...(yAxisRange.max !== undefined && { 
-          suggestedMax: yAxisRange.max, // Usar suggestedMax para dar flexibilidade ao Chart.js
-          max: yAxisRange.max // Mas também definir max para garantir
+          max: yAxisRange.max + (yAxisRange.max * 0.05) // Adicionar padding acima
         }),
-        grace: 0, // Remover grace para usar exatamente os valores calculados
+        grace: '5%', // Adicionar pequeno grace para melhor visualização
         title: {
           display: true,
           text: selectedMetrics.size === 1 && selectedMetrics.has('utr')
