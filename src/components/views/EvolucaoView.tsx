@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
-import { EvolucaoMensal, EvolucaoSemanal, UtrSemanal } from '@/types';
+import { EvolucaoMensal, EvolucaoSemanal } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { registerChartJS } from '@/lib/chartConfig';
 
@@ -16,7 +16,6 @@ if (typeof window !== 'undefined') {
 function EvolucaoView({
   evolucaoMensal,
   evolucaoSemanal,
-  utrSemanal,
   loading,
   anoSelecionado,
   anosDisponiveis,
@@ -24,14 +23,13 @@ function EvolucaoView({
 }: {
   evolucaoMensal: EvolucaoMensal[];
   evolucaoSemanal: EvolucaoSemanal[];
-  utrSemanal: UtrSemanal[];
   loading: boolean;
   anoSelecionado: number;
   anosDisponiveis: number[];
   onAnoChange: (ano: number) => void;
 }) {
   const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>('mensal');
-  const [selectedMetrics, setSelectedMetrics] = useState<Set<'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'>>(new Set(['completadas']));
+  const [selectedMetrics, setSelectedMetrics] = useState<Set<'ofertadas' | 'aceitas' | 'completadas' | 'horas'>>(new Set(['completadas']));
   const [chartError, setChartError] = useState<string | null>(null);
   const isSemanal = viewMode === 'semanal';
   
@@ -42,7 +40,6 @@ function EvolucaoView({
         loading,
         evolucaoMensalLength: Array.isArray(evolucaoMensal) ? evolucaoMensal.length : 0,
         evolucaoSemanalLength: Array.isArray(evolucaoSemanal) ? evolucaoSemanal.length : 0,
-        utrSemanalLength: Array.isArray(utrSemanal) ? utrSemanal.length : 0,
         anoSelecionado,
         viewMode,
         selectedMetrics: Array.from(selectedMetrics),
@@ -50,7 +47,7 @@ function EvolucaoView({
         firstSemanal: Array.isArray(evolucaoSemanal) && evolucaoSemanal.length > 0 ? evolucaoSemanal[0] : null
       });
     }
-  }, [loading, evolucaoMensal, evolucaoSemanal, utrSemanal, anoSelecionado, viewMode, selectedMetrics]);
+  }, [loading, evolucaoMensal, evolucaoSemanal, anoSelecionado, viewMode, selectedMetrics]);
   
   // Garantir que Chart.js está registrado quando o componente montar
   useEffect(() => {
@@ -64,29 +61,15 @@ function EvolucaoView({
     }
   }, []);
 
-  // Ajustar métricas quando mudar o modo de visualização
+  // Garantir que pelo menos uma métrica esteja selecionada
   useEffect(() => {
     setSelectedMetrics(prev => {
-      const newSet = new Set(prev);
-      // Se estava em UTR e mudou para mensal, remover UTR
-      if (viewMode === 'mensal' && newSet.has('utr')) {
-        newSet.delete('utr');
-        // Se não sobrou nenhuma métrica, adicionar completadas
-        if (newSet.size === 0) {
-          newSet.add('completadas');
-        }
+      if (prev.size === 0) {
+        return new Set(['completadas']);
       }
-      // Se mudou para semanal mas não tem dados de UTR e estava em UTR, remover UTR
-      if (viewMode === 'semanal' && newSet.has('utr') && utrSemanal.length === 0) {
-        newSet.delete('utr');
-        // Se não sobrou nenhuma métrica, adicionar completadas
-        if (newSet.size === 0) {
-          newSet.add('completadas');
-        }
-      }
-      return newSet;
+      return prev;
     });
-  }, [viewMode, utrSemanal.length]);
+  }, []);
   
   // Detectar tema atual para ajustar cores do gráfico
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -208,22 +191,6 @@ function EvolucaoView({
       return [];
     }
   }, [viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado]);
-
-  // Dados de UTR filtrados por ano
-  const dadosUtrAtivos = useMemo(() => {
-    try {
-      const utrArray = Array.isArray(utrSemanal) ? utrSemanal : [];
-      return utrArray
-        .filter(d => d && d.ano === anoSelecionado)
-        .sort((a, b) => {
-          if (a.ano !== b.ano) return a.ano - b.ano;
-          return a.semana - b.semana;
-        });
-    } catch (error) {
-      if (IS_DEV) console.error('Erro ao processar dadosUtrAtivos:', error);
-      return [];
-    }
-  }, [utrSemanal, anoSelecionado]);
 
   // Função para traduzir meses para português
   const traduzirMes = useCallback((mesNome: string): string => {
@@ -355,7 +322,7 @@ function EvolucaoView({
   }, [dadosAtivos, viewMode, traduzirMes]);
 
   // Helper function para obter configuração de métrica
-  const getMetricConfig = useCallback((metric: 'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'): {
+  const getMetricConfig = useCallback((metric: 'ofertadas' | 'aceitas' | 'completadas' | 'horas'): {
     labels: string[];
     data: (number | null)[];
     label: string;
@@ -367,20 +334,6 @@ function EvolucaoView({
   } | null => {
 
     switch (metric) {
-      case 'utr':
-        if (viewMode === 'semanal' && dadosUtrAtivos.length > 0) {
-          return {
-            labels: dadosUtrAtivos.map(d => d.semana_label),
-            data: dadosUtrAtivos.map(d => d.utr),
-            label: '🎯 UTR (Taxa de Utilização)',
-            borderColor: 'rgba(168, 85, 247, 1)',
-            backgroundColor: gradientPurple,
-            pointColor: 'rgb(168, 85, 247)',
-        yAxisID: 'y',
-            useUtrData: true,
-          };
-        }
-        return null;
       case 'horas':
         return {
           labels: baseLabels,
@@ -524,89 +477,6 @@ function EvolucaoView({
           yAxisID: 'y',
           useUtrData: false,
         };
-      case 'rejeitadas':
-        const rejeitadasData = baseLabels.map(label => {
-          const d = dadosPorLabel.get(label);
-          if (!d) {
-            if (FORCE_LOGS && label === baseLabels[0]) {
-              console.warn('⚠️ [EVOLUÇÃO] Rejeitadas - dado não encontrado para label:', label);
-            }
-            return null;
-          }
-          // Acessar diretamente a propriedade corridas_rejeitadas do banco de dados
-          // IMPORTANTE: Rejeitadas é uma coluna separada, não um cálculo
-          const value = (d as any).corridas_rejeitadas;
-          
-          if (FORCE_LOGS && label === baseLabels[0]) {
-            console.log('🔍 [EVOLUÇÃO] Rejeitadas - primeiro dado:', { 
-              label, 
-              d, 
-              value,
-              type: typeof value,
-              keys: Object.keys(d),
-              corridas_rejeitadas: (d as any).corridas_rejeitadas,
-              corridas_ofertadas: (d as any).corridas_ofertadas,
-              corridas_aceitas: (d as any).corridas_aceitas,
-              corridas_completadas: (d as any).corridas_completadas,
-              todas_propriedades: d
-            });
-          }
-          // Retornar número válido ou null
-          // IMPORTANTE: 0 é um valor válido e deve ser retornado como 0, não null
-          if (value == null || value === undefined) return null;
-          const numValue = Number(value);
-          // Se for NaN ou não finito, retornar null, caso contrário retornar o valor (incluindo 0)
-          return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
-        });
-        if (FORCE_LOGS) {
-          const nonNull = rejeitadasData.filter(v => v != null);
-          const nonZero = rejeitadasData.filter(v => v != null && v !== 0);
-          const zeroValues = rejeitadasData.filter(v => v === 0);
-          
-          // Verificar se há diferença entre ofertadas e aceitas para entender por que rejeitadas está zerado
-          const primeiroDado = dadosPorLabel.get(baseLabels[0]);
-          const ofertadasPrimeiro = primeiroDado ? Number((primeiroDado as any).corridas_ofertadas) || 0 : 0;
-          const aceitasPrimeiro = primeiroDado ? Number((primeiroDado as any).corridas_aceitas) || 0 : 0;
-          const diferencaPrimeiro = ofertadasPrimeiro - aceitasPrimeiro;
-          
-          console.log('🔍 [EVOLUÇÃO] Rejeitadas - resumo completo:', {
-            total: rejeitadasData.length,
-            nonNull: nonNull.length,
-            nonZero: nonZero.length,
-            zeros: zeroValues.length,
-            sample: rejeitadasData.slice(0, 10),
-            allValues: rejeitadasData,
-            minValue: nonNull.length > 0 ? Math.min(...nonNull as number[]) : null,
-            maxValue: nonNull.length > 0 ? Math.max(...nonNull as number[]) : null,
-            analise_primeiro_periodo: {
-              label: baseLabels[0],
-              ofertadas: ofertadasPrimeiro,
-              aceitas: aceitasPrimeiro,
-              diferenca: diferencaPrimeiro,
-              rejeitadas_original: primeiroDado ? (primeiroDado as any).corridas_rejeitadas : null,
-              rejeitadas_calculada: rejeitadasData[0]
-            }
-          });
-          
-          if (nonZero.length === 0 && zeroValues.length > 0) {
-            console.warn('⚠️ [EVOLUÇÃO] ATENÇÃO: Todas as rejeitadas estão em 0!', {
-              motivo_possivel: diferencaPrimeiro === 0 
-                ? 'Ofertadas === Aceitas, então não há rejeitadas (isso pode ser normal se todas as corridas ofertadas foram aceitas)'
-                : 'Rejeitadas está zerado no banco de dados, mas há diferença entre ofertadas e aceitas',
-              diferenca_media: diferencaPrimeiro
-            });
-          }
-        }
-        return {
-          labels: baseLabels,
-          data: rejeitadasData,
-          label: '❌ Corridas Rejeitadas',
-          borderColor: 'rgba(239, 68, 68, 1)',
-          backgroundColor: gradientRed,
-          pointColor: 'rgb(239, 68, 68)',
-          yAxisID: 'y',
-          useUtrData: false,
-        };
       case 'completadas':
       default:
         const completadasData = baseLabels.map(label => {
@@ -668,7 +538,7 @@ function EvolucaoView({
           useUtrData: false,
         };
     }
-  }, [baseLabels, dadosPorLabel, dadosUtrAtivos, viewMode, segundosParaHoras, gradientPurple, gradientRed]);
+  }, [baseLabels, dadosPorLabel, viewMode, segundosParaHoras]);
 
   // Dados do gráfico com múltiplas métricas (otimizado com useMemo)
   const chartData = useMemo(() => {
@@ -681,7 +551,7 @@ function EvolucaoView({
     }
 
     // Verificar se há dados disponíveis
-    const hasData = dadosAtivos.length > 0 || dadosUtrAtivos.length > 0;
+    const hasData = dadosAtivos.length > 0;
     if (!hasData) {
       return {
         labels: [],
@@ -711,11 +581,8 @@ function EvolucaoView({
         };
       }
 
-      // Usar labels da primeira métrica (ou da UTR se estiver presente, pois pode ter labels diferentes)
-      // IMPORTANTE: Todas as métricas já usam o mesmo baseLabels definido no componente
-      // Mas precisamos garantir que os labels sejam consistentes
-      const utrConfig = metricConfigs.find(c => c.useUtrData);
-      const chartBaseLabels = utrConfig?.labels || baseLabels; // Usar baseLabels do componente
+      // Usar baseLabels do componente (todas as métricas usam os mesmos labels)
+      const chartBaseLabels = baseLabels;
 
       if (!chartBaseLabels || chartBaseLabels.length === 0) {
         return {
@@ -724,31 +591,22 @@ function EvolucaoView({
         };
       }
 
-      // PRIMEIRO: Calcular o valor máximo global de todos os datasets (exceto Horas/UTR que usam eixo diferente)
+      // PRIMEIRO: Calcular o valor máximo global de todos os datasets (exceto Horas que usa eixo diferente)
       // Isso é necessário para calcular offsets consistentes que separem visualmente as linhas
       let globalMaxValue = 0;
       const datasetsComEixoY = metricConfigs
         .map((config, idx) => {
           let data: (number | null)[] = [];
-          if (config.useUtrData && config.labels.length !== chartBaseLabels.length) {
+          if (config.labels.length === chartBaseLabels.length && 
+              config.labels.every((label, i) => label === chartBaseLabels[i])) {
+            data = (config.data || []) as (number | null)[];
+          } else {
             const labelMap = new Map<string, number | null>();
             config.labels.forEach((label, i) => {
               const value = config.data[i];
               labelMap.set(label, value != null && !isNaN(value) && isFinite(value) ? Number(value) : null);
             });
             data = chartBaseLabels.map(label => labelMap.get(label) ?? null);
-          } else {
-            if (config.labels.length === chartBaseLabels.length && 
-                config.labels.every((label, i) => label === chartBaseLabels[i])) {
-              data = (config.data || []) as (number | null)[];
-            } else {
-              const labelMap = new Map<string, number | null>();
-              config.labels.forEach((label, i) => {
-                const value = config.data[i];
-                labelMap.set(label, value != null && !isNaN(value) && isFinite(value) ? Number(value) : null);
-              });
-              data = chartBaseLabels.map(label => labelMap.get(label) ?? null);
-            }
           }
           return { data, yAxisID: config.yAxisID, index: idx };
         })
@@ -775,9 +633,13 @@ function EvolucaoView({
         // IMPORTANTE: Garantir que os dados estejam sempre alinhados com chartBaseLabels
         let data: (number | null)[] = [];
         
-        // Se é UTR e tem labels diferentes, manter dados originais mas alinhá-los
-        if (config.useUtrData && config.labels.length !== chartBaseLabels.length) {
-          // Criar mapa de label -> valor para UTR
+        // Garantir alinhamento correto dos dados com chartBaseLabels
+        if (config.labels.length === chartBaseLabels.length && 
+            config.labels.every((label, idx) => label === chartBaseLabels[idx])) {
+          // Labels já estão alinhados, usar dados diretamente
+          data = (config.data || []) as (number | null)[];
+        } else {
+          // Labels não estão alinhados, criar mapa e realinhar
           const labelMap = new Map<string, number | null>();
           config.labels.forEach((label, idx) => {
             const value = config.data[idx];
@@ -788,25 +650,6 @@ function EvolucaoView({
             const value = labelMap.get(label);
             return value != null ? value : null;
           });
-        } else {
-          // Para outras métricas, garantir alinhamento correto
-          if (config.labels.length === chartBaseLabels.length && 
-              config.labels.every((label, idx) => label === chartBaseLabels[idx])) {
-            // Labels já estão alinhados, usar dados diretamente
-            data = (config.data || []) as (number | null)[];
-          } else {
-            // Labels não estão alinhados, criar mapa e realinhar
-            const labelMap = new Map<string, number | null>();
-            config.labels.forEach((label, idx) => {
-              const value = config.data[idx];
-              labelMap.set(label, value != null && !isNaN(value) && isFinite(value) ? Number(value) : null);
-            });
-            // Mapear para chartBaseLabels
-            data = chartBaseLabels.map(label => {
-              const value = labelMap.get(label);
-              return value != null ? value : null;
-            });
-          }
         }
         
         // Garantir que o tamanho está correto
@@ -849,12 +692,11 @@ function EvolucaoView({
               0,                    // Completadas: sem offset (linha base)
               baseOffset * 0.5,     // Ofertadas: +2.5% do máximo global
               baseOffset,           // Aceitas: +5% do máximo global
-              0,                     // Rejeitadas: sem offset
               0                      // Horas: sem offset (usa eixo diferente)
             ];
           const offset = offsets[index] || 0;
           
-          // Aplicar offset apenas se o valor não for zero (para não mover a linha de rejeitadas quando for 0)
+          // Aplicar offset apenas se o valor não for zero
           if (offset > 0) {
             data = data.map((value: number | null) => {
               if (value == null || value === 0) return value;
@@ -912,7 +754,6 @@ function EvolucaoView({
           [], // Sólida (Completadas)
           [8, 4], // Tracejada média (Aceitas)
           [15, 5], // Tracejada longa (Ofertadas)
-          [3, 3], // Pontilhada curta (Rejeitadas)
           [], // Sólida (Horas)
         ];
         
@@ -981,13 +822,6 @@ function EvolucaoView({
               const value0 = ctx.p0.parsed.y;
               const value1 = ctx.p1.parsed.y;
               
-              // Para UTR, usar cores baseadas no valor
-              if (config.useUtrData) {
-                const avg = (value0 + value1) / 2;
-                if (avg >= 1) return 'rgba(34, 197, 94, 1)'; // Verde para UTR >= 1
-                if (avg >= 0.5) return 'rgba(251, 191, 36, 1)'; // Amarelo para UTR >= 0.5
-                return 'rgba(239, 68, 68, 1)'; // Vermelho para UTR < 0.5
-              }
               return borderColorWithOpacity;
             },
             borderWidth: borderWidth,
@@ -1055,7 +889,7 @@ function EvolucaoView({
         datasets: [],
   };
     }
-  }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels, dadosAtivos.length, dadosUtrAtivos.length]); // baseLabels é necessário pois é usado diretamente no retorno
+  }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels, dadosAtivos.length]); // baseLabels é necessário pois é usado diretamente no retorno
 
   // Calcular min e max dos dados para ajustar a escala do eixo Y
   const yAxisRange = useMemo(() => {
@@ -1130,7 +964,7 @@ function EvolucaoView({
     }
 
     return result;
-  }, [chartData, dadosAtivos.length, dadosUtrAtivos.length]);
+  }, [chartData, dadosAtivos.length]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
@@ -1288,16 +1122,12 @@ function EvolucaoView({
         grace: '5%', // Adicionar pequeno grace para melhor visualização
         title: {
           display: true,
-          text: selectedMetrics.size === 1 && selectedMetrics.has('utr')
-            ? '🎯 UTR (Corridas/Hora)' 
-            : selectedMetrics.size === 1 && selectedMetrics.has('horas')
+          text: selectedMetrics.size === 1 && selectedMetrics.has('horas')
             ? '⏱️ Horas Trabalhadas'
             : selectedMetrics.size === 1 && selectedMetrics.has('ofertadas')
             ? '📢 Corridas Ofertadas'
             : selectedMetrics.size === 1 && selectedMetrics.has('aceitas')
             ? '✅ Corridas Aceitas'
-            : selectedMetrics.size === 1 && selectedMetrics.has('rejeitadas')
-            ? '❌ Corridas Rejeitadas'
             : 'Métricas Selecionadas',
           font: {
             size: 13,
@@ -1328,10 +1158,6 @@ function EvolucaoView({
           },
           padding: 8,
           callback: function(value: any) {
-            // Se tiver UTR selecionado, formatar como decimal
-            if (selectedMetrics.has('utr') && selectedMetrics.size === 1) {
-              return value.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
-            }
             // Se tiver horas selecionado, formatar com 'h'
             if (selectedMetrics.has('horas') && selectedMetrics.size === 1) {
             return value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + 'h';
@@ -1500,19 +1326,17 @@ function EvolucaoView({
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Métricas:</label>
                   <div className="flex flex-wrap gap-2">
-                    {(['ofertadas', 'aceitas', 'completadas', 'rejeitadas', 'horas'] as const).map(metric => {
+                    {(['ofertadas', 'aceitas', 'completadas', 'horas'] as const).map(metric => {
                       const labels: Record<typeof metric, string> = {
                         ofertadas: '📢 Ofertadas',
                         aceitas: '✅ Aceitas',
                         completadas: '🚗 Completadas',
-                        rejeitadas: '❌ Rejeitadas',
                         horas: '⏱️ Horas',
                       };
                       const colors: Record<typeof metric, { bg: string; border: string; dot: string }> = {
                         ofertadas: { bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-300 dark:border-cyan-700', dot: 'bg-cyan-500' },
                         aceitas: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-300 dark:border-emerald-700', dot: 'bg-emerald-500' },
                         completadas: { bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-300 dark:border-blue-700', dot: 'bg-blue-500' },
-                        rejeitadas: { bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-300 dark:border-red-700', dot: 'bg-red-500' },
                         horas: { bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-300 dark:border-orange-700', dot: 'bg-orange-500' },
                       };
                       const metricColors = colors[metric];
@@ -1545,7 +1369,6 @@ function EvolucaoView({
                               metric === 'ofertadas' ? 'text-cyan-600 focus:ring-cyan-500' :
                               metric === 'aceitas' ? 'text-emerald-600 focus:ring-emerald-500' :
                               metric === 'completadas' ? 'text-blue-600 focus:ring-blue-500' :
-                              metric === 'rejeitadas' ? 'text-red-600 focus:ring-red-500' :
                               'text-orange-600 focus:ring-orange-500'
                             }`}
                           />
@@ -1556,62 +1379,6 @@ function EvolucaoView({
                         </label>
                       );
                     })}
-                    {viewMode === 'semanal' && (
-                      <label
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
-                          selectedMetrics.has('utr')
-                            ? 'bg-purple-50 border-purple-300 dark:bg-purple-950/30 dark:border-purple-700'
-                            : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-700 hover:border-purple-400'
-                        } ${dadosUtrAtivos.length === 0 && utrSemanal.length === 0 ? 'opacity-50 cursor-not-allowed' : dadosUtrAtivos.length === 0 && utrSemanal.length > 0 ? 'opacity-75' : ''}`}
-                        title={
-                          dadosUtrAtivos.length === 0 && utrSemanal.length === 0
-                            ? 'Dados de UTR não disponíveis. Verifique se a função SQL listar_utr_semanal está configurada corretamente.'
-                            : dadosUtrAtivos.length === 0 && utrSemanal.length > 0
-                            ? `Dados de UTR disponíveis para outros anos, mas não para ${anoSelecionado}. Anos disponíveis: ${[...new Set(utrSemanal.map(d => d.ano))].join(', ')}`
-                            : `Selecionar UTR (${dadosUtrAtivos.length} semanas disponíveis)`
-                        }
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedMetrics.has('utr')}
-                          disabled={dadosUtrAtivos.length === 0}
-                          onChange={(e) => {
-                            if (dadosUtrAtivos.length === 0) {
-                              if (IS_DEV) {
-                                console.warn('⚠️ Tentativa de selecionar UTR sem dados disponíveis');
-                                console.warn('- Ano selecionado:', anoSelecionado);
-                                console.warn('- Total UTR semanal:', utrSemanal.length);
-                                console.warn('- Anos disponíveis:', [...new Set(utrSemanal.map(d => d.ano))]);
-                                console.warn('- Dados filtrados:', dadosUtrAtivos.length);
-                              }
-                              return;
-                            }
-                            const newSet = new Set(selectedMetrics);
-                            if (e.target.checked) {
-                              newSet.add('utr');
-                            } else {
-                              newSet.delete('utr');
-                              // Garantir que pelo menos uma métrica esteja selecionada
-                              if (newSet.size === 0) {
-                                newSet.add('completadas');
-                              }
-                            }
-                            setSelectedMetrics(newSet);
-                          }}
-                          className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
-                        />
-                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                          <span className="w-3 h-3 rounded-full bg-purple-500 shadow-md"></span>
-                          🎯 UTR {
-                            dadosUtrAtivos.length > 0 
-                              ? `(${dadosUtrAtivos.length})` 
-                              : utrSemanal.length > 0 
-                                ? `(sem dados para ${anoSelecionado})` 
-                                : '(indisponível)'
-                          }
-                        </span>
-                      </label>
-                    )}
             </div>
           </div>
         </div>
@@ -1636,12 +1403,10 @@ function EvolucaoView({
                   <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-white text-lg shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600">
                     📊
                   </span>
-                  Evolução {selectedMetrics.size === 1 ? 'de ' + (selectedMetrics.has('utr') ? 'UTR' : selectedMetrics.has('horas') ? 'Horas Trabalhadas' : selectedMetrics.has('ofertadas') ? 'Corridas Ofertadas' : selectedMetrics.has('aceitas') ? 'Corridas Aceitas' : selectedMetrics.has('rejeitadas') ? 'Corridas Rejeitadas' : 'Corridas Completadas') : 'de Métricas'} {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
+                  Evolução {selectedMetrics.size === 1 ? 'de ' + (selectedMetrics.has('horas') ? 'Horas Trabalhadas' : selectedMetrics.has('ofertadas') ? 'Corridas Ofertadas' : selectedMetrics.has('aceitas') ? 'Corridas Aceitas' : 'Corridas Completadas') : 'de Métricas'} {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
                 </h4>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                  {selectedMetrics.has('utr') && viewMode === 'semanal' && dadosUtrAtivos.length > 0 && selectedMetrics.size === 1
-                    ? `Análise detalhada de UTR por semana (${dadosUtrAtivos.length} semanas exibidas)`
-                    : `Análise detalhada de ${selectedMetrics.size} ${selectedMetrics.size === 1 ? 'métrica' : 'métricas'} (${selectedMetrics.has('utr') && dadosUtrAtivos.length > 0 ? dadosUtrAtivos.length : dadosAtivos.length} ${viewMode === 'mensal' ? 'meses' : 'semanas'} exibidos)`}
+                  Análise detalhada de {selectedMetrics.size} {selectedMetrics.size === 1 ? 'métrica' : 'métricas'} ({dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} exibidos)
                 </p>
                 {/* Aviso quando métricas têm valores idênticos */}
                 {(() => {
@@ -1680,12 +1445,6 @@ function EvolucaoView({
               
               {/* Indicadores de métricas selecionadas */}
               <div className="hidden lg:flex items-center gap-2 flex-wrap">
-                {selectedMetrics.has('utr') && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                    <div className="w-3 h-3 rounded-full bg-purple-500 shadow-md"></div>
-                    <span className="text-xs font-bold text-purple-700 dark:text-purple-300">UTR</span>
-                </div>
-                )}
                 {selectedMetrics.has('horas') && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
                   <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md"></div>
@@ -1714,12 +1473,6 @@ function EvolucaoView({
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800">
                     <div className="w-3 h-3 rounded-full bg-orange-500 shadow-md"></div>
                     <span className="text-xs font-bold text-orange-700 dark:text-orange-300">Horas</span>
-                  </div>
-                )}
-                {selectedMetrics.has('rejeitadas') && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                    <div className="w-3 h-3 rounded-full bg-red-500 shadow-md"></div>
-                    <span className="text-xs font-bold text-red-700 dark:text-red-300">Rejeitadas</span>
                   </div>
                 )}
               </div>

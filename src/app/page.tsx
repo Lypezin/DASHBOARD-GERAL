@@ -430,7 +430,6 @@ export default function DashboardPage() {
                     <EvolucaoView
                       evolucaoMensal={evolucaoMensal}
                       evolucaoSemanal={evolucaoSemanal}
-                      utrSemanal={utrSemanal}
                       loading={loadingEvolucao}
                       anoSelecionado={anoEvolucao}
                       anosDisponiveis={anosDisponiveis}
