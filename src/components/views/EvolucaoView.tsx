@@ -5,6 +5,8 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { registerChartJS } from '@/lib/chartConfig';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+// Forçar logs sempre para debug
+const FORCE_LOGS = true;
 
 // Registrar Chart.js quando o componente for carregado
 if (typeof window !== 'undefined') {
@@ -32,6 +34,23 @@ function EvolucaoView({
   const [selectedMetrics, setSelectedMetrics] = useState<Set<'ofertadas' | 'aceitas' | 'completadas' | 'rejeitadas' | 'horas' | 'utr'>>(new Set(['completadas']));
   const [chartError, setChartError] = useState<string | null>(null);
   const isSemanal = viewMode === 'semanal';
+  
+  // LOG INICIAL - verificar dados recebidos
+  useEffect(() => {
+    if (FORCE_LOGS) {
+      console.log('🔍 [EVOLUÇÃO] Componente montado/renderizado:', {
+        loading,
+        evolucaoMensalLength: Array.isArray(evolucaoMensal) ? evolucaoMensal.length : 0,
+        evolucaoSemanalLength: Array.isArray(evolucaoSemanal) ? evolucaoSemanal.length : 0,
+        utrSemanalLength: Array.isArray(utrSemanal) ? utrSemanal.length : 0,
+        anoSelecionado,
+        viewMode,
+        selectedMetrics: Array.from(selectedMetrics),
+        firstMensal: Array.isArray(evolucaoMensal) && evolucaoMensal.length > 0 ? evolucaoMensal[0] : null,
+        firstSemanal: Array.isArray(evolucaoSemanal) && evolucaoSemanal.length > 0 ? evolucaoSemanal[0] : null
+      });
+    }
+  }, [loading, evolucaoMensal, evolucaoSemanal, utrSemanal, anoSelecionado, viewMode, selectedMetrics]);
   
   // Garantir que Chart.js está registrado quando o componente montar
   useEffect(() => {
@@ -158,7 +177,7 @@ function EvolucaoView({
       const mensalArray = Array.isArray(evolucaoMensal) ? evolucaoMensal : [];
       const semanalArray = Array.isArray(evolucaoSemanal) ? evolucaoSemanal : [];
       
-      return viewMode === 'mensal' 
+      const result = viewMode === 'mensal' 
         ? [...mensalArray].filter(d => d && d.ano === anoSelecionado).sort((a, b) => {
             // Ordenar por ano e mês
             if (a.ano !== b.ano) return a.ano - b.ano;
@@ -169,8 +188,23 @@ function EvolucaoView({
             if (a.ano !== b.ano) return a.ano - b.ano;
             return a.semana - b.semana;
           });
+      
+      // LOG FORÇADO - sempre mostrar
+      if (FORCE_LOGS) {
+        console.log('🔍 [EVOLUÇÃO] dadosAtivos processados:', {
+          viewMode,
+          anoSelecionado,
+          mensalArrayLength: mensalArray.length,
+          semanalArrayLength: semanalArray.length,
+          resultLength: result.length,
+          firstItem: result.length > 0 ? result[0] : null,
+          allItems: result.slice(0, 5)
+        });
+      }
+      
+      return result;
     } catch (error) {
-      if (IS_DEV) console.error('Erro ao processar dadosAtivos:', error);
+      console.error('❌ [EVOLUÇÃO] Erro ao processar dadosAtivos:', error);
       return [];
     }
   }, [viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado]);
@@ -297,14 +331,22 @@ function EvolucaoView({
         });
     }
     
-    if (IS_DEV) {
-      console.log('📊 dadosPorLabel criado:', {
+    // LOG FORÇADO - sempre mostrar
+    if (FORCE_LOGS) {
+      const firstKey = map.size > 0 ? Array.from(map.keys())[0] : null;
+      const firstValue = firstKey ? map.get(firstKey) : null;
+      console.log('🔍 [EVOLUÇÃO] dadosPorLabel criado:', {
         viewMode,
         totalEntries: map.size,
         keys: Array.from(map.keys()).slice(0, 10),
-        firstEntry: map.size > 0 ? {
-          key: Array.from(map.keys())[0],
-          value: map.get(Array.from(map.keys())[0])
+        firstEntry: firstValue ? {
+          key: firstKey,
+          value: firstValue,
+          keys: Object.keys(firstValue),
+          corridas_ofertadas: (firstValue as any)?.corridas_ofertadas,
+          corridas_aceitas: (firstValue as any)?.corridas_aceitas,
+          corridas_completadas: (firstValue as any)?.corridas_completadas,
+          corridas_rejeitadas: (firstValue as any)?.corridas_rejeitadas,
         } : null
       });
     }
@@ -367,15 +409,15 @@ function EvolucaoView({
         const ofertadasData = baseLabels.map(label => {
           const d = dadosPorLabel.get(label);
           if (!d) {
-            if (IS_DEV && label === baseLabels[0]) {
-              console.warn('⚠️ Ofertadas - dado não encontrado para label:', label);
+            if (FORCE_LOGS && label === baseLabels[0]) {
+              console.warn('⚠️ [EVOLUÇÃO] Ofertadas - dado não encontrado para label:', label);
             }
             return null;
           }
           // Acessar diretamente a propriedade corridas_ofertadas
           const value = (d as any).corridas_ofertadas;
-          if (IS_DEV && label === baseLabels[0]) {
-            console.log('📊 Ofertadas - primeiro dado:', { 
+          if (FORCE_LOGS && label === baseLabels[0]) {
+            console.log('🔍 [EVOLUÇÃO] Ofertadas - primeiro dado:', { 
               label, 
               d, 
               value,
@@ -383,7 +425,8 @@ function EvolucaoView({
               keys: Object.keys(d),
               corridas_ofertadas: (d as any).corridas_ofertadas,
               corridas_aceitas: (d as any).corridas_aceitas,
-              corridas_completadas: (d as any).corridas_completadas
+              corridas_completadas: (d as any).corridas_completadas,
+              corridas_rejeitadas: (d as any).corridas_rejeitadas
             });
           }
           // Retornar número válido ou null
@@ -391,13 +434,14 @@ function EvolucaoView({
           const numValue = Number(value);
           return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
         });
-        if (IS_DEV) {
+        if (FORCE_LOGS) {
           const nonNull = ofertadasData.filter(v => v != null);
           const nonZero = ofertadasData.filter(v => v != null && v !== 0);
-          console.log('📊 Ofertadas - resumo:', {
+          console.log('🔍 [EVOLUÇÃO] Ofertadas - resumo:', {
             total: ofertadasData.length,
             nonNull: nonNull.length,
             nonZero: nonZero.length,
+            zeros: ofertadasData.filter(v => v === 0).length,
             sample: ofertadasData.slice(0, 10),
             allValues: ofertadasData
           });
@@ -425,16 +469,22 @@ function EvolucaoView({
       case 'aceitas':
         const aceitasData = baseLabels.map(label => {
           const d = dadosPorLabel.get(label);
-          if (!d) return null;
+          if (!d) {
+            if (FORCE_LOGS && label === baseLabels[0]) {
+              console.warn('⚠️ [EVOLUÇÃO] Aceitas - dado não encontrado para label:', label);
+            }
+            return null;
+          }
           // Acessar diretamente a propriedade corridas_aceitas
           const value = (d as any).corridas_aceitas;
-          if (IS_DEV && label === baseLabels[0]) {
-            console.log('📊 Aceitas - primeiro dado:', { 
+          if (FORCE_LOGS && label === baseLabels[0]) {
+            console.log('🔍 [EVOLUÇÃO] Aceitas - primeiro dado:', { 
               label, 
               d, 
               value,
               type: typeof value,
-              keys: Object.keys(d)
+              keys: Object.keys(d),
+              corridas_aceitas: (d as any).corridas_aceitas
             });
           }
           // Retornar número válido ou null
@@ -442,13 +492,14 @@ function EvolucaoView({
           const numValue = Number(value);
           return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
         });
-        if (IS_DEV) {
+        if (FORCE_LOGS) {
           const nonNull = aceitasData.filter(v => v != null);
           const nonZero = aceitasData.filter(v => v != null && v !== 0);
-          console.log('📊 Aceitas - resumo:', {
+          console.log('🔍 [EVOLUÇÃO] Aceitas - resumo:', {
             total: aceitasData.length,
             nonNull: nonNull.length,
             nonZero: nonZero.length,
+            zeros: aceitasData.filter(v => v === 0).length,
             sample: aceitasData.slice(0, 10),
             allValues: aceitasData
           });
@@ -477,15 +528,15 @@ function EvolucaoView({
         const rejeitadasData = baseLabels.map(label => {
           const d = dadosPorLabel.get(label);
           if (!d) {
-            if (IS_DEV && label === baseLabels[0]) {
-              console.warn('⚠️ Rejeitadas - dado não encontrado para label:', label);
+            if (FORCE_LOGS && label === baseLabels[0]) {
+              console.warn('⚠️ [EVOLUÇÃO] Rejeitadas - dado não encontrado para label:', label);
             }
             return null;
           }
           // Acessar diretamente a propriedade corridas_rejeitadas
           const value = (d as any).corridas_rejeitadas;
-          if (IS_DEV && label === baseLabels[0]) {
-            console.log('📊 Rejeitadas - primeiro dado:', { 
+          if (FORCE_LOGS && label === baseLabels[0]) {
+            console.log('🔍 [EVOLUÇÃO] Rejeitadas - primeiro dado:', { 
               label, 
               d, 
               value,
@@ -504,11 +555,11 @@ function EvolucaoView({
           // Se for NaN ou não finito, retornar null, caso contrário retornar o valor (incluindo 0)
           return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
         });
-        if (IS_DEV) {
+        if (FORCE_LOGS) {
           const nonNull = rejeitadasData.filter(v => v != null);
           const nonZero = rejeitadasData.filter(v => v != null && v !== 0);
           const zeroValues = rejeitadasData.filter(v => v === 0);
-          console.log('📊 Rejeitadas - resumo completo:', {
+          console.log('🔍 [EVOLUÇÃO] Rejeitadas - resumo completo:', {
             total: rejeitadasData.length,
             nonNull: nonNull.length,
             nonZero: nonZero.length,
@@ -534,15 +585,15 @@ function EvolucaoView({
         const completadasData = baseLabels.map(label => {
           const d = dadosPorLabel.get(label);
           if (!d) {
-            if (IS_DEV && label === baseLabels[0]) {
-              console.warn('⚠️ Completadas - dado não encontrado para label:', label);
+            if (FORCE_LOGS && label === baseLabels[0]) {
+              console.warn('⚠️ [EVOLUÇÃO] Completadas - dado não encontrado para label:', label);
             }
             return null;
           }
           // Acessar diretamente a propriedade corridas_completadas ou total_corridas
           const value = (d as any).corridas_completadas ?? (d as any).total_corridas;
-          if (IS_DEV && label === baseLabels[0]) {
-            console.log('📊 Completadas - primeiro dado:', { 
+          if (FORCE_LOGS && label === baseLabels[0]) {
+            console.log('🔍 [EVOLUÇÃO] Completadas - primeiro dado:', { 
               label, 
               d, 
               value,
@@ -557,13 +608,14 @@ function EvolucaoView({
           const numValue = Number(value);
           return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
         });
-        if (IS_DEV) {
+        if (FORCE_LOGS) {
           const nonNull = completadasData.filter(v => v != null);
           const nonZero = completadasData.filter(v => v != null && v !== 0);
-          console.log('📊 Completadas - resumo:', {
+          console.log('🔍 [EVOLUÇÃO] Completadas - resumo:', {
             total: completadasData.length,
             nonNull: nonNull.length,
             nonZero: nonZero.length,
+            zeros: completadasData.filter(v => v === 0).length,
             sample: completadasData.slice(0, 10),
             allValues: completadasData
           });
@@ -712,12 +764,13 @@ function EvolucaoView({
           return numValue;
         });
         
-        if (IS_DEV) {
+        // LOG FORÇADO - sempre mostrar
+        if (FORCE_LOGS) {
           const datasetLabel = config.label;
           const nonNullValues = data.filter(v => v != null);
           const zeroValues = data.filter(v => v === 0);
           const nonZeroValues = data.filter(v => v != null && v !== 0);
-          console.log(`📊 Dataset ${datasetLabel}:`, {
+          console.log(`🔍 [EVOLUÇÃO] Dataset ${datasetLabel}:`, {
             total: data.length,
             nonNull: nonNullValues.length,
             zeros: zeroValues.length,
@@ -733,9 +786,9 @@ function EvolucaoView({
         // O Chart.js deve mostrar a linha mesmo com valores zero
         const hasValidData = data.some(v => v != null && v !== undefined);
         
-        if (IS_DEV) {
-          console.log(`📊 Dataset ${config.label} - hasValidData:`, hasValidData, 'data sample:', data.slice(0, 5));
-          console.log(`📊 Dataset ${config.label} - valores completos:`, data);
+        if (FORCE_LOGS) {
+          console.log(`🔍 [EVOLUÇÃO] Dataset ${config.label} - hasValidData:`, hasValidData, 'data sample:', data.slice(0, 5));
+          console.log(`🔍 [EVOLUÇÃO] Dataset ${config.label} - valores completos:`, data);
         }
 
         // IMPORTANTE: Sempre criar o dataset, mesmo se todos os valores forem 0 ou null
@@ -789,8 +842,9 @@ function EvolucaoView({
         };
       });
 
-      if (IS_DEV) {
-        console.log('📊 ChartData criado:', {
+      // LOG FORÇADO - sempre mostrar
+      if (FORCE_LOGS) {
+        console.log('🔍 [EVOLUÇÃO] ChartData criado:', {
           labelsCount: chartBaseLabels.length,
           datasetsCount: datasets.length,
           datasetsLabels: datasets.map(d => d.label),
@@ -824,12 +878,14 @@ function EvolucaoView({
         datasets.forEach((d, idx) => {
           const validData = d.data.filter(v => v != null && v !== 0);
           if (validData.length === 0) {
-            console.warn(`⚠️ Dataset ${d.label} (índice ${idx}) não tem dados não-zero!`, {
+            console.warn(`⚠️ [EVOLUÇÃO] Dataset ${d.label} (índice ${idx}) não tem dados não-zero!`, {
               total: d.data.length,
               nulls: d.data.filter(v => v == null).length,
               zeros: d.data.filter(v => v === 0).length,
               sample: d.data.slice(0, 10)
             });
+          } else {
+            console.log(`✅ [EVOLUÇÃO] Dataset ${d.label} (índice ${idx}) tem ${validData.length} valores não-zero`);
           }
         });
       }
@@ -1478,16 +1534,34 @@ function EvolucaoView({
                 ) : chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
                   (() => {
                     try {
+                      // LOG antes de renderizar
+                      if (FORCE_LOGS) {
+                        console.log('🔍 [EVOLUÇÃO] Renderizando gráfico:', {
+                          labelsCount: chartData.labels.length,
+                          datasetsCount: chartData.datasets.length,
+                          datasetsInfo: chartData.datasets.map((d, idx) => ({
+                            index: idx,
+                            label: d.label,
+                            dataLength: d.data.length,
+                            hasData: d.data.some(v => v != null),
+                            firstValues: d.data.slice(0, 5),
+                            borderColor: d.borderColor,
+                            showLine: d.showLine,
+                            hidden: d.hidden
+                          }))
+                        });
+                      }
+                      
                       return (
                         <Line 
                           data={chartData} 
                           options={chartOptions}
-                          redraw={false}
-                          updateMode="none"
+                          redraw={true}
+                          updateMode="resize"
                         />
                       );
                     } catch (error: any) {
-                      if (IS_DEV) console.error('Erro ao renderizar gráfico:', error);
+                      console.error('❌ [EVOLUÇÃO] Erro ao renderizar gráfico:', error);
                       setChartError('Erro ao renderizar gráfico. Tente recarregar a página.');
                       return (
                         <div className="flex h-full items-center justify-center">
