@@ -47,6 +47,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
       const dropdown = dropdownRef.current;
       
       // Usar position fixed para escapar de qualquer stacking context
+      // getBoundingClientRect() retorna coordenadas relativas à viewport (já inclui scroll)
       dropdown.style.position = 'fixed';
       dropdown.style.top = `${buttonRect.bottom + 4}px`;
       dropdown.style.left = `${buttonRect.left}px`;
@@ -55,15 +56,17 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
       dropdown.style.maxHeight = '240px';
     };
 
-    // Pequeno delay para garantir que o DOM está atualizado
-    const timeoutId = setTimeout(updatePosition, 0);
+    // Usar requestAnimationFrame para garantir que o DOM está atualizado
+    const rafId = requestAnimationFrame(() => {
+      updatePosition();
+    });
     
     // Atualizar posição em caso de scroll ou resize
     window.addEventListener('scroll', updatePosition, true);
     window.addEventListener('resize', updatePosition);
     
     return () => {
-      clearTimeout(timeoutId);
+      cancelAnimationFrame(rafId);
       window.removeEventListener('scroll', updatePosition, true);
       window.removeEventListener('resize', updatePosition);
     };
@@ -96,7 +99,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
         {isOpen && !disabled && options.length > 0 && (
           <div 
             ref={dropdownRef}
-            className="mt-1 w-full rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
+            className="rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
             style={{ 
               position: 'fixed',
               zIndex: 99999,
