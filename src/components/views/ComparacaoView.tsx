@@ -233,6 +233,9 @@ function ComparacaoView({
             <div className="flex-shrink-0 text-2xl">📋</div>
             <div className="flex-1">
               <h4 className="mb-2 font-bold text-purple-900 dark:text-purple-300">Como Gerar a Apresentação em PDF</h4>
+              <div className="mb-3 rounded-md bg-amber-100 p-3 text-sm text-amber-900 dark:bg-amber-900/50 dark:text-amber-200">
+                <strong>🚧 Em Desenvolvimento:</strong> A função de Apresentação está em desenvolvimento e será disponibilizada em breve.
+              </div>
               <ol className="space-y-2 text-sm text-purple-800 dark:text-purple-200">
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-purple-600 dark:text-purple-400">1.</span>
