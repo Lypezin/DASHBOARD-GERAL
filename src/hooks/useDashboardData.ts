@@ -560,17 +560,36 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               });
               semanalRes = { data: data || [], error };
               
-              // Log detalhado para debug
-              if (IS_DEV && data && Array.isArray(data) && data.length > 0) {
+              // Log detalhado para debug - FORÇAR SEMPRE
+              if (data && Array.isArray(data) && data.length > 0) {
                 const semana35 = data.find((d: any) => d.semana === 35);
                 if (semana35) {
-                  console.log('🔍 [HOOK] Semana 35 encontrada:', {
+                  const segundos = Number(semana35.total_segundos) || 0;
+                  const horas = segundos / 3600;
+                  const horasInt = Math.floor(horas);
+                  const minutos = Math.floor((horas - horasInt) * 60);
+                  const segundosResto = Math.floor(((horas - horasInt) * 60 - minutos) * 60);
+                  const horasFormatadas = `${horasInt}:${String(minutos).padStart(2, '0')}:${String(segundosResto).padStart(2, '0')}`;
+                  
+                  console.log('🔍 [HOOK] ⚠️ SEMANA 35 DETALHADA:', {
                     ano: semana35.ano,
                     semana: semana35.semana,
-                    total_segundos: semana35.total_segundos,
-                    horas: (Number(semana35.total_segundos) / 3600).toFixed(2),
+                    total_segundos_RAW: semana35.total_segundos,
+                    total_segundos_NUMBER: segundos,
+                    horas_decimal: horas.toFixed(2),
+                    horas_formatadas: horasFormatadas,
                     praca_filter_usado: pracaFilter,
-                    corridas_completadas: semana35.corridas_completadas
+                    corridas_completadas: semana35.corridas_completadas,
+                    corridas_ofertadas: semana35.corridas_ofertadas,
+                    corridas_aceitas: semana35.corridas_aceitas,
+                    corridas_rejeitadas: semana35.corridas_rejeitadas,
+                    tipo_total_segundos: typeof semana35.total_segundos
+                  });
+                } else {
+                  console.warn('⚠️ [HOOK] Semana 35 NÃO encontrada nos dados!', {
+                    total_semanas: data.length,
+                    semanas_disponiveis: data.map((d: any) => d.semana).slice(0, 10),
+                    praca_filter: pracaFilter
                   });
                 }
               }

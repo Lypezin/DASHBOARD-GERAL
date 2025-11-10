@@ -335,12 +335,47 @@ function EvolucaoView({
 
     switch (metric) {
       case 'horas':
+        const horasData = baseLabels.map(label => {
+          const d = dadosPorLabel.get(label);
+          if (!d) {
+            if (FORCE_LOGS && label === baseLabels[0]) {
+              console.warn('⚠️ [EVOLUÇÃO] Horas - dado não encontrado para label:', label);
+            }
+            return null;
+          }
+          const segundos = Number(d.total_segundos) || 0;
+          const horas = segundosParaHoras(segundos);
+          
+          // Log específico para semana 35
+          if (FORCE_LOGS && label.includes('35')) {
+            console.log('🔍 [EVOLUÇÃO] ⚠️ HORAS - Semana 35:', {
+              label,
+              total_segundos_RAW: d.total_segundos,
+              total_segundos_NUMBER: segundos,
+              horas_calculada: horas,
+              horas_formatadas: formatarHorasParaHMS(horas),
+              dados_completos: d
+            });
+          }
+          
+          return horas;
+        });
+        
+        if (FORCE_LOGS) {
+          const semana35Index = baseLabels.findIndex(l => l.includes('35'));
+          if (semana35Index >= 0) {
+            console.log('🔍 [EVOLUÇÃO] ⚠️ HORAS - Array completo para semana 35:', {
+              index: semana35Index,
+              label: baseLabels[semana35Index],
+              valor: horasData[semana35Index],
+              todos_valores: horasData.slice(Math.max(0, semana35Index - 2), semana35Index + 3)
+            });
+          }
+        }
+        
         return {
           labels: baseLabels,
-          data: baseLabels.map(label => {
-            const d = dadosPorLabel.get(label);
-            return d ? segundosParaHoras(d.total_segundos) : null;
-          }),
+          data: horasData,
           label: '⏱️ Horas Trabalhadas',
           borderColor: 'rgba(251, 146, 60, 1)', // Laranja (bem diferente do verde)
           backgroundColor: (context: any) => {
