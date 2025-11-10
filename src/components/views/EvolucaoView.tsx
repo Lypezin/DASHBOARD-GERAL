@@ -536,27 +536,31 @@ function EvolucaoView({
           // Acessar diretamente a propriedade corridas_rejeitadas
           let value = (d as any).corridas_rejeitadas;
           
-          // FALLBACK: Se rejeitadas está zerado ou null, calcular como ofertadas - aceitas
-          // IMPORTANTE: Rejeitadas = Ofertadas - Aceitas (lógica de negócio)
-          if ((value == null || value === 0 || Number(value) === 0) && 
-              (d as any).corridas_ofertadas != null && 
+          // SEMPRE calcular rejeitadas como ofertadas - aceitas (lógica de negócio)
+          // Isso garante que mesmo se o banco retornar 0, vamos calcular corretamente
+          if ((d as any).corridas_ofertadas != null && 
               (d as any).corridas_aceitas != null) {
             const ofertadas = Number((d as any).corridas_ofertadas) || 0;
             const aceitas = Number((d as any).corridas_aceitas) || 0;
             const calculado = ofertadas - aceitas;
             
-            // SEMPRE usar o cálculo se houver dados de ofertadas e aceitas
-            // Mesmo que seja 0, isso é o valor correto se ofertadas === aceitas
-            if (ofertadas > 0 || aceitas > 0) {
+            // Usar o valor calculado se for diferente do original OU se o original estiver zerado/null
+            // Isso garante que sempre mostramos o valor correto
+            if (value == null || value === 0 || Number(value) === 0 || calculado !== Number(value)) {
               value = calculado;
               if (FORCE_LOGS && label === baseLabels[0]) {
-                console.log('🔍 [EVOLUÇÃO] Rejeitadas - usando cálculo fallback:', {
+                console.log('🔍 [EVOLUÇÃO] Rejeitadas - usando cálculo:', {
                   label,
                   original_rejeitadas: (d as any).corridas_rejeitadas,
                   ofertadas,
                   aceitas,
                   calculado,
-                  motivo: calculado === 0 ? 'Ofertadas === Aceitas (todas foram aceitas)' : 'Rejeitadas calculadas como Ofertadas - Aceitas'
+                  usando_calculo: value == null || value === 0 || Number(value) === 0 || calculado !== Number(value),
+                  motivo: calculado === 0 
+                    ? 'Ofertadas === Aceitas (todas foram aceitas)' 
+                    : calculado !== Number(value)
+                    ? 'Valor calculado diferente do banco - usando cálculo'
+                    : 'Rejeitadas calculadas como Ofertadas - Aceitas'
                 });
               }
             }
@@ -865,17 +869,17 @@ function EvolucaoView({
         // Isso permite ver linhas separadas mesmo quando os valores são iguais
         // Usar o valor máximo global para calcular offsets consistentes
         if (data.length > 0 && data.some(v => v != null) && config.yAxisID === 'y' && globalMaxValue > 0) {
-          // Offset baseado no índice para diferenciar visualmente
-          // Usar 3% do valor máximo global como offset base para melhor visibilidade
-          // Isso garante que as linhas sejam claramente separadas mesmo quando valores são idênticos
-          const baseOffset = globalMaxValue * 0.03; // 3% do valor máximo global
-          const offsets = [
-            0,                    // Completadas: sem offset (linha base)
-            baseOffset * 0.4,     // Ofertadas: +1.2% do máximo global
-            baseOffset * 0.8,     // Aceitas: +2.4% do máximo global
-            0,                     // Rejeitadas: sem offset
-            0                      // Horas: sem offset (usa eixo diferente)
-          ];
+            // Offset baseado no índice para diferenciar visualmente
+            // Usar 5% do valor máximo global como offset base para melhor visibilidade
+            // Isso garante que as linhas sejam claramente separadas mesmo quando valores são idênticos
+            const baseOffset = globalMaxValue * 0.05; // 5% do valor máximo global
+            const offsets = [
+              0,                    // Completadas: sem offset (linha base)
+              baseOffset * 0.5,     // Ofertadas: +2.5% do máximo global
+              baseOffset,           // Aceitas: +5% do máximo global
+              0,                     // Rejeitadas: sem offset
+              0                      // Horas: sem offset (usa eixo diferente)
+            ];
           const offset = offsets[index] || 0;
           
           // Aplicar offset apenas se o valor não for zero (para não mover a linha de rejeitadas quando for 0)
