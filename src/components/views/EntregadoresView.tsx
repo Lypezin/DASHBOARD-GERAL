@@ -228,7 +228,7 @@ function EntregadoresView({
       </div>
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">
         <MetricCard
           title="Entregadores"
           value={totalEntregadores}
