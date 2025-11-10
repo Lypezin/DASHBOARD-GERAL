@@ -20,43 +20,22 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        wrapperRef.current && 
+        !wrapperRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [wrapperRef]);
-
-  // Ajustar posição do dropdown quando aberto usando position fixed
-  useEffect(() => {
-    if (isOpen && buttonRef.current && dropdownRef.current) {
-      const updatePosition = () => {
-        if (!buttonRef.current || !dropdownRef.current) return;
-        
-        const buttonRect = buttonRef.current.getBoundingClientRect();
-        const dropdown = dropdownRef.current;
-        
-        // Usar position fixed para escapar de qualquer stacking context
-        dropdown.style.position = 'fixed';
-        dropdown.style.top = `${buttonRect.bottom + 4}px`;
-        dropdown.style.left = `${buttonRect.left}px`;
-        dropdown.style.width = `${buttonRect.width}px`;
-        dropdown.style.zIndex = '99999';
-      };
-      
-      updatePosition();
-      
-      // Atualizar posição em caso de scroll ou resize
-      window.addEventListener('scroll', updatePosition, true);
-      window.addEventListener('resize', updatePosition);
-      
-      return () => {
-        window.removeEventListener('scroll', updatePosition, true);
-        window.removeEventListener('resize', updatePosition);
-      };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isOpen]);
+  }, [isOpen, wrapperRef]);
+
 
   const handleSelect = (value: string) => {
     // Evitar duplicatas: verificar se já existe
@@ -70,9 +49,9 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   };
 
   return (
-    <div className="flex flex-col gap-1 sm:gap-1.5" ref={wrapperRef} style={{ position: 'relative' }}>
+    <div className="flex flex-col gap-1 sm:gap-1.5" ref={wrapperRef} style={{ position: 'relative', zIndex: isOpen ? 50 : 'auto' }}>
       <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">{label}</span>
-      <div className="relative" style={{ position: 'relative' }}>
+      <div className="relative" style={{ position: 'relative', zIndex: isOpen ? 50 : 'auto' }}>
         <button
           ref={buttonRef}
           onClick={() => setIsOpen(!isOpen)}
@@ -84,8 +63,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
         {isOpen && !disabled && options.length > 0 && (
           <div 
             ref={dropdownRef}
-            className="rounded-md bg-white shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
-            style={{ position: 'fixed', zIndex: 99999 }}
+            className="absolute z-[9999] mt-1 w-full rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
           >
             <ul className="max-h-60 overflow-auto p-1">
               {options.map((option) => (

@@ -351,7 +351,7 @@ export default function DashboardPage() {
                 </>
               )}
               {/* Tabs com scroll horizontal em mobile */}
-              <div className="relative" style={{ position: 'relative', zIndex: 1 }}>
+              <div className="relative" style={{ position: 'relative', zIndex: 10 }}>
                 <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
                   <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
                   <TabButton label="Análise" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />
