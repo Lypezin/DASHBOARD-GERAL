@@ -328,13 +328,13 @@ export default function DashboardPage() {
         {!loading && !error && (
           <div className="space-y-4 sm:space-y-6 animate-fade-in">
             {/* Header com filtros e tabs */}
-            <div className="group relative rounded-2xl border border-white/20 bg-white/80 backdrop-blur-xl p-4 sm:p-5 lg:p-7 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/80 animate-slide-down" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="group relative rounded-2xl border border-white/20 bg-white/80 backdrop-blur-xl p-4 sm:p-5 lg:p-7 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/80 animate-slide-down" style={{ position: 'relative' }}>
               {/* Subtle glow */}
               <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
-              <div className="relative" style={{ position: 'relative', zIndex: 1 }}>
+              <div className="relative">
               {activeTab !== 'comparacao' && (
                 <>
-                  <div className="relative">
+                  <div className="relative" style={{ position: 'relative', zIndex: 10 }}>
                   <FiltroBar
                     filters={filters}
                     setFilters={setFilters}
@@ -347,11 +347,11 @@ export default function DashboardPage() {
                     currentUser={currentUser}
                   />
                   </div>
-                  <div className="my-3 sm:my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700" style={{ position: 'relative', zIndex: 1 }}></div>
+                  <div className="my-3 sm:my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700"></div>
                 </>
               )}
               {/* Tabs com scroll horizontal em mobile */}
-              <div className="relative" style={{ zIndex: 1, position: 'relative' }}>
+              <div className="relative" style={{ position: 'relative', zIndex: 1 }}>
                 <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
                   <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
                   <TabButton label="Análise" icon="📈" active={activeTab === 'analise'} onClick={() => setActiveTab('analise')} />

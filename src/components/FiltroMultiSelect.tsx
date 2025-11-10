@@ -38,9 +38,9 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   };
 
   return (
-    <div className="flex flex-col gap-1 sm:gap-1.5" ref={wrapperRef} style={{ position: 'relative', zIndex: isOpen ? 9999 : 'auto' }}>
+    <div className="flex flex-col gap-1 sm:gap-1.5" ref={wrapperRef} style={{ position: 'relative' }}>
       <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">{label}</span>
-      <div className="relative" style={{ position: 'relative', zIndex: isOpen ? 9999 : 'auto' }}>
+      <div className="relative" style={{ position: 'relative' }}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
@@ -49,7 +49,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
           {selected.length > 0 ? `${selected.length} selecionado(s)` : placeholder}
         </button>
         {isOpen && !disabled && options.length > 0 && (
-          <div className="absolute z-[9999] mt-1 w-full rounded-md bg-white shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700" style={{ position: 'absolute', zIndex: 9999 }}>
+          <div className="absolute mt-1 w-full rounded-md bg-white shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700" style={{ position: 'absolute', zIndex: 50 }}>
             <ul className="max-h-60 overflow-auto p-1">
               {options.map((option) => (
                 <li
