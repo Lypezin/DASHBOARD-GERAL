@@ -7,25 +7,150 @@ import { sanitizeText } from '@/lib/sanitize';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+// Interfaces para as novas funcionalidades
+interface EstatisticasPeriodo {
+  total_acoes: number;
+  usuarios_unicos: number;
+  acoes_por_hora: number;
+  aba_mais_usada: string | null;
+  pico_atividade: string | null;
+  periodo_mais_ativo: string | null;
+}
+
+interface DistribuicaoHora {
+  hora: number;
+  total_acoes: number;
+  usuarios_unicos: number;
+}
+
+interface TopUsuario {
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  total_acoes: number;
+  abas_diferentes: number;
+  ultima_atividade: string;
+}
+
+interface DistribuicaoAba {
+  tab_name: string;
+  total_acoes: number;
+  usuarios_unicos: number;
+  percentual: number;
+}
+
+interface Alerta {
+  tipo_alerta: string;
+  mensagem: string;
+  severidade: 'info' | 'warning' | 'error';
+  valor_atual: number;
+  valor_esperado: number;
+}
+
+interface Atividade {
+  id?: string;
+  user_id: string;
+  action_type: string;
+  action_details?: string;
+  tab_name?: string;
+  filters_applied?: unknown;
+  created_at: string;
+  session_id?: string;
+}
+
 function MonitoramentoView() {
   const [usuarios, setUsuarios] = useState<UsuarioOnline[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'ativos' | 'inativos'>('todos');
-  interface Atividade {
-    id?: string;
-    user_id: string;
-    action_type: string;
-    action_details?: string;
-    tab_name?: string;
-    filters_applied?: unknown;
-    created_at: string;
-    session_id?: string;
-  }
-  
   const [atividades, setAtividades] = useState<Atividade[]>([]);
+  
+  // Novos estados para funcionalidades avançadas
+  const [estatisticas, setEstatisticas] = useState<EstatisticasPeriodo | null>(null);
+  const [distribuicaoHora, setDistribuicaoHora] = useState<DistribuicaoHora[]>([]);
+  const [topUsuarios, setTopUsuarios] = useState<TopUsuario[]>([]);
+  const [distribuicaoAba, setDistribuicaoAba] = useState<DistribuicaoAba[]>([]);
+  const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [periodoAnalise, setPeriodoAnalise] = useState<'24h' | '7d' | '30d'>('24h');
+  const [mostrarAnalytics, setMostrarAnalytics] = useState(true);
+  const [filtroUsuario, setFiltroUsuario] = useState<string>('');
+  const [filtroAba, setFiltroAba] = useState<string>('');
+  
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Calcular datas baseado no período selecionado
+  const getPeriodoDatas = useCallback((periodo: '24h' | '7d' | '30d') => {
+    const agora = new Date();
+    const inicio = new Date();
+    
+    switch (periodo) {
+      case '24h':
+        inicio.setHours(inicio.getHours() - 24);
+        break;
+      case '7d':
+        inicio.setDate(inicio.getDate() - 7);
+        break;
+      case '30d':
+        inicio.setDate(inicio.getDate() - 30);
+        break;
+    }
+    
+    return {
+      inicio: inicio.toISOString(),
+      fim: agora.toISOString()
+    };
+  }, []);
+
+  // Buscar estatísticas avançadas
+  const fetchEstatisticas = useCallback(async () => {
+    try {
+      const { inicio, fim } = getPeriodoDatas(periodoAnalise);
+      
+      const [statsResult, horaResult, topResult, abaResult, alertasResult] = await Promise.allSettled([
+        supabase.rpc('estatisticas_atividade_periodo', {
+          p_data_inicio: inicio,
+          p_data_fim: fim
+        }),
+        supabase.rpc('distribuicao_atividades_hora', {
+          p_data_inicio: inicio,
+          p_data_fim: fim
+        }),
+        supabase.rpc('top_usuarios_ativos', {
+          p_limite: 10,
+          p_data_inicio: inicio,
+          p_data_fim: fim
+        }),
+        supabase.rpc('distribuicao_por_aba', {
+          p_data_inicio: inicio,
+          p_data_fim: fim
+        }),
+        supabase.rpc('verificar_alertas_monitoramento')
+      ]);
+
+      if (statsResult.status === 'fulfilled' && !statsResult.value.error) {
+        setEstatisticas(statsResult.value.data?.[0] || null);
+      }
+
+      if (horaResult.status === 'fulfilled' && !horaResult.value.error) {
+        setDistribuicaoHora(horaResult.value.data || []);
+      }
+
+      if (topResult.status === 'fulfilled' && !topResult.value.error) {
+        setTopUsuarios(topResult.value.data || []);
+      }
+
+      if (abaResult.status === 'fulfilled' && !abaResult.value.error) {
+        setDistribuicaoAba(abaResult.value.data || []);
+      }
+
+      if (alertasResult.status === 'fulfilled' && !alertasResult.value.error) {
+        setAlertas(alertasResult.value.data || []);
+      }
+    } catch (err) {
+      safeLog.warn('Erro ao buscar estatísticas avançadas:', err);
+    }
+  }, [periodoAnalise, getPeriodoDatas]);
 
   const fetchMonitoramento = useCallback(async () => {
     try {
@@ -39,10 +164,6 @@ function MonitoramentoView() {
         const errorWithCode = error as { code?: string };
         if (errorWithCode.code === '42883') {
           safeLog.error('Função listar_usuarios_online não existe no banco de dados.');
-        }
-        
-        // Se a função não existir, mostrar mensagem específica
-        if (errorWithCode.code === '42883') {
           setError('Função de monitoramento não configurada. Entre em contato com o administrador.');
         } else {
           setError(getSafeErrorMessage(error) || 'Erro ao carregar usuários online. Tente novamente.');
@@ -62,18 +183,17 @@ function MonitoramentoView() {
         safeLog.info(`✅ ${data.length} usuário(s) online encontrado(s)`);
       }
       
-      // Buscar atividades recentes (últimas 50) - com tratamento de erro não bloqueante
+      // Buscar atividades recentes (últimas 100) - com tratamento de erro não bloqueante
       let atividadesData: Atividade[] = [];
       try {
         const { data: atividadesResponse, error: atividadesError } = await supabase
           .from('user_activity')
           .select('id, user_id, action_type, action_details, tab_name, filters_applied, created_at, session_id')
           .order('created_at', { ascending: false })
-          .limit(50);
+          .limit(100);
       
         if (atividadesError) {
           safeLog.warn('Erro ao buscar atividades:', atividadesError);
-          // Se a tabela não existir, código 42P01
           if (atividadesError.code === '42P01') {
             safeLog.warn('Tabela user_activity não existe. As atividades serão registradas quando a tabela for criada.');
           }
@@ -83,23 +203,13 @@ function MonitoramentoView() {
           setAtividades(atividadesData);
           if (atividadesData.length > 0) {
             safeLog.info(`✅ ${atividadesData.length} atividades carregadas`);
-          } else {
-            safeLog.info('ℹ️ Nenhuma atividade encontrada na tabela user_activity');
           }
         } else {
           setAtividades([]);
-          if (!atividadesError) {
-            safeLog.warn('Resposta de atividades inválida:', atividadesResponse);
-          }
         }
       } catch (err: unknown) {
         safeLog.warn('Erro ao buscar atividades (pode não estar disponível):', err);
-        const error = err as { code?: string };
-        if (error?.code === '42P01') {
-          safeLog.warn('Tabela user_activity não existe no banco de dados.');
-        }
         setAtividades([]);
-        // Não bloquear a funcionalidade principal se atividades falhar
       }
       
       // Mapear os dados da API para o formato esperado com validações
@@ -122,13 +232,10 @@ function MonitoramentoView() {
       }
       
       const usuariosMapeados: UsuarioOnline[] = (data || []).map((u: UsuarioOnlineRaw): UsuarioOnline | null => {
-        // Validações de segurança
         if (!u || !u.user_id) return null;
         
-        // Segundos de inatividade já vem como número do backend
         const segundosInativo = typeof u.seconds_inactive === 'number' ? u.seconds_inactive : 0;
         
-        // Extrair praças dos filtros com validação
         const filtros: FiltersApplied = (u.filters_applied as FiltersApplied) || {};
         let pracas: string[] = [];
         if (filtros.p_praca) {
@@ -137,18 +244,14 @@ function MonitoramentoView() {
           pracas = Array.isArray(filtros.praca) ? filtros.praca : [filtros.praca];
         }
         
-        // A descrição detalhada já vem do backend (action_details)
-        // Nota: action_type não existe em UsuarioOnlineRaw, apenas last_action_type
         const descricaoAcao = u.action_details || u.last_action_type || 'Atividade desconhecida';
         
-        // Contar ações da última hora com validação
         const umaHoraAtras = new Date();
         umaHoraAtras.setHours(umaHoraAtras.getHours() - 1);
         const acoesUltimaHora = atividadesData.filter((a: Atividade) => 
           a && a.user_id === u.user_id && a.created_at && new Date(a.created_at) > umaHoraAtras
         ).length;
         
-        // Sanitizar dados do usuário
         const userName = u.user_name || (u.user_email ? u.user_email.split('@')[0] : 'Usuário');
         const userEmail = u.user_email || '';
         
@@ -165,9 +268,14 @@ function MonitoramentoView() {
           acoes_ultima_hora: acoesUltimaHora,
           is_active: u.is_active !== false
         } as UsuarioOnline;
-      }).filter((u: UsuarioOnline | null): u is UsuarioOnline => u !== null); // Filtrar nulos
+      }).filter((u: UsuarioOnline | null): u is UsuarioOnline => u !== null);
       
       setUsuarios(usuariosMapeados);
+      
+      // Buscar estatísticas avançadas
+      if (mostrarAnalytics) {
+        await fetchEstatisticas();
+      }
     } catch (err: unknown) {
       safeLog.error('Erro ao buscar monitoramento:', err);
       setError(getSafeErrorMessage(err) || 'Erro desconhecido ao carregar monitoramento');
@@ -175,12 +283,11 @@ function MonitoramentoView() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mostrarAnalytics, fetchEstatisticas]);
 
   useEffect(() => {
     fetchMonitoramento();
     
-    // Limpar intervalo anterior se existir
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -189,7 +296,7 @@ function MonitoramentoView() {
     if (autoRefresh) {
       intervalRef.current = setInterval(() => {
         fetchMonitoramento();
-      }, 10000); // Atualizar a cada 10 segundos
+      }, 10000);
     }
     
     return () => {
@@ -216,23 +323,22 @@ function MonitoramentoView() {
     if (!timestamp) return 'Data desconhecida';
     
     try {
-    const date = new Date(timestamp);
+      const date = new Date(timestamp);
       if (isNaN(date.getTime())) return 'Data inválida';
       
-    const agora = new Date();
-    const diff = Math.floor((agora.getTime() - date.getTime()) / 1000);
-    
+      const agora = new Date();
+      const diff = Math.floor((agora.getTime() - date.getTime()) / 1000);
+      
       if (diff < 0) return 'Agora';
-    if (diff < 60) return `${diff}s atrás`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m atrás`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
-    return date.toLocaleDateString('pt-BR');
+      if (diff < 60) return `${diff}s atrás`;
+      if (diff < 3600) return `${Math.floor(diff / 60)}m atrás`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
+      return date.toLocaleDateString('pt-BR');
     } catch (err) {
       return 'Data inválida';
     }
   };
 
-  // IMPORTANTE: Todos os hooks devem ser chamados ANTES de qualquer early return
   // Calcular estatísticas (otimizado com useMemo)
   const usuariosAtivos = useMemo(() => usuarios.filter(u => u.segundos_inativo < 60).length, [usuarios]);
   const usuariosInativos = useMemo(() => usuarios.length - usuariosAtivos, [usuarios, usuariosAtivos]);
@@ -241,11 +347,84 @@ function MonitoramentoView() {
   // Filtrar usuários (otimizado com useMemo)
   const usuariosFiltrados = useMemo(() => {
     return usuarios.filter(u => {
-      if (filtroStatus === 'ativos') return u.segundos_inativo < 60;
-      if (filtroStatus === 'inativos') return u.segundos_inativo >= 60;
+      if (filtroStatus === 'ativos') {
+        if (u.segundos_inativo >= 60) return false;
+      } else if (filtroStatus === 'inativos') {
+        if (u.segundos_inativo < 60) return false;
+      }
+      
+      if (filtroUsuario && !u.nome?.toLowerCase().includes(filtroUsuario.toLowerCase()) && 
+          !u.email?.toLowerCase().includes(filtroUsuario.toLowerCase())) {
+        return false;
+      }
+      
+      if (filtroAba && u.aba_atual !== filtroAba) {
+        return false;
+      }
+      
       return true;
     });
-  }, [usuarios, filtroStatus]);
+  }, [usuarios, filtroStatus, filtroUsuario, filtroAba]);
+
+  // Filtrar atividades
+  const atividadesFiltradas = useMemo(() => {
+    return atividades.filter(ativ => {
+      if (filtroUsuario) {
+        const usuario = usuarios.find(u => u.user_id === ativ.user_id);
+        const nomeUsuario = usuario?.nome || usuario?.email || '';
+        if (!nomeUsuario.toLowerCase().includes(filtroUsuario.toLowerCase())) {
+          return false;
+        }
+      }
+      
+      if (filtroAba && ativ.tab_name !== filtroAba) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [atividades, usuarios, filtroUsuario, filtroAba]);
+
+  // Obter lista de abas únicas para filtro
+  const abasUnicas = useMemo(() => {
+    const abas = new Set<string>();
+    usuarios.forEach(u => {
+      if (u.aba_atual) abas.add(u.aba_atual);
+    });
+    atividades.forEach(a => {
+      if (a.tab_name) abas.add(a.tab_name);
+    });
+    return Array.from(abas).sort();
+  }, [usuarios, atividades]);
+
+  // Função para exportar dados
+  const exportarDados = useCallback(() => {
+    const dados = {
+      timestamp: new Date().toISOString(),
+      periodo: periodoAnalise,
+      usuarios_online: usuariosFiltrados,
+      atividades: atividadesFiltradas.slice(0, 100),
+      estatisticas: estatisticas,
+      top_usuarios: topUsuarios,
+      distribuicao_aba: distribuicaoAba
+    };
+    
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `monitoramento_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [usuariosFiltrados, atividadesFiltradas, periodoAnalise, estatisticas, topUsuarios, distribuicaoAba]);
+
+  // Calcular altura máxima do gráfico de barras
+  const maxAcoesHora = useMemo(() => {
+    if (distribuicaoHora.length === 0) return 1;
+    return Math.max(...distribuicaoHora.map(d => d.total_acoes));
+  }, [distribuicaoHora]);
 
   if (loading && usuarios.length === 0) {
     return (
@@ -258,7 +437,6 @@ function MonitoramentoView() {
     );
   }
 
-  // Mostrar erro se houver e não houver usuários
   if (error && usuarios.length === 0) {
     return (
       <div className="flex h-[60vh] items-center justify-center animate-fade-in">
@@ -283,6 +461,34 @@ function MonitoramentoView() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Alertas */}
+      {alertas.length > 0 && (
+        <div className="space-y-2">
+          {alertas.map((alerta, idx) => (
+            <div
+              key={idx}
+              className={`rounded-lg border p-4 ${
+                alerta.severidade === 'error'
+                  ? 'border-rose-300 bg-rose-50 dark:border-rose-800 dark:bg-rose-950/30'
+                  : alerta.severidade === 'warning'
+                  ? 'border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30'
+                  : 'border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-xl">
+                  {alerta.severidade === 'error' ? '🚨' : alerta.severidade === 'warning' ? '⚠️' : 'ℹ️'}
+                </span>
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-900 dark:text-white">{alerta.tipo_alerta}</p>
+                  <p className="text-sm text-slate-700 dark:text-slate-300">{alerta.mensagem}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
@@ -313,6 +519,42 @@ function MonitoramentoView() {
           color="purple"
         />
       </div>
+
+      {/* Estatísticas Avançadas */}
+      {mostrarAnalytics && estatisticas && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            title="Total Ações"
+            value={estatisticas.total_acoes || 0}
+            icon="📊"
+            color="blue"
+            percentage={estatisticas.acoes_por_hora || 0}
+            percentageLabel="por hora"
+          />
+          <MetricCard
+            title="Usuários Únicos"
+            value={estatisticas.usuarios_unicos || 0}
+            icon="👤"
+            color="green"
+          />
+          {estatisticas.aba_mais_usada && (
+            <MetricCard
+              title="Aba Mais Usada"
+              value={estatisticas.aba_mais_usada}
+              icon="📈"
+              color="purple"
+            />
+          )}
+          {estatisticas.periodo_mais_ativo && (
+            <MetricCard
+              title="Período Mais Ativo"
+              value={estatisticas.periodo_mais_ativo}
+              icon="⏰"
+              color="red"
+            />
+          )}
+        </div>
+      )}
 
       {/* Controles */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900">
@@ -350,7 +592,43 @@ function MonitoramentoView() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Filtro por usuário */}
+            <input
+              type="text"
+              placeholder="Filtrar usuário..."
+              value={filtroUsuario}
+              onChange={(e) => setFiltroUsuario(e.target.value)}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+            />
+            
+            {/* Filtro por aba */}
+            {abasUnicas.length > 0 && (
+              <select
+                value={filtroAba}
+                onChange={(e) => setFiltroAba(e.target.value)}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+              >
+                <option value="">Todas as abas</option>
+                {abasUnicas.map(aba => (
+                  <option key={aba} value={aba}>{aba}</option>
+                ))}
+              </select>
+            )}
+
+            {/* Período de análise */}
+            {mostrarAnalytics && (
+              <select
+                value={periodoAnalise}
+                onChange={(e) => setPeriodoAnalise(e.target.value as '24h' | '7d' | '30d')}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+              >
+                <option value="24h">Últimas 24h</option>
+                <option value="7d">Últimos 7 dias</option>
+                <option value="30d">Últimos 30 dias</option>
+              </select>
+            )}
+
             <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
@@ -360,6 +638,24 @@ function MonitoramentoView() {
               />
               <span>Auto-atualizar (10s)</span>
             </label>
+            
+            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+              <input
+                type="checkbox"
+                checked={mostrarAnalytics}
+                onChange={(e) => setMostrarAnalytics(e.target.checked)}
+                className="h-4 w-4 rounded"
+              />
+              <span>Analytics</span>
+            </label>
+            
+            <button
+              onClick={exportarDados}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-emerald-700"
+            >
+              📥 Exportar
+            </button>
+            
             <button
               onClick={() => {
                 setLoading(true);
@@ -374,7 +670,123 @@ function MonitoramentoView() {
         </div>
       </div>
 
-      {/* Conteúdo */}
+      {/* Gráficos e Analytics */}
+      {mostrarAnalytics && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Gráfico de distribuição por hora */}
+          {distribuicaoHora.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+              <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+                📊 Atividades por Hora
+              </h3>
+              <div className="space-y-2">
+                {distribuicaoHora.map((item) => (
+                  <div key={item.hora} className="flex items-center gap-3">
+                    <div className="w-12 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      {item.hora.toString().padStart(2, '0')}:00
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 rounded-full bg-slate-200 dark:bg-slate-700" style={{ height: '20px' }}>
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
+                            style={{ width: `${(item.total_acoes / maxAcoesHora) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="w-16 text-right text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          {item.total_acoes}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                        {item.usuarios_unicos} usuário(s)
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Distribuição por aba */}
+          {distribuicaoAba.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+              <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+                📈 Distribuição por Aba
+              </h3>
+              <div className="space-y-3">
+                {distribuicaoAba.map((item) => (
+                  <div key={item.tab_name}>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                        {item.tab_name}
+                      </span>
+                      <span className="text-xs text-slate-600 dark:text-slate-400">
+                        {item.percentual.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="rounded-full bg-slate-200 dark:bg-slate-700" style={{ height: '8px' }}>
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                        style={{ width: `${item.percentual}%` }}
+                      ></div>
+                    </div>
+                    <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {item.total_acoes} ações • {item.usuarios_unicos} usuário(s)
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Top Usuários */}
+      {mostrarAnalytics && topUsuarios.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+            🏆 Top Usuários Mais Ativos
+          </h3>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {topUsuarios.map((usuario, idx) => (
+              <div
+                key={usuario.user_id}
+                className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold text-slate-400">#{idx + 1}</span>
+                      <p className="font-semibold text-slate-900 dark:text-white">
+                        {usuario.user_name || usuario.user_email}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                      {usuario.user_email}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-500 dark:text-slate-400">Ações:</span>
+                    <span className="ml-1 font-bold text-slate-900 dark:text-white">
+                      {usuario.total_acoes}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 dark:text-slate-400">Abas:</span>
+                    <span className="ml-1 font-bold text-slate-900 dark:text-white">
+                      {usuario.abas_diferentes}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Conteúdo Principal */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Lista de Usuários Online */}
         <div className="lg:col-span-2">
@@ -394,7 +806,6 @@ function MonitoramentoView() {
                       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{usuario.email}</p>
                       
                       <div className="mt-4 space-y-2">
-                        {/* Aba Atual */}
                         {usuario.aba_atual && (
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aba:</span>
@@ -404,7 +815,6 @@ function MonitoramentoView() {
                           </div>
                         )}
                         
-                        {/* Praças */}
                         {usuario.pracas && usuario.pracas.length > 0 && (
                           <div className="flex items-start gap-2">
                             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Praças:</span>
@@ -418,19 +828,16 @@ function MonitoramentoView() {
                           </div>
                         )}
                         
-                        {/* Última Ação */}
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Última ação:</span>
                           <span className="text-xs text-slate-700 dark:text-slate-300">{usuario.ultima_acao}</span>
                         </div>
                         
-                        {/* Tempo Inativo */}
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Inativo há:</span>
                           <span className="text-xs font-bold text-slate-900 dark:text-white">{formatarTempo(usuario.segundos_inativo)}</span>
                         </div>
                         
-                        {/* Ações última hora */}
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Ações (última hora):</span>
                           <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
@@ -452,6 +859,11 @@ function MonitoramentoView() {
               <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">
                 Nenhum usuário {filtroStatus !== 'todos' ? filtroStatus : 'online'}
               </p>
+              {(filtroUsuario || filtroAba) && (
+                <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                  Tente ajustar os filtros
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -465,29 +877,24 @@ function MonitoramentoView() {
                 Atividades Recentes
               </h3>
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                Últimas {atividades.length} ações
+                Últimas {atividadesFiltradas.length} ações
               </p>
             </div>
             
             <div className="max-h-[600px] space-y-2 overflow-auto p-4">
-              {atividades.length > 0 ? (
-                atividades.map((ativ, idx) => {
-                  // Validação de dados antes de renderizar
+              {atividadesFiltradas.length > 0 ? (
+                atividadesFiltradas.slice(0, 50).map((ativ, idx) => {
                   if (!ativ || !ativ.user_id || !ativ.created_at) return null;
                   
-                  // Buscar nome do usuário da lista de usuários online
                   const usuario = usuarios.find(u => u.user_id === ativ.user_id);
                   const nomeUsuario = usuario?.nome || usuario?.email || 'Usuário desconhecido';
                   
-                  // Determinar descrição da ação
                   let actionDescription = '';
                   let actionIcon = '📝';
                   
                   if (ativ.action_details) {
-                    // Se tiver action_details, usar diretamente
                     actionDescription = ativ.action_details;
                   } else if (ativ.action_type) {
-                    // Senão, construir baseado no tipo
                     switch (ativ.action_type) {
                       case 'tab_change':
                         actionDescription = `Acessou a aba: ${ativ.tab_name || 'desconhecida'}`;
@@ -521,25 +928,25 @@ function MonitoramentoView() {
                   }
                   
                   return (
-                  <div
+                    <div
                       key={ativ.id || `${ativ.user_id}-${ativ.created_at}-${idx}`}
-                    className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
-                  >
-                    <div className="flex items-start gap-2">
+                      className="group rounded-lg border border-slate-100 bg-slate-50 p-3 transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                    >
+                      <div className="flex items-start gap-2">
                         <div className="mt-0.5 text-xs shrink-0">{actionIcon}</div>
-                      <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1">
                           <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                             {nomeUsuario}
                           </p>
                           <p className="text-xs text-slate-700 dark:text-slate-300 mt-0.5">
                             {actionDescription}
-                        </p>
+                          </p>
                           <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
-                          {formatarTimestamp(ativ.created_at)}
-                        </p>
+                            {formatarTimestamp(ativ.created_at)}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
                   );
                 }).filter(Boolean)
               ) : (
@@ -549,7 +956,9 @@ function MonitoramentoView() {
                     Nenhuma atividade registrada
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    As atividades aparecerão aqui quando os usuários interagirem com o sistema
+                    {filtroUsuario || filtroAba 
+                      ? 'Tente ajustar os filtros'
+                      : 'As atividades aparecerão aqui quando os usuários interagirem com o sistema'}
                   </p>
                 </div>
               )}
