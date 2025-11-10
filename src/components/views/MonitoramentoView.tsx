@@ -397,28 +397,6 @@ function MonitoramentoView() {
     return Array.from(abas).sort();
   }, [usuarios, atividades]);
 
-  // Função para exportar dados
-  const exportarDados = useCallback(() => {
-    const dados = {
-      timestamp: new Date().toISOString(),
-      periodo: periodoAnalise,
-      usuarios_online: usuariosFiltrados,
-      atividades: atividadesFiltradas.slice(0, 100),
-      estatisticas: estatisticas,
-      top_usuarios: topUsuarios,
-      distribuicao_aba: distribuicaoAba
-    };
-    
-    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `monitoramento_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, [usuariosFiltrados, atividadesFiltradas, periodoAnalise, estatisticas, topUsuarios, distribuicaoAba]);
 
   // Calcular altura máxima do gráfico de barras
   const maxAcoesHora = useMemo(() => {
@@ -520,42 +498,6 @@ function MonitoramentoView() {
         />
       </div>
 
-      {/* Estatísticas Avançadas */}
-      {mostrarAnalytics && estatisticas && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
-            title="Total Ações"
-            value={estatisticas.total_acoes || 0}
-            icon="📊"
-            color="blue"
-            percentage={estatisticas.acoes_por_hora || 0}
-            percentageLabel="por hora"
-          />
-          <MetricCard
-            title="Usuários Únicos"
-            value={estatisticas.usuarios_unicos || 0}
-            icon="👤"
-            color="green"
-          />
-          {estatisticas.aba_mais_usada && (
-            <MetricCard
-              title="Aba Mais Usada"
-              value={estatisticas.aba_mais_usada}
-              icon="📈"
-              color="purple"
-            />
-          )}
-          {estatisticas.periodo_mais_ativo && (
-            <MetricCard
-              title="Período Mais Ativo"
-              value={estatisticas.periodo_mais_ativo}
-              icon="⏰"
-              color="red"
-            />
-          )}
-        </div>
-      )}
-
       {/* Controles */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -650,13 +592,6 @@ function MonitoramentoView() {
             </label>
             
             <button
-              onClick={exportarDados}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-emerald-700"
-            >
-              📥 Exportar
-            </button>
-            
-            <button
               onClick={() => {
                 setLoading(true);
                 fetchMonitoramento();
@@ -670,123 +605,7 @@ function MonitoramentoView() {
         </div>
       </div>
 
-      {/* Gráficos e Analytics */}
-      {mostrarAnalytics && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Gráfico de distribuição por hora */}
-          {distribuicaoHora.length > 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-              <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
-                📊 Atividades por Hora
-              </h3>
-              <div className="space-y-2">
-                {distribuicaoHora.map((item) => (
-                  <div key={item.hora} className="flex items-center gap-3">
-                    <div className="w-12 text-xs font-semibold text-slate-600 dark:text-slate-400">
-                      {item.hora.toString().padStart(2, '0')}:00
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 rounded-full bg-slate-200 dark:bg-slate-700" style={{ height: '20px' }}>
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
-                            style={{ width: `${(item.total_acoes / maxAcoesHora) * 100}%` }}
-                          ></div>
-                        </div>
-                        <span className="w-16 text-right text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          {item.total_acoes}
-                        </span>
-                      </div>
-                      <div className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
-                        {item.usuarios_unicos} usuário(s)
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Distribuição por aba */}
-          {distribuicaoAba.length > 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-              <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
-                📈 Distribuição por Aba
-              </h3>
-              <div className="space-y-3">
-                {distribuicaoAba.map((item) => (
-                  <div key={item.tab_name}>
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {item.tab_name}
-                      </span>
-                      <span className="text-xs text-slate-600 dark:text-slate-400">
-                        {item.percentual.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="rounded-full bg-slate-200 dark:bg-slate-700" style={{ height: '8px' }}>
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
-                        style={{ width: `${item.percentual}%` }}
-                      ></div>
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {item.total_acoes} ações • {item.usuarios_unicos} usuário(s)
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Top Usuários */}
-      {mostrarAnalytics && topUsuarios.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
-            🏆 Top Usuários Mais Ativos
-          </h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {topUsuarios.map((usuario, idx) => (
-              <div
-                key={usuario.user_id}
-                className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-slate-400">#{idx + 1}</span>
-                      <p className="font-semibold text-slate-900 dark:text-white">
-                        {usuario.user_name || usuario.user_email}
-                      </p>
-                    </div>
-                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                      {usuario.user_email}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-slate-500 dark:text-slate-400">Ações:</span>
-                    <span className="ml-1 font-bold text-slate-900 dark:text-white">
-                      {usuario.total_acoes}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 dark:text-slate-400">Abas:</span>
-                    <span className="ml-1 font-bold text-slate-900 dark:text-white">
-                      {usuario.abas_diferentes}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Conteúdo Principal */}
+      {/* Usuários Online - PRIMEIRO EM DESTAQUE */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Lista de Usuários Online */}
         <div className="lg:col-span-2">
@@ -966,6 +785,161 @@ function MonitoramentoView() {
           </div>
         </div>
       </div>
+
+      {/* Estatísticas Avançadas e Analytics */}
+      {mostrarAnalytics && (
+        <>
+          {/* Estatísticas Avançadas */}
+          {estatisticas && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <MetricCard
+                title="Total Ações"
+                value={estatisticas.total_acoes || 0}
+                icon="📊"
+                color="blue"
+                percentage={estatisticas.acoes_por_hora || 0}
+                percentageLabel="por hora"
+              />
+              <MetricCard
+                title="Usuários Únicos"
+                value={estatisticas.usuarios_unicos || 0}
+                icon="👤"
+                color="green"
+              />
+              {estatisticas.aba_mais_usada && (
+                <MetricCard
+                  title="Aba Mais Usada"
+                  value={estatisticas.aba_mais_usada}
+                  icon="📈"
+                  color="purple"
+                />
+              )}
+              {estatisticas.periodo_mais_ativo && (
+                <MetricCard
+                  title="Período Mais Ativo"
+                  value={estatisticas.periodo_mais_ativo}
+                  icon="⏰"
+                  color="red"
+                />
+              )}
+            </div>
+          )}
+
+          {/* Gráficos e Analytics */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Gráfico de distribuição por hora */}
+            {distribuicaoHora.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+                  📊 Atividades por Hora
+                </h3>
+                <div className="space-y-2">
+                  {distribuicaoHora.map((item) => (
+                    <div key={item.hora} className="flex items-center gap-3">
+                      <div className="w-12 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        {item.hora.toString().padStart(2, '0')}:00
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 rounded-full bg-slate-200 dark:bg-slate-700" style={{ height: '20px' }}>
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
+                              style={{ width: `${(item.total_acoes / maxAcoesHora) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="w-16 text-right text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            {item.total_acoes}
+                          </span>
+                        </div>
+                        <div className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                          {item.usuarios_unicos} usuário(s)
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Distribuição por aba */}
+            {distribuicaoAba.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+                  📈 Distribuição por Aba
+                </h3>
+                <div className="space-y-3">
+                  {distribuicaoAba.map((item) => (
+                    <div key={item.tab_name}>
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                          {item.tab_name}
+                        </span>
+                        <span className="text-xs text-slate-600 dark:text-slate-400">
+                          {item.percentual.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="rounded-full bg-slate-200 dark:bg-slate-700" style={{ height: '8px' }}>
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                          style={{ width: `${item.percentual}%` }}
+                        ></div>
+                      </div>
+                      <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        {item.total_acoes} ações • {item.usuarios_unicos} usuário(s)
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Top Usuários */}
+          {topUsuarios.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+              <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+                🏆 Top Usuários Mais Ativos
+              </h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {topUsuarios.map((usuario, idx) => (
+                  <div
+                    key={usuario.user_id}
+                    className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold text-slate-400">#{idx + 1}</span>
+                          <p className="font-semibold text-slate-900 dark:text-white">
+                            {usuario.user_name || usuario.user_email}
+                          </p>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                          {usuario.user_email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400">Ações:</span>
+                        <span className="ml-1 font-bold text-slate-900 dark:text-white">
+                          {usuario.total_acoes}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400">Abas:</span>
+                        <span className="ml-1 font-bold text-slate-900 dark:text-white">
+                          {usuario.abas_diferentes}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
