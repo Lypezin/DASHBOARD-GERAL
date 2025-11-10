@@ -534,7 +534,31 @@ function EvolucaoView({
             return null;
           }
           // Acessar diretamente a propriedade corridas_rejeitadas
-          const value = (d as any).corridas_rejeitadas;
+          let value = (d as any).corridas_rejeitadas;
+          
+          // FALLBACK: Se rejeitadas está zerado ou null, calcular como ofertadas - aceitas
+          if ((value == null || value === 0 || Number(value) === 0) && 
+              (d as any).corridas_ofertadas != null && 
+              (d as any).corridas_aceitas != null) {
+            const ofertadas = Number((d as any).corridas_ofertadas) || 0;
+            const aceitas = Number((d as any).corridas_aceitas) || 0;
+            const calculado = ofertadas - aceitas;
+            
+            // Só usar o cálculo se o resultado for positivo (faz sentido logicamente)
+            if (calculado > 0) {
+              value = calculado;
+              if (FORCE_LOGS && label === baseLabels[0]) {
+                console.log('🔍 [EVOLUÇÃO] Rejeitadas - usando cálculo fallback:', {
+                  label,
+                  ofertadas,
+                  aceitas,
+                  calculado,
+                  original: (d as any).corridas_rejeitadas
+                });
+              }
+            }
+          }
+          
           if (FORCE_LOGS && label === baseLabels[0]) {
             console.log('🔍 [EVOLUÇÃO] Rejeitadas - primeiro dado:', { 
               label, 
@@ -763,6 +787,32 @@ function EvolucaoView({
           // Retornar o valor numérico (incluindo 0, que é válido)
           return numValue;
         });
+        
+        // ADICIONAR OFFSET VISUAL MUITO PEQUENO para linhas com valores idênticos
+        // Isso permite ver linhas separadas mesmo quando os valores são iguais
+        // O offset é muito pequeno (0.1% do valor máximo) para não distorcer os dados
+        if (data.length > 0 && data.some(v => v != null)) {
+          const maxValue = Math.max(...data.filter(v => v != null) as number[]);
+          if (maxValue > 0) {
+            // Offset baseado no índice para diferenciar visualmente
+            // Usar 0.1% do valor máximo como offset máximo
+            const maxOffset = maxValue * 0.001; // 0.1% do valor máximo
+            const offsets = [0, maxOffset * 0.3, maxOffset * 0.6, 0, 0]; // Pequenos offsets para as primeiras 3 métricas
+            const offset = offsets[index] || 0;
+            
+            // Aplicar offset apenas se o valor não for zero (para não mover a linha de rejeitadas quando for 0)
+            if (offset > 0) {
+              data = data.map((value: number | null) => {
+                if (value == null || value === 0) return value;
+                return value + offset;
+              });
+              
+              if (FORCE_LOGS && offset > 0) {
+                console.log(`🔍 [EVOLUÇÃO] Offset aplicado a ${config.label}: ${offset.toFixed(2)} (${((offset / maxValue) * 100).toFixed(3)}% do máximo)`);
+              }
+            }
+          }
+        }
         
         // LOG FORÇADO - sempre mostrar
         if (FORCE_LOGS) {
