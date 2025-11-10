@@ -49,7 +49,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
           {selected.length > 0 ? `${selected.length} selecionado(s)` : placeholder}
         </button>
         {isOpen && !disabled && options.length > 0 && (
-          <div className="absolute mt-1 w-full rounded-md bg-white shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700" style={{ position: 'absolute', zIndex: 50 }}>
+          <div className="absolute mt-1 w-full rounded-md bg-white shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700" style={{ position: 'absolute', zIndex: 60 }}>
             <ul className="max-h-60 overflow-auto p-1">
               {options.map((option) => (
                 <li
