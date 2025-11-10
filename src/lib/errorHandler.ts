@@ -124,7 +124,12 @@ function sanitizeLogData(data: unknown): unknown {
   if (!data) return data;
 
   if (typeof data === 'object') {
-    const sanitized = Array.isArray(data) ? [...data] : { ...data };
+    if (Array.isArray(data)) {
+      return data.slice(0, 10).map(sanitizeLogData);
+    }
+    
+    // Para objetos, criar uma cópia tipada
+    const sanitized: Record<string, unknown> = { ...(data as Record<string, unknown>) };
     
     // Remover campos sensíveis
     const sensitiveFields = ['password', 'token', 'secret', 'api_key', 'auth_token', 'session'];
@@ -134,17 +139,12 @@ function sanitizeLogData(data: unknown): unknown {
       }
     }
 
-    // Limitar tamanho de arrays
-    if (Array.isArray(sanitized)) {
-      return sanitized.slice(0, 10).map(sanitizeLogData);
-    }
-
     // Limitar profundidade de objetos
     const keys = Object.keys(sanitized);
     if (keys.length > 20) {
       const limited: Record<string, unknown> = {};
       for (let i = 0; i < 20; i++) {
-        limited[keys[i]] = sanitizeLogData((sanitized as Record<string, unknown>)[keys[i]]);
+        limited[keys[i]] = sanitizeLogData(sanitized[keys[i]]);
       }
       return limited;
     }
