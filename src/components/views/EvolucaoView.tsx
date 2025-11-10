@@ -533,38 +533,9 @@ function EvolucaoView({
             }
             return null;
           }
-          // Acessar diretamente a propriedade corridas_rejeitadas
-          let value = (d as any).corridas_rejeitadas;
-          
-          // SEMPRE calcular rejeitadas como ofertadas - aceitas (lógica de negócio)
-          // Isso garante que mesmo se o banco retornar 0, vamos calcular corretamente
-          if ((d as any).corridas_ofertadas != null && 
-              (d as any).corridas_aceitas != null) {
-            const ofertadas = Number((d as any).corridas_ofertadas) || 0;
-            const aceitas = Number((d as any).corridas_aceitas) || 0;
-            const calculado = ofertadas - aceitas;
-            
-            // Usar o valor calculado se for diferente do original OU se o original estiver zerado/null
-            // Isso garante que sempre mostramos o valor correto
-            if (value == null || value === 0 || Number(value) === 0 || calculado !== Number(value)) {
-              value = calculado;
-              if (FORCE_LOGS && label === baseLabels[0]) {
-                console.log('🔍 [EVOLUÇÃO] Rejeitadas - usando cálculo:', {
-                  label,
-                  original_rejeitadas: (d as any).corridas_rejeitadas,
-                  ofertadas,
-                  aceitas,
-                  calculado,
-                  usando_calculo: value == null || value === 0 || Number(value) === 0 || calculado !== Number(value),
-                  motivo: calculado === 0 
-                    ? 'Ofertadas === Aceitas (todas foram aceitas)' 
-                    : calculado !== Number(value)
-                    ? 'Valor calculado diferente do banco - usando cálculo'
-                    : 'Rejeitadas calculadas como Ofertadas - Aceitas'
-                });
-              }
-            }
-          }
+          // Acessar diretamente a propriedade corridas_rejeitadas do banco de dados
+          // IMPORTANTE: Rejeitadas é uma coluna separada, não um cálculo
+          const value = (d as any).corridas_rejeitadas;
           
           if (FORCE_LOGS && label === baseLabels[0]) {
             console.log('🔍 [EVOLUÇÃO] Rejeitadas - primeiro dado:', { 
@@ -576,7 +547,8 @@ function EvolucaoView({
               corridas_rejeitadas: (d as any).corridas_rejeitadas,
               corridas_ofertadas: (d as any).corridas_ofertadas,
               corridas_aceitas: (d as any).corridas_aceitas,
-              corridas_completadas: (d as any).corridas_completadas
+              corridas_completadas: (d as any).corridas_completadas,
+              todas_propriedades: d
             });
           }
           // Retornar número válido ou null

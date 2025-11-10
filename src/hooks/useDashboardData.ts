@@ -629,18 +629,47 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 console.log('Propriedades mensal:', Object.keys(mensal[0]));
               }
               if (semanal.length > 0) {
-                console.log('Primeiro item semanal:', semanal[0]);
-                console.log('Propriedades semanal:', Object.keys(semanal[0]));
+                console.log('🔍 [HOOK] Primeiro item semanal completo:', semanal[0]);
+                console.log('🔍 [HOOK] Propriedades semanal:', Object.keys(semanal[0]));
                 // Verificar valores de rejeitadas em todos os dados semanais
                 const rejeitadasTotal = semanal.reduce((sum: number, s: any) => sum + (Number(s.corridas_rejeitadas) || 0), 0);
                 const rejeitadasNonZero = semanal.filter((s: any) => Number(s.corridas_rejeitadas) > 0);
-                console.log('📊 Total de rejeitadas (soma):', rejeitadasTotal);
-                console.log('📊 Semanas com rejeitadas > 0:', rejeitadasNonZero.length);
+                console.log('🔍 [HOOK] Total de rejeitadas (soma de todas as semanas):', rejeitadasTotal);
+                console.log('🔍 [HOOK] Semanas com rejeitadas > 0:', rejeitadasNonZero.length);
+                console.log('🔍 [HOOK] Total de semanas:', semanal.length);
+                
+                // Verificar os primeiros 5 itens para debug
+                console.log('🔍 [HOOK] Primeiros 5 itens semanais:', semanal.slice(0, 5).map((s: any) => ({
+                  ano: s.ano,
+                  semana: s.semana,
+                  ofertadas: s.corridas_ofertadas,
+                  aceitas: s.corridas_aceitas,
+                  completadas: s.corridas_completadas,
+                  rejeitadas: s.corridas_rejeitadas,
+                  tipo_rejeitadas: typeof s.corridas_rejeitadas
+                })));
+                
                 if (rejeitadasNonZero.length > 0) {
-                  console.log('📊 Exemplos de semanas com rejeitadas:', rejeitadasNonZero.slice(0, 5).map((s: any) => ({
+                  console.log('✅ [HOOK] Exemplos de semanas com rejeitadas:', rejeitadasNonZero.slice(0, 5).map((s: any) => ({
                     semana: s.semana,
-                    rejeitadas: s.corridas_rejeitadas
+                    rejeitadas: s.corridas_rejeitadas,
+                    ofertadas: s.corridas_ofertadas,
+                    aceitas: s.corridas_aceitas
                   })));
+                } else {
+                  console.warn('⚠️ [HOOK] NENHUMA semana tem rejeitadas > 0! Verificando se os dados estão corretos...');
+                  // Verificar se há diferença entre ofertadas e aceitas
+                  const primeiraSemana = semanal[0];
+                  if (primeiraSemana) {
+                    console.log('🔍 [HOOK] Análise da primeira semana:', {
+                      semana: primeiraSemana.semana,
+                      ofertadas: primeiraSemana.corridas_ofertadas,
+                      aceitas: primeiraSemana.corridas_aceitas,
+                      completadas: primeiraSemana.corridas_completadas,
+                      rejeitadas: primeiraSemana.corridas_rejeitadas,
+                      diferenca_ofertadas_aceitas: Number(primeiraSemana.corridas_ofertadas) - Number(primeiraSemana.corridas_aceitas)
+                    });
+                  }
                 }
               }
               if (utr.length > 0) console.log('Primeiro item utr:', utr[0]);
