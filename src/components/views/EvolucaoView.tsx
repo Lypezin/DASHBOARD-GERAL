@@ -6,11 +6,6 @@ import { registerChartJS } from '@/lib/chartConfig';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-// Registrar Chart.js quando o componente for carregado
-if (typeof window !== 'undefined') {
-  registerChartJS();
-}
-
 function EvolucaoView({
   evolucaoMensal,
   evolucaoSemanal,
@@ -35,12 +30,10 @@ function EvolucaoView({
   // Garantir que Chart.js está registrado quando o componente montar
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      try {
-        registerChartJS();
-      } catch (error) {
+      registerChartJS().catch((error) => {
         if (IS_DEV) console.error('Erro ao registrar Chart.js:', error);
         setChartError('Erro ao inicializar gráficos. Tente recarregar a página.');
-      }
+      });
     }
   }, []);
 

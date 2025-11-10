@@ -12,11 +12,6 @@ import { registerChartJS } from '@/lib/chartConfig';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-// Registrar Chart.js quando o componente for carregado
-if (typeof window !== 'undefined') {
-  registerChartJS();
-}
-
 function ComparacaoView({
   semanas,
   pracas,
@@ -59,6 +54,15 @@ function ComparacaoView({
       {label}
     </button>
   );
+
+  // Registrar Chart.js quando o componente for montado (apenas no cliente)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      registerChartJS().catch((err) => {
+        safeLog.error('Erro ao registrar Chart.js:', err);
+      });
+    }
+  }, []);
 
   // Buscar TODAS as semanas disponíveis (sem filtro)
   useEffect(() => {
