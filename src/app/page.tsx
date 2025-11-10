@@ -334,7 +334,7 @@ export default function DashboardPage() {
               <div className="relative" style={{ position: 'relative', zIndex: 1 }}>
               {activeTab !== 'comparacao' && (
                 <>
-                  <div className="relative" style={{ isolation: 'isolate', zIndex: 99999, position: 'relative' }}>
+                  <div className="relative">
                   <FiltroBar
                     filters={filters}
                     setFilters={setFilters}
