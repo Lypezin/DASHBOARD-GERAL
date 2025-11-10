@@ -68,8 +68,8 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [semanas]);
 
   return (
-    <div className="space-y-3 sm:space-y-4 relative" style={{ position: 'relative', zIndex: 50 }}>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6" style={{ position: 'relative', zIndex: 50 }}>
+    <div className="space-y-3 sm:space-y-4 relative" style={{ position: 'relative', zIndex: 100 }}>
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6" style={{ position: 'relative', zIndex: 100 }}>
         <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anosOptions} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
         <FiltroMultiSelect 
           label="Semana" 

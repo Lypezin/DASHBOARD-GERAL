@@ -49,9 +49,9 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   };
 
   return (
-    <div className="flex flex-col gap-1 sm:gap-1.5" ref={wrapperRef} style={{ position: 'relative', zIndex: isOpen ? 50 : 'auto' }}>
+    <div className="flex flex-col gap-1 sm:gap-1.5" ref={wrapperRef} style={{ position: 'relative', zIndex: isOpen ? 100 : 'auto' }}>
       <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">{label}</span>
-      <div className="relative" style={{ position: 'relative', zIndex: isOpen ? 50 : 'auto' }}>
+      <div className="relative" style={{ position: 'relative', zIndex: isOpen ? 100 : 'auto' }}>
         <button
           ref={buttonRef}
           onClick={() => setIsOpen(!isOpen)}
@@ -63,7 +63,8 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
         {isOpen && !disabled && options.length > 0 && (
           <div 
             ref={dropdownRef}
-            className="absolute z-[9999] mt-1 w-full rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
+            className="absolute mt-1 w-full rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
+            style={{ zIndex: 99999 }}
           >
             <ul className="max-h-60 overflow-auto p-1">
               {options.map((option) => (
