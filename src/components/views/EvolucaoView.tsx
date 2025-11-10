@@ -407,7 +407,7 @@ function EvolucaoView({
           useUtrData: false,
         };
     }
-  }, [baseLabels, dadosPorLabel, viewMode, segundosParaHoras]);
+  }, [baseLabels, dadosPorLabel, segundosParaHoras]);
 
   // Dados do gráfico com múltiplas métricas (otimizado com useMemo)
   const chartData = useMemo(() => {
@@ -755,7 +755,7 @@ function EvolucaoView({
     }
 
     return result;
-  }, [chartData, dadosAtivos.length]);
+  }, [chartData]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({

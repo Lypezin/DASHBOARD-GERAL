@@ -103,12 +103,18 @@ function MonitoramentoView() {
       }
       
       // Mapear os dados da API para o formato esperado com validações
+      interface FiltersApplied {
+        p_praca?: string | string[];
+        praca?: string | string[];
+        [key: string]: unknown;
+      }
+      
       interface UsuarioOnlineRaw {
         user_id: string;
         user_name?: string;
         user_email?: string;
         current_tab?: string;
-        filters_applied?: unknown;
+        filters_applied?: FiltersApplied | null;
         last_action_type?: string;
         action_details?: string;
         seconds_inactive?: number;
@@ -123,7 +129,7 @@ function MonitoramentoView() {
         const segundosInativo = typeof u.seconds_inactive === 'number' ? u.seconds_inactive : 0;
         
         // Extrair praças dos filtros com validação
-        const filtros = u.filters_applied || {};
+        const filtros: FiltersApplied = (u.filters_applied as FiltersApplied) || {};
         let pracas: string[] = [];
         if (filtros.p_praca) {
           pracas = Array.isArray(filtros.p_praca) ? filtros.p_praca : [filtros.p_praca];
@@ -132,7 +138,8 @@ function MonitoramentoView() {
         }
         
         // A descrição detalhada já vem do backend (action_details)
-        const descricaoAcao = u.action_details || u.last_action_type || u.action_type || 'Atividade desconhecida';
+        // Nota: action_type não existe em UsuarioOnlineRaw, apenas last_action_type
+        const descricaoAcao = u.action_details || u.last_action_type || 'Atividade desconhecida';
         
         // Contar ações da última hora com validação
         const umaHoraAtras = new Date();
