@@ -36,6 +36,39 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
     }
   }, [isOpen, wrapperRef]);
 
+  // Calcular posição do dropdown usando position fixed para escapar de stacking contexts
+  useEffect(() => {
+    if (!isOpen || !buttonRef.current || !dropdownRef.current) return;
+
+    const updatePosition = () => {
+      if (!buttonRef.current || !dropdownRef.current) return;
+      
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      const dropdown = dropdownRef.current;
+      
+      // Usar position fixed para escapar de qualquer stacking context
+      dropdown.style.position = 'fixed';
+      dropdown.style.top = `${buttonRect.bottom + 4}px`;
+      dropdown.style.left = `${buttonRect.left}px`;
+      dropdown.style.width = `${buttonRect.width}px`;
+      dropdown.style.zIndex = '99999';
+      dropdown.style.maxHeight = '240px';
+    };
+
+    // Pequeno delay para garantir que o DOM está atualizado
+    const timeoutId = setTimeout(updatePosition, 0);
+    
+    // Atualizar posição em caso de scroll ou resize
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [isOpen]);
+
 
   const handleSelect = (value: string) => {
     // Evitar duplicatas: verificar se já existe
@@ -63,8 +96,12 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
         {isOpen && !disabled && options.length > 0 && (
           <div 
             ref={dropdownRef}
-            className="absolute mt-1 w-full rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
-            style={{ zIndex: 99999 }}
+            className="mt-1 w-full rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
+            style={{ 
+              position: 'fixed',
+              zIndex: 99999,
+              maxHeight: '240px'
+            }}
           >
             <ul className="max-h-60 overflow-auto p-1">
               {options.map((option) => (
