@@ -804,7 +804,6 @@ function EvolucaoView({
         const pointRadius = pointRadii[index] || (isSemanal ? 5 : 7);
         
         // Usar estilos de linha diferentes para diferenciar quando valores são iguais
-        const lineStyles = ['solid', 'solid', 'solid', 'solid', 'solid'] as const;
         const dashPatterns = [
           [], // Sólida
           [5, 5], // Tracejada
@@ -843,7 +842,7 @@ function EvolucaoView({
           stack: undefined, // Não usar stack para evitar sobreposição
           // Adicionar propriedades para garantir renderização
           stepped: false,
-          clip: false,
+          // clip removido - não é necessário e causa erro de tipo
           segment: {
             borderColor: (ctx: any) => {
               if (!ctx.p0 || !ctx.p1) return config.borderColor;
@@ -924,7 +923,7 @@ function EvolucaoView({
         datasets: [],
   };
     }
-  }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels]); // baseLabels é necessário pois é usado diretamente no retorno
+  }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels, dadosAtivos.length, dadosUtrAtivos.length]); // baseLabels é necessário pois é usado diretamente no retorno
 
   // Calcular min e max dos dados para ajustar a escala do eixo Y
   const yAxisRange = useMemo(() => {
@@ -999,7 +998,7 @@ function EvolucaoView({
     }
 
     return result;
-  }, [chartData]);
+  }, [chartData, dadosAtivos.length, dadosUtrAtivos.length]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
