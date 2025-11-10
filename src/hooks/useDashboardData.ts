@@ -509,10 +509,24 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             let semanalRes: any = { data: [], error: null };
             let utrSemanalRes: any = { data: [], error: null }; // Manter para compatibilidade, mas não carregar
             
+            // Usar o filterPayload já construído que já aplica as permissões do usuário
+            const pracaFilter = filterPayload.p_praca;
+            
+            if (IS_DEV) {
+              console.log('🔍 [HOOK] Carregando evolução com filtro de praça:', pracaFilter);
+              console.log('🔍 [HOOK] FilterPayload completo:', filterPayload);
+              if (currentUser) {
+                console.log('🔍 [HOOK] CurrentUser:', {
+                  is_admin: currentUser.is_admin,
+                  assigned_pracas: currentUser.assigned_pracas
+                });
+              }
+            }
+            
             try {
               // listar_evolucao_mensal(p_praca text, p_ano integer)
               const { data, error } = await supabase.rpc('listar_evolucao_mensal', { 
-                p_praca: null, 
+                p_praca: pracaFilter, 
                 p_ano: anoEvolucao 
               });
               mensalRes = { data: data || [], error };
@@ -525,7 +539,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               // listar_evolucao_semanal(p_praca text, p_ano integer, p_limite_semanas integer DEFAULT 53)
               // Aumentar limite para garantir que todas as semanas sejam retornadas
               const { data, error } = await supabase.rpc('listar_evolucao_semanal', { 
-                p_praca: null, 
+                p_praca: pracaFilter, 
                 p_ano: anoEvolucao,
                 p_limite_semanas: 60 // Aumentado para garantir semanas 44, 45, etc.
               });

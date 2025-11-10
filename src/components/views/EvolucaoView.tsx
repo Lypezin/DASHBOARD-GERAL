@@ -537,6 +537,7 @@ function EvolucaoView({
           let value = (d as any).corridas_rejeitadas;
           
           // FALLBACK: Se rejeitadas está zerado ou null, calcular como ofertadas - aceitas
+          // IMPORTANTE: Rejeitadas = Ofertadas - Aceitas (lógica de negócio)
           if ((value == null || value === 0 || Number(value) === 0) && 
               (d as any).corridas_ofertadas != null && 
               (d as any).corridas_aceitas != null) {
@@ -544,28 +545,18 @@ function EvolucaoView({
             const aceitas = Number((d as any).corridas_aceitas) || 0;
             const calculado = ofertadas - aceitas;
             
-            if (FORCE_LOGS && label === baseLabels[0]) {
-              console.log('🔍 [EVOLUÇÃO] Rejeitadas - tentando fallback:', {
-                label,
-                original_rejeitadas: (d as any).corridas_rejeitadas,
-                ofertadas,
-                aceitas,
-                calculado,
-                vai_usar: calculado > 0
-              });
-            }
-            
-            // Usar o cálculo se o resultado for positivo OU se for zero mas diferente do original
-            // Isso garante que mesmo quando ofertadas === aceitas, vamos mostrar 0 explicitamente
-            if (calculado >= 0) {
+            // SEMPRE usar o cálculo se houver dados de ofertadas e aceitas
+            // Mesmo que seja 0, isso é o valor correto se ofertadas === aceitas
+            if (ofertadas > 0 || aceitas > 0) {
               value = calculado;
-              if (FORCE_LOGS && calculado > 0) {
-                console.log('✅ [EVOLUÇÃO] Rejeitadas - usando cálculo fallback:', {
+              if (FORCE_LOGS && label === baseLabels[0]) {
+                console.log('🔍 [EVOLUÇÃO] Rejeitadas - usando cálculo fallback:', {
                   label,
+                  original_rejeitadas: (d as any).corridas_rejeitadas,
                   ofertadas,
                   aceitas,
                   calculado,
-                  original: (d as any).corridas_rejeitadas
+                  motivo: calculado === 0 ? 'Ofertadas === Aceitas (todas foram aceitas)' : 'Rejeitadas calculadas como Ofertadas - Aceitas'
                 });
               }
             }
