@@ -544,11 +544,23 @@ function EvolucaoView({
             const aceitas = Number((d as any).corridas_aceitas) || 0;
             const calculado = ofertadas - aceitas;
             
-            // Só usar o cálculo se o resultado for positivo (faz sentido logicamente)
-            if (calculado > 0) {
+            if (FORCE_LOGS && label === baseLabels[0]) {
+              console.log('🔍 [EVOLUÇÃO] Rejeitadas - tentando fallback:', {
+                label,
+                original_rejeitadas: (d as any).corridas_rejeitadas,
+                ofertadas,
+                aceitas,
+                calculado,
+                vai_usar: calculado > 0
+              });
+            }
+            
+            // Usar o cálculo se o resultado for positivo OU se for zero mas diferente do original
+            // Isso garante que mesmo quando ofertadas === aceitas, vamos mostrar 0 explicitamente
+            if (calculado >= 0) {
               value = calculado;
-              if (FORCE_LOGS && label === baseLabels[0]) {
-                console.log('🔍 [EVOLUÇÃO] Rejeitadas - usando cálculo fallback:', {
+              if (FORCE_LOGS && calculado > 0) {
+                console.log('✅ [EVOLUÇÃO] Rejeitadas - usando cálculo fallback:', {
                   label,
                   ofertadas,
                   aceitas,
@@ -583,6 +595,13 @@ function EvolucaoView({
           const nonNull = rejeitadasData.filter(v => v != null);
           const nonZero = rejeitadasData.filter(v => v != null && v !== 0);
           const zeroValues = rejeitadasData.filter(v => v === 0);
+          
+          // Verificar se há diferença entre ofertadas e aceitas para entender por que rejeitadas está zerado
+          const primeiroDado = dadosPorLabel.get(baseLabels[0]);
+          const ofertadasPrimeiro = primeiroDado ? Number((primeiroDado as any).corridas_ofertadas) || 0 : 0;
+          const aceitasPrimeiro = primeiroDado ? Number((primeiroDado as any).corridas_aceitas) || 0 : 0;
+          const diferencaPrimeiro = ofertadasPrimeiro - aceitasPrimeiro;
+          
           console.log('🔍 [EVOLUÇÃO] Rejeitadas - resumo completo:', {
             total: rejeitadasData.length,
             nonNull: nonNull.length,
@@ -591,8 +610,25 @@ function EvolucaoView({
             sample: rejeitadasData.slice(0, 10),
             allValues: rejeitadasData,
             minValue: nonNull.length > 0 ? Math.min(...nonNull as number[]) : null,
-            maxValue: nonNull.length > 0 ? Math.max(...nonNull as number[]) : null
+            maxValue: nonNull.length > 0 ? Math.max(...nonNull as number[]) : null,
+            analise_primeiro_periodo: {
+              label: baseLabels[0],
+              ofertadas: ofertadasPrimeiro,
+              aceitas: aceitasPrimeiro,
+              diferenca: diferencaPrimeiro,
+              rejeitadas_original: primeiroDado ? (primeiroDado as any).corridas_rejeitadas : null,
+              rejeitadas_calculada: rejeitadasData[0]
+            }
           });
+          
+          if (nonZero.length === 0 && zeroValues.length > 0) {
+            console.warn('⚠️ [EVOLUÇÃO] ATENÇÃO: Todas as rejeitadas estão em 0!', {
+              motivo_possivel: diferencaPrimeiro === 0 
+                ? 'Ofertadas === Aceitas, então não há rejeitadas (isso pode ser normal se todas as corridas ofertadas foram aceitas)'
+                : 'Rejeitadas está zerado no banco de dados, mas há diferença entre ofertadas e aceitas',
+              diferenca_media: diferencaPrimeiro
+            });
+          }
         }
         return {
           labels: baseLabels,
@@ -721,6 +757,52 @@ function EvolucaoView({
         };
       }
 
+      // PRIMEIRO: Calcular o valor máximo global de todos os datasets (exceto Horas/UTR que usam eixo diferente)
+      // Isso é necessário para calcular offsets consistentes que separem visualmente as linhas
+      let globalMaxValue = 0;
+      const datasetsComEixoY = metricConfigs
+        .map((config, idx) => {
+          let data: (number | null)[] = [];
+          if (config.useUtrData && config.labels.length !== chartBaseLabels.length) {
+            const labelMap = new Map<string, number | null>();
+            config.labels.forEach((label, i) => {
+              const value = config.data[i];
+              labelMap.set(label, value != null && !isNaN(value) && isFinite(value) ? Number(value) : null);
+            });
+            data = chartBaseLabels.map(label => labelMap.get(label) ?? null);
+          } else {
+            if (config.labels.length === chartBaseLabels.length && 
+                config.labels.every((label, i) => label === chartBaseLabels[i])) {
+              data = (config.data || []) as (number | null)[];
+            } else {
+              const labelMap = new Map<string, number | null>();
+              config.labels.forEach((label, i) => {
+                const value = config.data[i];
+                labelMap.set(label, value != null && !isNaN(value) && isFinite(value) ? Number(value) : null);
+              });
+              data = chartBaseLabels.map(label => labelMap.get(label) ?? null);
+            }
+          }
+          return { data, yAxisID: config.yAxisID, index: idx };
+        })
+        .filter(d => d.yAxisID === 'y'); // Apenas datasets que usam o eixo Y principal
+      
+      if (datasetsComEixoY.length > 0) {
+        const allValues: number[] = [];
+        datasetsComEixoY.forEach(d => {
+          d.data.forEach(v => {
+            if (v != null && v !== 0) allValues.push(v);
+          });
+        });
+        if (allValues.length > 0) {
+          globalMaxValue = Math.max(...allValues);
+        }
+      }
+      
+      if (FORCE_LOGS && globalMaxValue > 0) {
+        console.log('🔍 [EVOLUÇÃO] Valor máximo global para cálculo de offset:', globalMaxValue);
+      }
+
       // Criar datasets para cada métrica selecionada
       const datasets = metricConfigs.map((config, index) => {
         // IMPORTANTE: Garantir que os dados estejam sempre alinhados com chartBaseLabels
@@ -788,28 +870,32 @@ function EvolucaoView({
           return numValue;
         });
         
-        // ADICIONAR OFFSET VISUAL MUITO PEQUENO para linhas com valores idênticos
+        // ADICIONAR OFFSET VISUAL para linhas com valores idênticos
         // Isso permite ver linhas separadas mesmo quando os valores são iguais
-        // O offset é muito pequeno (0.1% do valor máximo) para não distorcer os dados
-        if (data.length > 0 && data.some(v => v != null)) {
-          const maxValue = Math.max(...data.filter(v => v != null) as number[]);
-          if (maxValue > 0) {
-            // Offset baseado no índice para diferenciar visualmente
-            // Usar 0.1% do valor máximo como offset máximo
-            const maxOffset = maxValue * 0.001; // 0.1% do valor máximo
-            const offsets = [0, maxOffset * 0.3, maxOffset * 0.6, 0, 0]; // Pequenos offsets para as primeiras 3 métricas
-            const offset = offsets[index] || 0;
+        // Usar o valor máximo global para calcular offsets consistentes
+        if (data.length > 0 && data.some(v => v != null) && config.yAxisID === 'y' && globalMaxValue > 0) {
+          // Offset baseado no índice para diferenciar visualmente
+          // Usar 3% do valor máximo global como offset base para melhor visibilidade
+          // Isso garante que as linhas sejam claramente separadas mesmo quando valores são idênticos
+          const baseOffset = globalMaxValue * 0.03; // 3% do valor máximo global
+          const offsets = [
+            0,                    // Completadas: sem offset (linha base)
+            baseOffset * 0.4,     // Ofertadas: +1.2% do máximo global
+            baseOffset * 0.8,     // Aceitas: +2.4% do máximo global
+            0,                     // Rejeitadas: sem offset
+            0                      // Horas: sem offset (usa eixo diferente)
+          ];
+          const offset = offsets[index] || 0;
+          
+          // Aplicar offset apenas se o valor não for zero (para não mover a linha de rejeitadas quando for 0)
+          if (offset > 0) {
+            data = data.map((value: number | null) => {
+              if (value == null || value === 0) return value;
+              return value + offset;
+            });
             
-            // Aplicar offset apenas se o valor não for zero (para não mover a linha de rejeitadas quando for 0)
-            if (offset > 0) {
-              data = data.map((value: number | null) => {
-                if (value == null || value === 0) return value;
-                return value + offset;
-              });
-              
-              if (FORCE_LOGS && offset > 0) {
-                console.log(`🔍 [EVOLUÇÃO] Offset aplicado a ${config.label}: ${offset.toFixed(2)} (${((offset / maxValue) * 100).toFixed(3)}% do máximo)`);
-              }
+            if (FORCE_LOGS && offset > 0) {
+              console.log(`🔍 [EVOLUÇÃO] Offset aplicado a ${config.label}: ${offset.toFixed(2)} (${((offset / globalMaxValue) * 100).toFixed(2)}% do máximo global)`);
             }
           }
         }
