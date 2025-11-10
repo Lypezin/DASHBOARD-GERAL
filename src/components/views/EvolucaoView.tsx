@@ -796,6 +796,23 @@ function EvolucaoView({
         // Usar ordem diferente para cada dataset para garantir que todos apareçam
         const order = index; // Ordem baseada no índice para garantir renderização
         
+        // Para linhas com valores idênticos, usar estilos diferentes para diferenciá-las
+        // Usar borderWidth e pointRadius diferentes para cada linha para garantir visibilidade
+        const borderWidths = [4, 3, 3, 3, 3]; // Primeira linha mais grossa
+        const pointRadii = isSemanal ? [6, 5, 5, 4, 5] : [8, 7, 7, 6, 7]; // Primeira linha com pontos maiores
+        const borderWidth = borderWidths[index] || 3;
+        const pointRadius = pointRadii[index] || (isSemanal ? 5 : 7);
+        
+        // Usar estilos de linha diferentes para diferenciar quando valores são iguais
+        const lineStyles = ['solid', 'solid', 'solid', 'solid', 'solid'] as const;
+        const dashPatterns = [
+          [], // Sólida
+          [5, 5], // Tracejada
+          [10, 5], // Pontilhada longa
+          [2, 2], // Pontilhada curta
+          [15, 5, 5, 5], // Traço-ponto
+        ];
+        
         return {
           label: config.label,
           data,
@@ -805,17 +822,18 @@ function EvolucaoView({
           type: 'line' as const, // Forçar tipo line explicitamente
           tension: 0.4,
           cubicInterpolationMode: 'monotone' as const,
-          pointRadius: isSemanal ? 4 : 6,
-          pointHoverRadius: isSemanal ? 8 : 10,
-          pointHitRadius: 20,
+          pointRadius: pointRadius,
+          pointHoverRadius: isSemanal ? 10 : 12,
+          pointHitRadius: 30, // Aumentado para melhor interação
           pointBackgroundColor: config.pointColor,
           pointBorderColor: '#fff',
-          pointBorderWidth: 2,
+          pointBorderWidth: 3, // Aumentado para melhor visibilidade
           pointHoverBackgroundColor: config.pointColor,
           pointHoverBorderColor: '#fff',
-          pointHoverBorderWidth: 4,
+          pointHoverBorderWidth: 5,
           pointStyle: 'circle' as const,
-          borderWidth: 3, // Aumentado para melhor visibilidade
+          borderWidth: borderWidth, // Largura variável para cada linha
+          borderDash: dashPatterns[index] || [], // Padrão de linha diferente para cada dataset
           fill: false, // Não preencher para não esconder outras linhas
           spanGaps: false, // Não conectar gaps - mostrar gaps como null
           showLine: true, // SEMPRE mostrar a linha, mesmo com valores zero
@@ -823,6 +841,9 @@ function EvolucaoView({
           order: order, // Ordem diferente para cada dataset
           z: index, // Z-index para controle de sobreposição
           stack: undefined, // Não usar stack para evitar sobreposição
+          // Adicionar propriedades para garantir renderização
+          stepped: false,
+          clip: false,
           segment: {
             borderColor: (ctx: any) => {
               if (!ctx.p0 || !ctx.p1) return config.borderColor;
@@ -838,6 +859,8 @@ function EvolucaoView({
               }
               return config.borderColor;
             },
+            borderWidth: borderWidth,
+            borderDash: dashPatterns[index] || [],
           },
         };
       });
@@ -1002,10 +1025,19 @@ function EvolucaoView({
       intersect: false,
       axis: 'x' as const,
     },
+    onHover: (event: any, activeElements: any[]) => {
+      // Garantir que todas as linhas sejam destacadas no hover
+      if (activeElements && activeElements.length > 0) {
+        event.native.target.style.cursor = 'pointer';
+      } else {
+        event.native.target.style.cursor = 'default';
+      }
+    },
     plugins: {
       legend: {
         position: 'top' as const,
         align: 'center' as const,
+        display: true, // Sempre mostrar legenda
         labels: {
           font: {
             size: 14,
@@ -1015,20 +1047,30 @@ function EvolucaoView({
           padding: 16,
           usePointStyle: true,
           pointStyle: 'circle',
-          boxWidth: 12,
-          boxHeight: 12,
+          boxWidth: 14,
+          boxHeight: 14,
           color: isDarkMode ? 'rgb(226, 232, 240)' : 'rgb(51, 65, 85)',
           generateLabels: (chart: any) => {
             const datasets = chart.data.datasets;
             return datasets.map((dataset: any, i: number) => ({
               text: dataset.label,
-              fillStyle: i === 0 ? 'rgb(59, 130, 246)' : 'rgb(34, 197, 94)',
-              strokeStyle: i === 0 ? 'rgb(59, 130, 246)' : 'rgb(34, 197, 94)',
-              lineWidth: 3,
-              hidden: !chart.isDatasetVisible(i),
+              fillStyle: dataset.borderColor || dataset.backgroundColor || 'rgb(59, 130, 246)',
+              strokeStyle: dataset.borderColor || 'rgb(59, 130, 246)',
+              lineWidth: dataset.borderWidth || 3,
+              hidden: dataset.hidden || !chart.isDatasetVisible(i),
               index: i,
               pointStyle: 'circle',
+              fontColor: isDarkMode ? 'rgb(226, 232, 240)' : 'rgb(51, 65, 85)',
             }));
+          },
+          onClick: (e: any, legendItem: any, legend: any) => {
+            const index = legendItem.datasetIndex;
+            const chart = legend.chart;
+            const meta = chart.getDatasetMeta(index);
+            
+            // Toggle visibility
+            meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+            chart.update();
           },
         },
       },
@@ -1546,10 +1588,36 @@ function EvolucaoView({
                             hasData: d.data.some(v => v != null),
                             firstValues: d.data.slice(0, 5),
                             borderColor: d.borderColor,
+                            borderWidth: d.borderWidth,
+                            borderDash: d.borderDash,
+                            pointRadius: d.pointRadius,
                             showLine: d.showLine,
-                            hidden: d.hidden
+                            hidden: d.hidden,
+                            order: d.order,
+                            z: d.z
                           }))
                         });
+                        
+                        // Verificar se há valores idênticos entre datasets
+                        const datasets = chartData.datasets;
+                        for (let i = 0; i < datasets.length; i++) {
+                          for (let j = i + 1; j < datasets.length; j++) {
+                            const d1 = datasets[i];
+                            const d2 = datasets[j];
+                            const values1 = d1.data.filter(v => v != null);
+                            const values2 = d2.data.filter(v => v != null);
+                            
+                            if (values1.length === values2.length && values1.length > 0) {
+                              const allEqual = values1.every((v, idx) => v === values2[idx]);
+                              if (allEqual) {
+                                console.warn(`⚠️ [EVOLUÇÃO] ${d1.label} e ${d2.label} têm valores idênticos!`, {
+                                  valores: values1.slice(0, 5),
+                                  issoPodeSerNormal: 'Se todas as corridas ofertadas foram aceitas e completadas'
+                                });
+                              }
+                            }
+                          }
+                        }
                       }
                       
                       return (

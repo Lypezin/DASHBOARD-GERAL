@@ -537,17 +537,33 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 console.log('Semana máxima:', semanas.length > 0 ? Math.max(...semanas) : 'N/A');
                 // Log detalhado dos dados recebidos
                 if (Array.isArray(data) && data.length > 0) {
-                  console.log('📊 Primeiro item semanal recebido:', data[0]);
-                  console.log('📊 Propriedades disponíveis:', Object.keys(data[0]));
-                  console.log('📊 Valores de corridas no primeiro item:', {
+                  console.log('🔍 [HOOK] Primeiro item semanal recebido do banco:', data[0]);
+                  console.log('🔍 [HOOK] Propriedades disponíveis:', Object.keys(data[0]));
+                  console.log('🔍 [HOOK] Valores de corridas no primeiro item:', {
                     ofertadas: data[0].corridas_ofertadas,
                     aceitas: data[0].corridas_aceitas,
                     completadas: data[0].corridas_completadas,
                     rejeitadas: data[0].corridas_rejeitadas
                   });
+                  
+                  // Verificar se há valores diferentes entre as métricas
+                  const firstItem = data[0];
+                  const todasIguais = firstItem.corridas_ofertadas === firstItem.corridas_aceitas && 
+                                     firstItem.corridas_aceitas === firstItem.corridas_completadas;
+                  if (todasIguais) {
+                    console.warn('⚠️ [HOOK] ATENÇÃO: Ofertadas, Aceitas e Completadas têm o mesmo valor!', {
+                      valor: firstItem.corridas_ofertadas,
+                      issoPodeSerNormal: 'Se todas as corridas ofertadas foram aceitas e completadas'
+                    });
+                  }
+                  
                   // Verificar se há valores não-zero de rejeitadas
                   const rejeitadasValues = data.map((d: any) => d.corridas_rejeitadas).filter((v: any) => v != null && v !== 0);
-                  console.log('📊 Rejeitadas não-zero encontradas:', rejeitadasValues.length, 'valores:', rejeitadasValues.slice(0, 10));
+                  console.log('🔍 [HOOK] Rejeitadas não-zero encontradas:', rejeitadasValues.length, 'valores:', rejeitadasValues.slice(0, 10));
+                  
+                  if (rejeitadasValues.length === 0) {
+                    console.warn('⚠️ [HOOK] ATENÇÃO: Todas as rejeitadas estão em 0! Isso pode indicar um problema nos dados do banco.');
+                  }
                 }
               }
             } catch (err) {
