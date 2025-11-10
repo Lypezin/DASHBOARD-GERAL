@@ -69,7 +69,7 @@ function ComparacaoView({
           setTodasSemanas(data);
         }
       } catch (err) {
-        if (IS_DEV) console.error('Erro ao buscar semanas:', err);
+        safeLog.error('Erro ao buscar semanas:', err);
       }
     }
     fetchTodasSemanas();
@@ -178,10 +178,8 @@ function ComparacaoView({
       const resultadosDados = await Promise.all(promessasDados);
       const resultadosUtr = await Promise.all(promessasUtr);
       
-      if (IS_DEV) {
-        console.log('📊 Dados Comparação:', resultadosDados.length, 'semanas');
-        console.log('🎯 UTR Comparação:', resultadosUtr.length, 'semanas');
-      }
+      safeLog.info('📊 Dados Comparação:', { semanas: resultadosDados.length });
+      safeLog.info('🎯 UTR Comparação:', { semanas: resultadosUtr.length });
       
       setDadosComparacao(resultadosDados.map(r => r.dados));
       setUtrComparacao(resultadosUtr);
@@ -1441,7 +1439,7 @@ function ComparacaoView({
                           utrValue = item.utr;
                         }
                         
-                        if (IS_DEV) console.log(`📊 UTR Semana ${item.semana}:`, utrValue);
+                        safeLog.info(`📊 UTR Semana ${item.semana}:`, { utr: utrValue });
                         
                         return (
                           <td key={idx} className="px-6 py-4 text-center">

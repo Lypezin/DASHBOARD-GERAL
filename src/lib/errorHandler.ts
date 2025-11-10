@@ -22,7 +22,15 @@ const ERROR_MESSAGES: Record<string, string> = {
 /**
  * Obtém mensagem de erro segura (não expõe detalhes em produção)
  */
-export function getSafeErrorMessage(error: any): string {
+interface ErrorWithCode {
+  code?: string;
+  error_code?: string;
+  status?: string;
+  message?: string;
+  error?: { message?: string };
+}
+
+export function getSafeErrorMessage(error: unknown): string {
   if (!error) {
     return 'Ocorreu um erro. Tente novamente mais tarde.';
   }
@@ -33,7 +41,8 @@ export function getSafeErrorMessage(error: any): string {
   }
 
   // Tentar obter código de erro
-  const errorCode = error.code || error.error_code || error.status;
+  const err = error as ErrorWithCode;
+  const errorCode = err.code || err.error_code || err.status;
 
   // Se tiver mensagem genérica mapeada, usar ela
   if (errorCode && ERROR_MESSAGES[errorCode]) {
@@ -46,28 +55,39 @@ export function getSafeErrorMessage(error: any): string {
   }
 
   // Em desenvolvimento, incluir mais detalhes
-  return error.message || error.error?.message || 'Ocorreu um erro. Tente novamente mais tarde.';
+  return err.message || err.error?.message || 'Ocorreu um erro. Tente novamente mais tarde.';
 }
 
 /**
  * Sanitiza objeto de erro removendo informações sensíveis
  */
-export function sanitizeError(error: any): any {
-  if (!error) return error;
+interface SanitizedError {
+  message: string;
+  code?: string;
+  details?: unknown;
+  hint?: string;
+  stack?: string;
+}
 
-  const sanitized: any = {
+export function sanitizeError(error: unknown): SanitizedError {
+  if (!error) {
+    return { message: 'Erro desconhecido' };
+  }
+
+  const err = error as ErrorWithCode & { details?: unknown; hint?: string; stack?: string };
+  const sanitized: SanitizedError = {
     message: getSafeErrorMessage(error),
   };
 
   // Em desenvolvimento, incluir código e detalhes
   if (IS_DEV) {
-    sanitized.code = error.code || error.error_code;
-    sanitized.details = error.details;
-    sanitized.hint = error.hint;
-    sanitized.stack = error.stack;
+    sanitized.code = err.code || err.error_code;
+    sanitized.details = err.details;
+    sanitized.hint = err.hint;
+    sanitized.stack = err.stack;
   } else {
     // Em produção, apenas código (sem detalhes sensíveis)
-    sanitized.code = error.code || error.error_code || 'UNKNOWN_ERROR';
+    sanitized.code = err.code || err.error_code || 'UNKNOWN_ERROR';
   }
 
   return sanitized;
@@ -77,12 +97,12 @@ export function sanitizeError(error: any): any {
  * Log seguro (não expõe dados sensíveis em produção)
  */
 export const safeLog = {
-  info: (message: string, data?: any) => {
+  info: (message: string, data?: unknown) => {
     if (IS_DEV) {
       console.log(message, data ? sanitizeLogData(data) : '');
     }
   },
-  error: (message: string, error?: any) => {
+  error: (message: string, error?: unknown) => {
     if (IS_DEV) {
       console.error(message, error ? sanitizeError(error) : '');
     } else {
@@ -90,7 +110,7 @@ export const safeLog = {
       // Por enquanto, apenas não logar
     }
   },
-  warn: (message: string, data?: any) => {
+  warn: (message: string, data?: unknown) => {
     if (IS_DEV) {
       console.warn(message, data ? sanitizeLogData(data) : '');
     }
@@ -100,7 +120,7 @@ export const safeLog = {
 /**
  * Sanitiza dados para logging (remove campos sensíveis)
  */
-function sanitizeLogData(data: any): any {
+function sanitizeLogData(data: unknown): unknown {
   if (!data) return data;
 
   if (typeof data === 'object') {
@@ -122,9 +142,9 @@ function sanitizeLogData(data: any): any {
     // Limitar profundidade de objetos
     const keys = Object.keys(sanitized);
     if (keys.length > 20) {
-      const limited: any = {};
+      const limited: Record<string, unknown> = {};
       for (let i = 0; i < 20; i++) {
-        limited[keys[i]] = sanitizeLogData(sanitized[keys[i]]);
+        limited[keys[i]] = sanitizeLogData((sanitized as Record<string, unknown>)[keys[i]]);
       }
       return limited;
     }

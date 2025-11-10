@@ -2,28 +2,10 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { supabase } from '@/lib/supabaseClient';
 import { UsuarioOnline } from '@/types';
 import MetricCard from '../MetricCard';
+import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
+import { sanitizeText } from '@/lib/sanitize';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-
-// Funções de logging e sanitização (para evitar repetição)
-const safeLog = {
-  error: (...args: any[]) => IS_DEV && console.error(...args),
-  warn: (...args: any[]) => IS_DEV && console.warn(...args),
-  info: (...args: any[]) => IS_DEV && console.log(...args),
-};
-
-const sanitizeText = (text: string | null | undefined): string => {
-  if (text === null || text === undefined) return '';
-  // Remover caracteres especiais, exceto os comuns em nomes e e-mails
-  return text.replace(/[<>{}[\]|\\/]/g, '').trim();
-};
-
-const getSafeErrorMessage = (error: any): string | null => {
-  if (!error) return null;
-  if (typeof error.message === 'string') return error.message;
-  if (typeof error === 'string') return error;
-  return 'Ocorreu um erro inesperado.';
-};
 
 function MonitoramentoView() {
   const [usuarios, setUsuarios] = useState<UsuarioOnline[]>([]);
@@ -31,7 +13,18 @@ function MonitoramentoView() {
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'ativos' | 'inativos'>('todos');
-  const [atividades, setAtividades] = useState<any[]>([]);
+  interface Atividade {
+    id?: string;
+    user_id: string;
+    action_type: string;
+    action_details?: string;
+    tab_name?: string;
+    filters_applied?: unknown;
+    created_at: string;
+    session_id?: string;
+  }
+  
+  const [atividades, setAtividades] = useState<Atividade[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchMonitoramento = useCallback(async () => {
@@ -42,18 +35,17 @@ function MonitoramentoView() {
       const { data, error } = await supabase.rpc('listar_usuarios_online');
       
       if (error) {
-        if (IS_DEV) {
-        console.error('Erro ao buscar usuários online:', error);
-          if (error.code === '42883') {
-            console.error('Função listar_usuarios_online não existe no banco de dados.');
-          }
+        safeLog.error('Erro ao buscar usuários online:', error);
+        const errorWithCode = error as { code?: string };
+        if (errorWithCode.code === '42883') {
+          safeLog.error('Função listar_usuarios_online não existe no banco de dados.');
         }
         
         // Se a função não existir, mostrar mensagem específica
-        if (error.code === '42883') {
+        if (errorWithCode.code === '42883') {
           setError('Função de monitoramento não configurada. Entre em contato com o administrador.');
         } else {
-        setError(getSafeErrorMessage(error) || 'Erro ao carregar usuários online. Tente novamente.');
+          setError(getSafeErrorMessage(error) || 'Erro ao carregar usuários online. Tente novamente.');
         }
         setUsuarios([]);
         return;
@@ -61,62 +53,69 @@ function MonitoramentoView() {
       
       // Validar dados recebidos
       if (!data || !Array.isArray(data)) {
-        if (IS_DEV) console.warn('Dados de usuários online inválidos:', data);
+        safeLog.warn('Dados de usuários online inválidos:', data);
         setUsuarios([]);
         return;
       }
       
-      if (IS_DEV && data.length > 0) {
-        console.log(`✅ ${data.length} usuário(s) online encontrado(s)`);
+      if (data.length > 0) {
+        safeLog.info(`✅ ${data.length} usuário(s) online encontrado(s)`);
       }
       
       // Buscar atividades recentes (últimas 50) - com tratamento de erro não bloqueante
-      let atividadesData: any[] = [];
+      let atividadesData: Atividade[] = [];
       try {
         const { data: atividadesResponse, error: atividadesError } = await supabase
-        .from('user_activity')
+          .from('user_activity')
           .select('id, user_id, action_type, action_details, tab_name, filters_applied, created_at, session_id')
-        .order('created_at', { ascending: false })
-        .limit(50);
+          .order('created_at', { ascending: false })
+          .limit(50);
       
         if (atividadesError) {
-          if (IS_DEV) {
-            console.warn('Erro ao buscar atividades:', atividadesError);
-            // Se a tabela não existir, código 42P01
-            if (atividadesError.code === '42P01') {
-              console.warn('Tabela user_activity não existe. As atividades serão registradas quando a tabela for criada.');
-            }
+          safeLog.warn('Erro ao buscar atividades:', atividadesError);
+          // Se a tabela não existir, código 42P01
+          if (atividadesError.code === '42P01') {
+            safeLog.warn('Tabela user_activity não existe. As atividades serão registradas quando a tabela for criada.');
           }
           setAtividades([]);
         } else if (atividadesResponse && Array.isArray(atividadesResponse)) {
-          atividadesData = atividadesResponse;
-        setAtividades(atividadesData);
-          if (IS_DEV) {
-            if (atividadesData.length > 0) {
-              console.log(`✅ ${atividadesData.length} atividades carregadas`);
-            } else {
-              console.log('ℹ️ Nenhuma atividade encontrada na tabela user_activity');
-            }
+          atividadesData = atividadesResponse as Atividade[];
+          setAtividades(atividadesData);
+          if (atividadesData.length > 0) {
+            safeLog.info(`✅ ${atividadesData.length} atividades carregadas`);
+          } else {
+            safeLog.info('ℹ️ Nenhuma atividade encontrada na tabela user_activity');
           }
         } else {
           setAtividades([]);
-          if (IS_DEV && !atividadesError) {
-            console.warn('Resposta de atividades inválida:', atividadesResponse);
+          if (!atividadesError) {
+            safeLog.warn('Resposta de atividades inválida:', atividadesResponse);
           }
         }
-      } catch (err: any) {
-        if (IS_DEV) {
-        console.warn('Erro ao buscar atividades (pode não estar disponível):', err);
-          if (err?.code === '42P01') {
-            console.warn('Tabela user_activity não existe no banco de dados.');
-          }
+      } catch (err: unknown) {
+        safeLog.warn('Erro ao buscar atividades (pode não estar disponível):', err);
+        const error = err as { code?: string };
+        if (error?.code === '42P01') {
+          safeLog.warn('Tabela user_activity não existe no banco de dados.');
         }
         setAtividades([]);
         // Não bloquear a funcionalidade principal se atividades falhar
       }
       
       // Mapear os dados da API para o formato esperado com validações
-      const usuariosMapeados: UsuarioOnline[] = (data || []).map((u: any): UsuarioOnline | null => {
+      interface UsuarioOnlineRaw {
+        user_id: string;
+        user_name?: string;
+        user_email?: string;
+        current_tab?: string;
+        filters_applied?: unknown;
+        last_action_type?: string;
+        action_details?: string;
+        seconds_inactive?: number;
+        is_active?: boolean;
+      }
+      
+      const usuariosMapeados: UsuarioOnline[] = (data || []).map((u: UsuarioOnlineRaw): UsuarioOnline | null => {
         // Validações de segurança
         if (!u || !u.user_id) return null;
         
@@ -138,7 +137,7 @@ function MonitoramentoView() {
         // Contar ações da última hora com validação
         const umaHoraAtras = new Date();
         umaHoraAtras.setHours(umaHoraAtras.getHours() - 1);
-        const acoesUltimaHora = atividadesData.filter((a: any) => 
+        const acoesUltimaHora = atividadesData.filter((a: Atividade) => 
           a && a.user_id === u.user_id && a.created_at && new Date(a.created_at) > umaHoraAtras
         ).length;
         
@@ -162,9 +161,9 @@ function MonitoramentoView() {
       }).filter((u: UsuarioOnline | null): u is UsuarioOnline => u !== null); // Filtrar nulos
       
       setUsuarios(usuariosMapeados);
-    } catch (err: any) {
-        safeLog.error('Erro ao buscar monitoramento:', err);
-        setError(getSafeErrorMessage(err) || 'Erro desconhecido ao carregar monitoramento');
+    } catch (err: unknown) {
+      safeLog.error('Erro ao buscar monitoramento:', err);
+      setError(getSafeErrorMessage(err) || 'Erro desconhecido ao carregar monitoramento');
       setUsuarios([]);
     } finally {
       setLoading(false);
@@ -274,7 +273,8 @@ function MonitoramentoView() {
       </div>
     );
   }
-  ;return (
+
+  return (
     <div className="space-y-6 animate-fade-in">
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
