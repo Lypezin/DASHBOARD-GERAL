@@ -542,7 +542,7 @@ function EvolucaoView({
         datasets: [],
   };
     }
-  }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels, dadosAtivos.length, segundosParaHoras]);
+  }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels, dadosAtivos.length]);
 
   // Calcular min e max dos dados para ajustar a escala do eixo Y usando helper
   const yAxisRange = useMemo(() => {
