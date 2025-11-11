@@ -21,41 +21,53 @@ const percentFormatter = new Intl.NumberFormat('pt-BR', {
 export const buildCircleTextStyle = (
   value: number,
   baseFontRem: number,
-  minimumFontRem: number = 2.0
+  minimumFontRem: number = 1.8
 ): CSSProperties => {
   const safeValue = Number.isFinite(value) ? Math.abs(value) : 0;
   const valueString = safeValue.toFixed(1);
-  const length = valueString.replace('.', '').length;
+  const totalLength = valueString.length; // Inclui o ponto decimal
   
-  // Redução progressiva mais suave para melhor legibilidade
+  // Algoritmo OTIMIZADO para garantir que texto NUNCA saia do círculo
   let fontSize = baseFontRem;
-  if (length > 5) {
+  
+  // Redução mais agressiva baseada no comprimento TOTAL
+  if (totalLength >= 6) {        // Ex: "100.0%" = 6 chars
+    fontSize = baseFontRem * 0.55;
+  } else if (totalLength >= 5) { // Ex: "99.9%" = 5 chars
     fontSize = baseFontRem * 0.65;
-  } else if (length > 4) {
+  } else if (totalLength >= 4) { // Ex: "9.9%" = 4 chars
     fontSize = baseFontRem * 0.75;
-  } else if (length > 3) {
+  } else if (totalLength >= 3) { // Ex: "9%" = 3 chars
     fontSize = baseFontRem * 0.85;
   }
   
+  // Garantir tamanho mínimo legível
   fontSize = Math.max(minimumFontRem, fontSize);
 
   return {
     fontSize: `${fontSize}rem`,
-    lineHeight: '1',
-    letterSpacing: '-0.01em',
+    lineHeight: '0.9', // Mais compacto
+    letterSpacing: '-0.02em', // Mais apertado
     whiteSpace: 'nowrap',
     display: 'block',
     textAlign: 'center',
     width: '100%',
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+    height: 'auto',
+    fontFamily: 'Inter, Arial, sans-serif',
     fontWeight: '900',
     color: '#ffffff',
     WebkitFontSmoothing: 'antialiased',
     MozOsxFontSmoothing: 'grayscale',
     textRendering: 'optimizeLegibility',
+    maxWidth: '90%', // Margem de segurança
+    margin: '0 auto',
+    overflow: 'visible', // CRÍTICO: não cortar
+    textOverflow: 'clip', // CRÍTICO: não usar ellipsis
     boxSizing: 'border-box',
-    textShadow: '0 0 2px rgba(0,0,0,0.3)',
-  };
+    textShadow: '0 1px 3px rgba(0,0,0,0.4)', // Melhor contraste
+    position: 'relative',
+    zIndex: 10,
+  } as CSSProperties;
 };
 
 export const formatSignedInteger = (value: number): string => {
