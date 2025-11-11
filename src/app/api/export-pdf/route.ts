@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import chromiumP from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
-import { chromium as pwChromium } from 'playwright-core';
-import playwrightLambda from 'playwright-aws-lambda';
+import chromeAws from 'chrome-aws-lambda';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -40,22 +39,20 @@ export async function GET(req: NextRequest) {
       return browser;
     }
 
-    async function renderWithPlaywright() {
-      const browser = await pwChromium.launch({
-        args: playwrightLambda.args,
-        executablePath: await playwrightLambda.executablePath,
-        headless: true,
-      });
-      return browser as any;
-    }
-
     let browser: any | null = null;
     try {
-      // Tenta Puppeteer; se falhar por libs do SO, cai para Playwright AWS Lambda
+      // Tenta Puppeteer com Sparticuz; se falhar, cai para chrome-aws-lambda
       try {
         browser = await renderWithPuppeteer();
       } catch (_e) {
-        browser = await renderWithPlaywright();
+        const executablePath = await chromeAws.executablePath;
+        browser = await puppeteer.launch({
+          args: chromeAws.args,
+          executablePath: executablePath || undefined,
+          headless: true,
+          defaultViewport: { width: 1680, height: 1188 },
+          env: { ...process.env, ...(chromeAws as any).env || {} },
+        });
       }
 
       const page = await browser.newPage();

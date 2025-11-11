@@ -10,9 +10,9 @@ const nextConfig = {
   output: 'standalone',
 
   // Garantir que pacotes nativos não sejam empacotados (necessário para Chromium em serverless)
-  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core', 'playwright-core', 'playwright-aws-lambda'],
+  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core', 'chrome-aws-lambda'],
   experimental: {
-    serverComponentsExternalPackages: ['@sparticuz/chromium', 'puppeteer-core', 'playwright-core', 'playwright-aws-lambda'],
+    serverComponentsExternalPackages: ['@sparticuz/chromium', 'puppeteer-core', 'chrome-aws-lambda'],
   },
   
   // Otimizações de imagens
