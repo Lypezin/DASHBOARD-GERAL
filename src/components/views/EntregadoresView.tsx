@@ -64,6 +64,7 @@ function EntregadoresView({
   // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
   // Usar useMemo para evitar recriação desnecessária
   const dataToDisplay = useMemo(() => {
+    // Garantir que entregadoresData.entregadores existe e é um array
     const baseData = entregadoresData?.entregadores;
     const baseArray = Array.isArray(baseData) ? baseData : [];
     return (searchTerm.trim() && Array.isArray(searchResults) && searchResults.length > 0) ? searchResults : baseArray;
@@ -104,7 +105,9 @@ function EntregadoresView({
       
       // Se os números forem iguais, manter ordem estável usando nome como desempate
       if (comparison === 0) {
-        return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
+        const aNome = a.nome_entregador || '';
+        const bNome = b.nome_entregador || '';
+        return aNome.localeCompare(bNome, 'pt-BR');
       }
       
       return sortDirection === 'asc' ? comparison : -comparison;
@@ -140,7 +143,12 @@ function EntregadoresView({
     );
   }
 
-  if (entregadoresData.entregadores.length === 0) {
+  // Garantir que entregadores existe e é um array
+  const entregadores = Array.isArray(entregadoresData?.entregadores) 
+    ? entregadoresData.entregadores 
+    : [];
+
+  if (entregadores.length === 0) {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
         <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Nenhum entregador encontrado</p>

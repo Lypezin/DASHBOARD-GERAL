@@ -48,9 +48,29 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
             const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
             result = await supabase.rpc('listar_entregadores', listarEntregadoresPayload);
-            if (result && result.data) {
-                const entregadores = Array.isArray(result.data) ? result.data : (result.data.entregadores || []);
-                processedData = { entregadores, total: entregadores.length };
+            if (result?.error) {
+              safeLog.error('Erro ao buscar entregadores:', result.error);
+              processedData = { entregadores: [], total: 0 };
+            } else if (result && result.data) {
+                // Garantir que sempre retornamos um objeto com estrutura válida
+                let entregadores: any[] = [];
+                
+                if (Array.isArray(result.data)) {
+                  entregadores = result.data;
+                } else if (result.data && typeof result.data === 'object') {
+                  // Pode ser { entregadores: [...] } ou outro formato
+                  entregadores = Array.isArray(result.data.entregadores) 
+                    ? result.data.entregadores 
+                    : (Array.isArray(result.data.data) ? result.data.data : []);
+                }
+                
+                processedData = { 
+                  entregadores: Array.isArray(entregadores) ? entregadores : [], 
+                  total: Array.isArray(entregadores) ? entregadores.length : 0 
+                };
+            } else {
+              // Sem dados retornados
+              processedData = { entregadores: [], total: 0 };
             }
             break;
 
