@@ -1,4 +1,3 @@
-import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 
 // Cores do tema
