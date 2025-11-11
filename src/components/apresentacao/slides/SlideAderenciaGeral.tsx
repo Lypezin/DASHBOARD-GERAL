@@ -38,27 +38,27 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
     <SlideWrapper
       isVisible={isVisible}
       className="items-center justify-center"
-      style={{ padding: '60px 80px', overflow: 'visible' }}
+      style={{ padding: '40px 50px', overflow: 'visible' }}
     >
-      <header className="text-center mb-6">
-        <h2 className="text-[3rem] font-black leading-none tracking-wider mb-2">ADERÊNCIA GERAL</h2>
-        <p className="text-[1.5rem] font-light opacity-90">
+      <header className="text-center mb-4">
+        <h2 className="text-[2.5rem] font-black leading-none tracking-wider mb-1.5">ADERÊNCIA GERAL</h2>
+        <p className="text-[1.25rem] font-light opacity-90">
           SEMANAS {semana1.numeroSemana} &amp; {semana2.numeroSemana}
         </p>
       </header>
 
-      <div className="flex w-full justify-center items-start gap-6" style={{ overflow: 'visible' }}>
+      <div className="flex w-full justify-center items-start gap-4" style={{ overflow: 'visible' }}>
         {/* Semana 1 */}
-        <div className="flex flex-col items-center gap-5 flex-1" style={{ overflow: 'visible' }}>
-          <h3 className="text-[1.75rem] font-semibold uppercase tracking-wide text-center">
+        <div className="flex flex-col items-center gap-3 flex-1" style={{ overflow: 'visible' }}>
+          <h3 className="text-[1.5rem] font-semibold uppercase tracking-wide text-center">
             SEMANA {semana1.numeroSemana}
           </h3>
 
           <div 
             className="relative flex items-center justify-center"
             style={{ 
-              width: '190px', 
-              height: '190px',
+              width: '170px', 
+              height: '170px',
               overflow: 'visible',
             }}
           >
@@ -123,25 +123,25 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
             </div>
           </div>
 
-          <div className="w-full max-w-[300px] space-y-2" style={{ overflow: 'visible' }}>
-            <div className="rounded-lg bg-white/15 px-4 py-3 flex flex-col items-center gap-1.5 text-center" style={{ overflow: 'visible' }}>
-              <span className="text-[1.125rem] font-medium opacity-85">
+          <div className="w-full max-w-[280px] space-y-1.5" style={{ overflow: 'visible' }}>
+            <div className="rounded-lg bg-white/15 px-3 py-2 flex flex-col items-center gap-1 text-center" style={{ overflow: 'visible' }}>
+              <span className="text-[1rem] font-medium opacity-85">
                 Planejado
               </span>
               <span
                 className="font-bold text-blue-200"
-                style={buildTimeTextStyle(semana1.horasPlanejadas, 1.5)}
+                style={buildTimeTextStyle(semana1.horasPlanejadas, 1.25)}
               >
                 {semana1.horasPlanejadas}
               </span>
             </div>
-            <div className="rounded-lg bg-white/15 px-4 py-3 flex flex-col items-center gap-1.5 text-center" style={{ overflow: 'visible' }}>
-              <span className="text-[1.125rem] font-medium opacity-85">
+            <div className="rounded-lg bg-white/15 px-3 py-2 flex flex-col items-center gap-1 text-center" style={{ overflow: 'visible' }}>
+              <span className="text-[1rem] font-medium opacity-85">
                 Entregue
               </span>
               <span
                 className="font-bold text-emerald-200"
-                style={buildTimeTextStyle(semana1.horasEntregues, 1.375)}
+                style={buildTimeTextStyle(semana1.horasEntregues, 1.15)}
               >
                 {semana1.horasEntregues}
               </span>
@@ -150,17 +150,17 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
         </div>
 
         {/* Coluna Central - Variação */}
-        <div className="flex flex-col items-center justify-center" style={{ overflow: 'visible', marginTop: '60px' }}>
-          <div className="rounded-lg bg-white/10 px-4 py-3 text-center flex flex-col items-center gap-2" style={{ overflow: 'visible' }}>
-            <p className="text-[1.125rem] font-medium opacity-85">Variação</p>
+        <div className="flex flex-col items-center justify-center" style={{ overflow: 'visible', marginTop: '50px' }}>
+          <div className="rounded-lg bg-white/10 px-3 py-2.5 text-center flex flex-col items-center gap-1.5" style={{ overflow: 'visible' }}>
+            <p className="text-[1rem] font-medium opacity-85">Variação</p>
             <p
               className={`font-bold ${variacao.positiva ? 'text-emerald-200' : 'text-rose-200'}`}
-              style={buildTimeTextStyle(variacao.horasDiferenca, 1.375)}
+              style={buildTimeTextStyle(variacao.horasDiferenca, 1.15)}
             >
               {variacao.horasDiferenca}
             </p>
             <p
-              className={`text-[1.125rem] font-semibold ${variacao.positiva ? 'text-emerald-200' : 'text-rose-200'}`}
+              className={`text-[1rem] font-semibold ${variacao.positiva ? 'text-emerald-200' : 'text-rose-200'}`}
             >
               {variacao.horasPercentual}
             </p>
@@ -168,16 +168,16 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
         </div>
 
         {/* Semana 2 */}
-        <div className="flex flex-col items-center gap-5 flex-1" style={{ overflow: 'visible' }}>
-          <h3 className="text-[1.75rem] font-semibold uppercase tracking-wide text-center">
+        <div className="flex flex-col items-center gap-3 flex-1" style={{ overflow: 'visible' }}>
+          <h3 className="text-[1.5rem] font-semibold uppercase tracking-wide text-center">
             SEMANA {semana2.numeroSemana}
           </h3>
 
           <div 
             className="relative flex items-center justify-center"
             style={{ 
-              width: '190px', 
-              height: '190px',
+              width: '170px', 
+              height: '170px',
               overflow: 'visible',
             }}
           >
@@ -242,25 +242,25 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
             </div>
           </div>
 
-          <div className="w-full max-w-[300px] space-y-2" style={{ overflow: 'visible' }}>
-            <div className="rounded-lg bg-white/15 px-4 py-3 flex flex-col items-center gap-1.5 text-center" style={{ overflow: 'visible' }}>
-              <span className="text-[1.125rem] font-medium opacity-85">
+          <div className="w-full max-w-[280px] space-y-1.5" style={{ overflow: 'visible' }}>
+            <div className="rounded-lg bg-white/15 px-3 py-2 flex flex-col items-center gap-1 text-center" style={{ overflow: 'visible' }}>
+              <span className="text-[1rem] font-medium opacity-85">
                 Planejado
               </span>
               <span
                 className="font-bold text-blue-200"
-                style={buildTimeTextStyle(semana2.horasPlanejadas, 1.5)}
+                style={buildTimeTextStyle(semana2.horasPlanejadas, 1.25)}
               >
                 {semana2.horasPlanejadas}
               </span>
             </div>
-            <div className="rounded-lg bg-white/15 px-4 py-3 flex flex-col items-center gap-1.5 text-center" style={{ overflow: 'visible' }}>
-              <span className="text-[1.125rem] font-medium opacity-85">
+            <div className="rounded-lg bg-white/15 px-3 py-2 flex flex-col items-center gap-1 text-center" style={{ overflow: 'visible' }}>
+              <span className="text-[1rem] font-medium opacity-85">
                 Entregue
               </span>
               <span
                 className="font-bold text-emerald-200"
-                style={buildTimeTextStyle(semana2.horasEntregues, 1.375)}
+                style={buildTimeTextStyle(semana2.horasEntregues, 1.15)}
               >
                 {semana2.horasEntregues}
               </span>

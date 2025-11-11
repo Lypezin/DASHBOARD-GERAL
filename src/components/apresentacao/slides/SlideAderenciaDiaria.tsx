@@ -146,25 +146,25 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
   };
 
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '50px 70px', overflow: 'visible' }}>
-      <header className="text-center mb-4">
-        <h2 className="text-[2.5rem] font-black leading-none tracking-wider mb-1">ADERÊNCIA DIÁRIA</h2>
-        <p className="text-[1.5rem] font-light opacity-90">
+    <SlideWrapper isVisible={isVisible} style={{ padding: '40px 50px', overflow: 'visible' }}>
+      <header className="text-center mb-3">
+        <h2 className="text-[2rem] font-black leading-none tracking-wider mb-1">ADERÊNCIA DIÁRIA</h2>
+        <p className="text-[1.25rem] font-light opacity-90">
           SEMANAS {numeroSemana1} &amp; {numeroSemana2}
         </p>
       </header>
 
-      <section className="space-y-4" style={{ overflow: 'visible' }}>
+      <section className="space-y-3" style={{ overflow: 'visible' }}>
         <div style={{ overflow: 'visible' }}>
-          <h3 className="text-[1.0625rem] font-semibold text-center mb-2">SEMANA {numeroSemana1}</h3>
-          <div className="grid grid-cols-7 gap-1.25" style={{ overflow: 'visible' }}>
+          <h3 className="text-[0.9375rem] font-semibold text-center mb-1.5">SEMANA {numeroSemana1}</h3>
+          <div className="grid grid-cols-7 gap-1" style={{ overflow: 'visible' }}>
             {semana1Dias.map((dia) => renderDiaCard(dia, 'sem1'))}
           </div>
         </div>
 
         <div style={{ overflow: 'visible' }}>
-          <h3 className="text-[1.0625rem] font-semibold text-center mb-2">SEMANA {numeroSemana2}</h3>
-          <div className="grid grid-cols-7 gap-1.25" style={{ overflow: 'visible' }}>
+          <h3 className="text-[0.9375rem] font-semibold text-center mb-1.5">SEMANA {numeroSemana2}</h3>
+          <div className="grid grid-cols-7 gap-1" style={{ overflow: 'visible' }}>
             {semana2Dias.map((dia) =>
               renderDiaCard(dia, 'sem2', {
                 diferencaHoras: dia.diferencaHoras,
