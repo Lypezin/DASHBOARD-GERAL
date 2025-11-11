@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import chromium from '@sparticuz/chromium';
+import chromiumP from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
+import { chromium as pwChromium } from 'playwright-core';
+import playwrightLambda from 'playwright-aws-lambda';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -23,19 +25,39 @@ export async function GET(req: NextRequest) {
     // Configurações recomendadas pelo @sparticuz/chromium para serverless
     // Evita dependências de GPU e acelera inicialização
     // https://github.com/Sparticuz/chromium#puppeteer-core
-    (chromium as any).setHeadlessMode = true;
-    (chromium as any).setGraphicsMode = false;
+    (chromiumP as any).setHeadlessMode = true;
+    (chromiumP as any).setGraphicsMode = false;
 
-    const executablePath = await chromium.executablePath();
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: executablePath || undefined,
-      headless: chromium.headless,
-      defaultViewport: { width: 1680, height: 1188 },
-      env: { ...process.env, ...(chromium as any).environment || {} },
-    });
+    async function renderWithPuppeteer() {
+      const executablePath = await chromiumP.executablePath();
+      const browser = await puppeteer.launch({
+        args: chromiumP.args,
+        executablePath: executablePath || undefined,
+        headless: chromiumP.headless,
+        defaultViewport: { width: 1680, height: 1188 },
+        env: { ...process.env, ...(chromiumP as any).environment || {} },
+      });
+      return browser;
+    }
 
+    async function renderWithPlaywright() {
+      const browser = await pwChromium.launch({
+        args: playwrightLambda.args,
+        executablePath: await playwrightLambda.executablePath,
+        headless: true,
+      });
+      return browser as any;
+    }
+
+    let browser: any | null = null;
     try {
+      // Tenta Puppeteer; se falhar por libs do SO, cai para Playwright AWS Lambda
+      try {
+        browser = await renderWithPuppeteer();
+      } catch (_e) {
+        browser = await renderWithPlaywright();
+      }
+
       const page = await browser.newPage();
       await page.emulateMediaType('screen');
       await page.setCacheEnabled(false);
@@ -66,7 +88,7 @@ export async function GET(req: NextRequest) {
       const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
       return new NextResponse(pdfBlob, { status: 200, headers });
     } finally {
-      await browser.close();
+      if (browser) await browser.close();
     }
   } catch (err: any) {
     console.error('Erro ao gerar PDF com Puppeteer:', err?.message || err);
