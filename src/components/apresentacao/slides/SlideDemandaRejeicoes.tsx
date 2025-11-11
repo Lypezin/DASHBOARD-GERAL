@@ -26,64 +26,79 @@ const SlideDemandaRejeicoes: React.FC<SlideDemandaRejeicoesProps> = ({
   itens,
 }) => {
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '80px 100px' }}>
-      <header className="text-center mb-12">
-        <h2 className="text-[6rem] font-black leading-none tracking-wider mb-4">
+    <SlideWrapper isVisible={isVisible} style={{ padding: '40px 50px', overflow: 'visible' }}>
+      <header className="text-center mb-5">
+        <h2 className="text-[2.5rem] font-black leading-none tracking-wider mb-2">
           DEMANDA E REJEIÇÕES
         </h2>
-        <p className="text-[3.5rem] font-light opacity-90">
+        <p className="text-[1.5rem] font-light opacity-90">
           SEMANAS {numeroSemana1} &amp; {numeroSemana2}
         </p>
       </header>
 
-      <div className="grid grid-cols-2 gap-10 flex-1 items-start">
-        <div className="space-y-6">
-          <h3 className="text-[3.2rem] font-semibold text-center mb-4">SEMANA {numeroSemana1}</h3>
-          <div className="space-y-5">
+      <div className="grid grid-cols-3 gap-4 flex-1 items-start" style={{ overflow: 'visible' }}>
+        <div className="space-y-3" style={{ overflow: 'visible' }}>
+          <h3 className="text-[1.25rem] font-semibold text-center mb-2">SEMANA {numeroSemana1}</h3>
+          <div className="space-y-2.5">
             {itens.map((item) => (
               <div
                 key={`sem1-${item.label}`}
-                className="flex items-center justify-between rounded-[28px] bg-white/12 px-10 py-7"
+                className="flex flex-col rounded-lg bg-white/12 px-3 py-2.5"
+                style={{ overflow: 'visible' }}
               >
-                <span className="text-[2.6rem] font-semibold opacity-85">
-                  {item.icone} {item.label}:
+                <span className="text-[0.875rem] font-semibold opacity-85 mb-1">
+                  {item.label}:
                 </span>
-                <span className="text-[3.6rem] font-black text-blue-100">{item.semana1Valor}</span>
+                <span className="text-[1.25rem] font-black text-blue-100">{item.semana1Valor}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="space-y-6">
-          <h3 className="text-[3.2rem] font-semibold text-center mb-4">SEMANA {numeroSemana2}</h3>
-          <div className="space-y-5">
+        <div className="space-y-3" style={{ overflow: 'visible' }}>
+          <h3 className="text-[1.25rem] font-semibold text-center mb-2">VARIAÇÕES</h3>
+          <div className="space-y-2.5">
+            {itens.map((item) => (
+              <div
+                key={`var-${item.label}`}
+                className="flex flex-col rounded-lg bg-white/10 px-3 py-2.5"
+                style={{ overflow: 'visible' }}
+              >
+                <span className="text-[0.875rem] font-semibold opacity-85 mb-1">
+                  {item.label}
+                </span>
+                <span
+                  className={`text-[1.125rem] font-bold ${
+                    item.variacaoPositiva ? 'text-emerald-200' : 'text-rose-200'
+                  }`}
+                >
+                  {item.variacaoValor}
+                </span>
+                <span
+                  className={`text-[0.875rem] font-semibold ${
+                    item.variacaoPercentualPositiva ? 'text-emerald-200' : 'text-rose-200'
+                  }`}
+                >
+                  {item.variacaoPercentual}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3" style={{ overflow: 'visible' }}>
+          <h3 className="text-[1.25rem] font-semibold text-center mb-2">SEMANA {numeroSemana2}</h3>
+          <div className="space-y-2.5">
             {itens.map((item) => (
               <div
                 key={`sem2-${item.label}`}
-                className="rounded-[28px] bg-white/12 px-10 py-7"
+                className="flex flex-col rounded-lg bg-white/12 px-3 py-2.5"
+                style={{ overflow: 'visible' }}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[2.6rem] font-semibold opacity-85">
-                    {item.icone} {item.label}:
-                  </span>
-                  <span className="text-[3.6rem] font-black text-blue-100">{item.semana2Valor}</span>
-                </div>
-                <div className="mt-3 flex items-end justify-end gap-5">
-                  <span
-                    className={`text-[2.4rem] font-bold ${
-                      item.variacaoPositiva ? 'text-emerald-200' : 'text-rose-200'
-                    }`}
-                  >
-                    {item.variacaoValor}
-                  </span>
-                  <span
-                    className={`text-[2rem] font-semibold ${
-                      item.variacaoPercentualPositiva ? 'text-emerald-200' : 'text-rose-200'
-                    }`}
-                  >
-                    {item.variacaoPercentual}
-                  </span>
-                </div>
+                <span className="text-[0.875rem] font-semibold opacity-85 mb-1">
+                  {item.label}:
+                </span>
+                <span className="text-[1.25rem] font-black text-blue-100">{item.semana2Valor}</span>
               </div>
             ))}
           </div>

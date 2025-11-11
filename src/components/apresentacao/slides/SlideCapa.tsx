@@ -22,22 +22,22 @@ const SlideCapa: React.FC<SlideCapaProps> = ({
     <SlideWrapper
       isVisible={isVisible}
       className="flex items-center justify-center"
-      style={{ padding: '100px 120px' }}
+      style={{ padding: '60px 80px', overflow: 'visible' }}
     >
-      <div className="flex-1 text-center space-y-16">
-        <div className="space-y-6">
-          <h1 className="text-[9rem] font-black leading-none tracking-wide">RELATÓRIO DE</h1>
-          <h1 className="text-[9rem] font-black leading-none tracking-wide">RESULTADOS</h1>
+      <div className="flex-1 text-center space-y-10">
+        <div className="space-y-4">
+          <h1 className="text-[4.5rem] font-black leading-none tracking-wide">RELATÓRIO DE</h1>
+          <h1 className="text-[4.5rem] font-black leading-none tracking-wide">RESULTADOS</h1>
         </div>
 
-        <div className="space-y-8">
-          <h2 className="text-[5rem] font-semibold uppercase tracking-widest">
+        <div className="space-y-5">
+          <h2 className="text-[2.5rem] font-semibold uppercase tracking-widest">
             {pracaSelecionada?.toUpperCase() || 'TODAS AS PRAÇAS'}
           </h2>
-          <h3 className="text-[4.5rem] font-medium tracking-wider">
+          <h3 className="text-[2.25rem] font-medium tracking-wider">
             SEMANAS {numeroSemana1} &amp; {numeroSemana2}
           </h3>
-          <p className="text-[3rem] font-light opacity-90">
+          <p className="text-[1.5rem] font-light opacity-90">
             {periodoSemana1} &nbsp;|&nbsp; {periodoSemana2}
           </p>
         </div>

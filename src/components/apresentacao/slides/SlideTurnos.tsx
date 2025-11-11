@@ -44,41 +44,41 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
   itens,
 }) => {
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '60px 80px', overflow: 'visible' }}>
-      <header className="text-center mb-10">
-        <h2 className="text-[5.5rem] font-black leading-none tracking-wider mb-3">ADERÊNCIA POR TURNO</h2>
-        <p className="text-[3.2rem] font-light opacity-90 mb-2">
+    <SlideWrapper isVisible={isVisible} style={{ padding: '35px 45px', overflow: 'visible' }}>
+      <header className="text-center mb-5">
+        <h2 className="text-[2.5rem] font-black leading-none tracking-wider mb-1.5">ADERÊNCIA POR TURNO</h2>
+        <p className="text-[1.5rem] font-light opacity-90 mb-1">
           SEMANAS {numeroSemana1} &amp; {numeroSemana2}
         </p>
         {totalPaginas > 1 && (
-          <p className="text-[2rem] font-medium opacity-75">
+          <p className="text-[1rem] font-medium opacity-75">
             Página {paginaAtual} de {totalPaginas}
           </p>
         )}
       </header>
 
-      <div className="grid grid-cols-3 gap-6 flex-1" style={{ overflow: 'visible' }}>
+      <div className="grid grid-cols-2 gap-4 flex-1" style={{ overflow: 'visible' }}>
         {itens.map((turno) => (
           <div
             key={turno.nome}
-            className="rounded-[32px] bg-white/12 px-6 py-8 flex flex-col gap-6"
+            className="rounded-2xl bg-white/12 px-4 py-4 flex flex-col gap-3"
             style={{ overflow: 'visible' }}
           >
             <div className="text-center" style={{ overflow: 'visible' }}>
-              <h3 className="text-[2.5rem] font-semibold uppercase tracking-wide leading-tight">{turno.nome}</h3>
+              <h3 className="text-[1.25rem] font-semibold uppercase tracking-wide leading-tight">{turno.nome}</h3>
             </div>
 
-            <div className="flex items-center justify-between gap-6" style={{ overflow: 'visible' }}>
+            <div className="flex items-center justify-between gap-4" style={{ overflow: 'visible' }}>
               {[turno.semana1, turno.semana2].map((semana, index) => (
-                <div key={index} className="flex flex-col items-center gap-3 flex-1" style={{ overflow: 'visible' }}>
-                  <span className="text-[1.8rem] font-medium text-center">
-                    SEM {index === 0 ? numeroSemana1 : numeroSemana2}
+                <div key={index} className="flex flex-col items-center gap-2 flex-1" style={{ overflow: 'visible' }}>
+                  <span className="text-[0.9375rem] font-medium text-center">
+                    SEMANA {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
                   <div 
                     className="relative flex items-center justify-center"
                     style={{ 
-                      width: '200px', 
-                      height: '200px',
+                      width: '140px', 
+                      height: '140px',
                       overflow: 'visible',
                     }}
                   >
@@ -95,13 +95,13 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                       viewBox="0 0 160 160"
                       preserveAspectRatio="xMidYMid meet"
                     >
-                      <circle cx="80" cy="80" r="73" stroke="rgba(255,255,255,0.25)" strokeWidth="12" fill="none" />
+                      <circle cx="80" cy="80" r="73" stroke="rgba(255,255,255,0.25)" strokeWidth="14" fill="none" />
                       <circle
                         cx="80"
                         cy="80"
                         r="73"
                         stroke="#ffffff"
-                        strokeWidth="12"
+                        strokeWidth="14"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
                         strokeLinecap="round"
@@ -121,7 +121,7 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                     >
                       <span 
                         style={{
-                          ...buildCircleTextStyle(semana.aderencia, 2.2, 1.3),
+                          ...buildCircleTextStyle(semana.aderencia, 1.4, 0.8),
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -135,11 +135,11 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                       </span>
                     </div>
                   </div>
-                  <div className="rounded-2xl bg-white/10 px-3 py-2.5 w-full flex flex-col items-center gap-1" style={{ overflow: 'visible' }}>
-                    <span className="text-[1.6rem] font-medium opacity-85">Horas Entregues</span>
+                  <div className="rounded-lg bg-white/10 px-2 py-1.5 w-full flex flex-col items-center gap-0.5" style={{ overflow: 'visible' }}>
+                    <span className="text-[0.875rem] font-medium opacity-85">Horas Entregues</span>
                     <span
                       className="font-semibold text-emerald-100 text-center"
-                      style={buildTimeTextStyle(semana.horasEntregues, 1.7)}
+                      style={buildTimeTextStyle(semana.horasEntregues, 1.2)}
                     >
                       {semana.horasEntregues}
                     </span>
@@ -148,13 +148,13 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-2.5 mt-1" style={{ overflow: 'visible' }}>
+            <div className="grid grid-cols-3 gap-1.5 mt-0.5" style={{ overflow: 'visible' }}>
               {turno.variacoes.map((variacao) => (
-                <div key={variacao.label} className="rounded-xl bg-white/10 px-3 py-3 text-center flex flex-col items-center justify-center min-h-[80px] gap-1" style={{ overflow: 'visible' }}>
-                  <p className="text-[1.4rem] font-medium opacity-80 leading-tight">{variacao.label}</p>
+                <div key={variacao.label} className="rounded-lg bg-white/10 px-2 py-1.5 text-center flex flex-col items-center justify-center gap-0.5" style={{ overflow: 'visible' }}>
+                  <p className="text-[0.75rem] font-medium opacity-80 leading-tight">{variacao.label}</p>
                   <p
                     className={`font-bold leading-tight ${variacao.positivo ? 'text-emerald-200' : 'text-rose-200'}`}
-                    style={buildTimeTextStyle(variacao.valor, 1.5)}
+                    style={buildTimeTextStyle(variacao.valor, 1.0)}
                   >
                     {variacao.valor}
                   </p>
