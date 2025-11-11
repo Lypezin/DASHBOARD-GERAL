@@ -28,6 +28,7 @@ const AvatarUsuario = memo(function AvatarUsuario({ avatarUrl, nome, isTop3 }: A
 
   return (
     <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img 
         src={avatarUrl} 
         alt={nome}

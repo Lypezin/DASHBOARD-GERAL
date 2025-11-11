@@ -51,6 +51,29 @@ export function useConquistas() {
     }
   }, []);
 
+  // Carregar ranking de usuários
+  const carregarRanking = useCallback(async () => {
+    setLoadingRanking(true);
+    try {
+      const { data, error } = await supabase.rpc('ranking_conquistas');
+      
+      if (error) {
+        safeLog.error('Erro ao carregar ranking:', error);
+        setRanking([]);
+        return;
+      }
+
+      if (data) {
+        setRanking(data as RankingUsuario[]);
+      }
+    } catch (err) {
+      safeLog.error('Erro inesperado ao carregar ranking:', err);
+      setRanking([]);
+    } finally {
+      setLoadingRanking(false);
+    }
+  }, []);
+
   // Verificar novas conquistas (com tratamento de erro silencioso)
   const verificarConquistas = useCallback(async () => {
     try {
@@ -147,7 +170,8 @@ export function useConquistas() {
         return prev;
       });
     }
-  }, [conquistas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conquistas]); // conquistasNovas.length não precisa estar nas dependências pois verificamos dentro do useEffect
 
   // Verificar conquistas baseadas em dados do dashboard
   const verificarConquistasDashboard = useCallback(async (
@@ -187,29 +211,6 @@ export function useConquistas() {
       safeLog.error('Erro inesperado ao verificar conquistas do dashboard:', err);
     }
   }, [carregarConquistas, carregarRanking]);
-
-  // Carregar ranking de usuários
-  const carregarRanking = useCallback(async () => {
-    setLoadingRanking(true);
-    try {
-      const { data, error } = await supabase.rpc('ranking_conquistas');
-      
-      if (error) {
-        safeLog.error('Erro ao carregar ranking:', error);
-        setRanking([]);
-        return;
-      }
-
-      if (data) {
-        setRanking(data as RankingUsuario[]);
-      }
-    } catch (err) {
-      safeLog.error('Erro inesperado ao carregar ranking:', err);
-      setRanking([]);
-    } finally {
-      setLoadingRanking(false);
-    }
-  }, []);
 
   // Carregar conquistas ao montar
   useEffect(() => {
