@@ -20,6 +20,17 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     getSession();
   }, []);
 
+  // Usar refs para evitar dependências desnecessárias
+  const activeTabRef = useRef(activeTab);
+  const filtersRef = useRef(filters);
+  const currentUserRef = useRef(currentUser);
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+    filtersRef.current = filters;
+    currentUserRef.current = currentUser;
+  }, [activeTab, filters, currentUser]);
+
   // Função para registrar atividade
   const registrarAtividade = useCallback(async (
     action_type: string,
@@ -40,7 +51,8 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
         evolucao: 'Evolução',
         monitoramento: 'Monitoramento'
       };
-      const nomeAba = tabNames[tab_name || activeTab] || tab_name || activeTab;
+      const currentTab = tab_name || activeTabRef.current;
+      const nomeAba = tabNames[currentTab] || currentTab;
 
       switch (action_type) {
         case 'filter_change':
@@ -80,7 +92,7 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
         p_session_id: sessionId,
         p_action_type: action_type,
         p_action_details: descricaoDetalhada,
-        p_tab_name: tab_name || activeTab,
+        p_tab_name: tab_name || activeTabRef.current,
         p_filters_applied: filters_applied as any
       });
 
@@ -96,17 +108,6 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
       }
     }
   }, [sessionId]);
-
-  // Usar refs para evitar dependências desnecessárias
-  const activeTabRef = useRef(activeTab);
-  const filtersRef = useRef(filters);
-  const currentUserRef = useRef(currentUser);
-
-  useEffect(() => {
-    activeTabRef.current = activeTab;
-    filtersRef.current = filters;
-    currentUserRef.current = currentUser;
-  }, [activeTab, filters, currentUser]);
 
   useEffect(() => {
     if (currentUserRef.current) {
