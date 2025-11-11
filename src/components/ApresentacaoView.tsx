@@ -1024,60 +1024,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
             </div>
             <div className="h-6 w-px bg-slate-300"></div>
             <button
-              onClick={async () => {
-                if (!semanasSelecionadas?.[0] || !semanasSelecionadas?.[1]) return;
-                try {
-                  setIsGenerating(true);
-                  const url = new URL(window.location.origin + '/apresentacao/print');
-                  url.searchParams.set('sem1', semanasSelecionadas[0]);
-                  url.searchParams.set('sem2', semanasSelecionadas[1]);
-                  if (pracaSelecionada) url.searchParams.set('praca', pracaSelecionada);
-
-                  const exportUrl = new URL(window.location.origin + '/api/export-pdf');
-                  exportUrl.searchParams.set('url', url.pathname + '?' + url.searchParams.toString());
-
-                  const res = await fetch(exportUrl.toString(), { method: 'GET' });
-                  if (!res.ok) {
-                    let details = '';
-                    try {
-                      const txt = await res.text();
-                      details = txt;
-                    } catch {}
-                    throw new Error(details || 'Falha ao gerar PDF pelo servidor.');
-                  }
-                  const blob = await res.blob();
-                  const objUrl = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = objUrl;
-                  a.download = `Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  URL.revokeObjectURL(objUrl);
-                } catch (e) {
-                  safeLog.error('Erro ao exportar pelo servidor:', e);
-                  const msg = (e as Error)?.message || 'Erro ao gerar PDF pelo servidor. Tente novamente.';
-                  alert(msg);
-                } finally {
-                  setIsGenerating(false);
-                }
-              }}
-              disabled={totalSlides === 0 || isGenerating || !semanasSelecionadas?.[0] || !semanasSelecionadas?.[1]}
-              className="px-6 py-3 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center gap-3 min-w-[180px] justify-center"
-            >
-              {isGenerating ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  <span>Gerando...</span>
-                </>
-              ) : (
-                <>
-                  <span>🖨️</span>
-                  <span>Exportar PDF (Servidor)</span>
-                </>
-              )}
-            </button>
-            <button
               onClick={gerarPDF}
               disabled={totalSlides === 0 || isGenerating}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center gap-3 min-w-[140px] justify-center"
