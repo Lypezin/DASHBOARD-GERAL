@@ -122,7 +122,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                     // Se já é um array, usar diretamente
                     processedData = dataObj;
                     if (IS_DEV) {
-                      safeLog.info('✅ Dados processados como array direto:', dataObj.length, 'entregadores');
+                      safeLog.info('✅ Dados processados como array direto:', { length: dataObj.length, tipo: 'entregadores' });
                     }
                   } else if (dataObj && typeof dataObj === 'object' && 'entregadores' in dataObj) {
                     // Se é objeto com propriedade entregadores
@@ -130,7 +130,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                     if (Array.isArray(entregadores)) {
                       processedData = entregadores;
                       if (IS_DEV) {
-                        safeLog.info('✅ Dados processados de objeto.entregadores:', entregadores.length, 'entregadores');
+                        safeLog.info('✅ Dados processados de objeto.entregadores:', { length: entregadores.length, tipo: 'entregadores' });
                       }
                     } else {
                       if (IS_DEV) {
@@ -146,7 +146,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                       if (dataObj && typeof dataObj === 'object' && key in dataObj && Array.isArray(dataObj[key])) {
                         processedData = dataObj[key];
                         if (IS_DEV) {
-                          safeLog.info(`✅ Dados encontrados em ${key}:`, processedData.length);
+                          safeLog.info(`✅ Dados encontrados em ${key}:`, { length: processedData.length });
                         }
                         found = true;
                         break;
