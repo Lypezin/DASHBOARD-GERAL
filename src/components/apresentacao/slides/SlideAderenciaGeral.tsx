@@ -1,5 +1,6 @@
 import React from 'react';
 import SlideWrapper from '../SlideWrapper';
+import { buildCircleTextStyle } from '../utils';
 
 interface SemanaResumo {
   numeroSemana: string;
@@ -78,8 +79,11 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
                   strokeLinecap="round"
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                <span className="text-[6rem] font-black leading-none" style={{ lineHeight: '1', letterSpacing: '0' }}>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span
+                  className="font-black leading-none"
+                  style={buildCircleTextStyle(semana.aderencia, 6.2, 3.6)}
+                >
                   {semana.aderencia.toFixed(1)}%
                 </span>
               </div>

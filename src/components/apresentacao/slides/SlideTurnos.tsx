@@ -90,8 +90,11 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                         strokeLinecap="round"
                       />
                     </svg>
-                    <div className="absolute inset-0 flex items-center justify-center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                      <span className="text-[3.2rem] font-black leading-none" style={{ lineHeight: '1', letterSpacing: '0' }}>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span
+                        className="font-black leading-none"
+                        style={buildCircleTextStyle(semana.aderencia, 3.4, 2.4)}
+                      >
                         {semana.aderencia.toFixed(1)}%
                       </span>
                     </div>

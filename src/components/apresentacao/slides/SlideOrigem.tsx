@@ -8,7 +8,7 @@ interface VariacaoResumo {
   positivo: boolean;
 }
 
-interface SubPracaComparativo {
+interface OrigemComparativo {
   nome: string;
   horasPlanejadas: string;
   semana1: {
@@ -22,22 +22,22 @@ interface SubPracaComparativo {
   variacoes: VariacaoResumo[];
 }
 
-interface SlideSubPracasProps {
+interface SlideOrigemProps {
   isVisible: boolean;
   numeroSemana1: string;
   numeroSemana2: string;
   paginaAtual: number;
   totalPaginas: number;
-  itens: SubPracaComparativo[];
+  itens: OrigemComparativo[];
 }
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 100; // r = 100 (reduzido para dar espaço ao texto)
+  const circumference = 2 * Math.PI * 100;
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
-const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
+const SlideOrigem: React.FC<SlideOrigemProps> = ({
   isVisible,
   numeroSemana1,
   numeroSemana2,
@@ -46,12 +46,9 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
   itens,
 }) => {
   return (
-    <SlideWrapper
-      isVisible={isVisible}
-      style={{ padding: '80px 100px' }}
-    >
+    <SlideWrapper isVisible={isVisible} style={{ padding: '80px 100px' }}>
       <header className="text-center mb-14">
-        <h2 className="text-[6rem] font-black leading-none tracking-wider mb-4">SUB-PRAÇAS</h2>
+        <h2 className="text-[6rem] font-black leading-none tracking-wider mb-4">ORIGENS</h2>
         <p className="text-[3.5rem] font-light opacity-90 mb-3">
           SEMANAS {numeroSemana1} &amp; {numeroSemana2}
         </p>
@@ -83,7 +80,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                   <span className="text-[2rem] font-semibold">
                     SEM {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
-                  <div className="relative w-[260px] h-[260px]">
+                  <div className="relative w-[240px] h-[240px]">
                     <svg
                       className="w-full h-full transform -rotate-90"
                       viewBox="0 0 220 220"
@@ -104,7 +101,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span
                         className="font-black leading-none"
-                        style={buildCircleTextStyle(semana.aderencia, 4.2, 2.6)}
+                        style={buildCircleTextStyle(semana.aderencia, 4.0, 2.5)}
                       >
                         {semana.aderencia.toFixed(1)}%
                       </span>
@@ -125,7 +122,9 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                 >
                   <p className="text-[1.6rem] font-medium opacity-80 mb-1">{variacao.label}</p>
                   <p
-                    className={`text-[1.8rem] font-bold leading-tight break-words ${variacao.positivo ? 'text-emerald-200' : 'text-rose-200'}`}
+                    className={`text-[1.8rem] font-bold leading-tight break-words ${
+                      variacao.positivo ? 'text-emerald-200' : 'text-rose-200'
+                    }`}
                     style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
                   >
                     {variacao.valor}
@@ -140,5 +139,5 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
   );
 };
 
-export default SlideSubPracas;
+export default SlideOrigem;
 
