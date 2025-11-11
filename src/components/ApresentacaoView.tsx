@@ -716,24 +716,28 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         // Aguardar renderização e fontes
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // Configuração OTIMIZADA do html2canvas
+        // Configuração ULTRA PRECISA do html2canvas
         const canvasOptions = {
-          scale: 3, // Maior resolução para qualidade superior
+          scale: 2, // Escala otimizada para precisão
           useCORS: true,
-          allowTaint: true, // Permitir para capturar gradientes
-          backgroundColor: '#2563eb', // Background sólido como fallback
+          allowTaint: true,
+          backgroundColor: '#2563eb',
           width: SLIDE_WIDTH,
           height: SLIDE_HEIGHT,
           windowWidth: SLIDE_WIDTH,
           windowHeight: SLIDE_HEIGHT,
-          logging: false, // Desabilitar logs para performance
-          imageTimeout: 0, // Sem timeout
+          logging: false,
+          imageTimeout: 0,
           removeContainer: false,
-          foreignObjectRendering: false, // Desabilitado para melhor compatibilidade
+          foreignObjectRendering: false,
           scrollX: 0,
           scrollY: 0,
           x: 0,
           y: 0,
+          // Configurações extras para precisão
+          pixelRatio: 1, // Força ratio 1:1
+          dpi: 96, // DPI padrão
+          letterRendering: true, // Renderização precisa de texto
           onclone: (clonedDoc: Document) => {
             // Injetar CSS ULTRA OTIMIZADO para renderização perfeita
             const style = clonedDoc.createElement('style');
@@ -851,23 +855,27 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           continue; // Pular slide se falhou
         }
 
-        // Canvas final SEM redimensionamento para evitar distorção
+        // Canvas final com dimensões EXATAS para precisão máxima
         const finalCanvas = document.createElement('canvas');
-        const scale = 3; // Mesma escala do html2canvas
+        const scale = 2; // Mesma escala do html2canvas
         finalCanvas.width = SLIDE_WIDTH * scale;
         finalCanvas.height = SLIDE_HEIGHT * scale;
         const ctx = finalCanvas.getContext('2d');
         
         if (ctx) {
-          // Background gradiente PERFEITO
+          // Configurações de renderização de alta qualidade
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          
+          // Background gradiente IDÊNTICO ao preview
           const gradient = ctx.createLinearGradient(0, 0, finalCanvas.width, finalCanvas.height);
           gradient.addColorStop(0, '#2563eb');
           gradient.addColorStop(1, '#1e40af');
           ctx.fillStyle = gradient;
           ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
           
-          // Desenhar canvas capturado SEM redimensionamento
-          ctx.drawImage(canvas, 0, 0);
+          // Desenhar canvas capturado com precisão máxima
+          ctx.drawImage(canvas, 0, 0, finalCanvas.width, finalCanvas.height);
         }
 
         // PNG de alta qualidade
@@ -939,6 +947,31 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   const slideAtualExibicao = totalSlides > 0 ? currentSlide + 1 : 0;
 
   return (
+    <>
+      {/* CSS Global para sincronizar preview com PDF */}
+      <style>{`
+        .slide * {
+          font-family: Inter, Arial, sans-serif !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          text-rendering: optimizeLegibility !important;
+          box-sizing: border-box !important;
+        }
+        .slide .absolute {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+        .slide span {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          text-align: center !important;
+          word-break: keep-all !important;
+          white-space: nowrap !important;
+        }
+      `}</style>
+      
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       {isGenerating && (
         <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50">
@@ -1015,6 +1048,11 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
               left: '50%',
               transform: `translate(-50%, -50%) scale(${previewScale})`,
               transformOrigin: 'center center',
+              // Forçar estilos idênticos ao PDF
+              fontFamily: 'Inter, Arial, sans-serif',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+              textRendering: 'optimizeLegibility',
             }}
           >
             {totalSlides === 0 ? (
@@ -1055,6 +1093,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         </div>
       )}
     </div>
+    </>
   );
 };
 

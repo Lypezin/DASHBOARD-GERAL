@@ -136,7 +136,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                     >
                       <span 
                         style={{
-                          ...buildCircleTextStyle(semana.aderencia, 3.5, 2.0),
+                          ...buildCircleTextStyle(semana.aderencia, 3.2, 1.8),
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',

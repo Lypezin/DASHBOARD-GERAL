@@ -105,7 +105,7 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
               >
                 <span 
                   style={{
-                    ...buildCircleTextStyle(semana.aderencia, 5.0, 2.5),
+                    ...buildCircleTextStyle(semana.aderencia, 4.5, 2.0),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

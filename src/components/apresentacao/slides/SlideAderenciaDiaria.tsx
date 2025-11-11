@@ -94,7 +94,7 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
           >
             <span 
               style={{
-                ...buildCircleTextStyle(dia.aderencia, 2.2, 1.4),
+                ...buildCircleTextStyle(dia.aderencia, 2.0, 1.2),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

@@ -117,7 +117,7 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                     >
                       <span 
                         style={{
-                          ...buildCircleTextStyle(semana.aderencia, 2.8, 1.8),
+                          ...buildCircleTextStyle(semana.aderencia, 2.5, 1.5),
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',

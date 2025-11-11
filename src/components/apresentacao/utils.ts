@@ -21,26 +21,26 @@ const percentFormatter = new Intl.NumberFormat('pt-BR', {
 export const buildCircleTextStyle = (
   value: number,
   baseFontRem: number,
-  minimumFontRem: number = 1.5
+  minimumFontRem: number = 1.2
 ): CSSProperties => {
   const safeValue = Number.isFinite(value) ? Math.abs(value) : 0;
   const valueString = safeValue.toFixed(1);
   const totalLength = valueString.length; // Inclui o ponto decimal
   
-  // Algoritmo ULTRA CONSERVADOR para garantir que texto NUNCA saia do círculo
+  // Algoritmo EXTREMAMENTE CONSERVADOR - garantia 100%
   let fontSize = baseFontRem;
   
-  // Redução MUITO mais agressiva baseada no comprimento TOTAL
+  // Redução EXTREMAMENTE agressiva para garantir que NUNCA saia
   if (totalLength >= 6) {        // Ex: "100.0%" = 6 chars
-    fontSize = baseFontRem * 0.40; // Muito menor
+    fontSize = baseFontRem * 0.30; // 70% menor
   } else if (totalLength >= 5) { // Ex: "99.9%" = 5 chars
-    fontSize = baseFontRem * 0.50;
+    fontSize = baseFontRem * 0.40; // 60% menor
   } else if (totalLength >= 4) { // Ex: "9.9%" = 4 chars
-    fontSize = baseFontRem * 0.60;
+    fontSize = baseFontRem * 0.50; // 50% menor
   } else if (totalLength >= 3) { // Ex: "9%" = 3 chars
-    fontSize = baseFontRem * 0.70;
+    fontSize = baseFontRem * 0.60; // 40% menor
   } else {                       // Ex: "9%" = 2 chars
-    fontSize = baseFontRem * 0.80;
+    fontSize = baseFontRem * 0.70; // 30% menor
   }
   
   // Garantir tamanho mínimo legível
@@ -48,31 +48,36 @@ export const buildCircleTextStyle = (
 
   return {
     fontSize: `${fontSize}rem`,
-    lineHeight: '0.85', // Ainda mais compacto
-    letterSpacing: '-0.03em', // Mais apertado
+    lineHeight: '0.8', // Extremamente compacto
+    letterSpacing: '-0.04em', // Muito apertado
     whiteSpace: 'nowrap',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
-    width: '80%', // Reduzido de 100% para 80%
-    height: '80%', // Reduzido para dar mais margem
+    width: '75%', // Ainda mais reduzido
+    height: '75%', // Ainda mais reduzido
     fontFamily: 'Inter, Arial, sans-serif',
     fontWeight: '900',
     color: '#ffffff',
     WebkitFontSmoothing: 'antialiased',
     MozOsxFontSmoothing: 'grayscale',
     textRendering: 'optimizeLegibility',
-    maxWidth: '80%', // Margem de segurança maior
-    maxHeight: '80%', // Margem de altura também
+    maxWidth: '75%', // Margem de segurança extrema
+    maxHeight: '75%', // Margem de altura extrema
     margin: '0 auto',
     overflow: 'visible',
     textOverflow: 'clip',
     boxSizing: 'border-box',
-    textShadow: '0 1px 4px rgba(0,0,0,0.5)', // Contraste melhor
+    textShadow: '0 1px 4px rgba(0,0,0,0.6)', // Contraste máximo
     position: 'relative',
     zIndex: 10,
-    wordBreak: 'keep-all', // Não quebrar palavras
+    wordBreak: 'keep-all',
+    hyphens: 'none',
+    // Garantias extras para PDF
+    transform: 'none',
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden',
   } as CSSProperties;
 };
 
