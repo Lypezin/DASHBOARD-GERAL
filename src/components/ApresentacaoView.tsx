@@ -953,16 +953,17 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       }
 
       // Criar conteúdo com quebras de página entre slides
-      // Cada slide precisa ser uma página completa com background
-      const content: any[] = [];
-      slidesPDFData.forEach((slide, index) => {
-        if (index > 0) {
-          // Quebra de página antes de cada slide (exceto o primeiro)
-          content.push({ text: '', pageBreak: 'before' });
+      // Cada slide já tem o background incorporado
+      const content: any[] = slidesPDFData.map((slide, index) => {
+        if (index === 0) {
+          // Primeiro slide sem quebra de página
+          return slide;
         }
-        
-        // Adicionar o slide completo
-        content.push(slide);
+        // Slides subsequentes com quebra de página
+        return {
+          ...slide,
+          pageBreak: 'before',
+        };
       });
 
       console.log('📄 Total de slides no conteúdo:', content.length);

@@ -28,15 +28,14 @@ const criarRetanguloFundo = () => ({
 });
 
 // Função helper para envolver um slide com background
-const adicionarBackgroundAoSlide = (conteudo: any) => ({
-  stack: [
-    criarRetanguloFundo(),
-    {
-      ...conteudo,
-      relativePosition: { x: 0, y: 0 },
-    },
-  ],
-});
+const adicionarBackgroundAoSlide = (conteudo: any) => {
+  return {
+    stack: [
+      criarRetanguloFundo(),
+      conteudo,
+    ],
+  };
+};
 
 // Função para criar gráfico circular como SVG
 const criarGraficoCircular = (
@@ -135,9 +134,9 @@ export const criarSlideAderenciaGeral = (
   semana2: { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string },
   variacao: { horasDiferenca: string; horasPercentual: string; positiva: boolean }
 ): any => {
-  // Gráficos ajustados para caber com margens (reduzido de 285 para 260 pontos)
-  const grafico1 = criarGraficoCircular(semana1.aderencia, 260, 20);
-  const grafico2 = criarGraficoCircular(semana2.aderencia, 260, 20);
+  // Gráficos principais - tamanho otimizado para caber com margens
+  const grafico1 = criarGraficoCircular(semana1.aderencia, 240, 20);
+  const grafico2 = criarGraficoCircular(semana2.aderencia, 240, 20);
 
   const conteudo = {
     stack: [
@@ -172,6 +171,7 @@ export const criarSlideAderenciaGeral = (
               },
               {
                 svg: grafico1,
+                width: 240,
                 alignment: 'center',
                 margin: [0, 0, 0, 25],
               },
@@ -235,6 +235,7 @@ export const criarSlideAderenciaGeral = (
               },
               {
                 svg: grafico2,
+                width: 240,
                 alignment: 'center',
                 margin: [0, 0, 0, 25],
               },
@@ -353,8 +354,8 @@ export const criarSlideAderenciaDiaria = (
       diferencaAderenciaPositiva: boolean;
     }
   ) => {
-    // Gráfico menor para cards diários (110px no preview = ~82 pontos)
-    const grafico = criarGraficoCircular(dia.aderencia, 82, 8);
+    // Gráfico para cards diários - reduzido para evitar cortes
+    const grafico = criarGraficoCircular(dia.aderencia, 75, 7);
     return {
       width: '*',
       stack: [
@@ -368,6 +369,7 @@ export const criarSlideAderenciaDiaria = (
         },
         {
           svg: grafico,
+          width: 75,
           alignment: 'center',
           margin: [0, 0, 0, 8],
         },
@@ -513,9 +515,9 @@ export const criarSlideTurnos = (
   }>
 ): any => {
   const criarCardTurno = (turno: typeof itens[0]) => {
-    // Gráficos para turnos (tamanho médio)
-    const grafico1 = criarGraficoCircular(turno.semana1.aderencia, 180, 12);
-    const grafico2 = criarGraficoCircular(turno.semana2.aderencia, 180, 12);
+    // Gráficos para turnos - tamanho otimizado
+    const grafico1 = criarGraficoCircular(turno.semana1.aderencia, 160, 12);
+    const grafico2 = criarGraficoCircular(turno.semana2.aderencia, 160, 12);
 
     return {
       width: '*',
@@ -528,88 +530,90 @@ export const criarSlideTurnos = (
           alignment: 'center',
           margin: [0, 0, 0, 20],
         },
-        {
-          columns: [
-            {
-              width: '*',
-              stack: [
-                {
-                  text: `SEM ${numeroSemana1}`,
-                  fontSize: 18,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
-                {
-                  svg: grafico1,
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
-                {
-                  stack: [
-                    {
-                      text: 'Horas Entregues',
-                      fontSize: 16,
-                      color: '#f3f4f6', // Cor mais clara para simular opacity
-                      alignment: 'center',
-                      margin: [0, 0, 0, 3],
-                    },
-                    {
-                      text: turno.semana1.horasEntregues,
-                      fontSize: 19,
-                      bold: true,
-                      color: COR_VERDE,
-                      alignment: 'center',
-                    },
-                  ],
-                  fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
-                  borderRadius: 8,
-                  padding: [10, 8],
-                },
-              ],
-            },
-            {
-              width: '*',
-              stack: [
-                {
-                  text: `SEM ${numeroSemana2}`,
-                  fontSize: 18,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
-                {
-                  svg: grafico2,
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
-                {
-                  stack: [
-                    {
-                      text: 'Horas Entregues',
-                      fontSize: 16,
-                      color: '#f3f4f6', // Cor mais clara para simular opacity
-                      alignment: 'center',
-                      margin: [0, 0, 0, 3],
-                    },
-                    {
-                      text: turno.semana2.horasEntregues,
-                      fontSize: 19,
-                      bold: true,
-                      color: COR_VERDE,
-                      alignment: 'center',
-                    },
-                  ],
-                  fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
-                  borderRadius: 8,
-                  padding: [10, 8],
-                },
-              ],
-            },
-          ],
-          columnGap: 15,
-          margin: [0, 0, 0, 15],
-        },
+      {
+        columns: [
+          {
+            width: '*',
+            stack: [
+              {
+                text: `SEM ${numeroSemana1}`,
+                fontSize: 17,
+                color: '#e5e7eb',
+                alignment: 'center',
+                margin: [0, 0, 0, 10],
+              },
+              {
+                svg: grafico1,
+                width: 160,
+                alignment: 'center',
+                margin: [0, 0, 0, 10],
+              },
+              {
+                stack: [
+                  {
+                    text: 'Horas Entregues',
+                    fontSize: 15,
+                    color: '#f3f4f6', // Cor mais clara para simular opacity
+                    alignment: 'center',
+                    margin: [0, 0, 0, 3],
+                  },
+                  {
+                    text: turno.semana1.horasEntregues,
+                    fontSize: 18,
+                    bold: true,
+                    color: COR_VERDE,
+                    alignment: 'center',
+                  },
+                ],
+                fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
+                borderRadius: 8,
+                padding: [10, 8],
+              },
+            ],
+          },
+          {
+            width: '*',
+            stack: [
+              {
+                text: `SEM ${numeroSemana2}`,
+                fontSize: 17,
+                color: '#e5e7eb',
+                alignment: 'center',
+                margin: [0, 0, 0, 10],
+              },
+              {
+                svg: grafico2,
+                width: 160,
+                alignment: 'center',
+                margin: [0, 0, 0, 10],
+              },
+              {
+                stack: [
+                  {
+                    text: 'Horas Entregues',
+                    fontSize: 15,
+                    color: '#f3f4f6', // Cor mais clara para simular opacity
+                    alignment: 'center',
+                    margin: [0, 0, 0, 3],
+                  },
+                  {
+                    text: turno.semana2.horasEntregues,
+                    fontSize: 18,
+                    bold: true,
+                    color: COR_VERDE,
+                    alignment: 'center',
+                  },
+                ],
+                fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
+                borderRadius: 8,
+                padding: [10, 8],
+              },
+            ],
+          },
+        ],
+        columnGap: 12,
+        margin: [0, 0, 0, 12],
+      },
         {
           columns: turno.variacoes.map((variacao) => ({
             width: '*',
@@ -665,17 +669,17 @@ export const criarSlideTurnos = (
         ? [
             {
               text: `Página ${paginaAtual} de ${totalPaginas}`,
-              fontSize: 22,
+              fontSize: 20,
               color: '#e5e7eb', // Cor mais clara para simular opacity
               alignment: 'center',
-              margin: [0, 0, 0, 30],
+              margin: [0, 0, 0, 25],
             },
           ]
-        : [{ text: '', margin: [0, 0, 0, 30] }]),
+        : [{ text: '', margin: [0, 0, 0, 25] }]),
       {
         columns: itens.map((turno) => criarCardTurno(turno)),
-        columnGap: 20,
-        margin: [30, 0, 30, 0],
+        columnGap: 18,
+        margin: [25, 0, 25, 0],
       },
     ],
   };
@@ -698,9 +702,9 @@ export const criarSlideSubPracas = (
   }>
 ): any => {
   const criarCardSubPraca = (item: typeof itens[0]) => {
-    // Gráficos para sub-praças (240px no preview = ~180 pontos)
-    const grafico1 = criarGraficoCircular(item.semana1.aderencia, 180, 16);
-    const grafico2 = criarGraficoCircular(item.semana2.aderencia, 180, 16);
+    // Gráficos para sub-praças - tamanho otimizado
+    const grafico1 = criarGraficoCircular(item.semana1.aderencia, 160, 14);
+    const grafico2 = criarGraficoCircular(item.semana2.aderencia, 160, 14);
 
     return {
       width: '*',
@@ -740,19 +744,20 @@ export const criarSlideSubPracas = (
             {
               width: '*',
               stack: [
-                {
-                  text: `SEM ${numeroSemana1}`,
-                  fontSize: 18,
-                  bold: true,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
-                {
-                  svg: grafico1,
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
+              {
+                text: `SEM ${numeroSemana1}`,
+                fontSize: 17,
+                bold: true,
+                color: '#e5e7eb',
+                alignment: 'center',
+                margin: [0, 0, 0, 10],
+              },
+              {
+                svg: grafico1,
+                width: 160,
+                alignment: 'center',
+                margin: [0, 0, 0, 10],
+              },
                 {
                   stack: [
                     {
@@ -779,19 +784,20 @@ export const criarSlideSubPracas = (
             {
               width: '*',
               stack: [
-                {
-                  text: `SEM ${numeroSemana2}`,
-                  fontSize: 18,
-                  bold: true,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
-                {
-                  svg: grafico2,
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
+              {
+                text: `SEM ${numeroSemana2}`,
+                fontSize: 17,
+                bold: true,
+                color: '#e5e7eb',
+                alignment: 'center',
+                margin: [0, 0, 0, 10],
+              },
+              {
+                svg: grafico2,
+                width: 160,
+                alignment: 'center',
+                margin: [0, 0, 0, 10],
+              },
                 {
                   stack: [
                     {
