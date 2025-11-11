@@ -23,6 +23,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
         flexDirection: 'column',
         opacity: isVisible ? 1 : 0,
         visibility: isVisible ? 'visible' : 'hidden',
+        overflow: 'visible',
         ...slideTransitionStyle,
         ...style,
       }}

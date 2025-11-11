@@ -38,27 +38,28 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
     <SlideWrapper
       isVisible={isVisible}
       className="items-center justify-center"
-      style={{ padding: '80px 100px' }}
+      style={{ padding: '60px 80px', overflow: 'visible' }}
     >
-      <header className="text-center mb-14">
-        <h2 className="text-[6.5rem] font-black leading-none tracking-wider mb-4">ADERÊNCIA GERAL</h2>
-        <p className="text-[3.8rem] font-light opacity-90">
+      <header className="text-center mb-10">
+        <h2 className="text-[6rem] font-black leading-none tracking-wider mb-3">ADERÊNCIA GERAL</h2>
+        <p className="text-[3.5rem] font-light opacity-90">
           SEMANAS {semana1.numeroSemana} &amp; {semana2.numeroSemana}
         </p>
       </header>
 
-      <div className="flex w-full justify-center gap-16">
+      <div className="flex w-full justify-center gap-12" style={{ overflow: 'visible' }}>
         {[semana1, semana2].map((semana, index) => (
-          <div key={semana.numeroSemana} className="flex flex-col items-center gap-8">
-            <h3 className="text-[3.2rem] font-semibold uppercase tracking-wide text-center">
+          <div key={semana.numeroSemana} className="flex flex-col items-center gap-6" style={{ overflow: 'visible' }}>
+            <h3 className="text-[2.8rem] font-semibold uppercase tracking-wide text-center">
               SEMANA {semana.numeroSemana}
             </h3>
 
             <div 
               className="relative flex items-center justify-center"
               style={{ 
-                width: '420px', 
-                height: '420px',
+                width: '380px', 
+                height: '380px',
+                overflow: 'visible',
               }}
             >
               <svg
@@ -69,6 +70,7 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
                   width: '100%',
                   height: '100%',
                   transform: 'rotate(-90deg)',
+                  overflow: 'visible',
                 }}
                 viewBox="0 0 300 300"
                 preserveAspectRatio="xMidYMid meet"
@@ -98,20 +100,22 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '70%',
-                  height: '70%',
+                  width: '60%',
+                  height: '60%',
                   pointerEvents: 'none',
+                  overflow: 'visible',
                 }}
               >
                 <span 
                   style={{
-                    ...buildCircleTextStyle(semana.aderencia, 4.5, 2.0),
+                    ...buildCircleTextStyle(semana.aderencia, 4.0, 2.0),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     width: '100%',
                     height: '100%',
                     textAlign: 'center',
+                    overflow: 'visible',
                   }}
                 >
                   {semana.aderencia.toFixed(1)}%
@@ -119,42 +123,42 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
               </div>
             </div>
 
-            <div className="w-full max-w-[520px] space-y-4">
-              <div className="rounded-2xl bg-white/15 px-8 py-6 flex flex-col items-center gap-2 text-center">
-                <span className="text-[2.4rem] font-medium opacity-85 flex items-center gap-3">
-                  <span aria-hidden className="text-[3rem] leading-none">🎯</span>
+            <div className="w-full max-w-[480px] space-y-3" style={{ overflow: 'visible' }}>
+              <div className="rounded-2xl bg-white/15 px-6 py-5 flex flex-col items-center gap-2 text-center" style={{ overflow: 'visible' }}>
+                <span className="text-[2.2rem] font-medium opacity-85 flex items-center gap-3">
+                  <span aria-hidden className="text-[2.6rem] leading-none">🎯</span>
                   Planejado
                 </span>
                 <span
                   className="font-bold text-blue-200"
-                  style={buildTimeTextStyle(semana.horasPlanejadas, 2.8)}
+                  style={buildTimeTextStyle(semana.horasPlanejadas, 2.4)}
                 >
                   {semana.horasPlanejadas}
                 </span>
               </div>
-              <div className="rounded-2xl bg-white/15 px-8 py-6 flex flex-col items-center gap-2 text-center">
-                <span className="text-[2.4rem] font-medium opacity-85 flex items-center gap-3">
-                  <span aria-hidden className="text-[3rem] leading-none">✅</span>
+              <div className="rounded-2xl bg-white/15 px-6 py-5 flex flex-col items-center gap-2 text-center" style={{ overflow: 'visible' }}>
+                <span className="text-[2.2rem] font-medium opacity-85 flex items-center gap-3">
+                  <span aria-hidden className="text-[2.6rem] leading-none">✅</span>
                   Entregue
                 </span>
                 <span
                   className="font-bold text-emerald-200"
-                  style={buildTimeTextStyle(semana.horasEntregues, 2.8)}
+                  style={buildTimeTextStyle(semana.horasEntregues, 2.4)}
                 >
                   {semana.horasEntregues}
                 </span>
               </div>
               {index === 1 && (
-                <div className="rounded-2xl bg-white/10 px-8 py-6 text-center flex flex-col items-center gap-2">
-                  <p className="text-[2.2rem] font-medium opacity-85">Variação de Horas Entregues</p>
+                <div className="rounded-2xl bg-white/10 px-6 py-5 text-center flex flex-col items-center gap-2" style={{ overflow: 'visible' }}>
+                  <p className="text-[2rem] font-medium opacity-85">Variação de Horas</p>
                   <p
                     className={`font-black ${variacao.positiva ? 'text-emerald-200' : 'text-rose-200'}`}
-                    style={buildTimeTextStyle(variacao.horasDiferenca, 2.8)}
+                    style={buildTimeTextStyle(variacao.horasDiferenca, 2.4)}
                   >
                     {variacao.horasDiferenca}
                   </p>
                   <p
-                    className={`text-[2.2rem] font-semibold ${variacao.positiva ? 'text-emerald-200' : 'text-rose-200'}`}
+                    className={`text-[2rem] font-semibold ${variacao.positiva ? 'text-emerald-200' : 'text-rose-200'}`}
                   >
                     {variacao.horasPercentual}
                   </p>

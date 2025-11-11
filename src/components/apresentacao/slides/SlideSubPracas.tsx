@@ -48,55 +48,57 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
   return (
     <SlideWrapper
       isVisible={isVisible}
-      style={{ padding: '80px 100px' }}
+      style={{ padding: '60px 80px', overflow: 'visible' }}
     >
-      <header className="text-center mb-14">
-        <h2 className="text-[6rem] font-black leading-none tracking-wider mb-4">SUB-PRAÇAS</h2>
-        <p className="text-[3.5rem] font-light opacity-90 mb-3">
+      <header className="text-center mb-10">
+        <h2 className="text-[5.5rem] font-black leading-none tracking-wider mb-3">SUB-PRAÇAS</h2>
+        <p className="text-[3.2rem] font-light opacity-90 mb-2">
           SEMANAS {numeroSemana1} &amp; {numeroSemana2}
         </p>
         {totalPaginas > 1 && (
-          <p className="text-[2.2rem] font-medium opacity-75">
+          <p className="text-[2rem] font-medium opacity-75">
             Página {paginaAtual} de {totalPaginas}
           </p>
         )}
       </header>
 
-      <div className="grid grid-cols-2 gap-x-12 gap-y-10 flex-1">
+      <div className="grid grid-cols-2 gap-x-10 gap-y-8 flex-1" style={{ overflow: 'visible' }}>
         {itens.map((item) => (
           <div
             key={item.nome}
-            className="relative flex flex-col items-center gap-8 rounded-[36px] bg-white/12 px-10 py-10"
+            className="relative flex flex-col items-center gap-6 rounded-[36px] bg-white/12 px-8 py-8"
+            style={{ overflow: 'visible' }}
           >
-            <div className="text-center space-y-4 w-full max-w-[420px] mx-auto">
-              <h3 className="text-[2.8rem] font-semibold uppercase tracking-wide leading-tight">
+            <div className="text-center space-y-3 w-full max-w-[400px] mx-auto" style={{ overflow: 'visible' }}>
+              <h3 className="text-[2.5rem] font-semibold uppercase tracking-wide leading-tight">
                 {item.nome}
               </h3>
-              <div className="rounded-2xl bg-white/12 px-6 py-5 flex flex-col items-center gap-2">
-                <span className="text-[2.2rem] font-medium opacity-85 flex items-center gap-3">
-                  <span aria-hidden className="text-[2.8rem] leading-none">🎯</span>
+              <div className="rounded-2xl bg-white/12 px-5 py-4 flex flex-col items-center gap-2" style={{ overflow: 'visible' }}>
+                <span className="text-[2rem] font-medium opacity-85 flex items-center gap-3">
+                  <span aria-hidden className="text-[2.5rem] leading-none">🎯</span>
                   Planejado
                 </span>
                 <span
-                  className="text-[2.6rem] font-bold text-blue-200"
-                  style={buildTimeTextStyle(item.horasPlanejadas, 2.4)}
+                  className="text-[2.4rem] font-bold text-blue-200"
+                  style={buildTimeTextStyle(item.horasPlanejadas, 2.2)}
                 >
                   {item.horasPlanejadas}
                 </span>
               </div>
             </div>
 
-            <div className="flex w-full items-center justify-between gap-12">
+            <div className="flex w-full items-center justify-between gap-10" style={{ overflow: 'visible' }}>
               {[item.semana1, item.semana2].map((semana, index) => (
-                <div key={index} className="flex flex-col items-center gap-5 flex-1">
-                  <span className="text-[2rem] font-semibold text-center">
+                <div key={index} className="flex flex-col items-center gap-4 flex-1" style={{ overflow: 'visible' }}>
+                  <span className="text-[1.8rem] font-semibold text-center">
                     SEM {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
                   <div 
                     className="relative flex items-center justify-center"
                     style={{ 
-                      width: '270px', 
-                      height: '270px',
+                      width: '240px', 
+                      height: '240px',
+                      overflow: 'visible',
                     }}
                   >
                     <svg
@@ -107,6 +109,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                         width: '100%',
                         height: '100%',
                         transform: 'rotate(-90deg)',
+                        overflow: 'visible',
                       }}
                       viewBox="0 0 200 200"
                       preserveAspectRatio="xMidYMid meet"
@@ -129,31 +132,33 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        width: '65%',
-                        height: '65%',
+                        width: '60%',
+                        height: '60%',
                         pointerEvents: 'none',
+                        overflow: 'visible',
                       }}
                     >
                       <span 
                         style={{
-                          ...buildCircleTextStyle(semana.aderencia, 3.2, 1.8),
+                          ...buildCircleTextStyle(semana.aderencia, 2.8, 1.6),
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           width: '100%',
                           height: '100%',
                           textAlign: 'center',
+                          overflow: 'visible',
                         }}
                       >
                         {semana.aderencia.toFixed(1)}%
                       </span>
                     </div>
                   </div>
-                  <div className="rounded-2xl bg-white/10 px-4 py-3 w-full flex flex-col items-center gap-1">
-                    <span className="text-[1.8rem] font-medium opacity-85">Horas Entregues</span>
+                  <div className="rounded-2xl bg-white/10 px-3 py-2.5 w-full flex flex-col items-center gap-1" style={{ overflow: 'visible' }}>
+                    <span className="text-[1.6rem] font-medium opacity-85">Horas Entregues</span>
                     <span
                       className="font-semibold text-emerald-100 text-center"
-                      style={buildTimeTextStyle(semana.horasEntregues, 2.0)}
+                      style={buildTimeTextStyle(semana.horasEntregues, 1.8)}
                     >
                       {semana.horasEntregues}
                     </span>
@@ -162,16 +167,17 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-3 w-full pt-3">
+            <div className="grid grid-cols-3 gap-2.5 w-full pt-2" style={{ overflow: 'visible' }}>
               {item.variacoes.map((variacao) => (
                 <div
                   key={variacao.label}
-                  className="rounded-xl bg-white/10 px-4 py-4 text-center flex flex-col items-center justify-center min-h-[88px] gap-1"
+                  className="rounded-xl bg-white/10 px-3 py-3 text-center flex flex-col items-center justify-center min-h-[80px] gap-1"
+                  style={{ overflow: 'visible' }}
                 >
-                  <p className="text-[1.6rem] font-medium opacity-80 mb-1 leading-tight">{variacao.label}</p>
+                  <p className="text-[1.4rem] font-medium opacity-80 mb-1 leading-tight">{variacao.label}</p>
                   <p
                     className={`font-bold leading-tight ${variacao.positivo ? 'text-emerald-200' : 'text-rose-200'}`}
-                    style={buildTimeTextStyle(variacao.valor, 1.8)}
+                    style={buildTimeTextStyle(variacao.valor, 1.6)}
                   >
                     {variacao.valor}
                   </p>

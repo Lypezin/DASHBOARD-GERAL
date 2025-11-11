@@ -636,6 +636,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
           -webkit-font-smoothing: antialiased !important;
           -moz-osx-font-smoothing: grayscale !important;
+          contain: none !important;
         `;
 
         // Otimização ULTRA DEFINITIVA de elementos para PDF perfeito
@@ -662,6 +663,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           el.style.setProperty('overflow', 'visible', 'important');
           el.style.setProperty('text-overflow', 'clip', 'important');
           el.style.setProperty('white-space', 'nowrap', 'important');
+          el.style.setProperty('contain', 'none', 'important');
           
           // 4. FONTE E RENDERIZAÇÃO OTIMIZADA
           if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'DIV' || el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'H3') {
@@ -738,7 +740,12 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           pixelRatio: 1, // Força ratio 1:1
           dpi: 96, // DPI padrão
           letterRendering: true, // Renderização precisa de texto
-          onclone: (clonedDoc: Document) => {
+          onclone: (clonedDoc: Document, clonedElement: HTMLElement) => {
+            // Garantir que o elemento clonado também tenha overflow visible
+            if (clonedElement) {
+              clonedElement.style.setProperty('overflow', 'visible', 'important');
+              clonedElement.style.setProperty('contain', 'none', 'important');
+            }
             // Injetar CSS ULTRA OTIMIZADO para renderização perfeita
             const style = clonedDoc.createElement('style');
             style.textContent = `
@@ -753,6 +760,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 word-break: keep-all !important;
                 hyphens: none !important;
                 white-space: nowrap !important;
+                contain: none !important;
               }
               html, body {
                 margin: 0 !important;
@@ -761,22 +769,26 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 height: ${SLIDE_HEIGHT}px !important;
                 overflow: visible !important;
                 background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+                contain: none !important;
               }
               body > *, div, span, p, h1, h2, h3, svg, circle, path {
                 opacity: 1 !important;
                 visibility: visible !important;
                 overflow: visible !important;
                 text-overflow: clip !important;
+                contain: none !important;
               }
               .relative, .absolute {
                 overflow: visible !important;
                 position: relative !important;
+                contain: none !important;
               }
               .absolute {
                 position: absolute !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
+                contain: none !important;
               }
               span {
                 display: flex !important;
@@ -785,6 +797,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 text-align: center !important;
                 color: #ffffff !important;
                 font-weight: 900 !important;
+                contain: none !important;
               }
             `;
             clonedDoc.head.appendChild(style);
@@ -797,6 +810,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 el.style.setProperty('visibility', 'visible', 'important');
                 el.style.setProperty('overflow', 'visible', 'important');
                 el.style.setProperty('text-overflow', 'clip', 'important');
+                el.style.setProperty('contain', 'none', 'important');
                 
                 // Textos sempre visíveis e centralizados
                 if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'DIV') {
