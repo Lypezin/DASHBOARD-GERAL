@@ -31,12 +31,13 @@ export async function GET(req: NextRequest) {
     try {
       const page = await browser.newPage();
       await page.emulateMediaType('screen');
+      await page.setCacheEnabled(false);
 
       // Tamanho A4 landscape, deixar CSS decidir o tamanho com preferCSSPageSize
-      await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 120000 });
+      await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 180000 });
 
       // Aguarda um marcador opcional de pronto da página imprimível, se existir
-      await page.waitForSelector('body[data-print-ready="true"]', { timeout: 10000 }).catch(() => {});
+      await page.waitForSelector('body[data-print-ready="true"]', { timeout: 30000 }).catch(() => {});
 
       const pdfBuffer = await page.pdf({
         printBackground: true,

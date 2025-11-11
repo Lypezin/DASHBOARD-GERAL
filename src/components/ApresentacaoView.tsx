@@ -1034,10 +1034,17 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                   if (pracaSelecionada) url.searchParams.set('praca', pracaSelecionada);
 
                   const exportUrl = new URL(window.location.origin + '/api/export-pdf');
-                  exportUrl.searchParams.set('url', url.toString());
+                  exportUrl.searchParams.set('url', url.pathname + '?' + url.searchParams.toString());
 
                   const res = await fetch(exportUrl.toString(), { method: 'GET' });
-                  if (!res.ok) throw new Error('Falha ao gerar PDF pelo servidor.');
+                  if (!res.ok) {
+                    let details = '';
+                    try {
+                      const txt = await res.text();
+                      details = txt;
+                    } catch {}
+                    throw new Error(details || 'Falha ao gerar PDF pelo servidor.');
+                  }
                   const blob = await res.blob();
                   const objUrl = URL.createObjectURL(blob);
                   const a = document.createElement('a');
@@ -1049,7 +1056,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                   URL.revokeObjectURL(objUrl);
                 } catch (e) {
                   safeLog.error('Erro ao exportar pelo servidor:', e);
-                  alert('Erro ao gerar PDF pelo servidor. Tente novamente.');
+                  const msg = (e as Error)?.message || 'Erro ao gerar PDF pelo servidor. Tente novamente.';
+                  alert(msg);
                 } finally {
                   setIsGenerating(false);
                 }
