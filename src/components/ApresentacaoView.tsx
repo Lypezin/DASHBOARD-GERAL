@@ -1,10 +1,22 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
-// @ts-ignore - jsPDF types não disponíveis
-import jsPDF from 'jspdf';
-// @ts-ignore - html2canvas types não disponíveis
-import html2canvas from 'html2canvas';
+// @ts-ignore - pdfmake types
+import pdfMake from 'pdfmake/build/pdfmake';
+// @ts-ignore - pdfmake fonts
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+import {
+  criarSlideCapa,
+  criarSlideAderenciaGeral,
+  criarSlideAderenciaDiaria,
+  criarSlideTurnos,
+  criarSlideSubPracas,
+  criarSlideDemandaRejeicoes,
+  criarSlideOrigens,
+} from './apresentacao/pdfmakeUtils';
+
+// Configurar fontes do pdfmake
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from './apresentacao/constants';
 import SlideCapa from './apresentacao/slides/SlideCapa';
 import SlideAderenciaGeral from './apresentacao/slides/SlideAderenciaGeral';
@@ -560,386 +572,399 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     });
   }, [slides.length]);
 
+  // Preparar dados dos slides para pdfmake
+  const slidesPDFData = useMemo(() => {
+    if (!semana1 || !semana2) return [];
+
+    const pdfSlides: any[] = [];
+
+    // Slide Capa
+    pdfSlides.push(
+      criarSlideCapa(pracaSelecionada, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2)
+    );
+
+    // Slide Aderência Geral
+    const resumoSemana1 = {
+      numeroSemana: numeroSemana1,
+      aderencia: aderencia1,
+      horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadas1).toString()),
+      horasEntregues: formatarHorasParaHMS(Math.abs(horasEntregues1).toString()),
+    };
+
+    const resumoSemana2 = {
+      numeroSemana: numeroSemana2,
+      aderencia: aderencia2,
+      horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadas2).toString()),
+      horasEntregues: formatarHorasParaHMS(Math.abs(horasEntregues2).toString()),
+    };
+
+    const variacaoResumo = {
+      horasDiferenca: formatarDiferenca(calcularDiferenca(horasEntregues1, horasEntregues2), true),
+      horasPercentual: formatarDiferencaPercentual(calcularDiferencaPercentual(horasEntregues1, horasEntregues2)),
+      positiva: horasEntregues2 >= horasEntregues1,
+    };
+
+    pdfSlides.push(criarSlideAderenciaGeral(resumoSemana1, resumoSemana2, variacaoResumo));
+
+    // Slides Sub-Praças
+    const subPracasSemana1 = semana1.sub_praca || [];
+    const subPracasSemana2 = semana2.sub_praca || [];
+    const subPracasSemana1Map = new Map(
+      subPracasSemana1.map((item) => [(item.sub_praca || '').trim(), item])
+    );
+    const subPracasSemana2Map = new Map(
+      subPracasSemana2.map((item) => [(item.sub_praca || '').trim(), item])
+    );
+
+    const todasSubPracas = Array.from(
+      new Set([...subPracasSemana1Map.keys(), ...subPracasSemana2Map.keys()])
+    )
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    const subPracasComparativo = todasSubPracas.map((nome) => {
+      const itemSemana1 = subPracasSemana1Map.get(nome) || ({} as any);
+      const itemSemana2 = subPracasSemana2Map.get(nome) || ({} as any);
+      const horasPlanejadasBase = parseFloat(
+        itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0'
+      );
+      const horasSem1 = parseFloat(itemSemana1?.horas_entregues || '0');
+      const horasSem2 = parseFloat(itemSemana2?.horas_entregues || '0');
+      const aderenciaSem1 = itemSemana1?.aderencia_percentual || 0;
+      const aderenciaSem2 = itemSemana2?.aderencia_percentual || 0;
+
+      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
+      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
+      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
+
+      return {
+        nome: nome.toUpperCase(),
+        horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()),
+        semana1: {
+          aderencia: aderenciaSem1,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
+        },
+        semana2: {
+          aderencia: aderenciaSem2,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
+        },
+        variacoes: [
+          {
+            label: 'Δ Horas',
+            valor: formatarDiferenca(diffHoras, true),
+            positivo: diffHoras >= 0,
+          },
+          {
+            label: '% Horas',
+            valor: formatarDiferencaPercentual(diffHorasPercent),
+            positivo: diffHorasPercent >= 0,
+          },
+          {
+            label: '% Aderência',
+            valor: formatarDiferencaPercentual(diffAderenciaPercent),
+            positivo: diffAderenciaPercent >= 0,
+          },
+        ],
+      };
+    });
+
+    const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
+    subPracasPaginas.forEach((pagina, indice) => {
+      pdfSlides.push(
+        criarSlideSubPracas(
+          numeroSemana1,
+          numeroSemana2,
+          indice + 1,
+          subPracasPaginas.length,
+          pagina
+        )
+      );
+    });
+
+    // Slide Aderência Diária
+    const diasSemana1Map = new Map((semana1.dia || []).map((item) => [item.dia_da_semana, item]));
+    const diasSemana2Map = new Map((semana2.dia || []).map((item) => [item.dia_da_semana, item]));
+
+    const semana1Dias = diasOrdem.map((dia) => {
+      const info = diasSemana1Map.get(dia) || ({} as any);
+      const horas = parseFloat(info?.horas_entregues || '0');
+      return {
+        nome: dia,
+        sigla: siglaDia(dia),
+        aderencia: info?.aderencia_percentual || 0,
+        horasEntregues: formatarHorasParaHMS(horas.toString()),
+      };
+    });
+
+    const semana2Dias = diasOrdem.map((dia) => {
+      const info1 = diasSemana1Map.get(dia) || ({} as any);
+      const info2 = diasSemana2Map.get(dia) || ({} as any);
+      const horas1 = parseFloat(info1?.horas_entregues || '0');
+      const horas2 = parseFloat(info2?.horas_entregues || '0');
+      const aderencia1Dia = info1?.aderencia_percentual || 0;
+      const aderencia2Dia = info2?.aderencia_percentual || 0;
+      return {
+        nome: dia,
+        sigla: siglaDia(dia),
+        aderencia: aderencia2Dia,
+        horasEntregues: formatarHorasParaHMS(horas2.toString()),
+        diferencaHoras: formatarDiferenca(calcularDiferenca(horas1, horas2), true),
+        diferencaHorasPositiva: horas2 - horas1 >= 0,
+        diferencaPercentualHoras: formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2)),
+        diferencaPercentualHorasPositiva: calcularDiferencaPercentual(horas1, horas2) >= 0,
+        diferencaAderencia: formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0)),
+        diferencaAderenciaPositiva: calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0) >= 0,
+      };
+    });
+
+    pdfSlides.push(criarSlideAderenciaDiaria(numeroSemana1, numeroSemana2, semana1Dias, semana2Dias));
+
+    // Slides Turnos
+    const turnosSemana1 = semana1.turno || [];
+    const turnosSemana2 = semana2.turno || [];
+    const turnosSemana1Map = new Map(
+      turnosSemana1.map((turno) => [(turno.periodo || '').trim(), turno])
+    );
+    const turnosSemana2Map = new Map(
+      turnosSemana2.map((turno) => [(turno.periodo || '').trim(), turno])
+    );
+
+    const todosTurnos = Array.from(
+      new Set([...turnosSemana1Map.keys(), ...turnosSemana2Map.keys()])
+    )
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    const turnosComparativo = todosTurnos.map((nomeTurno) => {
+      const turnoSemana1 = turnosSemana1Map.get(nomeTurno) || ({} as any);
+      const turnoSemana2 = turnosSemana2Map.get(nomeTurno) || ({} as any);
+      const horasSem1 = parseFloat(turnoSemana1?.horas_entregues || '0');
+      const horasSem2 = parseFloat(turnoSemana2?.horas_entregues || '0');
+      const aderenciaSem1 = turnoSemana1?.aderencia_percentual || 0;
+      const aderenciaSem2 = turnoSemana2?.aderencia_percentual || 0;
+
+      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
+      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
+      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
+
+      return {
+        nome: nomeTurno.toUpperCase(),
+        semana1: {
+          aderencia: aderenciaSem1,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
+        },
+        semana2: {
+          aderencia: aderenciaSem2,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
+        },
+        variacoes: [
+          {
+            label: 'Δ Horas',
+            valor: formatarDiferenca(diffHoras, true),
+            positivo: diffHoras >= 0,
+          },
+          {
+            label: '% Horas',
+            valor: formatarDiferencaPercentual(diffHorasPercent),
+            positivo: diffHorasPercent >= 0,
+          },
+          {
+            label: '% Aderência',
+            valor: formatarDiferencaPercentual(diffAderenciaPercent),
+            positivo: diffAderenciaPercent >= 0,
+          },
+        ],
+      };
+    });
+
+    const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
+    turnosPaginas.forEach((pagina, indice) => {
+      pdfSlides.push(
+        criarSlideTurnos(
+          numeroSemana1,
+          numeroSemana2,
+          indice + 1,
+          turnosPaginas.length,
+          pagina
+        )
+      );
+    });
+
+    // Slides Origens
+    const origensSemana1 = semana1.origem || [];
+    const origensSemana2 = semana2.origem || [];
+    const origensSemana1Map = new Map(
+      origensSemana1.map((item) => [(item.origem || '').trim(), item])
+    );
+    const origensSemana2Map = new Map(
+      origensSemana2.map((item) => [(item.origem || '').trim(), item])
+    );
+
+    const todasOrigens = Array.from(
+      new Set([...origensSemana1Map.keys(), ...origensSemana2Map.keys()])
+    )
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    const origensComparativo = todasOrigens.map((origemNome) => {
+      const origemSemana1 = origensSemana1Map.get(origemNome) || ({} as any);
+      const origemSemana2 = origensSemana2Map.get(origemNome) || ({} as any);
+      const horasPlanejadasBase = parseFloat(
+        origemSemana1?.horas_a_entregar || origemSemana2?.horas_a_entregar || '0'
+      );
+      const horasSem1 = parseFloat(origemSemana1?.horas_entregues || '0');
+      const horasSem2 = parseFloat(origemSemana2?.horas_entregues || '0');
+      const aderenciaSem1 = origemSemana1?.aderencia_percentual || 0;
+      const aderenciaSem2 = origemSemana2?.aderencia_percentual || 0;
+
+      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
+      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
+      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
+
+      return {
+        nome: origemNome.toUpperCase(),
+        horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()),
+        semana1: {
+          aderencia: aderenciaSem1,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
+        },
+        semana2: {
+          aderencia: aderenciaSem2,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
+        },
+        variacoes: [
+          {
+            label: 'Δ Horas',
+            valor: formatarDiferenca(diffHoras, true),
+            positivo: diffHoras >= 0,
+          },
+          {
+            label: '% Horas',
+            valor: formatarDiferencaPercentual(diffHorasPercent),
+            positivo: diffHorasPercent >= 0,
+          },
+          {
+            label: '% Aderência',
+            valor: formatarDiferencaPercentual(diffAderenciaPercent),
+            positivo: diffAderenciaPercent >= 0,
+          },
+        ],
+      };
+    });
+
+    const origensPaginas = chunkArray(origensComparativo, ORIGENS_PER_PAGE);
+    origensPaginas.forEach((pagina, indice) => {
+      pdfSlides.push(
+        criarSlideOrigens(
+          numeroSemana1,
+          numeroSemana2,
+          indice + 1,
+          origensPaginas.length,
+          pagina
+        )
+      );
+    });
+
+    // Slide Demanda e Rejeições
+    const totaisSemana1 = semana1.totais || {};
+    const totaisSemana2 = semana2.totais || {};
+
+    const demandaItens = [
+      {
+        label: 'Ofertadas',
+        icone: '📦',
+        valor1: Number(totaisSemana1.corridas_ofertadas || 0),
+        valor2: Number(totaisSemana2.corridas_ofertadas || 0),
+      },
+      {
+        label: 'Aceitas',
+        icone: '🤝',
+        valor1: Number(totaisSemana1.corridas_aceitas || 0),
+        valor2: Number(totaisSemana2.corridas_aceitas || 0),
+      },
+      {
+        label: 'Completadas',
+        icone: '🏁',
+        valor1: Number(totaisSemana1.corridas_completadas || 0),
+        valor2: Number(totaisSemana2.corridas_completadas || 0),
+      },
+      {
+        label: 'Rejeitadas',
+        icone: '⛔',
+        valor1: Number(totaisSemana1.corridas_rejeitadas || 0),
+        valor2: Number(totaisSemana2.corridas_rejeitadas || 0),
+      },
+    ].map((item) => {
+      const diffValor = calcularDiferenca(item.valor1, item.valor2);
+      const diffPercent = calcularDiferencaPercentual(item.valor1 || 0.0001, item.valor2 || 0);
+      return {
+        label: item.label,
+        icone: item.icone,
+        semana1Valor: formatarNumeroInteiro(item.valor1),
+        semana2Valor: formatarNumeroInteiro(item.valor2),
+        variacaoValor: formatarDiferenca(diffValor),
+        variacaoPositiva: diffValor >= 0,
+        variacaoPercentual: formatarDiferencaPercentual(diffPercent),
+        variacaoPercentualPositiva: diffPercent >= 0,
+      };
+    });
+
+    pdfSlides.push(criarSlideDemandaRejeicoes(numeroSemana1, numeroSemana2, demandaItens));
+
+    return pdfSlides;
+  }, [
+    semana1,
+    semana2,
+    numeroSemana1,
+    numeroSemana2,
+    aderencia1,
+    aderencia2,
+    horasEntregues1,
+    horasEntregues2,
+    horasPlanejadas1,
+    horasPlanejadas2,
+    periodoSemana1,
+    periodoSemana2,
+    pracaSelecionada,
+  ]);
+
   const gerarPDF = async () => {
-    if (!contentRef.current) return;
+    if (slidesPDFData.length === 0) {
+      alert('Não há dados suficientes para gerar o PDF.');
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
-      // Aguarda fontes carregarem para evitar glifos estranhos no canvas
-      try {
-        // @ts-ignore
-        if (document?.fonts?.ready) {
-          // @ts-ignore
-          await document.fonts.ready;
+      // Criar conteúdo com quebras de página entre slides
+      const content: any[] = [];
+      slidesPDFData.forEach((slide, index) => {
+        if (index > 0) {
+          content.push({ text: '', pageBreak: 'before' });
         }
-      } catch (_err) {
-        // ignore
-      }
-
-      // Criar PDF em landscape A4 SEM MARGENS para eliminar bordas brancas
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4',
-        compress: true,
+        content.push(slide);
       });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      const elementos = contentRef.current.querySelectorAll('.slide');
+      const docDefinition = {
+        pageSize: {
+          width: 842, // A4 landscape width em pontos
+          height: 595, // A4 landscape height em pontos
+        },
+        pageOrientation: 'landscape' as const,
+        pageMargins: [0, 0, 0, 0],
+        content: content,
+        defaultStyle: {
+          font: 'Roboto',
+        },
+      };
 
-      // Container invisível para renderização (fora da tela)
-      const renderContainer = document.createElement('div');
-      renderContainer.style.cssText = `
-        position: absolute;
-        left: -99999px;
-        top: -99999px;
-        width: ${SLIDE_WIDTH}px;
-        height: ${SLIDE_HEIGHT}px;
-        margin: 0;
-        padding: 0;
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-        box-sizing: border-box;
-        overflow: visible;
-        pointer-events: none;
-      `;
-      document.body.appendChild(renderContainer);
-
-      for (let i = 0; i < elementos.length; i++) {
-        const slide = elementos[i] as HTMLElement;
-
-        // Clonar o slide profundamente
-        const clone = slide.cloneNode(true) as HTMLElement;
-        
-        // Remover classes que podem interferir
-        clone.className = clone.className.replace(/opacity-\d+|hidden|invisible/g, '').trim();
-        
-        // Aplicar estilos críticos para renderização perfeita
-        clone.style.cssText = `
-          position: relative !important;
-          width: ${SLIDE_WIDTH}px !important;
-          height: ${SLIDE_HEIGHT}px !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          opacity: 1 !important;
-          visibility: visible !important;
-          display: flex !important;
-          flex-direction: column !important;
-          transform: none !important;
-          transform-origin: top left !important;
-          overflow: visible !important;
-          box-sizing: border-box !important;
-          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
-          color: #ffffff !important;
-          font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
-          -webkit-font-smoothing: antialiased !important;
-          -moz-osx-font-smoothing: grayscale !important;
-          contain: none !important;
-        `;
-
-        // Otimização ULTRA DEFINITIVA de elementos para PDF perfeito
-        const processElement = (el: any) => {
-          if (!el.style || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
-          
-          // 1. VISIBILIDADE FORÇADA
-          el.style.setProperty('opacity', '1', 'important');
-          el.style.setProperty('visibility', 'visible', 'important');
-          el.style.setProperty('display', el.style.display === 'none' ? 'flex' : el.style.display || 'flex', 'important');
-          
-          // 2. REMOVER TRANSFORMS PROBLEMÁTICOS
-          if (el.style.transform && (el.style.transform.includes('scale') || el.style.transform.includes('rotate'))) {
-            // Manter apenas translate, remover scale e rotate
-            const translateMatch = el.style.transform.match(/translate\([^)]*\)/);
-            if (translateMatch) {
-              el.style.setProperty('transform', translateMatch[0], 'important');
-            } else {
-              el.style.setProperty('transform', 'none', 'important');
-            }
-          }
-          
-          // 3. OVERFLOW SEMPRE VISÍVEL (crítico para gráficos)
-          el.style.setProperty('overflow', 'visible', 'important');
-          el.style.setProperty('text-overflow', 'clip', 'important');
-          // permitir que textos longos quebrem corretamente
-          el.style.setProperty('white-space', 'normal', 'important');
-          el.style.setProperty('word-break', 'break-word', 'important');
-          el.style.setProperty('contain', 'none', 'important');
-          
-          // 4. FONTE E RENDERIZAÇÃO OTIMIZADA
-          if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'DIV' || el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'H3') {
-            el.style.setProperty('font-family', 'Inter, Arial, sans-serif', 'important');
-            el.style.setProperty('-webkit-font-smoothing', 'antialiased', 'important');
-            el.style.setProperty('-moz-osx-font-smoothing', 'grayscale', 'important');
-            el.style.setProperty('color', '#ffffff', 'important');
-            el.style.setProperty('text-rendering', 'optimizeLegibility', 'important');
-            el.style.setProperty('word-break', 'keep-all', 'important');
-            el.style.setProperty('hyphens', 'none', 'important');
-          }
-          
-          // 5. SVG OTIMIZAÇÃO
-          if (el.tagName === 'SVG' || el.tagName === 'CIRCLE' || el.tagName === 'PATH') {
-            el.style.setProperty('opacity', '1', 'important');
-            el.style.setProperty('visibility', 'visible', 'important');
-            el.style.setProperty('overflow', 'visible', 'important');
-          }
-          
-          // 6. CONTAINERS DE GRÁFICOS - ULTRA CRÍTICO
-          if (el.classList && (el.classList.contains('relative') || el.classList.contains('absolute'))) {
-            el.style.setProperty('overflow', 'visible', 'important');
-            el.style.setProperty('position', el.classList.contains('absolute') ? 'absolute' : 'relative', 'important');
-            
-            // Se tem dimensões definidas, garantir que não corte
-            if (el.style.width && el.style.height) {
-              el.style.setProperty('min-width', el.style.width, 'important');
-              el.style.setProperty('min-height', el.style.height, 'important');
-            }
-          }
-          
-          // 7. CONTAINERS DE TEXTO EM CÍRCULOS - ESPECIAL
-          if (el.classList && el.classList.contains('absolute') && 
-              el.querySelector && el.querySelector('span')) {
-            el.style.setProperty('display', 'flex', 'important');
-            el.style.setProperty('align-items', 'center', 'important');
-            el.style.setProperty('justify-content', 'center', 'important');
-            el.style.setProperty('overflow', 'visible', 'important');
-          }
-        };
-
-        // Processar elemento raiz
-        processElement(clone);
-        
-        // Processar todos os filhos
-        const allElements = clone.querySelectorAll('*');
-        allElements.forEach(processElement);
-
-        // Adicionar ao container invisível
-        renderContainer.appendChild(clone);
-
-        // Aguardar renderização e fontes
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Configuração ULTRA PRECISA do html2canvas
-        const canvasOptions = {
-          scale: 2, // Escala otimizada para precisão
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#2563eb',
-          width: SLIDE_WIDTH,
-          height: SLIDE_HEIGHT,
-          windowWidth: SLIDE_WIDTH,
-          windowHeight: SLIDE_HEIGHT,
-          logging: false,
-          imageTimeout: 0,
-          removeContainer: false,
-          foreignObjectRendering: false,
-          scrollX: 0,
-          scrollY: 0,
-          x: 0,
-          y: 0,
-          // Configurações extras para precisão
-          pixelRatio: 1, // Força ratio 1:1
-          dpi: 96, // DPI padrão
-          letterRendering: true, // Renderização precisa de texto
-          onclone: (clonedDoc: Document, clonedElement: HTMLElement) => {
-            // Garantir que o elemento clonado também tenha overflow visible
-            if (clonedElement) {
-              clonedElement.style.setProperty('overflow', 'visible', 'important');
-              clonedElement.style.setProperty('contain', 'none', 'important');
-            }
-            // Injetar CSS ULTRA OTIMIZADO para renderização perfeita
-            const style = clonedDoc.createElement('style');
-            style.textContent = `
-              * {
-                font-family: Inter, Arial, sans-serif !important;
-                -webkit-font-smoothing: antialiased !important;
-                -moz-osx-font-smoothing: grayscale !important;
-                text-rendering: optimizeLegibility !important;
-                box-sizing: border-box !important;
-                overflow: visible !important;
-                text-overflow: clip !important;
-                word-break: break-word !important;
-                hyphens: auto !important;
-                white-space: normal !important;
-                contain: none !important;
-              }
-              html, body {
-                margin: 0 !important;
-                padding: 0 !important;
-                width: ${SLIDE_WIDTH}px !important;
-                height: ${SLIDE_HEIGHT}px !important;
-                overflow: visible !important;
-                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
-                contain: none !important;
-              }
-              body > *, div, span, p, h1, h2, h3, svg, circle, path {
-                opacity: 1 !important;
-                visibility: visible !important;
-                overflow: visible !important;
-                text-overflow: clip !important;
-                contain: none !important;
-              }
-              .relative, .absolute {
-                overflow: visible !important;
-                position: relative !important;
-                contain: none !important;
-              }
-              .absolute {
-                position: absolute !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                contain: none !important;
-              }
-              span {
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                text-align: center !important;
-                color: #ffffff !important;
-                font-weight: 900 !important;
-                contain: none !important;
-              }
-            `;
-            clonedDoc.head.appendChild(style);
-            
-            // Aplicar otimizações ULTRA ESPECÍFICAS em TODOS os elementos
-            const allElements = clonedDoc.querySelectorAll('*');
-            allElements.forEach((el: any) => {
-              if (el.style) {
-                el.style.setProperty('opacity', '1', 'important');
-                el.style.setProperty('visibility', 'visible', 'important');
-                el.style.setProperty('overflow', 'visible', 'important');
-                el.style.setProperty('text-overflow', 'clip', 'important');
-                el.style.setProperty('contain', 'none', 'important');
-                
-                // Textos sempre visíveis e centralizados
-                if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'DIV') {
-                  el.style.setProperty('color', '#ffffff', 'important');
-                  el.style.setProperty('font-family', 'Inter, Arial, sans-serif', 'important');
-                  el.style.setProperty('display', 'flex', 'important');
-                  el.style.setProperty('align-items', 'center', 'important');
-                  el.style.setProperty('justify-content', 'center', 'important');
-                  el.style.setProperty('text-align', 'center', 'important');
-                  el.style.setProperty('word-break', 'keep-all', 'important');
-                }
-                
-                // Containers absolutos sempre centralizados
-                if (el.classList && el.classList.contains('absolute')) {
-                  el.style.setProperty('display', 'flex', 'important');
-                  el.style.setProperty('align-items', 'center', 'important');
-                  el.style.setProperty('justify-content', 'center', 'important');
-                }
-              }
-            });
-          },
-          ignoreElements: (element: Element) => {
-            return element.tagName === 'IFRAME' || element.tagName === 'OBJECT' || element.tagName === 'SCRIPT';
-          },
-        };
-
-        // Captura com html2canvas OTIMIZADO
-        let canvas: HTMLCanvasElement | null = null;
-        try {
-          canvas = await html2canvas(clone, canvasOptions);
-        } catch (err) {
-          safeLog.error('Erro na captura html2canvas:', err);
-          // Tentar com configuração mais simples
-          try {
-            canvas = await html2canvas(clone, {
-              scale: 2,
-              useCORS: true,
-              allowTaint: true,
-              backgroundColor: '#2563eb',
-              width: SLIDE_WIDTH,
-              height: SLIDE_HEIGHT,
-              logging: false,
-            });
-          } catch (err2) {
-            safeLog.error('Fallback html2canvas falhou:', err2);
-            continue; // Pular este slide
-          }
-        }
-
-        // Limpar container
-        try {
-          renderContainer.removeChild(clone);
-        } catch (_e) {}
-
-        if (!canvas) {
-          continue; // Pular slide se falhou
-        }
-
-        // Canvas final com dimensões EXATAS para precisão máxima
-        const finalCanvas = document.createElement('canvas');
-        const scale = 2; // Mesma escala do html2canvas
-        finalCanvas.width = SLIDE_WIDTH * scale;
-        finalCanvas.height = SLIDE_HEIGHT * scale;
-        const ctx = finalCanvas.getContext('2d');
-        
-        if (ctx) {
-          // Configurações de renderização de alta qualidade
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          
-          // Background gradiente IDÊNTICO ao preview
-          const gradient = ctx.createLinearGradient(0, 0, finalCanvas.width, finalCanvas.height);
-          gradient.addColorStop(0, '#2563eb');
-          gradient.addColorStop(1, '#1e40af');
-          ctx.fillStyle = gradient;
-          ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-          
-          // Desenhar canvas capturado com precisão máxima
-          ctx.drawImage(canvas, 0, 0, finalCanvas.width, finalCanvas.height);
-        }
-
-        // PNG de alta qualidade
-        const imgData = finalCanvas.toDataURL('image/png', 1.0);
-
-        if (i > 0) {
-          pdf.addPage();
-        }
-
-        // Adicionar imagem OCUPANDO TODA A PÁGINA (sem margens para eliminar bordas brancas)
-        pdf.addImage(
-          imgData,
-          'PNG',
-          0, // X = 0 (sem margem)
-          0, // Y = 0 (sem margem)
-          pdfWidth, // Largura total da página
-          pdfHeight, // Altura total da página
-          undefined,
-          'FAST'
-        );
-      }
-
-      // Limpar container invisível
-      try {
-        document.body.removeChild(renderContainer);
-      } catch (_e) {}
-
-      // Download FORÇADO (não abre em nova aba)
-      const pdfBlob = pdf.output('blob');
-      const url = URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
+      pdfMake.createPdf(docDefinition).download(
+        `Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`
+      );
     } catch (error) {
       safeLog.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF. Tente novamente.');
-      
-      // Limpar container em caso de erro
-      try {
-        const container = document.body.querySelector('[style*="-99999px"]');
-        if (container) document.body.removeChild(container);
-      } catch (_e) {}
     } finally {
       setIsGenerating(false);
     }
