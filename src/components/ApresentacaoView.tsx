@@ -27,7 +27,7 @@ import { formatSignedInteger, formatSignedPercent } from './apresentacao/utils';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 const SUB_PRACAS_PER_PAGE = 4;
-const TURNOS_PER_PAGE = 3;
+const TURNOS_PER_PAGE = 2;
 const ORIGENS_PER_PAGE = 4;
 const diasOrdem = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 

@@ -518,20 +518,20 @@ export const criarSlideTurnos = (
   }>
 ): any => {
   const criarCardTurno = (turno: typeof itens[0]) => {
-    // Gráficos para turnos - tamanho otimizado
-    const grafico1 = criarGraficoCircular(turno.semana1.aderencia, 140, 12);
-    const grafico2 = criarGraficoCircular(turno.semana2.aderencia, 140, 12);
+    // Gráficos para turnos - otimizados para 2 por página
+    const grafico1 = criarGraficoCircular(turno.semana1.aderencia, 160, 14);
+    const grafico2 = criarGraficoCircular(turno.semana2.aderencia, 160, 14);
 
     return {
       width: '*',
       stack: [
         {
           text: turno.nome,
-          fontSize: 22,
+          fontSize: 26,
           bold: true,
           color: COR_TEXTO,
           alignment: 'center',
-          margin: [0, 0, 0, 15],
+          margin: [0, 0, 0, 18],
         },
       {
         columns: [
@@ -539,38 +539,39 @@ export const criarSlideTurnos = (
             width: '*',
             stack: [
               {
-                text: `SEM ${numeroSemana1}`,
-                fontSize: 15,
+                text: `SEMANA ${numeroSemana1}`,
+                fontSize: 18,
+                bold: true,
                 color: '#e5e7eb',
                 alignment: 'center',
-                margin: [0, 0, 0, 8],
+                margin: [0, 0, 0, 10],
               },
               {
                 svg: grafico1,
-                width: 140,
+                width: 160,
                 alignment: 'center',
-                margin: [0, 0, 0, 8],
+                margin: [0, 0, 0, 12],
               },
               {
                 stack: [
                   {
                     text: 'Horas Entregues',
-                    fontSize: 14,
+                    fontSize: 15,
                     color: '#f3f4f6',
                     alignment: 'center',
-                    margin: [0, 0, 0, 3],
+                    margin: [0, 0, 0, 4],
                   },
                   {
                     text: turno.semana1.horasEntregues,
-                    fontSize: 16,
+                    fontSize: 20,
                     bold: true,
                     color: COR_VERDE,
                     alignment: 'center',
                   },
                 ],
                 fillColor: [255, 255, 255, 0.10],
-                borderRadius: 8,
-                padding: [8, 6],
+                borderRadius: 10,
+                padding: [12, 10],
               },
             ],
           },
@@ -578,44 +579,45 @@ export const criarSlideTurnos = (
             width: '*',
             stack: [
               {
-                text: `SEM ${numeroSemana2}`,
-                fontSize: 15,
+                text: `SEMANA ${numeroSemana2}`,
+                fontSize: 18,
+                bold: true,
                 color: '#e5e7eb',
                 alignment: 'center',
-                margin: [0, 0, 0, 8],
+                margin: [0, 0, 0, 10],
               },
               {
                 svg: grafico2,
-                width: 140,
+                width: 160,
                 alignment: 'center',
-                margin: [0, 0, 0, 8],
+                margin: [0, 0, 0, 12],
               },
               {
                 stack: [
                   {
                     text: 'Horas Entregues',
-                    fontSize: 14,
+                    fontSize: 15,
                     color: '#f3f4f6',
                     alignment: 'center',
-                    margin: [0, 0, 0, 3],
+                    margin: [0, 0, 0, 4],
                   },
                   {
                     text: turno.semana2.horasEntregues,
-                    fontSize: 16,
+                    fontSize: 20,
                     bold: true,
                     color: COR_VERDE,
                     alignment: 'center',
                   },
                 ],
                 fillColor: [255, 255, 255, 0.10],
-                borderRadius: 8,
-                padding: [8, 6],
+                borderRadius: 10,
+                padding: [12, 10],
               },
             ],
           },
         ],
-        columnGap: 12,
-        margin: [0, 0, 0, 10],
+        columnGap: 15,
+        margin: [0, 0, 0, 15],
       },
         {
           columns: turno.variacoes.map((variacao) => ({
@@ -623,31 +625,31 @@ export const criarSlideTurnos = (
             stack: [
               {
                 text: variacao.label,
-                fontSize: 12,
+                fontSize: 14,
                 color: '#d1d5db',
                 alignment: 'center',
-                margin: [0, 0, 0, 2],
+                margin: [0, 0, 0, 3],
               },
               {
                 text: variacao.valor,
-                fontSize: 14,
+                fontSize: 17,
                 bold: true,
                 color: variacao.positivo ? COR_VERDE : COR_VERMELHO,
                 alignment: 'center',
               },
             ],
             fillColor: [255, 255, 255, 0.10],
-            borderRadius: 6,
-            padding: [8, 6],
-            margin: [2, 0, 2, 0],
+            borderRadius: 8,
+            padding: [10, 8],
+            margin: [3, 0, 3, 0],
           })),
-          columnGap: 8,
+          columnGap: 10,
         },
       ],
       fillColor: [255, 255, 255, 0.15],
       borderRadius: 16,
-      padding: [18, 15],
-      margin: [4, 0, 4, 0],
+      padding: [20, 18],
+      margin: [8, 0, 8, 0],
     };
   };
 
@@ -655,34 +657,34 @@ export const criarSlideTurnos = (
     stack: [
       {
         text: 'ADERÊNCIA POR TURNO',
-        fontSize: 42,
+        fontSize: 46,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 18, 0, 6],
+        margin: [0, 20, 0, 8],
       },
       {
         text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
-        fontSize: 24,
+        fontSize: 26,
         color: '#e5e7eb',
         alignment: 'center',
-        margin: [0, 0, 0, 6],
+        margin: [0, 0, 0, 8],
       },
       ...(totalPaginas > 1
         ? [
             {
               text: `Página ${paginaAtual} de ${totalPaginas}`,
-              fontSize: 16,
+              fontSize: 18,
               color: '#e5e7eb',
               alignment: 'center',
-              margin: [0, 0, 0, 15],
+              margin: [0, 0, 0, 20],
             },
           ]
-        : [{ text: '', margin: [0, 0, 0, 15] }]),
+        : [{ text: '', margin: [0, 0, 0, 20] }]),
       {
         columns: itens.map((turno) => criarCardTurno(turno)),
-        columnGap: 12,
-        margin: [15, 0, 15, 0],
+        columnGap: 20,
+        margin: [20, 0, 20, 0],
       },
     ],
   };
