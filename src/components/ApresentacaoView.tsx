@@ -986,11 +986,38 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       const pdfDoc = pdfMake.createPdf(docDefinition);
       console.log('💾 PDF criado, iniciando download...');
       
-      pdfDoc.download(
-        `Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`
-      );
+      const fileName = `Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`;
       
-      console.log('✅ Download iniciado!');
+      // Usar getBlob para garantir que o download funcione
+      pdfDoc.getBlob((blob: Blob) => {
+        console.log('📦 Blob criado:', blob.size, 'bytes');
+        
+        if (!blob || blob.size === 0) {
+          throw new Error('PDF gerado está vazio');
+        }
+        
+        // Criar URL do blob
+        const url = URL.createObjectURL(blob);
+        console.log('🔗 URL criada:', url);
+        
+        // Criar link de download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.style.display = 'none';
+        
+        // Adicionar ao DOM, clicar e remover
+        document.body.appendChild(link);
+        console.log('🖱️ Clicando no link de download...');
+        link.click();
+        
+        // Limpar após um pequeno delay
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          console.log('✅ Download iniciado e recursos limpos!');
+        }, 100);
+      });
     } catch (error) {
       console.error('❌ Erro ao gerar PDF:', error);
       safeLog.error('Erro ao gerar PDF:', error);
