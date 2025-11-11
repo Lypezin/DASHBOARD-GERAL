@@ -204,18 +204,40 @@ function ComparacaoView({
     return variacao.toFixed(1);
   };
 
-  const VariacaoBadge = ({ variacao }: { variacao: string }) => {
-    const valor = parseFloat(variacao);
-    const isPositive = valor >= 0;
+  const VariacaoBadge = ({
+    variacao,
+    className = '',
+    invertColors = false,
+  }: {
+    variacao: number;
+    className?: string;
+    invertColors?: boolean;
+  }) => {
+    if (!Number.isFinite(variacao)) {
+      return null;
+    }
+
+    const isPositive = variacao > 0;
+    const isNegative = variacao < 0;
+
+    const positiveClasses = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400';
+    const negativeClasses = 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400';
+    const neutralClasses = 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+
+    const toneClasses = isPositive
+      ? invertColors ? negativeClasses : positiveClasses
+      : isNegative
+      ? invertColors ? positiveClasses : negativeClasses
+      : neutralClasses;
+
+    const symbol = isPositive ? '+' : isNegative ? '−' : '±';
+    const formatted = Math.abs(variacao).toFixed(1);
+
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold ${
-          isPositive
-            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-            : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-        }`}
+        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${toneClasses} ${className}`.trim()}
       >
-        {isPositive ? '📈' : '📉'} {Math.abs(valor).toFixed(1)}%
+        {`${symbol} ${formatted}%`}
       </span>
     );
   };
@@ -449,13 +471,7 @@ function ComparacaoView({
                           </td>
                           {idx > 0 && variacao !== null && (
                             <td className="px-4 py-4 text-center bg-blue-50/30 dark:bg-blue-950/20">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                variacao >= 0 
-                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                  : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                              }`}>
-                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                              </span>
+                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
                             </td>
                           )}
                         </React.Fragment>
@@ -486,13 +502,7 @@ function ComparacaoView({
                           </td>
                           {idx > 0 && variacao !== null && (
                             <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                variacao >= 0 
-                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                  : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                              }`}>
-                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                              </span>
+                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
                             </td>
                           )}
                         </React.Fragment>
@@ -523,13 +533,7 @@ function ComparacaoView({
                           </td>
                           {idx > 0 && variacao !== null && (
                             <td className="px-4 py-4 text-center bg-emerald-50/30 dark:bg-emerald-950/20">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                variacao >= 0 
-                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                  : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                              }`}>
-                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                              </span>
+                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
                             </td>
                           )}
                         </React.Fragment>
@@ -560,13 +564,7 @@ function ComparacaoView({
                           </td>
                           {idx > 0 && variacao !== null && (
                             <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                variacao >= 0 
-                                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                                  : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                              }`}>
-                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                              </span>
+                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" invertColors />
                             </td>
                           )}
                         </React.Fragment>
@@ -597,13 +595,7 @@ function ComparacaoView({
                           </td>
                           {idx > 0 && variacao !== null && (
                             <td className="px-4 py-4 text-center bg-purple-50/30 dark:bg-purple-950/20">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                variacao >= 0 
-                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                  : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                              }`}>
-                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                              </span>
+                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
                             </td>
                           )}
                         </React.Fragment>
@@ -832,13 +824,39 @@ function ComparacaoView({
               <table className="w-full">
                 <thead className="bg-blue-50 dark:bg-blue-950/30">
                   <tr className="border-b border-blue-200 dark:border-blue-700">
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">Dia</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">Métrica</th>
+                    <th rowSpan={2} className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100 align-middle">
+                      Dia
+                    </th>
+                    <th rowSpan={2} className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100 align-middle">
+                      Métrica
+                    </th>
                     {semanasSelecionadas.map((semana, idx) => (
-                      <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">
-                        Semana {semana} {idx > 0 && '(Δ%)'}
+                      <th
+                        key={`header-${semana}`}
+                        colSpan={idx === 0 ? 1 : 2}
+                        className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100"
+                      >
+                        Semana {semana}
                       </th>
                     ))}
+                  </tr>
+                  <tr className="border-b border-blue-200/60 dark:border-blue-800/60">
+                    {semanasSelecionadas.map((semana, idx) =>
+                      idx === 0 ? (
+                        <th key={`sub-${semana}-valor`} className="px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-200">
+                          Valor
+                        </th>
+                      ) : (
+                        <React.Fragment key={`sub-${semana}`}>
+                          <th className="px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-200">
+                            Valor
+                          </th>
+                          <th className="px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-200">
+                            Δ%
+                          </th>
+                        </React.Fragment>
+                      )
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-blue-100 dark:divide-blue-900">
@@ -878,13 +896,7 @@ function ComparacaoView({
                               </td>
                               {idx > 0 && variacao !== null && (
                                 <td key={`${idx}-var`} className="px-4 py-2 text-center text-xs font-bold">
-                                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${
-                                    variacao >= 0 
-                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                      : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                                  }`}>
-                                    {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                                  </span>
+                                  <VariacaoBadge variacao={variacao} className="px-2 py-0.5" />
                                 </td>
                               )}
                             </>
@@ -930,12 +942,36 @@ function ComparacaoView({
               <table className="w-full">
                 <thead className="bg-slate-50 dark:bg-slate-800/50">
                   <tr className="border-b border-slate-200 dark:border-slate-700">
-                    <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Dia</th>
+                    <th rowSpan={2} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 align-middle">
+                      Dia
+                    </th>
                     {semanasSelecionadas.map((semana, idx) => (
-                      <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        Semana {semana} {idx > 0 && '(Δ%)'}
+                      <th
+                        key={`aderencia-${semana}`}
+                        colSpan={idx === 0 ? 1 : 2}
+                        className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+                      >
+                        Semana {semana}
                       </th>
                     ))}
+                  </tr>
+                  <tr className="border-b border-slate-200/60 dark:border-slate-700/60">
+                    {semanasSelecionadas.map((semana, idx) =>
+                      idx === 0 ? (
+                        <th key={`aderencia-${semana}-valor`} className="px-6 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-200">
+                          Valor
+                        </th>
+                      ) : (
+                        <React.Fragment key={`aderencia-${semana}`}>
+                          <th className="px-6 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-200">
+                            Valor
+                          </th>
+                          <th className="px-6 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-200">
+                            Δ%
+                          </th>
+                        </React.Fragment>
+                      )
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -964,13 +1000,7 @@ function ComparacaoView({
                             </td>
                             {idx > 0 && variacao !== null && (
                               <td key={`${idx}-var`} className="px-6 py-4 text-center">
-                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
-                                  variacao >= 0 
-                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                    : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                                }`}>
-                                  {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                                </span>
+                                <VariacaoBadge variacao={variacao} className="px-2 py-0.5 text-xs" />
                               </td>
                             )}
                           </>
@@ -1110,13 +1140,7 @@ function ComparacaoView({
                                 </td>
                                 {idx > 0 && variacao !== null && (
                                   <td className="px-4 py-4 text-center bg-blue-50/30 dark:bg-blue-950/20">
-                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                      variacao >= 0 
-                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                                    }`}>
-                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                                    </span>
+                                    <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
                                   </td>
                                 )}
                               </React.Fragment>
@@ -1148,17 +1172,11 @@ function ComparacaoView({
                                 <td className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
                                   {ofertadas.toLocaleString('pt-BR')}
                                 </td>
-                                {idx > 0 && variacao !== null && (
-                                  <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
-                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                      variacao >= 0 
-                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                                    }`}>
-                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                                    </span>
-                                  </td>
-                                )}
+                          {idx > 0 && variacao !== null && (
+                            <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
+                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
+                            </td>
+                          )}
                               </React.Fragment>
                             );
                           })}
@@ -1190,13 +1208,7 @@ function ComparacaoView({
                                 </td>
                                 {idx > 0 && variacao !== null && (
                                   <td className="px-4 py-4 text-center bg-emerald-50/30 dark:bg-emerald-950/20">
-                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                      variacao >= 0 
-                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                                    }`}>
-                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                                    </span>
+                                    <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
                                   </td>
                                 )}
                               </React.Fragment>
@@ -1230,13 +1242,7 @@ function ComparacaoView({
                                 </td>
                                 {idx > 0 && variacao !== null && (
                                   <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
-                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                      variacao >= 0 
-                                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                    }`}>
-                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                                    </span>
+                                    <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" invertColors />
                                   </td>
                                 )}
                               </React.Fragment>
@@ -1270,13 +1276,7 @@ function ComparacaoView({
                                 </td>
                                 {idx > 0 && variacao !== null && (
                                   <td className="px-4 py-4 text-center bg-purple-50/30 dark:bg-purple-950/20">
-                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${
-                                      variacao >= 0 
-                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
-                                    }`}>
-                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
-                                    </span>
+                                    <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
                                   </td>
                                 )}
                               </React.Fragment>
