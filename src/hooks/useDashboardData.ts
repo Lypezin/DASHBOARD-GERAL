@@ -6,6 +6,8 @@ import {
   ValoresEntregador, EvolucaoMensal, EvolucaoSemanal, UtrSemanal
 } from '@/types';
 import { buildFilterPayload, safeNumber } from '@/utils/helpers';
+import { useDashboardDimensions } from './useDashboardDimensions'; // Importa o novo hook
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -16,8 +18,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const [aderenciaTurno, setAderenciaTurno] = useState<AderenciaTurno[]>([]);
   const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>([]);
   const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>([]);
-  const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
-  const [semanasDisponiveis, setSemanasDisponiveis] = useState<string[]>([]);
+  
+  // Usa o novo hook para dimensões iniciais
+  const { anosDisponiveis, semanasDisponiveis } = useDashboardDimensions();
+
   const [pracas, setPracas] = useState<FilterOption[]>([]);
   const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
   const [origens, setOrigens] = useState<FilterOption[]>([]);
@@ -47,38 +51,20 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const filterPayload = useMemo(() => {
     const payload = buildFilterPayload(initialFilters, currentUser);
     if (IS_DEV) {
-      console.log('FilterPayload gerado:', payload);
-      console.log('CurrentUser:', currentUser);
-      console.log('InitialFilters:', initialFilters);
+      safeLog.info('FilterPayload gerado:', payload);
+      safeLog.info('CurrentUser:', currentUser);
+      safeLog.info('InitialFilters:', initialFilters);
       
       // Verificar se o usuário tem restrições
       if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-        console.log('Usuário restrito detectado. Praças permitidas:', currentUser.assigned_pracas);
-        console.log('Praça no payload:', payload.p_praca);
+        safeLog.info('Usuário restrito detectado. Praças permitidas:', currentUser.assigned_pracas);
+        safeLog.info('Praça no payload:', payload.p_praca);
       }
     }
     return payload;
   }, [initialFilters, currentUser]);
 
-  // Buscar anos e semanas disponíveis
-  useEffect(() => {
-    const fetchInitialDimensions = async () => {
-      try {
-        const { data: anosData, error: anosError } = await supabase.rpc('listar_anos_disponiveis');
-        if (anosError) throw anosError;
-        setAnosDisponiveis(anosData || []);
-
-        const { data: semanasData, error: semanasError } = await supabase.rpc('listar_todas_semanas');
-        if (semanasError) throw semanasError;
-        setSemanasDisponiveis(Array.isArray(semanasData) ? semanasData.map(s => String(s)) : []);
-      } catch (err) {
-        if (IS_DEV) console.error('Erro ao buscar dimensões iniciais:', err);
-        setAnosDisponiveis([new Date().getFullYear()]);
-        setSemanasDisponiveis([]);
-      }
-    };
-    fetchInitialDimensions();
-  }, []);
+  // REMOVIDO: Bloco `useEffect` para `fetchInitialDimensions` foi movido para o novo hook
 
   // Buscar dados principais do Dashboard
   useEffect(() => {
@@ -107,7 +93,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       try {
         const { data, error } = await supabase.rpc('dashboard_resumo', filterPayload as any);
         if (error) {
-          if (IS_DEV) console.error('Erro ao carregar dashboard_resumo:', error);
+          if (IS_DEV) safeLog.error('Erro ao carregar dashboard_resumo:', error);
           throw error;
         }
         
@@ -143,7 +129,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
           }
         }
       } catch (err: any) {
-        if (IS_DEV) console.error('Erro ao carregar dashboard_resumo:', err);
+        if (IS_DEV) safeLog.error('Erro ao carregar dashboard_resumo:', err);
         const errorMessage = err?.message || err?.code || 'Não foi possível carregar os dados do dashboard.';
         setError(errorMessage);
         // Manter dados anteriores em cache se houver erro
@@ -207,7 +193,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             setUtrData(data);
             tabDataCacheRef.current.set(cacheKey, { data, timestamp: Date.now() });
           } catch (err: any) {
-            if (IS_DEV) console.error('Erro ao carregar UTR:', err);
+            if (IS_DEV) safeLog.error('Erro ao carregar UTR:', err);
             setUtrData(null);
           } finally {
             setLoadingUtr(false);
@@ -218,8 +204,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             try {
               // Tentar listar_entregadores primeiro, se falhar usar pesquisar_entregadores
               if (IS_DEV) {
-                console.log('Chamando listar_entregadores com filterPayload:', filterPayload);
-                console.log('CurrentUser:', currentUser);
+                safeLog.info('Chamando listar_entregadores com filterPayload:', filterPayload);
+                safeLog.info('CurrentUser:', currentUser);
               }
               
               // Função existe e aceita: p_ano, p_semana, p_praca, p_sub_praca, p_origem (sem p_turno)
@@ -228,15 +214,15 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               const { data, error } = await supabase.rpc('listar_entregadores', listarEntregadoresPayload);
               
               if (error) {
-                if (IS_DEV) console.error('Erro ao carregar entregadores:', error);
+                safeLog.error('Erro ao carregar entregadores:', error);
                 throw error;
               }
               
               if (IS_DEV) {
-                console.log('Dados retornados de listar_entregadores:', data);
-                console.log('Tipo dos dados:', typeof data);
+                safeLog.info('Dados retornados de listar_entregadores:', data);
+                safeLog.info('Tipo dos dados:', typeof data);
                 if (data && typeof data === 'object') {
-                  console.log('Propriedades do objeto:', Object.keys(data));
+                  safeLog.info('Propriedades do objeto:', Object.keys(data));
                 }
               }
               
@@ -267,7 +253,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                       entregadores = parsed.entregadores;
                     }
                   } catch (e) {
-                    if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
+                    safeLog.warn('Não foi possível fazer parse do JSON:', e);
                   }
                 }
               }
@@ -275,13 +261,13 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               const entregadoresData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
               
               if (IS_DEV) {
-                console.log('Entregadores processados:', entregadoresData);
+                safeLog.info('Entregadores processados:', entregadoresData);
               }
               
               setEntregadoresData(entregadoresData);
               tabDataCacheRef.current.set(cacheKey, { data: entregadoresData, timestamp: Date.now() });
             } catch (err: any) {
-              if (IS_DEV) console.error('Erro ao carregar entregadores:', err);
+              safeLog.error('Erro ao carregar entregadores:', err);
               setEntregadoresData({ entregadores: [], total: 0 });
             } finally {
               setLoadingEntregadores(false);
@@ -292,8 +278,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             try {
               // Tentar listar_valores_entregadores primeiro, se falhar usar pesquisar_valores_entregadores
               if (IS_DEV) {
-                console.log('Chamando listar_valores_entregadores com filterPayload:', filterPayload);
-                console.log('CurrentUser:', currentUser);
+                safeLog.info('Chamando listar_valores_entregadores com filterPayload:', filterPayload);
+                safeLog.info('CurrentUser:', currentUser);
               }
 
               // Função existe e aceita: p_ano, p_semana, p_praca, p_sub_praca, p_origem (sem p_turno)
@@ -303,15 +289,15 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               const { data, error } = await supabase.rpc('listar_valores_entregadores', listarValoresPayload);
 
               if (error) {
-                if (IS_DEV) console.error('Erro ao carregar valores:', error);
+                safeLog.error('Erro ao carregar valores:', error);
                 throw error;
               }
 
               if (IS_DEV) {
-                console.log('Dados retornados de listar_valores_entregadores:', data);
-                console.log('Tipo dos dados valores:', typeof data);
+                safeLog.info('Dados retornados de listar_valores_entregadores:', data);
+                safeLog.info('Tipo dos dados valores:', typeof data);
                 if (data && typeof data === 'object') {
-                  console.log('Propriedades do objeto valores:', Object.keys(data));
+                  safeLog.info('Propriedades do objeto valores:', Object.keys(data));
                 }
               }
 
@@ -363,14 +349,14 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                       }
                     }
                   } catch (e) {
-                    if (IS_DEV) console.warn('Não foi possível fazer parse do JSON:', e);
+                    safeLog.warn('Não foi possível fazer parse do JSON:', e);
                   }
                 }
               }
 
               // Se ainda não temos dados e usamos a função antiga, aplicar filtro manual
               if (valores.length === 0 && error && (error as any)?.code === '42883' && currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-                if (IS_DEV) console.log('Aplicando filtro manual de praças para valores');
+                if (IS_DEV) safeLog.info('Aplicando filtro manual de praças para valores');
                 // Não temos dados porque a função antiga não filtra por praça
                 // Retornar array vazio para usuários restritos
               }
@@ -384,13 +370,13 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               }
 
               if (IS_DEV) {
-                console.log('Valores processados:', valores.length, valores);
+                safeLog.info('Valores processados:', valores.length, valores);
               }
 
               setValoresData(valores);
               tabDataCacheRef.current.set(cacheKey, { data: valores, timestamp: Date.now() });
             } catch (err: any) {
-              if (IS_DEV) console.error('Erro ao carregar valores:', err);
+              safeLog.error('Erro ao carregar valores:', err);
               setValoresData([]);
             } finally {
               setLoadingValores(false);
@@ -401,8 +387,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             try {
               // Tentar listar_entregadores primeiro, se falhar usar pesquisar_entregadores
               if (IS_DEV) {
-                console.log('Chamando listar_entregadores (prioridade) com filterPayload:', filterPayload);
-                console.log('CurrentUser:', currentUser);
+                safeLog.info('Chamando listar_entregadores (prioridade) com filterPayload:', filterPayload);
+                safeLog.info('CurrentUser:', currentUser);
               }
               
               // listar_entregadores aqui também não aceita p_turno
@@ -420,22 +406,22 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                   (result.error as any)?.message?.includes('does not exist')
                 )
               ) {
-                if (IS_DEV) console.log('listar_entregadores não existe para prioridade, tentando pesquisar_entregadores');
+                if (IS_DEV) safeLog.info('listar_entregadores não existe para prioridade, tentando pesquisar_entregadores');
                 result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
               }
               
               const { data, error } = result;
               
               if (error) {
-                if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', error);
+                safeLog.error('Erro ao carregar prioridade/promo:', error);
                 throw error;
               }
               
               if (IS_DEV) {
-                console.log('Dados retornados de listar_entregadores (prioridade):', data);
-                console.log('Tipo dos dados prioridade:', typeof data);
+                safeLog.info('Dados retornados de listar_entregadores (prioridade):', data);
+                safeLog.info('Tipo dos dados prioridade:', typeof data);
                 if (data && typeof data === 'object') {
-                  console.log('Propriedades do objeto prioridade:', Object.keys(data));
+                  safeLog.info('Propriedades do objeto prioridade:', Object.keys(data));
                 }
               }
               
@@ -466,7 +452,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                       entregadores = parsed.entregadores;
                     }
                   } catch (e) {
-                    if (IS_DEV) console.warn('Não foi possível fazer parse do JSON (prioridade):', e);
+                    safeLog.warn('Não foi possível fazer parse do JSON (prioridade):', e);
                   }
                 }
               }
@@ -474,13 +460,13 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               const prioridadeData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
               
               if (IS_DEV) {
-                console.log('Prioridade processada:', prioridadeData);
+                safeLog.info('Prioridade processada:', prioridadeData);
               }
               
               setPrioridadeData(prioridadeData);
               tabDataCacheRef.current.set(cacheKey, { data: prioridadeData, timestamp: Date.now() });
             } catch (err: any) {
-              if (IS_DEV) console.error('Erro ao carregar prioridade/promo:', err);
+              safeLog.error('Erro ao carregar prioridade/promo:', err);
               setPrioridadeData({ entregadores: [], total: 0 });
             } finally {
               setLoadingPrioridade(false);
@@ -515,7 +501,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
           try {
             // Carregar dados de evolução - usar apenas p_ano, não outros filtros
             if (IS_DEV) {
-              console.log('Carregando evolução para ano:', anoEvolucao);
+              safeLog.info('Carregando evolução para ano:', anoEvolucao);
             }
             
             // Carregar dados de evolução com tratamento individual de erros
@@ -527,10 +513,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             // (pracaFilter já foi definido acima para o cache key)
             
             if (IS_DEV) {
-              console.log('🔍 [HOOK] Carregando evolução com filtro de praça:', pracaFilter);
-              console.log('🔍 [HOOK] FilterPayload completo:', filterPayload);
+              safeLog.info('🔍 [HOOK] Carregando evolução com filtro de praça:', pracaFilter);
+              safeLog.info('🔍 [HOOK] FilterPayload completo:', filterPayload);
               if (currentUser) {
-                console.log('🔍 [HOOK] CurrentUser:', {
+                safeLog.info('🔍 [HOOK] CurrentUser:', {
                   is_admin: currentUser.is_admin,
                   assigned_pracas: currentUser.assigned_pracas
                 });
@@ -545,7 +531,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               });
               mensalRes = { data: data || [], error };
             } catch (err) {
-              if (IS_DEV) console.error('Erro em listar_evolucao_mensal:', err);
+              safeLog.error('Erro em listar_evolucao_mensal:', err);
               mensalRes = { data: [], error: err };
             }
             
@@ -566,7 +552,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 if (semana35) {
                   const segundos = Number(semana35.total_segundos) || 0;
                   const horas = segundos / 3600;
-                  console.log('🔍 [HOOK] Semana 35:', {
+                  safeLog.info('🔍 [HOOK] Semana 35:', {
                     total_segundos: segundos,
                     horas: horas.toFixed(2),
                     praca_filter: pracaFilter
@@ -576,13 +562,13 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               
               if (IS_DEV && data) {
                 const semanas = Array.isArray(data) ? data.map((d: any) => d.semana).filter((s: any) => s != null) : [];
-                console.log('Semanas retornadas pela função:', semanas.length, 'semanas:', semanas);
-                console.log('Semana máxima:', semanas.length > 0 ? Math.max(...semanas) : 'N/A');
+                safeLog.info('Semanas retornadas pela função:', `${semanas.length} semanas:`, semanas);
+                safeLog.info('Semana máxima:', semanas.length > 0 ? Math.max(...semanas) : 'N/A');
                 // Log detalhado dos dados recebidos
                 if (Array.isArray(data) && data.length > 0) {
-                  console.log('🔍 [HOOK] Primeiro item semanal recebido do banco:', data[0]);
-                  console.log('🔍 [HOOK] Propriedades disponíveis:', Object.keys(data[0]));
-                  console.log('🔍 [HOOK] Valores de corridas no primeiro item:', {
+                  safeLog.info('🔍 [HOOK] Primeiro item semanal recebido do banco:', data[0]);
+                  safeLog.info('🔍 [HOOK] Propriedades disponíveis:', Object.keys(data[0]));
+                  safeLog.info('🔍 [HOOK] Valores de corridas no primeiro item:', {
                     ofertadas: data[0].corridas_ofertadas,
                     aceitas: data[0].corridas_aceitas,
                     completadas: data[0].corridas_completadas,
@@ -594,7 +580,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                   const todasIguais = firstItem.corridas_ofertadas === firstItem.corridas_aceitas && 
                                      firstItem.corridas_aceitas === firstItem.corridas_completadas;
                   if (todasIguais) {
-                    console.warn('⚠️ [HOOK] ATENÇÃO: Ofertadas, Aceitas e Completadas têm o mesmo valor!', {
+                    safeLog.warn('⚠️ [HOOK] ATENÇÃO: Ofertadas, Aceitas e Completadas têm o mesmo valor!', {
                       valor: firstItem.corridas_ofertadas,
                       issoPodeSerNormal: 'Se todas as corridas ofertadas foram aceitas e completadas'
                     });
@@ -602,31 +588,31 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                   
                   // Verificar se há valores não-zero de rejeitadas
                   const rejeitadasValues = data.map((d: any) => d.corridas_rejeitadas).filter((v: any) => v != null && v !== 0);
-                  console.log('🔍 [HOOK] Rejeitadas não-zero encontradas:', rejeitadasValues.length, 'valores:', rejeitadasValues.slice(0, 10));
+                  safeLog.info('🔍 [HOOK] Rejeitadas não-zero encontradas:', `${rejeitadasValues.length} valores:`, rejeitadasValues.slice(0, 10));
                   
                   if (rejeitadasValues.length === 0) {
-                    console.warn('⚠️ [HOOK] ATENÇÃO: Todas as rejeitadas estão em 0! Isso pode indicar um problema nos dados do banco.');
+                    safeLog.warn('⚠️ [HOOK] ATENÇÃO: Todas as rejeitadas estão em 0! Isso pode indicar um problema nos dados do banco.');
                   }
                 }
               }
             } catch (err) {
-              if (IS_DEV) console.error('Erro em listar_evolucao_semanal:', err);
+              safeLog.error('Erro em listar_evolucao_semanal:', err);
               semanalRes = { data: [], error: err };
             }
             
             // UTR TEMPORARIAMENTE DESABILITADO - causando erro 400/500
             if (IS_DEV) {
-              console.log('UTR semanal temporariamente desabilitado devido a erros na função');
+              safeLog.info('UTR semanal temporariamente desabilitado devido a erros na função');
             }
             // Manter utrSemanalRes como array vazio para não quebrar o frontend
             utrSemanalRes = { data: [], error: null };
             
             // Verificar erros em cada resposta
             if (mensalRes.error) {
-              if (IS_DEV) console.error('Erro ao carregar evolução mensal:', mensalRes.error);
+              if (IS_DEV) safeLog.error('Erro ao carregar evolução mensal:', mensalRes.error);
             }
             if (semanalRes.error) {
-              if (IS_DEV) console.error('Erro ao carregar evolução semanal:', semanalRes.error);
+              if (IS_DEV) safeLog.error('Erro ao carregar evolução semanal:', semanalRes.error);
             }
             // UTR desabilitado temporariamente
             
@@ -651,24 +637,24 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             }
             
             if (IS_DEV) {
-              console.log('Evolução carregada:', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
-              console.log('Ano solicitado:', anoEvolucao);
+              safeLog.info('Evolução carregada:', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
+              safeLog.info('Ano solicitado:', anoEvolucao);
               if (mensal.length > 0) {
-                console.log('Primeiro item mensal:', mensal[0]);
-                console.log('Propriedades mensal:', Object.keys(mensal[0]));
+                safeLog.info('Primeiro item mensal:', mensal[0]);
+                safeLog.info('Propriedades mensal:', Object.keys(mensal[0]));
               }
               if (semanal.length > 0) {
-                console.log('🔍 [HOOK] Primeiro item semanal completo:', semanal[0]);
-                console.log('🔍 [HOOK] Propriedades semanal:', Object.keys(semanal[0]));
+                safeLog.info('🔍 [HOOK] Primeiro item semanal completo:', semanal[0]);
+                safeLog.info('🔍 [HOOK] Propriedades semanal:', Object.keys(semanal[0]));
                 // Verificar valores de rejeitadas em todos os dados semanais
                 const rejeitadasTotal = semanal.reduce((sum: number, s: any) => sum + (Number(s.corridas_rejeitadas) || 0), 0);
                 const rejeitadasNonZero = semanal.filter((s: any) => Number(s.corridas_rejeitadas) > 0);
-                console.log('🔍 [HOOK] Total de rejeitadas (soma de todas as semanas):', rejeitadasTotal);
-                console.log('🔍 [HOOK] Semanas com rejeitadas > 0:', rejeitadasNonZero.length);
-                console.log('🔍 [HOOK] Total de semanas:', semanal.length);
+                safeLog.info('🔍 [HOOK] Total de rejeitadas (soma de todas as semanas):', rejeitadasTotal);
+                safeLog.info('🔍 [HOOK] Semanas com rejeitadas > 0:', rejeitadasNonZero.length);
+                safeLog.info('🔍 [HOOK] Total de semanas:', semanal.length);
                 
                 // Verificar os primeiros 5 itens para debug
-                console.log('🔍 [HOOK] Primeiros 5 itens semanais:', semanal.slice(0, 5).map((s: any) => ({
+                safeLog.info('🔍 [HOOK] Primeiros 5 itens semanais:', semanal.slice(0, 5).map((s: any) => ({
                   ano: s.ano,
                   semana: s.semana,
                   ofertadas: s.corridas_ofertadas,
@@ -679,18 +665,18 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 })));
                 
                 if (rejeitadasNonZero.length > 0) {
-                  console.log('✅ [HOOK] Exemplos de semanas com rejeitadas:', rejeitadasNonZero.slice(0, 5).map((s: any) => ({
+                  safeLog.info('✅ [HOOK] Exemplos de semanas com rejeitadas:', rejeitadasNonZero.slice(0, 5).map((s: any) => ({
                     semana: s.semana,
                     rejeitadas: s.corridas_rejeitadas,
                     ofertadas: s.corridas_ofertadas,
                     aceitas: s.corridas_aceitas
                   })));
                 } else {
-                  console.warn('⚠️ [HOOK] NENHUMA semana tem rejeitadas > 0! Verificando se os dados estão corretos...');
+                  safeLog.warn('⚠️ [HOOK] NENHUMA semana tem rejeitadas > 0! Verificando se os dados estão corretos...');
                   // Verificar se há diferença entre ofertadas e aceitas
                   const primeiraSemana = semanal[0];
                   if (primeiraSemana) {
-                    console.log('🔍 [HOOK] Análise da primeira semana:', {
+                    safeLog.info('🔍 [HOOK] Análise da primeira semana:', {
                       semana: primeiraSemana.semana,
                       ofertadas: primeiraSemana.corridas_ofertadas,
                       aceitas: primeiraSemana.corridas_aceitas,
@@ -701,13 +687,13 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                   }
                 }
               }
-              if (utr.length > 0) console.log('Primeiro item utr:', utr[0]);
+              if (utr.length > 0) safeLog.info('Primeiro item utr:', utr[0]);
               
               // Verificar se há dados para o ano solicitado
               const mensalAno = mensal.filter(m => m.ano === anoEvolucao);
               const semanalAno = semanal.filter(s => s.ano === anoEvolucao);
               const utrAno = utr.filter(u => u.ano === anoEvolucao);
-              console.log('Dados filtrados por ano:', { 
+              safeLog.info('Dados filtrados por ano:', { 
                 mensalAno: mensalAno.length, 
                 semanalAno: semanalAno.length, 
                 utrAno: utrAno.length 
@@ -719,7 +705,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             setEvolucaoSemanal(semanal);
             setUtrSemanal(utr);
           } catch (err) {
-            if (IS_DEV) console.error('Erro ao carregar evolução:', err);
+            safeLog.error('Erro ao carregar evolução:', err);
             setEvolucaoMensal([]);
             setEvolucaoSemanal([]);
             setUtrSemanal([]);
