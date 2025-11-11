@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef, memo } from 'react';
 import type { Conquista } from '@/types/conquistas';
 import type { RankingUsuario } from '@/hooks/useConquistas';
 import ConquistaCard from './ConquistaCard';
@@ -18,7 +18,7 @@ interface ConquistasModalProps {
   loading?: boolean;
 }
 
-export default function ConquistasModal({ 
+const ConquistasModal = memo(function ConquistasModal({ 
   conquistas, 
   stats, 
   ranking = [],
@@ -296,7 +296,7 @@ export default function ConquistasModal({
 
           {!loadingRanking && ranking.length > 0 && (
             <div className="space-y-3">
-              {ranking.map((usuario, index) => {
+              {ranking.map((usuario) => {
                 const isTop3 = usuario.posicao <= 3;
                 const medalha = usuario.posicao === 1 ? '🥇' : usuario.posicao === 2 ? '🥈' : usuario.posicao === 3 ? '🥉' : null;
                 
@@ -308,6 +308,7 @@ export default function ConquistasModal({
                         ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-2 border-yellow-300 dark:border-yellow-700 shadow-lg'
                         : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-gray-700 hover:shadow-md'
                     }`}
+                    style={{ willChange: 'transform', transform: 'translateZ(0)' }}
                   >
                     {/* Posição */}
                     <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
@@ -343,7 +344,7 @@ export default function ConquistasModal({
                         <div className="mt-2 flex flex-wrap gap-1">
                           {usuario.conquistas_recentes.slice(0, 3).map((conquista, idx) => (
                             <span
-                              key={idx}
+                              key={`${usuario.user_id}-${idx}`}
                               className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
                             >
                               {conquista}
@@ -362,4 +363,8 @@ export default function ConquistasModal({
       </div>
     </div>
   );
-}
+});
+
+ConquistasModal.displayName = 'ConquistasModal';
+
+export default ConquistasModal;

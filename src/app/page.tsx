@@ -172,21 +172,13 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anosDisponiveis]); // anoEvolucao não precisa estar nas dependências - queremos verificar apenas quando anosDisponiveis mudar
 
-  // Lógica para registrar atividade do usuário e verificar conquistas
+  // Lógica para registrar atividade do usuário (sem verificar conquistas a cada mudança)
   useEffect(() => {
     registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
-    // Verificar conquistas após mudança de aba com delay para não sobrecarregar
-    const timeoutId = setTimeout(() => verificarConquistas(), 1000);
-    return () => clearTimeout(timeoutId);
-  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Removido verificarConquistas aqui - será verificado apenas periodicamente pelo hook
+  }, [activeTab, registrarAtividade, filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Verificar conquistas ao aplicar filtros (com debounce)
-  useEffect(() => {
-    if (filters.ano || filters.praca || filters.semana) {
-      const timeoutId = setTimeout(() => verificarConquistas(), 500);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [filters.ano, filters.praca, filters.semana]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Removido verificação de conquistas ao aplicar filtros - muito frequente e desnecessário
 
   // Verificar conquistas baseadas em dados do dashboard quando estiverem disponíveis
   useEffect(() => {

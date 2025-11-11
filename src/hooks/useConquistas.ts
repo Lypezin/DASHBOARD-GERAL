@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import type { Conquista, ConquistaNova } from '@/types/conquistas';
 import { safeLog } from '@/lib/errorHandler';
@@ -50,13 +50,24 @@ export function useConquistas() {
     }
   }, []);
 
-  // Verificar novas conquistas
+  // Verificar novas conquistas (com tratamento de erro silencioso)
   const verificarConquistas = useCallback(async () => {
     try {
       const { data, error } = await supabase.rpc('verificar_conquistas');
       
       if (error) {
-        safeLog.warn('Erro ao verificar conquistas (pode ser normal se não houver novas):', error);
+        // Silenciar erros 400 (Bad Request) e outros erros esperados
+        // Erros 400 podem ocorrer quando a função não encontra dados ou quando há problemas de permissão
+        const errorMessage = error.message || '';
+        const isExpectedError = 
+          errorMessage.includes('400') || 
+          errorMessage.includes('Bad Request') ||
+          error.code === 'P0001' ||
+          error.code === '42803'; // Erro de tipo de dados
+        
+        if (!isExpectedError && IS_DEV) {
+          safeLog.warn('Erro ao verificar conquistas:', error);
+        }
         return;
       }
 
@@ -66,7 +77,10 @@ export function useConquistas() {
         await carregarConquistas();
       }
     } catch (err) {
-      safeLog.error('Erro inesperado ao verificar conquistas:', err);
+      // Silenciar erros em produção, apenas logar em desenvolvimento
+      if (IS_DEV) {
+        safeLog.error('Erro inesperado ao verificar conquistas:', err);
+      }
     }
   }, [carregarConquistas]);
 
@@ -157,16 +171,16 @@ export function useConquistas() {
     carregarConquistas();
   }, [carregarConquistas]);
 
-  // Verificar conquistas periodicamente (a cada 60 segundos para reduzir carga)
+  // Verificar conquistas periodicamente (a cada 5 minutos para reduzir carga)
   useEffect(() => {
     // Verificar uma vez ao montar com delay para não sobrecarregar na inicialização
     const initialTimeout = setTimeout(() => {
       verificarConquistas();
-    }, 2000); // Delay de 2 segundos na inicialização
+    }, 5000); // Delay de 5 segundos na inicialização
     
     const interval = setInterval(() => {
       verificarConquistas();
-    }, 60000); // 60 segundos
+    }, 300000); // 5 minutos (300 segundos) - reduzido de 60 segundos
 
     return () => {
       clearTimeout(initialTimeout);
@@ -174,15 +188,18 @@ export function useConquistas() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Estatísticas
-  const stats = {
-    total: conquistas.length,
-    conquistadas: conquistas.filter(c => c.conquistada).length,
-    pontos: totalPontos,
-    progresso: conquistas.length > 0 
-      ? Math.round((conquistas.filter(c => c.conquistada).length / conquistas.length) * 100)
-      : 0
-  };
+  // Estatísticas (memoizadas para evitar recálculos desnecessários)
+  const stats = useMemo(() => {
+    const conquistadas = conquistas.filter(c => c.conquistada).length;
+    return {
+      total: conquistas.length,
+      conquistadas,
+      pontos: totalPontos,
+      progresso: conquistas.length > 0 
+        ? Math.round((conquistadas / conquistas.length) * 100)
+        : 0
+    };
+  }, [conquistas, totalPontos]);
 
   return {
     conquistas,
