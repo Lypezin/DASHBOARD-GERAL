@@ -24,7 +24,7 @@ interface SlideAderenciaGeralProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 130; // r = 130
+  const circumference = 2 * Math.PI * 135; // r = 135 (ligeiramente maior)
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 

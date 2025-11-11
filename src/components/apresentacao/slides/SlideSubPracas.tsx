@@ -33,7 +33,7 @@ interface SlideSubPracasProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 90; // r = 90
+  const circumference = 2 * Math.PI * 95; // r = 95 (maior)
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 

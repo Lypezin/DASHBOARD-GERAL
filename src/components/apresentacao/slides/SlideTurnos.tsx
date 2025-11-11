@@ -31,7 +31,7 @@ interface SlideTurnosProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 75; // r = 75
+  const circumference = 2 * Math.PI * 80; // r = 80 (maior)
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 

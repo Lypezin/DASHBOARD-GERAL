@@ -563,6 +563,17 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     setIsGenerating(true);
 
     try {
+      // Aguarda fontes carregarem para evitar glifos estranhos no canvas
+      try {
+        // @ts-ignore
+        if (document?.fonts?.ready) {
+          // @ts-ignore
+          await document.fonts.ready;
+        }
+      } catch (_err) {
+        // ignore
+      }
+
       // Criar PDF em landscape A4 com margens
       const pdf = new jsPDF({
         orientation: 'landscape',
@@ -676,78 +687,87 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         // Aguardar renderização completa
         await new Promise((resolve) => setTimeout(resolve, 800));
 
-        // Renderizar com html2canvas - configuração otimizada
-        const canvas = await html2canvas(clone, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: null, // Não usar backgroundColor para capturar o gradiente real
-          width: SLIDE_WIDTH,
-          height: SLIDE_HEIGHT,
-          windowWidth: SLIDE_WIDTH,
-          windowHeight: SLIDE_HEIGHT,
-          logging: IS_DEV,
-          imageTimeout: 15000,
-          removeContainer: false,
-          foreignObjectRendering: true, // Habilitar para melhor renderização de textos
-          onclone: (clonedDoc: Document) => {
-            // Injetar estilos globais no documento clonado
-            const style = clonedDoc.createElement('style');
-            style.textContent = `
-              * {
-                font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
-                -webkit-font-smoothing: antialiased !important;
-                -moz-osx-font-smoothing: grayscale !important;
-                box-sizing: border-box !important;
-              }
-              html, body {
-                margin: 0 !important;
-                padding: 0 !important;
-                width: ${SLIDE_WIDTH}px !important;
-                height: ${SLIDE_HEIGHT}px !important;
-                overflow: visible !important;
-                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
-              }
-              body > * {
-                opacity: 1 !important;
-                visibility: visible !important;
-              }
-            `;
-            clonedDoc.head.appendChild(style);
-            
-            // Garantir que o body tenha o background
-            const body = clonedDoc.body;
-            if (body) {
-              body.style.cssText = `
-                width: ${SLIDE_WIDTH}px !important;
-                height: ${SLIDE_HEIGHT}px !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+        // Renderizar com html2canvas - tentativa principal (foreignObjectRendering)
+        let canvas: HTMLCanvasElement | null = null;
+        try {
+          canvas = await html2canvas(clone, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: null,
+            width: SLIDE_WIDTH,
+            height: SLIDE_HEIGHT,
+            windowWidth: SLIDE_WIDTH,
+            windowHeight: SLIDE_HEIGHT,
+            logging: IS_DEV,
+            imageTimeout: 15000,
+            removeContainer: false,
+            foreignObjectRendering: true,
+            onclone: (clonedDoc: Document) => {
+              const style = clonedDoc.createElement('style');
+              style.textContent = `
+                * {
+                  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+                  -webkit-font-smoothing: antialiased !important;
+                  -moz-osx-font-smoothing: grayscale !important;
+                  box-sizing: border-box !important;
+                }
+                html, body {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  width: ${SLIDE_WIDTH}px !important;
+                  height: ${SLIDE_HEIGHT}px !important;
+                  overflow: visible !important;
+                  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+                }
+                body > * {
+                  opacity: 1 !important;
+                  visibility: visible !important;
+                }
               `;
-            }
-            
-            // Garantir que todos os elementos visíveis estejam realmente visíveis
-            const allClonedElements = clonedDoc.querySelectorAll('*');
-            allClonedElements.forEach((el: any) => {
-              if (el.style) {
-                if (el.style.opacity === '0') el.style.opacity = '1';
-                if (el.style.visibility === 'hidden') el.style.visibility = 'visible';
-                if (el.style.display === 'none') el.style.display = '';
-              }
-            });
-          },
-          ignoreElements: (element: Element) => {
-            // Ignorar apenas elementos realmente problemáticos
-            return element.tagName === 'IFRAME' || 
-                   element.tagName === 'OBJECT' ||
-                   (element as HTMLElement).style?.display === 'none';
-          },
-        });
+              clonedDoc.head.appendChild(style);
+            },
+            ignoreElements: (element: Element) => {
+              return element.tagName === 'IFRAME' || element.tagName === 'OBJECT';
+            },
+          });
+        } catch (err) {
+          safeLog.warn('html2canvas FO falhou, tentando fallback sem FO', err as any);
+        }
 
-        // Remover container após captura
-        document.body.removeChild(printContainer);
+        // Fallback sem foreignObjectRendering
+        if (!canvas) {
+          try {
+            canvas = await html2canvas(clone, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: '#1e40af',
+              width: SLIDE_WIDTH,
+              height: SLIDE_HEIGHT,
+              windowWidth: SLIDE_WIDTH,
+              windowHeight: SLIDE_HEIGHT,
+              logging: IS_DEV,
+              imageTimeout: 15000,
+              removeContainer: false,
+              foreignObjectRendering: false,
+              scrollX: 0,
+              scrollY: 0,
+            });
+          } catch (err2) {
+            safeLog.error('html2canvas fallback sem FO falhou', err2 as any);
+          }
+        }
+
+        // Remover container após captura (sempre)
+        try {
+          document.body.removeChild(printContainer);
+        } catch (_e) {}
+
+        if (!canvas) {
+          // Pula este slide se falhou, continua fluxo para não travar download
+          continue;
+        }
 
         // Criar canvas final com dimensões exatas e background garantido
         const finalCanvas = document.createElement('canvas');
