@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
       executablePath: executablePath || undefined,
       headless: chromium.headless,
       defaultViewport: { width: 1680, height: 1188 },
+      env: { ...process.env, ...(chromium as any).environment || {} },
     });
 
     try {
