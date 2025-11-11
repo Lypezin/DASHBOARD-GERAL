@@ -38,44 +38,44 @@ const SlideDemandaRejeicoes: React.FC<SlideDemandaRejeicoesProps> = ({
 
       <div className="grid grid-cols-3 gap-4 flex-1 items-start" style={{ overflow: 'visible' }}>
         <div className="space-y-3" style={{ overflow: 'visible' }}>
-          <h3 className="text-[1.25rem] font-semibold text-center mb-2">SEMANA {numeroSemana1}</h3>
+          <h3 className="text-[24px] font-bold text-center mb-2">SEMANA {numeroSemana1}</h3>
           <div className="space-y-2.5">
             {itens.map((item) => (
               <div
                 key={`sem1-${item.label}`}
-                className="flex flex-col rounded-lg bg-white/12 px-3 py-2.5"
+                className="flex flex-col rounded-[10px] bg-white/12 px-4 py-3"
                 style={{ overflow: 'visible' }}
               >
-                <span className="text-[0.875rem] font-semibold opacity-85 mb-1">
-                  {item.label}:
+                <span className="text-[16px] font-bold opacity-90 mb-1 text-center">
+                  {item.label}
                 </span>
-                <span className="text-[1.25rem] font-black text-blue-100">{item.semana1Valor}</span>
+                <span className="text-[32px] font-bold text-blue-200 text-center">{item.semana1Valor}</span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="space-y-3" style={{ overflow: 'visible' }}>
-          <h3 className="text-[1.25rem] font-semibold text-center mb-2">VARIAÇÕES</h3>
+          <h3 className="text-[24px] font-bold text-center mb-2">VARIAÇÕES</h3>
           <div className="space-y-2.5">
             {itens.map((item) => (
               <div
                 key={`var-${item.label}`}
-                className="flex flex-col rounded-lg bg-white/10 px-3 py-2.5"
+                className="flex flex-col rounded-[10px] bg-white/10 px-4 py-3"
                 style={{ overflow: 'visible' }}
               >
-                <span className="text-[0.875rem] font-semibold opacity-85 mb-1">
+                <span className="text-[12px] opacity-80 mb-1 text-center">
                   {item.label}
                 </span>
                 <span
-                  className={`text-[1.125rem] font-bold ${
+                  className={`text-[24px] font-bold ${
                     item.variacaoPositiva ? 'text-emerald-200' : 'text-rose-200'
                   }`}
                 >
                   {item.variacaoValor}
                 </span>
                 <span
-                  className={`text-[0.875rem] font-semibold ${
+                  className={`text-[18px] font-semibold ${
                     item.variacaoPercentualPositiva ? 'text-emerald-200' : 'text-rose-200'
                   }`}
                 >
@@ -87,18 +87,18 @@ const SlideDemandaRejeicoes: React.FC<SlideDemandaRejeicoesProps> = ({
         </div>
 
         <div className="space-y-3" style={{ overflow: 'visible' }}>
-          <h3 className="text-[1.25rem] font-semibold text-center mb-2">SEMANA {numeroSemana2}</h3>
+          <h3 className="text-[24px] font-bold text-center mb-2">SEMANA {numeroSemana2}</h3>
           <div className="space-y-2.5">
             {itens.map((item) => (
               <div
                 key={`sem2-${item.label}`}
-                className="flex flex-col rounded-lg bg-white/12 px-3 py-2.5"
+                className="flex flex-col rounded-[10px] bg-white/12 px-4 py-3"
                 style={{ overflow: 'visible' }}
               >
-                <span className="text-[0.875rem] font-semibold opacity-85 mb-1">
-                  {item.label}:
+                <span className="text-[16px] font-bold opacity-90 mb-1 text-center">
+                  {item.label}
                 </span>
-                <span className="text-[1.25rem] font-black text-blue-100">{item.semana2Valor}</span>
+                <span className="text-[32px] font-bold text-blue-200 text-center">{item.semana2Valor}</span>
               </div>
             ))}
           </div>

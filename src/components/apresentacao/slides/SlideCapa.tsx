@@ -26,18 +26,17 @@ const SlideCapa: React.FC<SlideCapaProps> = ({
     >
       <div className="flex-1 text-center space-y-10">
         <div className="space-y-4">
-          <h1 className="text-[4.5rem] font-black leading-none tracking-wide">RELATÓRIO DE</h1>
-          <h1 className="text-[4.5rem] font-black leading-none tracking-wide">RESULTADOS</h1>
+          <h1 className="text-[72px] font-black leading-none tracking-wide">RELATÓRIO DE RESULTADOS</h1>
         </div>
 
-        <div className="space-y-5">
-          <h2 className="text-[2.5rem] font-semibold uppercase tracking-widest">
+        <div className="space-y-8">
+          <h2 className="text-[48px] font-semibold uppercase tracking-widest">
             {pracaSelecionada?.toUpperCase() || 'TODAS AS PRAÇAS'}
           </h2>
-          <h3 className="text-[2.25rem] font-medium tracking-wider">
+          <h3 className="text-[36px] font-medium tracking-wider">
             SEMANAS {numeroSemana1} &amp; {numeroSemana2}
           </h3>
-          <p className="text-[1.5rem] font-light opacity-90">
+          <p className="text-[24px] font-light opacity-90">
             {periodoSemana1} &nbsp;|&nbsp; {periodoSemana2}
           </p>
         </div>

@@ -63,30 +63,30 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
         {itens.map((item) => (
           <div
             key={item.nome}
-            className="relative flex flex-col items-center gap-3 rounded-2xl bg-white/12 px-4 py-4"
+            className="relative flex flex-col items-center gap-4 rounded-[14px] bg-white/15 px-4 py-4"
             style={{ overflow: 'visible' }}
           >
             <div className="text-center space-y-2 w-full max-w-[350px] mx-auto" style={{ overflow: 'visible' }}>
-              <h3 className="text-[1.125rem] font-semibold uppercase tracking-wide leading-tight">
+              <h3 className="text-[22px] font-semibold uppercase tracking-wide leading-tight">
                 {item.nome}
               </h3>
-              <div className="rounded-lg bg-white/12 px-3 py-2 flex flex-col items-center gap-1" style={{ overflow: 'visible' }}>
-                <span className="text-[0.9375rem] font-medium opacity-85">
+              <div className="rounded-[8px] bg-white/12 px-3 py-2 flex flex-col items-center gap-1" style={{ overflow: 'visible' }}>
+                <span className="text-[15px] font-medium opacity-90">
                   Planejado
                 </span>
                 <span
-                  className="text-[1.125rem] font-bold text-blue-200"
-                  style={buildTimeTextStyle(item.horasPlanejadas, 1.2)}
+                  className="text-[20px] font-bold text-blue-200"
+                  style={buildTimeTextStyle(item.horasPlanejadas, 1.25)}
                 >
                   {item.horasPlanejadas}
                 </span>
               </div>
             </div>
 
-            <div className="flex w-full items-center justify-between gap-5" style={{ overflow: 'visible' }}>
+            <div className="flex w-full items-center justify-between gap-3" style={{ overflow: 'visible' }}>
               {[item.semana1, item.semana2].map((semana, index) => (
                 <div key={index} className="flex flex-col items-center gap-2 flex-1" style={{ overflow: 'visible' }}>
-                  <span className="text-[0.9375rem] font-semibold text-center">
+                  <span className="text-[16px] font-bold text-center opacity-90">
                     SEMANA {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
                   <div 
@@ -98,62 +98,34 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
                     }}
                   >
                     <svg
-                      className="absolute"
-                      style={{
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        transform: 'rotate(-90deg)',
-                      }}
+                      className="absolute inset-0"
                       viewBox="0 0 200 200"
-                      preserveAspectRatio="xMidYMid meet"
+                      style={{ transform: 'rotate(-90deg)' }}
                     >
-                      <circle cx="100" cy="100" r="88" stroke="rgba(255,255,255,0.25)" strokeWidth="14" fill="none" />
+                      <circle cx="100" cy="100" r="88" stroke="rgba(255,255,255,0.25)" strokeWidth="12" fill="none" />
                       <circle
                         cx="100"
                         cy="100"
                         r="88"
                         stroke="#ffffff"
-                        strokeWidth="14"
+                        strokeWidth="12"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
                         strokeLinecap="round"
                       />
                     </svg>
-                    <div 
-                      className="absolute flex items-center justify-center"
-                      style={{
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '60%',
-                        height: '60%',
-                        pointerEvents: 'none',
-                        overflow: 'visible',
-                      }}
+                    <span 
+                      style={buildCircleTextStyle(semana.aderencia, 1.6, 0.9)}
+                      className="flex items-center justify-center w-full h-full text-center"
                     >
-                      <span 
-                        style={{
-                          ...buildCircleTextStyle(semana.aderencia, 1.4, 0.8),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '100%',
-                          height: '100%',
-                          textAlign: 'center',
-                          overflow: 'visible',
-                        }}
-                      >
-                        {semana.aderencia.toFixed(1)}%
-                      </span>
-                    </div>
+                      {semana.aderencia.toFixed(1)}%
+                    </span>
                   </div>
-                  <div className="rounded-lg bg-white/10 px-2 py-1.5 w-full flex flex-col items-center gap-0.5" style={{ overflow: 'visible' }}>
-                    <span className="text-[0.875rem] font-medium opacity-85">Horas Entregues</span>
+                  <div className="rounded-[8px] bg-white/10 px-3 py-2 w-full flex flex-col items-center gap-1" style={{ overflow: 'visible' }}>
+                    <span className="text-[13px] font-medium opacity-90">Horas Entregues</span>
                     <span
                       className="font-semibold text-emerald-100 text-center"
-                      style={buildTimeTextStyle(semana.horasEntregues, 1.2)}
+                      style={buildTimeTextStyle(semana.horasEntregues, 1.0625)}
                     >
                       {semana.horasEntregues}
                     </span>
@@ -162,19 +134,19 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5 w-full pt-1" style={{ overflow: 'visible' }}>
+            <div className="grid grid-cols-3 gap-2 w-full mt-auto" style={{ overflow: 'visible' }}>
               {item.variacoes.map((variacao) => (
                 <div
                   key={variacao.label}
-                  className="rounded-lg bg-white/10 px-2 py-1.5 text-center flex flex-col items-center justify-center gap-0.5"
+                  className="rounded-[7px] bg-white/10 px-2 py-2 text-center flex flex-col items-center justify-center gap-0.5"
                   style={{ overflow: 'visible' }}
                 >
-                  <p className="text-[0.75rem] font-medium opacity-80 leading-tight">{variacao.label}</p>
+                  <p className="text-[12px] font-medium opacity-80 leading-tight">{variacao.label}</p>
                   <p
                     className={`font-bold leading-tight ${
                       variacao.positivo ? 'text-emerald-200' : 'text-rose-200'
                     }`}
-                    style={buildTimeTextStyle(variacao.valor, 1.0)}
+                    style={buildTimeTextStyle(variacao.valor, 0.9375)}
                   >
                     {variacao.valor}
                   </p>

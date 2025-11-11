@@ -57,43 +57,35 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
         )}
       </header>
 
-      <div className="grid grid-cols-2 gap-4 flex-1" style={{ overflow: 'visible' }}>
+      <div className="grid grid-cols-2 gap-5 flex-1" style={{ overflow: 'visible' }}>
         {itens.map((turno) => (
           <div
             key={turno.nome}
-            className="rounded-2xl bg-white/12 px-4 py-4 flex flex-col gap-3"
+            className="rounded-[16px] bg-white/15 px-5 py-5 flex flex-col gap-4"
             style={{ overflow: 'visible' }}
           >
             <div className="text-center" style={{ overflow: 'visible' }}>
-              <h3 className="text-[1.25rem] font-semibold uppercase tracking-wide leading-tight">{turno.nome}</h3>
+              <h3 className="text-[26px] font-semibold uppercase tracking-wide leading-tight">{turno.nome}</h3>
             </div>
 
             <div className="flex items-center justify-between gap-4" style={{ overflow: 'visible' }}>
               {[turno.semana1, turno.semana2].map((semana, index) => (
-                <div key={index} className="flex flex-col items-center gap-2 flex-1" style={{ overflow: 'visible' }}>
-                  <span className="text-[0.9375rem] font-medium text-center">
+                <div key={index} className="flex flex-col items-center gap-3 flex-1" style={{ overflow: 'visible' }}>
+                  <span className="text-[18px] font-bold text-center opacity-90">
                     SEMANA {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
                   <div 
                     className="relative flex items-center justify-center"
                     style={{ 
-                      width: '140px', 
-                      height: '140px',
+                      width: '160px', 
+                      height: '160px',
                       overflow: 'visible',
                     }}
                   >
                     <svg
-                      className="absolute"
-                      style={{
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        transform: 'rotate(-90deg)',
-                        overflow: 'visible',
-                      }}
+                      className="absolute inset-0"
                       viewBox="0 0 160 160"
-                      preserveAspectRatio="xMidYMid meet"
+                      style={{ transform: 'rotate(-90deg)' }}
                     >
                       <circle cx="80" cy="80" r="73" stroke="rgba(255,255,255,0.25)" strokeWidth="14" fill="none" />
                       <circle
@@ -107,39 +99,18 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                         strokeLinecap="round"
                       />
                     </svg>
-                    <div 
-                      className="absolute flex items-center justify-center"
-                      style={{
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '60%',
-                        height: '60%',
-                        pointerEvents: 'none',
-                        overflow: 'visible',
-                      }}
+                    <span 
+                      style={buildCircleTextStyle(semana.aderencia, 1.8, 1.0)}
+                      className="flex items-center justify-center w-full h-full text-center"
                     >
-                      <span 
-                        style={{
-                          ...buildCircleTextStyle(semana.aderencia, 1.4, 0.8),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '100%',
-                          height: '100%',
-                          textAlign: 'center',
-                          overflow: 'visible',
-                        }}
-                      >
-                        {semana.aderencia.toFixed(1)}%
-                      </span>
-                    </div>
+                      {semana.aderencia.toFixed(1)}%
+                    </span>
                   </div>
-                  <div className="rounded-lg bg-white/10 px-2 py-1.5 w-full flex flex-col items-center gap-0.5" style={{ overflow: 'visible' }}>
-                    <span className="text-[0.875rem] font-medium opacity-85">Horas Entregues</span>
+                  <div className="rounded-[10px] bg-white/10 px-3 py-2.5 w-full flex flex-col items-center gap-1" style={{ overflow: 'visible' }}>
+                    <span className="text-[15px] font-medium opacity-90">Horas Entregues</span>
                     <span
-                      className="font-semibold text-emerald-100 text-center"
-                      style={buildTimeTextStyle(semana.horasEntregues, 1.2)}
+                      className="font-bold text-emerald-200 text-center"
+                      style={buildTimeTextStyle(semana.horasEntregues, 1.25)}
                     >
                       {semana.horasEntregues}
                     </span>
@@ -148,13 +119,13 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5 mt-0.5" style={{ overflow: 'visible' }}>
+            <div className="grid grid-cols-3 gap-2.5 mt-auto" style={{ overflow: 'visible' }}>
               {turno.variacoes.map((variacao) => (
-                <div key={variacao.label} className="rounded-lg bg-white/10 px-2 py-1.5 text-center flex flex-col items-center justify-center gap-0.5" style={{ overflow: 'visible' }}>
-                  <p className="text-[0.75rem] font-medium opacity-80 leading-tight">{variacao.label}</p>
+                <div key={variacao.label} className="rounded-[8px] bg-white/10 px-3 py-2.5 text-center flex flex-col items-center justify-center gap-1" style={{ overflow: 'visible' }}>
+                  <p className="text-[14px] font-medium opacity-80 leading-tight">{variacao.label}</p>
                   <p
                     className={`font-bold leading-tight ${variacao.positivo ? 'text-emerald-200' : 'text-rose-200'}`}
-                    style={buildTimeTextStyle(variacao.valor, 1.0)}
+                    style={buildTimeTextStyle(variacao.valor, 1.0625)}
                   >
                     {variacao.valor}
                   </p>
