@@ -734,13 +734,16 @@ function EvolucaoView({
     };
     
     if (IS_DEV) {
-      safeLog.info('Y-axis range calculado:', { result, estatisticas: { 
-        min: minValue, 
-        max: maxValue,
-        totalValues: allValues.length,
-        zeros: allValues.filter(v => v === 0).length,
-        nonZeros: allValues.filter(v => v !== 0).length,
-        firstValues: chartData.datasets[0]?.data?.slice(0, 10)
+      safeLog.info('Y-axis range calculado:', { 
+        result, 
+        estatisticas: { 
+          min: minValue, 
+          max: maxValue,
+          totalValues: allValues.length,
+          zeros: allValues.filter(v => v === 0).length,
+          nonZeros: allValues.filter(v => v !== 0).length,
+          firstValues: chartData.datasets[0]?.data?.slice(0, 10)
+        }
       });
     }
 
