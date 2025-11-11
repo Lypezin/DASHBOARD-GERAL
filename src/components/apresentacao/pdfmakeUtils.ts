@@ -136,25 +136,25 @@ export const criarSlideAderenciaGeral = (
   variacao: { horasDiferenca: string; horasPercentual: string; positiva: boolean }
 ): any => {
   // Gráficos principais - tamanho otimizado
-  const grafico1 = criarGraficoCircular(semana1.aderencia, 220, 18);
-  const grafico2 = criarGraficoCircular(semana2.aderencia, 220, 18);
+  const grafico1 = criarGraficoCircular(semana1.aderencia, 190, 16);
+  const grafico2 = criarGraficoCircular(semana2.aderencia, 190, 16);
 
   const conteudo = {
     stack: [
       {
         text: 'ADERÊNCIA GERAL',
-        fontSize: 58,
+        fontSize: 48,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 20, 0, 10],
+        margin: [0, 16, 0, 8],
       },
       {
         text: `SEMANAS ${semana1.numeroSemana} & ${semana2.numeroSemana}`,
-        fontSize: 28,
+        fontSize: 24,
         color: '#e5e7eb',
         alignment: 'center',
-        margin: [0, 0, 0, 25],
+        margin: [0, 0, 0, 16],
       },
       {
         columns: [
@@ -172,53 +172,53 @@ export const criarSlideAderenciaGeral = (
               },
               {
                 svg: grafico1,
-                width: 220,
+                width: 190,
                 alignment: 'center',
-                margin: [0, 0, 0, 20],
+                margin: [0, 0, 0, 12],
               },
               {
                 stack: [
                   {
-                    text: '🎯 Planejado',
-                    fontSize: 22,
+                    text: 'Planejado',
+                    fontSize: 18,
                     color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
                   },
                   {
                     text: semana1.horasPlanejadas,
-                    fontSize: 28,
+                    fontSize: 24,
                     bold: true,
                     color: COR_AZUL_CLARO,
                     alignment: 'center',
                   },
                 ],
-                margin: [20, 0, 20, 10],
+                margin: [15, 0, 15, 8],
                 fillColor: [255, 255, 255, 0.15], // Branco com 15% de opacidade
                 borderRadius: 8,
-                padding: [15, 10],
+                padding: [12, 8],
               },
               {
                 stack: [
                   {
-                    text: '✅ Entregue',
-                    fontSize: 20,
+                    text: 'Entregue',
+                    fontSize: 18,
                     color: '#f3f4f6',
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
                   },
                   {
                     text: semana1.horasEntregues,
-                    fontSize: 26,
+                    fontSize: 22,
                     bold: true,
                     color: COR_VERDE,
                     alignment: 'center',
                   },
                 ],
-                margin: [20, 0, 20, 0],
+                margin: [15, 0, 15, 8],
                 fillColor: [255, 255, 255, 0.15], // Branco com 15% de opacidade
                 borderRadius: 8,
-                padding: [15, 10],
+                padding: [12, 8],
               },
             ],
           },
@@ -236,88 +236,88 @@ export const criarSlideAderenciaGeral = (
               },
               {
                 svg: grafico2,
-                width: 220,
+                width: 190,
                 alignment: 'center',
-                margin: [0, 0, 0, 20],
+                margin: [0, 0, 0, 12],
               },
               {
                 stack: [
                   {
-                    text: '🎯 Planejado',
-                    fontSize: 22,
+                    text: 'Planejado',
+                    fontSize: 18,
                     color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
                   },
                   {
                     text: semana2.horasPlanejadas,
-                    fontSize: 28,
+                    fontSize: 24,
                     bold: true,
                     color: COR_AZUL_CLARO,
                     alignment: 'center',
                   },
                 ],
-                margin: [20, 0, 20, 10],
+                margin: [15, 0, 15, 8],
                 fillColor: [255, 255, 255, 0.15], // Branco com 15% de opacidade
                 borderRadius: 8,
-                padding: [15, 10],
+                padding: [12, 8],
               },
               {
                 stack: [
                   {
-                    text: '✅ Entregue',
-                    fontSize: 22,
+                    text: 'Entregue',
+                    fontSize: 18,
                     color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
                   },
                   {
                     text: semana2.horasEntregues,
-                    fontSize: 28,
+                    fontSize: 22,
                     bold: true,
                     color: COR_VERDE,
                     alignment: 'center',
                   },
                 ],
-                margin: [20, 0, 20, 10],
+                margin: [15, 0, 15, 8],
                 fillColor: [255, 255, 255, 0.15], // Branco com 15% de opacidade
                 borderRadius: 8,
-                padding: [15, 10],
+                padding: [12, 8],
               },
               {
                 stack: [
                   {
                     text: 'Variação de Horas',
-                    fontSize: 20,
+                    fontSize: 18,
                     color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
                   },
                   {
                     text: variacao.horasDiferenca,
-                    fontSize: 28,
+                    fontSize: 22,
                     bold: true,
                     color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
                     alignment: 'center',
                   },
                   {
                     text: variacao.horasPercentual,
-                    fontSize: 20,
+                    fontSize: 18,
                     bold: true,
                     color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
                     alignment: 'center',
                   },
                 ],
-                margin: [20, 0, 20, 0],
+                margin: [15, 0, 15, 0],
                 fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
                 borderRadius: 8,
-                padding: [15, 10],
+                padding: [12, 8],
               },
             ],
           },
         ],
-        columnGap: 40,
-        margin: [30, 0, 30, 0],
+        columnGap: 28,
+        margin: [20, 0, 20, 0],
       },
     ],
   };
@@ -827,8 +827,8 @@ export const criarSlideSubPracas = (
               ],
             },
           ],
-          columnGap: 12,
-          margin: [0, 0, 0, 10],
+          columnGap: 10,
+          margin: [0, 0, 0, 8],
         },
         {
           columns: item.variacoes.map((variacao) => ({
@@ -854,13 +854,13 @@ export const criarSlideSubPracas = (
             padding: [8, 6],
             margin: [2, 0, 2, 0],
           })),
-          columnGap: 8,
+          columnGap: 6,
         },
       ],
       fillColor: [255, 255, 255, 0.15],
       borderRadius: 14,
-      padding: [15, 12],
-      margin: [6, 0, 6, 0],
+      padding: [14, 12],
+      margin: [4, 0, 4, 0],
     };
   };
 
@@ -894,8 +894,8 @@ export const criarSlideSubPracas = (
         : [{ text: '', margin: [0, 0, 0, 15] }]),
       {
         columns: itens.map((item) => criarCardSubPraca(item)),
-        columnGap: 16,
-        margin: [15, 0, 15, 0],
+        columnGap: 14,
+        margin: [12, 0, 12, 0],
       },
     ],
   };
