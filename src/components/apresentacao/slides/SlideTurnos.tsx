@@ -75,7 +75,11 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                   </span>
                   <div 
                     className="relative flex items-center justify-center"
-                    style={{ width: '190px', height: '190px' }}
+                    style={{ 
+                      width: '190px', 
+                      height: '190px',
+                      overflow: 'hidden',
+                    }}
                   >
                     <svg
                       className="absolute"
@@ -107,8 +111,11 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        width: '62%',
-                        height: '62%',
+                        width: '58%',
+                        height: '58%',
+                        overflow: 'hidden',
+                        maxWidth: '58%',
+                        maxHeight: '58%',
                       }}
                     >
                       <span style={buildCircleTextStyle(semana.aderencia, 3.6, 2.5)}>

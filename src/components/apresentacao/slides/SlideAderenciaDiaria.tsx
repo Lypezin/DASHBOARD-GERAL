@@ -52,7 +52,11 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
         <span className="text-[2.2rem] font-semibold opacity-85 text-center">{dia.sigla}</span>
         <div 
           className="relative flex items-center justify-center"
-          style={{ width: '140px', height: '140px' }}
+          style={{ 
+            width: '140px', 
+            height: '140px',
+            overflow: 'hidden',
+          }}
         >
           <svg
             className="absolute"
@@ -84,8 +88,11 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              width: '60%',
-              height: '60%',
+              width: '55%',
+              height: '55%',
+              overflow: 'hidden',
+              maxWidth: '55%',
+              maxHeight: '55%',
             }}
           >
             <span style={buildCircleTextStyle(dia.aderencia, 3.0, 2.2)}>

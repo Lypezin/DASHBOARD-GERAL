@@ -47,12 +47,16 @@ export const buildCircleTextStyle = (
     display: 'block',
     textAlign: 'center',
     width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
     fontWeight: '900',
     color: '#ffffff',
     WebkitFontSmoothing: 'antialiased',
     MozOsxFontSmoothing: 'grayscale',
     textRendering: 'optimizeLegibility',
+    boxSizing: 'border-box',
   };
 };
 

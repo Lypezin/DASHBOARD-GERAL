@@ -584,7 +584,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       for (let i = 0; i < elementos.length; i++) {
         const slide = elementos[i] as HTMLElement;
 
-        // Container temporário para renderização
+        // Container temporário para renderização com overflow hidden para evitar elementos saindo
         const printContainer = document.createElement('div');
         printContainer.style.cssText = `
           position: absolute;
@@ -592,9 +592,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           top: 0;
           width: ${SLIDE_WIDTH}px;
           height: ${SLIDE_HEIGHT}px;
-          overflow: visible;
+          overflow: hidden;
           background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
           font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+          box-sizing: border-box;
         `;
 
         const clone = slide.cloneNode(true) as HTMLElement;
@@ -610,18 +611,38 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           flex-direction: column;
           transform: none;
           transform-origin: top left;
+          overflow: hidden;
+          box-sizing: border-box;
+          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         `;
 
-        // Garantir visibilidade de todos os elementos
+        // Garantir visibilidade e corrigir estilos de todos os elementos
         const allElements = clone.querySelectorAll('*');
         allElements.forEach((el: any) => {
           if (el.style) {
             if (el.style.opacity === '0') el.style.opacity = '1';
             if (el.style.visibility === 'hidden') el.style.visibility = 'visible';
             if (el.style.display === 'none') el.style.display = '';
+            
             // Remover transforms que podem causar distorção
             if (el.style.transform && el.style.transform.includes('scale')) {
               el.style.transform = el.style.transform.replace(/scale\([^)]*\)/g, '');
+            }
+            
+            // Garantir que containers de texto tenham overflow hidden
+            if (el.classList && (
+              el.classList.contains('absolute') || 
+              el.classList.contains('relative')
+            )) {
+              const computedStyle = window.getComputedStyle(el);
+              if (computedStyle.position === 'absolute' || computedStyle.position === 'relative') {
+                // Verificar se é um container de texto dentro de gráfico
+                const hasText = el.querySelector && el.querySelector('span, p, div');
+                if (hasText && el.style.width && el.style.width.includes('%')) {
+                  el.style.overflow = 'hidden';
+                  el.style.textOverflow = 'ellipsis';
+                }
+              }
             }
           }
         });
@@ -629,15 +650,15 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         printContainer.appendChild(clone);
         document.body.appendChild(printContainer);
 
-        // Aguardar renderização completa
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        // Aguardar renderização completa de fontes e elementos
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // Renderizar com html2canvas em alta qualidade
         const canvas = await html2canvas(clone, {
           scale: 2,
           useCORS: true,
           allowTaint: true,
-          backgroundColor: '#2563eb',
+          backgroundColor: '#1e40af', // Cor mais escura do gradiente para evitar bordas brancas
           width: SLIDE_WIDTH,
           height: SLIDE_HEIGHT,
           windowWidth: SLIDE_WIDTH,
@@ -646,6 +667,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           imageTimeout: 0,
           removeContainer: false,
           foreignObjectRendering: false,
+          scrollX: 0,
+          scrollY: 0,
+          x: 0,
+          y: 0,
           onclone: (clonedDoc: Document) => {
             // Garantir que fontes sejam carregadas no clone
             const style = clonedDoc.createElement('style');
@@ -654,9 +679,30 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
                 -webkit-font-smoothing: antialiased;
                 -moz-osx-font-smoothing: grayscale;
+                box-sizing: border-box;
+              }
+              body, html {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                width: ${SLIDE_WIDTH}px;
+                height: ${SLIDE_HEIGHT}px;
               }
             `;
             clonedDoc.head.appendChild(style);
+            
+            // Garantir que o body tenha o background correto
+            const body = clonedDoc.body;
+            if (body) {
+              body.style.cssText = `
+                width: ${SLIDE_WIDTH}px;
+                height: ${SLIDE_HEIGHT}px;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+              `;
+            }
           },
           ignoreElements: (element: Element) =>
             element.tagName === 'IFRAME' || element.tagName === 'OBJECT',
@@ -664,21 +710,60 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 
         document.body.removeChild(printContainer);
 
+        // Verificar dimensões do canvas e ajustar se necessário
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        
+        // Se o canvas não tiver as dimensões corretas, criar um novo com as dimensões exatas
+        let finalCanvas = canvas;
+        if (canvasWidth !== SLIDE_WIDTH * 2 || canvasHeight !== SLIDE_HEIGHT * 2) {
+          const correctedCanvas = document.createElement('canvas');
+          correctedCanvas.width = SLIDE_WIDTH * 2;
+          correctedCanvas.height = SLIDE_HEIGHT * 2;
+          const ctx = correctedCanvas.getContext('2d');
+          if (ctx) {
+            // Preencher com background
+            ctx.fillStyle = '#1e40af';
+            ctx.fillRect(0, 0, correctedCanvas.width, correctedCanvas.height);
+            // Desenhar o canvas original centralizado
+            ctx.drawImage(canvas, 0, 0);
+          }
+          finalCanvas = correctedCanvas;
+        }
+
         // Converter para imagem de alta qualidade
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgData = finalCanvas.toDataURL('image/jpeg', 0.98);
 
         if (i > 0) {
           pdf.addPage();
         }
 
-        // Adicionar imagem com margens
+        // Adicionar imagem com margens, mantendo proporção
+        const imgAspectRatio = SLIDE_WIDTH / SLIDE_HEIGHT;
+        const pdfAspectRatio = contentWidth / contentHeight;
+        
+        let finalWidth = contentWidth;
+        let finalHeight = contentHeight;
+        let finalX = margin;
+        let finalY = margin;
+        
+        if (imgAspectRatio > pdfAspectRatio) {
+          // Imagem é mais larga - ajustar altura
+          finalHeight = contentWidth / imgAspectRatio;
+          finalY = margin + (contentHeight - finalHeight) / 2;
+        } else {
+          // Imagem é mais alta - ajustar largura
+          finalWidth = contentHeight * imgAspectRatio;
+          finalX = margin + (contentWidth - finalWidth) / 2;
+        }
+
         pdf.addImage(
           imgData,
           'JPEG',
-          margin,
-          margin,
-          contentWidth,
-          contentHeight,
+          finalX,
+          finalY,
+          finalWidth,
+          finalHeight,
           undefined,
           'FAST'
         );

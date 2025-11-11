@@ -94,7 +94,11 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                   </span>
                   <div 
                     className="relative flex items-center justify-center"
-                    style={{ width: '240px', height: '240px' }}
+                    style={{ 
+                      width: '240px', 
+                      height: '240px',
+                      overflow: 'hidden',
+                    }}
                   >
                     <svg
                       className="absolute"
@@ -126,8 +130,11 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        width: '65%',
-                        height: '65%',
+                        width: '60%',
+                        height: '60%',
+                        overflow: 'hidden',
+                        maxWidth: '60%',
+                        maxHeight: '60%',
                       }}
                     >
                       <span style={buildCircleTextStyle(semana.aderencia, 4.5, 2.8)}>

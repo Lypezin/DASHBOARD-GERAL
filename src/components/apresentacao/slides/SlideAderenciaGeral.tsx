@@ -56,7 +56,11 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
 
             <div 
               className="relative flex items-center justify-center"
-              style={{ width: '380px', height: '380px' }}
+              style={{ 
+                width: '380px', 
+                height: '380px',
+                overflow: 'hidden',
+              }}
             >
               <svg
                 className="absolute"
@@ -95,8 +99,11 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '70%',
-                  height: '70%',
+                  width: '65%',
+                  height: '65%',
+                  overflow: 'hidden',
+                  maxWidth: '65%',
+                  maxHeight: '65%',
                 }}
               >
                 <span style={buildCircleTextStyle(semana.aderencia, 6.5, 3.8)}>
