@@ -917,80 +917,89 @@ export const criarSlideDemandaRejeicoes = (
     variacaoPercentualPositiva: boolean;
   }>
 ): any => {
-  // Layout reformulado: 2 colunas principais (Semana 1 e Semana 2)
-  // Cada coluna contém os 4 itens (Ofertadas, Aceitas, Completadas, Rejeitadas)
+  // Layout com 3 colunas: Semana 1 | Variações | Semana 2
   
-  const criarColunaSemana = (numeroSemana: string, isSemana2: boolean) => {
-    return {
-      width: '*',
-      stack: [
-        {
-          text: `SEMANA ${numeroSemana}`,
-          fontSize: 24,
-          bold: true,
-          color: COR_TEXTO,
-          alignment: 'center',
-          margin: [0, 0, 0, 15],
-        },
-        ...itens.map((item) => {
-          const valor = isSemana2 ? item.semana2Valor : item.semana1Valor;
-          return {
+  const conteudo = {
+    stack: [
+      {
+        text: 'DEMANDA E REJEIÇÕES',
+        fontSize: 40,
+        bold: true,
+        color: COR_TEXTO,
+        alignment: 'center',
+        margin: [0, 15, 0, 8],
+      },
+      {
+        text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
+        fontSize: 22,
+        color: '#e5e7eb',
+        alignment: 'center',
+        margin: [0, 0, 0, 18],
+      },
+      {
+        columns: [
+          // Coluna Semana 1
+          {
+            width: '*',
             stack: [
               {
-                text: `${item.icone} ${item.label}`,
-                fontSize: 18,
+                text: `SEMANA ${numeroSemana1}`,
+                fontSize: 20,
                 bold: true,
-                color: '#e5e7eb',
+                color: COR_TEXTO,
                 alignment: 'center',
-                margin: [0, 0, 0, 6],
+                margin: [0, 0, 0, 12],
               },
-              {
-                text: valor,
-                fontSize: 32,
-                bold: true,
-                color: COR_AZUL_CLARO,
-                alignment: 'center',
-                margin: [0, 0, 0, 0],
-              },
+              ...itens.map((item) => ({
+                stack: [
+                  {
+                    text: item.label,
+                    fontSize: 14,
+                    bold: true,
+                    color: '#e5e7eb',
+                    alignment: 'center',
+                    margin: [0, 0, 0, 4],
+                  },
+                  {
+                    text: item.semana1Valor,
+                    fontSize: 26,
+                    bold: true,
+                    color: COR_AZUL_CLARO,
+                    alignment: 'center',
+                  },
+                ],
+                fillColor: [255, 255, 255, 0.12],
+                borderRadius: 8,
+                padding: [10, 8],
+                margin: [0, 0, 0, 8],
+              })),
             ],
-      fillColor: [255, 255, 255, 0.12],
-      borderRadius: 10,
-      padding: [15, 12],
-      margin: [0, 0, 0, 12],
-    };
-        }),
-        // Se for semana 2, adicionar variações
-        ...(isSemana2
-          ? [
+          },
+          // Coluna Variações (Centro)
+          {
+            width: 'auto',
+            stack: [
               {
                 text: 'VARIAÇÕES',
                 fontSize: 20,
                 bold: true,
                 color: COR_TEXTO,
                 alignment: 'center',
-                margin: [0, 15, 0, 12],
+                margin: [0, 0, 0, 12],
               },
               ...itens.map((item) => ({
                 stack: [
                   {
-                    text: item.label,
-                    fontSize: 16,
-                    bold: true,
-                    color: '#e5e7eb',
-                    alignment: 'center',
-                    margin: [0, 0, 0, 6],
-                  },
-                  {
                     text: item.variacaoValor,
-                    fontSize: 24,
+                    fontSize: 20,
                     bold: true,
                     color: item.variacaoPositiva ? COR_VERDE : COR_VERMELHO,
                     alignment: 'center',
-                    margin: [0, 0, 0, 4],
+                    margin: [0, 0, 0, 2],
                   },
                   {
                     text: item.variacaoPercentual,
-                    fontSize: 18,
+                    fontSize: 16,
                     bold: true,
                     color: item.variacaoPercentualPositiva ? COR_VERDE : COR_VERMELHO,
                     alignment: 'center',
@@ -998,39 +1007,51 @@ export const criarSlideDemandaRejeicoes = (
                 ],
                 fillColor: [255, 255, 255, 0.10],
                 borderRadius: 8,
-                padding: [12, 10],
-                margin: [0, 0, 0, 10],
+                padding: [12, 8],
+                margin: [0, 0, 0, 8],
               })),
-            ]
-          : []),
-      ],
-    };
-  };
-
-  const conteudo = {
-    stack: [
-      {
-        text: 'DEMANDA E REJEIÇÕES',
-        fontSize: 48,
-        bold: true,
-        color: COR_TEXTO,
-        alignment: 'center',
-        margin: [0, 20, 0, 8],
-      },
-      {
-        text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
-        fontSize: 26,
-        color: '#e5e7eb',
-        alignment: 'center',
-        margin: [0, 0, 0, 25],
-      },
-      {
-        columns: [
-          criarColunaSemana(numeroSemana1, false),
-          criarColunaSemana(numeroSemana2, true),
+            ],
+          },
+          // Coluna Semana 2
+          {
+            width: '*',
+            stack: [
+              {
+                text: `SEMANA ${numeroSemana2}`,
+                fontSize: 20,
+                bold: true,
+                color: COR_TEXTO,
+                alignment: 'center',
+                margin: [0, 0, 0, 12],
+              },
+              ...itens.map((item) => ({
+                stack: [
+                  {
+                    text: item.label,
+                    fontSize: 14,
+                    bold: true,
+                    color: '#e5e7eb',
+                    alignment: 'center',
+                    margin: [0, 0, 0, 4],
+                  },
+                  {
+                    text: item.semana2Valor,
+                    fontSize: 26,
+                    bold: true,
+                    color: COR_AZUL_CLARO,
+                    alignment: 'center',
+                  },
+                ],
+                fillColor: [255, 255, 255, 0.12],
+                borderRadius: 8,
+                padding: [10, 8],
+                margin: [0, 0, 0, 8],
+              })),
+            ],
+          },
         ],
-        columnGap: 20,
-        margin: [15, 0, 15, 0],
+        columnGap: 15,
+        margin: [10, 0, 10, 0],
       },
     ],
   };
