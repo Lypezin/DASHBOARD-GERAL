@@ -68,7 +68,7 @@ const ConquistasModal = memo(function ConquistasModal({
   const rankingCarregadoRef = useRef(false);
   const rankingTentouCarregarRef = useRef(false);
 
-  // Carregar ranking quando a aba for ativada (apenas uma vez)
+  // Carregar ranking quando a aba for ativada e atualizar quando necessário
   useEffect(() => {
     // Resetar flags quando mudar de aba
     if (abaAtiva !== 'ranking') {
@@ -77,24 +77,14 @@ const ConquistasModal = memo(function ConquistasModal({
       return;
     }
 
-    // Se já temos dados, marcar como carregado
-    if (ranking.length > 0) {
-      rankingCarregadoRef.current = true;
-      rankingTentouCarregarRef.current = true;
-      return;
-    }
-
-    // Carregar ranking apenas se:
-    // 1. Estamos na aba de ranking
-    // 2. Temos a função de carregamento
-    // 3. Não está carregando no momento
-    // 4. Ainda não tentamos carregar nesta sessão (evita loop em caso de erro)
-    if (onLoadRanking && !loadingRanking && !rankingTentouCarregarRef.current) {
+    // Carregar ranking sempre que a aba for ativada (para garantir dados atualizados)
+    if (onLoadRanking && !loadingRanking) {
+      // Sempre recarregar quando a aba de ranking for ativada para ter dados atualizados
       rankingTentouCarregarRef.current = true;
       onLoadRanking();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abaAtiva, loadingRanking, ranking.length]); // Adicionado loadingRanking e ranking.length para reagir quando dados chegarem
+  }, [abaAtiva]); // Recarregar sempre que mudar para a aba de ranking
 
   // Funções memoizadas com useCallback
   const getRaridadeColor = useCallback((raridade: string) => {
@@ -190,27 +180,50 @@ const ConquistasModal = memo(function ConquistasModal({
           </div>
 
           {/* Abas */}
-          <div className="mt-4 flex gap-2 border-b border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => setAbaAtiva('conquistas')}
-              className={`px-4 py-2 font-medium transition-colors ${
-                abaAtiva === 'conquistas'
-                  ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
-                  : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-              }`}
-            >
-              🏆 Minhas Conquistas
-            </button>
-            <button
-              onClick={() => setAbaAtiva('ranking')}
-              className={`px-4 py-2 font-medium transition-colors ${
-                abaAtiva === 'ranking'
-                  ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
-                  : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-              }`}
-            >
-              📊 Ranking
-            </button>
+          <div className="mt-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setAbaAtiva('conquistas')}
+                className={`px-4 py-2 font-medium transition-colors ${
+                  abaAtiva === 'conquistas'
+                    ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                🏆 Minhas Conquistas
+              </button>
+              <button
+                onClick={() => setAbaAtiva('ranking')}
+                className={`px-4 py-2 font-medium transition-colors ${
+                  abaAtiva === 'ranking'
+                    ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                📊 Ranking
+              </button>
+            </div>
+            {/* Botão de atualizar ranking */}
+            {abaAtiva === 'ranking' && onLoadRanking && (
+              <button
+                onClick={() => {
+                  rankingTentouCarregarRef.current = false;
+                  onLoadRanking();
+                }}
+                disabled={loadingRanking}
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Atualizar ranking"
+              >
+                <svg 
+                  className={`w-5 h-5 ${loadingRanking ? 'animate-spin' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Filtros - apenas na aba de conquistas */}

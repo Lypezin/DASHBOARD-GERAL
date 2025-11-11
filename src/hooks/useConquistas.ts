@@ -76,6 +76,8 @@ export function useConquistas() {
         setConquistasNovas(data as ConquistaNova[]);
         // Recarregar lista de conquistas
         await carregarConquistas();
+        // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
+        await carregarRanking();
       }
     } catch (err) {
       // Silenciar erros em produção, apenas logar em desenvolvimento
@@ -83,7 +85,7 @@ export function useConquistas() {
         safeLog.error('Erro inesperado ao verificar conquistas:', err);
       }
     }
-  }, [carregarConquistas]);
+  }, [carregarConquistas, carregarRanking]);
 
   // Marcar conquista como visualizada
   const marcarVisualizada = useCallback(async (conquistaId: string) => {
@@ -138,11 +140,13 @@ export function useConquistas() {
         setConquistasNovas(prev => [...prev, ...(data as ConquistaNova[])]);
         // Recarregar lista de conquistas
         await carregarConquistas();
+        // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
+        await carregarRanking();
       }
     } catch (err) {
       safeLog.error('Erro inesperado ao verificar conquistas do dashboard:', err);
     }
-  }, [carregarConquistas]);
+  }, [carregarConquistas, carregarRanking]);
 
   // Carregar ranking de usuários
   const carregarRanking = useCallback(async () => {
