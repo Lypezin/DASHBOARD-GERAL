@@ -143,17 +143,24 @@ const ConquistasModal = memo(function ConquistasModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
       <div className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900 animate-scale-in">
-        {/* Header */}
-        <div className="sticky top-0 z-10 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50 p-6 dark:border-gray-700 dark:from-blue-950/30 dark:to-purple-950/30">
-          <div className="flex items-center justify-between">
+        {/* Header - Melhorado */}
+        <div className="sticky top-0 z-10 border-b border-gray-200 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-4 md:p-6 dark:border-gray-700 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 backdrop-blur-sm">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">🏆</span>
+              <div className="relative">
+                <span className="text-3xl md:text-4xl">🏆</span>
+                {stats.conquistadas > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-green-500 text-white text-xs font-bold rounded-full">
+                    {stats.conquistadas}
+                  </span>
+                )}
+              </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                   Conquistas
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {stats.conquistadas} de {stats.total} conquistadas • {stats.pontos} pontos
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
+                  {stats.conquistadas} de {stats.total} conquistadas • <span className="font-semibold text-blue-600 dark:text-blue-400">{stats.pontos} pontos</span>
                 </p>
               </div>
             </div>
@@ -162,21 +169,21 @@ const ConquistasModal = memo(function ConquistasModal({
               className="rounded-full p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-300 transition-colors"
               aria-label="Fechar"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          {/* Barra de progresso */}
-          <div className="mt-4">
-            <div className="flex items-center justify-between text-sm mb-2">
+          {/* Barra de progresso melhorada */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-xs md:text-sm mb-2">
               <span className="font-medium text-gray-700 dark:text-gray-300">Progresso Geral</span>
               <span className="font-bold text-blue-600 dark:text-blue-400">{stats.progresso}%</span>
             </div>
-            <div className="h-3 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
+            <div className="h-2.5 md:h-3 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700 shadow-inner">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transition-all duration-700 ease-out shadow-sm"
                 style={{ width: `${stats.progresso}%` }}
               />
             </div>
@@ -258,14 +265,13 @@ const ConquistasModal = memo(function ConquistasModal({
 
         {/* Conteúdo das abas */}
         {abaAtiva === 'conquistas' ? (
-        /* Lista de conquistas */
+        /* Lista de conquistas - Otimizada para performance */
         <div 
-          className="overflow-y-auto p-6 scrollbar-thin" 
+          className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent" 
           style={{ 
-            maxHeight: 'calc(90vh - 300px)',
-            willChange: 'scroll-position',
-            transform: 'translateZ(0)',
-            WebkitOverflowScrolling: 'touch'
+            maxHeight: 'calc(90vh - 280px)',
+            contain: 'layout style paint',
+            contentVisibility: 'auto'
           }}
         >
           {loading && (
@@ -275,15 +281,19 @@ const ConquistasModal = memo(function ConquistasModal({
           )}
           
           {!loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               {conquistasFiltradas.map(conquista => (
-                <ConquistaCard 
+                <div
                   key={conquista.conquista_id}
-                  conquista={conquista}
-                  getRaridadeColor={getRaridadeColor}
-                  getRaridadeLabel={getRaridadeLabel}
-                  getCategoriaLabel={getCategoriaLabel}
-                />
+                  style={{ contentVisibility: 'auto' }}
+                >
+                  <ConquistaCard 
+                    conquista={conquista}
+                    getRaridadeColor={getRaridadeColor}
+                    getRaridadeLabel={getRaridadeLabel}
+                    getCategoriaLabel={getCategoriaLabel}
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -301,14 +311,13 @@ const ConquistasModal = memo(function ConquistasModal({
           )}
         </div>
         ) : (
-        /* Ranking de usuários */
+        /* Ranking de usuários - Otimizado para performance */
         <div 
-          className="overflow-y-auto p-6 scrollbar-thin" 
+          className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent" 
           style={{ 
-            maxHeight: 'calc(90vh - 300px)',
-            willChange: 'scroll-position',
-            transform: 'translateZ(0)',
-            WebkitOverflowScrolling: 'touch'
+            maxHeight: 'calc(90vh - 280px)',
+            contain: 'layout style paint',
+            contentVisibility: 'auto'
           }}
         >
           {loadingRanking && (
@@ -330,7 +339,7 @@ const ConquistasModal = memo(function ConquistasModal({
           )}
 
           {!loadingRanking && ranking.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {ranking.map((usuario) => {
                 const isTop3 = usuario.posicao <= 3;
                 const medalha = usuario.posicao === 1 ? '🥇' : usuario.posicao === 2 ? '🥈' : usuario.posicao === 3 ? '🥉' : null;
@@ -338,15 +347,15 @@ const ConquistasModal = memo(function ConquistasModal({
                 return (
                   <div
                     key={usuario.user_id}
-                    className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
+                    className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl transition-all ${
                       isTop3
                         ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-2 border-yellow-300 dark:border-yellow-700 shadow-lg'
                         : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-gray-700 hover:shadow-md'
                     }`}
-                    style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+                    style={{ contentVisibility: 'auto' }}
                   >
                     {/* Posição */}
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                    <div className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-bold text-base md:text-lg ${
                       isTop3
                         ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white'
                         : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
@@ -364,7 +373,7 @@ const ConquistasModal = memo(function ConquistasModal({
                     {/* Informações do usuário */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className={`font-bold text-lg truncate ${
+                        <h3 className={`font-bold text-base md:text-lg truncate ${
                           isTop3
                             ? 'text-gray-900 dark:text-white'
                             : 'text-gray-800 dark:text-gray-200'
@@ -372,7 +381,7 @@ const ConquistasModal = memo(function ConquistasModal({
                           {usuario.nome_usuario}
                         </h3>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-gray-600 dark:text-gray-400">
                         <span className="flex items-center gap-1">
                           <span className="font-semibold">{usuario.total_conquistas}</span>
                           <span>conquistas</span>
@@ -387,7 +396,7 @@ const ConquistasModal = memo(function ConquistasModal({
                           {usuario.conquistas_recentes.map((conquista, idx) => (
                             <span
                               key={`${usuario.user_id}-${idx}`}
-                              className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                              className="text-xs px-2 py-0.5 md:py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
                             >
                               {conquista}
                             </span>

@@ -174,10 +174,10 @@ export function useConquistas() {
 
   // Verificar conquistas periodicamente (a cada 5 minutos para reduzir carga)
   useEffect(() => {
-    // Verificar uma vez ao montar com delay para não sobrecarregar na inicialização
+    // Verificar uma vez ao montar com delay menor para não sobrecarregar na inicialização
     const initialTimeout = setTimeout(() => {
       verificarConquistas();
-    }, 5000); // Delay de 5 segundos na inicialização
+    }, 2000); // Delay de 2 segundos na inicialização (reduzido de 5s)
     
     const interval = setInterval(() => {
       verificarConquistas();
