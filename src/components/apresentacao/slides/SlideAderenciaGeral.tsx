@@ -59,7 +59,6 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
               style={{ 
                 width: '380px', 
                 height: '380px',
-                overflow: 'hidden',
               }}
             >
               <svg
@@ -99,14 +98,19 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '65%',
-                  height: '65%',
-                  overflow: 'hidden',
-                  maxWidth: '65%',
-                  maxHeight: '65%',
+                  width: '70%',
+                  height: '70%',
+                  pointerEvents: 'none',
                 }}
               >
-                <span style={buildCircleTextStyle(semana.aderencia, 6.5, 3.8)}>
+                <span 
+                  style={{
+                    ...buildCircleTextStyle(semana.aderencia, 6.5, 3.8),
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'center',
+                  }}
+                >
                   {semana.aderencia.toFixed(1)}%
                 </span>
               </div>

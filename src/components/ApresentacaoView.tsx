@@ -574,8 +574,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      // Margens de 8mm (segurança para impressão)
-      const margin = 8;
+      // Margens reduzidas para maximizar espaço
+      const margin = 5;
       const contentWidth = pdfWidth - (margin * 2);
       const contentHeight = pdfHeight - (margin * 2);
 
@@ -584,64 +584,87 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       for (let i = 0; i < elementos.length; i++) {
         const slide = elementos[i] as HTMLElement;
 
-        // Container temporário para renderização com overflow hidden para evitar elementos saindo
+        // Criar um container isolado para renderização
         const printContainer = document.createElement('div');
+        printContainer.id = `pdf-container-${i}`;
         printContainer.style.cssText = `
-          position: absolute;
-          left: -99999px;
-          top: 0;
-          width: ${SLIDE_WIDTH}px;
-          height: ${SLIDE_HEIGHT}px;
-          overflow: hidden;
-          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-          font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-          box-sizing: border-box;
-        `;
-
-        const clone = slide.cloneNode(true) as HTMLElement;
-        clone.style.cssText = `
-          width: ${SLIDE_WIDTH}px;
-          height: ${SLIDE_HEIGHT}px;
-          position: relative;
+          position: fixed;
           left: 0;
           top: 0;
-          opacity: 1;
-          visibility: visible;
-          display: flex;
-          flex-direction: column;
-          transform: none;
-          transform-origin: top left;
-          overflow: hidden;
+          width: ${SLIDE_WIDTH}px;
+          height: ${SLIDE_HEIGHT}px;
+          margin: 0;
+          padding: 0;
+          background: #1e40af;
+          font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
           box-sizing: border-box;
-          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+          z-index: 999999;
+          overflow: visible;
         `;
 
-        // Garantir visibilidade e corrigir estilos de todos os elementos
+        // Clonar o slide profundamente
+        const clone = slide.cloneNode(true) as HTMLElement;
+        
+        // Remover classes que podem interferir
+        clone.className = clone.className.replace(/opacity-\d+|hidden|invisible/g, '').trim();
+        
+        // Aplicar estilos críticos diretamente
+        clone.style.cssText = `
+          position: relative !important;
+          width: ${SLIDE_WIDTH}px !important;
+          height: ${SLIDE_HEIGHT}px !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          display: flex !important;
+          flex-direction: column !important;
+          transform: none !important;
+          transform-origin: top left !important;
+          overflow: visible !important;
+          box-sizing: border-box !important;
+          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+          color: #ffffff !important;
+        `;
+
+        // Processar todos os elementos do clone
         const allElements = clone.querySelectorAll('*');
         allElements.forEach((el: any) => {
-          if (el.style) {
-            if (el.style.opacity === '0') el.style.opacity = '1';
-            if (el.style.visibility === 'hidden') el.style.visibility = 'visible';
-            if (el.style.display === 'none') el.style.display = '';
-            
-            // Remover transforms que podem causar distorção
-            if (el.style.transform && el.style.transform.includes('scale')) {
-              el.style.transform = el.style.transform.replace(/scale\([^)]*\)/g, '');
-            }
-            
-            // Garantir que containers de texto tenham overflow hidden
-            if (el.classList && (
-              el.classList.contains('absolute') || 
-              el.classList.contains('relative')
-            )) {
+          if (el.tagName && el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE') {
+            // Garantir visibilidade
+            if (el.style) {
               const computedStyle = window.getComputedStyle(el);
-              if (computedStyle.position === 'absolute' || computedStyle.position === 'relative') {
-                // Verificar se é um container de texto dentro de gráfico
-                const hasText = el.querySelector && el.querySelector('span, p, div');
-                if (hasText && el.style.width && el.style.width.includes('%')) {
-                  el.style.overflow = 'hidden';
-                  el.style.textOverflow = 'ellipsis';
+              
+              // Forçar visibilidade
+              if (computedStyle.opacity === '0' || el.style.opacity === '0') {
+                el.style.opacity = '1';
+              }
+              if (computedStyle.visibility === 'hidden' || el.style.visibility === 'hidden') {
+                el.style.visibility = 'visible';
+              }
+              if (computedStyle.display === 'none' || el.style.display === 'none') {
+                el.style.display = '';
+              }
+              
+              // Remover transforms problemáticos
+              if (el.style.transform) {
+                const transform = el.style.transform;
+                if (transform.includes('scale(')) {
+                  el.style.transform = transform.replace(/scale\([^)]*\)/g, '').trim() || 'none';
                 }
+              }
+              
+              // Garantir que textos sejam visíveis
+              if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'DIV') {
+                el.style.color = el.style.color || '#ffffff';
+                el.style.opacity = '1';
+                el.style.visibility = 'visible';
+              }
+              
+              // Garantir que SVGs sejam visíveis
+              if (el.tagName === 'SVG' || el.tagName === 'CIRCLE' || el.tagName === 'PATH') {
+                el.style.opacity = '1';
+                el.style.visibility = 'visible';
               }
             }
           }
@@ -650,95 +673,108 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         printContainer.appendChild(clone);
         document.body.appendChild(printContainer);
 
-        // Aguardar renderização completa de fontes e elementos
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Aguardar renderização completa
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
-        // Renderizar com html2canvas em alta qualidade
+        // Renderizar com html2canvas - configuração otimizada
         const canvas = await html2canvas(clone, {
           scale: 2,
           useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#1e40af', // Cor mais escura do gradiente para evitar bordas brancas
+          allowTaint: false,
+          backgroundColor: null, // Não usar backgroundColor para capturar o gradiente real
           width: SLIDE_WIDTH,
           height: SLIDE_HEIGHT,
           windowWidth: SLIDE_WIDTH,
           windowHeight: SLIDE_HEIGHT,
           logging: IS_DEV,
-          imageTimeout: 0,
+          imageTimeout: 15000,
           removeContainer: false,
-          foreignObjectRendering: false,
-          scrollX: 0,
-          scrollY: 0,
-          x: 0,
-          y: 0,
+          foreignObjectRendering: true, // Habilitar para melhor renderização de textos
           onclone: (clonedDoc: Document) => {
-            // Garantir que fontes sejam carregadas no clone
+            // Injetar estilos globais no documento clonado
             const style = clonedDoc.createElement('style');
             style.textContent = `
               * {
                 font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-                box-sizing: border-box;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+                box-sizing: border-box !important;
               }
-              body, html {
-                margin: 0;
-                padding: 0;
-                overflow: hidden;
-                width: ${SLIDE_WIDTH}px;
-                height: ${SLIDE_HEIGHT}px;
+              html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: ${SLIDE_WIDTH}px !important;
+                height: ${SLIDE_HEIGHT}px !important;
+                overflow: visible !important;
+                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+              }
+              body > * {
+                opacity: 1 !important;
+                visibility: visible !important;
               }
             `;
             clonedDoc.head.appendChild(style);
             
-            // Garantir que o body tenha o background correto
+            // Garantir que o body tenha o background
             const body = clonedDoc.body;
             if (body) {
               body.style.cssText = `
-                width: ${SLIDE_WIDTH}px;
-                height: ${SLIDE_HEIGHT}px;
-                margin: 0;
-                padding: 0;
-                overflow: hidden;
-                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+                width: ${SLIDE_WIDTH}px !important;
+                height: ${SLIDE_HEIGHT}px !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
               `;
             }
+            
+            // Garantir que todos os elementos visíveis estejam realmente visíveis
+            const allClonedElements = clonedDoc.querySelectorAll('*');
+            allClonedElements.forEach((el: any) => {
+              if (el.style) {
+                if (el.style.opacity === '0') el.style.opacity = '1';
+                if (el.style.visibility === 'hidden') el.style.visibility = 'visible';
+                if (el.style.display === 'none') el.style.display = '';
+              }
+            });
           },
-          ignoreElements: (element: Element) =>
-            element.tagName === 'IFRAME' || element.tagName === 'OBJECT',
+          ignoreElements: (element: Element) => {
+            // Ignorar apenas elementos realmente problemáticos
+            return element.tagName === 'IFRAME' || 
+                   element.tagName === 'OBJECT' ||
+                   (element as HTMLElement).style?.display === 'none';
+          },
         });
 
+        // Remover container após captura
         document.body.removeChild(printContainer);
 
-        // Verificar dimensões do canvas e ajustar se necessário
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
+        // Criar canvas final com dimensões exatas e background garantido
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = SLIDE_WIDTH * 2;
+        finalCanvas.height = SLIDE_HEIGHT * 2;
+        const ctx = finalCanvas.getContext('2d');
         
-        // Se o canvas não tiver as dimensões corretas, criar um novo com as dimensões exatas
-        let finalCanvas = canvas;
-        if (canvasWidth !== SLIDE_WIDTH * 2 || canvasHeight !== SLIDE_HEIGHT * 2) {
-          const correctedCanvas = document.createElement('canvas');
-          correctedCanvas.width = SLIDE_WIDTH * 2;
-          correctedCanvas.height = SLIDE_HEIGHT * 2;
-          const ctx = correctedCanvas.getContext('2d');
-          if (ctx) {
-            // Preencher com background
-            ctx.fillStyle = '#1e40af';
-            ctx.fillRect(0, 0, correctedCanvas.width, correctedCanvas.height);
-            // Desenhar o canvas original centralizado
-            ctx.drawImage(canvas, 0, 0);
-          }
-          finalCanvas = correctedCanvas;
+        if (ctx) {
+          // Preencher com o gradiente como background
+          const gradient = ctx.createLinearGradient(0, 0, finalCanvas.width, finalCanvas.height);
+          gradient.addColorStop(0, '#2563eb');
+          gradient.addColorStop(1, '#1e40af');
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+          
+          // Desenhar o canvas capturado
+          ctx.drawImage(canvas, 0, 0, finalCanvas.width, finalCanvas.height);
         }
 
-        // Converter para imagem de alta qualidade
-        const imgData = finalCanvas.toDataURL('image/jpeg', 0.98);
+        // Converter para imagem PNG para melhor qualidade (sem compressão)
+        const imgData = finalCanvas.toDataURL('image/png', 1.0);
 
         if (i > 0) {
           pdf.addPage();
         }
 
-        // Adicionar imagem com margens, mantendo proporção
+        // Calcular dimensões mantendo proporção
         const imgAspectRatio = SLIDE_WIDTH / SLIDE_HEIGHT;
         const pdfAspectRatio = contentWidth / contentHeight;
         
@@ -757,9 +793,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           finalX = margin + (contentWidth - finalWidth) / 2;
         }
 
+        // Adicionar imagem ao PDF
         pdf.addImage(
           imgData,
-          'JPEG',
+          'PNG',
           finalX,
           finalY,
           finalWidth,

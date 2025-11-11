@@ -94,7 +94,6 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
                     style={{ 
                       width: '240px', 
                       height: '240px',
-                      overflow: 'hidden',
                     }}
                   >
                     <svg
@@ -127,14 +126,19 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        width: '60%',
-                        height: '60%',
-                        overflow: 'hidden',
-                        maxWidth: '60%',
-                        maxHeight: '60%',
+                        width: '65%',
+                        height: '65%',
+                        pointerEvents: 'none',
                       }}
                     >
-                      <span style={buildCircleTextStyle(semana.aderencia, 4.2, 2.6)}>
+                      <span 
+                        style={{
+                          ...buildCircleTextStyle(semana.aderencia, 4.2, 2.6),
+                          display: 'block',
+                          width: '100%',
+                          textAlign: 'center',
+                        }}
+                      >
                         {semana.aderencia.toFixed(1)}%
                       </span>
                     </div>

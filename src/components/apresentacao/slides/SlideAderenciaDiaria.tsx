@@ -55,7 +55,6 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
           style={{ 
             width: '140px', 
             height: '140px',
-            overflow: 'hidden',
           }}
         >
           <svg
@@ -88,14 +87,19 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              width: '55%',
-              height: '55%',
-              overflow: 'hidden',
-              maxWidth: '55%',
-              maxHeight: '55%',
+              width: '60%',
+              height: '60%',
+              pointerEvents: 'none',
             }}
           >
-            <span style={buildCircleTextStyle(dia.aderencia, 3.0, 2.2)}>
+            <span 
+              style={{
+                ...buildCircleTextStyle(dia.aderencia, 3.0, 2.2),
+                display: 'block',
+                width: '100%',
+                textAlign: 'center',
+              }}
+            >
               {dia.aderencia.toFixed(1)}%
             </span>
           </div>

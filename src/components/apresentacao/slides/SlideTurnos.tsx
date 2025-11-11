@@ -78,7 +78,6 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                     style={{ 
                       width: '190px', 
                       height: '190px',
-                      overflow: 'hidden',
                     }}
                   >
                     <svg
@@ -111,14 +110,19 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        width: '58%',
-                        height: '58%',
-                        overflow: 'hidden',
-                        maxWidth: '58%',
-                        maxHeight: '58%',
+                        width: '62%',
+                        height: '62%',
+                        pointerEvents: 'none',
                       }}
                     >
-                      <span style={buildCircleTextStyle(semana.aderencia, 3.6, 2.5)}>
+                      <span 
+                        style={{
+                          ...buildCircleTextStyle(semana.aderencia, 3.6, 2.5),
+                          display: 'block',
+                          width: '100%',
+                          textAlign: 'center',
+                        }}
+                      >
                         {semana.aderencia.toFixed(1)}%
                       </span>
                     </div>
