@@ -20,18 +20,15 @@ export async function GET(req: NextRequest) {
       targetUrl = `${origin}${targetUrl.startsWith('/') ? '' : '/'}${targetUrl}`;
     }
 
-    // Configurações recomendadas pelo @sparticuz/chromium para serverless
+    // Configuração recomendada pelo @sparticuz/chromium para serverless (Vercel/AWS Lambda)
     // https://github.com/Sparticuz/chromium#puppeteer-core
-    chromiumP.setHeadlessMode = true;
-    chromiumP.setGraphicsMode = false;
-
     const executablePath = await chromiumP.executablePath();
+    
     const browser = await puppeteer.launch({
       args: chromiumP.args,
+      defaultViewport: chromiumP.defaultViewport,
       executablePath: executablePath || undefined,
       headless: chromiumP.headless,
-      defaultViewport: { width: 1680, height: 1188 },
-      env: { ...process.env, ...chromiumP.environment || {} },
     });
 
     try {
