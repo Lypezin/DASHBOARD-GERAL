@@ -414,10 +414,9 @@ export const criarSlideAderenciaDiaria = (
                   {
                     text: 'Diferenças',
                     fontSize: 14,
-                    color: COR_TEXTO,
+                    color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 3],
-                    color: '#f3f4f6', // Cor mais clara para simular opacity
                   },
                   {
                     text: diferencas.diferencaHoras,
