@@ -5,11 +5,22 @@ import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+export interface RankingUsuario {
+  posicao: number;
+  user_id: string;
+  nome_usuario: string;
+  total_conquistas: number;
+  total_pontos: number;
+  conquistas_recentes: string[];
+}
+
 export function useConquistas() {
   const [conquistas, setConquistas] = useState<Conquista[]>([]);
   const [conquistasNovas, setConquistasNovas] = useState<ConquistaNova[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalPontos, setTotalPontos] = useState(0);
+  const [ranking, setRanking] = useState<RankingUsuario[]>([]);
+  const [loadingRanking, setLoadingRanking] = useState(false);
 
   // Carregar conquistas do usuário
   const carregarConquistas = useCallback(async () => {
@@ -90,6 +101,57 @@ export function useConquistas() {
     setConquistasNovas(prev => prev.filter(c => c.conquista_codigo !== codigo));
   }, []);
 
+  // Verificar conquistas baseadas em dados do dashboard
+  const verificarConquistasDashboard = useCallback(async (
+    aderenciaGeral?: number,
+    taxaCompletude?: number,
+    utrGeral?: number
+  ) => {
+    try {
+      const { data, error } = await supabase.rpc('verificar_conquistas_dashboard', {
+        p_aderencia_geral: aderenciaGeral ?? null,
+        p_taxa_completude: taxaCompletude ?? null,
+        p_utr_geral: utrGeral ?? null
+      });
+      
+      if (error) {
+        safeLog.warn('Erro ao verificar conquistas do dashboard:', error);
+        return;
+      }
+
+      if (data && Array.isArray(data) && data.length > 0) {
+        setConquistasNovas(prev => [...prev, ...(data as ConquistaNova[])]);
+        // Recarregar lista de conquistas
+        await carregarConquistas();
+      }
+    } catch (err) {
+      safeLog.error('Erro inesperado ao verificar conquistas do dashboard:', err);
+    }
+  }, [carregarConquistas]);
+
+  // Carregar ranking de usuários
+  const carregarRanking = useCallback(async () => {
+    setLoadingRanking(true);
+    try {
+      const { data, error } = await supabase.rpc('ranking_conquistas');
+      
+      if (error) {
+        safeLog.error('Erro ao carregar ranking:', error);
+        setRanking([]);
+        return;
+      }
+
+      if (data) {
+        setRanking(data as RankingUsuario[]);
+      }
+    } catch (err) {
+      safeLog.error('Erro inesperado ao carregar ranking:', err);
+      setRanking([]);
+    } finally {
+      setLoadingRanking(false);
+    }
+  }, []);
+
   // Carregar conquistas ao montar
   useEffect(() => {
     carregarConquistas();
@@ -127,10 +189,14 @@ export function useConquistas() {
     conquistasNovas,
     loading,
     stats,
+    ranking,
+    loadingRanking,
     carregarConquistas,
     verificarConquistas,
+    verificarConquistasDashboard,
     marcarVisualizada,
-    removerConquistaNova
+    removerConquistaNova,
+    carregarRanking
   };
 }
 

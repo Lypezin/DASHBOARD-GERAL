@@ -147,7 +147,19 @@ export default function DashboardPage() {
   const prioridadeData = activeTab === 'prioridade' ? tabData as EntregadoresData : null;
   
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
-  const { conquistas, conquistasNovas, loading: loadingConquistas, stats, verificarConquistas, marcarVisualizada, removerConquistaNova } = useConquistas();
+  const { 
+    conquistas, 
+    conquistasNovas, 
+    loading: loadingConquistas, 
+    stats, 
+    ranking,
+    loadingRanking,
+    verificarConquistas, 
+    verificarConquistasDashboard,
+    marcarVisualizada, 
+    removerConquistaNova,
+    carregarRanking
+  } = useConquistas();
 
   // Ajustar automaticamente o ano da evolução para o mais recente disponível quando o atual não existir
   useEffect(() => {
@@ -175,6 +187,27 @@ export default function DashboardPage() {
       return () => clearTimeout(timeoutId);
     }
   }, [filters.ano, filters.praca, filters.semana]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Verificar conquistas baseadas em dados do dashboard quando estiverem disponíveis
+  useEffect(() => {
+    if (activeTab === 'dashboard' && aderenciaGeral) {
+      // Calcular taxa de completude (se disponível)
+      const taxaCompletude = totals?.corridas_completadas && totals?.corridas_ofertadas
+        ? (totals.corridas_completadas / totals.corridas_ofertadas) * 100
+        : undefined;
+      
+      // Verificar conquistas do dashboard
+      const timeoutId = setTimeout(() => {
+        verificarConquistasDashboard(
+          aderenciaGeral.aderencia_percentual,
+          taxaCompletude,
+          undefined // UTR precisa ser calculado separadamente
+        );
+      }, 1000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [activeTab, aderenciaGeral, totals, verificarConquistasDashboard]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lógica para buscar dados do usuário
   useEffect(() => {
@@ -244,7 +277,10 @@ export default function DashboardPage() {
         <ConquistasModal
           conquistas={conquistas}
           stats={stats}
+          ranking={ranking}
+          loadingRanking={loadingRanking}
           onClose={() => setShowConquistasModal(false)}
+          onLoadRanking={carregarRanking}
         />
       )}
       <div className="mx-auto max-w-[1920px] px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">

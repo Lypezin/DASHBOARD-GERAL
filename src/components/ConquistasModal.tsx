@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import type { Conquista } from '@/types/conquistas';
+import type { RankingUsuario } from '@/hooks/useConquistas';
 import ConquistaCard from './ConquistaCard';
 
 interface ConquistasModalProps {
@@ -10,13 +11,32 @@ interface ConquistasModalProps {
     pontos: number;
     progresso: number;
   };
+  ranking?: RankingUsuario[];
+  loadingRanking?: boolean;
   onClose: () => void;
+  onLoadRanking?: () => void;
   loading?: boolean;
 }
 
-export default function ConquistasModal({ conquistas, stats, onClose, loading = false }: ConquistasModalProps) {
+export default function ConquistasModal({ 
+  conquistas, 
+  stats, 
+  ranking = [],
+  loadingRanking = false,
+  onClose, 
+  onLoadRanking,
+  loading = false 
+}: ConquistasModalProps) {
+  const [abaAtiva, setAbaAtiva] = useState<'conquistas' | 'ranking'>('conquistas');
   const [filtro, setFiltro] = useState<'todas' | 'conquistadas' | 'pendentes'>('todas');
   const [categoriaFiltro, setCategoriaFiltro] = useState<string | null>(null);
+
+  // Carregar ranking quando a aba for ativada
+  useEffect(() => {
+    if (abaAtiva === 'ranking' && onLoadRanking && ranking.length === 0 && !loadingRanking) {
+      onLoadRanking();
+    }
+  }, [abaAtiva, onLoadRanking, ranking.length, loadingRanking]);
 
   // Funções memoizadas com useCallback
   const getRaridadeColor = useCallback((raridade: string) => {
@@ -104,7 +124,32 @@ export default function ConquistasModal({ conquistas, stats, onClose, loading = 
             </div>
           </div>
 
-          {/* Filtros */}
+          {/* Abas */}
+          <div className="mt-4 flex gap-2 border-b border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setAbaAtiva('conquistas')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                abaAtiva === 'conquistas'
+                  ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
+                  : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              🏆 Minhas Conquistas
+            </button>
+            <button
+              onClick={() => setAbaAtiva('ranking')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                abaAtiva === 'ranking'
+                  ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
+                  : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              📊 Ranking
+            </button>
+          </div>
+
+          {/* Filtros - apenas na aba de conquistas */}
+          {abaAtiva === 'conquistas' && (
           <div className="mt-4 flex flex-wrap gap-2">
             {/* Filtro de status */}
             <div className="flex gap-2">
@@ -150,9 +195,12 @@ export default function ConquistasModal({ conquistas, stats, onClose, loading = 
               ))}
             </div>
           </div>
+          )}
         </div>
 
-        {/* Lista de conquistas */}
+        {/* Conteúdo das abas */}
+        {abaAtiva === 'conquistas' ? (
+        /* Lista de conquistas */
         <div 
           className="overflow-y-auto p-6 scrollbar-thin" 
           style={{ 
@@ -194,6 +242,100 @@ export default function ConquistasModal({ conquistas, stats, onClose, loading = 
             </div>
           )}
         </div>
+        ) : (
+        /* Ranking de usuários */
+        <div 
+          className="overflow-y-auto p-6 scrollbar-thin" 
+          style={{ 
+            maxHeight: 'calc(90vh - 300px)',
+            willChange: 'scroll-position',
+            transform: 'translateZ(0)',
+            WebkitOverflowScrolling: 'touch'
+          }}
+        >
+          {loadingRanking && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+            </div>
+          )}
+          
+          {!loadingRanking && ranking.length === 0 && (
+            <div className="text-center py-12">
+              <span className="text-6xl mb-4 block">📊</span>
+              <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
+                Nenhum usuário no ranking ainda
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                Seja o primeiro a conquistar!
+              </p>
+            </div>
+          )}
+
+          {!loadingRanking && ranking.length > 0 && (
+            <div className="space-y-3">
+              {ranking.map((usuario, index) => {
+                const isTop3 = usuario.posicao <= 3;
+                const medalha = usuario.posicao === 1 ? '🥇' : usuario.posicao === 2 ? '🥈' : usuario.posicao === 3 ? '🥉' : null;
+                
+                return (
+                  <div
+                    key={usuario.user_id}
+                    className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
+                      isTop3
+                        ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-2 border-yellow-300 dark:border-yellow-700 shadow-lg'
+                        : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-gray-700 hover:shadow-md'
+                    }`}
+                  >
+                    {/* Posição */}
+                    <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                      isTop3
+                        ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }`}>
+                      {medalha || usuario.posicao}
+                    </div>
+
+                    {/* Informações do usuário */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className={`font-bold text-lg truncate ${
+                          isTop3
+                            ? 'text-gray-900 dark:text-white'
+                            : 'text-gray-800 dark:text-gray-200'
+                        }`}>
+                          {usuario.nome_usuario}
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <span className="font-semibold">{usuario.total_conquistas}</span>
+                          <span>conquistas</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="font-semibold">{usuario.total_pontos}</span>
+                          <span>pontos</span>
+                        </span>
+                      </div>
+                      {usuario.conquistas_recentes && usuario.conquistas_recentes.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {usuario.conquistas_recentes.slice(0, 3).map((conquista, idx) => (
+                            <span
+                              key={idx}
+                              className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                            >
+                              {conquista}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        )}
       </div>
     </div>
   );
