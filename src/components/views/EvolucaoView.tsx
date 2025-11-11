@@ -4,6 +4,20 @@ import { EvolucaoMensal, EvolucaoSemanal } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { registerChartJS } from '@/lib/chartConfig';
 import { safeLog } from '@/lib/errorHandler';
+import {
+  CHART_CONSTANTS,
+  formatTooltipValue,
+  formatVariation,
+  calculateVariationPercent,
+  calculateYAxisRange,
+  translateMonth,
+  generateMonthlyLabels,
+  generateWeeklyLabels,
+  alignDatasetData,
+  padDatasetToMatchLabels,
+  normalizeDatasetValues,
+  adjustColorOpacity,
+} from '@/utils/charts';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -157,75 +171,22 @@ function EvolucaoView({
     }
   }, [viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado]);
 
-  // Função para traduzir meses para português
-  const traduzirMes = useCallback((mesNome: string): string => {
-    const meses: Record<string, string> = {
-      'January': 'Janeiro',
-      'February': 'Fevereiro',
-      'March': 'Março',
-      'April': 'Abril',
-      'May': 'Maio',
-      'June': 'Junho',
-      'July': 'Julho',
-      'August': 'Agosto',
-      'September': 'Setembro',
-      'October': 'Outubro',
-      'November': 'Novembro',
-      'December': 'Dezembro',
-      'January ': 'Janeiro',
-      'February ': 'Fevereiro',
-      'March ': 'Março',
-      'April ': 'Abril',
-      'May ': 'Maio',
-      'June ': 'Junho',
-      'July ': 'Julho',
-      'August ': 'Agosto',
-      'September ': 'Setembro',
-      'October ': 'Outubro',
-      'November ': 'Novembro',
-      'December ': 'Dezembro',
-    };
-    return meses[mesNome] || mesNome;
-  }, []);
+  // Usar helper de tradução de meses
+  const traduzirMes = useCallback((mesNome: string): string => translateMonth(mesNome), []);
 
   // Criar baseLabels uma vez para todas as métricas (garantir consistência)
   const baseLabels = useMemo(() => {
-    // Filtrar dados com semana/mês válidos e gerar labels
     const labels = viewMode === 'mensal'
-      ? dadosAtivos
-          .filter(d => d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
-          .sort((a, b) => {
-            if ((a as EvolucaoMensal).ano !== (b as EvolucaoMensal).ano) {
-              return (a as EvolucaoMensal).ano - (b as EvolucaoMensal).ano;
-            }
-            return (a as EvolucaoMensal).mes - (b as EvolucaoMensal).mes;
-          })
-          .map(d => traduzirMes((d as EvolucaoMensal).mes_nome))
-      : dadosAtivos
-          .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
-          .sort((a, b) => {
-            if ((a as EvolucaoSemanal).ano !== (b as EvolucaoSemanal).ano) {
-              return (a as EvolucaoSemanal).ano - (b as EvolucaoSemanal).ano;
-            }
-            return (a as EvolucaoSemanal).semana - (b as EvolucaoSemanal).semana;
-          })
-          .map(d => {
-            const semana = (d as EvolucaoSemanal).semana;
-            return semana != null && semana !== undefined ? `S${semana}` : null;
-          })
-          .filter((label): label is string => label !== null);
+      ? generateMonthlyLabels(dadosAtivos as EvolucaoMensal[])
+      : generateWeeklyLabels(dadosAtivos as EvolucaoSemanal[]);
     
-    if (IS_DEV && viewMode === 'semanal') {
-      const semanas = dadosAtivos
-        .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
-        .map(d => (d as EvolucaoSemanal).semana)
-        .filter((s): s is number => s != null && s !== undefined)
-        .sort((a, b) => a - b);
-      safeLog.info('📊 Semanas processadas:', { count: semanas.length, semanas, min: semanas.length > 0 ? Math.min(...semanas) : 'N/A', max: semanas.length > 0 ? Math.max(...semanas) : 'N/A', labelsCount: labels.length, labels });
+    // Log apenas se houver problema (semanas faltantes ou dados inconsistentes)
+    if (IS_DEV && viewMode === 'semanal' && labels.length === 0 && dadosAtivos.length > 0) {
+      safeLog.warn('⚠️ Nenhuma semana válida encontrada nos dados de evolução semanal');
     }
     
     return labels;
-  }, [dadosAtivos, viewMode, traduzirMes]);
+  }, [dadosAtivos, viewMode]);
 
   // Criar um mapa de dados ordenados por label para facilitar o acesso
   const dadosPorLabel = useMemo(() => {
@@ -490,70 +451,17 @@ function EvolucaoView({
         // IMPORTANTE: Garantir que os dados estejam sempre alinhados com chartBaseLabels
         let data: (number | null)[] = [];
         
-        // Garantir alinhamento correto dos dados com chartBaseLabels
-        if (config.labels.length === chartBaseLabels.length && 
-            config.labels.every((label, idx) => label === chartBaseLabels[idx])) {
-          // Labels já estão alinhados, usar dados diretamente
-          data = (config.data || []) as (number | null)[];
-        } else {
-          // Labels não estão alinhados, criar mapa e realinhar
-          const labelMap = new Map<string, number | null>();
-          config.labels.forEach((label, idx) => {
-            const value = config.data[idx];
-            labelMap.set(label, value != null && !isNaN(value) && isFinite(value) ? Number(value) : null);
-          });
-          // Mapear para chartBaseLabels
-          data = chartBaseLabels.map(label => {
-            const value = labelMap.get(label);
-            return value != null ? value : null;
-          });
-        }
-        
-        // Garantir que o tamanho está correto
-        if (data.length !== chartBaseLabels.length) {
-          if (IS_DEV) {
-            safeLog.warn(`⚠️ Dataset ${config.label} tem tamanho incorreto: ${data.length} vs ${chartBaseLabels.length}`);
-          }
-          // Preencher ou truncar para corresponder
-          if (data.length < chartBaseLabels.length) {
-            data = [...data, ...Array(chartBaseLabels.length - data.length).fill(null)];
-          } else {
-            data = data.slice(0, chartBaseLabels.length);
-          }
-        }
-        
-        // Garantir que todos os valores são números válidos ou null
-        // IMPORTANTE: Não converter 0 para null, pois 0 é um valor válido
-        data = data.map((value: any) => {
-          if (value == null || value === undefined) {
-            return null; // Chart.js vai tratar null como gap
-          }
-          const numValue = Number(value);
-          // Verificar se é um número válido
-          if (isNaN(numValue) || !isFinite(numValue)) {
-            return null;
-          }
-          // Retornar o valor numérico (incluindo 0, que é válido)
-          return numValue;
-        });
+        // Alinhar dados com labels base usando helpers
+        data = alignDatasetData(config.data as (number | null)[], config.labels, chartBaseLabels);
+        data = padDatasetToMatchLabels(data, chartBaseLabels.length);
+        data = normalizeDatasetValues(data);
         
         // ADICIONAR OFFSET VISUAL para linhas com valores idênticos
-        // IMPORTANTE: NÃO aplicar offset para Horas (usa eixo diferente e valores são muito maiores)
-        // Isso permite ver linhas separadas mesmo quando os valores são iguais
-        // Usar o valor máximo global para calcular offsets consistentes
         if (data.length > 0 && data.some(v => v != null) && config.yAxisID === 'y' && globalMaxValue > 0 && !config.label.includes('Horas')) {
-            // Offset baseado no índice para diferenciar visualmente
-            // Usar 5% do valor máximo global como offset base para melhor visibilidade
-            // Isso garante que as linhas sejam claramente separadas mesmo quando valores são idênticos
-            const baseOffset = globalMaxValue * 0.05; // 5% do valor máximo global
-            const offsets = [
-              0,                    // Completadas: sem offset (linha base)
-              baseOffset * 0.5,     // Ofertadas: +2.5% do máximo global
-              baseOffset,           // Aceitas: +5% do máximo global
-            ];
+          const baseOffset = globalMaxValue * CHART_CONSTANTS.VISUAL_OFFSET_BASE_PERCENT;
+          const offsets = [0, baseOffset * 0.5, baseOffset];
           const offset = offsets[index] || 0;
           
-          // Aplicar offset apenas se o valor não for zero
           if (offset > 0) {
             data = data.map((value: number | null) => {
               if (value == null || value === 0) return value;
@@ -563,55 +471,18 @@ function EvolucaoView({
         }
         // IMPORTANTE: Sempre renderizar o dataset, mesmo se todos os valores forem 0
         // O Chart.js deve mostrar a linha mesmo com valores zero
-        const hasValidData = data.some(v => v != null && v !== undefined);
-
-        // IMPORTANTE: Sempre criar o dataset, mesmo se todos os valores forem 0 ou null
-        // O Chart.js deve renderizar a linha mesmo com valores zero
         // Usar ordem diferente para cada dataset para garantir que todos apareçam
         const order = index; // Ordem baseada no índice para garantir renderização
         
-        // Para linhas com valores idênticos, usar estilos MUITO diferentes para diferenciá-las
-        // Usar borderWidth e pointRadius diferentes para cada linha para garantir visibilidade
-        const borderWidths = [5, 4, 4, 3, 4]; // Larguras diferentes e mais grossas
-        const pointRadii = isSemanal ? [7, 6, 6, 5, 6] : [10, 9, 9, 8, 9]; // Pontos maiores e diferentes
-        const borderWidth = borderWidths[index] || 4;
-        const pointRadius = pointRadii[index] || (isSemanal ? 6 : 9);
+        // Usar constantes para estilos visuais
+        const borderWidth = CHART_CONSTANTS.BORDER_WIDTHS[index] || 4;
+        const pointRadius = isSemanal 
+          ? (CHART_CONSTANTS.POINT_RADIUS_SEMANAL[index] || 6)
+          : (CHART_CONSTANTS.POINT_RADIUS_MENSAL[index] || 9);
+        const dashPattern = CHART_CONSTANTS.DASH_PATTERNS[index] || [];
+        const opacity = CHART_CONSTANTS.OPACITIES[index] || 1.0;
         
-        // Usar estilos de linha MUITO diferentes para diferenciar quando valores são iguais
-        // Padrões mais distintos para melhor visibilidade
-        const dashPatterns = [
-          [], // Sólida (Completadas)
-          [8, 4], // Tracejada média (Aceitas)
-          [15, 5], // Tracejada longa (Ofertadas)
-          [], // Sólida (Horas)
-        ];
-        
-        // Usar opacidades ligeiramente diferentes para linhas sobrepostas
-        const opacities = [1.0, 0.95, 0.90, 1.0, 1.0]; // Pequenas diferenças de opacidade
-        const opacity = opacities[index] || 1.0;
-        
-        // Função para ajustar opacidade de cor (suporta rgba, rgb e hex)
-        const adjustColorOpacity = (color: string, newOpacity: number): string => {
-          // Se já é rgba, substituir opacidade
-          if (color.startsWith('rgba(')) {
-            return color.replace(/,\s*[\d.]+\)$/, `, ${newOpacity})`);
-          }
-          // Se é rgb, converter para rgba
-          if (color.startsWith('rgb(')) {
-            return color.replace('rgb(', 'rgba(').replace(')', `, ${newOpacity})`);
-          }
-          // Se é hex, converter para rgba (simplificado - assume formato #RRGGBB)
-          if (color.startsWith('#')) {
-            const r = parseInt(color.slice(1, 3), 16);
-            const g = parseInt(color.slice(3, 5), 16);
-            const b = parseInt(color.slice(5, 7), 16);
-            return `rgba(${r}, ${g}, ${b}, ${newOpacity})`;
-          }
-          // Se não conseguir converter, retornar original
-          return color;
-        };
-        
-        // Ajustar cor da borda com opacidade para melhor diferenciação
+        // Ajustar cores com opacidade
         const borderColorWithOpacity = adjustColorOpacity(config.borderColor, opacity);
         const pointColorWithOpacity = adjustColorOpacity(config.pointColor, opacity);
         
@@ -635,7 +506,7 @@ function EvolucaoView({
           pointHoverBorderWidth: 6,
           pointStyle: 'circle' as const,
           borderWidth: borderWidth, // Largura variável para cada linha
-          borderDash: dashPatterns[index] || [], // Padrão de linha diferente para cada dataset
+          borderDash: dashPattern, // Padrão de linha diferente para cada dataset
           fill: false, // Não preencher para não esconder outras linhas
           spanGaps: false, // Não conectar gaps - mostrar gaps como null
           showLine: true, // SEMPRE mostrar a linha, mesmo com valores zero
@@ -654,7 +525,7 @@ function EvolucaoView({
               return borderColorWithOpacity;
             },
             borderWidth: borderWidth,
-            borderDash: dashPatterns[index] || [],
+            borderDash: dashPattern,
           },
         };
       });
@@ -671,84 +542,15 @@ function EvolucaoView({
         datasets: [],
   };
     }
-  }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels, dadosAtivos.length]); // baseLabels é necessário pois é usado diretamente no retorno
+  }, [selectedMetrics, getMetricConfig, isSemanal, baseLabels, dadosAtivos.length, segundosParaHoras]);
 
-  // Calcular min e max dos dados para ajustar a escala do eixo Y
+  // Calcular min e max dos dados para ajustar a escala do eixo Y usando helper
   const yAxisRange = useMemo(() => {
-    if (!chartData || !chartData.datasets || chartData.datasets.length === 0) {
+    if (!chartData?.datasets || chartData.datasets.length === 0) {
       return { min: undefined, max: undefined };
     }
-
-    // Coletar todos os valores válidos de todos os datasets
-    // IMPORTANTE: Incluir valores zero também, pois são válidos
-    const allValues: number[] = [];
-    chartData.datasets.forEach(dataset => {
-      if (dataset.data && Array.isArray(dataset.data)) {
-        dataset.data.forEach((value: any) => {
-          // Filtrar apenas valores numéricos válidos e finitos (incluindo 0)
-          if (value != null && typeof value === 'number' && !isNaN(value) && isFinite(value)) {
-            allValues.push(value);
-          }
-        });
-      }
-    });
-
-    if (allValues.length === 0) {
-      return { min: undefined, max: undefined };
-    }
-
-    // Ordenar valores para análise
-    const sortedValues = [...allValues].sort((a, b) => a - b);
-    
-    const minValue = Math.min(...sortedValues);
-    const maxValue = Math.max(...sortedValues);
-
-    // Se todos os valores forem zero, definir um range mínimo para visualização
-    if (maxValue === 0 && minValue === 0) {
-      const result = {
-        min: 0,
-        max: 10 // Range mínimo para visualizar a linha em zero
-      };
-      if (IS_DEV) safeLog.info('Y-axis range (todos valores zero):', result);
-      return result;
-    }
-
-    // Se a diferença for muito pequena (menos de 1% do valor máximo), criar uma faixa ao redor
-    if (maxValue - minValue < maxValue * 0.01 && maxValue > 0) {
-      const padding = Math.max(maxValue * 0.1, 1); // Mínimo de 1 para valores pequenos
-      const result = {
-        min: Math.max(0, minValue - padding),
-        max: maxValue + padding
-      };
-      if (IS_DEV) safeLog.info('Y-axis range (valores muito próximos):', { result, minValue, maxValue });
-      return result;
-    }
-
-    // Adicionar padding de 8% acima e abaixo para melhor visualização
-    const range = maxValue - minValue;
-    const padding = Math.max(range * 0.08, maxValue * 0.05); // Garantir padding mínimo
-
-    const result = {
-      min: Math.max(0, minValue - padding),
-      max: maxValue + padding
-    };
-    
-    if (IS_DEV) {
-      safeLog.info('Y-axis range calculado:', { 
-        result, 
-        estatisticas: { 
-          min: minValue, 
-          max: maxValue,
-          totalValues: allValues.length,
-          zeros: allValues.filter(v => v === 0).length,
-          nonZeros: allValues.filter(v => v !== 0).length,
-          firstValues: chartData.datasets[0]?.data?.slice(0, 10)
-        }
-      });
-    }
-
-    return result;
-  }, [chartData]);
+    return calculateYAxisRange(chartData.datasets);
+  }, [chartData?.datasets]);
 
   // Opções do gráfico otimizadas (useMemo para evitar recriação)
   const chartOptions = useMemo(() => ({
@@ -856,35 +658,18 @@ function EvolucaoView({
             return `${icon} ${prefix} ${cleanLabel}`;
           },
           label: function(context: any) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.dataset.label.includes('Horas')) {
-              const horasDecimais = context.parsed.y;
-              const totalSegundos = Math.round(horasDecimais * 3600);
-              label += formatarHorasParaHMS(totalSegundos / 3600);
-            } else if (context.dataset.label.includes('UTR')) {
-              label += context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            } else if (context.dataset.label.includes('Corridas')) {
-              label += context.parsed.y.toLocaleString('pt-BR') + ' corridas';
-            } else {
-              label += context.parsed.y.toLocaleString('pt-BR');
-            }
-            return label;
+            const datasetLabel = context.dataset.label || '';
+            const value = context.parsed.y;
+            const formattedValue = formatTooltipValue(value, datasetLabel, formatarHorasParaHMS);
+            return datasetLabel ? `${datasetLabel}: ${formattedValue}` : formattedValue;
           },
           afterLabel: function(context: any) {
-            // Adicionar variação percentual se houver dados anteriores
             const dataIndex = context.dataIndex;
             if (dataIndex > 0) {
               const currentValue = context.parsed.y;
               const previousValue = context.dataset.data[dataIndex - 1];
-              if (previousValue && previousValue !== 0) {
-                const variation = ((currentValue - previousValue) / previousValue * 100);
-                const arrow = variation > 0 ? '📈' : variation < 0 ? '📉' : '➡️';
-                const sign = variation > 0 ? '+' : '';
-                return `${arrow} ${sign}${variation.toFixed(1)}% vs anterior`;
-              }
+              const variation = calculateVariationPercent(currentValue, previousValue);
+              return variation != null ? formatVariation(variation) : '';
             }
             return '';
           },
