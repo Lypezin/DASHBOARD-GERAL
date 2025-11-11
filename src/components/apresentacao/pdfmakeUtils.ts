@@ -12,9 +12,30 @@ const COR_AZUL_CLARO = '#93c5fd';
 const A4_LANDSCAPE_WIDTH = 842; // 297mm
 const A4_LANDSCAPE_HEIGHT = 595; // 210mm
 
-// Função para criar gradiente (pdfmake não suporta gradientes nativos, usamos cor sólida)
-const criarBackground = () => ({
-  fillColor: COR_PRIMARIA,
+// Função para criar retângulo de fundo azul
+const criarRetanguloFundo = () => ({
+  canvas: [
+    {
+      type: 'rect',
+      x: 0,
+      y: 0,
+      w: A4_LANDSCAPE_WIDTH,
+      h: A4_LANDSCAPE_HEIGHT,
+      color: COR_PRIMARIA,
+    },
+  ],
+  absolutePosition: { x: 0, y: 0 },
+});
+
+// Função helper para envolver um slide com background
+const adicionarBackgroundAoSlide = (conteudo: any) => ({
+  stack: [
+    criarRetanguloFundo(),
+    {
+      ...conteudo,
+      relativePosition: { x: 0, y: 0 },
+    },
+  ],
 });
 
 // Função para criar gráfico circular como SVG
@@ -62,7 +83,7 @@ export const criarSlideCapa = (
   periodoSemana1: string,
   periodoSemana2: string
 ): any => {
-  return {
+  const conteudo = {
     stack: [
       {
         text: 'RELATÓRIO DE RESULTADOS',
@@ -89,13 +110,13 @@ export const criarSlideCapa = (
       {
         text: `${periodoSemana1} | ${periodoSemana2}`,
         fontSize: 24,
-        color: COR_TEXTO,
+        color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
-        opacity: 0.9,
       },
     ],
-    ...criarBackground(),
   };
+  
+  return adicionarBackgroundAoSlide(conteudo);
 };
 
 // Função para criar slide de aderência geral
@@ -107,7 +128,7 @@ export const criarSlideAderenciaGeral = (
   const grafico1 = criarGraficoCircular(semana1.aderencia, 300);
   const grafico2 = criarGraficoCircular(semana2.aderencia, 300);
 
-  return {
+  const conteudo = {
     stack: [
       {
         text: 'ADERÊNCIA GERAL',
@@ -120,10 +141,9 @@ export const criarSlideAderenciaGeral = (
       {
         text: `SEMANAS ${semana1.numeroSemana} & ${semana2.numeroSemana}`,
         fontSize: 32,
-        color: COR_TEXTO,
+        color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
         margin: [0, 0, 0, 40],
-        opacity: 0.9,
       },
       {
         columns: [
@@ -157,10 +177,9 @@ export const criarSlideAderenciaGeral = (
                   {
                     text: '🎯 Planejado',
                     fontSize: 22,
-                    color: COR_TEXTO,
+                    color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
-                    opacity: 0.85,
                   },
                   {
                     text: semana1.horasPlanejadas,
@@ -171,7 +190,7 @@ export const criarSlideAderenciaGeral = (
                   },
                 ],
                 margin: [20, 0, 20, 10],
-                fillColor: 'rgba(255,255,255,0.15)',
+                fillColor: [255, 255, 255, 0.15], // Branco com 15% de opacidade
                 borderRadius: 8,
                 padding: [15, 10],
               },
@@ -180,10 +199,9 @@ export const criarSlideAderenciaGeral = (
                   {
                     text: '✅ Entregue',
                     fontSize: 22,
-                    color: COR_TEXTO,
+                    color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
-                    opacity: 0.85,
                   },
                   {
                     text: semana1.horasEntregues,
@@ -194,7 +212,7 @@ export const criarSlideAderenciaGeral = (
                   },
                 ],
                 margin: [20, 0, 20, 0],
-                fillColor: 'rgba(255,255,255,0.15)',
+                fillColor: [255, 255, 255, 0.15], // Branco com 15% de opacidade
                 borderRadius: 8,
                 padding: [15, 10],
               },
@@ -230,10 +248,9 @@ export const criarSlideAderenciaGeral = (
                   {
                     text: '🎯 Planejado',
                     fontSize: 22,
-                    color: COR_TEXTO,
+                    color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
-                    opacity: 0.85,
                   },
                   {
                     text: semana2.horasPlanejadas,
@@ -244,7 +261,7 @@ export const criarSlideAderenciaGeral = (
                   },
                 ],
                 margin: [20, 0, 20, 10],
-                fillColor: 'rgba(255,255,255,0.15)',
+                fillColor: [255, 255, 255, 0.15], // Branco com 15% de opacidade
                 borderRadius: 8,
                 padding: [15, 10],
               },
@@ -253,10 +270,9 @@ export const criarSlideAderenciaGeral = (
                   {
                     text: '✅ Entregue',
                     fontSize: 22,
-                    color: COR_TEXTO,
+                    color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
-                    opacity: 0.85,
                   },
                   {
                     text: semana2.horasEntregues,
@@ -267,7 +283,7 @@ export const criarSlideAderenciaGeral = (
                   },
                 ],
                 margin: [20, 0, 20, 10],
-                fillColor: 'rgba(255,255,255,0.15)',
+                fillColor: [255, 255, 255, 0.15], // Branco com 15% de opacidade
                 borderRadius: 8,
                 padding: [15, 10],
               },
@@ -276,10 +292,9 @@ export const criarSlideAderenciaGeral = (
                   {
                     text: 'Variação de Horas',
                     fontSize: 20,
-                    color: COR_TEXTO,
+                    color: '#f3f4f6', // Cor mais clara para simular opacity
                     alignment: 'center',
                     margin: [0, 0, 0, 5],
-                    opacity: 0.85,
                   },
                   {
                     text: variacao.horasDiferenca,
@@ -297,7 +312,7 @@ export const criarSlideAderenciaGeral = (
                   },
                 ],
                 margin: [20, 0, 20, 0],
-                fillColor: 'rgba(255,255,255,0.10)',
+                fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
                 borderRadius: 8,
                 padding: [15, 10],
               },
@@ -308,8 +323,9 @@ export const criarSlideAderenciaGeral = (
         margin: [40, 0, 40, 0],
       },
     ],
-    ...criarBackground(),
   };
+  
+  return adicionarBackgroundAoSlide(conteudo);
 };
 
 // Função para criar slide de aderência diária
@@ -401,7 +417,7 @@ export const criarSlideAderenciaDiaria = (
                     color: COR_TEXTO,
                     alignment: 'center',
                     margin: [0, 0, 0, 3],
-                    opacity: 0.85,
+                    color: '#f3f4f6', // Cor mais clara para simular opacity
                   },
                   {
                     text: diferencas.diferencaHoras,
@@ -425,7 +441,7 @@ export const criarSlideAderenciaDiaria = (
                     alignment: 'center',
                   },
                 ],
-                fillColor: 'rgba(255,255,255,0.10)',
+                fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
                 borderRadius: 8,
                 padding: [8, 5],
                 margin: [5, 5, 5, 0],
@@ -433,14 +449,14 @@ export const criarSlideAderenciaDiaria = (
             ]
           : []),
       ],
-      fillColor: 'rgba(255,255,255,0.12)',
+      fillColor: [255, 255, 255, 0.12], // Branco com 12% de opacidade
       borderRadius: 12,
       padding: [10, 8],
       margin: [3, 0, 3, 0],
     };
   };
 
-  return {
+  const conteudo = {
     stack: [
       {
         text: 'ADERÊNCIA DIÁRIA',
@@ -453,10 +469,9 @@ export const criarSlideAderenciaDiaria = (
       {
         text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
         fontSize: 28,
-        color: COR_TEXTO,
+        color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
         margin: [0, 0, 0, 30],
-        opacity: 0.9,
       },
       {
         text: `SEMANA ${numeroSemana1}`,
@@ -494,8 +509,9 @@ export const criarSlideAderenciaDiaria = (
         margin: [20, 0, 20, 0],
       },
     ],
-    ...criarBackground(),
   };
+  
+  return adicionarBackgroundAoSlide(conteudo);
 };
 
 // Função para criar slide de turnos
@@ -556,10 +572,9 @@ export const criarSlideTurnos = (
                     {
                       text: 'Horas Entregues',
                       fontSize: 16,
-                      color: COR_TEXTO,
+                      color: '#f3f4f6', // Cor mais clara para simular opacity
                       alignment: 'center',
                       margin: [0, 0, 0, 3],
-                      opacity: 0.85,
                     },
                     {
                       text: turno.semana1.horasEntregues,
@@ -569,7 +584,7 @@ export const criarSlideTurnos = (
                       alignment: 'center',
                     },
                   ],
-                  fillColor: 'rgba(255,255,255,0.10)',
+                  fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
                   borderRadius: 8,
                   padding: [10, 8],
                 },
@@ -603,10 +618,9 @@ export const criarSlideTurnos = (
                     {
                       text: 'Horas Entregues',
                       fontSize: 16,
-                      color: COR_TEXTO,
+                      color: '#f3f4f6', // Cor mais clara para simular opacity
                       alignment: 'center',
                       margin: [0, 0, 0, 3],
-                      opacity: 0.85,
                     },
                     {
                       text: turno.semana2.horasEntregues,
@@ -616,7 +630,7 @@ export const criarSlideTurnos = (
                       alignment: 'center',
                     },
                   ],
-                  fillColor: 'rgba(255,255,255,0.10)',
+                  fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
                   borderRadius: 8,
                   padding: [10, 8],
                 },
@@ -633,10 +647,9 @@ export const criarSlideTurnos = (
               {
                 text: variacao.label,
                 fontSize: 14,
-                color: COR_TEXTO,
+                color: '#d1d5db', // Cor mais clara para simular opacity
                 alignment: 'center',
                 margin: [0, 0, 0, 3],
-                opacity: 0.8,
               },
               {
                 text: variacao.valor,
@@ -646,7 +659,7 @@ export const criarSlideTurnos = (
                 alignment: 'center',
               },
             ],
-            fillColor: 'rgba(255,255,255,0.10)',
+            fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
             borderRadius: 8,
             padding: [10, 8],
             margin: [2, 0, 2, 0],
@@ -654,14 +667,14 @@ export const criarSlideTurnos = (
           columnGap: 5,
         },
       ],
-      fillColor: 'rgba(255,255,255,0.12)',
+      fillColor: [255, 255, 255, 0.12], // Branco com 12% de opacidade
       borderRadius: 16,
       padding: [20, 15],
       margin: [5, 0, 5, 0],
     };
   };
 
-  return {
+  const conteudo = {
     stack: [
       {
         text: 'ADERÊNCIA POR TURNO',
@@ -674,20 +687,18 @@ export const criarSlideTurnos = (
       {
         text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
         fontSize: 32,
-        color: COR_TEXTO,
+        color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
         margin: [0, 0, 0, 5],
-        opacity: 0.9,
       },
       ...(totalPaginas > 1
         ? [
             {
               text: `Página ${paginaAtual} de ${totalPaginas}`,
               fontSize: 22,
-              color: COR_TEXTO,
+              color: '#e5e7eb', // Cor mais clara para simular opacity
               alignment: 'center',
               margin: [0, 0, 0, 30],
-              opacity: 0.75,
             },
           ]
         : [{ text: '', margin: [0, 0, 0, 30] }]),
@@ -697,8 +708,9 @@ export const criarSlideTurnos = (
         margin: [30, 0, 30, 0],
       },
     ],
-    ...criarBackground(),
   };
+  
+  return adicionarBackgroundAoSlide(conteudo);
 };
 
 // Função para criar slide de sub-praças
@@ -748,7 +760,7 @@ export const criarSlideSubPracas = (
               alignment: 'center',
             },
           ],
-          fillColor: 'rgba(255,255,255,0.12)',
+          fillColor: [255, 255, 255, 0.12], // Branco com 12% de opacidade
           borderRadius: 8,
           padding: [12, 10],
           margin: [0, 0, 0, 20],
@@ -784,10 +796,9 @@ export const criarSlideSubPracas = (
                     {
                       text: 'Horas Entregues',
                       fontSize: 16,
-                      color: COR_TEXTO,
+                      color: '#f3f4f6', // Cor mais clara para simular opacity
                       alignment: 'center',
                       margin: [0, 0, 0, 3],
-                      opacity: 0.85,
                     },
                     {
                       text: item.semana1.horasEntregues,
@@ -797,7 +808,7 @@ export const criarSlideSubPracas = (
                       alignment: 'center',
                     },
                   ],
-                  fillColor: 'rgba(255,255,255,0.10)',
+                  fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
                   borderRadius: 8,
                   padding: [10, 8],
                 },
@@ -832,10 +843,9 @@ export const criarSlideSubPracas = (
                     {
                       text: 'Horas Entregues',
                       fontSize: 16,
-                      color: COR_TEXTO,
+                      color: '#f3f4f6', // Cor mais clara para simular opacity
                       alignment: 'center',
                       margin: [0, 0, 0, 3],
-                      opacity: 0.85,
                     },
                     {
                       text: item.semana2.horasEntregues,
@@ -845,7 +855,7 @@ export const criarSlideSubPracas = (
                       alignment: 'center',
                     },
                   ],
-                  fillColor: 'rgba(255,255,255,0.10)',
+                  fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
                   borderRadius: 8,
                   padding: [10, 8],
                 },
@@ -862,10 +872,9 @@ export const criarSlideSubPracas = (
               {
                 text: variacao.label,
                 fontSize: 14,
-                color: COR_TEXTO,
+                color: '#d1d5db', // Cor mais clara para simular opacity
                 alignment: 'center',
                 margin: [0, 0, 0, 3],
-                opacity: 0.8,
               },
               {
                 text: variacao.valor,
@@ -875,7 +884,7 @@ export const criarSlideSubPracas = (
                 alignment: 'center',
               },
             ],
-            fillColor: 'rgba(255,255,255,0.10)',
+            fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
             borderRadius: 8,
             padding: [10, 8],
             margin: [2, 0, 2, 0],
@@ -883,14 +892,14 @@ export const criarSlideSubPracas = (
           columnGap: 5,
         },
       ],
-      fillColor: 'rgba(255,255,255,0.12)',
+      fillColor: [255, 255, 255, 0.12], // Branco com 12% de opacidade
       borderRadius: 18,
       padding: [25, 20],
       margin: [5, 0, 5, 0],
     };
   };
 
-  return {
+  const conteudo = {
     stack: [
       {
         text: 'SUB-PRAÇAS',
@@ -903,20 +912,18 @@ export const criarSlideSubPracas = (
       {
         text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
         fontSize: 32,
-        color: COR_TEXTO,
+        color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
         margin: [0, 0, 0, 5],
-        opacity: 0.9,
       },
       ...(totalPaginas > 1
         ? [
             {
               text: `Página ${paginaAtual} de ${totalPaginas}`,
               fontSize: 20,
-              color: COR_TEXTO,
+              color: '#e5e7eb', // Cor mais clara para simular opacity
               alignment: 'center',
               margin: [0, 0, 0, 30],
-              opacity: 0.75,
             },
           ]
         : [{ text: '', margin: [0, 0, 0, 30] }]),
@@ -926,8 +933,9 @@ export const criarSlideSubPracas = (
         margin: [30, 0, 30, 0],
       },
     ],
-    ...criarBackground(),
   };
+  
+  return adicionarBackgroundAoSlide(conteudo);
 };
 
 // Função para criar slide de demanda/rejeições
@@ -1025,14 +1033,14 @@ export const criarSlideDemandaRejeicoes = (
           padding: [12, 10],
         },
       ],
-      fillColor: 'rgba(255,255,255,0.12)',
+      fillColor: [255, 255, 255, 0.12], // Branco com 12% de opacidade
       borderRadius: 16,
       padding: [20, 15],
       margin: [5, 0, 5, 0],
     };
   };
 
-  return {
+  const conteudo = {
     stack: [
       {
         text: 'DEMANDA E REJEIÇÕES',
@@ -1045,10 +1053,9 @@ export const criarSlideDemandaRejeicoes = (
       {
         text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
         fontSize: 32,
-        color: COR_TEXTO,
+        color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
         margin: [0, 0, 0, 50],
-        opacity: 0.9,
       },
       {
         columns: itens.map((item) => criarCardDemanda(item)),
@@ -1056,8 +1063,9 @@ export const criarSlideDemandaRejeicoes = (
         margin: [40, 0, 40, 0],
       },
     ],
-    ...criarBackground(),
   };
+  
+  return adicionarBackgroundAoSlide(conteudo);
 };
 
 // Função para criar slide de origens (similar a sub-praças)

@@ -943,11 +943,15 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       const pdfMake = await loadPdfMake();
 
       // Criar conteúdo com quebras de página entre slides
+      // Cada slide precisa ser uma página completa com background
       const content: any[] = [];
       slidesPDFData.forEach((slide, index) => {
         if (index > 0) {
+          // Quebra de página antes de cada slide (exceto o primeiro)
           content.push({ text: '', pageBreak: 'before' });
         }
+        
+        // Adicionar o slide completo
         content.push(slide);
       });
 
@@ -958,9 +962,11 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         },
         pageOrientation: 'landscape' as const,
         pageMargins: [0, 0, 0, 0],
+        background: '#2563eb', // Background padrão azul
         content: content,
         defaultStyle: {
-          font: 'Roboto',
+          font: 'Helvetica', // Usar fonte padrão disponível
+          color: '#ffffff', // Texto branco por padrão
         },
       };
 
