@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -10,6 +12,7 @@ import {
   criarSlideDemandaRejeicoes,
   criarSlideOrigens,
 } from './apresentacao/pdfmakeUtils';
+import { loadPdfMake } from '@/lib/pdfmakeClient';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from './apresentacao/constants';
 import SlideCapa from './apresentacao/slides/SlideCapa';
 import SlideAderenciaGeral from './apresentacao/slides/SlideAderenciaGeral';
@@ -927,22 +930,17 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       return;
     }
 
+    // Verificar se está no cliente
+    if (typeof window === 'undefined') {
+      alert('A geração de PDF só está disponível no navegador.');
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
-      // Importar pdfmake dinamicamente apenas no lado do cliente
-      // @ts-ignore - pdfmake types não disponíveis
-      const pdfMakeModule = await import('pdfmake/build/pdfmake');
-      // @ts-ignore - pdfmake fonts types não disponíveis
-      const pdfFontsModule = await import('pdfmake/build/vfs_fonts');
-      
-      const pdfMake = pdfMakeModule.default;
-      const pdfFonts = pdfFontsModule.default;
-      
-      // Configurar fontes do pdfmake
-      if (pdfMake && pdfFonts) {
-        pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts;
-      }
+      // Carregar pdfmake apenas no cliente
+      const pdfMake = await loadPdfMake();
 
       // Criar conteúdo com quebras de página entre slides
       const content: any[] = [];

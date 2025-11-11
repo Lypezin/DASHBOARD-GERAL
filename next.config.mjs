@@ -28,6 +28,30 @@ const nextConfig = {
     ],
   },
 
+  // Configuração do webpack para ignorar pdfmake no servidor
+  webpack: (config, { isServer, webpack }) => {
+    if (isServer) {
+      // Ignorar pdfmake no servidor (SSR) - não tentar resolver durante o build do servidor
+      config.externals = config.externals || [];
+      config.externals.push({
+        'pdfmake/build/pdfmake': 'commonjs pdfmake/build/pdfmake',
+        'pdfmake/build/vfs_fonts': 'commonjs pdfmake/build/vfs_fonts',
+      });
+    }
+    
+    // Ignorar módulos Node.js no cliente se necessário
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+    
+    return config;
+  },
+
   // Headers de segurança e performance
   async headers() {
     return [
