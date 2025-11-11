@@ -24,7 +24,7 @@ interface SlideAderenciaGeralProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 140; // r = 140 (reduzido para dar espaço ao texto)
+  const circumference = 2 * Math.PI * 130; // r = 130
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
@@ -54,36 +54,52 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
               SEMANA {semana.numeroSemana}
             </h3>
 
-            <div className="relative w-[380px] h-[380px] flex items-center justify-center">
+            <div 
+              className="relative flex items-center justify-center"
+              style={{ width: '380px', height: '380px' }}
+            >
               <svg
-                className="absolute inset-0 w-full h-full transform -rotate-90"
+                className="absolute"
+                style={{
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  transform: 'rotate(-90deg)',
+                }}
                 viewBox="0 0 300 300"
                 preserveAspectRatio="xMidYMid meet"
               >
                 <circle
                   cx="150"
                   cy="150"
-                  r="135"
-                  stroke="rgba(255,255,255,0.2)"
-                  strokeWidth="28"
+                  r="130"
+                  stroke="rgba(255,255,255,0.25)"
+                  strokeWidth="24"
                   fill="none"
                 />
                 <circle
                   cx="150"
                   cy="150"
-                  r="135"
+                  r="130"
                   stroke="#ffffff"
-                  strokeWidth="28"
+                  strokeWidth="24"
                   fill="none"
                   strokeDasharray={buildCircleDasharray(semana.aderencia)}
                   strokeLinecap="round"
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center p-8">
-                <span
-                  className="font-black"
-                  style={buildCircleTextStyle(semana.aderencia, 6.5, 3.8)}
-                >
+              <div 
+                className="absolute flex items-center justify-center"
+                style={{
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '70%',
+                  height: '70%',
+                }}
+              >
+                <span style={buildCircleTextStyle(semana.aderencia, 6.5, 3.8)}>
                   {semana.aderencia.toFixed(1)}%
                 </span>
               </div>

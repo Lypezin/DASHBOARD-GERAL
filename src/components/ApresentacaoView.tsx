@@ -563,79 +563,125 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     setIsGenerating(true);
 
     try {
-      const pdf = new jsPDF('l', 'mm', 'a4');
+      // Criar PDF em landscape A4 com margens
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+        compress: true,
+      });
+      
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Margens de 8mm (segurança para impressão)
+      const margin = 8;
+      const contentWidth = pdfWidth - (margin * 2);
+      const contentHeight = pdfHeight - (margin * 2);
 
       const elementos = contentRef.current.querySelectorAll('.slide');
 
       for (let i = 0; i < elementos.length; i++) {
         const slide = elementos[i] as HTMLElement;
 
+        // Container temporário para renderização
         const printContainer = document.createElement('div');
-        printContainer.style.position = 'absolute';
-        printContainer.style.left = '-9999px';
-        printContainer.style.top = '0';
-        printContainer.style.width = `${SLIDE_WIDTH}px`;
-        printContainer.style.height = `${SLIDE_HEIGHT}px`;
-        printContainer.style.overflow = 'hidden';
-        printContainer.style.backgroundColor = '#3b82f6';
+        printContainer.style.cssText = `
+          position: absolute;
+          left: -99999px;
+          top: 0;
+          width: ${SLIDE_WIDTH}px;
+          height: ${SLIDE_HEIGHT}px;
+          overflow: visible;
+          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+          font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        `;
 
         const clone = slide.cloneNode(true) as HTMLElement;
-        clone.style.width = `${SLIDE_WIDTH}px`;
-        clone.style.height = `${SLIDE_HEIGHT}px`;
-        clone.style.position = 'relative';
-        clone.style.left = '0';
-        clone.style.top = '0';
-        clone.style.opacity = '1';
-        clone.style.visibility = 'visible';
-        clone.style.display = 'block';
+        clone.style.cssText = `
+          width: ${SLIDE_WIDTH}px;
+          height: ${SLIDE_HEIGHT}px;
+          position: relative;
+          left: 0;
+          top: 0;
+          opacity: 1;
+          visibility: visible;
+          display: flex;
+          flex-direction: column;
+          transform: none;
+          transform-origin: top left;
+        `;
 
+        // Garantir visibilidade de todos os elementos
         const allElements = clone.querySelectorAll('*');
         allElements.forEach((el: any) => {
           if (el.style) {
             if (el.style.opacity === '0') el.style.opacity = '1';
             if (el.style.visibility === 'hidden') el.style.visibility = 'visible';
             if (el.style.display === 'none') el.style.display = '';
+            // Remover transforms que podem causar distorção
+            if (el.style.transform && el.style.transform.includes('scale')) {
+              el.style.transform = el.style.transform.replace(/scale\([^)]*\)/g, '');
+            }
           }
         });
 
         printContainer.appendChild(clone);
         document.body.appendChild(printContainer);
 
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        // Aguardar renderização completa
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
+        // Renderizar com html2canvas em alta qualidade
         const canvas = await html2canvas(clone, {
           scale: 2,
           useCORS: true,
           allowTaint: true,
-          backgroundColor: '#3b82f6',
+          backgroundColor: '#2563eb',
           width: SLIDE_WIDTH,
           height: SLIDE_HEIGHT,
-          logging: false,
+          windowWidth: SLIDE_WIDTH,
+          windowHeight: SLIDE_HEIGHT,
+          logging: IS_DEV,
           imageTimeout: 0,
           removeContainer: false,
           foreignObjectRendering: false,
-          windowWidth: SLIDE_WIDTH,
-          windowHeight: SLIDE_HEIGHT,
+          onclone: (clonedDoc: Document) => {
+            // Garantir que fontes sejam carregadas no clone
+            const style = clonedDoc.createElement('style');
+            style.textContent = `
+              * {
+                font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+              }
+            `;
+            clonedDoc.head.appendChild(style);
+          },
           ignoreElements: (element: Element) =>
             element.tagName === 'IFRAME' || element.tagName === 'OBJECT',
         });
 
         document.body.removeChild(printContainer);
 
+        // Converter para imagem de alta qualidade
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
-
-        const imgX = 0;
-        const imgY = 0;
-        const scaledWidth = pdfWidth;
-        const scaledHeight = pdfHeight;
 
         if (i > 0) {
           pdf.addPage();
         }
 
-        pdf.addImage(imgData, 'JPEG', imgX, imgY, scaledWidth, scaledHeight);
+        // Adicionar imagem com margens
+        pdf.addImage(
+          imgData,
+          'JPEG',
+          margin,
+          margin,
+          contentWidth,
+          contentHeight,
+          undefined,
+          'FAST'
+        );
       }
 
       pdf.save(`Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`);

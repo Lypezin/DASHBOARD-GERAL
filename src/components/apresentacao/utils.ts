@@ -11,7 +11,7 @@ const percentFormatter = new Intl.NumberFormat('pt-BR', {
 
 /**
  * Constrói estilos para texto dentro de gráficos circulares com auto-scaling robusto.
- * Previne overflow e garante centralização perfeita.
+ * Previne overflow e garante centralização perfeita para renderização em PDF.
  * 
  * @param value - Valor numérico a ser exibido
  * @param baseFontRem - Tamanho base da fonte em rem
@@ -27,23 +27,32 @@ export const buildCircleTextStyle = (
   const valueString = safeValue.toFixed(1);
   const length = valueString.replace('.', '').length;
   
-  // Redução mais agressiva para valores longos
-  const reduction = Math.max(0, length - 3) * 0.75;
-  const fontSize = Math.max(minimumFontRem, baseFontRem - reduction);
+  // Redução progressiva mais suave para melhor legibilidade
+  let fontSize = baseFontRem;
+  if (length > 5) {
+    fontSize = baseFontRem * 0.65;
+  } else if (length > 4) {
+    fontSize = baseFontRem * 0.75;
+  } else if (length > 3) {
+    fontSize = baseFontRem * 0.85;
+  }
+  
+  fontSize = Math.max(minimumFontRem, fontSize);
 
   return {
     fontSize: `${fontSize}rem`,
     lineHeight: '1',
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.01em',
     whiteSpace: 'nowrap',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: 'block',
     textAlign: 'center',
-    maxWidth: '85%',
-    margin: '0 auto',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    width: '100%',
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+    fontWeight: '900',
+    color: '#ffffff',
+    WebkitFontSmoothing: 'antialiased',
+    MozOsxFontSmoothing: 'grayscale',
+    textRendering: 'optimizeLegibility',
   };
 };
 
@@ -103,6 +112,7 @@ export const formatCompactTime = (timeString: string): string => {
 /**
  * Constrói estilos para textos de tempo/horas com auto-scaling.
  * Ajusta o tamanho da fonte baseado no comprimento da string.
+ * Otimizado para renderização em PDF sem distorção.
  * 
  * @param timeString - String de tempo
  * @param baseFontRem - Tamanho base da fonte em rem
@@ -114,22 +124,30 @@ export const buildTimeTextStyle = (
 ): CSSProperties => {
   const length = timeString?.length || 0;
   
-  // Redução baseada no comprimento
+  // Redução progressiva mais suave
   let fontSize = baseFontRem;
-  if (length > 12) fontSize = baseFontRem * 0.6;
-  else if (length > 10) fontSize = baseFontRem * 0.7;
-  else if (length > 8) fontSize = baseFontRem * 0.8;
-  else if (length > 6) fontSize = baseFontRem * 0.9;
+  if (length > 12) {
+    fontSize = baseFontRem * 0.65;
+  } else if (length > 10) {
+    fontSize = baseFontRem * 0.75;
+  } else if (length > 8) {
+    fontSize = baseFontRem * 0.85;
+  } else if (length > 6) {
+    fontSize = baseFontRem * 0.92;
+  }
   
   return {
     fontSize: `${fontSize}rem`,
     lineHeight: '1.2',
-    letterSpacing: '-0.01em',
+    letterSpacing: '-0.005em',
     whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    maxWidth: '100%',
     display: 'block',
+    textAlign: 'inherit',
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+    fontWeight: '700',
+    color: 'inherit',
+    WebkitFontSmoothing: 'antialiased',
+    MozOsxFontSmoothing: 'grayscale',
   };
 };
 

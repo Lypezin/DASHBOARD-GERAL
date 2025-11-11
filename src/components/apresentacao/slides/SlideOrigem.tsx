@@ -33,7 +33,7 @@ interface SlideOrigemProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 100;
+  const circumference = 2 * Math.PI * 90; // r = 90
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
@@ -80,29 +80,45 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
                   <span className="text-[2rem] font-semibold text-center">
                     SEM {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
-                  <div className="relative w-[240px] h-[240px] flex items-center justify-center">
+                  <div 
+                    className="relative flex items-center justify-center"
+                    style={{ width: '240px', height: '240px' }}
+                  >
                     <svg
-                      className="absolute inset-0 w-full h-full transform -rotate-90"
-                      viewBox="0 0 220 220"
+                      className="absolute"
+                      style={{
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        transform: 'rotate(-90deg)',
+                      }}
+                      viewBox="0 0 200 200"
                       preserveAspectRatio="xMidYMid meet"
                     >
-                      <circle cx="110" cy="110" r="95" stroke="rgba(255,255,255,0.2)" strokeWidth="20" fill="none" />
+                      <circle cx="100" cy="100" r="90" stroke="rgba(255,255,255,0.25)" strokeWidth="18" fill="none" />
                       <circle
-                        cx="110"
-                        cy="110"
-                        r="95"
+                        cx="100"
+                        cy="100"
+                        r="90"
                         stroke="#ffffff"
-                        strokeWidth="20"
+                        strokeWidth="18"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
                         strokeLinecap="round"
                       />
                     </svg>
-                    <div className="absolute inset-0 flex items-center justify-center p-6">
-                      <span
-                        className="font-black"
-                        style={buildCircleTextStyle(semana.aderencia, 4.2, 2.6)}
-                      >
+                    <div 
+                      className="absolute flex items-center justify-center"
+                      style={{
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '65%',
+                        height: '65%',
+                      }}
+                    >
+                      <span style={buildCircleTextStyle(semana.aderencia, 4.2, 2.6)}>
                         {semana.aderencia.toFixed(1)}%
                       </span>
                     </div>

@@ -31,7 +31,7 @@ interface SlideTurnosProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 85; // r = 85 (reduzido para dar espaço ao texto)
+  const circumference = 2 * Math.PI * 75; // r = 75
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
@@ -73,29 +73,45 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                   <span className="text-[2rem] font-medium text-center">
                     SEM {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
-                  <div className="relative w-[200px] h-[200px] flex items-center justify-center">
+                  <div 
+                    className="relative flex items-center justify-center"
+                    style={{ width: '190px', height: '190px' }}
+                  >
                     <svg
-                      className="absolute inset-0 w-full h-full transform -rotate-90"
-                      viewBox="0 0 200 200"
+                      className="absolute"
+                      style={{
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        transform: 'rotate(-90deg)',
+                      }}
+                      viewBox="0 0 160 160"
                       preserveAspectRatio="xMidYMid meet"
                     >
-                      <circle cx="100" cy="100" r="80" stroke="rgba(255,255,255,0.2)" strokeWidth="18" fill="none" />
+                      <circle cx="80" cy="80" r="75" stroke="rgba(255,255,255,0.25)" strokeWidth="14" fill="none" />
                       <circle
-                        cx="100"
-                        cy="100"
-                        r="80"
+                        cx="80"
+                        cy="80"
+                        r="75"
                         stroke="#ffffff"
-                        strokeWidth="18"
+                        strokeWidth="14"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
                         strokeLinecap="round"
                       />
                     </svg>
-                    <div className="absolute inset-0 flex items-center justify-center p-5">
-                      <span
-                        className="font-black"
-                        style={buildCircleTextStyle(semana.aderencia, 3.6, 2.5)}
-                      >
+                    <div 
+                      className="absolute flex items-center justify-center"
+                      style={{
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '62%',
+                        height: '62%',
+                      }}
+                    >
+                      <span style={buildCircleTextStyle(semana.aderencia, 3.6, 2.5)}>
                         {semana.aderencia.toFixed(1)}%
                       </span>
                     </div>

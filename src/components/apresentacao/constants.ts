@@ -1,11 +1,17 @@
 import { CSSProperties } from 'react';
 
-export const SLIDE_WIDTH = 2100;
-export const SLIDE_HEIGHT = 1485;
+// Dimensões A4 em landscape (297mm x 210mm) em pixels @ 72 DPI
+// Ajustado para proporção 16:9 para melhor visualização
+export const SLIDE_WIDTH = 1920;
+export const SLIDE_HEIGHT = 1080;
 
 export const slideDimensionsStyle: CSSProperties = {
   width: `${SLIDE_WIDTH}px`,
   height: `${SLIDE_HEIGHT}px`,
+  minWidth: `${SLIDE_WIDTH}px`,
+  minHeight: `${SLIDE_HEIGHT}px`,
+  maxWidth: `${SLIDE_WIDTH}px`,
+  maxHeight: `${SLIDE_HEIGHT}px`,
 };
 
 export const slideBaseClass =

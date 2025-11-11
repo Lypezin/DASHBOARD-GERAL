@@ -28,7 +28,7 @@ interface SlideAderenciaDiariaProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 60; // r = 60 (reduzido para dar espaço ao texto)
+  const circumference = 2 * Math.PI * 52; // r = 52
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
@@ -50,29 +50,45 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
     return (
       <div key={`${semanaLabel}-${dia.sigla}`} className="rounded-[24px] bg-white/12 px-5 py-6 flex flex-col items-center gap-3">
         <span className="text-[2.2rem] font-semibold opacity-85 text-center">{dia.sigla}</span>
-        <div className="relative w-[150px] h-[150px] flex items-center justify-center">
+        <div 
+          className="relative flex items-center justify-center"
+          style={{ width: '140px', height: '140px' }}
+        >
           <svg
-            className="absolute inset-0 w-full h-full transform -rotate-90"
-            viewBox="0 0 140 140"
+            className="absolute"
+            style={{
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              transform: 'rotate(-90deg)',
+            }}
+            viewBox="0 0 120 120"
             preserveAspectRatio="xMidYMid meet"
           >
-            <circle cx="70" cy="70" r="56" stroke="rgba(255,255,255,0.2)" strokeWidth="12" fill="none" />
+            <circle cx="60" cy="60" r="52" stroke="rgba(255,255,255,0.25)" strokeWidth="10" fill="none" />
             <circle
-              cx="70"
-              cy="70"
-              r="56"
+              cx="60"
+              cy="60"
+              r="52"
               stroke="#ffffff"
-              strokeWidth="12"
+              strokeWidth="10"
               fill="none"
               strokeDasharray={buildCircleDasharray(dia.aderencia)}
               strokeLinecap="round"
             />
           </svg>
-          <div className="absolute inset-0 flex items-center justify-center p-4">
-            <span
-              className="font-black"
-              style={buildCircleTextStyle(dia.aderencia, 3.0, 2.2)}
-            >
+          <div 
+            className="absolute flex items-center justify-center"
+            style={{
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '60%',
+              height: '60%',
+            }}
+          >
+            <span style={buildCircleTextStyle(dia.aderencia, 3.0, 2.2)}>
               {dia.aderencia.toFixed(1)}%
             </span>
           </div>
