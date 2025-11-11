@@ -73,7 +73,16 @@ export function useConquistas() {
       }
 
       if (data && Array.isArray(data) && data.length > 0) {
-        setConquistasNovas(data as ConquistaNova[]);
+        // Filtrar conquistas que já estão na lista de notificações para evitar duplicatas
+        setConquistasNovas(prev => {
+          const codigosExistentes = new Set(prev.map(c => c.conquista_codigo));
+          const novas = data as ConquistaNova[];
+          const realmenteNovas = novas.filter(c => !codigosExistentes.has(c.conquista_codigo));
+          
+          // Retornar apenas as realmente novas
+          return [...prev, ...realmenteNovas];
+        });
+        
         // Recarregar lista de conquistas
         await carregarConquistas();
         // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
@@ -118,6 +127,28 @@ export function useConquistas() {
     setConquistasNovas(prev => prev.filter(c => c.conquista_codigo !== codigo));
   }, []);
 
+  // Limpar conquistas já visualizadas do estado local (para evitar que apareçam após F5)
+  useEffect(() => {
+    // Quando as conquistas são carregadas, remover da lista de notificações as que já foram visualizadas
+    // Isso garante que após F5, apenas conquistas realmente novas apareçam
+    if (conquistas.length > 0 && conquistasNovas.length > 0) {
+      setConquistasNovas(prev => {
+        const codigosVisualizadas = new Set(
+          conquistas
+            .filter(c => c.visualizada)
+            .map(c => c.codigo)
+        );
+        const filtradas = prev.filter(c => !codigosVisualizadas.has(c.conquista_codigo));
+        
+        // Se houve mudança, retornar as filtradas, senão retornar as anteriores (evitar re-render desnecessário)
+        if (filtradas.length !== prev.length) {
+          return filtradas;
+        }
+        return prev;
+      });
+    }
+  }, [conquistas]);
+
   // Verificar conquistas baseadas em dados do dashboard
   const verificarConquistasDashboard = useCallback(async (
     aderenciaGeral?: number,
@@ -137,7 +168,16 @@ export function useConquistas() {
       }
 
       if (data && Array.isArray(data) && data.length > 0) {
-        setConquistasNovas(prev => [...prev, ...(data as ConquistaNova[])]);
+        // Filtrar conquistas que já estão na lista de notificações para evitar duplicatas
+        setConquistasNovas(prev => {
+          const codigosExistentes = new Set(prev.map(c => c.conquista_codigo));
+          const novas = data as ConquistaNova[];
+          const realmenteNovas = novas.filter(c => !codigosExistentes.has(c.conquista_codigo));
+          
+          // Retornar apenas as realmente novas
+          return [...prev, ...realmenteNovas];
+        });
+        
         // Recarregar lista de conquistas
         await carregarConquistas();
         // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
@@ -174,6 +214,9 @@ export function useConquistas() {
   // Carregar conquistas ao montar
   useEffect(() => {
     carregarConquistas();
+    // Limpar notificações ao montar (após F5, não deve mostrar conquistas já visualizadas)
+    // Isso garante que após refresh, apenas conquistas realmente novas apareçam
+    setConquistasNovas([]);
   }, [carregarConquistas]);
 
   // Verificar conquistas periodicamente (a cada 5 minutos para reduzir carga)
