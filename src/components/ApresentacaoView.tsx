@@ -10,8 +10,6 @@ import SlideSubPracas from './apresentacao/slides/SlideSubPracas';
 import SlideAderenciaDiaria from './apresentacao/slides/SlideAderenciaDiaria';
 import SlideTurnos from './apresentacao/slides/SlideTurnos';
 import SlideDemandaRejeicoes from './apresentacao/slides/SlideDemandaRejeicoes';
-import { supabase } from '@/lib/supabaseClient';
-import { useQuery } from '@tanstack/react-query';
 import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
