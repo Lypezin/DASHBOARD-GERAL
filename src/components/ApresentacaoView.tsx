@@ -11,7 +11,7 @@ import {
   criarSlideSubPracas,
   criarSlideDemandaRejeicoes,
   criarSlideOrigens,
-} from './apresentacao/pdfmakeUtils';
+} from './apresentacao/pdf';
 import { loadPdfMake } from '@/lib/pdfmakeClient';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from './apresentacao/constants';
 import SlideCapa from './apresentacao/slides/SlideCapa';
