@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
 import Image from 'next/image';
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -137,7 +138,7 @@ export default function PerfilPage() {
         }
       }
     } catch (err) {
-      if (IS_DEV) console.error('Erro ao carregar perfil:', err);
+      safeLog.error('Erro ao carregar perfil:', err);
       setError('Erro ao carregar perfil. Tente novamente.');
     } finally {
       setLoading(false);
@@ -300,7 +301,7 @@ export default function PerfilPage() {
         fileInputRef.current.value = '';
       }
     } catch (err: any) {
-      if (IS_DEV) console.error('Erro ao fazer upload:', err);
+      safeLog.error('Erro ao fazer upload:', err);
       setError(err.message || 'Erro ao fazer upload da imagem. Tente novamente.');
     } finally {
       setUploading(false);
@@ -371,7 +372,7 @@ export default function PerfilPage() {
       setPreviewUrl(null);
       setSuccess('Foto removida com sucesso!');
     } catch (err: any) {
-      if (IS_DEV) console.error('Erro ao remover foto:', err);
+      safeLog.error('Erro ao remover foto:', err);
       setError(err.message || 'Erro ao remover foto. Tente novamente.');
     } finally {
       setUploading(false);
@@ -457,7 +458,7 @@ export default function PerfilPage() {
       setSuccess('Nome atualizado com sucesso!');
       setIsEditingName(false);
     } catch (err: any) {
-      if (IS_DEV) console.error('Erro ao atualizar nome:', err);
+      safeLog.error('Erro ao atualizar nome:', err);
       setError(err.message || 'Erro ao atualizar nome. Tente novamente.');
     } finally {
       setSavingName(false);

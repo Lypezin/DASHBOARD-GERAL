@@ -8,104 +8,35 @@
 let registrationPromise: Promise<void> | null = null;
 let isRegistered = false;
 
+// Adicionar outros imports aqui
+import { safeLog } from './errorHandler';
+
 /**
  * Registra componentes do Chart.js apenas uma vez
  * Retorna uma Promise que resolve quando o Chart.js está pronto
  * Seguro para SSR - não faz nada no servidor
  */
-export function registerChartJS(): Promise<void> {
-  // Não registrar no servidor (SSR)
-  if (typeof window === 'undefined') {
-    return Promise.resolve();
-  }
-
-  // Se já está registrado, retornar Promise resolvida
-  if (isRegistered) {
-    return Promise.resolve();
-  }
-
-  // Se já está em processo de registro, retornar a mesma Promise
-  if (registrationPromise) {
-    return registrationPromise;
-  }
-
-  // Criar nova Promise de registro
-  registrationPromise = (async () => {
+export async function registerChartJS() {
+  if (typeof window !== 'undefined') {
     try {
-      // Importar chart.js/auto de forma dinâmica (mais confiável)
-      const chartModule = await import('chart.js/auto');
+      const { Chart, registerables } = await import('chart.js');
+      Chart.register(...registerables);
       
-      if (chartModule && chartModule.Chart) {
-        const Chart = chartModule.Chart;
-        
-        // Verificar se as escalas já estão registradas (chart.js/auto já registra tudo)
-        if (Chart.registry && Chart.registry.getScale('linear') && Chart.registry.getScale('category') && Chart.registry.getScale('time')) {
-          isRegistered = true;
-          if (process.env.NODE_ENV === 'development') {
-            console.log('✅ Chart.js registrado via chart.js/auto (já estava registrado)');
-          }
-          return;
-        }
+      const { ChartDataLabels } = await import('chartjs-plugin-datalabels');
+      Chart.register(ChartDataLabels);
 
-        // Se chart.js/auto não registrou automaticamente, registrar manualmente
-        const {
-          CategoryScale,
-          LinearScale,
-          TimeScale,
-          BarElement,
-          LineElement,
-          PointElement,
-          ArcElement,
-          Title,
-          Tooltip,
-          Legend,
-          Filler
-        } = await import('chart.js');
+      // Configurações globais
+      Chart.defaults.font.family = "'Inter', sans-serif";
+      Chart.defaults.plugins.legend.position = 'bottom';
+      Chart.defaults.plugins.tooltip.backgroundColor = '#2c3e50';
+      Chart.defaults.plugins.tooltip.titleFont = { weight: 'bold', size: 14 };
+      Chart.defaults.plugins.tooltip.bodyFont = { size: 12 };
 
-        Chart.register(
-          CategoryScale,
-          LinearScale,
-          TimeScale,
-          BarElement,
-          LineElement,
-          PointElement,
-          ArcElement,
-          Title,
-          Tooltip,
-          Legend,
-          Filler
-        );
-
-        isRegistered = true;
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✅ Chart.js registrado manualmente com todas as escalas');
-          
-          // Verificar se o registro funcionou
-          try {
-            const hasLinear = Chart.registry?.getScale('linear');
-            const hasCategory = Chart.registry?.getScale('category');
-            const hasTime = Chart.registry?.getScale('time');
-            console.log('Escalas disponíveis:', { 
-              linear: !!hasLinear, 
-              category: !!hasCategory,
-              time: !!hasTime
-            });
-          } catch (e) {
-            console.warn('Erro ao verificar escalas:', e);
-          }
-        }
-      }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('❌ Erro no registro do Chart.js:', error);
-      }
-      // Mesmo com erro, marcar como registrado para evitar loops infinitos
-      isRegistered = true;
+      safeLog.error('Falha ao registrar Chart.js ou plugins:', error);
+      // Lançar o erro novamente para que o chamador possa tratá-lo se necessário
       throw error;
     }
-  })();
-
-  return registrationPromise;
+  }
 }
 

@@ -2,11 +2,10 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import {
   Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem,
-  FilterOption, Filters, DimensoesDashboard, DashboardResumoData, UtrData, EntregadoresData,
-  ValoresEntregador, EvolucaoMensal, EvolucaoSemanal, UtrSemanal
+  FilterOption, Filters, DashboardResumoData, EvolucaoMensal, EvolucaoSemanal, UtrSemanal
 } from '@/types';
 import { buildFilterPayload, safeNumber } from '@/utils/helpers';
-import { useDashboardDimensions } from './useDashboardDimensions'; // Importa o novo hook
+import { useDashboardDimensions } from './useDashboardDimensions';
 import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -19,7 +18,6 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>([]);
   const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>([]);
   
-  // Usa o novo hook para dimensões iniciais
   const { anosDisponiveis, semanasDisponiveis } = useDashboardDimensions();
 
   const [pracas, setPracas] = useState<FilterOption[]>([]);
@@ -30,14 +28,6 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [utrData, setUtrData] = useState<UtrData | null>(null);
-  const [loadingUtr, setLoadingUtr] = useState(false);
-  const [entregadoresData, setEntregadoresData] = useState<EntregadoresData | null>(null);
-  const [loadingEntregadores, setLoadingEntregadores] = useState(false);
-  const [prioridadeData, setPrioridadeData] = useState<EntregadoresData | null>(null);
-  const [loadingPrioridade, setLoadingPrioridade] = useState(false);
-  const [valoresData, setValoresData] = useState<ValoresEntregador[]>([]);
-  const [loadingValores, setLoadingValores] = useState(false);
   const [evolucaoMensal, setEvolucaoMensal] = useState<EvolucaoMensal[]>([]);
   const [evolucaoSemanal, setEvolucaoSemanal] = useState<EvolucaoSemanal[]>([]);
   const [utrSemanal, setUtrSemanal] = useState<UtrSemanal[]>([]);
@@ -49,22 +39,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const dashboardDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const filterPayload = useMemo(() => {
-    const payload = buildFilterPayload(initialFilters, currentUser);
-    if (IS_DEV) {
-      safeLog.info('FilterPayload gerado:', payload);
-      safeLog.info('CurrentUser:', currentUser);
-      safeLog.info('InitialFilters:', initialFilters);
-      
-      // Verificar se o usuário tem restrições
-      if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-        safeLog.info('Usuário restrito detectado. Praças permitidas:', currentUser.assigned_pracas);
-        safeLog.info('Praça no payload:', payload.p_praca);
-      }
-    }
-    return payload;
+    return buildFilterPayload(initialFilters, currentUser);
   }, [initialFilters, currentUser]);
-
-  // REMOVIDO: Bloco `useEffect` para `fetchInitialDimensions` foi movido para o novo hook
 
   // Buscar dados principais do Dashboard
   useEffect(() => {
@@ -73,12 +49,12 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     const payloadKey = JSON.stringify(filterPayload);
     if (cacheKeyRef.current === payloadKey && cachedDataRef.current) {
       const cached = cachedDataRef.current;
-        setTotals({
-            ofertadas: safeNumber(cached.totais?.corridas_ofertadas ?? 0),
-            aceitas: safeNumber(cached.totais?.corridas_aceitas ?? 0),
-            rejeitadas: safeNumber(cached.totais?.corridas_rejeitadas ?? 0),
-            completadas: safeNumber(cached.totais?.corridas_completadas ?? 0),
-        });
+      setTotals({
+          ofertadas: safeNumber(cached.totais?.corridas_ofertadas ?? 0),
+          aceitas: safeNumber(cached.totais?.corridas_aceitas ?? 0),
+          rejeitadas: safeNumber(cached.totais?.corridas_rejeitadas ?? 0),
+          completadas: safeNumber(cached.totais?.corridas_completadas ?? 0),
+      });
       setAderenciaSemanal(Array.isArray(cached.semanal) ? cached.semanal : []);
       setAderenciaDia(Array.isArray(cached.dia) ? cached.dia : []);
       setAderenciaTurno(Array.isArray(cached.turno) ? cached.turno : []);
@@ -93,7 +69,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       try {
         const { data, error } = await supabase.rpc('dashboard_resumo', filterPayload as any);
         if (error) {
-          if (IS_DEV) safeLog.error('Erro ao carregar dashboard_resumo:', error);
+          safeLog.error('Erro ao carregar dashboard_resumo:', error);
           throw error;
         }
         
@@ -115,7 +91,6 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         if (data.dimensoes) {
           let pracasDisponiveis: FilterOption[] = Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
 
-          // Filtrar praças se o usuário não for admin
           if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
             const pracasPermitidas = new Set(currentUser.assigned_pracas);
             pracasDisponiveis = pracasDisponiveis.filter((p) => pracasPermitidas.has(p.value));
@@ -129,10 +104,9 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
           }
         }
       } catch (err: any) {
-        if (IS_DEV) safeLog.error('Erro ao carregar dashboard_resumo:', err);
+        safeLog.error('Erro ao carregar dashboard_resumo:', err);
         const errorMessage = err?.message || err?.code || 'Não foi possível carregar os dados do dashboard.';
         setError(errorMessage);
-        // Manter dados anteriores em cache se houver erro
         if (!cachedDataRef.current) {
           setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
           setAderenciaSemanal([]);
@@ -151,575 +125,53 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     };
   }, [filterPayload, currentUser]);
 
-  // Cache para dados de abas específicas
-  const tabDataCacheRef = useRef<Map<string, { data: any; timestamp: number }>>(new Map());
-  const CACHE_TTL = 30000; // 30 segundos
-
-  // Fetch data for specific tabs
+  // Lógica de busca para a aba 'evolucao' (mantida aqui por enquanto)
   useEffect(() => {
-    const fetchDataForTab = async (tab: string) => {
-      const cacheKey = `${tab}-${JSON.stringify(filterPayload)}`;
-      const cached = tabDataCacheRef.current.get(cacheKey);
-      
-      // Usar cache se ainda válido
-      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        switch (tab) {
-          case 'utr':
-            setUtrData(cached.data);
-            setLoadingUtr(false);
-            break;
-          case 'entregadores':
-            setEntregadoresData(cached.data);
-            setLoadingEntregadores(false);
-            break;
-          case 'valores':
-            setValoresData(cached.data);
-            setLoadingValores(false);
-            break;
-          case 'prioridade':
-            setPrioridadeData(cached.data);
-            setLoadingPrioridade(false);
-            break;
-        }
+    const fetchEvolucaoData = async () => {
+      const pracaFilter = (filterPayload as any).p_praca;
+      const evolucaoCacheKey = `evolucao-${anoEvolucao}-${pracaFilter || 'all'}`;
+      const cached = evolucaoCacheRef.current.get(evolucaoCacheKey);
+
+      if (cached && Date.now() - cached.timestamp < 30000) {
+        setEvolucaoMensal(cached.mensal);
+        setEvolucaoSemanal(cached.semanal);
+        setUtrSemanal(cached.utrSemanal);
+        setLoadingEvolucao(false);
         return;
       }
+      
+      setLoadingEvolucao(true);
+      try {
+        const [mensalRes, semanalRes] = await Promise.all([
+          supabase.rpc('listar_evolucao_mensal', { p_praca: pracaFilter, p_ano: anoEvolucao }),
+          supabase.rpc('listar_evolucao_semanal', { p_praca: pracaFilter || null, p_ano: anoEvolucao, p_limite_semanas: 60 })
+        ]);
 
-      switch (tab) {
-        case 'utr':
-          setLoadingUtr(true);
-          try {
-            const { data, error } = await supabase.rpc('calcular_utr', filterPayload as any);
-            if (error) throw error;
-            setUtrData(data);
-            tabDataCacheRef.current.set(cacheKey, { data, timestamp: Date.now() });
-          } catch (err: any) {
-            if (IS_DEV) safeLog.error('Erro ao carregar UTR:', err);
-            setUtrData(null);
-          } finally {
-            setLoadingUtr(false);
-          }
-          break;
-        case 'entregadores':
-            setLoadingEntregadores(true);
-            try {
-              // Tentar listar_entregadores primeiro, se falhar usar pesquisar_entregadores
-              if (IS_DEV) {
-                safeLog.info('Chamando listar_entregadores com filterPayload:', filterPayload);
-                safeLog.info('CurrentUser:', currentUser);
-              }
-              
-              // Função existe e aceita: p_ano, p_semana, p_praca, p_sub_praca, p_origem (sem p_turno)
-              const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
-              const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
-              const { data, error } = await supabase.rpc('listar_entregadores', listarEntregadoresPayload);
-              
-              if (error) {
-                safeLog.error('Erro ao carregar entregadores:', error);
-                throw error;
-              }
-              
-              if (IS_DEV) {
-                safeLog.info('Dados retornados de listar_entregadores:', data);
-                safeLog.info('Tipo dos dados:', typeof data);
-                if (data && typeof data === 'object') {
-                  safeLog.info('Propriedades do objeto:', Object.keys(data));
-                }
-              }
-              
-              // A função retorna JSONB com estrutura { entregadores: [...] }
-              let entregadores: any[] = [];
-              if (data) {
-                if (Array.isArray(data)) {
-                  entregadores = data;
-                } else if (data && typeof data === 'object') {
-                  // Verificar se tem a propriedade entregadores
-                  if (Array.isArray(data.entregadores)) {
-                    entregadores = data.entregadores;
-                  }
-                  // Se não tem entregadores, mas é um objeto, pode ser que seja o próprio array
-                  else if (Object.keys(data).length > 0) {
-                    // Tentar converter o objeto em array se tiver propriedades numéricas
-                    const keys = Object.keys(data);
-                    if (keys.every(k => !isNaN(Number(k)))) {
-                      entregadores = Object.values(data);
-                    }
-                  }
-                } else if (typeof data === 'string') {
-                  try {
-                    const parsed = JSON.parse(data);
-                    if (Array.isArray(parsed)) {
-                      entregadores = parsed;
-                    } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.entregadores)) {
-                      entregadores = parsed.entregadores;
-                    }
-                  } catch (e) {
-                    safeLog.warn('Não foi possível fazer parse do JSON:', e);
-                  }
-                }
-              }
-              
-              const entregadoresData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
-              
-              if (IS_DEV) {
-                safeLog.info('Entregadores processados:', entregadoresData);
-              }
-              
-              setEntregadoresData(entregadoresData);
-              tabDataCacheRef.current.set(cacheKey, { data: entregadoresData, timestamp: Date.now() });
-            } catch (err: any) {
-              safeLog.error('Erro ao carregar entregadores:', err);
-              setEntregadoresData({ entregadores: [], total: 0 });
-            } finally {
-              setLoadingEntregadores(false);
-            }
-            break;
-        case 'valores':
-            setLoadingValores(true);
-            try {
-              // Tentar listar_valores_entregadores primeiro, se falhar usar pesquisar_valores_entregadores
-              if (IS_DEV) {
-                safeLog.info('Chamando listar_valores_entregadores com filterPayload:', filterPayload);
-                safeLog.info('CurrentUser:', currentUser);
-              }
+        if (mensalRes.error) safeLog.error('Erro ao carregar evolução mensal:', mensalRes.error);
+        if (semanalRes.error) safeLog.error('Erro ao carregar evolução semanal:', semanalRes.error);
 
-              // Função existe e aceita: p_ano, p_semana, p_praca, p_sub_praca, p_origem (sem p_turno)
-              const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
-              const listarValoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
+        const mensal = mensalRes.data || [];
+        const semanal = semanalRes.data || [];
+        
+        evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: [], timestamp: Date.now() });
+        setEvolucaoMensal(mensal);
+        setEvolucaoSemanal(semanal);
+        setUtrSemanal([]); // UTR desabilitado por ora
 
-              const { data, error } = await supabase.rpc('listar_valores_entregadores', listarValoresPayload);
-
-              if (error) {
-                safeLog.error('Erro ao carregar valores:', error);
-                throw error;
-              }
-
-              if (IS_DEV) {
-                safeLog.info('Dados retornados de listar_valores_entregadores:', data);
-                safeLog.info('Tipo dos dados valores:', typeof data);
-                if (data && typeof data === 'object') {
-                  safeLog.info('Propriedades do objeto valores:', Object.keys(data));
-                }
-              }
-
-              // A função retorna JSONB, então precisa acessar o array interno
-              let valores: any[] = [];
-              if (data) {
-                if (Array.isArray(data)) {
-                  // Se for array direto
-                  valores = data;
-                } else if (typeof data === 'object') {
-                  // Se for objeto, tentar diferentes propriedades
-                  if (Array.isArray(data.valores)) {
-                    valores = data.valores;
-                  } else if (Array.isArray(data.entregadores)) {
-                    // Mapear de entregadores para valores
-                    valores = data.entregadores.map((e: any) => ({
-                      id_entregador: e.id_entregador || e.id_da_pessoa_entregadora,
-                      nome_entregador: e.nome_entregador || e.pessoa_entregadora,
-                      total_taxas: e.total_taxas || e.soma_das_taxas_das_corridas_aceitas || 0,
-                      numero_corridas_aceitas: e.numero_corridas_aceitas || e.numero_de_corridas_aceitas || 0,
-                      taxa_media: e.taxa_media || (e.total_taxas && e.numero_corridas_aceitas ? e.total_taxas / e.numero_corridas_aceitas : 0)
-                    }));
-                  }
-                  // Se não tem valores nem entregadores, mas é um objeto, pode ser que seja o próprio array
-                  else if (Object.keys(data).length > 0) {
-                    // Tentar converter o objeto em array se tiver propriedades numéricas
-                    const keys = Object.keys(data);
-                    if (keys.every(k => !isNaN(Number(k)))) {
-                      valores = Object.values(data);
-                    }
-                  }
-                } else if (typeof data === 'string') {
-                  // Se for string JSON, tentar fazer parse
-                  try {
-                    const parsed = JSON.parse(data);
-                    if (Array.isArray(parsed)) {
-                      valores = parsed;
-                    } else if (parsed && typeof parsed === 'object') {
-                      if (Array.isArray(parsed.valores)) {
-                        valores = parsed.valores;
-                      } else if (Array.isArray(parsed.entregadores)) {
-                        valores = parsed.entregadores.map((e: any) => ({
-                          id_entregador: e.id_entregador || e.id_da_pessoa_entregadora,
-                          nome_entregador: e.nome_entregador || e.pessoa_entregadora,
-                          total_taxas: e.total_taxas || e.soma_das_taxas_das_corridas_aceitas || 0,
-                          numero_corridas_aceitas: e.numero_corridas_aceitas || e.numero_de_corridas_aceitas || 0,
-                          taxa_media: e.taxa_media || (e.total_taxas && e.numero_corridas_aceitas ? e.total_taxas / e.numero_corridas_aceitas : 0)
-                        }));
-                      }
-                    }
-                  } catch (e) {
-                    safeLog.warn('Não foi possível fazer parse do JSON:', e);
-                  }
-                }
-              }
-
-              // Se ainda não temos dados e usamos a função antiga, aplicar filtro manual
-              if (valores.length === 0 && error && (error as any)?.code === '42883' && currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
-                if (IS_DEV) safeLog.info('Aplicando filtro manual de praças para valores');
-                // Não temos dados porque a função antiga não filtra por praça
-                // Retornar array vazio para usuários restritos
-              }
-
-              // Segurança adicional: se o registro trouxer campo praca, filtrar pelo permitido
-              if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
-                const unicaPraca = currentUser.assigned_pracas[0];
-                valores = Array.isArray(valores)
-                  ? valores.filter((v: any) => !('praca' in v) || v.praca === unicaPraca)
-                  : valores;
-              }
-
-              if (IS_DEV) {
-                safeLog.info('Valores processados:', valores.length, valores);
-              }
-
-              setValoresData(valores);
-              tabDataCacheRef.current.set(cacheKey, { data: valores, timestamp: Date.now() });
-            } catch (err: any) {
-              safeLog.error('Erro ao carregar valores:', err);
-              setValoresData([]);
-            } finally {
-              setLoadingValores(false);
-            }
-            break;
-        case 'prioridade':
-            setLoadingPrioridade(true);
-            try {
-              // Tentar listar_entregadores primeiro, se falhar usar pesquisar_entregadores
-              if (IS_DEV) {
-                safeLog.info('Chamando listar_entregadores (prioridade) com filterPayload:', filterPayload);
-                safeLog.info('CurrentUser:', currentUser);
-              }
-              
-              // listar_entregadores aqui também não aceita p_turno
-              const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
-              const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
-              let result = await supabase.rpc('listar_entregadores', listarEntregadoresPayload);
-              
-              // Se a função não existir (404/42883), tentar a função antiga
-              if (
-                result.error && (
-                  (result as any).status === 404 ||
-                  (result.error as any)?.code === '404' ||
-                  (result.error as any)?.code === '42883' ||
-                  (result.error as any)?.message?.toLowerCase?.().includes('not found') ||
-                  (result.error as any)?.message?.includes('does not exist')
-                )
-              ) {
-                if (IS_DEV) safeLog.info('listar_entregadores não existe para prioridade, tentando pesquisar_entregadores');
-                result = await supabase.rpc('pesquisar_entregadores', { termo_busca: '' });
-              }
-              
-              const { data, error } = result;
-              
-              if (error) {
-                safeLog.error('Erro ao carregar prioridade/promo:', error);
-                throw error;
-              }
-              
-              if (IS_DEV) {
-                safeLog.info('Dados retornados de listar_entregadores (prioridade):', data);
-                safeLog.info('Tipo dos dados prioridade:', typeof data);
-                if (data && typeof data === 'object') {
-                  safeLog.info('Propriedades do objeto prioridade:', Object.keys(data));
-                }
-              }
-              
-              // A função retorna JSONB com estrutura { entregadores: [...] }
-              let entregadores: any[] = [];
-              if (data) {
-                if (Array.isArray(data)) {
-                  entregadores = data;
-                } else if (data && typeof data === 'object') {
-                  // Verificar se tem a propriedade entregadores
-                  if (Array.isArray(data.entregadores)) {
-                    entregadores = data.entregadores;
-                  }
-                  // Se não tem entregadores, mas é um objeto, pode ser que seja o próprio array
-                  else if (Object.keys(data).length > 0) {
-                    // Tentar converter o objeto em array se tiver propriedades numéricas
-                    const keys = Object.keys(data);
-                    if (keys.every(k => !isNaN(Number(k)))) {
-                      entregadores = Object.values(data);
-                    }
-                  }
-                } else if (typeof data === 'string') {
-                  try {
-                    const parsed = JSON.parse(data);
-                    if (Array.isArray(parsed)) {
-                      entregadores = parsed;
-                    } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.entregadores)) {
-                      entregadores = parsed.entregadores;
-                    }
-                  } catch (e) {
-                    safeLog.warn('Não foi possível fazer parse do JSON (prioridade):', e);
-                  }
-                }
-              }
-              
-              const prioridadeData = { entregadores: Array.isArray(entregadores) ? entregadores : [], total: Array.isArray(entregadores) ? entregadores.length : 0 };
-              
-              if (IS_DEV) {
-                safeLog.info('Prioridade processada:', prioridadeData);
-              }
-              
-              setPrioridadeData(prioridadeData);
-              tabDataCacheRef.current.set(cacheKey, { data: prioridadeData, timestamp: Date.now() });
-            } catch (err: any) {
-              safeLog.error('Erro ao carregar prioridade/promo:', err);
-              setPrioridadeData({ entregadores: [], total: 0 });
-            } finally {
-              setLoadingPrioridade(false);
-            }
-            break;
-        case 'evolucao':
-          // Cache key com ano E praça, pois diferentes praças retornam dados diferentes
-          // IMPORTANTE: Incluir praça na chave para evitar cache incorreto entre diferentes praças
-          const pracaFilter = filterPayload.p_praca;
-          const evolucaoCacheKey = `evolucao-${anoEvolucao}-${pracaFilter || 'all'}`;
-          
-          // Limpar cache antigo que não inclui praça na chave (compatibilidade)
-          evolucaoCacheRef.current.forEach((value, key) => {
-            if (key.startsWith(`evolucao-${anoEvolucao}-`) && !key.includes(pracaFilter || 'all')) {
-              // Manter apenas para evitar limpar demais
-            } else if (key === `evolucao-${anoEvolucao}`) {
-              // Remover cache antigo sem praça
-              evolucaoCacheRef.current.delete(key);
-            }
-          });
-          
-          const cached = evolucaoCacheRef.current.get(evolucaoCacheKey);
-          // Usar cache apenas se existir e tiver menos de 30 segundos (reduzido para forçar atualização)
-          if (cached && cached.timestamp && Date.now() - cached.timestamp < 30000) {
-            setEvolucaoMensal(cached.mensal);
-            setEvolucaoSemanal(cached.semanal);
-            setUtrSemanal(cached.utrSemanal);
-            setLoadingEvolucao(false);
-            return;
-          }
-          setLoadingEvolucao(true);
-          try {
-            // Carregar dados de evolução - usar apenas p_ano, não outros filtros
-            if (IS_DEV) {
-              safeLog.info('Carregando evolução para ano:', anoEvolucao);
-            }
-            
-            // Carregar dados de evolução com tratamento individual de erros
-            let mensalRes: any = { data: [], error: null };
-            let semanalRes: any = { data: [], error: null };
-            let utrSemanalRes: any = { data: [], error: null }; // Manter para compatibilidade, mas não carregar
-            
-            // Usar o filterPayload já construído que já aplica as permissões do usuário
-            // (pracaFilter já foi definido acima para o cache key)
-            
-            if (IS_DEV) {
-              safeLog.info('🔍 [HOOK] Carregando evolução com filtro de praça:', pracaFilter);
-              safeLog.info('🔍 [HOOK] FilterPayload completo:', filterPayload);
-              if (currentUser) {
-                safeLog.info('🔍 [HOOK] CurrentUser:', {
-                  is_admin: currentUser.is_admin,
-                  assigned_pracas: currentUser.assigned_pracas
-                });
-              }
-            }
-            
-            try {
-              // listar_evolucao_mensal(p_praca text, p_ano integer)
-              const { data, error } = await supabase.rpc('listar_evolucao_mensal', { 
-                p_praca: pracaFilter, 
-                p_ano: anoEvolucao 
-              });
-              mensalRes = { data: data || [], error };
-            } catch (err) {
-              safeLog.error('Erro em listar_evolucao_mensal:', err);
-              mensalRes = { data: [], error: err };
-            }
-            
-            try {
-              // listar_evolucao_semanal(p_praca text, p_ano integer, p_limite_semanas integer DEFAULT 53)
-              // Aumentar limite para garantir que todas as semanas sejam retornadas
-              // IMPORTANTE: Passar pracaFilter explicitamente (não null) para garantir filtro correto
-              const { data, error } = await supabase.rpc('listar_evolucao_semanal', { 
-                p_praca: pracaFilter || null, 
-                p_ano: anoEvolucao,
-                p_limite_semanas: 60 // Aumentado para garantir semanas 44, 45, etc.
-              });
-              semanalRes = { data: data || [], error };
-              
-              // Log essencial apenas para semana 35 (debug)
-              if (IS_DEV && data && Array.isArray(data) && data.length > 0) {
-                const semana35 = data.find((d: any) => d.semana === 35);
-                if (semana35) {
-                  const segundos = Number(semana35.total_segundos) || 0;
-                  const horas = segundos / 3600;
-                  safeLog.info('🔍 [HOOK] Semana 35:', {
-                    total_segundos: segundos,
-                    horas: horas.toFixed(2),
-                    praca_filter: pracaFilter
-                  });
-                }
-              }
-              
-              if (IS_DEV && data) {
-                const semanas = Array.isArray(data) ? data.map((d: any) => d.semana).filter((s: any) => s != null) : [];
-                safeLog.info('Semanas retornadas pela função:', `${semanas.length} semanas:`, semanas);
-                safeLog.info('Semana máxima:', semanas.length > 0 ? Math.max(...semanas) : 'N/A');
-                // Log detalhado dos dados recebidos
-                if (Array.isArray(data) && data.length > 0) {
-                  safeLog.info('🔍 [HOOK] Primeiro item semanal recebido do banco:', data[0]);
-                  safeLog.info('🔍 [HOOK] Propriedades disponíveis:', Object.keys(data[0]));
-                  safeLog.info('🔍 [HOOK] Valores de corridas no primeiro item:', {
-                    ofertadas: data[0].corridas_ofertadas,
-                    aceitas: data[0].corridas_aceitas,
-                    completadas: data[0].corridas_completadas,
-                    rejeitadas: data[0].corridas_rejeitadas
-                  });
-                  
-                  // Verificar se há valores diferentes entre as métricas
-                  const firstItem = data[0];
-                  const todasIguais = firstItem.corridas_ofertadas === firstItem.corridas_aceitas && 
-                                     firstItem.corridas_aceitas === firstItem.corridas_completadas;
-                  if (todasIguais) {
-                    safeLog.warn('⚠️ [HOOK] ATENÇÃO: Ofertadas, Aceitas e Completadas têm o mesmo valor!', {
-                      valor: firstItem.corridas_ofertadas,
-                      issoPodeSerNormal: 'Se todas as corridas ofertadas foram aceitas e completadas'
-                    });
-                  }
-                  
-                  // Verificar se há valores não-zero de rejeitadas
-                  const rejeitadasValues = data.map((d: any) => d.corridas_rejeitadas).filter((v: any) => v != null && v !== 0);
-                  safeLog.info('🔍 [HOOK] Rejeitadas não-zero encontradas:', `${rejeitadasValues.length} valores:`, rejeitadasValues.slice(0, 10));
-                  
-                  if (rejeitadasValues.length === 0) {
-                    safeLog.warn('⚠️ [HOOK] ATENÇÃO: Todas as rejeitadas estão em 0! Isso pode indicar um problema nos dados do banco.');
-                  }
-                }
-              }
-            } catch (err) {
-              safeLog.error('Erro em listar_evolucao_semanal:', err);
-              semanalRes = { data: [], error: err };
-            }
-            
-            // UTR TEMPORARIAMENTE DESABILITADO - causando erro 400/500
-            if (IS_DEV) {
-              safeLog.info('UTR semanal temporariamente desabilitado devido a erros na função');
-            }
-            // Manter utrSemanalRes como array vazio para não quebrar o frontend
-            utrSemanalRes = { data: [], error: null };
-            
-            // Verificar erros em cada resposta
-            if (mensalRes.error) {
-              if (IS_DEV) safeLog.error('Erro ao carregar evolução mensal:', mensalRes.error);
-            }
-            if (semanalRes.error) {
-              if (IS_DEV) safeLog.error('Erro ao carregar evolução semanal:', semanalRes.error);
-            }
-            // UTR desabilitado temporariamente
-            
-            // Processar dados retornados - as funções retornam RECORD (arrays diretos)
-            let mensal: any[] = [];
-            let semanal: any[] = [];
-            let utr: any[] = [];
-            
-            // Processar mensal - função retorna array diretamente
-            if (mensalRes.data && Array.isArray(mensalRes.data)) {
-              mensal = mensalRes.data;
-            }
-            
-            // Processar semanal - função retorna array diretamente  
-            if (semanalRes.data && Array.isArray(semanalRes.data)) {
-              semanal = semanalRes.data;
-            }
-            
-            // Processar UTR - função retorna array diretamente
-            if (utrSemanalRes.data && Array.isArray(utrSemanalRes.data)) {
-              utr = utrSemanalRes.data;
-            }
-            
-            if (IS_DEV) {
-              safeLog.info('Evolução carregada:', { mensal: mensal.length, semanal: semanal.length, utr: utr.length });
-              safeLog.info('Ano solicitado:', anoEvolucao);
-              if (mensal.length > 0) {
-                safeLog.info('Primeiro item mensal:', mensal[0]);
-                safeLog.info('Propriedades mensal:', Object.keys(mensal[0]));
-              }
-              if (semanal.length > 0) {
-                safeLog.info('🔍 [HOOK] Primeiro item semanal completo:', semanal[0]);
-                safeLog.info('🔍 [HOOK] Propriedades semanal:', Object.keys(semanal[0]));
-                // Verificar valores de rejeitadas em todos os dados semanais
-                const rejeitadasTotal = semanal.reduce((sum: number, s: any) => sum + (Number(s.corridas_rejeitadas) || 0), 0);
-                const rejeitadasNonZero = semanal.filter((s: any) => Number(s.corridas_rejeitadas) > 0);
-                safeLog.info('🔍 [HOOK] Total de rejeitadas (soma de todas as semanas):', rejeitadasTotal);
-                safeLog.info('🔍 [HOOK] Semanas com rejeitadas > 0:', rejeitadasNonZero.length);
-                safeLog.info('🔍 [HOOK] Total de semanas:', semanal.length);
-                
-                // Verificar os primeiros 5 itens para debug
-                safeLog.info('🔍 [HOOK] Primeiros 5 itens semanais:', semanal.slice(0, 5).map((s: any) => ({
-                  ano: s.ano,
-                  semana: s.semana,
-                  ofertadas: s.corridas_ofertadas,
-                  aceitas: s.corridas_aceitas,
-                  completadas: s.corridas_completadas,
-                  rejeitadas: s.corridas_rejeitadas,
-                  tipo_rejeitadas: typeof s.corridas_rejeitadas
-                })));
-                
-                if (rejeitadasNonZero.length > 0) {
-                  safeLog.info('✅ [HOOK] Exemplos de semanas com rejeitadas:', rejeitadasNonZero.slice(0, 5).map((s: any) => ({
-                    semana: s.semana,
-                    rejeitadas: s.corridas_rejeitadas,
-                    ofertadas: s.corridas_ofertadas,
-                    aceitas: s.corridas_aceitas
-                  })));
-                } else {
-                  safeLog.warn('⚠️ [HOOK] NENHUMA semana tem rejeitadas > 0! Verificando se os dados estão corretos...');
-                  // Verificar se há diferença entre ofertadas e aceitas
-                  const primeiraSemana = semanal[0];
-                  if (primeiraSemana) {
-                    safeLog.info('🔍 [HOOK] Análise da primeira semana:', {
-                      semana: primeiraSemana.semana,
-                      ofertadas: primeiraSemana.corridas_ofertadas,
-                      aceitas: primeiraSemana.corridas_aceitas,
-                      completadas: primeiraSemana.corridas_completadas,
-                      rejeitadas: primeiraSemana.corridas_rejeitadas,
-                      diferenca_ofertadas_aceitas: Number(primeiraSemana.corridas_ofertadas) - Number(primeiraSemana.corridas_aceitas)
-                    });
-                  }
-                }
-              }
-              if (utr.length > 0) safeLog.info('Primeiro item utr:', utr[0]);
-              
-              // Verificar se há dados para o ano solicitado
-              const mensalAno = mensal.filter(m => m.ano === anoEvolucao);
-              const semanalAno = semanal.filter(s => s.ano === anoEvolucao);
-              const utrAno = utr.filter(u => u.ano === anoEvolucao);
-              safeLog.info('Dados filtrados por ano:', { 
-                mensalAno: mensalAno.length, 
-                semanalAno: semanalAno.length, 
-                utrAno: utrAno.length 
-              });
-            }
-            
-            evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: utr, timestamp: Date.now() });
-            setEvolucaoMensal(mensal);
-            setEvolucaoSemanal(semanal);
-            setUtrSemanal(utr);
-          } catch (err) {
-            safeLog.error('Erro ao carregar evolução:', err);
-            setEvolucaoMensal([]);
-            setEvolucaoSemanal([]);
-            setUtrSemanal([]);
-          } finally {
-            setLoadingEvolucao(false);
-          }
-          break;
+      } catch (err) {
+        safeLog.error('Erro ao carregar evolução:', err);
+        setEvolucaoMensal([]);
+        setEvolucaoSemanal([]);
+        setUtrSemanal([]);
+      } finally {
+        setLoadingEvolucao(false);
       }
     };
 
-    // Delay de 200ms para evitar múltiplas requisições ao trocar de aba
-    const timeoutId = setTimeout(() => fetchDataForTab(activeTab), 200);
-    return () => clearTimeout(timeoutId);
-  }, [activeTab, filterPayload, anoEvolucao, currentUser]);
+    if (activeTab === 'evolucao') {
+      fetchEvolucaoData();
+    }
+  }, [activeTab, anoEvolucao, filterPayload]);
   
   const aderenciaGeral = useMemo(() => {
     if (aderenciaSemanal.length === 0) return undefined;
@@ -748,8 +200,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   return {
     totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem,
     anosDisponiveis, semanasDisponiveis, pracas, subPracas, origens, turnos, loading, error,
-    utrData, loadingUtr, entregadoresData, loadingEntregadores, prioridadeData, loadingPrioridade,
-    valoresData, loadingValores, evolucaoMensal, evolucaoSemanal, utrSemanal, loadingEvolucao,
+    evolucaoMensal, evolucaoSemanal, utrSemanal, loadingEvolucao,
     aderenciaGeral
   };
 }

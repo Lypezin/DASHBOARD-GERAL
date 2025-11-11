@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Entregador, EntregadoresData } from '@/types';
+import { safeLog } from '@/lib/errorHandler';
 import MetricCard from '../MetricCard';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -58,7 +59,7 @@ function PrioridadePromoView({
         if (error) throw error;
         setSearchResults(data?.entregadores || []);
       } catch (err) {
-        if (IS_DEV) console.error('Erro ao pesquisar entregadores:', err);
+        if (IS_DEV) safeLog.error('Erro ao pesquisar entregadores:', err);
         // Fallback para pesquisa local
         const filtered = (entregadoresData?.entregadores || []).filter(e => 
           e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||

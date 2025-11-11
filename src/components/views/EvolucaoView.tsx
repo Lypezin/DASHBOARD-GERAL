@@ -3,6 +3,7 @@ import { Line } from 'react-chartjs-2';
 import { EvolucaoMensal, EvolucaoSemanal } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { registerChartJS } from '@/lib/chartConfig';
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 

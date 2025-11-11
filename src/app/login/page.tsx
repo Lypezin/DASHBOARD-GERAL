@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Auth } from '@supabase/auth-ui-react'
+import { ThemeSupa } from '@supabase/auth-ui-shared'
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 

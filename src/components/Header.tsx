@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import Image from 'next/image';
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -93,8 +94,16 @@ export function Header() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      // O onAuthStateChange no AuthProvider vai redirecionar para /login
+    } catch (error) {
+      safeLog.error('Erro ao fazer logout:', error);
+      // Opcional: mostrar uma notificação de erro para o usuário
+    }
   };
 
   // Fechar modal ao pressionar ESC

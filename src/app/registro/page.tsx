@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -82,7 +83,7 @@ export default function RegistroPage() {
         router.push('/login');
       }, 10000);
     } catch (err: any) {
-      if (IS_DEV) console.error('Erro no registro:', err);
+      safeLog.error('Erro no registro:', err);
       setError(err.message || 'Erro ao criar conta. Tente novamente.');
     } finally {
       setLoading(false);

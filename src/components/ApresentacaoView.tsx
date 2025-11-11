@@ -10,6 +10,11 @@ import SlideSubPracas from './apresentacao/slides/SlideSubPracas';
 import SlideAderenciaDiaria from './apresentacao/slides/SlideAderenciaDiaria';
 import SlideTurnos from './apresentacao/slides/SlideTurnos';
 import SlideDemandaRejeicoes from './apresentacao/slides/SlideDemandaRejeicoes';
+import { supabase } from '@/lib/supabaseClient';
+import { useQuery } from '@tanstack/react-query';
+import { safeLog } from '@/lib/errorHandler';
+
+const IS_DEV = process.env.NODE_ENV === 'development';
 
 const SUB_PRACAS_PER_PAGE = 4;
 const TURNOS_PER_PAGE = 3;
@@ -500,7 +505,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 
       pdf.save(`Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`);
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
+      safeLog.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF. Tente novamente.');
     } finally {
       setIsGenerating(false);

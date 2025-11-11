@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { Filters } from '@/types';
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -18,7 +20,13 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     getSession();
   }, []);
 
-  const registrarAtividade = async (actionType: string, actionDetails: any = {}, tabName: string | null = null, filtersApplied: any = {}) => {
+  // Função para registrar atividade
+  const registrarAtividade = useCallback(async (
+    action_type: string,
+    action_details: any = {},
+    tab_name: string | null = null,
+    filters_applied: any = {}
+  ) => {
     try {
       let descricaoDetalhada = '';
       const tabNames: Record<string, string> = {
@@ -32,16 +40,16 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
         evolucao: 'Evolução',
         monitoramento: 'Monitoramento'
       };
-      const nomeAba = tabNames[tabName || activeTab] || tabName || activeTab;
+      const nomeAba = tabNames[tab_name || activeTab] || tab_name || activeTab;
 
-      switch (actionType) {
+      switch (action_type) {
         case 'filter_change':
           const filtros: string[] = [];
-          if (filtersApplied.semana) filtros.push(`Semana ${filtersApplied.semana}`);
-          if (filtersApplied.praca) filtros.push(`Praça: ${filtersApplied.praca}`);
-          if (filtersApplied.sub_praca) filtros.push(`Sub-Praça: ${filtersApplied.sub_praca}`);
-          if (filtersApplied.origem) filtros.push(`Origem: ${filtersApplied.origem}`);
-          if (filtersApplied.turno) filtros.push(`Turno: ${filtersApplied.turno}`);
+          if (filters_applied.semana) filtros.push(`Semana ${filters_applied.semana}`);
+          if (filters_applied.praca) filtros.push(`Praça: ${filters_applied.praca}`);
+          if (filters_applied.sub_praca) filtros.push(`Sub-Praça: ${filters_applied.sub_praca}`);
+          if (filters_applied.origem) filtros.push(`Origem: ${filters_applied.origem}`);
+          if (filters_applied.turno) filtros.push(`Turno: ${filters_applied.turno}`);
           
           if (filtros.length > 0) {
             descricaoDetalhada = `Filtrou: ${filtros.join(', ')} na aba ${nomeAba}`;
@@ -65,22 +73,29 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
           descricaoDetalhada = `Saiu da aba ${nomeAba}`;
           break;
         default:
-          descricaoDetalhada = typeof actionDetails === 'string' ? actionDetails : `${actionType} na aba ${nomeAba}`;
+          descricaoDetalhada = typeof action_details === 'string' ? action_details : `${action_type} na aba ${nomeAba}`;
       }
       
-      await supabase.rpc('registrar_atividade', {
-        p_action_type: actionType,
+      const { data, error } = await supabase.rpc('registrar_atividade', {
+        p_session_id: sessionId,
+        p_action_type: action_type,
         p_action_details: descricaoDetalhada,
-        p_tab_name: tabName || activeTab,
-        p_filters_applied: filtersApplied,
-        p_session_id: sessionId
+        p_tab_name: tab_name || activeTab,
+        p_filters_applied: filters_applied as any
       });
-    } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error && error.code !== '42883') {
-        if (IS_DEV) console.error('Erro ao registrar atividade:', error);
+
+      if (error) {
+        // Não logar 'heartbeat' para não poluir o console
+        if (action_type !== 'heartbeat') {
+          safeLog.warn('Erro ao registrar atividade:', { error, action_type });
+        }
+      }
+    } catch (err) {
+      if (action_type !== 'heartbeat') {
+        safeLog.error('Erro inesperado ao registrar atividade:', err);
       }
     }
-  };
+  }, [sessionId]);
 
   // Usar refs para evitar dependências desnecessárias
   const activeTabRef = useRef(activeTab);

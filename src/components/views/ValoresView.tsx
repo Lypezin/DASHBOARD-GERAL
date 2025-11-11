@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { ValoresEntregador, Entregador, EntregadoresData } from '@/types';
 import MetricCard from '../MetricCard';
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -53,7 +54,7 @@ function ValoresView({
         if (error) throw error;
         setSearchResults(data || []);
       } catch (err) {
-        if (IS_DEV) console.error('Erro ao pesquisar valores:', err);
+        if (IS_DEV) safeLog.error('Erro ao pesquisar valores:', err);
         // Fallback para pesquisa local
         const valoresArray = Array.isArray(valoresData) ? valoresData : [];
         const filtered = valoresArray.filter(e => 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabaseClient';
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -284,9 +285,7 @@ export default function UploadPage() {
 
         successCount++;
       } catch (error: any) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error(`Erro no arquivo ${file.name}:`, error);
-        }
+        safeLog.error(`Erro no arquivo ${file.name}:`, error);
         errorCount++;
       }
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import type { Conquista, ConquistaNova } from '@/types/conquistas';
+import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -16,7 +17,8 @@ export function useConquistas() {
       const { data, error } = await supabase.rpc('listar_conquistas_usuario');
       
       if (error) {
-        if (IS_DEV) console.error('Erro ao carregar conquistas:', error);
+        safeLog.error('Erro ao carregar conquistas:', error);
+        setConquistas([]);
         return;
       }
 
@@ -30,7 +32,8 @@ export function useConquistas() {
         setTotalPontos(pontos);
       }
     } catch (err) {
-      if (IS_DEV) console.error('Erro ao processar conquistas:', err);
+      safeLog.error('Erro inesperado ao carregar conquistas:', err);
+      setConquistas([]);
     } finally {
       setLoading(false);
     }
@@ -42,7 +45,7 @@ export function useConquistas() {
       const { data, error } = await supabase.rpc('verificar_conquistas');
       
       if (error) {
-        if (IS_DEV) console.error('Erro ao verificar conquistas:', error);
+        safeLog.warn('Erro ao verificar conquistas (pode ser normal se não houver novas):', error);
         return;
       }
 
@@ -52,7 +55,7 @@ export function useConquistas() {
         await carregarConquistas();
       }
     } catch (err) {
-      if (IS_DEV) console.error('Erro ao verificar conquistas:', err);
+      safeLog.error('Erro inesperado ao verificar conquistas:', err);
     }
   }, [carregarConquistas]);
 
@@ -64,7 +67,7 @@ export function useConquistas() {
       });
       
       if (error) {
-        if (IS_DEV) console.error('Erro ao marcar conquista:', error);
+        safeLog.error('Erro ao marcar conquista:', error);
         return false;
       }
 
@@ -77,7 +80,7 @@ export function useConquistas() {
 
       return true;
     } catch (err) {
-      if (IS_DEV) console.error('Erro ao marcar conquista:', err);
+      safeLog.error('Erro inesperado ao marcar conquista:', err);
       return false;
     }
   }, []);

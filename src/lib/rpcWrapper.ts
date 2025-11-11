@@ -28,7 +28,7 @@ export async function safeRpc<T = any>(
         validatedParams = validateFilterPayload(params);
       } catch (validationError: any) {
         if (IS_DEV) {
-          console.warn(`Validação falhou para ${functionName}:`, validationError);
+          safeLog.warn(`Validação falhou para ${functionName}:`, validationError);
         }
         // Em produção, usar parâmetros originais mas limitar arrays
         validatedParams = sanitizeParams(params);

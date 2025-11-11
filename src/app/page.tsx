@@ -80,6 +80,7 @@ const ComparacaoView = dynamic(() => import('@/components/views/ComparacaoView')
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUserActivity } from '@/hooks/useUserActivity';
 import { useConquistas } from '@/hooks/useConquistas';
+import { useTabData } from '@/hooks/useTabData'; // Importa o novo hook
 
 // =================================================================================
 // Interfaces e Tipos
@@ -114,12 +115,12 @@ export default function DashboardPage() {
           // Chart.js está pronto, permitir renderização dos componentes
           setChartReady(true);
           if (process.env.NODE_ENV === 'development') {
-            console.log('✅ Chart.js está pronto, componentes podem renderizar');
+            safeLog.info('✅ Chart.js está pronto, componentes podem renderizar');
           }
         })
         .catch((error) => {
           // Mesmo com erro, permitir renderização para não travar a aplicação
-          console.error('Erro ao registrar Chart.js:', error);
+          safeLog.error('Erro ao registrar Chart.js:', error);
           setChartReady(true);
         });
     } else {
@@ -131,10 +132,19 @@ export default function DashboardPage() {
   const {
     totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem,
     anosDisponiveis, semanasDisponiveis, pracas, subPracas, origens, turnos, loading, error,
-    utrData, loadingUtr, entregadoresData, loadingEntregadores, prioridadeData, loadingPrioridade,
-    valoresData, loadingValores, evolucaoMensal, evolucaoSemanal, utrSemanal, loadingEvolucao,
+    evolucaoMensal, evolucaoSemanal, utrSemanal, loadingEvolucao,
     aderenciaGeral
   } = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
+
+  const filterPayload = useMemo(() => buildFilterPayload(filters, currentUser), [filters, currentUser]);
+  
+  const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
+
+  // Mapeia os dados do useTabData para as props dos componentes de view
+  const utrData = activeTab === 'utr' ? tabData as UtrData : null;
+  const entregadoresData = activeTab === 'entregadores' ? tabData as EntregadoresData : null;
+  const valoresData = activeTab === 'valores' ? tabData as ValoresEntregador[] : [];
+  const prioridadeData = activeTab === 'prioridade' ? tabData as EntregadoresData : null;
   
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
   const { conquistas, conquistasNovas, loading: loadingConquistas, stats, verificarConquistas, marcarVisualizada, removerConquistaNova } = useConquistas();
@@ -173,7 +183,7 @@ export default function DashboardPage() {
         const { data: profile, error } = await supabase.rpc('get_current_user_profile') as { data: { is_admin: boolean; assigned_pracas: string[] } | null; error: any };
       
       if (error) {
-          if (IS_DEV) console.error('Erro ao buscar perfil do usuário:', error);
+          if (IS_DEV) safeLog.error('Erro ao buscar perfil do usuário:', error);
           setCurrentUser(null);
         return;
       }
@@ -401,28 +411,28 @@ export default function DashboardPage() {
                   {activeTab === 'utr' && (
                     <UtrView
                       utrData={utrData}
-                      loading={loadingUtr}
+                      loading={loadingTabData}
                     />
                   )}
                   
                   {activeTab === 'entregadores' && (
                     <EntregadoresView
                       entregadoresData={entregadoresData}
-                      loading={loadingEntregadores}
+                      loading={loadingTabData}
                     />
                   )}
                   
                   {activeTab === 'valores' && (
                     <ValoresView
                       valoresData={valoresData}
-                      loading={loadingValores}
+                      loading={loadingTabData}
                     />
                   )}
                   
                   {activeTab === 'prioridade' && (
                     <PrioridadePromoView
                       entregadoresData={prioridadeData}
-                      loading={loadingPrioridade}
+                      loading={loadingTabData}
                     />
                   )}
                   
