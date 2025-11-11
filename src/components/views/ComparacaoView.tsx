@@ -215,7 +215,7 @@ function ComparacaoView({
             : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
         }`}
       >
-        {isPositive ? '↗' : '↘'} {Math.abs(valor).toFixed(1)}%
+        {isPositive ? '📈' : '📉'} {Math.abs(valor).toFixed(1)}%
       </span>
     );
   };
@@ -408,7 +408,7 @@ function ComparacaoView({
               <table className="w-full">
                 <thead className="bg-slate-50 dark:bg-slate-800/50">
                   <tr className="border-b border-slate-200 dark:border-slate-700">
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Métrica</th>
+                    <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Métrica</th>
                     {semanasSelecionadas.map((semana, idx) => (
                       <React.Fragment key={semana}>
                         <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
@@ -454,7 +454,7 @@ function ComparacaoView({
                                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                   : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                               }`}>
-                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                               </span>
                             </td>
                           )}
@@ -491,7 +491,7 @@ function ComparacaoView({
                                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                   : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                               }`}>
-                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                               </span>
                             </td>
                           )}
@@ -528,7 +528,7 @@ function ComparacaoView({
                                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                   : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                               }`}>
-                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                               </span>
                             </td>
                           )}
@@ -565,7 +565,7 @@ function ComparacaoView({
                                   ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                                   : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                               }`}>
-                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                               </span>
                             </td>
                           )}
@@ -602,7 +602,7 @@ function ComparacaoView({
                                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                   : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                               }`}>
-                                {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                               </span>
                             </td>
                           )}
@@ -832,7 +832,7 @@ function ComparacaoView({
               <table className="w-full">
                 <thead className="bg-blue-50 dark:bg-blue-950/30">
                   <tr className="border-b border-blue-200 dark:border-blue-700">
-                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">Dia</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">Dia</th>
                     <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">Métrica</th>
                     {semanasSelecionadas.map((semana, idx) => (
                       <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-100">
@@ -853,11 +853,11 @@ function ComparacaoView({
                     return metricas.map((metrica, metricaIdx) => (
                       <tr key={`${dia}-${metrica.key}`} className={diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/30 dark:bg-blue-950/20'}>
                         {metricaIdx === 0 && (
-                          <td rowSpan={4} className="px-4 py-3 font-bold text-slate-900 dark:text-white border-r border-blue-200 dark:border-blue-800">
+                          <td rowSpan={4} className="px-4 py-3 text-center font-bold text-slate-900 dark:text-white border-r border-blue-200 dark:border-blue-800">
                             {dia}
                           </td>
                         )}
-                        <td className={`px-4 py-2 text-sm font-semibold ${metrica.color}`}>{metrica.label}</td>
+                        <td className={`px-4 py-2 text-center text-sm font-semibold ${metrica.color}`}>{metrica.label}</td>
                         {dadosComparacao.map((dados, idx) => {
                           const diaData = dados.dia?.find(d => d.dia_da_semana === dia);
                           const valor = diaData?.[metrica.key as keyof typeof diaData] as number ?? 0;
@@ -883,7 +883,7 @@ function ComparacaoView({
                                       ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                       : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                                   }`}>
-                                    {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                    {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                                   </span>
                                 </td>
                               )}
@@ -930,7 +930,7 @@ function ComparacaoView({
               <table className="w-full">
                 <thead className="bg-slate-50 dark:bg-slate-800/50">
                   <tr className="border-b border-slate-200 dark:border-slate-700">
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Dia</th>
+                    <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Dia</th>
                     {semanasSelecionadas.map((semana, idx) => (
                       <th key={semana} colSpan={idx === 0 ? 1 : 2} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                         Semana {semana} {idx > 0 && '(Δ%)'}
@@ -941,7 +941,7 @@ function ComparacaoView({
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, diaIdx) => (
                     <tr key={dia} className={diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}>
-                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{dia}</td>
+                      <td className="px-6 py-4 text-center font-semibold text-slate-900 dark:text-white">{dia}</td>
                       {dadosComparacao.map((dados, idx) => {
                         const diaData = dados.dia?.find(d => d.dia_da_semana === dia);
                         const aderencia = diaData?.aderencia_percentual ?? 0;
@@ -969,7 +969,7 @@ function ComparacaoView({
                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                     : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                                 }`}>
-                                  {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                  {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                                 </span>
                               </td>
                             )}
@@ -1057,7 +1057,7 @@ function ComparacaoView({
                 <table className="w-full">
                   <thead className="bg-slate-50 dark:bg-slate-800/50">
                     <tr className="border-b border-slate-200 dark:border-slate-700">
-                      <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sub-Praça / Métrica</th>
+                      <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sub-Praça / Métrica</th>
                       {semanasSelecionadas.map((semana, idx) => (
                         <React.Fragment key={semana}>
                           <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
@@ -1115,7 +1115,7 @@ function ComparacaoView({
                                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                         : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                                     }`}>
-                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                                     </span>
                                   </td>
                                 )}
@@ -1155,7 +1155,7 @@ function ComparacaoView({
                                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                         : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                                     }`}>
-                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                                     </span>
                                   </td>
                                 )}
@@ -1195,7 +1195,7 @@ function ComparacaoView({
                                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                         : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                                     }`}>
-                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                                     </span>
                                   </td>
                                 )}
@@ -1235,7 +1235,7 @@ function ComparacaoView({
                                         ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                                         : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                     }`}>
-                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                                     </span>
                                   </td>
                                 )}
@@ -1275,7 +1275,7 @@ function ComparacaoView({
                                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
                                         : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
                                     }`}>
-                                      {variacao >= 0 ? '↗' : '↘'} {Math.abs(variacao).toFixed(1)}%
+                                      {variacao >= 0 ? '📈' : '📉'} {Math.abs(variacao).toFixed(1)}%
                                     </span>
                                   </td>
                                 )}
