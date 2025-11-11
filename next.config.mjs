@@ -7,6 +7,13 @@ const nextConfig = {
   
   // Otimizações de build
   swcMinify: true,
+  output: 'standalone',
+
+  // Garantir que pacotes nativos não sejam empacotados (necessário para Chromium em serverless)
+  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+  experimental: {
+    serverComponentsExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+  },
   
   // Otimizações de imagens
   images: {
