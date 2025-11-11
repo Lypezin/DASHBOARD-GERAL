@@ -20,6 +20,12 @@ export async function GET(req: NextRequest) {
       targetUrl = `${origin}${targetUrl.startsWith('/') ? '' : '/'}${targetUrl}`;
     }
 
+    // Configurações recomendadas pelo @sparticuz/chromium para serverless
+    // Evita dependências de GPU e acelera inicialização
+    // https://github.com/Sparticuz/chromium#puppeteer-core
+    (chromium as any).setHeadlessMode = true;
+    (chromium as any).setGraphicsMode = false;
+
     const executablePath = await chromium.executablePath();
     const browser = await puppeteer.launch({
       args: chromium.args,
