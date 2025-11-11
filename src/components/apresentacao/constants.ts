@@ -1,9 +1,10 @@
 import { CSSProperties } from 'react';
 
-// Dimensões A4 em landscape (297mm x 210mm) em pixels @ 72 DPI
-// Ajustado para proporção 16:9 para melhor visualização
-export const SLIDE_WIDTH = 1920;
-export const SLIDE_HEIGHT = 1080;
+// Dimensões A4 em landscape (proporção ~1.414) para casar 100% com o PDF
+// Mantemos um tamanho em px confortável para render/captura (html2canvas)
+// 1680x1188 mantém a proporção do A4 (297/210) e evita distorções no PDF
+export const SLIDE_WIDTH = 1680;
+export const SLIDE_HEIGHT = 1188;
 
 export const slideDimensionsStyle: CSSProperties = {
   width: `${SLIDE_WIDTH}px`,

@@ -662,7 +662,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           // 3. OVERFLOW SEMPRE VISÍVEL (crítico para gráficos)
           el.style.setProperty('overflow', 'visible', 'important');
           el.style.setProperty('text-overflow', 'clip', 'important');
-          el.style.setProperty('white-space', 'nowrap', 'important');
+          // permitir que textos longos quebrem corretamente
+          el.style.setProperty('white-space', 'normal', 'important');
+          el.style.setProperty('word-break', 'break-word', 'important');
           el.style.setProperty('contain', 'none', 'important');
           
           // 4. FONTE E RENDERIZAÇÃO OTIMIZADA
@@ -757,9 +759,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 box-sizing: border-box !important;
                 overflow: visible !important;
                 text-overflow: clip !important;
-                word-break: keep-all !important;
-                hyphens: none !important;
-                white-space: nowrap !important;
+                word-break: break-word !important;
+                hyphens: auto !important;
+                white-space: normal !important;
                 contain: none !important;
               }
               html, body {
@@ -981,8 +983,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           align-items: center !important;
           justify-content: center !important;
           text-align: center !important;
-          word-break: keep-all !important;
-          white-space: nowrap !important;
+          word-break: break-word !important;
+          white-space: normal !important;
         }
       `}</style>
       
