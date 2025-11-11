@@ -606,7 +606,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         await new Promise((resolve) => setTimeout(resolve, 200));
 
         const canvas = await html2canvas(clone, {
-          scale: 1.5,
+          scale: 2,
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#3b82f6',
@@ -616,13 +616,15 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           imageTimeout: 0,
           removeContainer: false,
           foreignObjectRendering: false,
+          windowWidth: SLIDE_WIDTH,
+          windowHeight: SLIDE_HEIGHT,
           ignoreElements: (element: Element) =>
             element.tagName === 'IFRAME' || element.tagName === 'OBJECT',
         });
 
         document.body.removeChild(printContainer);
 
-        const imgData = canvas.toDataURL('image/jpeg', 0.9);
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
         const imgX = 0;
         const imgY = 0;

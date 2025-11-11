@@ -1,6 +1,6 @@
 import React from 'react';
 import SlideWrapper from '../SlideWrapper';
-import { buildCircleTextStyle } from '../utils';
+import { buildCircleTextStyle, buildTimeTextStyle } from '../utils';
 
 interface TurnoResumo {
   aderencia: number;
@@ -70,37 +70,40 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
             <div className="flex items-center justify-between gap-8">
               {[turno.semana1, turno.semana2].map((semana, index) => (
                 <div key={index} className="flex flex-col items-center gap-4 flex-1">
-                  <span className="text-[2rem] font-medium">
+                  <span className="text-[2rem] font-medium text-center">
                     SEM {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
-                  <div className="relative w-[200px] h-[200px]">
+                  <div className="relative w-[200px] h-[200px] flex items-center justify-center">
                     <svg
-                      className="w-full h-full transform -rotate-90"
+                      className="absolute inset-0 w-full h-full transform -rotate-90"
                       viewBox="0 0 200 200"
-                      style={{ position: 'absolute', inset: 0 }}
+                      preserveAspectRatio="xMidYMid meet"
                     >
-                      <circle cx="100" cy="100" r="85" stroke="rgba(255,255,255,0.2)" strokeWidth="20" fill="none" />
+                      <circle cx="100" cy="100" r="80" stroke="rgba(255,255,255,0.2)" strokeWidth="18" fill="none" />
                       <circle
                         cx="100"
                         cy="100"
-                        r="85"
+                        r="80"
                         stroke="#ffffff"
-                        strokeWidth="20"
+                        strokeWidth="18"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
                         strokeLinecap="round"
                       />
                     </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center p-5">
                       <span
-                        className="font-black leading-none"
-                        style={buildCircleTextStyle(semana.aderencia, 3.4, 2.4)}
+                        className="font-black"
+                        style={buildCircleTextStyle(semana.aderencia, 3.6, 2.5)}
                       >
                         {semana.aderencia.toFixed(1)}%
                       </span>
                     </div>
                   </div>
-                  <span className="text-[2rem] font-semibold text-emerald-100 text-center">
+                  <span 
+                    className="font-semibold text-emerald-100 text-center"
+                    style={buildTimeTextStyle(semana.horasEntregues, 1.9)}
+                  >
                     {semana.horasEntregues}
                   </span>
                 </div>
@@ -109,11 +112,11 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
 
             <div className="grid grid-cols-3 gap-3 mt-2">
               {turno.variacoes.map((variacao) => (
-                <div key={variacao.label} className="rounded-xl bg-white/10 px-4 py-4 text-center">
-                  <p className="text-[1.6rem] font-medium opacity-80 mb-1">{variacao.label}</p>
+                <div key={variacao.label} className="rounded-xl bg-white/10 px-3 py-3 text-center flex flex-col items-center justify-center min-h-[75px]">
+                  <p className="text-[1.6rem] font-medium opacity-80 mb-1 leading-tight">{variacao.label}</p>
                   <p
-                    className={`text-[1.8rem] font-bold leading-tight break-words ${variacao.positivo ? 'text-emerald-200' : 'text-rose-200'}`}
-                    style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
+                    className={`font-bold leading-tight ${variacao.positivo ? 'text-emerald-200' : 'text-rose-200'}`}
+                    style={buildTimeTextStyle(variacao.valor, 1.7)}
                   >
                     {variacao.valor}
                   </p>

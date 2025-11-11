@@ -1,6 +1,6 @@
 import React from 'react';
 import SlideWrapper from '../SlideWrapper';
-import { buildCircleTextStyle } from '../utils';
+import { buildCircleTextStyle, buildTimeTextStyle } from '../utils';
 
 interface DiaSemanaResumo {
   nome: string;
@@ -48,53 +48,56 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
     const isComparado = 'diferencaHoras' in (extras || {});
 
     return (
-      <div key={`${semanaLabel}-${dia.sigla}`} className="rounded-[24px] bg-white/12 px-6 py-7 flex flex-col items-center gap-4">
-        <span className="text-[2.2rem] font-semibold opacity-85">{dia.sigla}</span>
-        <div className="relative w-[150px] h-[150px]">
+      <div key={`${semanaLabel}-${dia.sigla}`} className="rounded-[24px] bg-white/12 px-5 py-6 flex flex-col items-center gap-3">
+        <span className="text-[2.2rem] font-semibold opacity-85 text-center">{dia.sigla}</span>
+        <div className="relative w-[150px] h-[150px] flex items-center justify-center">
           <svg
-            className="w-full h-full transform -rotate-90"
+            className="absolute inset-0 w-full h-full transform -rotate-90"
             viewBox="0 0 140 140"
-            style={{ position: 'absolute', inset: 0 }}
+            preserveAspectRatio="xMidYMid meet"
           >
-            <circle cx="70" cy="70" r="60" stroke="rgba(255,255,255,0.2)" strokeWidth="14" fill="none" />
+            <circle cx="70" cy="70" r="56" stroke="rgba(255,255,255,0.2)" strokeWidth="12" fill="none" />
             <circle
               cx="70"
               cy="70"
-              r="60"
+              r="56"
               stroke="#ffffff"
-              strokeWidth="14"
+              strokeWidth="12"
               fill="none"
               strokeDasharray={buildCircleDasharray(dia.aderencia)}
               strokeLinecap="round"
             />
           </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center p-4">
             <span
-              className="font-black leading-none"
-              style={buildCircleTextStyle(dia.aderencia, 2.8, 2.1)}
+              className="font-black"
+              style={buildCircleTextStyle(dia.aderencia, 3.0, 2.2)}
             >
               {dia.aderencia.toFixed(1)}%
             </span>
           </div>
         </div>
-        <span className="text-[2rem] font-semibold text-emerald-100 text-center">{dia.horasEntregues}</span>
+        <span 
+          className="font-semibold text-emerald-100 text-center"
+          style={buildTimeTextStyle(dia.horasEntregues, 1.8)}
+        >
+          {dia.horasEntregues}
+        </span>
         {isComparado && (
-          <div className="w-full space-y-2 text-center">
+          <div className="w-full space-y-1 text-center flex flex-col items-center">
             <p
-              className={`text-[1.8rem] font-bold leading-tight ${comparativo.diferencaHorasPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
-              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
+              className={`font-bold leading-tight ${comparativo.diferencaHorasPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
+              style={buildTimeTextStyle(comparativo.diferencaHoras || '', 1.6)}
             >
               {comparativo.diferencaHoras}
             </p>
             <p
-              className={`text-[1.6rem] font-semibold leading-tight ${comparativo.diferencaPercentualHorasPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
-              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
+              className={`text-[1.5rem] font-semibold leading-tight ${comparativo.diferencaPercentualHorasPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
             >
               {comparativo.diferencaPercentualHoras}
             </p>
             <p
-              className={`text-[1.5rem] font-semibold leading-tight ${comparativo.diferencaAderenciaPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
-              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
+              className={`text-[1.4rem] font-semibold leading-tight ${comparativo.diferencaAderenciaPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
             >
               {comparativo.diferencaAderencia}
             </p>

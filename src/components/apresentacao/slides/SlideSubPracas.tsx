@@ -1,6 +1,6 @@
 import React from 'react';
 import SlideWrapper from '../SlideWrapper';
-import { buildCircleTextStyle } from '../utils';
+import { buildCircleTextStyle, buildTimeTextStyle } from '../utils';
 
 interface VariacaoResumo {
   label: string;
@@ -80,53 +80,56 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
             <div className="flex w-full items-center justify-between gap-12">
               {[item.semana1, item.semana2].map((semana, index) => (
                 <div key={index} className="flex flex-col items-center gap-5 flex-1">
-                  <span className="text-[2rem] font-semibold">
+                  <span className="text-[2rem] font-semibold text-center">
                     SEM {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
-                  <div className="relative w-[260px] h-[260px]">
+                  <div className="relative w-[260px] h-[260px] flex items-center justify-center">
                     <svg
-                      className="w-full h-full transform -rotate-90"
+                      className="absolute inset-0 w-full h-full transform -rotate-90"
                       viewBox="0 0 220 220"
-                      style={{ position: 'absolute', inset: 0 }}
+                      preserveAspectRatio="xMidYMid meet"
                     >
-                      <circle cx="110" cy="110" r="100" stroke="rgba(255,255,255,0.2)" strokeWidth="22" fill="none" />
+                      <circle cx="110" cy="110" r="95" stroke="rgba(255,255,255,0.2)" strokeWidth="20" fill="none" />
                       <circle
                         cx="110"
                         cy="110"
-                        r="100"
+                        r="95"
                         stroke="#ffffff"
-                        strokeWidth="22"
+                        strokeWidth="20"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
                         strokeLinecap="round"
                       />
                     </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center p-6">
                       <span
-                        className="font-black leading-none"
-                        style={buildCircleTextStyle(semana.aderencia, 4.2, 2.6)}
+                        className="font-black"
+                        style={buildCircleTextStyle(semana.aderencia, 4.5, 2.8)}
                       >
                         {semana.aderencia.toFixed(1)}%
                       </span>
                     </div>
                   </div>
-                  <span className="text-[2rem] font-semibold text-emerald-100 text-center">
+                  <span 
+                    className="font-semibold text-emerald-100 text-center"
+                    style={buildTimeTextStyle(semana.horasEntregues, 2.0)}
+                  >
                     {semana.horasEntregues}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-4 w-full pt-3">
+            <div className="grid grid-cols-3 gap-3 w-full pt-3">
               {item.variacoes.map((variacao) => (
                 <div
                   key={variacao.label}
-                  className="rounded-xl bg-white/10 px-4 py-4 text-center"
+                  className="rounded-xl bg-white/10 px-3 py-3 text-center flex flex-col items-center justify-center min-h-[80px]"
                 >
-                  <p className="text-[1.6rem] font-medium opacity-80 mb-1">{variacao.label}</p>
+                  <p className="text-[1.6rem] font-medium opacity-80 mb-1 leading-tight">{variacao.label}</p>
                   <p
-                    className={`text-[1.8rem] font-bold leading-tight break-words ${variacao.positivo ? 'text-emerald-200' : 'text-rose-200'}`}
-                    style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
+                    className={`font-bold leading-tight ${variacao.positivo ? 'text-emerald-200' : 'text-rose-200'}`}
+                    style={buildTimeTextStyle(variacao.valor, 1.8)}
                   >
                     {variacao.valor}
                   </p>
