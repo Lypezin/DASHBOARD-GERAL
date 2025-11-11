@@ -28,7 +28,7 @@ interface SlideAderenciaDiariaProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 56; // r = 56 (maior)
+  const circumference = 2 * Math.PI * 50; // r = 50 (ajustado para container maior)
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
@@ -53,8 +53,8 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
         <div 
           className="relative flex items-center justify-center"
           style={{ 
-            width: '140px', 
-            height: '140px',
+            width: '160px', 
+            height: '160px',
           }}
         >
           <svg
@@ -69,13 +69,13 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
             viewBox="0 0 120 120"
             preserveAspectRatio="xMidYMid meet"
           >
-            <circle cx="60" cy="60" r="52" stroke="rgba(255,255,255,0.25)" strokeWidth="10" fill="none" />
+            <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.25)" strokeWidth="9" fill="none" />
             <circle
               cx="60"
               cy="60"
-              r="52"
+              r="50"
               stroke="#ffffff"
-              strokeWidth="10"
+              strokeWidth="9"
               fill="none"
               strokeDasharray={buildCircleDasharray(dia.aderencia)}
               strokeLinecap="round"
@@ -87,14 +87,14 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              width: '60%',
-              height: '60%',
+              width: '55%',
+              height: '55%',
               pointerEvents: 'none',
             }}
           >
             <span 
               style={{
-                ...buildCircleTextStyle(dia.aderencia, 3.0, 2.2),
+                ...buildCircleTextStyle(dia.aderencia, 2.8, 2.0),
                 display: 'block',
                 width: '100%',
                 textAlign: 'center',

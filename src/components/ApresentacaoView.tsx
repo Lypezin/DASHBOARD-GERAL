@@ -638,7 +638,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           color: #ffffff !important;
         `;
 
-        // Processar todos os elementos do clone
+        // Processar todos os elementos do clone para garantir visibilidade e evitar cortes
         const allElements = clone.querySelectorAll('*');
         allElements.forEach((el: any) => {
           if (el.tagName && el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE') {
@@ -665,17 +665,41 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 }
               }
               
-              // Garantir que textos sejam visíveis
+              // Remover overflow hidden que pode cortar elementos
+              if (computedStyle.overflow === 'hidden' || el.style.overflow === 'hidden') {
+                // Só remover se não for um container crítico de layout
+                const isTextContainer = el.classList && (
+                  el.classList.contains('absolute') || 
+                  el.classList.contains('relative')
+                ) && el.querySelector && el.querySelector('span, p');
+                
+                if (!isTextContainer) {
+                  el.style.overflow = 'visible';
+                }
+              }
+              
+              // Garantir que textos sejam visíveis e não cortados
               if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'DIV') {
                 el.style.color = el.style.color || '#ffffff';
                 el.style.opacity = '1';
                 el.style.visibility = 'visible';
+                // Remover text-overflow que pode cortar
+                if (el.style.textOverflow === 'ellipsis') {
+                  el.style.textOverflow = 'clip';
+                }
               }
               
               // Garantir que SVGs sejam visíveis
               if (el.tagName === 'SVG' || el.tagName === 'CIRCLE' || el.tagName === 'PATH') {
                 el.style.opacity = '1';
                 el.style.visibility = 'visible';
+              }
+              
+              // Garantir que containers de gráficos não cortem
+              if (el.classList && el.classList.contains('relative') && 
+                  (el.style.width && el.style.width.includes('px')) &&
+                  (el.style.height && el.style.height.includes('px'))) {
+                el.style.overflow = 'visible';
               }
             }
           }
@@ -724,8 +748,45 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                   opacity: 1 !important;
                   visibility: visible !important;
                 }
+                /* Garantir que containers de gráficos não cortem */
+                [class*="relative"][style*="width"][style*="height"] {
+                  overflow: visible !important;
+                }
+                /* Garantir que textos sejam visíveis */
+                span, p, div {
+                  overflow: visible !important;
+                  text-overflow: clip !important;
+                }
+                /* Garantir que SVGs sejam visíveis */
+                svg, circle, path {
+                  opacity: 1 !important;
+                  visibility: visible !important;
+                }
               `;
               clonedDoc.head.appendChild(style);
+              
+              // Processar todos os elementos no clone para garantir visibilidade
+              const allClonedElements = clonedDoc.querySelectorAll('*');
+              allClonedElements.forEach((el: any) => {
+                if (el.style) {
+                  // Forçar visibilidade
+                  if (el.style.opacity === '0') el.style.opacity = '1';
+                  if (el.style.visibility === 'hidden') el.style.visibility = 'visible';
+                  if (el.style.display === 'none') el.style.display = '';
+                  
+                  // Remover overflow hidden de containers de gráficos
+                  if (el.classList && el.classList.contains('relative') && 
+                      el.style.width && el.style.height) {
+                    el.style.overflow = 'visible';
+                  }
+                  
+                  // Garantir que textos não sejam cortados
+                  if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'DIV') {
+                    el.style.overflow = 'visible';
+                    el.style.textOverflow = 'clip';
+                  }
+                }
+              });
             },
             ignoreElements: (element: Element) => {
               return element.tagName === 'IFRAME' || element.tagName === 'OBJECT';
@@ -826,7 +887,16 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         );
       }
 
-      pdf.save(`Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`);
+      // Forçar download em vez de abrir em nova aba
+      const pdfBlob = pdf.output('blob');
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error) {
       safeLog.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF. Tente novamente.');

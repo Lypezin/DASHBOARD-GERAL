@@ -33,7 +33,7 @@ interface SlideOrigemProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 95; // r = 95 (maior)
+  const circumference = 2 * Math.PI * 88; // r = 88 (ajustado para container maior)
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
@@ -92,8 +92,8 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
                   <div 
                     className="relative flex items-center justify-center"
                     style={{ 
-                      width: '240px', 
-                      height: '240px',
+                      width: '270px', 
+                      height: '270px',
                     }}
                   >
                     <svg
@@ -108,13 +108,13 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
                       viewBox="0 0 200 200"
                       preserveAspectRatio="xMidYMid meet"
                     >
-                      <circle cx="100" cy="100" r="90" stroke="rgba(255,255,255,0.25)" strokeWidth="18" fill="none" />
+                      <circle cx="100" cy="100" r="88" stroke="rgba(255,255,255,0.25)" strokeWidth="16" fill="none" />
                       <circle
                         cx="100"
                         cy="100"
-                        r="90"
+                        r="88"
                         stroke="#ffffff"
-                        strokeWidth="18"
+                        strokeWidth="16"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
                         strokeLinecap="round"
@@ -126,14 +126,14 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        width: '65%',
-                        height: '65%',
+                        width: '58%',
+                        height: '58%',
                         pointerEvents: 'none',
                       }}
                     >
                       <span 
                         style={{
-                          ...buildCircleTextStyle(semana.aderencia, 4.2, 2.6),
+                          ...buildCircleTextStyle(semana.aderencia, 4.0, 2.5),
                           display: 'block',
                           width: '100%',
                           textAlign: 'center',

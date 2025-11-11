@@ -24,7 +24,7 @@ interface SlideAderenciaGeralProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 135; // r = 135 (ligeiramente maior)
+  const circumference = 2 * Math.PI * 125; // r = 125 (ajustado para container maior)
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
@@ -57,8 +57,8 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
             <div 
               className="relative flex items-center justify-center"
               style={{ 
-                width: '380px', 
-                height: '380px',
+                width: '420px', 
+                height: '420px',
               }}
             >
               <svg
@@ -76,17 +76,17 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
                 <circle
                   cx="150"
                   cy="150"
-                  r="130"
+                  r="125"
                   stroke="rgba(255,255,255,0.25)"
-                  strokeWidth="24"
+                  strokeWidth="22"
                   fill="none"
                 />
                 <circle
                   cx="150"
                   cy="150"
-                  r="130"
+                  r="125"
                   stroke="#ffffff"
-                  strokeWidth="24"
+                  strokeWidth="22"
                   fill="none"
                   strokeDasharray={buildCircleDasharray(semana.aderencia)}
                   strokeLinecap="round"
@@ -98,14 +98,14 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '70%',
-                  height: '70%',
+                  width: '60%',
+                  height: '60%',
                   pointerEvents: 'none',
                 }}
               >
                 <span 
                   style={{
-                    ...buildCircleTextStyle(semana.aderencia, 6.5, 3.8),
+                    ...buildCircleTextStyle(semana.aderencia, 6.0, 3.5),
                     display: 'block',
                     width: '100%',
                     textAlign: 'center',
