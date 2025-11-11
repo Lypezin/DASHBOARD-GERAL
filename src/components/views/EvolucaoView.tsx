@@ -32,7 +32,7 @@ function EvolucaoView({
   useEffect(() => {
     if (typeof window !== 'undefined') {
       registerChartJS().catch((error) => {
-        if (IS_DEV) console.error('Erro ao registrar Chart.js:', error);
+        if (IS_DEV) safeLog.error('Erro ao registrar Chart.js:', error);
         setChartError('Erro ao inicializar gráficos. Tente recarregar a página.');
       });
     }
@@ -152,7 +152,7 @@ function EvolucaoView({
       
       return result;
     } catch (error) {
-      console.error('❌ [EVOLUÇÃO] Erro ao processar dadosAtivos:', error);
+      safeLog.error('❌ [EVOLUÇÃO] Erro ao processar dadosAtivos:', error);
       return [];
     }
   }, [viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado]);
@@ -221,10 +221,7 @@ function EvolucaoView({
         .map(d => (d as EvolucaoSemanal).semana)
         .filter((s): s is number => s != null && s !== undefined)
         .sort((a, b) => a - b);
-      console.log('📊 Semanas processadas:', semanas.length, 'semanas:', semanas);
-      console.log('📊 Semana mínima:', semanas.length > 0 ? Math.min(...semanas) : 'N/A');
-      console.log('📊 Semana máxima:', semanas.length > 0 ? Math.max(...semanas) : 'N/A');
-      console.log('📊 Labels gerados:', labels.length, 'labels:', labels);
+      safeLog.info('📊 Semanas processadas:', { count: semanas.length, semanas, min: semanas.length > 0 ? Math.min(...semanas) : 'N/A', max: semanas.length > 0 ? Math.max(...semanas) : 'N/A', labelsCount: labels.length, labels });
     }
     
     return labels;
@@ -515,7 +512,7 @@ function EvolucaoView({
         // Garantir que o tamanho está correto
         if (data.length !== chartBaseLabels.length) {
           if (IS_DEV) {
-            console.warn(`⚠️ Dataset ${config.label} tem tamanho incorreto: ${data.length} vs ${chartBaseLabels.length}`);
+            safeLog.warn(`⚠️ Dataset ${config.label} tem tamanho incorreto: ${data.length} vs ${chartBaseLabels.length}`);
           }
           // Preencher ou truncar para corresponder
           if (data.length < chartBaseLabels.length) {
@@ -668,7 +665,7 @@ function EvolucaoView({
         datasets,
       };
     } catch (error) {
-      if (IS_DEV) console.error('Erro ao criar chartData:', error);
+      if (IS_DEV) safeLog.error('Erro ao criar chartData:', error);
       return {
         labels: [],
         datasets: [],
@@ -712,7 +709,7 @@ function EvolucaoView({
         min: 0,
         max: 10 // Range mínimo para visualizar a linha em zero
       };
-      if (IS_DEV) console.log('Y-axis range (todos valores zero):', result);
+      if (IS_DEV) safeLog.info('Y-axis range (todos valores zero):', result);
       return result;
     }
 
@@ -723,7 +720,7 @@ function EvolucaoView({
         min: Math.max(0, minValue - padding),
         max: maxValue + padding
       };
-      if (IS_DEV) console.log('Y-axis range (valores muito próximos):', result, 'valores:', { minValue, maxValue });
+      if (IS_DEV) safeLog.info('Y-axis range (valores muito próximos):', { result, minValue, maxValue });
       return result;
     }
 
@@ -737,8 +734,7 @@ function EvolucaoView({
     };
     
     if (IS_DEV) {
-      console.log('Y-axis range calculado:', result);
-      console.log('Estatísticas:', { 
+      safeLog.info('Y-axis range calculado:', { result, estatisticas: { 
         min: minValue, 
         max: maxValue,
         totalValues: allValues.length,
@@ -1291,7 +1287,7 @@ function EvolucaoView({
                               const allEqual = values1.every((v, idx) => v === values2[idx]);
                               if (allEqual) {
                                 if (IS_DEV) {
-                                  console.warn(`⚠️ [EVOLUÇÃO] ${d1.label} e ${d2.label} têm valores idênticos!`, {
+                                  safeLog.warn(`⚠️ [EVOLUÇÃO] ${d1.label} e ${d2.label} têm valores idênticos!`, {
                                   valores: values1.slice(0, 5),
                                   issoPodeSerNormal: 'Se todas as corridas ofertadas foram aceitas e completadas'
                                 });
@@ -1310,7 +1306,7 @@ function EvolucaoView({
                         />
                       );
                     } catch (error: any) {
-                      console.error('❌ [EVOLUÇÃO] Erro ao renderizar gráfico:', error);
+                      safeLog.error('❌ [EVOLUÇÃO] Erro ao renderizar gráfico:', error);
                       setChartError('Erro ao renderizar gráfico. Tente recarregar a página.');
                       return (
                         <div className="flex h-full items-center justify-center">

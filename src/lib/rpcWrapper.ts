@@ -3,6 +3,7 @@
  */
 import { supabase } from './supabaseClient';
 import { validateFilterPayload } from './validate';
+import { safeLog } from './errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 const DEFAULT_TIMEOUT = 30000; // 30 segundos

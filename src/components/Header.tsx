@@ -83,11 +83,11 @@ export function Header() {
           }
         } catch (err) {
           // Se a tabela não existir ou houver erro, continuar sem avatar
-          if (IS_DEV) console.warn('Não foi possível carregar avatar:', err);
+          if (IS_DEV) safeLog.warn('Não foi possível carregar avatar:', err);
         }
       }
     } catch (err) {
-      if (IS_DEV) console.error('Erro ao carregar perfil:', err);
+      if (IS_DEV) safeLog.error('Erro ao carregar perfil:', err);
       await supabase.auth.signOut();
       router.push('/login');
     }

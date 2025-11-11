@@ -120,21 +120,21 @@ export default function UploadPage() {
       if (!isZipSignature && !isOle2Signature) {
         // Log para debug em desenvolvimento
         if (IS_DEV) {
-          console.log(`⚠️ Assinatura não reconhecida para "${file.name}": ${signature.substring(0, 16)}`);
-          console.log(`   Mas a extensão está correta (${extension}), permitindo. A biblioteca XLSX validará ao ler.`);
+          safeLog.warn(`⚠️ Assinatura não reconhecida para "${file.name}": ${signature.substring(0, 16)}`);
+          safeLog.info(`   Mas a extensão está correta (${extension}), permitindo. A biblioteca XLSX validará ao ler.`);
         }
         // Não bloquear - a extensão já foi validada e a XLSX fará a validação real
       } else {
         if (IS_DEV) {
-          console.log(`✓ Assinatura válida para "${file.name}": ${isZipSignature ? 'XLSX (ZIP)' : 'XLS (OLE2)'}`);
+          safeLog.info(`✓ Assinatura válida para "${file.name}": ${isZipSignature ? 'XLSX (ZIP)' : 'XLS (OLE2)'}`);
         }
       }
     } catch (err) {
       // Se houver erro ao ler os bytes, não bloquear - deixar a biblioteca XLSX validar
       // Isso pode acontecer com alguns arquivos ou em certos navegadores
       if (IS_DEV) {
-        console.warn(`⚠️ Erro ao validar assinatura do arquivo "${file.name}":`, err);
-        console.warn(`   Mas a extensão está correta (${extension}), permitindo. A biblioteca XLSX validará ao ler.`);
+        safeLog.warn(`⚠️ Erro ao validar assinatura do arquivo "${file.name}":`, err);
+        safeLog.info(`   Mas a extensão está correta (${extension}), permitindo. A biblioteca XLSX validará ao ler.`);
       }
       // Não bloquear - a extensão já foi validada
     }
@@ -310,11 +310,11 @@ export default function UploadPage() {
         try {
           await supabase.rpc('refresh_mv_aderencia_async');
           if (process.env.NODE_ENV === 'development') {
-            console.log('Refresh da materialized view iniciado em segundo plano');
+            safeLog.info('Refresh da materialized view iniciado em segundo plano');
           }
         } catch (e) {
           if (process.env.NODE_ENV === 'development') {
-            console.warn('Refresh assíncrono não disponível, será processado automaticamente');
+            safeLog.warn('Refresh assíncrono não disponível, será processado automaticamente');
           }
         }
       }, 1000);
