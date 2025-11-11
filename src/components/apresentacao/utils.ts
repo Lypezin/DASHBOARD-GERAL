@@ -21,24 +21,26 @@ const percentFormatter = new Intl.NumberFormat('pt-BR', {
 export const buildCircleTextStyle = (
   value: number,
   baseFontRem: number,
-  minimumFontRem: number = 1.8
+  minimumFontRem: number = 1.5
 ): CSSProperties => {
   const safeValue = Number.isFinite(value) ? Math.abs(value) : 0;
   const valueString = safeValue.toFixed(1);
   const totalLength = valueString.length; // Inclui o ponto decimal
   
-  // Algoritmo OTIMIZADO para garantir que texto NUNCA saia do círculo
+  // Algoritmo ULTRA CONSERVADOR para garantir que texto NUNCA saia do círculo
   let fontSize = baseFontRem;
   
-  // Redução mais agressiva baseada no comprimento TOTAL
+  // Redução MUITO mais agressiva baseada no comprimento TOTAL
   if (totalLength >= 6) {        // Ex: "100.0%" = 6 chars
-    fontSize = baseFontRem * 0.55;
+    fontSize = baseFontRem * 0.40; // Muito menor
   } else if (totalLength >= 5) { // Ex: "99.9%" = 5 chars
-    fontSize = baseFontRem * 0.65;
+    fontSize = baseFontRem * 0.50;
   } else if (totalLength >= 4) { // Ex: "9.9%" = 4 chars
-    fontSize = baseFontRem * 0.75;
+    fontSize = baseFontRem * 0.60;
   } else if (totalLength >= 3) { // Ex: "9%" = 3 chars
-    fontSize = baseFontRem * 0.85;
+    fontSize = baseFontRem * 0.70;
+  } else {                       // Ex: "9%" = 2 chars
+    fontSize = baseFontRem * 0.80;
   }
   
   // Garantir tamanho mínimo legível
@@ -46,27 +48,31 @@ export const buildCircleTextStyle = (
 
   return {
     fontSize: `${fontSize}rem`,
-    lineHeight: '0.9', // Mais compacto
-    letterSpacing: '-0.02em', // Mais apertado
+    lineHeight: '0.85', // Ainda mais compacto
+    letterSpacing: '-0.03em', // Mais apertado
     whiteSpace: 'nowrap',
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     textAlign: 'center',
-    width: '100%',
-    height: 'auto',
+    width: '80%', // Reduzido de 100% para 80%
+    height: '80%', // Reduzido para dar mais margem
     fontFamily: 'Inter, Arial, sans-serif',
     fontWeight: '900',
     color: '#ffffff',
     WebkitFontSmoothing: 'antialiased',
     MozOsxFontSmoothing: 'grayscale',
     textRendering: 'optimizeLegibility',
-    maxWidth: '90%', // Margem de segurança
+    maxWidth: '80%', // Margem de segurança maior
+    maxHeight: '80%', // Margem de altura também
     margin: '0 auto',
-    overflow: 'visible', // CRÍTICO: não cortar
-    textOverflow: 'clip', // CRÍTICO: não usar ellipsis
+    overflow: 'visible',
+    textOverflow: 'clip',
     boxSizing: 'border-box',
-    textShadow: '0 1px 3px rgba(0,0,0,0.4)', // Melhor contraste
+    textShadow: '0 1px 4px rgba(0,0,0,0.5)', // Contraste melhor
     position: 'relative',
     zIndex: 10,
+    wordBreak: 'keep-all', // Não quebrar palavras
   } as CSSProperties;
 };
 

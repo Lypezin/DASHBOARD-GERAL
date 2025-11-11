@@ -110,16 +110,19 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        width: '58%',
-                        height: '58%',
+                        width: '65%',
+                        height: '65%',
                         pointerEvents: 'none',
                       }}
                     >
                       <span 
                         style={{
-                          ...buildCircleTextStyle(semana.aderencia, 3.4, 2.4),
-                          display: 'block',
+                          ...buildCircleTextStyle(semana.aderencia, 2.8, 1.8),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           width: '100%',
+                          height: '100%',
                           textAlign: 'center',
                         }}
                       >

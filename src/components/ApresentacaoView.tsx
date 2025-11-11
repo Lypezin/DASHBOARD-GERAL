@@ -638,23 +638,30 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           -moz-osx-font-smoothing: grayscale !important;
         `;
 
-        // Otimização DEFINITIVA de elementos para PDF perfeito
+        // Otimização ULTRA DEFINITIVA de elementos para PDF perfeito
         const processElement = (el: any) => {
           if (!el.style || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
           
           // 1. VISIBILIDADE FORÇADA
           el.style.setProperty('opacity', '1', 'important');
           el.style.setProperty('visibility', 'visible', 'important');
-          el.style.setProperty('display', el.style.display === 'none' ? 'block' : el.style.display || '', 'important');
+          el.style.setProperty('display', el.style.display === 'none' ? 'flex' : el.style.display || 'flex', 'important');
           
           // 2. REMOVER TRANSFORMS PROBLEMÁTICOS
-          if (el.style.transform && el.style.transform.includes('scale')) {
-            el.style.setProperty('transform', 'none', 'important');
+          if (el.style.transform && (el.style.transform.includes('scale') || el.style.transform.includes('rotate'))) {
+            // Manter apenas translate, remover scale e rotate
+            const translateMatch = el.style.transform.match(/translate\([^)]*\)/);
+            if (translateMatch) {
+              el.style.setProperty('transform', translateMatch[0], 'important');
+            } else {
+              el.style.setProperty('transform', 'none', 'important');
+            }
           }
           
           // 3. OVERFLOW SEMPRE VISÍVEL (crítico para gráficos)
           el.style.setProperty('overflow', 'visible', 'important');
           el.style.setProperty('text-overflow', 'clip', 'important');
+          el.style.setProperty('white-space', 'nowrap', 'important');
           
           // 4. FONTE E RENDERIZAÇÃO OTIMIZADA
           if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'DIV' || el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'H3') {
@@ -663,19 +670,36 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
             el.style.setProperty('-moz-osx-font-smoothing', 'grayscale', 'important');
             el.style.setProperty('color', '#ffffff', 'important');
             el.style.setProperty('text-rendering', 'optimizeLegibility', 'important');
+            el.style.setProperty('word-break', 'keep-all', 'important');
+            el.style.setProperty('hyphens', 'none', 'important');
           }
           
           // 5. SVG OTIMIZAÇÃO
           if (el.tagName === 'SVG' || el.tagName === 'CIRCLE' || el.tagName === 'PATH') {
             el.style.setProperty('opacity', '1', 'important');
             el.style.setProperty('visibility', 'visible', 'important');
+            el.style.setProperty('overflow', 'visible', 'important');
           }
           
-          // 6. CONTAINERS DE GRÁFICOS - CRÍTICO
-          if (el.classList && (el.classList.contains('relative') || el.classList.contains('absolute')) && 
-              el.style.width && el.style.height) {
+          // 6. CONTAINERS DE GRÁFICOS - ULTRA CRÍTICO
+          if (el.classList && (el.classList.contains('relative') || el.classList.contains('absolute'))) {
             el.style.setProperty('overflow', 'visible', 'important');
             el.style.setProperty('position', el.classList.contains('absolute') ? 'absolute' : 'relative', 'important');
+            
+            // Se tem dimensões definidas, garantir que não corte
+            if (el.style.width && el.style.height) {
+              el.style.setProperty('min-width', el.style.width, 'important');
+              el.style.setProperty('min-height', el.style.height, 'important');
+            }
+          }
+          
+          // 7. CONTAINERS DE TEXTO EM CÍRCULOS - ESPECIAL
+          if (el.classList && el.classList.contains('absolute') && 
+              el.querySelector && el.querySelector('span')) {
+            el.style.setProperty('display', 'flex', 'important');
+            el.style.setProperty('align-items', 'center', 'important');
+            el.style.setProperty('justify-content', 'center', 'important');
+            el.style.setProperty('overflow', 'visible', 'important');
           }
         };
 
@@ -711,7 +735,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           x: 0,
           y: 0,
           onclone: (clonedDoc: Document) => {
-            // Injetar CSS DEFINITIVO para renderização perfeita
+            // Injetar CSS ULTRA OTIMIZADO para renderização perfeita
             const style = clonedDoc.createElement('style');
             style.textContent = `
               * {
@@ -722,6 +746,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 box-sizing: border-box !important;
                 overflow: visible !important;
                 text-overflow: clip !important;
+                word-break: keep-all !important;
+                hyphens: none !important;
+                white-space: nowrap !important;
               }
               html, body {
                 margin: 0 !important;
@@ -739,11 +766,26 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
               }
               .relative, .absolute {
                 overflow: visible !important;
+                position: relative !important;
+              }
+              .absolute {
+                position: absolute !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+              }
+              span {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                color: #ffffff !important;
+                font-weight: 900 !important;
               }
             `;
             clonedDoc.head.appendChild(style);
             
-            // Aplicar otimizações em TODOS os elementos
+            // Aplicar otimizações ULTRA ESPECÍFICAS em TODOS os elementos
             const allElements = clonedDoc.querySelectorAll('*');
             allElements.forEach((el: any) => {
               if (el.style) {
@@ -752,9 +794,22 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
                 el.style.setProperty('overflow', 'visible', 'important');
                 el.style.setProperty('text-overflow', 'clip', 'important');
                 
+                // Textos sempre visíveis e centralizados
                 if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'DIV') {
                   el.style.setProperty('color', '#ffffff', 'important');
                   el.style.setProperty('font-family', 'Inter, Arial, sans-serif', 'important');
+                  el.style.setProperty('display', 'flex', 'important');
+                  el.style.setProperty('align-items', 'center', 'important');
+                  el.style.setProperty('justify-content', 'center', 'important');
+                  el.style.setProperty('text-align', 'center', 'important');
+                  el.style.setProperty('word-break', 'keep-all', 'important');
+                }
+                
+                // Containers absolutos sempre centralizados
+                if (el.classList && el.classList.contains('absolute')) {
+                  el.style.setProperty('display', 'flex', 'important');
+                  el.style.setProperty('align-items', 'center', 'important');
+                  el.style.setProperty('justify-content', 'center', 'important');
                 }
               }
             });

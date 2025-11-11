@@ -48,13 +48,13 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
     const isComparado = 'diferencaHoras' in (extras || {});
 
     return (
-      <div key={`${semanaLabel}-${dia.sigla}`} className="rounded-[24px] bg-white/12 px-5 py-6 flex flex-col items-center gap-3">
-        <span className="text-[2.2rem] font-semibold opacity-85 text-center">{dia.sigla}</span>
+      <div key={`${semanaLabel}-${dia.sigla}`} className="rounded-[16px] bg-white/12 px-3 py-4 flex flex-col items-center gap-2">
+        <span className="text-[1.8rem] font-semibold opacity-85 text-center">{dia.sigla}</span>
         <div 
           className="relative flex items-center justify-center"
           style={{ 
-            width: '160px', 
-            height: '160px',
+            width: '120px', 
+            height: '120px',
           }}
         >
           <svg
@@ -69,13 +69,13 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
             viewBox="0 0 120 120"
             preserveAspectRatio="xMidYMid meet"
           >
-            <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.25)" strokeWidth="9" fill="none" />
+            <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.25)" strokeWidth="8" fill="none" />
             <circle
               cx="60"
               cy="60"
               r="50"
               stroke="#ffffff"
-              strokeWidth="9"
+              strokeWidth="8"
               fill="none"
               strokeDasharray={buildCircleDasharray(dia.aderencia)}
               strokeLinecap="round"
@@ -87,16 +87,19 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              width: '55%',
-              height: '55%',
+              width: '70%',
+              height: '70%',
               pointerEvents: 'none',
             }}
           >
             <span 
               style={{
-                ...buildCircleTextStyle(dia.aderencia, 2.8, 2.0),
-                display: 'block',
+                ...buildCircleTextStyle(dia.aderencia, 2.2, 1.4),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 width: '100%',
+                height: '100%',
                 textAlign: 'center',
               }}
             >
@@ -104,11 +107,11 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
             </span>
           </div>
         </div>
-        <div className="rounded-2xl bg-white/10 px-4 py-3 w-full flex flex-col items-center gap-1">
-          <span className="text-[1.6rem] font-medium opacity-85">Horas Entregues</span>
+        <div className="rounded-xl bg-white/10 px-3 py-2 w-full flex flex-col items-center gap-1">
+          <span className="text-[1.3rem] font-medium opacity-85">Horas Entregues</span>
           <span
             className="font-semibold text-emerald-100 text-center"
-            style={buildTimeTextStyle(dia.horasEntregues, 1.8)}
+            style={buildTimeTextStyle(dia.horasEntregues, 1.4)}
           >
             {dia.horasEntregues}
           </span>
@@ -139,25 +142,25 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
   };
 
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '80px 100px' }}>
-      <header className="text-center mb-12">
-        <h2 className="text-[6rem] font-black leading-none tracking-wider mb-4">ADERÊNCIA DIÁRIA</h2>
-        <p className="text-[3.5rem] font-light opacity-90">
+    <SlideWrapper isVisible={isVisible} style={{ padding: '40px 60px' }}>
+      <header className="text-center mb-8">
+        <h2 className="text-[5rem] font-black leading-none tracking-wider mb-3">ADERÊNCIA DIÁRIA</h2>
+        <p className="text-[3rem] font-light opacity-90">
           SEMANAS {numeroSemana1} &amp; {numeroSemana2}
         </p>
       </header>
 
-      <section className="space-y-10">
+      <section className="space-y-6">
         <div>
-          <h3 className="text-[2.8rem] font-semibold text-center mb-6">SEMANA {numeroSemana1}</h3>
-          <div className="grid grid-cols-7 gap-5">
+          <h3 className="text-[2.4rem] font-semibold text-center mb-4">SEMANA {numeroSemana1}</h3>
+          <div className="grid grid-cols-7 gap-3">
             {semana1Dias.map((dia) => renderDiaCard(dia, 'sem1'))}
           </div>
         </div>
 
         <div>
-          <h3 className="text-[2.8rem] font-semibold text-center mb-6">SEMANA {numeroSemana2}</h3>
-          <div className="grid grid-cols-7 gap-5">
+          <h3 className="text-[2.4rem] font-semibold text-center mb-4">SEMANA {numeroSemana2}</h3>
+          <div className="grid grid-cols-7 gap-3">
             {semana2Dias.map((dia) =>
               renderDiaCard(dia, 'sem2', {
                 diferencaHoras: dia.diferencaHoras,

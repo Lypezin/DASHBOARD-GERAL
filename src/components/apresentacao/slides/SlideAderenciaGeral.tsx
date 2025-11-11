@@ -98,16 +98,19 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '60%',
-                  height: '60%',
+                  width: '70%',
+                  height: '70%',
                   pointerEvents: 'none',
                 }}
               >
                 <span 
                   style={{
-                    ...buildCircleTextStyle(semana.aderencia, 6.0, 3.5),
-                    display: 'block',
+                    ...buildCircleTextStyle(semana.aderencia, 5.0, 2.5),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     width: '100%',
+                    height: '100%',
                     textAlign: 'center',
                   }}
                 >

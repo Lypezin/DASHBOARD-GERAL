@@ -129,16 +129,19 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        width: '58%',
-                        height: '58%',
+                        width: '65%',
+                        height: '65%',
                         pointerEvents: 'none',
                       }}
                     >
                       <span 
                         style={{
-                          ...buildCircleTextStyle(semana.aderencia, 4.2, 2.6),
-                          display: 'block',
+                          ...buildCircleTextStyle(semana.aderencia, 3.5, 2.0),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           width: '100%',
+                          height: '100%',
                           textAlign: 'center',
                         }}
                       >
