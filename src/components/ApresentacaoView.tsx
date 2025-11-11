@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+// @ts-ignore - jsPDF types não disponíveis
 import jsPDF from 'jspdf';
+// @ts-ignore - html2canvas types não disponíveis
 import html2canvas from 'html2canvas';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from './apresentacao/constants';
 import SlideCapa from './apresentacao/slides/SlideCapa';
@@ -580,7 +582,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         unit: 'mm',
         format: 'a4',
         compress: true,
-        margin: [0, 0, 0, 0], // Margens zero
       });
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
