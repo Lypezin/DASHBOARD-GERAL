@@ -135,26 +135,26 @@ export const criarSlideAderenciaGeral = (
   semana2: { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string },
   variacao: { horasDiferenca: string; horasPercentual: string; positiva: boolean }
 ): any => {
-  // Gráficos maiores para corresponder ao preview (380px no preview = ~285 pontos)
-  const grafico1 = criarGraficoCircular(semana1.aderencia, 285, 22);
-  const grafico2 = criarGraficoCircular(semana2.aderencia, 285, 22);
+  // Gráficos ajustados para caber com margens (reduzido de 285 para 260 pontos)
+  const grafico1 = criarGraficoCircular(semana1.aderencia, 260, 20);
+  const grafico2 = criarGraficoCircular(semana2.aderencia, 260, 20);
 
   const conteudo = {
     stack: [
       {
         text: 'ADERÊNCIA GERAL',
-        fontSize: 72,
+        fontSize: 68,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 50, 0, 15],
+        margin: [0, 30, 0, 12],
       },
       {
         text: `SEMANAS ${semana1.numeroSemana} & ${semana2.numeroSemana}`,
-        fontSize: 36,
+        fontSize: 32,
         color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
-        margin: [0, 0, 0, 50],
+        margin: [0, 0, 0, 35],
       },
       {
         columns: [
@@ -314,8 +314,8 @@ export const criarSlideAderenciaGeral = (
             ],
           },
         ],
-        columnGap: 50,
-        margin: [50, 0, 50, 0],
+        columnGap: 40,
+        margin: [30, 0, 30, 0],
       },
     ],
   };
@@ -445,39 +445,39 @@ export const criarSlideAderenciaDiaria = (
     stack: [
       {
         text: 'ADERÊNCIA DIÁRIA',
-        fontSize: 50,
+        fontSize: 48,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 30, 0, 5],
+        margin: [0, 25, 0, 8],
       },
       {
         text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
-        fontSize: 28,
+        fontSize: 26,
         color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
-        margin: [0, 0, 0, 30],
+        margin: [0, 0, 0, 25],
       },
       {
         text: `SEMANA ${numeroSemana1}`,
-        fontSize: 22,
+        fontSize: 20,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 0, 0, 15],
+        margin: [0, 0, 0, 12],
       },
       {
         columns: semana1Dias.map((dia) => criarCardDia(dia)),
-        columnGap: 8,
-        margin: [20, 0, 20, 30],
+        columnGap: 6,
+        margin: [15, 0, 15, 20],
       },
       {
         text: `SEMANA ${numeroSemana2}`,
-        fontSize: 22,
+        fontSize: 20,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 0, 0, 15],
+        margin: [0, 0, 0, 12],
       },
       {
         columns: semana2Dias.map((dia) =>
@@ -490,8 +490,8 @@ export const criarSlideAderenciaDiaria = (
             diferencaAderenciaPositiva: dia.diferencaAderenciaPositiva,
           })
         ),
-        columnGap: 8,
-        margin: [20, 0, 20, 0],
+        columnGap: 6,
+        margin: [15, 0, 15, 0],
       },
     ],
   };
@@ -648,18 +648,18 @@ export const criarSlideTurnos = (
     stack: [
       {
         text: 'ADERÊNCIA POR TURNO',
-        fontSize: 55,
+        fontSize: 52,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 30, 0, 5],
+        margin: [0, 25, 0, 8],
       },
       {
         text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
-        fontSize: 32,
+        fontSize: 30,
         color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
-        margin: [0, 0, 0, 5],
+        margin: [0, 0, 0, 8],
       },
       ...(totalPaginas > 1
         ? [
@@ -857,18 +857,18 @@ export const criarSlideSubPracas = (
     stack: [
       {
         text: 'SUB-PRAÇAS',
-        fontSize: 55,
+        fontSize: 52,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 30, 0, 5],
+        margin: [0, 25, 0, 8],
       },
       {
         text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
-        fontSize: 32,
+        fontSize: 30,
         color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
-        margin: [0, 0, 0, 5],
+        margin: [0, 0, 0, 8],
       },
       ...(totalPaginas > 1
         ? [
@@ -907,88 +907,93 @@ export const criarSlideDemandaRejeicoes = (
     variacaoPercentualPositiva: boolean;
   }>
 ): any => {
-  const criarCardDemanda = (item: typeof itens[0]) => {
+  // Layout reformulado: 2 colunas principais (Semana 1 e Semana 2)
+  // Cada coluna contém os 4 itens (Ofertadas, Aceitas, Completadas, Rejeitadas)
+  
+  const criarColunaSemana = (numeroSemana: string, isSemana2: boolean) => {
     return {
       width: '*',
       stack: [
         {
-          text: `${item.icone} ${item.label}`,
-          fontSize: 24,
+          text: `SEMANA ${numeroSemana}`,
+          fontSize: 28,
           bold: true,
           color: COR_TEXTO,
           alignment: 'center',
-          margin: [0, 0, 0, 20],
+          margin: [0, 0, 0, 25],
         },
-        {
-          columns: [
-            {
-              width: '*',
-              stack: [
-                {
-                  text: `SEM ${numeroSemana1}`,
-                  fontSize: 18,
-                  color: '#e5e7eb', // Cor mais clara para simular opacity
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
-                {
-                  text: item.semana1Valor,
-                  fontSize: 32,
-                  bold: true,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                },
-              ],
-            },
-            {
-              width: '*',
-              stack: [
-                {
-                  text: `SEM ${numeroSemana2}`,
-                  fontSize: 18,
-                  color: '#e5e7eb', // Cor mais clara para simular opacity
-                  alignment: 'center',
-                  margin: [0, 0, 0, 10],
-                },
-                {
-                  text: item.semana2Valor,
-                  fontSize: 32,
-                  bold: true,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                },
-              ],
-            },
-          ],
-          columnGap: 15,
-          margin: [0, 0, 0, 15],
-        },
-        {
-          stack: [
-            {
-              text: item.variacaoValor,
-              fontSize: 28,
-              bold: true,
-              color: item.variacaoPositiva ? COR_VERDE : COR_VERMELHO,
-              alignment: 'center',
-            },
-            {
-              text: item.variacaoPercentual,
-              fontSize: 20,
-              bold: true,
-              color: item.variacaoPercentualPositiva ? COR_VERDE : COR_VERMELHO,
-              alignment: 'center',
-            },
-          ],
-          fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
-          borderRadius: 8,
-          padding: [12, 10],
-        },
+        ...itens.map((item) => {
+          const valor = isSemana2 ? item.semana2Valor : item.semana1Valor;
+          return {
+            stack: [
+              {
+                text: `${item.icone} ${item.label}`,
+                fontSize: 20,
+                bold: true,
+                color: '#e5e7eb', // Cor mais clara para simular opacity
+                alignment: 'center',
+                margin: [0, 0, 0, 8],
+              },
+              {
+                text: valor,
+                fontSize: 36,
+                bold: true,
+                color: COR_AZUL_CLARO,
+                alignment: 'center',
+                margin: [0, 0, 0, 0],
+              },
+            ],
+            fillColor: [255, 255, 255, 0.12], // Branco com 12% de opacidade
+            borderRadius: 12,
+            padding: [20, 15],
+            margin: [0, 0, 0, 15],
+          };
+        }),
+        // Se for semana 2, adicionar variações
+        ...(isSemana2
+          ? [
+              {
+                text: 'VARIAÇÕES',
+                fontSize: 22,
+                bold: true,
+                color: COR_TEXTO,
+                alignment: 'center',
+                margin: [0, 20, 0, 15],
+              },
+              ...itens.map((item) => ({
+                stack: [
+                  {
+                    text: item.label,
+                    fontSize: 18,
+                    bold: true,
+                    color: '#e5e7eb',
+                    alignment: 'center',
+                    margin: [0, 0, 0, 8],
+                  },
+                  {
+                    text: item.variacaoValor,
+                    fontSize: 28,
+                    bold: true,
+                    color: item.variacaoPositiva ? COR_VERDE : COR_VERMELHO,
+                    alignment: 'center',
+                    margin: [0, 0, 0, 5],
+                  },
+                  {
+                    text: item.variacaoPercentual,
+                    fontSize: 20,
+                    bold: true,
+                    color: item.variacaoPercentualPositiva ? COR_VERDE : COR_VERMELHO,
+                    alignment: 'center',
+                  },
+                ],
+                fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
+                borderRadius: 10,
+                padding: [15, 12],
+                margin: [0, 0, 0, 12],
+              })),
+            ]
+          : []),
       ],
-      fillColor: [255, 255, 255, 0.12], // Branco com 12% de opacidade
-      borderRadius: 16,
-      padding: [20, 15],
-      margin: [5, 0, 5, 0],
     };
   };
 
@@ -996,23 +1001,26 @@ export const criarSlideDemandaRejeicoes = (
     stack: [
       {
         text: 'DEMANDA E REJEIÇÕES',
-        fontSize: 55,
+        fontSize: 60,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 50, 0, 10],
+        margin: [0, 30, 0, 10],
       },
       {
         text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
-        fontSize: 32,
+        fontSize: 30,
         color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
-        margin: [0, 0, 0, 50],
+        margin: [0, 0, 0, 35],
       },
       {
-        columns: itens.map((item) => criarCardDemanda(item)),
-        columnGap: 20,
-        margin: [40, 0, 40, 0],
+        columns: [
+          criarColunaSemana(numeroSemana1, false),
+          criarColunaSemana(numeroSemana2, true),
+        ],
+        columnGap: 30,
+        margin: [20, 0, 20, 0],
       },
     ],
   };

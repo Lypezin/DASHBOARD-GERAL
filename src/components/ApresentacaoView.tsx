@@ -973,7 +973,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           height: 595, // A4 landscape height em pontos
         },
         pageOrientation: 'landscape' as const,
-        pageMargins: [0, 0, 0, 0],
+        pageMargins: [40, 40, 40, 40], // Margens para evitar cortes
         background: '#2563eb', // Background padrão azul
         content: content,
         defaultStyle: {
