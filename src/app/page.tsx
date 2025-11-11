@@ -192,8 +192,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (activeTab === 'dashboard' && aderenciaGeral) {
       // Calcular taxa de completude (se disponível)
-      const taxaCompletude = totals?.corridas_completadas && totals?.corridas_ofertadas
-        ? (totals.corridas_completadas / totals.corridas_ofertadas) * 100
+      const taxaCompletude = totals?.completadas && totals?.ofertadas
+        ? (totals.completadas / totals.ofertadas) * 100
         : undefined;
       
       // Verificar conquistas do dashboard
