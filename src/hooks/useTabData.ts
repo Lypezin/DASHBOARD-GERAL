@@ -19,8 +19,15 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       const cached = cacheRef.current.get(cacheKey);
 
       if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        setData(cached.data);
+        // Para valores, garantir que o cache retorne um array
+        const cachedData = tab === 'valores' 
+          ? (Array.isArray(cached.data) ? cached.data : [])
+          : cached.data;
+        setData(cachedData);
         setLoading(false);
+        if (IS_DEV && tab === 'valores') {
+          safeLog.info('📦 Dados carregados do cache (valores):', Array.isArray(cachedData) ? cachedData.length : 0);
+        }
         return;
       }
 
@@ -50,15 +57,36 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           case 'valores':
             const { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem } = filterPayload as any;
             const listarValoresPayload = { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem };
+            
+            if (IS_DEV) {
+              safeLog.info('Buscando valores com payload:', listarValoresPayload);
+            }
+            
             result = await supabase.rpc('listar_valores_entregadores', listarValoresPayload);
             
             if (result?.error) {
               safeLog.error('Erro ao buscar valores:', result.error);
               processedData = [];
-            } else if (result && result.data) {
+            } else if (result && result.data !== null && result.data !== undefined) {
                 // A função retorna { entregadores: [...] } como JSONB
                 // Supabase pode retornar como objeto ou string JSON
-                let dataObj = result.data;
+                let dataObj: any = result.data;
+                
+                if (IS_DEV) {
+                  safeLog.info('Dados brutos recebidos:', {
+                    tipo: typeof dataObj,
+                    isArray: Array.isArray(dataObj),
+                    isNull: dataObj === null,
+                    isUndefined: dataObj === undefined,
+                    keys: dataObj && typeof dataObj === 'object' && !Array.isArray(dataObj) ? Object.keys(dataObj) : null,
+                    hasEntregadores: dataObj && typeof dataObj === 'object' && 'entregadores' in dataObj,
+                    sample: typeof dataObj === 'string' 
+                      ? dataObj.substring(0, 200) 
+                      : (dataObj ? JSON.stringify(dataObj).substring(0, 200) : 'null/undefined')
+                  });
+                }
+                
+                // Tentar parsear se for string
                 if (typeof dataObj === 'string') {
                   try {
                     dataObj = JSON.parse(dataObj);
@@ -69,26 +97,68 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                 }
                 
                 // Extrair o array de entregadores
-                if (dataObj && typeof dataObj === 'object') {
+                if (dataObj !== null && dataObj !== undefined) {
                   if (Array.isArray(dataObj)) {
+                    // Se já é um array, usar diretamente
                     processedData = dataObj;
-                  } else if (dataObj.entregadores && Array.isArray(dataObj.entregadores)) {
-                    processedData = dataObj.entregadores;
-                  } else {
                     if (IS_DEV) {
-                      safeLog.warn('Estrutura inesperada nos dados de valores:', {
-                        tipo: typeof dataObj,
-                        keys: Object.keys(dataObj || {}),
-                        sample: JSON.stringify(dataObj).substring(0, 200)
-                      });
+                      safeLog.info('✅ Dados processados como array direto:', dataObj.length, 'entregadores');
                     }
-                    processedData = [];
+                  } else if (dataObj && typeof dataObj === 'object' && 'entregadores' in dataObj) {
+                    // Se é objeto com propriedade entregadores
+                    const entregadores = dataObj.entregadores;
+                    if (Array.isArray(entregadores)) {
+                      processedData = entregadores;
+                      if (IS_DEV) {
+                        safeLog.info('✅ Dados processados de objeto.entregadores:', entregadores.length, 'entregadores');
+                      }
+                    } else {
+                      if (IS_DEV) {
+                        safeLog.warn('entregadores não é um array:', { tipo: typeof entregadores, valor: entregadores });
+                      }
+                      processedData = [];
+                    }
+                  } else {
+                    // Estrutura inesperada - tentar acessar propriedades comuns
+                    const possibleKeys = ['valores', 'data', 'items', 'results'];
+                    let found = false;
+                    for (const key of possibleKeys) {
+                      if (dataObj && typeof dataObj === 'object' && key in dataObj && Array.isArray(dataObj[key])) {
+                        processedData = dataObj[key];
+                        if (IS_DEV) {
+                          safeLog.info(`✅ Dados encontrados em ${key}:`, processedData.length);
+                        }
+                        found = true;
+                        break;
+                      }
+                    }
+                    
+                    if (!found) {
+                      if (IS_DEV) {
+                        safeLog.warn('❌ Estrutura inesperada nos dados de valores:', {
+                          tipo: typeof dataObj,
+                          keys: Object.keys(dataObj || {}),
+                          sample: JSON.stringify(dataObj).substring(0, 500)
+                        });
+                      }
+                      processedData = [];
+                    }
                   }
                 } else {
+                  if (IS_DEV) {
+                    safeLog.warn('❌ dataObj é null ou undefined');
+                  }
                   processedData = [];
                 }
             } else {
               // Sem dados retornados
+              if (IS_DEV) {
+                safeLog.warn('❌ Nenhum dado retornado da função listar_valores_entregadores', { 
+                  hasResult: !!result,
+                  hasData: !!(result && result.data),
+                  resultKeys: result ? Object.keys(result) : null
+                });
+              }
               processedData = [];
             }
             break;
@@ -99,12 +169,30 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         //   throw result.error;
         // }
 
+        // Garantir que processedData seja sempre um array para valores
+        if (tab === 'valores') {
+          processedData = Array.isArray(processedData) ? processedData : [];
+        }
+        
         setData(processedData);
         cacheRef.current.set(cacheKey, { data: processedData, timestamp: Date.now() });
+        
+        if (IS_DEV && tab === 'valores') {
+          safeLog.info('✅ Dados finais setados para valores:', {
+            tipo: typeof processedData,
+            isArray: Array.isArray(processedData),
+            length: Array.isArray(processedData) ? processedData.length : 0
+          });
+        }
 
       } catch (err: any) {
         safeLog.error(`Erro ao carregar dados para a aba ${tab}:`, err);
-        setData(null);
+        // Para valores, manter como array vazio em caso de erro, não null
+        if (tab === 'valores') {
+          setData([]);
+        } else {
+          setData(null);
+        }
       } finally {
         setLoading(false);
       }

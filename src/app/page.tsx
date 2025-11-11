@@ -143,7 +143,9 @@ export default function DashboardPage() {
   // Mapeia os dados do useTabData para as props dos componentes de view
   const utrData = activeTab === 'utr' ? tabData as UtrData : null;
   const entregadoresData = activeTab === 'entregadores' ? tabData as EntregadoresData : null;
-  const valoresData = activeTab === 'valores' ? tabData as ValoresEntregador[] : [];
+  const valoresData = activeTab === 'valores' 
+    ? (Array.isArray(tabData) ? tabData : (tabData ? [tabData] : [])) as ValoresEntregador[]
+    : [];
   const prioridadeData = activeTab === 'prioridade' ? tabData as EntregadoresData : null;
   
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
