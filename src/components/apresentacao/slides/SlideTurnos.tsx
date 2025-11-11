@@ -1,5 +1,6 @@
 import React from 'react';
 import SlideWrapper from '../SlideWrapper';
+import { buildCircleTextStyle } from '../utils';
 
 interface TurnoResumo {
   aderencia: number;
