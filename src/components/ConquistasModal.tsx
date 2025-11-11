@@ -3,6 +3,41 @@ import type { Conquista } from '@/types/conquistas';
 import type { RankingUsuario } from '@/hooks/useConquistas';
 import ConquistaCard from './ConquistaCard';
 
+// Componente para avatar do usuário com fallback
+interface AvatarUsuarioProps {
+  avatarUrl: string | null;
+  nome: string;
+  isTop3: boolean;
+}
+
+const AvatarUsuario = memo(function AvatarUsuario({ avatarUrl, nome, isTop3 }: AvatarUsuarioProps) {
+  const [imageError, setImageError] = useState(false);
+  const inicial = nome.charAt(0).toUpperCase();
+
+  if (!avatarUrl || imageError) {
+    return (
+      <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+        isTop3
+          ? 'bg-gradient-to-br from-blue-400 to-purple-500 text-white'
+          : 'bg-gradient-to-br from-gray-400 to-gray-500 text-white'
+      }`}>
+        {inicial}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+      <img 
+        src={avatarUrl} 
+        alt={nome}
+        className="w-full h-full object-cover"
+        onError={() => setImageError(true)}
+      />
+    </div>
+  );
+});
+
 interface ConquistasModalProps {
   conquistas: Conquista[];
   stats: {
@@ -319,6 +354,13 @@ const ConquistasModal = memo(function ConquistasModal({
                       {medalha || usuario.posicao}
                     </div>
 
+                    {/* Avatar do usuário */}
+                    <AvatarUsuario 
+                      avatarUrl={usuario.avatar_url}
+                      nome={usuario.nome_usuario}
+                      isTop3={isTop3}
+                    />
+
                     {/* Informações do usuário */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -342,7 +384,7 @@ const ConquistasModal = memo(function ConquistasModal({
                       </div>
                       {usuario.conquistas_recentes && usuario.conquistas_recentes.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1">
-                          {usuario.conquistas_recentes.slice(0, 3).map((conquista, idx) => (
+                          {usuario.conquistas_recentes.map((conquista, idx) => (
                             <span
                               key={`${usuario.user_id}-${idx}`}
                               className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"

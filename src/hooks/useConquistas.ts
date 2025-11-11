@@ -12,6 +12,7 @@ export interface RankingUsuario {
   total_conquistas: number;
   total_pontos: number;
   conquistas_recentes: string[];
+  avatar_url: string | null;
 }
 
 export function useConquistas() {
