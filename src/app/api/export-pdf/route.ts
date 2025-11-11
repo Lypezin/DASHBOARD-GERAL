@@ -4,14 +4,20 @@ import puppeteer from 'puppeteer-core';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const targetUrl = searchParams.get('url');
+    const { searchParams, origin } = new URL(req.url);
+    let targetUrl = searchParams.get('url');
 
     if (!targetUrl) {
       return new NextResponse('Missing "url" query param', { status: 400 });
+    }
+
+    // Garantir URL absoluta
+    if (!/^https?:\/\//i.test(targetUrl)) {
+      targetUrl = `${origin}${targetUrl.startsWith('/') ? '' : '/'}${targetUrl}`;
     }
 
     const executablePath = await chromium.executablePath();
@@ -24,9 +30,10 @@ export async function GET(req: NextRequest) {
 
     try {
       const page = await browser.newPage();
+      await page.emulateMediaType('screen');
 
       // Tamanho A4 landscape, deixar CSS decidir o tamanho com preferCSSPageSize
-      await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 120000 });
+      await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 120000 });
 
       // Aguarda um marcador opcional de pronto da página imprimível, se existir
       await page.waitForSelector('body[data-print-ready="true"]', { timeout: 10000 }).catch(() => {});
@@ -54,8 +61,8 @@ export async function GET(req: NextRequest) {
       await browser.close();
     }
   } catch (err: any) {
-    console.error('Erro ao gerar PDF com Puppeteer:', err);
-    return new NextResponse('Erro ao gerar PDF', { status: 500 });
+    console.error('Erro ao gerar PDF com Puppeteer:', err?.message || err);
+    return NextResponse.json({ error: 'Erro ao gerar PDF', details: String(err?.message || err) }, { status: 500 });
   }
 }
 
