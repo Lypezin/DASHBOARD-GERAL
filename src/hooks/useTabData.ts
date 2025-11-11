@@ -51,15 +51,53 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             const { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem } = filterPayload as any;
             const listarValoresPayload = { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem };
             result = await supabase.rpc('listar_valores_entregadores', listarValoresPayload);
-            if (result && result.data) {
-                processedData = Array.isArray(result.data) ? result.data : (result.data.valores || []);
+            
+            if (result?.error) {
+              safeLog.error('Erro ao buscar valores:', result.error);
+              processedData = [];
+            } else if (result && result.data) {
+                // A função retorna { entregadores: [...] } como JSONB
+                // Supabase pode retornar como objeto ou string JSON
+                let dataObj = result.data;
+                if (typeof dataObj === 'string') {
+                  try {
+                    dataObj = JSON.parse(dataObj);
+                  } catch (e) {
+                    safeLog.error('Erro ao parsear JSON de valores:', e);
+                    dataObj = null;
+                  }
+                }
+                
+                // Extrair o array de entregadores
+                if (dataObj && typeof dataObj === 'object') {
+                  if (Array.isArray(dataObj)) {
+                    processedData = dataObj;
+                  } else if (dataObj.entregadores && Array.isArray(dataObj.entregadores)) {
+                    processedData = dataObj.entregadores;
+                  } else {
+                    if (IS_DEV) {
+                      safeLog.warn('Estrutura inesperada nos dados de valores:', {
+                        tipo: typeof dataObj,
+                        keys: Object.keys(dataObj || {}),
+                        sample: JSON.stringify(dataObj).substring(0, 200)
+                      });
+                    }
+                    processedData = [];
+                  }
+                } else {
+                  processedData = [];
+                }
+            } else {
+              // Sem dados retornados
+              processedData = [];
             }
             break;
         }
 
-        if (result && result.error) {
-          throw result.error;
-        }
+        // Não lançar erro aqui se já foi tratado no case específico
+        // if (result && result.error) {
+        //   throw result.error;
+        // }
 
         setData(processedData);
         cacheRef.current.set(cacheKey, { data: processedData, timestamp: Date.now() });
