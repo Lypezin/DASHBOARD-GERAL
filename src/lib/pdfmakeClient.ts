@@ -25,8 +25,13 @@ export const loadPdfMake = async () => {
     
     // Configurar fontes do pdfmake
     if (pdfMake && pdfFonts) {
+      // O vfs_fonts já inclui as fontes Roboto pré-configuradas
       pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts.pdfMake || pdfFonts;
-      console.log('✅ Fontes configuradas');
+      console.log('✅ VFS configurado');
+      
+      // As fontes Roboto já vêm pré-configuradas no vfs_fonts
+      // Não precisamos definir manualmente, apenas usar 'Roboto' no defaultStyle
+      console.log('✅ Fontes Roboto disponíveis via vfs_fonts');
     } else {
       console.warn('⚠️ pdfMake ou pdfFonts não encontrados');
     }

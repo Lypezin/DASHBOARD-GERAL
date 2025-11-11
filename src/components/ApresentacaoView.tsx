@@ -977,7 +977,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         background: '#2563eb', // Background padrão azul
         content: content,
         defaultStyle: {
-          font: 'Helvetica', // Usar fonte padrão disponível
+          // Não definir font aqui - usar padrão do pdfmake
           color: '#ffffff', // Texto branco por padrão
         },
       };
