@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import chromiumP from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
-import chromeAws from 'chrome-aws-lambda';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -22,38 +21,20 @@ export async function GET(req: NextRequest) {
     }
 
     // Configurações recomendadas pelo @sparticuz/chromium para serverless
-    // Evita dependências de GPU e acelera inicialização
     // https://github.com/Sparticuz/chromium#puppeteer-core
-    (chromiumP as any).setHeadlessMode = true;
-    (chromiumP as any).setGraphicsMode = false;
+    chromiumP.setHeadlessMode = true;
+    chromiumP.setGraphicsMode = false;
 
-    async function renderWithPuppeteer() {
-      const executablePath = await chromiumP.executablePath();
-      const browser = await puppeteer.launch({
-        args: chromiumP.args,
-        executablePath: executablePath || undefined,
-        headless: chromiumP.headless,
-        defaultViewport: { width: 1680, height: 1188 },
-        env: { ...process.env, ...(chromiumP as any).environment || {} },
-      });
-      return browser;
-    }
+    const executablePath = await chromiumP.executablePath();
+    const browser = await puppeteer.launch({
+      args: chromiumP.args,
+      executablePath: executablePath || undefined,
+      headless: chromiumP.headless,
+      defaultViewport: { width: 1680, height: 1188 },
+      env: { ...process.env, ...chromiumP.environment || {} },
+    });
 
-    let browser: any | null = null;
     try {
-      // Tenta Puppeteer com Sparticuz; se falhar, cai para chrome-aws-lambda
-      try {
-        browser = await renderWithPuppeteer();
-      } catch (_e) {
-        const executablePath = await chromeAws.executablePath;
-        browser = await puppeteer.launch({
-          args: chromeAws.args,
-          executablePath: executablePath || undefined,
-          headless: true,
-          defaultViewport: { width: 1680, height: 1188 },
-          env: { ...process.env, ...(chromeAws as any).env || {} },
-        });
-      }
 
       const page = await browser.newPage();
       await page.emulateMediaType('screen');
