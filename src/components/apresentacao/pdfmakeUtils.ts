@@ -71,6 +71,16 @@ const criarGraficoCircular = (
         transform="rotate(-90 ${center} ${center})"
         stroke-linecap="round"
       />
+      <text
+        x="${center}"
+        y="${center + (tamanho > 200 ? 8 : tamanho > 100 ? 4 : 2)}"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        fill="#ffffff"
+        font-size="${tamanho > 200 ? 56 : tamanho > 100 ? 24 : 18}"
+        font-weight="bold"
+        font-family="Arial, sans-serif"
+      >${porcentagem.toFixed(1)}%</text>
     </svg>
   `;
 };
@@ -125,25 +135,26 @@ export const criarSlideAderenciaGeral = (
   semana2: { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string },
   variacao: { horasDiferenca: string; horasPercentual: string; positiva: boolean }
 ): any => {
-  const grafico1 = criarGraficoCircular(semana1.aderencia, 300);
-  const grafico2 = criarGraficoCircular(semana2.aderencia, 300);
+  // Gráficos maiores para corresponder ao preview (380px no preview = ~285 pontos)
+  const grafico1 = criarGraficoCircular(semana1.aderencia, 285, 22);
+  const grafico2 = criarGraficoCircular(semana2.aderencia, 285, 22);
 
   const conteudo = {
     stack: [
       {
         text: 'ADERÊNCIA GERAL',
-        fontSize: 64,
+        fontSize: 72,
         bold: true,
         color: COR_TEXTO,
         alignment: 'center',
-        margin: [0, 40, 0, 10],
+        margin: [0, 50, 0, 15],
       },
       {
         text: `SEMANAS ${semana1.numeroSemana} & ${semana2.numeroSemana}`,
-        fontSize: 32,
+        fontSize: 36,
         color: '#e5e7eb', // Cor mais clara para simular opacity
         alignment: 'center',
-        margin: [0, 0, 0, 40],
+        margin: [0, 0, 0, 50],
       },
       {
         columns: [
@@ -153,24 +164,16 @@ export const criarSlideAderenciaGeral = (
             stack: [
               {
                 text: `SEMANA ${semana1.numeroSemana}`,
-                fontSize: 28,
+                fontSize: 32,
                 bold: true,
                 color: COR_TEXTO,
                 alignment: 'center',
-                margin: [0, 0, 0, 20],
+                margin: [0, 0, 0, 25],
               },
               {
                 svg: grafico1,
                 alignment: 'center',
-                margin: [0, 0, 0, 20],
-              },
-              {
-                text: `${semana1.aderencia.toFixed(1)}%`,
-                fontSize: 48,
-                bold: true,
-                color: COR_TEXTO,
-                alignment: 'center',
-                margin: [0, -240, 0, 20],
+                margin: [0, 0, 0, 25],
               },
               {
                 stack: [
@@ -224,24 +227,16 @@ export const criarSlideAderenciaGeral = (
             stack: [
               {
                 text: `SEMANA ${semana2.numeroSemana}`,
-                fontSize: 28,
+                fontSize: 32,
                 bold: true,
                 color: COR_TEXTO,
                 alignment: 'center',
-                margin: [0, 0, 0, 20],
+                margin: [0, 0, 0, 25],
               },
               {
                 svg: grafico2,
                 alignment: 'center',
-                margin: [0, 0, 0, 20],
-              },
-              {
-                text: `${semana2.aderencia.toFixed(1)}%`,
-                fontSize: 48,
-                bold: true,
-                color: COR_TEXTO,
-                alignment: 'center',
-                margin: [0, -240, 0, 20],
+                margin: [0, 0, 0, 25],
               },
               {
                 stack: [
@@ -319,8 +314,8 @@ export const criarSlideAderenciaGeral = (
             ],
           },
         ],
-        columnGap: 40,
-        margin: [40, 0, 40, 0],
+        columnGap: 50,
+        margin: [50, 0, 50, 0],
       },
     ],
   };
@@ -358,7 +353,8 @@ export const criarSlideAderenciaDiaria = (
       diferencaAderenciaPositiva: boolean;
     }
   ) => {
-    const grafico = criarGraficoCircular(dia.aderencia, 100, 8);
+    // Gráfico menor para cards diários (110px no preview = ~82 pontos)
+    const grafico = criarGraficoCircular(dia.aderencia, 82, 8);
     return {
       width: '*',
       stack: [
@@ -366,10 +362,9 @@ export const criarSlideAderenciaDiaria = (
           text: dia.sigla,
           fontSize: 18,
           bold: true,
-          color: COR_TEXTO,
+          color: '#e5e7eb', // Cor mais clara para simular opacity
           alignment: 'center',
           margin: [0, 0, 0, 8],
-          opacity: 0.85,
         },
         {
           svg: grafico,
@@ -377,22 +372,13 @@ export const criarSlideAderenciaDiaria = (
           margin: [0, 0, 0, 8],
         },
         {
-          text: `${dia.aderencia.toFixed(1)}%`,
-          fontSize: 20,
-          bold: true,
-          color: COR_TEXTO,
-          alignment: 'center',
-          margin: [0, -80, 0, 8],
-        },
-        {
           stack: [
             {
               text: 'Horas Entregues',
               fontSize: 13,
-              color: COR_TEXTO,
+              color: '#e5e7eb', // Cor mais clara para simular opacity
               alignment: 'center',
               margin: [0, 0, 0, 3],
-              opacity: 0.85,
             },
             {
               text: dia.horasEntregues,
@@ -527,6 +513,7 @@ export const criarSlideTurnos = (
   }>
 ): any => {
   const criarCardTurno = (turno: typeof itens[0]) => {
+    // Gráficos para turnos (tamanho médio)
     const grafico1 = criarGraficoCircular(turno.semana1.aderencia, 180, 12);
     const grafico2 = criarGraficoCircular(turno.semana2.aderencia, 180, 12);
 
@@ -557,14 +544,6 @@ export const criarSlideTurnos = (
                   svg: grafico1,
                   alignment: 'center',
                   margin: [0, 0, 0, 10],
-                },
-                {
-                  text: `${turno.semana1.aderencia.toFixed(1)}%`,
-                  fontSize: 22,
-                  bold: true,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                  margin: [0, -140, 0, 10],
                 },
                 {
                   stack: [
@@ -603,14 +582,6 @@ export const criarSlideTurnos = (
                   svg: grafico2,
                   alignment: 'center',
                   margin: [0, 0, 0, 10],
-                },
-                {
-                  text: `${turno.semana2.aderencia.toFixed(1)}%`,
-                  fontSize: 22,
-                  bold: true,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                  margin: [0, -140, 0, 10],
                 },
                 {
                   stack: [
@@ -727,8 +698,9 @@ export const criarSlideSubPracas = (
   }>
 ): any => {
   const criarCardSubPraca = (item: typeof itens[0]) => {
-    const grafico1 = criarGraficoCircular(item.semana1.aderencia, 200, 16);
-    const grafico2 = criarGraficoCircular(item.semana2.aderencia, 200, 16);
+    // Gráficos para sub-praças (240px no preview = ~180 pontos)
+    const grafico1 = criarGraficoCircular(item.semana1.aderencia, 180, 16);
+    const grafico2 = criarGraficoCircular(item.semana2.aderencia, 180, 16);
 
     return {
       width: '*',
@@ -746,10 +718,9 @@ export const criarSlideSubPracas = (
             {
               text: '🎯 Planejado',
               fontSize: 20,
-              color: COR_TEXTO,
+              color: '#e5e7eb', // Cor mais clara para simular opacity
               alignment: 'center',
               margin: [0, 0, 0, 5],
-              opacity: 0.85,
             },
             {
               text: item.horasPlanejadas,
@@ -781,14 +752,6 @@ export const criarSlideSubPracas = (
                   svg: grafico1,
                   alignment: 'center',
                   margin: [0, 0, 0, 10],
-                },
-                {
-                  text: `${item.semana1.aderencia.toFixed(1)}%`,
-                  fontSize: 32,
-                  bold: true,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                  margin: [0, -160, 0, 10],
                 },
                 {
                   stack: [
@@ -828,14 +791,6 @@ export const criarSlideSubPracas = (
                   svg: grafico2,
                   alignment: 'center',
                   margin: [0, 0, 0, 10],
-                },
-                {
-                  text: `${item.semana2.aderencia.toFixed(1)}%`,
-                  fontSize: 32,
-                  bold: true,
-                  color: COR_TEXTO,
-                  alignment: 'center',
-                  margin: [0, -160, 0, 10],
                 },
                 {
                   stack: [
@@ -972,10 +927,9 @@ export const criarSlideDemandaRejeicoes = (
                 {
                   text: `SEM ${numeroSemana1}`,
                   fontSize: 18,
-                  color: COR_TEXTO,
+                  color: '#e5e7eb', // Cor mais clara para simular opacity
                   alignment: 'center',
                   margin: [0, 0, 0, 10],
-                  opacity: 0.85,
                 },
                 {
                   text: item.semana1Valor,
@@ -992,10 +946,9 @@ export const criarSlideDemandaRejeicoes = (
                 {
                   text: `SEM ${numeroSemana2}`,
                   fontSize: 18,
-                  color: COR_TEXTO,
+                  color: '#e5e7eb', // Cor mais clara para simular opacity
                   alignment: 'center',
                   margin: [0, 0, 0, 10],
-                  opacity: 0.85,
                 },
                 {
                   text: item.semana2Valor,
@@ -1027,7 +980,7 @@ export const criarSlideDemandaRejeicoes = (
               alignment: 'center',
             },
           ],
-          fillColor: 'rgba(255,255,255,0.10)',
+          fillColor: [255, 255, 255, 0.10], // Branco com 10% de opacidade
           borderRadius: 8,
           padding: [12, 10],
         },
