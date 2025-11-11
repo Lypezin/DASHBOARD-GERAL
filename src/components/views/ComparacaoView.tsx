@@ -227,11 +227,16 @@ function ComparacaoView({
     <div className="space-y-6 animate-fade-in">
       {/* Seleção de Praça e Semanas */}
       <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-lg dark:border-blue-800 dark:bg-slate-900">
-        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">🔍 Configurar Comparação</h3>
+        <div className="mb-6 text-center sm:text-left">
+          <h3 className="mb-2 text-lg font-bold text-slate-900 dark:text-white">🔍 Configurar Comparação</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Selecione a praça e as semanas para análise comparativa detalhada
+          </p>
+        </div>
         
         {/* Tutorial/Instruções para Apresentação */}
         <div className="mb-6 rounded-lg border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 p-4 dark:border-purple-700 dark:from-purple-950/30 dark:to-pink-950/30">
-          <div className="flex items-start gap-3">
+          <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-start sm:text-left">
             <div className="flex-shrink-0 text-2xl">📋</div>
             <div className="flex-1">
               <h4 className="mb-2 font-bold text-purple-900 dark:text-purple-300">Como Gerar a Apresentação em PDF</h4>
@@ -280,7 +285,7 @@ function ComparacaoView({
           <label className="mb-3 block text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
             Semanas (selecione 2 ou mais)
           </label>
-          <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
             {todasSemanas.map((semana) => {
               // Extrair número da semana para comparação e exibição
               const semanaStr = String(semana);
@@ -313,15 +318,15 @@ function ComparacaoView({
         </div>
 
         {/* Botão de Comparar */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="text-sm text-slate-600 dark:text-slate-400">
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-center text-sm text-slate-600 dark:text-slate-400 sm:text-left">
             {semanasSelecionadas.length > 0 && (
               <span>
                 {semanasSelecionadas.length} semana{semanasSelecionadas.length !== 1 ? 's' : ''} selecionada{semanasSelecionadas.length !== 1 ? 's' : ''}
               </span>
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap justify-center gap-3 sm:justify-end">
             {semanasSelecionadas.length > 0 && (
               <button
                 onClick={() => setSemanasSelecionadas([])}
@@ -813,10 +818,15 @@ function ComparacaoView({
           {/* Comparação de Corridas por Dia */}
           <div className="rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900">
             <div className="border-b border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 dark:border-blue-800 dark:from-blue-950/30 dark:to-cyan-950/30">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                <span className="text-xl">📊</span>
-                Comparação de Corridas por Dia da Semana
-              </h3>
+              <div className="text-center sm:text-left">
+                <h3 className="flex items-center justify-center gap-2 text-lg font-bold text-slate-900 dark:text-white sm:justify-start">
+                  <span className="text-xl">📊</span>
+                  Análise por Dia da Semana
+                </h3>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                  Distribuição de corridas e variações por dia da semana
+                </p>
+              </div>
             </div>
             <div className="overflow-x-auto p-6">
               <table className="w-full">
@@ -891,12 +901,17 @@ function ComparacaoView({
           {/* Comparação de Aderência por Dia da Semana */}
           <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
             <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-indigo-950/30">
-              <div className="flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                  <span className="text-xl">📅</span>
-                  Comparação de Aderência por Dia da Semana
-                </h3>
-                <div className="flex gap-2">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-center sm:text-left">
+                  <h3 className="flex items-center justify-center gap-2 text-lg font-bold text-slate-900 dark:text-white sm:justify-start">
+                    <span className="text-xl">📅</span>
+                    Aderência por Dia da Semana
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                    Performance de aderência distribuída pelos dias da semana
+                  </p>
+                </div>
+                <div className="flex justify-center gap-2 sm:justify-end">
                   <ViewToggleButton
                     active={viewModeDia === 'table'}
                     onClick={() => setViewModeDia('table')}
@@ -1398,16 +1413,21 @@ function ComparacaoView({
           {utrComparacao.length > 0 ? (
             <div className="rounded-xl border border-purple-200 bg-white shadow-lg dark:border-purple-800 dark:bg-slate-900">
               <div className="border-b border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 dark:border-purple-800 dark:from-purple-950/30 dark:to-pink-950/30">
-                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                  <span className="text-xl">🎯</span>
-                  Comparação de UTR (Utilização de Tempo Real)
-                </h3>
+                <div className="text-center sm:text-left">
+                  <h3 className="flex items-center justify-center gap-2 text-lg font-bold text-slate-900 dark:text-white sm:justify-start">
+                    <span className="text-xl">🎯</span>
+                    UTR - Utilização de Tempo Real
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                    Indicador de eficiência na utilização do tempo disponível
+                  </p>
+                </div>
               </div>
               <div className="overflow-x-auto p-6">
                 <table className="w-full">
                   <thead className="bg-purple-50 dark:bg-purple-950/30">
                     <tr className="border-b-2 border-purple-200 dark:border-purple-800">
-                      <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-purple-900 dark:text-purple-100">Métrica</th>
+                      <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-purple-900 dark:text-purple-100 sm:text-left">Métrica</th>
                       {semanasSelecionadas.map((semana) => (
                         <th key={semana} className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                           Semana {semana}
@@ -1418,7 +1438,7 @@ function ComparacaoView({
                   <tbody className="divide-y divide-purple-100 dark:divide-purple-900">
                     <tr className="bg-white dark:bg-slate-900">
                       <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center gap-2 sm:justify-start">
                           <span className="text-lg">🎯</span>
                           UTR Geral
                         </div>
@@ -1460,7 +1480,7 @@ function ComparacaoView({
             </div>
           ) : (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-900 dark:bg-amber-950/20">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-start sm:text-left">
                 <span className="text-2xl">⚠️</span>
                 <div>
                   <p className="font-semibold text-amber-900 dark:text-amber-100">UTR não disponível</p>
