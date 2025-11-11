@@ -925,6 +925,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   ]);
 
   const gerarPDF = async () => {
+    console.log('🔵 gerarPDF chamado');
+    console.log('📊 slidesPDFData.length:', slidesPDFData.length);
+    
     if (slidesPDFData.length === 0) {
       alert('Não há dados suficientes para gerar o PDF.');
       return;
@@ -937,10 +940,17 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     }
 
     setIsGenerating(true);
+    console.log('⏳ Iniciando geração de PDF...');
 
     try {
       // Carregar pdfmake apenas no cliente
+      console.log('📦 Carregando pdfmake...');
       const pdfMake = await loadPdfMake();
+      console.log('✅ pdfmake carregado:', !!pdfMake);
+
+      if (!pdfMake) {
+        throw new Error('pdfmake não foi carregado corretamente');
+      }
 
       // Criar conteúdo com quebras de página entre slides
       // Cada slide precisa ser uma página completa com background
@@ -954,6 +964,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         // Adicionar o slide completo
         content.push(slide);
       });
+
+      console.log('📄 Total de slides no conteúdo:', content.length);
 
       const docDefinition = {
         pageSize: {
@@ -970,14 +982,22 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         },
       };
 
-      pdfMake.createPdf(docDefinition).download(
+      console.log('📝 Criando PDF...');
+      const pdfDoc = pdfMake.createPdf(docDefinition);
+      console.log('💾 PDF criado, iniciando download...');
+      
+      pdfDoc.download(
         `Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`
       );
+      
+      console.log('✅ Download iniciado!');
     } catch (error) {
+      console.error('❌ Erro ao gerar PDF:', error);
       safeLog.error('Erro ao gerar PDF:', error);
-      alert('Erro ao gerar PDF. Tente novamente.');
+      alert(`Erro ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setIsGenerating(false);
+      console.log('🏁 Geração de PDF finalizada');
     }
   };
 
