@@ -105,19 +105,25 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
               </div>
             </div>
 
-            <div className="w-[520px] space-y-4">
-              <div className="flex items-center justify-between rounded-2xl bg-white/15 px-8 py-5">
-                <span className="text-[2.4rem] font-medium opacity-85">🎯 Planejado</span>
-                <span 
+            <div className="w-full max-w-[520px] space-y-4">
+              <div className="rounded-2xl bg-white/15 px-8 py-6 flex flex-col items-center gap-2 text-center">
+                <span className="text-[2.4rem] font-medium opacity-85 flex items-center gap-3">
+                  <span aria-hidden className="text-[3rem] leading-none">🎯</span>
+                  Planejado
+                </span>
+                <span
                   className="font-bold text-blue-200"
                   style={buildTimeTextStyle(semana.horasPlanejadas, 2.8)}
                 >
                   {semana.horasPlanejadas}
                 </span>
               </div>
-              <div className="flex items-center justify-between rounded-2xl bg-white/15 px-8 py-5">
-                <span className="text-[2.4rem] font-medium opacity-85">✅ Entregue</span>
-                <span 
+              <div className="rounded-2xl bg-white/15 px-8 py-6 flex flex-col items-center gap-2 text-center">
+                <span className="text-[2.4rem] font-medium opacity-85 flex items-center gap-3">
+                  <span aria-hidden className="text-[3rem] leading-none">✅</span>
+                  Entregue
+                </span>
+                <span
                   className="font-bold text-emerald-200"
                   style={buildTimeTextStyle(semana.horasEntregues, 2.8)}
                 >
@@ -125,8 +131,8 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
                 </span>
               </div>
               {index === 1 && (
-                <div className="rounded-2xl bg-white/10 px-8 py-5 text-center">
-                  <p className="text-[2.2rem] font-medium opacity-85 mb-2">Variação de Horas Entregues</p>
+                <div className="rounded-2xl bg-white/10 px-8 py-6 text-center flex flex-col items-center gap-2">
+                  <p className="text-[2.2rem] font-medium opacity-85">Variação de Horas Entregues</p>
                   <p
                     className={`font-black ${variacao.positiva ? 'text-emerald-200' : 'text-rose-200'}`}
                     style={buildTimeTextStyle(variacao.horasDiferenca, 2.8)}

@@ -93,14 +93,18 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
             </span>
           </div>
         </div>
-        <span 
-          className="font-semibold text-emerald-100 text-center"
-          style={buildTimeTextStyle(dia.horasEntregues, 1.8)}
-        >
-          {dia.horasEntregues}
-        </span>
+        <div className="rounded-2xl bg-white/10 px-4 py-3 w-full flex flex-col items-center gap-1">
+          <span className="text-[1.6rem] font-medium opacity-85">Horas Entregues</span>
+          <span
+            className="font-semibold text-emerald-100 text-center"
+            style={buildTimeTextStyle(dia.horasEntregues, 1.8)}
+          >
+            {dia.horasEntregues}
+          </span>
+        </div>
         {isComparado && (
-          <div className="w-full space-y-1 text-center flex flex-col items-center">
+          <div className="w-full rounded-2xl bg-white/10 px-4 py-3 mt-2 text-center flex flex-col items-center gap-2">
+            <span className="text-[1.6rem] font-medium opacity-85">Diferenças</span>
             <p
               className={`font-bold leading-tight ${comparativo.diferencaHorasPositiva ? 'text-emerald-200' : 'text-rose-200'}`}
               style={buildTimeTextStyle(comparativo.diferencaHoras || '', 1.6)}

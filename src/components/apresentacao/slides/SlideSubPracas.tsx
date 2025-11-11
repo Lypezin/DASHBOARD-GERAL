@@ -68,13 +68,22 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
             key={item.nome}
             className="relative flex flex-col items-center gap-8 rounded-[36px] bg-white/12 px-10 py-10"
           >
-            <div className="text-center space-y-3">
+            <div className="text-center space-y-4 w-full max-w-[420px] mx-auto">
               <h3 className="text-[2.8rem] font-semibold uppercase tracking-wide leading-tight">
                 {item.nome}
               </h3>
-              <p className="text-[2.2rem] font-medium opacity-80">
-                🎯 Planejado: <span className="font-bold text-blue-200">{item.horasPlanejadas}</span>
-              </p>
+              <div className="rounded-2xl bg-white/12 px-6 py-5 flex flex-col items-center gap-2">
+                <span className="text-[2.2rem] font-medium opacity-85 flex items-center gap-3">
+                  <span aria-hidden className="text-[2.8rem] leading-none">🎯</span>
+                  Planejado
+                </span>
+                <span
+                  className="text-[2.6rem] font-bold text-blue-200"
+                  style={buildTimeTextStyle(item.horasPlanejadas, 2.4)}
+                >
+                  {item.horasPlanejadas}
+                </span>
+              </div>
             </div>
 
             <div className="flex w-full items-center justify-between gap-12">
@@ -126,12 +135,15 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                       </span>
                     </div>
                   </div>
-                  <span 
-                    className="font-semibold text-emerald-100 text-center"
-                    style={buildTimeTextStyle(semana.horasEntregues, 2.0)}
-                  >
-                    {semana.horasEntregues}
-                  </span>
+                  <div className="rounded-2xl bg-white/10 px-4 py-3 w-full flex flex-col items-center gap-1">
+                    <span className="text-[1.8rem] font-medium opacity-85">Horas Entregues</span>
+                    <span
+                      className="font-semibold text-emerald-100 text-center"
+                      style={buildTimeTextStyle(semana.horasEntregues, 2.0)}
+                    >
+                      {semana.horasEntregues}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -140,7 +152,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
               {item.variacoes.map((variacao) => (
                 <div
                   key={variacao.label}
-                  className="rounded-xl bg-white/10 px-3 py-3 text-center flex flex-col items-center justify-center min-h-[80px]"
+                  className="rounded-xl bg-white/10 px-4 py-4 text-center flex flex-col items-center justify-center min-h-[88px] gap-1"
                 >
                   <p className="text-[1.6rem] font-medium opacity-80 mb-1 leading-tight">{variacao.label}</p>
                   <p

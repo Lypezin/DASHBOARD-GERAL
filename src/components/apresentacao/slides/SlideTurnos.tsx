@@ -116,20 +116,23 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                       </span>
                     </div>
                   </div>
-                  <span 
-                    className="font-semibold text-emerald-100 text-center"
-                    style={buildTimeTextStyle(semana.horasEntregues, 1.9)}
-                  >
-                    {semana.horasEntregues}
-                  </span>
+                  <div className="rounded-2xl bg-white/10 px-4 py-3 w-full flex flex-col items-center gap-1">
+                    <span className="text-[1.8rem] font-medium opacity-85">Horas Entregues</span>
+                    <span
+                      className="font-semibold text-emerald-100 text-center"
+                      style={buildTimeTextStyle(semana.horasEntregues, 1.9)}
+                    >
+                      {semana.horasEntregues}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
 
             <div className="grid grid-cols-3 gap-3 mt-2">
               {turno.variacoes.map((variacao) => (
-                <div key={variacao.label} className="rounded-xl bg-white/10 px-3 py-3 text-center flex flex-col items-center justify-center min-h-[75px]">
-                  <p className="text-[1.6rem] font-medium opacity-80 mb-1 leading-tight">{variacao.label}</p>
+                <div key={variacao.label} className="rounded-xl bg-white/10 px-4 py-4 text-center flex flex-col items-center justify-center min-h-[88px] gap-1">
+                  <p className="text-[1.6rem] font-medium opacity-80 leading-tight">{variacao.label}</p>
                   <p
                     className={`font-bold leading-tight ${variacao.positivo ? 'text-emerald-200' : 'text-rose-200'}`}
                     style={buildTimeTextStyle(variacao.valor, 1.7)}
