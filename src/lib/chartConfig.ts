@@ -21,18 +21,6 @@ export async function registerChartJS() {
     try {
       const { Chart, registerables } = await import('chart.js');
       Chart.register(...registerables);
-      
-      // Tentar registrar o plugin de data labels se estiver disponível (opcional)
-      try {
-        const { ChartDataLabels } = await import('chartjs-plugin-datalabels');
-        Chart.register(ChartDataLabels);
-      } catch (pluginError) {
-        // Plugin não está instalado, mas isso não é crítico
-        // O Chart.js funcionará normalmente sem ele
-        if (process.env.NODE_ENV === 'development') {
-          safeLog.info('Plugin chartjs-plugin-datalabels não está instalado (opcional)');
-        }
-      }
 
       // Configurações globais
       Chart.defaults.font.family = "'Inter', sans-serif";
