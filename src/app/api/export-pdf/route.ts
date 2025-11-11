@@ -43,7 +43,13 @@ export async function GET(req: NextRequest) {
       headers.set('Content-Type', 'application/pdf');
       headers.set('Content-Disposition', `attachment; filename="apresentacao.pdf"`);
 
-      return new NextResponse(pdfBuffer, { status: 200, headers });
+      // Converter Buffer Node para ArrayBuffer puro — compatível com Blob/Fetch
+      const arrayBuffer = pdfBuffer.buffer.slice(
+        pdfBuffer.byteOffset,
+        pdfBuffer.byteOffset + pdfBuffer.byteLength
+      ) as ArrayBuffer;
+      const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      return new NextResponse(pdfBlob, { status: 200, headers });
     } finally {
       await browser.close();
     }
