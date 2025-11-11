@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,9 +14,12 @@ export async function GET(req: NextRequest) {
       return new NextResponse('Missing "url" query param', { status: 400 });
     }
 
+    const executablePath = await chromium.executablePath();
     const browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: chromium.args,
+      executablePath: executablePath || undefined,
+      headless: chromium.headless,
+      defaultViewport: { width: 1680, height: 1188 },
     });
 
     try {
