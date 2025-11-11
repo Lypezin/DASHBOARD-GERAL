@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { Conquista } from '@/types/conquistas';
 import type { RankingUsuario } from '@/hooks/useConquistas';
 import ConquistaCard from './ConquistaCard';
@@ -30,13 +30,36 @@ export default function ConquistasModal({
   const [abaAtiva, setAbaAtiva] = useState<'conquistas' | 'ranking'>('conquistas');
   const [filtro, setFiltro] = useState<'todas' | 'conquistadas' | 'pendentes'>('todas');
   const [categoriaFiltro, setCategoriaFiltro] = useState<string | null>(null);
+  const rankingCarregadoRef = useRef(false);
+  const rankingTentouCarregarRef = useRef(false);
 
-  // Carregar ranking quando a aba for ativada
+  // Carregar ranking quando a aba for ativada (apenas uma vez)
   useEffect(() => {
-    if (abaAtiva === 'ranking' && onLoadRanking && ranking.length === 0 && !loadingRanking) {
+    // Resetar flags quando mudar de aba
+    if (abaAtiva !== 'ranking') {
+      rankingCarregadoRef.current = false;
+      rankingTentouCarregarRef.current = false;
+      return;
+    }
+
+    // Se já temos dados, marcar como carregado
+    if (ranking.length > 0) {
+      rankingCarregadoRef.current = true;
+      rankingTentouCarregarRef.current = true;
+      return;
+    }
+
+    // Carregar ranking apenas se:
+    // 1. Estamos na aba de ranking
+    // 2. Temos a função de carregamento
+    // 3. Não está carregando no momento
+    // 4. Ainda não tentamos carregar nesta sessão (evita loop em caso de erro)
+    if (onLoadRanking && !loadingRanking && !rankingTentouCarregarRef.current) {
+      rankingTentouCarregarRef.current = true;
       onLoadRanking();
     }
-  }, [abaAtiva, onLoadRanking, ranking.length, loadingRanking]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abaAtiva, loadingRanking, ranking.length]); // Adicionado loadingRanking e ranking.length para reagir quando dados chegarem
 
   // Funções memoizadas com useCallback
   const getRaridadeColor = useCallback((raridade: string) => {
