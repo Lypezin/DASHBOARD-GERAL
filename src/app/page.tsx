@@ -147,9 +147,12 @@ export default function DashboardPage() {
   const valoresData = useMemo(() => {
     if (activeTab !== 'valores') return [];
     if (!tabData) return [];
-    if (Array.isArray(tabData)) return tabData as ValoresEntregador[];
-    // Se não é array, tentar converter
-    return tabData ? [tabData] as ValoresEntregador[] : [];
+    if (Array.isArray(tabData)) {
+      // Verificar se é realmente um array de ValoresEntregador
+      return tabData as ValoresEntregador[];
+    }
+    // Se não é array e não é null, não deve acontecer para valores, mas retornar array vazio por segurança
+    return [];
   }, [activeTab, tabData]);
   const prioridadeData = activeTab === 'prioridade' ? tabData as EntregadoresData : null;
   
