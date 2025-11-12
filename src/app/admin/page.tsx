@@ -311,18 +311,61 @@ export default function AdminPage() {
     if (!confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
 
     try {
-      const { error } = await safeRpc('set_user_admin', {
+      const { data, error } = await safeRpc('set_user_admin', {
         user_id: userId,
         make_admin: !currentIsAdmin,
       }, {
         timeout: 30000,
-        validateParams: true
+        validateParams: false // Desabilitar validação para permitir parâmetros específicos
       });
 
-      if (error) throw error;
+      if (error) {
+        // Log detalhado do erro em desenvolvimento
+        if (IS_DEV) {
+          safeLog.error('Erro detalhado ao alterar admin:', {
+            error,
+            userId,
+            make_admin: !currentIsAdmin,
+            errorCode: (error as any)?.code,
+            errorMessage: (error as any)?.message,
+            errorDetails: (error as any)?.details,
+            errorHint: (error as any)?.hint
+          });
+        }
+        
+        // Extrair mensagem de erro mais detalhada
+        const errorObj = error as any;
+        const errorMessage = errorObj?.message || errorObj?.details || errorObj?.hint || 'Ocorreu um erro. Tente novamente mais tarde.';
+        const errorCode = errorObj?.code || '';
+        
+        // Mensagem mais específica baseada no código de erro
+        let userMessage = 'Erro ao alterar status de admin: ';
+        if (errorCode === '42501' || errorMessage.includes('permission denied')) {
+          userMessage += 'Você não tem permissão para realizar esta ação.';
+        } else if (errorCode === 'PGRST116' || errorMessage.includes('not found')) {
+          userMessage += 'Função não encontrada. Entre em contato com o administrador.';
+        } else if (errorCode === '23505' || errorMessage.includes('unique constraint')) {
+          userMessage += 'Este usuário já possui este status.';
+        } else {
+          userMessage += errorMessage;
+        }
+        
+        alert(userMessage);
+        return;
+      }
+      
+      // Sucesso
+      if (IS_DEV) {
+        safeLog.info('Status de admin alterado com sucesso:', { userId, make_admin: !currentIsAdmin, data });
+      }
       fetchData();
     } catch (err: any) {
-      alert('Erro ao alterar status de admin: ' + err.message);
+      // Erro inesperado
+      if (IS_DEV) {
+        safeLog.error('Erro inesperado ao alterar admin:', err);
+      }
+      const errorMessage = err?.message || err?.toString() || 'Ocorreu um erro. Tente novamente mais tarde.';
+      alert('Erro ao alterar status de admin: ' + errorMessage);
     }
   };
 
