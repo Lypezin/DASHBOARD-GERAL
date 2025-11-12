@@ -86,12 +86,22 @@ export default function LoginPage() {
             p_action_type: 'login',
             p_action_details: 'Fez login no sistema',
             p_tab_name: 'dashboard',
-            p_filters_applied: {}
+            p_filters_applied: null // Passar null em vez de {} vazio
           });
           
           // Ignorar erro silenciosamente - não bloquear login
-          if (rpcError && IS_DEV) {
-            safeLog.warn('Erro ao registrar atividade de login (não bloqueante):', rpcError);
+          // Apenas logar em desenvolvimento se não for 404
+          if (rpcError) {
+            const errorCode = (rpcError as any)?.code || '';
+            const errorMessage = String((rpcError as any)?.message || '');
+            const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                          errorCode === 'PGRST204' ||
+                          errorMessage.includes('404') || 
+                          errorMessage.includes('not found');
+            
+            if (!is404 && IS_DEV) {
+              safeLog.warn('Erro ao registrar atividade de login (não bloqueante):', rpcError);
+            }
           }
         }
       } catch (err) {

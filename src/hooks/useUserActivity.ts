@@ -48,6 +48,12 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     tab_name: string | null = null,
     filters_applied: any = {}
   ) => {
+    // Verificar se há usuário autenticado e sessionId
+    if (!currentUserRef.current || !sessionId) {
+      // Se não há usuário ou sessionId, não tentar registrar
+      return;
+    }
+
     // Se já sabemos que a função não está disponível, verificar se podemos tentar novamente
     if (functionAvailability.status === false) {
       const timeSinceLastCheck = Date.now() - functionAvailability.lastCheck;
@@ -109,15 +115,23 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
           descricaoDetalhada = typeof action_details === 'string' ? action_details : `${action_type} na aba ${nomeAba}`;
       }
       
+      // Garantir que sessionId não está vazio
+      if (!sessionId || sessionId.trim() === '') {
+        if (IS_DEV) {
+          safeLog.warn('Tentativa de registrar atividade sem sessionId válido');
+        }
+        return;
+      }
+
       const { data, error } = await safeRpc('registrar_atividade', {
         p_session_id: sessionId,
         p_action_type: action_type,
-        p_action_details: descricaoDetalhada,
-        p_tab_name: tab_name || activeTabRef.current,
-        p_filters_applied: filters_applied as any
+        p_action_details: descricaoDetalhada || null,
+        p_tab_name: tab_name || activeTabRef.current || null,
+        p_filters_applied: filters_applied && Object.keys(filters_applied).length > 0 ? filters_applied : null
       }, {
-        timeout: 30000,
-        validateParams: true
+        timeout: 10000, // Reduzido para 10s para evitar timeouts longos
+        validateParams: false // Desabilitar validação para evitar problemas com tipos
       });
 
       if (error) {
@@ -170,7 +184,7 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
   // Debounce para evitar múltiplas chamadas quando há mudanças rápidas de tab
   const tabChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
-    if (!currentUserRef.current) return;
+    if (!currentUserRef.current || !sessionId) return;
     
     // Limpar timeout anterior se existir
     if (tabChangeTimeoutRef.current) {
@@ -187,20 +201,24 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
         clearTimeout(tabChangeTimeoutRef.current);
       }
     };
-  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTab, sessionId, registrarAtividade]);
 
   useEffect(() => {
-    if (currentUserRef.current && Object.values(filtersRef.current).some(v => v !== null && v !== undefined && (Array.isArray(v) ? v.length > 0 : true))) {
+    if (!currentUserRef.current || !sessionId) return;
+    
+    if (Object.values(filtersRef.current).some(v => v !== null && v !== undefined && (Array.isArray(v) ? v.length > 0 : true))) {
       registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current);
     }
-  }, [JSON.stringify(filters)]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(filters), sessionId, registrarAtividade]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (!sessionId) return;
+    
     const handleVisibilityChange = () => {
       const visible = !document.hidden;
       setIsPageVisible(visible);
       
-      if (currentUserRef.current) {
+      if (currentUserRef.current && sessionId) {
         if (visible) {
           registrarAtividade('page_visible', {}, activeTabRef.current, filtersRef.current);
         } else {
@@ -214,10 +232,10 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sessionId, registrarAtividade]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!currentUserRef.current) return;
+    if (!currentUserRef.current || !sessionId) return;
     
     // Registrar login apenas uma vez quando o usuário é carregado
     const loginTimeout = setTimeout(() => {
@@ -226,7 +244,7 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     
     const heartbeatInterval = setInterval(() => {
       // Só enviar heartbeat se a função estiver disponível e a página estiver visível
-      if (currentUserRef.current && isPageVisible && functionAvailability.status !== false) {
+      if (currentUserRef.current && isPageVisible && sessionId && functionAvailability.status !== false) {
         registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
       }
     }, 60000); // A cada 1 minuto
@@ -235,7 +253,7 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
       clearTimeout(loginTimeout);
       clearInterval(heartbeatInterval);
     };
-  }, [currentUser, isPageVisible]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentUser, isPageVisible, sessionId, registrarAtividade]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { sessionId, isPageVisible, registrarAtividade };
 }
