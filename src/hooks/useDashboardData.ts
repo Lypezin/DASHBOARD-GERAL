@@ -137,17 +137,46 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   }, [filterPayload, currentUser]);
 
   // Lógica de busca para a aba 'evolucao' (mantida aqui por enquanto)
+  const evolucaoAbortControllerRef = useRef<AbortController | null>(null);
+  const currentEvolucaoTabRef = useRef<string>(activeTab);
+  
+  useEffect(() => {
+    currentEvolucaoTabRef.current = activeTab;
+  }, [activeTab]);
+  
   useEffect(() => {
     const fetchEvolucaoData = async () => {
+      // Cancelar requisição anterior se existir
+      if (evolucaoAbortControllerRef.current) {
+        evolucaoAbortControllerRef.current.abort();
+      }
+
+      // Criar novo AbortController para esta requisição
+      const abortController = new AbortController();
+      evolucaoAbortControllerRef.current = abortController;
+      
+      // Verificar se ainda estamos na tab de evolução
+      if (currentEvolucaoTabRef.current !== 'evolucao') {
+        return;
+      }
+      
       const pracaFilter = (filterPayload as any).p_praca;
       const evolucaoCacheKey = `evolucao-${anoEvolucao}-${pracaFilter || 'all'}`;
       const cached = evolucaoCacheRef.current.get(evolucaoCacheKey);
 
       if (cached && Date.now() - cached.timestamp < 30000) {
-        setEvolucaoMensal(cached.mensal);
-        setEvolucaoSemanal(cached.semanal);
-        setUtrSemanal(cached.utrSemanal);
-        setLoadingEvolucao(false);
+        // Verificar se ainda estamos na tab de evolução antes de atualizar
+        if (currentEvolucaoTabRef.current === 'evolucao' && !abortController.signal.aborted) {
+          setEvolucaoMensal(cached.mensal);
+          setEvolucaoSemanal(cached.semanal);
+          setUtrSemanal(cached.utrSemanal);
+          setLoadingEvolucao(false);
+        }
+        return;
+      }
+      
+      // Verificar novamente antes de fazer requisição
+      if (currentEvolucaoTabRef.current !== 'evolucao' || abortController.signal.aborted) {
         return;
       }
       
@@ -155,38 +184,96 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       try {
         const [mensalRes, semanalRes] = await Promise.all([
           safeRpc<EvolucaoMensal[]>('listar_evolucao_mensal', { p_praca: pracaFilter, p_ano: anoEvolucao }, {
-            timeout: 30000,
-            validateParams: true
+            timeout: 20000, // Reduzido para 20s
+            validateParams: false // Desabilitar validação para evitar problemas
           }),
           safeRpc<EvolucaoSemanal[]>('listar_evolucao_semanal', { p_praca: pracaFilter || null, p_ano: anoEvolucao, p_limite_semanas: 60 }, {
-            timeout: 30000,
-            validateParams: true
+            timeout: 20000, // Reduzido para 20s
+            validateParams: false // Desabilitar validação para evitar problemas
           })
         ]);
 
-        if (mensalRes.error) safeLog.error('Erro ao carregar evolução mensal:', mensalRes.error);
-        if (semanalRes.error) safeLog.error('Erro ao carregar evolução semanal:', semanalRes.error);
+        // Verificar se foi abortado durante a requisição
+        if (abortController.signal.aborted || currentEvolucaoTabRef.current !== 'evolucao') {
+          return;
+        }
+
+        // Tratar erros silenciosamente
+        if (mensalRes.error) {
+          const errorCode = (mensalRes.error as any)?.code || '';
+          const errorMessage = String((mensalRes.error as any)?.message || '');
+          const is500 = errorCode === 'PGRST301' || errorMessage.includes('500');
+          if (is500 && IS_DEV) {
+            safeLog.warn('Erro 500 ao carregar evolução mensal (ignorado):', mensalRes.error);
+          } else if (!is500) {
+            safeLog.error('Erro ao carregar evolução mensal:', mensalRes.error);
+          }
+        }
+        
+        if (semanalRes.error) {
+          const errorCode = (semanalRes.error as any)?.code || '';
+          const errorMessage = String((semanalRes.error as any)?.message || '');
+          const is500 = errorCode === 'PGRST301' || errorMessage.includes('500');
+          if (is500 && IS_DEV) {
+            safeLog.warn('Erro 500 ao carregar evolução semanal (ignorado):', semanalRes.error);
+          } else if (!is500) {
+            safeLog.error('Erro ao carregar evolução semanal:', semanalRes.error);
+          }
+        }
 
         const mensal = mensalRes.data || [];
         const semanal = semanalRes.data || [];
         
-        evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: [], timestamp: Date.now() });
-        setEvolucaoMensal(mensal);
-        setEvolucaoSemanal(semanal);
-        setUtrSemanal([]); // UTR desabilitado por ora
+        // Verificar se ainda estamos na tab de evolução antes de atualizar
+        if (currentEvolucaoTabRef.current === 'evolucao' && !abortController.signal.aborted) {
+          evolucaoCacheRef.current.set(evolucaoCacheKey, { mensal, semanal, utrSemanal: [], timestamp: Date.now() });
+          setEvolucaoMensal(mensal);
+          setEvolucaoSemanal(semanal);
+          setUtrSemanal([]); // UTR desabilitado por ora
+        }
 
       } catch (err) {
-        safeLog.error('Erro ao carregar evolução:', err);
-        setEvolucaoMensal([]);
-        setEvolucaoSemanal([]);
-        setUtrSemanal([]);
+        // Ignorar erros de abort
+        if ((err as any)?.name === 'AbortError' || abortController.signal.aborted) {
+          return;
+        }
+        
+        // Verificar se ainda estamos na tab de evolução antes de atualizar
+        if (currentEvolucaoTabRef.current === 'evolucao') {
+          safeLog.error('Erro ao carregar evolução:', err);
+          setEvolucaoMensal([]);
+          setEvolucaoSemanal([]);
+          setUtrSemanal([]);
+        }
       } finally {
-        setLoadingEvolucao(false);
+        // Só atualizar loading se ainda estamos na tab de evolução
+        if (currentEvolucaoTabRef.current === 'evolucao') {
+          setLoadingEvolucao(false);
+        }
       }
     };
 
     if (activeTab === 'evolucao') {
-      fetchEvolucaoData();
+      // Adicionar pequeno delay para evitar requisições muito rápidas
+      const timeoutId = setTimeout(() => {
+        if (currentEvolucaoTabRef.current === 'evolucao') {
+          fetchEvolucaoData();
+        }
+      }, 300);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        // Cancelar requisição se o componente desmontar ou tab mudar
+        if (evolucaoAbortControllerRef.current) {
+          evolucaoAbortControllerRef.current.abort();
+        }
+      };
+    } else {
+      // Se não é a tab de evolução, limpar dados anteriores
+      setEvolucaoMensal([]);
+      setEvolucaoSemanal([]);
+      setUtrSemanal([]);
+      setLoadingEvolucao(false);
     }
   }, [activeTab, anoEvolucao, filterPayload]);
   

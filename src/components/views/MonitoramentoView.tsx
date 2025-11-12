@@ -80,6 +80,7 @@ function MonitoramentoView() {
   const [filtroAba, setFiltroAba] = useState<string>('');
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fetchMonitoramentoRef = useRef<(() => Promise<void>) | null>(null);
 
   // Calcular datas baseado no período selecionado
   const getPeriodoDatas = useCallback((periodo: '24h' | '7d' | '30d') => {
@@ -194,7 +195,7 @@ function MonitoramentoView() {
       
       // Buscar usuários online
       const { data, error } = await safeRpc<UsuarioOnline[]>('listar_usuarios_online', {}, {
-        timeout: 30000,
+        timeout: 20000, // Reduzido para 20s
         validateParams: false
       });
       
@@ -210,6 +211,32 @@ function MonitoramentoView() {
                            errorMessage.includes('429') ||
                            errorMessage.includes('Muitas requisições');
         
+        // Tratar erros 400/404/500 silenciosamente - não bloquear a interface
+        const is400or404or500 = errorCode === '42883' || 
+                          errorCode === 'PGRST116' ||
+                          errorCode === 'PGRST204' ||
+                          errorMessage.includes('400') ||
+                          errorMessage.includes('404') ||
+                          errorMessage.includes('500') ||
+                          errorMessage.includes('Bad Request') ||
+                          errorMessage.includes('not found');
+        
+        if (is400or404or500) {
+          // Função não disponível ou erro do servidor - apenas logar em desenvolvimento
+          // E PARAR de tentar chamar novamente para evitar loop
+          if (process.env.NODE_ENV === 'development') {
+            safeLog.warn('Função listar_usuarios_online retornou erro. Parando requisições:', error);
+          }
+          setUsuarios([]);
+          // Desabilitar auto-refresh se houver erro persistente
+          if (autoRefresh && intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+            setAutoRefresh(false);
+          }
+          return;
+        }
+        
         if (isRateLimit) {
           // Rate limit - não mostrar erro, apenas aguardar próximo refresh
           // Manter dados existentes, não limpar
@@ -217,23 +244,6 @@ function MonitoramentoView() {
             safeLog.warn('Rate limit atingido ao buscar usuários online. Aguardando próximo refresh...');
           }
           // Não limpar usuários - manter dados atuais
-          // Não definir erro para não bloquear a interface
-          return;
-        }
-        
-        // Tratar erros 404/500 silenciosamente - não bloquear a interface
-        const is404or500 = errorCode === '42883' || 
-                          errorCode === 'PGRST116' ||
-                          errorMessage.includes('404') ||
-                          errorMessage.includes('500') ||
-                          errorMessage.includes('not found');
-        
-        if (is404or500) {
-          // Função não disponível - apenas logar em desenvolvimento
-          if (process.env.NODE_ENV === 'development') {
-            safeLog.warn('Função listar_usuarios_online não disponível:', error);
-          }
-          setUsuarios([]);
           // Não definir erro para não bloquear a interface
           return;
         }
@@ -402,34 +412,66 @@ function MonitoramentoView() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [mostrarAnalytics, fetchEstatisticas, isRefreshing]);
+  }, [mostrarAnalytics, periodoAnalise]); // Removido fetchEstatisticas e isRefreshing das dependências para evitar loops
+
+  // Atualizar ref quando fetchMonitoramento mudar
+  useEffect(() => {
+    fetchMonitoramentoRef.current = fetchMonitoramento;
+  }, [fetchMonitoramento]);
 
   useEffect(() => {
-    fetchMonitoramento();
+    // Flag para evitar múltiplas execuções simultâneas
+    let isMounted = true;
+    let hasError = false;
+    
+    const executeFetch = async () => {
+      if (!isMounted) return;
+      
+      // Usar ref para evitar dependência circular
+      const fetchFn = fetchMonitoramentoRef.current;
+      if (!fetchFn) return;
+      
+      try {
+        await fetchFn();
+      } catch (err) {
+        if (!isMounted) return;
+        hasError = true;
+        // Se houver erro persistente, parar o auto-refresh
+        if (autoRefresh && intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+          setAutoRefresh(false);
+        }
+      }
+    };
+    
+    executeFetch();
     
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
     
-    if (autoRefresh) {
+    if (autoRefresh && !hasError) {
       // Aumentar intervalo para 30 segundos para evitar rate limiting
       // 30s = 2 requisições por minuto, bem abaixo do limite de 30/min
       intervalRef.current = setInterval(() => {
         // Verificar se não está já carregando antes de fazer nova requisição
-        if (!isRefreshing) {
-          fetchMonitoramento();
+        // Usar ref para verificar isRefreshing sem causar re-render
+        if (isMounted) {
+          executeFetch();
         }
       }, 30000); // 30 segundos em vez de 10
     }
     
     return () => {
+      isMounted = false;
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     };
-  }, [autoRefresh, fetchMonitoramento, isRefreshing]);
+  }, [autoRefresh]); // Removido fetchMonitoramento e isRefreshing das dependências para evitar loops
 
   const formatarTempo = (segundos: number) => {
     if (segundos < 60) return `${Math.floor(segundos)}s`;
