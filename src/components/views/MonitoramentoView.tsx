@@ -192,14 +192,30 @@ function MonitoramentoView() {
       });
       
       if (error) {
-        safeLog.error('Erro ao buscar usuários online:', error);
-        const errorWithCode = error as { code?: string };
-        if (errorWithCode.code === '42883') {
-          safeLog.error('Função listar_usuarios_online não existe no banco de dados.');
-          setError('Função de monitoramento não configurada. Entre em contato com o administrador.');
-        } else {
-          setError(getSafeErrorMessage(error) || 'Erro ao carregar usuários online. Tente novamente.');
+        const errorWithCode = error as { code?: string; message?: string };
+        const errorCode = errorWithCode.code || '';
+        const errorMessage = String(errorWithCode.message || '');
+        
+        // Tratar erros 404/500 silenciosamente - não bloquear a interface
+        const is404or500 = errorCode === '42883' || 
+                          errorCode === 'PGRST116' ||
+                          errorMessage.includes('404') ||
+                          errorMessage.includes('500') ||
+                          errorMessage.includes('not found');
+        
+        if (is404or500) {
+          // Função não disponível - apenas logar em desenvolvimento
+          if (process.env.NODE_ENV === 'development') {
+            safeLog.warn('Função listar_usuarios_online não disponível:', error);
+          }
+          setUsuarios([]);
+          // Não definir erro para não bloquear a interface
+          return;
         }
+        
+        // Outros erros - logar e mostrar mensagem genérica
+        safeLog.error('Erro ao buscar usuários online:', error);
+        setError('Erro ao carregar monitoramento. Algumas funcionalidades podem não estar disponíveis.');
         setUsuarios([]);
         return;
       }
@@ -225,9 +241,18 @@ function MonitoramentoView() {
           .limit(100);
       
         if (atividadesError) {
-          safeLog.warn('Erro ao buscar atividades:', atividadesError);
-          if (atividadesError.code === '42P01') {
-            safeLog.warn('Tabela user_activity não existe. As atividades serão registradas quando a tabela for criada.');
+          // Tratar erros 500/404 silenciosamente - não bloquear a interface
+          const errorCode = atividadesError.code || '';
+          const errorMessage = String(atividadesError.message || '');
+          const is500or404 = errorCode === 'PGRST301' || 
+                            errorCode === '42P01' ||
+                            errorMessage.includes('500') ||
+                            errorMessage.includes('404') ||
+                            errorMessage.includes('permission denied') ||
+                            errorMessage.includes('row-level security');
+          
+          if (!is500or404 && process.env.NODE_ENV === 'development') {
+            safeLog.warn('Erro ao buscar atividades:', atividadesError);
           }
           setAtividades([]);
         } else if (atividadesResponse && Array.isArray(atividadesResponse)) {
@@ -240,7 +265,10 @@ function MonitoramentoView() {
           setAtividades([]);
         }
       } catch (err: unknown) {
-        safeLog.warn('Erro ao buscar atividades (pode não estar disponível):', err);
+        // Erro não bloqueante - apenas logar em desenvolvimento
+        if (process.env.NODE_ENV === 'development') {
+          safeLog.warn('Erro ao buscar atividades (pode não estar disponível):', err);
+        }
         setAtividades([]);
       }
       
