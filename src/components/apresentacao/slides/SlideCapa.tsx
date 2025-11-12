@@ -18,6 +18,10 @@ const SlideCapa: React.FC<SlideCapaProps> = React.memo(({
   periodoSemana1,
   periodoSemana2,
 }) => {
+  if (!numeroSemana1 || !numeroSemana2) {
+    return null;
+  }
+
   return (
     <SlideWrapper
       isVisible={isVisible}

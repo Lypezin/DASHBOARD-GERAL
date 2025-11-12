@@ -139,6 +139,24 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 
   // Memoizar dados básicos das semanas
   const dadosBasicos = useMemo(() => {
+    // Verificar se há dados suficientes
+    if (!dadosComparacao || dadosComparacao.length < 2) {
+      return {
+        semana1: null,
+        semana2: null,
+        numeroSemana1: '—',
+        numeroSemana2: '—',
+        periodoSemana1: '',
+        periodoSemana2: '',
+        aderencia1: 0,
+        aderencia2: 0,
+        horasEntregues1: 0,
+        horasEntregues2: 0,
+        horasPlanejadas1: 0,
+        horasPlanejadas2: 0,
+      };
+    }
+
     const sem1 = dadosComparacao[0];
     const sem2 = dadosComparacao[1];
     const semanaSelecionada1 = semanasSelecionadas[0] ?? '';
@@ -464,9 +482,12 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   }, [semana1, semana2, numeroSemana1, numeroSemana2, aderencia1, aderencia2, horasEntregues1, horasEntregues2, horasPlanejadas1, horasPlanejadas2]);
 
   const slides = useMemo(() => {
-    if (!dadosProcessados) {
+    if (!dadosProcessados || !semana1 || !semana2) {
       safeLog.warn('ApresentacaoView: dados insuficientes para gerar slides', {
-        total: dadosComparacao.length,
+        total: dadosComparacao?.length || 0,
+        hasProcessed: !!dadosProcessados,
+        hasSemana1: !!semana1,
+        hasSemana2: !!semana2,
       });
       return [] as Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
     }

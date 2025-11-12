@@ -34,6 +34,10 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({
   semana2,
   variacao,
 }) => {
+  if (!semana1 || !semana2 || !variacao) {
+    return null;
+  }
+
   return (
     <SlideWrapper
       isVisible={isVisible}

@@ -27,11 +27,22 @@ function UtrView({
     );
   }
 
+  // Verificar se geral existe antes de usar
+  if (!utrData.geral) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
+        <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Dados incompletos - aguarde o carregamento</p>
+      </div>
+    );
+  }
+
   // Usar os nomes corretos que vêm do backend (com fallback para compatibilidade)
   const porPraca = utrData.praca || utrData.por_praca || [];
   const porSubPraca = utrData.sub_praca || utrData.por_sub_praca || [];
   const porOrigem = utrData.origem || utrData.por_origem || [];
   const porTurno = utrData.turno || utrData.por_turno || [];
+
+  const geral = utrData.geral;
 
   return (
     <div className="space-y-6">
@@ -41,15 +52,15 @@ function UtrView({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
             <p className="text-xs text-blue-100">Tempo Total (horas)</p>
-            <p className="text-3xl font-bold text-white">{utrData.geral.tempo_horas.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-white">{(geral.tempo_horas ?? 0).toFixed(2)}</p>
           </div>
           <div>
             <p className="text-xs text-blue-100">Corridas Completadas</p>
-            <p className="text-3xl font-bold text-white">{utrData.geral.corridas.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-white">{(geral.corridas ?? 0).toLocaleString()}</p>
           </div>
           <div>
             <p className="text-xs text-blue-100">UTR (Corridas/Hora)</p>
-            <p className="text-3xl font-bold text-white">{utrData.geral.utr.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-white">{(geral.utr ?? 0).toFixed(2)}</p>
           </div>
         </div>
       </div>
@@ -68,7 +79,7 @@ function UtrView({
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Tempo:</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">{item.tempo_horas.toFixed(2)}h</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{((item.tempo_horas ?? 0)).toFixed(2)}h</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Corridas:</span>
@@ -99,7 +110,7 @@ function UtrView({
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Tempo:</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">{item.tempo_horas.toFixed(2)}h</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{((item.tempo_horas ?? 0)).toFixed(2)}h</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Corridas:</span>
@@ -130,7 +141,7 @@ function UtrView({
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Tempo:</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">{item.tempo_horas.toFixed(2)}h</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{((item.tempo_horas ?? 0)).toFixed(2)}h</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Corridas:</span>
@@ -161,7 +172,7 @@ function UtrView({
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Tempo:</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">{item.tempo_horas.toFixed(2)}h</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{((item.tempo_horas ?? 0)).toFixed(2)}h</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Corridas:</span>
