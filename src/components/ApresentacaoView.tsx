@@ -598,8 +598,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     });
 
     return slidesConfig;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada]);
+  }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, dadosBasicos]);
 
   useEffect(() => {
     setCurrentSlide((prev) => {

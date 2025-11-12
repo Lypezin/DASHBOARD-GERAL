@@ -311,6 +311,7 @@ export default function AdminPage() {
     if (!confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
 
     try {
+      // Tentar chamar a função RPC
       const { data, error } = await safeRpc('set_user_admin', {
         user_id: userId,
         make_admin: !currentIsAdmin,
@@ -335,19 +336,32 @@ export default function AdminPage() {
         
         // Extrair mensagem de erro mais detalhada
         const errorObj = error as any;
-        const errorMessage = errorObj?.message || errorObj?.details || errorObj?.hint || 'Ocorreu um erro. Tente novamente mais tarde.';
+        const errorMessage = String(errorObj?.message || errorObj?.details || errorObj?.hint || '');
         const errorCode = errorObj?.code || '';
+        
+        // Verificar se é erro 404 (função não encontrada)
+        const is404 = errorCode === 'PGRST116' || 
+                     errorCode === '42883' ||
+                     errorMessage.includes('404') ||
+                     errorMessage.includes('not found') ||
+                     errorMessage.includes('function') && errorMessage.includes('does not exist');
+        
+        if (is404) {
+          // Função não encontrada - pode ser cache do PostgREST
+          alert('Função não encontrada. Isso pode ser um problema temporário de cache. Aguarde alguns segundos e tente novamente. Se o problema persistir, recarregue a página.');
+          return;
+        }
         
         // Mensagem mais específica baseada no código de erro
         let userMessage = 'Erro ao alterar status de admin: ';
         if (errorCode === '42501' || errorMessage.includes('permission denied')) {
           userMessage += 'Você não tem permissão para realizar esta ação.';
-        } else if (errorCode === 'PGRST116' || errorMessage.includes('not found')) {
-          userMessage += 'Função não encontrada. Entre em contato com o administrador.';
         } else if (errorCode === '23505' || errorMessage.includes('unique constraint')) {
           userMessage += 'Este usuário já possui este status.';
-        } else {
+        } else if (errorMessage) {
           userMessage += errorMessage;
+        } else {
+          userMessage += 'Ocorreu um erro. Tente novamente mais tarde.';
         }
         
         alert(userMessage);
