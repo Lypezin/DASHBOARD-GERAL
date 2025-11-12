@@ -136,16 +136,29 @@ export function useConquistas() {
         setConquistasNovas(prev => {
           const codigosExistentes = new Set(prev.map(c => c.conquista_codigo));
           const novas = data as ConquistaNova[];
-          const realmenteNovas = novas.filter(c => !codigosExistentes.has(c.conquista_codigo));
+          const realmenteNovas = novas.filter(c => c && c.conquista_codigo && !codigosExistentes.has(c.conquista_codigo));
           
           // Retornar apenas as realmente novas
           return [...prev, ...realmenteNovas];
         });
         
-        // Recarregar lista de conquistas
-        await carregarConquistas();
+        // Recarregar lista de conquistas com tratamento de erro
+        try {
+          await carregarConquistas();
+        } catch (err) {
+          if (IS_DEV) {
+            safeLog.warn('Erro ao recarregar conquistas após verificação:', err);
+          }
+        }
+        
         // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
-        await carregarRanking();
+        try {
+          await carregarRanking();
+        } catch (err) {
+          if (IS_DEV) {
+            safeLog.warn('Erro ao recarregar ranking após verificação:', err);
+          }
+        }
       }
     } catch (err) {
       // Silenciar erros em produção, apenas logar em desenvolvimento
@@ -238,16 +251,29 @@ export function useConquistas() {
         setConquistasNovas(prev => {
           const codigosExistentes = new Set(prev.map(c => c.conquista_codigo));
           const novas = data as ConquistaNova[];
-          const realmenteNovas = novas.filter(c => !codigosExistentes.has(c.conquista_codigo));
+          const realmenteNovas = novas.filter(c => c && c.conquista_codigo && !codigosExistentes.has(c.conquista_codigo));
           
           // Retornar apenas as realmente novas
           return [...prev, ...realmenteNovas];
         });
         
-        // Recarregar lista de conquistas
-        await carregarConquistas();
+        // Recarregar lista de conquistas com tratamento de erro
+        try {
+          await carregarConquistas();
+        } catch (err) {
+          if (IS_DEV) {
+            safeLog.warn('Erro ao recarregar conquistas após verificação do dashboard:', err);
+          }
+        }
+        
         // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
-        await carregarRanking();
+        try {
+          await carregarRanking();
+        } catch (err) {
+          if (IS_DEV) {
+            safeLog.warn('Erro ao recarregar ranking após verificação do dashboard:', err);
+          }
+        }
       }
     } catch (err) {
       safeLog.error('Erro inesperado ao verificar conquistas do dashboard:', err);

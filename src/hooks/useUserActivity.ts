@@ -114,14 +114,15 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
         const errorCode = (error as any)?.code;
         const errorMessage = String((error as any)?.message || '');
         const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                      errorCode === 'PGRST204' ||
                       errorMessage.includes('404') || 
                       errorMessage.includes('not found') ||
-                      errorMessage.includes('function') && errorMessage.includes('does not exist');
+                      (errorMessage.includes('function') && errorMessage.includes('does not exist'));
         
         if (is404) {
           // Marcar função como indisponível para evitar chamadas futuras
           functionAvailable = false;
-          // Não logar em produção
+          // Não logar em produção e não tentar novamente
           return;
         } else {
           // Se não for 404, a função existe mas teve outro erro
@@ -130,14 +131,16 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
             functionAvailable = true;
           }
           
-          if (action_type !== 'heartbeat') {
-            // Apenas logar erros não-404 e não-heartbeat
-            if (IS_DEV) {
-              safeLog.warn('Erro ao registrar atividade:', { error, action_type });
-            }
+          // Para heartbeat, ignorar silenciosamente todos os erros
+          if (action_type === 'heartbeat') {
+            return;
+          }
+          
+          // Apenas logar erros não-404 e não-heartbeat em desenvolvimento
+          if (IS_DEV) {
+            safeLog.warn('Erro ao registrar atividade:', { error, action_type });
           }
         }
-        // Erros 404 e heartbeat são ignorados silenciosamente
       } else {
         // Sucesso - marcar função como disponível
         if (functionAvailable === null) {
@@ -151,10 +154,26 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     }
   }, [sessionId]);
 
+  // Debounce para evitar múltiplas chamadas quando há mudanças rápidas de tab
+  const tabChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
-    if (currentUserRef.current) {
-      registrarAtividade('tab_change', { tab: activeTabRef.current }, activeTabRef.current, filtersRef.current);
+    if (!currentUserRef.current) return;
+    
+    // Limpar timeout anterior se existir
+    if (tabChangeTimeoutRef.current) {
+      clearTimeout(tabChangeTimeoutRef.current);
     }
+
+    // Adicionar pequeno delay para evitar race conditions
+    tabChangeTimeoutRef.current = setTimeout(() => {
+      registrarAtividade('tab_change', { tab: activeTabRef.current }, activeTabRef.current, filtersRef.current);
+    }, 150); // 150ms de debounce
+
+    return () => {
+      if (tabChangeTimeoutRef.current) {
+        clearTimeout(tabChangeTimeoutRef.current);
+      }
+    };
   }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -185,17 +204,24 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (currentUserRef.current) {
+    if (!currentUserRef.current) return;
+    
+    // Registrar login apenas uma vez quando o usuário é carregado
+    const loginTimeout = setTimeout(() => {
       registrarAtividade('login', { dispositivo: 'web' }, activeTabRef.current, filtersRef.current);
-      
-      const heartbeatInterval = setInterval(() => {
-        if (currentUserRef.current && isPageVisible) {
-          registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
-        }
-      }, 60000); // A cada 1 minuto
+    }, 500); // Pequeno delay para garantir que tudo está inicializado
+    
+    const heartbeatInterval = setInterval(() => {
+      // Só enviar heartbeat se a função estiver disponível e a página estiver visível
+      if (currentUserRef.current && isPageVisible && functionAvailable !== false) {
+        registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
+      }
+    }, 60000); // A cada 1 minuto
 
-      return () => clearInterval(heartbeatInterval);
-    }
+    return () => {
+      clearTimeout(loginTimeout);
+      clearInterval(heartbeatInterval);
+    };
   }, [currentUser, isPageVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { sessionId, isPageVisible, registrarAtividade };

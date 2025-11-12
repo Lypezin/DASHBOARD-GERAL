@@ -171,7 +171,9 @@ function ValoresView({
     return totalCorridas > 0 ? totalGeral / totalCorridas : 0;
   }, [totalGeral, totalCorridas]);
 
-  const totalEntregadores = useMemo(() => dataArray.length, [dataArray]);
+  const totalEntregadores = useMemo(() => {
+    return Array.isArray(dataArray) ? dataArray.length : 0;
+  }, [dataArray]);
 
   // Função auxiliar para ícone de ordenação
   const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
@@ -193,7 +195,7 @@ function ValoresView({
     );
   }
 
-  if (!valoresData || valoresData.length === 0) {
+  if (!valoresData || !Array.isArray(valoresData) || valoresData.length === 0) {
     return (
       <div className="rounded-xl sm:rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8 text-center shadow-lg dark:border-amber-900 dark:bg-amber-950/30 animate-fade-in">
         <div className="text-5xl sm:text-6xl mb-4">💰</div>

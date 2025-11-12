@@ -144,9 +144,13 @@ export default function DashboardPage() {
   // Mapeia os dados do useTabData para as props dos componentes de view
   const utrData = activeTab === 'utr' ? tabData as UtrData : null;
   const entregadoresData = activeTab === 'entregadores' ? tabData as EntregadoresData : null;
-  const valoresData = activeTab === 'valores' 
-    ? (Array.isArray(tabData) ? tabData : (tabData ? [tabData] : [])) as ValoresEntregador[]
-    : [];
+  const valoresData = useMemo(() => {
+    if (activeTab !== 'valores') return [];
+    if (!tabData) return [];
+    if (Array.isArray(tabData)) return tabData as ValoresEntregador[];
+    // Se não é array, tentar converter
+    return tabData ? [tabData] as ValoresEntregador[] : [];
+  }, [activeTab, tabData]);
   const prioridadeData = activeTab === 'prioridade' ? tabData as EntregadoresData : null;
   
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
@@ -176,18 +180,32 @@ export default function DashboardPage() {
   }, [anosDisponiveis]); // anoEvolucao não precisa estar nas dependências - queremos verificar apenas quando anosDisponiveis mudar
 
   // Lógica para registrar atividade do usuário e verificar conquistas imediatamente
+  // Adicionar debounce para evitar múltiplas chamadas quando há mudanças rápidas de tab
+  const tabChangeTimeoutRef2 = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (!currentUser) return; // Só registrar se houver usuário autenticado
     
-    registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
+    // Limpar timeout anterior se existir (debounce)
+    if (tabChangeTimeoutRef2.current) {
+      clearTimeout(tabChangeTimeoutRef2.current);
+    }
+
+    // Adicionar pequeno delay para evitar race conditions
+    tabChangeTimeoutRef2.current = setTimeout(() => {
+      registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
+      
+      // Verificar conquistas imediatamente ao mudar de aba (especialmente para primeiro acesso e curioso)
+      // Usar delay para garantir que a atividade foi registrada no banco antes de verificar
+      setTimeout(() => {
+        verificarConquistas();
+      }, 1000); // 1 segundo de delay para garantir que a atividade foi salva no banco
+    }, 100); // 100ms de debounce para evitar múltiplas chamadas
     
-    // Verificar conquistas imediatamente ao mudar de aba (especialmente para primeiro acesso e curioso)
-    // Usar delay para garantir que a atividade foi registrada no banco antes de verificar
-    const timeoutId = setTimeout(() => {
-      verificarConquistas();
-    }, 1000); // 1 segundo de delay para garantir que a atividade foi salva no banco
-    
-    return () => clearTimeout(timeoutId);
+    return () => {
+      if (tabChangeTimeoutRef2.current) {
+        clearTimeout(tabChangeTimeoutRef2.current);
+      }
+    };
   }, [activeTab, registrarAtividade, filters, verificarConquistas, currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Removido verificação de conquistas ao aplicar filtros - muito frequente e desnecessário
@@ -267,9 +285,32 @@ export default function DashboardPage() {
     marcarVisualizada(conquistaId);
   }, [removerConquistaNova, marcarVisualizada]);
 
-  // Memoizar handlers de tabs para evitar re-renders
+  // Ref para controlar mudanças de tab e evitar race conditions
+  const tabChangeRef = useRef(false);
+  const tabChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Memoizar handlers de tabs para evitar re-renders e adicionar proteção contra cliques rápidos
   const handleTabChange = useCallback((tab: typeof activeTab) => {
+    // Se já está mudando de tab, ignorar novo clique
+    if (tabChangeRef.current) {
+      return;
+    }
+
+    // Limpar timeout anterior se existir
+    if (tabChangeTimeoutRef.current) {
+      clearTimeout(tabChangeTimeoutRef.current);
+    }
+
+    // Marcar como mudando
+    tabChangeRef.current = true;
+
+    // Mudar tab imediatamente para feedback visual
     setActiveTab(tab);
+
+    // Resetar flag após um pequeno delay para permitir próxima mudança
+    tabChangeTimeoutRef.current = setTimeout(() => {
+      tabChangeRef.current = false;
+    }, 300);
   }, []);
 
   return (

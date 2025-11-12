@@ -319,7 +319,7 @@ function MonitoramentoView() {
         is_active?: boolean;
       }
       
-      const usuariosMapeados: UsuarioOnline[] = (data || []).map((u: UsuarioOnlineRaw): UsuarioOnline | null => {
+      const usuariosMapeados: UsuarioOnline[] = (Array.isArray(data) ? data : []).map((u: UsuarioOnlineRaw): UsuarioOnline | null => {
         if (!u || !u.user_id) return null;
         
         const segundosInativo = typeof u.seconds_inactive === 'number' ? u.seconds_inactive : 0;
@@ -327,31 +327,31 @@ function MonitoramentoView() {
         const filtros: FiltersApplied = (u.filters_applied as FiltersApplied) || {};
         let pracas: string[] = [];
         if (filtros.p_praca) {
-          pracas = Array.isArray(filtros.p_praca) ? filtros.p_praca : [filtros.p_praca];
+          pracas = Array.isArray(filtros.p_praca) ? filtros.p_praca : [String(filtros.p_praca)];
         } else if (filtros.praca) {
-          pracas = Array.isArray(filtros.praca) ? filtros.praca : [filtros.praca];
+          pracas = Array.isArray(filtros.praca) ? filtros.praca : [String(filtros.praca)];
         }
         
         const descricaoAcao = u.action_details || u.last_action_type || 'Atividade desconhecida';
         
         const umaHoraAtras = new Date();
         umaHoraAtras.setHours(umaHoraAtras.getHours() - 1);
-        const acoesUltimaHora = atividadesData.filter((a: Atividade) => 
+        const acoesUltimaHora = Array.isArray(atividadesData) ? atividadesData.filter((a: Atividade) => 
           a && a.user_id === u.user_id && a.created_at && new Date(a.created_at) > umaHoraAtras
-        ).length;
+        ).length : 0;
         
         const userName = u.user_name || (u.user_email ? u.user_email.split('@')[0] : 'Usuário');
         const userEmail = u.user_email || '';
         
         return {
-          user_id: u.user_id || '',
+          user_id: String(u.user_id || ''),
           nome: sanitizeText(userName),
           email: sanitizeText(userEmail),
           aba_atual: u.current_tab || null,
           pracas: pracas,
-          ultima_acao: descricaoAcao,
+          ultima_acao: String(descricaoAcao),
           filtros: filtros,
-          ultima_atividade: u.last_action_type || descricaoAcao,
+          ultima_atividade: String(u.last_action_type || descricaoAcao),
           segundos_inativo: Math.floor(Math.max(0, segundosInativo)),
           acoes_ultima_hora: acoesUltimaHora,
           is_active: u.is_active !== false
