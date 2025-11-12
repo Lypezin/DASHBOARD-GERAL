@@ -291,11 +291,17 @@ export default function DashboardPage() {
   // Ref para controlar mudanças de tab e evitar race conditions
   const tabChangeRef = useRef(false);
   const tabChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentTabRef = useRef(activeTab);
+
+  // Atualizar ref quando activeTab mudar
+  useEffect(() => {
+    currentTabRef.current = activeTab;
+  }, [activeTab]);
 
   // Memoizar handlers de tabs para evitar re-renders e adicionar proteção contra cliques rápidos
   const handleTabChange = useCallback((tab: typeof activeTab) => {
-    // Se já está mudando de tab, ignorar novo clique
-    if (tabChangeRef.current) {
+    // Se já está mudando de tab ou é a mesma tab, ignorar
+    if (tabChangeRef.current || currentTabRef.current === tab) {
       return;
     }
 
@@ -310,10 +316,10 @@ export default function DashboardPage() {
     // Mudar tab imediatamente para feedback visual
     setActiveTab(tab);
 
-    // Resetar flag após um pequeno delay para permitir próxima mudança
+    // Resetar flag após um delay maior para garantir que a renderização anterior terminou
     tabChangeTimeoutRef.current = setTimeout(() => {
       tabChangeRef.current = false;
-    }, 300);
+    }, 500); // Aumentado para 500ms para dar mais tempo
   }, []);
 
   return (
@@ -487,7 +493,14 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <>
+                <Suspense fallback={
+                  <div className="flex h-[60vh] items-center justify-center">
+                    <div className="text-center">
+                      <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+                      <p className="mt-4 text-sm font-semibold text-blue-700 dark:text-blue-300">Carregando...</p>
+                    </div>
+                  </div>
+                }>
                   {activeTab === 'dashboard' && (
                     <DashboardView
                       aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
@@ -556,7 +569,7 @@ export default function DashboardPage() {
                       currentUser={currentUser}
                     />
                   )}
-                </>
+                </Suspense>
               )}
             </main>
           </div>

@@ -8,7 +8,12 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 
 // Flag para rastrear se a função registrar_atividade está disponível
 // null = ainda não verificou, true = disponível, false = indisponível
-let functionAvailable: boolean | null = null;
+// Usar um objeto para garantir que a referência seja mantida
+const functionAvailability = {
+  status: null as boolean | null,
+  lastCheck: 0 as number,
+  checkInterval: 60000 // Verificar novamente após 1 minuto se foi marcada como indisponível
+};
 
 export function useUserActivity(activeTab: string, filters: any, currentUser: { is_admin: boolean; assigned_pracas: string[] } | null) {
   const [isPageVisible, setIsPageVisible] = useState(true);
@@ -43,8 +48,19 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     tab_name: string | null = null,
     filters_applied: any = {}
   ) => {
-    // Se já sabemos que a função não está disponível, não tentar chamar
-    if (functionAvailable === false) {
+    // Se já sabemos que a função não está disponível, verificar se podemos tentar novamente
+    if (functionAvailability.status === false) {
+      const timeSinceLastCheck = Date.now() - functionAvailability.lastCheck;
+      // Se passou o intervalo, permitir uma nova tentativa
+      if (timeSinceLastCheck < functionAvailability.checkInterval) {
+        return;
+      }
+      // Resetar status para tentar novamente
+      functionAvailability.status = null;
+    }
+    
+    // Se ainda não verificou ou resetou, tentar chamar
+    if (functionAvailability.status === false) {
       return;
     }
     
@@ -121,14 +137,15 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
         
         if (is404) {
           // Marcar função como indisponível para evitar chamadas futuras
-          functionAvailable = false;
+          functionAvailability.status = false;
+          functionAvailability.lastCheck = Date.now();
           // Não logar em produção e não tentar novamente
           return;
         } else {
           // Se não for 404, a função existe mas teve outro erro
           // Marcar como disponível para não bloquear tentativas futuras
-          if (functionAvailable === null) {
-            functionAvailable = true;
+          if (functionAvailability.status === null) {
+            functionAvailability.status = true;
           }
           
           // Para heartbeat, ignorar silenciosamente todos os erros
@@ -143,9 +160,10 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
         }
       } else {
         // Sucesso - marcar função como disponível
-        if (functionAvailable === null) {
-          functionAvailable = true;
+        if (functionAvailability.status === null) {
+          functionAvailability.status = true;
         }
+        functionAvailability.lastCheck = Date.now();
       }
     } catch (err) {
       if (action_type !== 'heartbeat') {
@@ -213,7 +231,7 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     
     const heartbeatInterval = setInterval(() => {
       // Só enviar heartbeat se a função estiver disponível e a página estiver visível
-      if (currentUserRef.current && isPageVisible && functionAvailable !== false) {
+      if (currentUserRef.current && isPageVisible && functionAvailability.status !== false) {
         registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
       }
     }, 60000); // A cada 1 minuto
