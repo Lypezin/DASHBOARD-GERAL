@@ -64,6 +64,7 @@ function MonitoramentoView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'ativos' | 'inativos'>('todos');
   const [atividades, setAtividades] = useState<Atividade[]>([]);
   
@@ -182,7 +183,13 @@ function MonitoramentoView() {
   }, [periodoAnalise, getPeriodoDatas]);
 
   const fetchMonitoramento = useCallback(async () => {
+    // Evitar múltiplas requisições simultâneas
+    if (isRefreshing) {
+      return;
+    }
+    
     try {
+      setIsRefreshing(true);
       setError(null);
       
       // Buscar usuários online
@@ -195,6 +202,24 @@ function MonitoramentoView() {
         const errorWithCode = error as { code?: string; message?: string };
         const errorCode = errorWithCode.code || '';
         const errorMessage = String(errorWithCode.message || '');
+        
+        // Tratar rate limit especificamente
+        const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
+                           errorMessage.includes('rate limit') ||
+                           errorMessage.includes('too many requests') ||
+                           errorMessage.includes('429') ||
+                           errorMessage.includes('Muitas requisições');
+        
+        if (isRateLimit) {
+          // Rate limit - não mostrar erro, apenas aguardar próximo refresh
+          // Manter dados existentes, não limpar
+          if (process.env.NODE_ENV === 'development') {
+            safeLog.warn('Rate limit atingido ao buscar usuários online. Aguardando próximo refresh...');
+          }
+          // Não limpar usuários - manter dados atuais
+          // Não definir erro para não bloquear a interface
+          return;
+        }
         
         // Tratar erros 404/500 silenciosamente - não bloquear a interface
         const is404or500 = errorCode === '42883' || 
@@ -213,9 +238,12 @@ function MonitoramentoView() {
           return;
         }
         
-        // Outros erros - logar e mostrar mensagem genérica
-        safeLog.error('Erro ao buscar usuários online:', error);
-        setError('Erro ao carregar monitoramento. Algumas funcionalidades podem não estar disponíveis.');
+        // Outros erros - logar e mostrar mensagem genérica apenas se não for temporário
+        if (!errorMessage.includes('timeout') && !errorMessage.includes('network')) {
+          safeLog.error('Erro ao buscar usuários online:', error);
+          // Não definir erro imediatamente - aguardar próximo refresh
+          // setError('Erro ao carregar monitoramento. Algumas funcionalidades podem não estar disponíveis.');
+        }
         setUsuarios([]);
         return;
       }
@@ -337,13 +365,44 @@ function MonitoramentoView() {
         await fetchEstatisticas();
       }
     } catch (err: unknown) {
-      safeLog.error('Erro ao buscar monitoramento:', err);
-      setError(getSafeErrorMessage(err) || 'Erro desconhecido ao carregar monitoramento');
-      setUsuarios([]);
+      const errorMessage = String(err || '');
+      const errorObj = err as { code?: string; message?: string } | null;
+      const errorCode = errorObj?.code || '';
+      
+      // Verificar se é erro de rate limit
+      const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
+                         errorMessage.includes('rate limit') || 
+                         errorMessage.includes('too many requests') ||
+                         errorMessage.includes('429') ||
+                         errorMessage.includes('Muitas requisições');
+      
+      if (isRateLimit) {
+        // Rate limit - não mostrar erro, apenas logar e aguardar próximo refresh
+        if (process.env.NODE_ENV === 'development') {
+          safeLog.warn('Rate limit atingido no monitoramento. Aguardando próximo refresh (30s)...');
+        }
+        // Não definir erro para não bloquear a interface
+        // Os dados atuais permanecem visíveis
+      } else {
+        // Outros erros - apenas logar, não bloquear interface
+        const errorMsg = getSafeErrorMessage(err) || 'Erro desconhecido ao carregar monitoramento';
+        const isTemporaryError = errorMsg.includes('timeout') || 
+                                errorMsg.includes('network') ||
+                                errorMsg.includes('ECONNREFUSED') ||
+                                errorCode === 'TIMEOUT';
+        
+        if (!isTemporaryError && process.env.NODE_ENV === 'development') {
+          safeLog.error('Erro ao buscar monitoramento:', err);
+        }
+        
+        // Não definir erro para não bloquear a interface
+        // Os dados atuais permanecem visíveis até o próximo refresh bem-sucedido
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
-  }, [mostrarAnalytics, fetchEstatisticas]);
+  }, [mostrarAnalytics, fetchEstatisticas, isRefreshing]);
 
   useEffect(() => {
     fetchMonitoramento();
@@ -354,9 +413,14 @@ function MonitoramentoView() {
     }
     
     if (autoRefresh) {
+      // Aumentar intervalo para 30 segundos para evitar rate limiting
+      // 30s = 2 requisições por minuto, bem abaixo do limite de 30/min
       intervalRef.current = setInterval(() => {
-        fetchMonitoramento();
-      }, 10000);
+        // Verificar se não está já carregando antes de fazer nova requisição
+        if (!isRefreshing) {
+          fetchMonitoramento();
+        }
+      }, 30000); // 30 segundos em vez de 10
     }
     
     return () => {
@@ -365,7 +429,7 @@ function MonitoramentoView() {
         intervalRef.current = null;
       }
     };
-  }, [autoRefresh, fetchMonitoramento]);
+  }, [autoRefresh, fetchMonitoramento, isRefreshing]);
 
   const formatarTempo = (segundos: number) => {
     if (segundos < 60) return `${Math.floor(segundos)}s`;
