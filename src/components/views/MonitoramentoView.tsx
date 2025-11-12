@@ -109,7 +109,7 @@ function MonitoramentoView() {
       const { inicio, fim } = getPeriodoDatas(periodoAnalise);
       
       const [statsResult, horaResult, topResult, abaResult, alertasResult] = await Promise.allSettled([
-        safeRpc<EstatisticasPeriodo>('estatisticas_atividade_periodo', {
+        safeRpc<EstatisticasPeriodo | EstatisticasPeriodo[]>('estatisticas_atividade_periodo', {
           p_data_inicio: inicio,
           p_data_fim: fim
         }, { timeout: 30000, validateParams: true }),
@@ -130,7 +130,13 @@ function MonitoramentoView() {
       ]);
 
       if (statsResult.status === 'fulfilled' && !statsResult.value.error) {
-        setEstatisticas(statsResult.value.data?.[0] || null);
+        const data = statsResult.value.data;
+        // A função pode retornar objeto único ou array
+        if (Array.isArray(data)) {
+          setEstatisticas(data[0] || null);
+        } else {
+          setEstatisticas(data || null);
+        }
       }
 
       if (horaResult.status === 'fulfilled' && !horaResult.value.error) {
