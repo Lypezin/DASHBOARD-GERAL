@@ -598,7 +598,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     });
 
     return slidesConfig;
-  }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, dadosBasicos]);
+  }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, dadosBasicos, dadosComparacao?.length, semana1, semana2]);
 
   useEffect(() => {
     setCurrentSlide((prev) => {

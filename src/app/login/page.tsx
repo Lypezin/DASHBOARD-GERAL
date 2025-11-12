@@ -81,15 +81,18 @@ export default function LoginPage() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.id) {
-          await supabase.rpc('registrar_atividade', {
+          const { error: rpcError } = await supabase.rpc('registrar_atividade', {
             p_session_id: user.id,
             p_action_type: 'login',
             p_action_details: 'Fez login no sistema',
             p_tab_name: 'dashboard',
             p_filters_applied: {}
-          }).catch(() => {
-            // Ignorar erro silenciosamente - não bloquear login
           });
+          
+          // Ignorar erro silenciosamente - não bloquear login
+          if (rpcError && IS_DEV) {
+            safeLog.warn('Erro ao registrar atividade de login (não bloqueante):', rpcError);
+          }
         }
       } catch (err) {
         // Ignorar erro - não bloquear login
