@@ -77,6 +77,25 @@ export default function LoginPage() {
         return;
       }
 
+      // Registrar atividade de login (tentar, mas não bloquear se falhar)
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          await supabase.rpc('registrar_atividade', {
+            p_session_id: user.id,
+            p_action_type: 'login',
+            p_action_details: 'Fez login no sistema',
+            p_tab_name: 'dashboard',
+            p_filters_applied: {}
+          }).catch(() => {
+            // Ignorar erro silenciosamente - não bloquear login
+          });
+        }
+      } catch (err) {
+        // Ignorar erro - não bloquear login
+        if (IS_DEV) safeLog.warn('Erro ao registrar atividade de login:', err);
+      }
+
       // Login bem-sucedido
       router.push('/');
       router.refresh();

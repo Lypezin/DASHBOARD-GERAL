@@ -243,6 +243,12 @@ export default function DashboardPage() {
               return prev;
             });
                     }
+                  
+          // Verificar conquistas após carregar perfil (primeiro acesso)
+          // Aguardar um pouco para garantir que a atividade de login foi registrada
+          setTimeout(() => {
+            verificarConquistas();
+          }, 2000);
                   } else {
           setCurrentUser(null);
         }
@@ -253,7 +259,7 @@ export default function DashboardPage() {
     };
 
     fetchUser();
-  }, []);
+  }, [verificarConquistas]);
 
   // Remover notificação de conquista e marcar como visualizada
   const handleFecharConquista = useCallback((codigo: string, conquistaId: string) => {

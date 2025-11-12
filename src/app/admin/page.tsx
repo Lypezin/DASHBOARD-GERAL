@@ -311,14 +311,29 @@ export default function AdminPage() {
     if (!confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
 
     try {
-      // Tentar chamar a função RPC
-      const { data, error } = await safeRpc('set_user_admin', {
-        user_id: userId,
-        make_admin: !currentIsAdmin,
-      }, {
-        timeout: 30000,
-        validateParams: false // Desabilitar validação para permitir parâmetros específicos
-      });
+      // Tentar chamar a função RPC diretamente primeiro (bypass do safeRpc para debug)
+      let data: any = null;
+      let error: any = null;
+      
+      try {
+        const result = await supabase.rpc('set_user_admin', {
+          user_id: userId,
+          make_admin: !currentIsAdmin,
+        });
+        data = result.data;
+        error = result.error;
+      } catch (rpcErr) {
+        // Se falhar, tentar com safeRpc
+        const safeResult = await safeRpc('set_user_admin', {
+          user_id: userId,
+          make_admin: !currentIsAdmin,
+        }, {
+          timeout: 30000,
+          validateParams: false
+        });
+        data = safeResult.data;
+        error = safeResult.error;
+      }
 
       if (error) {
         // Log detalhado do erro em desenvolvimento
