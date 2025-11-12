@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
@@ -66,13 +67,68 @@ function convertFractionToHHMMSS(fraction: number): string {
   return convertSecondsToHHMMSS(totalSeconds);
 }
 
+interface UserProfile {
+  is_admin: boolean;
+  is_approved: boolean;
+}
+
 export default function UploadPage() {
+  const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  // Verificar autenticação e permissões de admin
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Verificar se o usuário está autenticado
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          router.push('/login');
+          return;
+        }
+
+        // Verificar se é admin
+        const { data: profile, error } = await supabase
+          .rpc('get_current_user_profile') as { data: UserProfile | null; error: any };
+
+        if (error) {
+          safeLog.error('Erro ao verificar perfil do usuário:', error);
+          router.push('/');
+          return;
+        }
+
+        if (!profile?.is_admin) {
+          // Usuário não é admin - redirecionar para página principal
+          router.push('/');
+          return;
+        }
+
+        // Verificar se está aprovado
+        if (!profile?.is_approved) {
+          router.push('/login');
+          return;
+        }
+
+        // Usuário autorizado
+        setIsAuthorized(true);
+      } catch (err) {
+        safeLog.error('Erro ao verificar autenticação:', err);
+        router.push('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const validateFile = async (file: File): Promise<{ valid: boolean; error?: string }> => {
     // Validar quantidade de arquivos
@@ -327,6 +383,23 @@ export default function UploadPage() {
     if (fileInput) fileInput.value = '';
     setUploading(false);
   };
+
+  // Mostrar loading enquanto verifica autenticação
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
+        <div className="text-center">
+          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-300">Verificando permissões...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se não estiver autorizado, não renderizar nada (já foi redirecionado)
+  if (!isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
