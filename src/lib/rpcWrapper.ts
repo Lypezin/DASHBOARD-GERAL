@@ -39,7 +39,10 @@ export async function safeRpc<T = any>(
 
     // Validar parâmetros se solicitado
     let validatedParams = params;
-    if (validateParams && params && typeof params === 'object') {
+    // Se params for null ou undefined, passar objeto vazio para funções sem parâmetros
+    if (params === null || params === undefined) {
+      validatedParams = {};
+    } else if (validateParams && params && typeof params === 'object') {
       try {
         validatedParams = validateFilterPayload(params);
       } catch (validationError: any) {

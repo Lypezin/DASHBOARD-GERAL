@@ -194,7 +194,8 @@ function MonitoramentoView() {
       setError(null);
       
       // Buscar usuários online
-      const { data, error } = await safeRpc<UsuarioOnline[]>('listar_usuarios_online', {}, {
+      // A função não aceita parâmetros, então passamos null em vez de {}
+      const { data, error } = await safeRpc<UsuarioOnline[]>('listar_usuarios_online', null, {
         timeout: 20000, // Reduzido para 20s
         validateParams: false
       });
