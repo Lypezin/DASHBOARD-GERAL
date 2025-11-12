@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { uploadRateLimiter } from '@/lib/rateLimiter';
 import { validateString } from '@/lib/validate';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
