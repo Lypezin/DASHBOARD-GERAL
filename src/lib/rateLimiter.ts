@@ -1,0 +1,139 @@
+/**
+ * Rate Limiter para prevenir DDoS e abuso de requisições
+ */
+
+interface RateLimitConfig {
+  maxRequests: number;
+  windowMs: number;
+  keyGenerator?: (() => string) | string;
+}
+
+interface RequestRecord {
+  count: number;
+  resetTime: number;
+}
+
+// Armazenamento em memória (para cliente)
+// Em produção, considere usar Redis ou similar
+const requestStore = new Map<string, RequestRecord>();
+
+/**
+ * Limpa registros expirados periodicamente
+ */
+function cleanupExpiredRecords() {
+  const now = Date.now();
+  for (const [key, record] of requestStore.entries()) {
+    if (now > record.resetTime) {
+      requestStore.delete(key);
+    }
+  }
+}
+
+// Limpar registros expirados a cada minuto
+if (typeof window !== 'undefined') {
+  setInterval(cleanupExpiredRecords, 60000);
+}
+
+/**
+ * Verifica se uma requisição está dentro do limite de taxa
+ */
+export function checkRateLimit(config: RateLimitConfig): {
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+} {
+  const key = typeof config.keyGenerator === 'function'
+    ? config.keyGenerator()
+    : config.keyGenerator || 'default';
+
+  const now = Date.now();
+  const record = requestStore.get(key);
+
+  // Se não existe registro ou expirou, criar novo
+  if (!record || now > record.resetTime) {
+    const newRecord: RequestRecord = {
+      count: 1,
+      resetTime: now + config.windowMs,
+    };
+    requestStore.set(key, newRecord);
+    return {
+      allowed: true,
+      remaining: config.maxRequests - 1,
+      resetTime: newRecord.resetTime,
+    };
+  }
+
+  // Verificar se excedeu o limite
+  if (record.count >= config.maxRequests) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetTime: record.resetTime,
+    };
+  }
+
+  // Incrementar contador
+  record.count++;
+  requestStore.set(key, record);
+
+  return {
+    allowed: true,
+    remaining: config.maxRequests - record.count,
+    resetTime: record.resetTime,
+  };
+}
+
+/**
+ * Rate limiter para requisições RPC
+ */
+export function rpcRateLimiter() {
+  return checkRateLimit({
+    maxRequests: 30, // 30 requisições
+    windowMs: 60000, // por minuto
+    keyGenerator: 'rpc-requests',
+  });
+}
+
+/**
+ * Rate limiter para uploads
+ */
+export function uploadRateLimiter() {
+  return checkRateLimit({
+    maxRequests: 5, // 5 uploads
+    windowMs: 300000, // por 5 minutos
+    keyGenerator: 'upload-requests',
+  });
+}
+
+/**
+ * Rate limiter para login
+ */
+export function loginRateLimiter(identifier: string) {
+  return checkRateLimit({
+    maxRequests: 5, // 5 tentativas
+    windowMs: 900000, // por 15 minutos
+    keyGenerator: `login-${identifier}`,
+  });
+}
+
+/**
+ * Rate limiter genérico por IP (simulado no cliente)
+ */
+export function ipRateLimiter() {
+  // No cliente, não temos acesso real ao IP
+  // Usamos um identificador baseado no navegador
+  const browserId = typeof window !== 'undefined'
+    ? localStorage.getItem('browser-id') || `browser-${Date.now()}`
+    : 'server';
+
+  if (typeof window !== 'undefined' && !localStorage.getItem('browser-id')) {
+    localStorage.setItem('browser-id', browserId);
+  }
+
+  return checkRateLimit({
+    maxRequests: 100, // 100 requisições
+    windowMs: 60000, // por minuto
+    keyGenerator: `ip-${browserId}`,
+  });
+}
+

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { uploadRateLimiter } from '@/lib/rateLimiter';
+import { validateString } from '@/lib/validate';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -246,6 +248,14 @@ export default function UploadPage() {
       return;
     }
 
+    // Verificar rate limiting
+    const rateLimit = uploadRateLimiter();
+    if (!rateLimit.allowed) {
+      const waitTime = Math.ceil((rateLimit.resetTime - Date.now()) / 1000 / 60);
+      setMessage(`⚠️ Muitos uploads recentes. Aguarde ${waitTime} minuto(s) antes de tentar novamente.`);
+      return;
+    }
+
     setUploading(true);
     setMessage('');
     setProgress(0);
@@ -276,6 +286,17 @@ export default function UploadPage() {
           for (const excelCol in COLUMN_MAP) {
             const dbCol = COLUMN_MAP[excelCol];
             let value = row[excelCol];
+
+            // Sanitizar strings para prevenir SQL injection e XSS
+            if (typeof value === 'string' && dbCol !== 'data_do_periodo' && dbCol !== 'duracao_do_periodo' && dbCol !== 'tempo_disponivel_escalado' && dbCol !== 'tempo_disponivel_absoluto') {
+              try {
+                // Validar e limitar tamanho de strings
+                value = validateString(value, 500, dbCol, true);
+              } catch (e) {
+                // Se validação falhar, truncar e sanitizar
+                value = String(value).substring(0, 500).replace(/[<>'"]/g, '');
+              }
+            }
 
             if (dbCol === 'data_do_periodo') {
               if (typeof value === 'number') {

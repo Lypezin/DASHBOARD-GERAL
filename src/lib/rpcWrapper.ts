@@ -4,6 +4,7 @@
 import { supabase } from './supabaseClient';
 import { validateFilterPayload } from './validate';
 import { safeLog } from './errorHandler';
+import { rpcRateLimiter } from './rateLimiter';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 const DEFAULT_TIMEOUT = 30000; // 30 segundos
@@ -22,6 +23,20 @@ export async function safeRpc<T = any>(
   const { timeout = DEFAULT_TIMEOUT, validateParams = true } = options;
 
   try {
+    // Verificar rate limiting
+    const rateLimit = rpcRateLimiter();
+    if (!rateLimit.allowed) {
+      const waitTime = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+      return {
+        data: null,
+        error: {
+          message: `Muitas requisições. Aguarde ${waitTime} segundos antes de tentar novamente.`,
+          code: 'RATE_LIMIT_EXCEEDED',
+          resetTime: rateLimit.resetTime,
+        },
+      };
+    }
+
     // Validar parâmetros se solicitado
     let validatedParams = params;
     if (validateParams && params && typeof params === 'object') {
