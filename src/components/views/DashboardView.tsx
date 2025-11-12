@@ -61,10 +61,10 @@ const DashboardView = React.memo(function DashboardView({
   }, [aderenciaDia, diasDaSemanaOrdem]);
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-fade-in">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
       {/* Aderência Geral */}
       {aderenciaGeral && (
-        <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-5 sm:p-6 lg:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 animate-slide-up" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-4 sm:p-5 md:p-6 lg:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 animate-slide-up" style={{ position: 'relative', zIndex: 1 }}>
           <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/10"></div>
           <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
@@ -80,16 +80,16 @@ const DashboardView = React.memo(function DashboardView({
                   </p>
                 </div>
               </div>
-              <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
-                <div className="rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50/80 p-3 sm:p-4 dark:border-slate-700 dark:bg-slate-800/80 hover-lift">
+              <div className="mt-3 sm:mt-4 md:mt-6 grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
+                <div className="rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 sm:p-3 md:p-4 dark:border-slate-700 dark:bg-slate-800/80 hover-lift">
                   <p className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">📅 Planejado</p>
-                  <p className="mt-1 font-mono text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white truncate">
+                  <p className="mt-0.5 sm:mt-1 font-mono text-xs sm:text-sm md:text-base lg:text-lg font-bold text-slate-900 dark:text-white truncate">
                     {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
                   </p>
                 </div>
-                <div className="rounded-lg sm:rounded-xl border border-blue-200 bg-blue-50/80 p-3 sm:p-4 dark:border-blue-800 dark:bg-blue-950/50 hover-lift">
+                <div className="rounded-lg sm:rounded-xl border border-blue-200 bg-blue-50/80 p-2.5 sm:p-3 md:p-4 dark:border-blue-800 dark:bg-blue-950/50 hover-lift">
                   <p className="text-[10px] sm:text-xs font-medium text-blue-600 dark:text-blue-400">⏱️ Entregue</p>
-                  <p className="mt-1 font-mono text-sm sm:text-base lg:text-lg font-bold text-blue-900 dark:text-blue-100 truncate">
+                  <p className="mt-0.5 sm:mt-1 font-mono text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-900 dark:text-blue-100 truncate">
                     {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
                   </p>
                 </div>
@@ -104,18 +104,18 @@ const DashboardView = React.memo(function DashboardView({
 
       {/* Aderência por Dia da Semana - CARTÕES */}
       {aderenciaDiaOrdenada.length > 0 && (
-        <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-4 sm:p-6 lg:p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10">
-          <div className="mb-4 sm:mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg">
-              <span className="text-xl sm:text-2xl">📅</span>
+        <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-3 sm:p-4 md:p-6 lg:p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10">
+          <div className="mb-3 sm:mb-4 md:mb-6 flex items-center gap-2 sm:gap-3">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg">
+              <span className="text-lg sm:text-xl md:text-2xl">📅</span>
             </div>
             <div>
-              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Distribuição semanal de performance</p>
+              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
+              <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 dark:text-slate-400">Distribuição semanal de performance</p>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4">
             {aderenciaDiaOrdenada.map((dia, index) => {
               const aderencia = dia.aderencia_percentual || 0;
               const bgColor = getAderenciaBgColor(aderencia);
@@ -125,25 +125,25 @@ const DashboardView = React.memo(function DashboardView({
               return (
                 <div
                   key={`dia-${index}`}
-                  className="group relative overflow-hidden rounded-xl border-2 bg-white p-4 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl dark:bg-slate-900"
+                  className="group relative overflow-hidden rounded-lg sm:rounded-xl border-2 bg-white p-2.5 sm:p-3 md:p-4 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl dark:bg-slate-900"
                   style={{ borderColor: textColorHex }}
                 >
                   <div className="absolute inset-0 opacity-5" style={{ backgroundColor: textColorHex }}></div>
                   <div className="relative">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-2xl">📆</span>
+                    <div className="mb-1.5 sm:mb-2 flex items-center justify-between">
+                      <span className="text-lg sm:text-xl md:text-2xl">📆</span>
                       <div 
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white shadow-md"
+                        className="flex h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 items-center justify-center rounded-full text-[10px] sm:text-xs font-bold text-white shadow-md"
                         style={{ backgroundColor: textColorHex }}
                       >
                         {dia.dia_iso}
                       </div>
                     </div>
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">{dia.dia_da_semana}</h4>
-                    <div className="text-3xl font-black mb-2" style={{ color: textColorHex }}>
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 sm:mb-2">{dia.dia_da_semana}</h4>
+                    <div className="text-xl sm:text-2xl md:text-3xl font-black mb-1 sm:mb-2" style={{ color: textColorHex }}>
                       {aderencia.toFixed(1)}%
                     </div>
-                    <div className="space-y-1 text-xs">
+                    <div className="space-y-0.5 sm:space-y-1 text-[10px] sm:text-xs">
                       <div className="flex justify-between">
                         <span className="text-slate-500 dark:text-slate-400">Planejado:</span>
                         <span className="font-semibold text-slate-700 dark:text-slate-300">{formatarHorasParaHMS(dia.horas_a_entregar)}</span>

@@ -27,6 +27,7 @@ export function Header() {
   const [showMenu, setShowMenu] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -210,19 +211,20 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl backdrop-blur-xl animate-slide-down">
-        <div className="container mx-auto flex h-16 md:h-18 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto flex h-16 md:h-18 items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group" prefetch={false}>
-            <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2 sm:p-2.5 group-hover:bg-white/25 group-hover:scale-105 transition-all duration-300 shadow-lg">
-              <span className="text-xl sm:text-2xl">📊</span>
+            <div className="bg-white/15 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-2.5 group-hover:bg-white/25 group-hover:scale-105 transition-all duration-300 shadow-lg">
+              <span className="text-lg sm:text-xl md:text-2xl">📊</span>
             </div>
             <div className="hidden sm:block">
-              <span className="font-bold text-lg sm:text-xl text-white tracking-tight">Dashboard Operacional</span>
-              <p className="text-blue-100/90 text-xs sm:text-sm font-medium">Sistema de Análise</p>
+              <span className="font-bold text-base sm:text-lg md:text-xl text-white tracking-tight">Dashboard Operacional</span>
+              <p className="text-blue-100/90 text-xs sm:text-sm font-medium hidden md:block">Sistema de Análise</p>
             </div>
-            <span className="font-bold text-lg text-white sm:hidden">Dashboard</span>
+            <span className="font-bold text-base sm:text-lg text-white sm:hidden">Dashboard</span>
           </Link>
           
-          <nav className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-2 sm:gap-2.5 md:gap-3">
             <Link
               href="/"
               className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
@@ -343,7 +345,104 @@ export function Header() {
               )}
             </div>
           </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="md:hidden flex items-center justify-center w-10 h-10 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg transition-all duration-200 border border-white/15 hover:border-white/30"
+            aria-label="Menu"
+          >
+            <span className="text-xl">{showMobileMenu ? '✕' : '☰'}</span>
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <div className="md:hidden border-t border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 animate-slide-down">
+            <div className="container mx-auto px-3 sm:px-4 py-4 space-y-2">
+              <Link
+                href="/"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+                prefetch={false}
+              >
+                <span className="text-lg">📈</span>
+                <span>Dashboard</span>
+              </Link>
+              
+              <button
+                onClick={() => {
+                  setShowHistory(true);
+                  setShowMobileMenu(false);
+                }}
+                className="w-full flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+              >
+                <span className="text-lg">📋</span>
+                <span>Histórico</span>
+              </button>
+
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+              >
+                <span className="text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
+                <span>{theme === 'dark' ? 'Tema Escuro' : 'Tema Claro'}</span>
+              </button>
+              
+              {user.is_admin && (
+                <>
+                  <Link
+                    href="/upload"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+                    prefetch={false}
+                  >
+                    <span className="text-lg">📤</span>
+                    <span>Upload</span>
+                  </Link>
+                  <Link
+                    href="/admin"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+                    prefetch={false}
+                  >
+                    <span className="text-lg">⚙️</span>
+                    <span>Admin</span>
+                  </Link>
+                </>
+              )}
+
+              <div className="pt-2 border-t border-white/20">
+                <button
+                  onClick={() => {
+                    setShowMenu(!showMenu);
+                    setShowMobileMenu(false);
+                  }}
+                  className="w-full flex items-center gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+                >
+                  {avatarUrl || user.avatar_url ? (
+                    <Image
+                      src={avatarUrl || user.avatar_url || ''}
+                      alt={user.full_name}
+                      width={32}
+                      height={32}
+                      className="h-8 w-8 rounded-full object-cover border-2 border-white/40 shadow-md"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
+                      <span className="text-base">👤</span>
+                    </div>
+                  )}
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold text-sm">{user.full_name}</p>
+                    <p className="text-xs text-blue-100/80 truncate">{user.email}</p>
+                  </div>
+                  <span className="text-xs">▼</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Modal de Histórico de Atualizações - Renderizado fora do header */}

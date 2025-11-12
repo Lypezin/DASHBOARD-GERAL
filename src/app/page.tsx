@@ -353,7 +353,7 @@ export default function DashboardPage() {
           onLoadRanking={carregarRanking}
         />
       )}
-      <div className="mx-auto max-w-[1920px] px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
+      <div className="mx-auto max-w-[1920px] px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
         {/* Header Principal Redesenhado */}
         <header className="mb-4 sm:mb-6 lg:mb-8 animate-fade-in">
           <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/80 backdrop-blur-xl shadow-2xl transition-all duration-300 hover:shadow-3xl dark:border-white/10 dark:bg-slate-900/80">
@@ -380,7 +380,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </div>
-              <div className="hidden md:flex items-center gap-4 lg:gap-5 shrink-0">
+              <div className="hidden sm:flex items-center gap-2 md:gap-3 lg:gap-4 xl:gap-5 shrink-0">
                 {/* Botão de Conquistas */}
                 <button
                   onClick={() => setShowConquistasModal(true)}
@@ -444,7 +444,7 @@ export default function DashboardPage() {
         {!loading && !error && (
           <div className="space-y-4 sm:space-y-6 animate-fade-in">
             {/* Header com filtros e tabs */}
-            <div className="group relative rounded-2xl border border-white/20 bg-white/80 backdrop-blur-xl p-4 sm:p-5 lg:p-7 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/80 animate-slide-down" style={{ position: 'relative', zIndex: 10 }}>
+            <div className="group relative rounded-xl sm:rounded-2xl border border-white/20 bg-white/80 backdrop-blur-xl p-3 sm:p-4 md:p-5 lg:p-7 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/80 animate-slide-down" style={{ position: 'relative', zIndex: 10 }}>
               {/* Subtle glow */}
               <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
               <div className="relative">
@@ -468,7 +468,7 @@ export default function DashboardPage() {
               )}
               {/* Tabs com scroll horizontal em mobile */}
               <div className="relative" style={{ position: 'relative', zIndex: 1 }}>
-                <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
+                <div className="flex gap-1 sm:gap-1.5 md:gap-2 overflow-x-auto pb-2 sm:pb-3 -mx-3 sm:-mx-4 md:mx-0 px-3 sm:px-4 md:px-0 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
                   <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
                   <TabButton label="Análise" icon="📈" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
                   <TabButton label="UTR" icon="📏" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />

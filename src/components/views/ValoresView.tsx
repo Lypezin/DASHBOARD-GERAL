@@ -231,16 +231,16 @@ function ValoresView({
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-fade-in">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
       {/* Barra de Pesquisa */}
-      <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+      <div className="rounded-lg sm:rounded-xl border border-blue-200 bg-white p-3 sm:p-4 shadow-lg dark:border-blue-800 dark:bg-slate-900">
         <div className="relative">
           <input
             type="text"
             placeholder="🔍 Pesquisar entregador por nome ou ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 pl-12 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 sm:px-4 py-2.5 sm:py-3 pl-10 sm:pl-12 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
           />
           <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
             {isSearching ? (
@@ -270,7 +270,7 @@ function ValoresView({
       </div>
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         <MetricCard
           title="Total Geral"
           value={totalGeral}
@@ -298,23 +298,23 @@ function ValoresView({
       </div>
 
       {/* Tabela de Valores */}
-      <div className="rounded-xl sm:rounded-2xl border border-blue-200 bg-white shadow-xl dark:border-blue-800 dark:bg-slate-900 overflow-hidden">
-        <div className="border-b border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 dark:border-blue-800 dark:from-blue-950/30 dark:to-indigo-950/30">
+      <div className="rounded-lg sm:rounded-xl md:rounded-2xl border border-blue-200 bg-white shadow-xl dark:border-blue-800 dark:bg-slate-900 overflow-hidden">
+        <div className="border-b border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 sm:p-4 md:p-6 dark:border-blue-800 dark:from-blue-950/30 dark:to-indigo-950/30">
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="text-2xl sm:text-3xl">💰</span>
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white">Valores por Entregador</h3>
+            <span className="text-xl sm:text-2xl md:text-3xl">💰</span>
+            <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white">Valores por Entregador</h3>
           </div>
           <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             Clique nos cabeçalhos para ordenar • Total de {totalEntregadores} entregadores
           </p>
         </div>
         
-        <div className="max-h-[600px] overflow-auto">
-          <table className="w-full">
+        <div className="max-h-[500px] sm:max-h-[600px] overflow-x-auto overflow-y-auto">
+          <table className="w-full min-w-[600px]">
             <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800">
               <tr className="border-b-2 border-slate-200 dark:border-slate-700">
                 <th 
-                  className="cursor-pointer px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-left text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 whitespace-nowrap"
                   onClick={() => handleSort('nome_entregador')}
                 >
                   <div className="flex items-center gap-1 sm:gap-2">
@@ -324,31 +324,31 @@ function ValoresView({
                   </div>
                 </th>
                 <th 
-                  className="cursor-pointer px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 whitespace-nowrap"
                   onClick={() => handleSort('total_taxas')}
                 >
                   <div className="flex items-center justify-end gap-1 sm:gap-2">
-                    <span className="text-sm sm:text-base">💵</span>
+                    <span className="text-xs sm:text-sm md:text-base">💵</span>
                     <span className="truncate">Total</span>
                     <SortIcon field="total_taxas" />
                   </div>
                 </th>
                 <th 
-                  className="cursor-pointer px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 whitespace-nowrap"
                   onClick={() => handleSort('numero_corridas_aceitas')}
                 >
                   <div className="flex items-center justify-end gap-1 sm:gap-2">
-                    <span className="text-sm sm:text-base">🚗</span>
+                    <span className="text-xs sm:text-sm md:text-base">🚗</span>
                     <span className="truncate">Corridas</span>
                     <SortIcon field="numero_corridas_aceitas" />
                   </div>
                 </th>
                 <th 
-                  className="cursor-pointer px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 whitespace-nowrap"
                   onClick={() => handleSort('taxa_media')}
                 >
                   <div className="flex items-center justify-end gap-1 sm:gap-2">
-                    <span className="text-sm sm:text-base">📊</span>
+                    <span className="text-xs sm:text-sm md:text-base">📊</span>
                     <span className="truncate">Média</span>
                     <SortIcon field="taxa_media" />
                   </div>
