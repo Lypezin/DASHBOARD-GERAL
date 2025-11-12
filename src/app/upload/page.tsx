@@ -386,15 +386,24 @@ export default function UploadPage() {
       // Usar setTimeout para não bloquear a UI
       setTimeout(async () => {
         try {
-          await safeRpc('refresh_mv_aderencia_async', {}, {
+          const { error } = await safeRpc('refresh_mv_aderencia_async', {}, {
             timeout: 60000, // 60 segundos para refresh de MV
             validateParams: false
           });
-          if (process.env.NODE_ENV === 'development') {
+          
+          if (error) {
+            // Ignorar erros 404 silenciosamente (função pode não existir)
+            const errorCode = (error as any)?.code;
+            const is404 = errorCode === 'PGRST116' || errorCode === '42883' || (error as any)?.message?.includes('404');
+            if (!is404 && IS_DEV) {
+              safeLog.warn('Refresh assíncrono não disponível, será processado automaticamente');
+            }
+          } else if (IS_DEV) {
             safeLog.info('Refresh da materialized view iniciado em segundo plano');
           }
         } catch (e) {
-          if (process.env.NODE_ENV === 'development') {
+          // Silenciar erros - o refresh será feito automaticamente
+          if (IS_DEV) {
             safeLog.warn('Refresh assíncrono não disponível, será processado automaticamente');
           }
         }

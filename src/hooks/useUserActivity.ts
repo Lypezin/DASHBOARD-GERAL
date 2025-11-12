@@ -6,6 +6,10 @@ import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+// Flag para rastrear se a função registrar_atividade está disponível
+// null = ainda não verificou, true = disponível, false = indisponível
+let functionAvailable: boolean | null = null;
+
 export function useUserActivity(activeTab: string, filters: any, currentUser: { is_admin: boolean; assigned_pracas: string[] } | null) {
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [sessionId, setSessionId] = useState<string>('');
@@ -89,6 +93,11 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
           descricaoDetalhada = typeof action_details === 'string' ? action_details : `${action_type} na aba ${nomeAba}`;
       }
       
+      // Se já sabemos que a função não está disponível, não tentar chamar
+      if (functionAvailable === false) {
+        return;
+      }
+      
       const { data, error } = await safeRpc('registrar_atividade', {
         p_session_id: sessionId,
         p_action_type: action_type,
@@ -101,9 +110,32 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
       });
 
       if (error) {
-        // Não logar 'heartbeat' para não poluir o console
-        if (action_type !== 'heartbeat') {
-          safeLog.warn('Erro ao registrar atividade:', { error, action_type });
+        // Ignorar erros 404 (função não encontrada) e heartbeat silenciosamente
+        const errorCode = (error as any)?.code;
+        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || (error as any)?.message?.includes('404');
+        
+        if (is404) {
+          // Marcar função como indisponível para evitar chamadas futuras
+          functionAvailable = false;
+        } else {
+          // Se não for 404, a função existe mas teve outro erro
+          // Marcar como disponível para não bloquear tentativas futuras
+          if (functionAvailable === null) {
+            functionAvailable = true;
+          }
+          
+          if (action_type !== 'heartbeat') {
+            // Apenas logar erros não-404 e não-heartbeat
+            if (IS_DEV) {
+              safeLog.warn('Erro ao registrar atividade:', { error, action_type });
+            }
+          }
+        }
+        // Erros 404 e heartbeat são ignorados silenciosamente
+      } else {
+        // Sucesso - marcar função como disponível
+        if (functionAvailable === null) {
+          functionAvailable = true;
         }
       }
     } catch (err) {
