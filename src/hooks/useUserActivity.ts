@@ -43,6 +43,11 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     tab_name: string | null = null,
     filters_applied: any = {}
   ) => {
+    // Se já sabemos que a função não está disponível, não tentar chamar
+    if (functionAvailable === false) {
+      return;
+    }
+    
     try {
       let descricaoDetalhada = '';
       const tabNames: Record<string, string> = {
@@ -93,11 +98,6 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
           descricaoDetalhada = typeof action_details === 'string' ? action_details : `${action_type} na aba ${nomeAba}`;
       }
       
-      // Se já sabemos que a função não está disponível, não tentar chamar
-      if (functionAvailable === false) {
-        return;
-      }
-      
       const { data, error } = await safeRpc('registrar_atividade', {
         p_session_id: sessionId,
         p_action_type: action_type,
@@ -112,11 +112,17 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
       if (error) {
         // Ignorar erros 404 (função não encontrada) e heartbeat silenciosamente
         const errorCode = (error as any)?.code;
-        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || (error as any)?.message?.includes('404');
+        const errorMessage = String((error as any)?.message || '');
+        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                      errorMessage.includes('404') || 
+                      errorMessage.includes('not found') ||
+                      errorMessage.includes('function') && errorMessage.includes('does not exist');
         
         if (is404) {
           // Marcar função como indisponível para evitar chamadas futuras
           functionAvailable = false;
+          // Não logar em produção
+          return;
         } else {
           // Se não for 404, a função existe mas teve outro erro
           // Marcar como disponível para não bloquear tentativas futuras

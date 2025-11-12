@@ -65,13 +65,39 @@ export function useConquistas() {
       });
       
       if (error) {
-        safeLog.error('Erro ao carregar ranking:', error);
+        // Tratar erros 400/404 silenciosamente, mas logar outros erros
+        const errorCode = (error as any)?.code;
+        const errorMessage = String((error as any)?.message || '');
+        const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                          errorCode === 'PGRST204' ||
+                          errorMessage.includes('400') ||
+                          errorMessage.includes('404') ||
+                          errorMessage.includes('not found');
+        
+        if (!is400or404) {
+          safeLog.error('Erro ao carregar ranking:', error);
+        } else if (process.env.NODE_ENV === 'development') {
+          safeLog.warn('Função ranking_conquistas não disponível:', error);
+        }
         setRanking([]);
         return;
       }
 
       if (data) {
-        setRanking(data as RankingUsuario[]);
+        // A função pode retornar array ou objeto único
+        if (Array.isArray(data)) {
+          setRanking(data);
+        } else if (data && typeof data === 'object') {
+          // Se for objeto, tentar extrair array
+          const rankingArray = (data as any).ranking || (data as any).data || [data];
+          setRanking(Array.isArray(rankingArray) ? rankingArray : []);
+        } else {
+          setRanking([]);
+        }
+      } else {
+        // Se data for null, pode ser que a função não retornou dados
+        // Mas não é necessariamente um erro - pode ser que não há usuários ainda
+        setRanking([]);
       }
     } catch (err) {
       safeLog.error('Erro inesperado ao carregar ranking:', err);
