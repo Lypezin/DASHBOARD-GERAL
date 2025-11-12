@@ -19,6 +19,7 @@ function EntregadoresView({
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Entregador[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Pesquisa com debounce
@@ -75,10 +76,16 @@ function EntregadoresView({
   // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
   // Usar useMemo para evitar recriação desnecessária
   const dataToDisplay = useMemo(() => {
-    // Garantir que entregadoresData.entregadores existe e é um array
-    const baseData = entregadoresData?.entregadores;
-    const baseArray = Array.isArray(baseData) ? baseData : [];
-    return (searchTerm.trim() && Array.isArray(searchResults) && searchResults.length > 0) ? searchResults : baseArray;
+    try {
+      // Garantir que entregadoresData.entregadores existe e é um array
+      const baseData = entregadoresData?.entregadores;
+      const baseArray = Array.isArray(baseData) ? baseData : [];
+      return (searchTerm.trim() && Array.isArray(searchResults) && searchResults.length > 0) ? searchResults : baseArray;
+    } catch (err) {
+      safeLog.error('Erro ao processar dados de entregadores:', err);
+      setError('Erro ao processar dados. Tente recarregar a página.');
+      return [];
+    }
   }, [searchTerm, searchResults, entregadoresData]);
 
   // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
@@ -140,6 +147,24 @@ function EntregadoresView({
         <div className="text-center">
           <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
           <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando entregadores...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="max-w-md mx-auto rounded-xl border border-rose-200 bg-white p-6 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
+          <div className="text-4xl mb-4">⚠️</div>
+          <p className="text-lg font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
+          <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105"
+          >
+            Tentar novamente
+          </button>
         </div>
       </div>
     );

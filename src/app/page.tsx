@@ -12,6 +12,7 @@ import FiltroBar from '@/components/FiltroBar';
 import TabButton from '@/components/TabButton';
 import ConquistaNotificacao from '@/components/ConquistaNotificacao';
 import ConquistasModal from '@/components/ConquistasModal';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { registerChartJS } from '@/lib/chartConfig';
 import {
   Totals,
@@ -317,9 +318,10 @@ export default function DashboardPage() {
     setActiveTab(tab);
 
     // Resetar flag após um delay maior para garantir que a renderização anterior terminou
+    // Aumentado para 800ms para dar mais tempo para requisições cancelarem
     tabChangeTimeoutRef.current = setTimeout(() => {
       tabChangeRef.current = false;
-    }, 500); // Aumentado para 500ms para dar mais tempo
+    }, 800);
   }, []);
 
   return (
@@ -493,83 +495,85 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <Suspense fallback={
-                  <div className="flex h-[60vh] items-center justify-center">
-                    <div className="text-center">
-                      <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-                      <p className="mt-4 text-sm font-semibold text-blue-700 dark:text-blue-300">Carregando...</p>
+                <ErrorBoundary>
+                  <Suspense fallback={
+                    <div className="flex h-[60vh] items-center justify-center">
+                      <div className="text-center">
+                        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+                        <p className="mt-4 text-sm font-semibold text-blue-700 dark:text-blue-300">Carregando...</p>
+                      </div>
                     </div>
-                  </div>
-                }>
-                  {activeTab === 'dashboard' && (
-                    <DashboardView
-                      aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
-                      aderenciaDia={aderenciaDia}
-                      aderenciaTurno={aderenciaTurno}
-                      aderenciaSubPraca={aderenciaSubPraca}
-                      aderenciaOrigem={aderenciaOrigem}
-                    />
-                  )}
-                  {activeTab === 'analise' && totals && (
-                    <AnaliseView 
-                      totals={totals}
-                      aderenciaDia={aderenciaDia}
-                      aderenciaTurno={aderenciaTurno}
-                      aderenciaSubPraca={aderenciaSubPraca}
-                      aderenciaOrigem={aderenciaOrigem}
-                    />
-                  )}
-                  {activeTab === 'utr' && (
-                    <UtrView
-                      utrData={utrData}
-                      loading={loadingTabData}
-                    />
-                  )}
-                  
-                  {activeTab === 'entregadores' && (
-                    <EntregadoresView
-                      entregadoresData={entregadoresData}
-                      loading={loadingTabData}
-                    />
-                  )}
-                  
-                  {activeTab === 'valores' && (
-                    <ValoresView
-                      valoresData={valoresData}
-                      loading={loadingTabData}
-                    />
-                  )}
-                  
-                  {activeTab === 'prioridade' && (
-                    <PrioridadePromoView
-                      entregadoresData={prioridadeData}
-                      loading={loadingTabData}
-                    />
-                  )}
-                  
-                  {activeTab === 'evolucao' && (
-                    <EvolucaoView
-                      evolucaoMensal={evolucaoMensal}
-                      evolucaoSemanal={evolucaoSemanal}
-                      loading={loadingEvolucao}
-                      anoSelecionado={anoEvolucao}
-                      anosDisponiveis={anosDisponiveis}
-                      onAnoChange={setAnoEvolucao}
-                    />
-                  )}
-                  {activeTab === 'monitoramento' && (
-                    <MonitoramentoView />
-                  )}
-                  {activeTab === 'comparacao' && (
-                    <ComparacaoView
-                      semanas={semanasDisponiveis}
-                      pracas={pracas}
-                      subPracas={subPracas}
-                      origens={origens}
-                      currentUser={currentUser}
-                    />
-                  )}
-                </Suspense>
+                  }>
+                    {activeTab === 'dashboard' && (
+                      <DashboardView
+                        aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
+                        aderenciaDia={aderenciaDia}
+                        aderenciaTurno={aderenciaTurno}
+                        aderenciaSubPraca={aderenciaSubPraca}
+                        aderenciaOrigem={aderenciaOrigem}
+                      />
+                    )}
+                    {activeTab === 'analise' && totals && (
+                      <AnaliseView 
+                        totals={totals}
+                        aderenciaDia={aderenciaDia}
+                        aderenciaTurno={aderenciaTurno}
+                        aderenciaSubPraca={aderenciaSubPraca}
+                        aderenciaOrigem={aderenciaOrigem}
+                      />
+                    )}
+                    {activeTab === 'utr' && (
+                      <UtrView
+                        utrData={utrData}
+                        loading={loadingTabData}
+                      />
+                    )}
+                    
+                    {activeTab === 'entregadores' && (
+                      <EntregadoresView
+                        entregadoresData={entregadoresData}
+                        loading={loadingTabData}
+                      />
+                    )}
+                    
+                    {activeTab === 'valores' && (
+                      <ValoresView
+                        valoresData={valoresData}
+                        loading={loadingTabData}
+                      />
+                    )}
+                    
+                    {activeTab === 'prioridade' && (
+                      <PrioridadePromoView
+                        entregadoresData={prioridadeData}
+                        loading={loadingTabData}
+                      />
+                    )}
+                    
+                    {activeTab === 'evolucao' && (
+                      <EvolucaoView
+                        evolucaoMensal={evolucaoMensal}
+                        evolucaoSemanal={evolucaoSemanal}
+                        loading={loadingEvolucao}
+                        anoSelecionado={anoEvolucao}
+                        anosDisponiveis={anosDisponiveis}
+                        onAnoChange={setAnoEvolucao}
+                      />
+                    )}
+                    {activeTab === 'monitoramento' && (
+                      <MonitoramentoView />
+                    )}
+                    {activeTab === 'comparacao' && (
+                      <ComparacaoView
+                        semanas={semanasDisponiveis}
+                        pracas={pracas}
+                        subPracas={subPracas}
+                        origens={origens}
+                        currentUser={currentUser}
+                      />
+                    )}
+                  </Suspense>
+                </ErrorBoundary>
               )}
             </main>
           </div>

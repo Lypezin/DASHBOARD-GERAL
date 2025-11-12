@@ -13,9 +13,23 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
   const [data, setData] = useState<TabData>(null);
   const [loading, setLoading] = useState(false);
   const cacheRef = useRef<Map<string, { data: any; timestamp: number }>>(new Map());
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const currentTabRef = useRef<string>(activeTab);
+
+  useEffect(() => {
+    currentTabRef.current = activeTab;
+  }, [activeTab]);
 
   useEffect(() => {
     const fetchDataForTab = async (tab: string) => {
+      // Cancelar requisição anterior se existir
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Criar novo AbortController para esta requisição
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
       const cacheKey = `${tab}-${JSON.stringify(filterPayload)}`;
       const cached = cacheRef.current.get(cacheKey);
 
@@ -35,6 +49,11 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       setLoading(true);
 
       try {
+        // Verificar se a tab mudou durante o carregamento
+        if (abortController.signal.aborted || currentTabRef.current !== tab) {
+          return;
+        }
+
         let result: { data: any, error: any } | null = null;
         let processedData: TabData = null;
 
@@ -49,13 +68,42 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
 
           case 'entregadores':
           case 'prioridade':
+            // Verificar se foi abortado antes de fazer a requisição
+            if (abortController.signal.aborted || currentTabRef.current !== tab) {
+              return;
+            }
+            
             const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
             const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
             result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
-              timeout: 30000,
-              validateParams: true
+              timeout: 20000, // Reduzido para 20s
+              validateParams: false // Desabilitar validação para evitar problemas
             });
+            
+            // Verificar se foi abortado durante a requisição
+            if (abortController.signal.aborted || currentTabRef.current !== tab) {
+              return;
+            }
+            
             if (result?.error) {
+              // Verificar se é rate limit
+              const errorCode = (result.error as any)?.code;
+              const errorMessage = String((result.error as any)?.message || '');
+              const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
+                                 errorMessage.includes('rate limit') ||
+                                 errorMessage.includes('429');
+              
+              if (isRateLimit) {
+                safeLog.warn('Rate limit ao buscar entregadores. Aguardando...');
+                // Tentar novamente após delay
+                setTimeout(() => {
+                  if (currentTabRef.current === tab && !abortController.signal.aborted) {
+                    fetchDataForTab(tab);
+                  }
+                }, 5000);
+                return;
+              }
+              
               safeLog.error('Erro ao buscar entregadores:', result.error);
               processedData = { entregadores: [], total: 0 };
             } else if (result && result.data) {
@@ -82,6 +130,11 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             break;
 
           case 'valores':
+            // Verificar se foi abortado antes de fazer a requisição
+            if (abortController.signal.aborted || currentTabRef.current !== tab) {
+              return;
+            }
+            
             const { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem } = filterPayload as any;
             const listarValoresPayload = { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem };
             
@@ -90,11 +143,34 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             }
             
             result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
-              timeout: 30000,
-              validateParams: true
+              timeout: 20000, // Reduzido para 20s
+              validateParams: false // Desabilitar validação para evitar problemas
             });
             
+            // Verificar se foi abortado durante a requisição
+            if (abortController.signal.aborted || currentTabRef.current !== tab) {
+              return;
+            }
+            
             if (result?.error) {
+              // Verificar se é rate limit
+              const errorCode = (result.error as any)?.code;
+              const errorMessage = String((result.error as any)?.message || '');
+              const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
+                                 errorMessage.includes('rate limit') ||
+                                 errorMessage.includes('429');
+              
+              if (isRateLimit) {
+                safeLog.warn('Rate limit ao buscar valores. Aguardando...');
+                // Tentar novamente após delay
+                setTimeout(() => {
+                  if (currentTabRef.current === tab && !abortController.signal.aborted) {
+                    fetchDataForTab(tab);
+                  }
+                }, 5000);
+                return;
+              }
+              
               safeLog.error('Erro ao buscar valores:', result.error);
               processedData = [];
             } else if (result && result.data !== null && result.data !== undefined) {
@@ -204,33 +280,83 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           processedData = Array.isArray(processedData) ? processedData : [];
         }
         
-        setData(processedData);
-        cacheRef.current.set(cacheKey, { data: processedData, timestamp: Date.now() });
-        
-        if (IS_DEV && tab === 'valores') {
-          safeLog.info('✅ Dados finais setados para valores:', {
-            tipo: typeof processedData,
-            isArray: Array.isArray(processedData),
-            length: Array.isArray(processedData) ? processedData.length : 0
-          });
+        // Verificar se ainda estamos na mesma tab antes de atualizar estado
+        if (currentTabRef.current === tab && !abortController.signal.aborted) {
+          setData(processedData);
+          cacheRef.current.set(cacheKey, { data: processedData, timestamp: Date.now() });
+          
+          if (IS_DEV && tab === 'valores') {
+            safeLog.info('✅ Dados finais setados para valores:', {
+              tipo: typeof processedData,
+              isArray: Array.isArray(processedData),
+              length: Array.isArray(processedData) ? processedData.length : 0
+            });
+          }
         }
 
       } catch (err: any) {
+        // Ignorar erros de abort (quando tab muda)
+        if (err?.name === 'AbortError' || abortController.signal.aborted) {
+          return;
+        }
+
+        // Verificar se é erro de rate limit
+        const errorCode = (err as any)?.code;
+        const errorMessage = String((err as any)?.message || '');
+        const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
+                           errorMessage.includes('rate limit') ||
+                           errorMessage.includes('too many requests') ||
+                           errorMessage.includes('429');
+
+        if (isRateLimit) {
+          safeLog.warn(`Rate limit atingido para aba ${tab}. Aguardando...`);
+          // Tentar novamente após um delay
+          setTimeout(() => {
+            if (currentTabRef.current === tab && !abortController.signal.aborted) {
+              fetchDataForTab(tab);
+            }
+          }, 5000); // 5 segundos
+          return;
+        }
+
         safeLog.error(`Erro ao carregar dados para a aba ${tab}:`, err);
-        // Para valores, manter como array vazio em caso de erro, não null
-        if (tab === 'valores') {
-          setData([]);
-        } else {
-          setData(null);
+        
+        // Verificar se ainda estamos na mesma tab antes de atualizar estado
+        if (currentTabRef.current === tab) {
+          // Para valores, manter como array vazio em caso de erro, não null
+          if (tab === 'valores') {
+            setData([]);
+          } else {
+            setData(null);
+          }
         }
       } finally {
-        setLoading(false);
+        // Só atualizar loading se ainda estamos na mesma tab
+        if (currentTabRef.current === tab) {
+          setLoading(false);
+        }
       }
     };
 
     if (['utr', 'entregadores', 'valores', 'prioridade'].includes(activeTab)) {
-        const timeoutId = setTimeout(() => fetchDataForTab(activeTab), 200);
-        return () => clearTimeout(timeoutId);
+        // Aumentar delay para evitar requisições muito rápidas
+        const timeoutId = setTimeout(() => {
+          if (currentTabRef.current === activeTab) {
+            fetchDataForTab(activeTab);
+          }
+        }, 300); // Aumentado de 200ms para 300ms
+        
+        return () => {
+          clearTimeout(timeoutId);
+          // Cancelar requisição se o componente desmontar ou tab mudar
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+          }
+        };
+    } else {
+      // Se não é uma tab que precisa de dados, limpar dados anteriores
+      setData(null);
+      setLoading(false);
     }
   }, [activeTab, filterPayload, currentUser]);
 

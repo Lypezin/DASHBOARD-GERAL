@@ -85,10 +85,11 @@ export function checkRateLimit(config: RateLimitConfig): {
 
 /**
  * Rate limiter para requisições RPC
+ * Aumentado para permitir mudanças rápidas de tab sem bloquear
  */
 export function rpcRateLimiter() {
   return checkRateLimit({
-    maxRequests: 30, // 30 requisições
+    maxRequests: 60, // 60 requisições (aumentado de 30)
     windowMs: 60000, // por minuto
     keyGenerator: 'rpc-requests',
   });
