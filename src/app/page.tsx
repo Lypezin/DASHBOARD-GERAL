@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense } fr
 import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
 import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 import { sanitizeText } from '@/lib/sanitize';
 import FiltroSelect from '@/components/FiltroSelect';
 import FiltroMultiSelect from '@/components/FiltroMultiSelect';
@@ -216,7 +217,10 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data: profile, error } = await supabase.rpc('get_current_user_profile') as { data: { is_admin: boolean; assigned_pracas: string[] } | null; error: any };
+        const { data: profile, error } = await safeRpc<{ is_admin: boolean; assigned_pracas: string[] }>('get_current_user_profile', {}, {
+          timeout: 10000,
+          validateParams: false
+        });
       
       if (error) {
           if (IS_DEV) safeLog.error('Erro ao buscar perfil do usuário:', error);

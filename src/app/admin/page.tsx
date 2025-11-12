@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -54,8 +55,10 @@ export default function AdminPage() {
     }
 
     // Verificar se é admin
-    const { data: profile, error } = await supabase
-      .rpc('get_current_user_profile') as { data: UserProfile | null; error: any };
+    const { data: profile, error } = await safeRpc<UserProfile>('get_current_user_profile', {}, {
+      timeout: 10000,
+      validateParams: false
+    });
 
     if (error || !profile?.is_admin) {
       router.push('/');
@@ -72,8 +75,8 @@ export default function AdminPage() {
     try {
       // Executar todas as operações em paralelo para melhor performance
       const [usersPromise, pendingPromise, pracasPromise] = await Promise.allSettled([
-        supabase.rpc('list_all_users'),
-        supabase.rpc('list_pending_users'),
+        safeRpc<User[]>('list_all_users', {}, { timeout: 30000, validateParams: false }),
+        safeRpc<User[]>('list_pending_users', {}, { timeout: 30000, validateParams: false }),
         fetchPracasWithFallback()
       ]);
 
@@ -143,7 +146,10 @@ export default function AdminPage() {
 
     try {
       // Tentar função otimizada primeiro
-      const { data: pracasData, error: pracasError } = await supabase.rpc('list_pracas_disponiveis');
+      const { data: pracasData, error: pracasError } = await safeRpc<string[]>('list_pracas_disponiveis', {}, {
+        timeout: 30000,
+        validateParams: false
+      });
       
       if (!pracasError && pracasData && pracasData.length > 0) {
         const pracas = pracasData.map((p: any) => p.praca).filter(Boolean);
@@ -209,9 +215,12 @@ export default function AdminPage() {
     if (!selectedUser) return;
 
     try {
-      const { error } = await supabase.rpc('approve_user', {
+      const { error } = await safeRpc('approve_user', {
         user_id: selectedUser.id,
         pracas: selectedPracas,
+      }, {
+        timeout: 30000,
+        validateParams: true
       });
 
       if (error) throw error;
@@ -227,9 +236,12 @@ export default function AdminPage() {
 
   const handleUpdatePracas = async (userId: string, pracas: string[]) => {
     try {
-      const { error } = await supabase.rpc('update_user_pracas', {
+      const { error } = await safeRpc('update_user_pracas', {
         user_id: userId,
         pracas: pracas,
+      }, {
+        timeout: 30000,
+        validateParams: true
       });
 
       if (error) throw error;
@@ -243,8 +255,11 @@ export default function AdminPage() {
     if (!confirm('Tem certeza que deseja revogar o acesso deste usuário?')) return;
 
     try {
-      const { error } = await supabase.rpc('revoke_user_access', {
+      const { error } = await safeRpc('revoke_user_access', {
         user_id: userId,
+      }, {
+        timeout: 30000,
+        validateParams: true
       });
 
       if (error) throw error;
@@ -272,9 +287,12 @@ export default function AdminPage() {
     if (!editingUser) return;
 
     try {
-      const { error } = await supabase.rpc('update_user_pracas', {
+      const { error } = await safeRpc('update_user_pracas', {
         user_id: editingUser.id,
         pracas: selectedPracas,
+      }, {
+        timeout: 30000,
+        validateParams: true
       });
 
       if (error) throw error;
@@ -293,9 +311,12 @@ export default function AdminPage() {
     if (!confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
 
     try {
-      const { error } = await supabase.rpc('set_user_admin', {
+      const { error } = await safeRpc('set_user_admin', {
         user_id: userId,
         make_admin: !currentIsAdmin,
+      }, {
+        timeout: 30000,
+        validateParams: true
       });
 
       if (error) throw error;

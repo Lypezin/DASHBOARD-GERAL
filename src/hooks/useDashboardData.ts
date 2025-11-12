@@ -7,6 +7,7 @@ import {
 import { buildFilterPayload, safeNumber } from '@/utils/helpers';
 import { useDashboardDimensions } from './useDashboardDimensions';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -67,7 +68,10 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       setLoading(true);
       setError(null);
       try {
-        const { data, error } = await supabase.rpc('dashboard_resumo', filterPayload as any);
+        const { data, error } = await safeRpc<DashboardResumoData>('dashboard_resumo', filterPayload, {
+          timeout: 30000,
+          validateParams: true
+        });
         if (error) {
           safeLog.error('Erro ao carregar dashboard_resumo:', error);
           throw error;
@@ -144,8 +148,14 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       setLoadingEvolucao(true);
       try {
         const [mensalRes, semanalRes] = await Promise.all([
-          supabase.rpc('listar_evolucao_mensal', { p_praca: pracaFilter, p_ano: anoEvolucao }),
-          supabase.rpc('listar_evolucao_semanal', { p_praca: pracaFilter || null, p_ano: anoEvolucao, p_limite_semanas: 60 })
+          safeRpc<EvolucaoMensal[]>('listar_evolucao_mensal', { p_praca: pracaFilter, p_ano: anoEvolucao }, {
+            timeout: 30000,
+            validateParams: true
+          }),
+          safeRpc<EvolucaoSemanal[]>('listar_evolucao_semanal', { p_praca: pracaFilter || null, p_ano: anoEvolucao, p_limite_semanas: 60 }, {
+            timeout: 30000,
+            validateParams: true
+          })
         ]);
 
         if (mensalRes.error) safeLog.error('Erro ao carregar evolução mensal:', mensalRes.error);

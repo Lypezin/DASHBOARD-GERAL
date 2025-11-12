@@ -46,8 +46,8 @@ CREATE OR REPLACE FUNCTION public.get_current_user_profile()
 RETURNS TABLE(is_admin boolean, assigned_pracas text[])
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth AS -- CORRIGIDO
-$function$
+SET search_path = public, auth
+AS $function$
 BEGIN
   RETURN QUERY
   SELECT
@@ -63,8 +63,8 @@ CREATE OR REPLACE FUNCTION public.approve_user(p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth AS -- CORRIGIDO
-$function$
+SET search_path = public, auth
+AS $function$
 BEGIN
     IF NOT (SELECT is_admin FROM public.user_profiles WHERE id = auth.uid()) THEN
         RAISE EXCEPTION 'Apenas administradores podem aprovar usuários';
@@ -84,8 +84,8 @@ CREATE OR REPLACE FUNCTION public.update_user_pracas(p_user_id uuid, p_pracas te
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth AS -- CORRIGIDO
-$function$
+SET search_path = public, auth
+AS $function$
 BEGIN
     IF NOT (SELECT is_admin FROM public.user_profiles WHERE id = auth.uid()) THEN
         RAISE EXCEPTION 'Apenas administradores podem alterar praças';
@@ -103,8 +103,8 @@ CREATE OR REPLACE FUNCTION public.set_user_admin(p_user_id uuid, p_is_admin bool
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth AS -- CORRIGIDO
-$function$
+SET search_path = public, auth
+AS $function$
 BEGIN
     IF NOT (SELECT is_admin FROM public.user_profiles WHERE id = auth.uid()) THEN
         RAISE EXCEPTION 'Apenas administradores podem alterar permissões de admin';
@@ -122,8 +122,8 @@ CREATE OR REPLACE FUNCTION public.revoke_user_access(p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth AS -- CORRIGIDO
-$function$
+SET search_path = public, auth
+AS $function$
 BEGIN
     IF NOT (SELECT is_admin FROM public.user_profiles WHERE id = auth.uid()) THEN
         RAISE EXCEPTION 'Apenas administradores podem revogar acesso';
