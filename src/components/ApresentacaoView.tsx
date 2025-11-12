@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import {
@@ -113,19 +113,20 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [previewScale, setPreviewScale] = useState(0.5);
 
-  useEffect(() => {
-    const calculateScale = () => {
-      if (previewContainerRef.current && contentRef.current) {
-        const container = previewContainerRef.current.getBoundingClientRect();
-        const availableWidth = container.width - 32;
-        const availableHeight = container.height - 32;
-        const scaleX = availableWidth / SLIDE_WIDTH;
-        const scaleY = availableHeight / SLIDE_HEIGHT;
-        const scale = Math.min(scaleX, scaleY) * 0.95;
-        setPreviewScale(Math.max(0.1, Math.min(1, scale)));
-      }
-    };
+  // Memoizar função de cálculo de escala
+  const calculateScale = useCallback(() => {
+    if (previewContainerRef.current && contentRef.current) {
+      const container = previewContainerRef.current.getBoundingClientRect();
+      const availableWidth = container.width - 32;
+      const availableHeight = container.height - 32;
+      const scaleX = availableWidth / SLIDE_WIDTH;
+      const scaleY = availableHeight / SLIDE_HEIGHT;
+      const scale = Math.min(scaleX, scaleY) * 0.95;
+      setPreviewScale(Math.max(0.1, Math.min(1, scale)));
+    }
+  }, []);
 
+  useEffect(() => {
     calculateScale();
     const timeoutId = setTimeout(calculateScale, 100);
     window.addEventListener('resize', calculateScale);
@@ -134,35 +135,38 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       clearTimeout(timeoutId);
       window.removeEventListener('resize', calculateScale);
     };
-  }, [currentSlide, dadosComparacao]);
+  }, [calculateScale]);
 
-  const semana1 = dadosComparacao[0];
-  const semana2 = dadosComparacao[1];
+  // Memoizar dados básicos das semanas
+  const dadosBasicos = useMemo(() => {
+    const sem1 = dadosComparacao[0];
+    const sem2 = dadosComparacao[1];
+    const semanaSelecionada1 = semanasSelecionadas[0] ?? '';
+    const semanaSelecionada2 = semanasSelecionadas[1] ?? '';
+    const numSem1 = extrairNumeroSemana(semanaSelecionada1) || semanaSelecionada1 || '—';
+    const numSem2 = extrairNumeroSemana(semanaSelecionada2) || semanaSelecionada2 || '—';
+    
+    return {
+      semana1: sem1,
+      semana2: sem2,
+      numeroSemana1: numSem1,
+      numeroSemana2: numSem2,
+      periodoSemana1: calcularPeriodoSemana(numSem1),
+      periodoSemana2: calcularPeriodoSemana(numSem2),
+      aderencia1: sem1?.semanal?.[0]?.aderencia_percentual || 0,
+      aderencia2: sem2?.semanal?.[0]?.aderencia_percentual || 0,
+      horasEntregues1: parseFloat(sem1?.semanal?.[0]?.horas_entregues || '0'),
+      horasEntregues2: parseFloat(sem2?.semanal?.[0]?.horas_entregues || '0'),
+      horasPlanejadas1: parseFloat(sem1?.semanal?.[0]?.horas_a_entregar || '0'),
+      horasPlanejadas2: parseFloat(sem2?.semanal?.[0]?.horas_a_entregar || '0'),
+    };
+  }, [dadosComparacao, semanasSelecionadas]);
 
-  const semanaSelecionada1 = semanasSelecionadas[0] ?? '';
-  const semanaSelecionada2 = semanasSelecionadas[1] ?? '';
-  const numeroSemana1 = extrairNumeroSemana(semanaSelecionada1) || semanaSelecionada1 || '—';
-  const numeroSemana2 = extrairNumeroSemana(semanaSelecionada2) || semanaSelecionada2 || '—';
+  const { semana1, semana2, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, aderencia1, aderencia2, horasEntregues1, horasEntregues2, horasPlanejadas1, horasPlanejadas2 } = dadosBasicos;
 
-  const aderencia1 = semana1?.semanal?.[0]?.aderencia_percentual || 0;
-  const aderencia2 = semana2?.semanal?.[0]?.aderencia_percentual || 0;
-  const horasEntregues1 = parseFloat(semana1?.semanal?.[0]?.horas_entregues || '0');
-  const horasEntregues2 = parseFloat(semana2?.semanal?.[0]?.horas_entregues || '0');
-  const horasPlanejadas1 = parseFloat(semana1?.semanal?.[0]?.horas_a_entregar || '0');
-  const horasPlanejadas2 = parseFloat(semana2?.semanal?.[0]?.horas_a_entregar || '0');
-
-  const periodoSemana1 = useMemo(() => calcularPeriodoSemana(numeroSemana1), [numeroSemana1]);
-  const periodoSemana2 = useMemo(() => calcularPeriodoSemana(numeroSemana2), [numeroSemana2]);
-
-  const slides = useMemo(() => {
-    if (!semana1 || !semana2) {
-      safeLog.warn('ApresentacaoView: dados insuficientes para gerar slides', {
-        total: dadosComparacao.length,
-      });
-      return [] as Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
-    }
-
-    const slidesConfig: Array<{ key: string; render: (visible: boolean) => React.ReactNode }> = [];
+  // Processar todos os dados processados uma vez para reutilizar em slides e PDF
+  const dadosProcessados = useMemo(() => {
+    if (!semana1 || !semana2) return null;
 
     const resumoSemana1 = {
       numeroSemana: numeroSemana1,
@@ -183,6 +187,292 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       horasPercentual: formatarDiferencaPercentual(calcularDiferencaPercentual(horasEntregues1, horasEntregues2)),
       positiva: horasEntregues2 >= horasEntregues1,
     };
+
+    // Processar Sub-Praças
+    const subPracasSemana1 = semana1.sub_praca || [];
+    const subPracasSemana2 = semana2.sub_praca || [];
+    const subPracasSemana1Map = new Map(
+      subPracasSemana1.map((item) => [(item.sub_praca || '').trim(), item])
+    );
+    const subPracasSemana2Map = new Map(
+      subPracasSemana2.map((item) => [(item.sub_praca || '').trim(), item])
+    );
+
+    const todasSubPracas = Array.from(
+      new Set([...subPracasSemana1Map.keys(), ...subPracasSemana2Map.keys()])
+    )
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    const subPracasComparativo = todasSubPracas.map((nome) => {
+      const itemSemana1 = subPracasSemana1Map.get(nome) || ({} as any);
+      const itemSemana2 = subPracasSemana2Map.get(nome) || ({} as any);
+      const horasPlanejadasBase = parseFloat(
+        itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0'
+      );
+      const horasSem1 = parseFloat(itemSemana1?.horas_entregues || '0');
+      const horasSem2 = parseFloat(itemSemana2?.horas_entregues || '0');
+      const aderenciaSem1 = itemSemana1?.aderencia_percentual || 0;
+      const aderenciaSem2 = itemSemana2?.aderencia_percentual || 0;
+
+      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
+      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
+      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
+
+      return {
+        nome: nome.toUpperCase(),
+        horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()),
+        semana1: {
+          aderencia: aderenciaSem1,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
+        },
+        semana2: {
+          aderencia: aderenciaSem2,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
+        },
+        variacoes: [
+          {
+            label: 'Δ Horas',
+            valor: formatarDiferenca(diffHoras, true),
+            positivo: diffHoras >= 0,
+          },
+          {
+            label: '% Horas',
+            valor: formatarDiferencaPercentual(diffHorasPercent),
+            positivo: diffHorasPercent >= 0,
+          },
+          {
+            label: '% Aderência',
+            valor: formatarDiferencaPercentual(diffAderenciaPercent),
+            positivo: diffAderenciaPercent >= 0,
+          },
+        ],
+      };
+    });
+
+    // Processar Dias
+    const diasSemana1Map = new Map((semana1.dia || []).map((item) => [item.dia_da_semana, item]));
+    const diasSemana2Map = new Map((semana2.dia || []).map((item) => [item.dia_da_semana, item]));
+
+    const semana1Dias = diasOrdem.map((dia) => {
+      const info = diasSemana1Map.get(dia) || ({} as any);
+      const horas = parseFloat(info?.horas_entregues || '0');
+      return {
+        nome: dia,
+        sigla: siglaDia(dia),
+        aderencia: info?.aderencia_percentual || 0,
+        horasEntregues: formatarHorasParaHMS(horas.toString()),
+      };
+    });
+
+    const semana2Dias = diasOrdem.map((dia) => {
+      const info1 = diasSemana1Map.get(dia) || ({} as any);
+      const info2 = diasSemana2Map.get(dia) || ({} as any);
+      const horas1 = parseFloat(info1?.horas_entregues || '0');
+      const horas2 = parseFloat(info2?.horas_entregues || '0');
+      const aderencia1Dia = info1?.aderencia_percentual || 0;
+      const aderencia2Dia = info2?.aderencia_percentual || 0;
+      return {
+        nome: dia,
+        sigla: siglaDia(dia),
+        aderencia: aderencia2Dia,
+        horasEntregues: formatarHorasParaHMS(horas2.toString()),
+        diferencaHoras: formatarDiferenca(calcularDiferenca(horas1, horas2), true),
+        diferencaHorasPositiva: horas2 - horas1 >= 0,
+        diferencaPercentualHoras: formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2)),
+        diferencaPercentualHorasPositiva: calcularDiferencaPercentual(horas1, horas2) >= 0,
+        diferencaAderencia: formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0)),
+        diferencaAderenciaPositiva: calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0) >= 0,
+      };
+    });
+
+    // Processar Turnos
+    const turnosSemana1 = semana1.turno || [];
+    const turnosSemana2 = semana2.turno || [];
+    const turnosSemana1Map = new Map(
+      turnosSemana1.map((turno) => [(turno.periodo || '').trim(), turno])
+    );
+    const turnosSemana2Map = new Map(
+      turnosSemana2.map((turno) => [(turno.periodo || '').trim(), turno])
+    );
+
+    const todosTurnos = Array.from(
+      new Set([...turnosSemana1Map.keys(), ...turnosSemana2Map.keys()])
+    )
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    const turnosComparativo = todosTurnos.map((nomeTurno) => {
+      const turnoSemana1 = turnosSemana1Map.get(nomeTurno) || ({} as any);
+      const turnoSemana2 = turnosSemana2Map.get(nomeTurno) || ({} as any);
+      const horasSem1 = parseFloat(turnoSemana1?.horas_entregues || '0');
+      const horasSem2 = parseFloat(turnoSemana2?.horas_entregues || '0');
+      const aderenciaSem1 = turnoSemana1?.aderencia_percentual || 0;
+      const aderenciaSem2 = turnoSemana2?.aderencia_percentual || 0;
+
+      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
+      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
+      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
+
+      return {
+        nome: nomeTurno.toUpperCase(),
+        semana1: {
+          aderencia: aderenciaSem1,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
+        },
+        semana2: {
+          aderencia: aderenciaSem2,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
+        },
+        variacoes: [
+          {
+            label: 'Δ Horas',
+            valor: formatarDiferenca(diffHoras, true),
+            positivo: diffHoras >= 0,
+          },
+          {
+            label: '% Horas',
+            valor: formatarDiferencaPercentual(diffHorasPercent),
+            positivo: diffHorasPercent >= 0,
+          },
+          {
+            label: '% Aderência',
+            valor: formatarDiferencaPercentual(diffAderenciaPercent),
+            positivo: diffAderenciaPercent >= 0,
+          },
+        ],
+      };
+    });
+
+    // Processar Origens
+    const origensSemana1 = semana1.origem || [];
+    const origensSemana2 = semana2.origem || [];
+    const origensSemana1Map = new Map(
+      origensSemana1.map((item) => [(item.origem || '').trim(), item])
+    );
+    const origensSemana2Map = new Map(
+      origensSemana2.map((item) => [(item.origem || '').trim(), item])
+    );
+
+    const todasOrigens = Array.from(
+      new Set([...origensSemana1Map.keys(), ...origensSemana2Map.keys()])
+    )
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    const origensComparativo = todasOrigens.map((origemNome) => {
+      const origemSemana1 = origensSemana1Map.get(origemNome) || ({} as any);
+      const origemSemana2 = origensSemana2Map.get(origemNome) || ({} as any);
+      const horasPlanejadasBase = parseFloat(
+        origemSemana1?.horas_a_entregar || origemSemana2?.horas_a_entregar || '0'
+      );
+      const horasSem1 = parseFloat(origemSemana1?.horas_entregues || '0');
+      const horasSem2 = parseFloat(origemSemana2?.horas_entregues || '0');
+      const aderenciaSem1 = origemSemana1?.aderencia_percentual || 0;
+      const aderenciaSem2 = origemSemana2?.aderencia_percentual || 0;
+
+      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
+      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
+      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
+
+      return {
+        nome: origemNome.toUpperCase(),
+        horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()),
+        semana1: {
+          aderencia: aderenciaSem1,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
+        },
+        semana2: {
+          aderencia: aderenciaSem2,
+          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
+        },
+        variacoes: [
+          {
+            label: 'Δ Horas',
+            valor: formatarDiferenca(diffHoras, true),
+            positivo: diffHoras >= 0,
+          },
+          {
+            label: '% Horas',
+            valor: formatarDiferencaPercentual(diffHorasPercent),
+            positivo: diffHorasPercent >= 0,
+          },
+          {
+            label: '% Aderência',
+            valor: formatarDiferencaPercentual(diffAderenciaPercent),
+            positivo: diffAderenciaPercent >= 0,
+          },
+        ],
+      };
+    });
+
+    // Processar Demanda
+    const totaisSemana1 = semana1.totais || {};
+    const totaisSemana2 = semana2.totais || {};
+
+    const demandaItens = [
+      {
+        label: 'Ofertadas',
+        icone: '📦',
+        valor1: Number(totaisSemana1.corridas_ofertadas || 0),
+        valor2: Number(totaisSemana2.corridas_ofertadas || 0),
+      },
+      {
+        label: 'Aceitas',
+        icone: '🤝',
+        valor1: Number(totaisSemana1.corridas_aceitas || 0),
+        valor2: Number(totaisSemana2.corridas_aceitas || 0),
+      },
+      {
+        label: 'Completadas',
+        icone: '🏁',
+        valor1: Number(totaisSemana1.corridas_completadas || 0),
+        valor2: Number(totaisSemana2.corridas_completadas || 0),
+      },
+      {
+        label: 'Rejeitadas',
+        icone: '⛔',
+        valor1: Number(totaisSemana1.corridas_rejeitadas || 0),
+        valor2: Number(totaisSemana2.corridas_rejeitadas || 0),
+      },
+    ].map((item) => {
+      const diffValor = calcularDiferenca(item.valor1, item.valor2);
+      const diffPercent = calcularDiferencaPercentual(item.valor1 || 0.0001, item.valor2 || 0);
+      return {
+        label: item.label,
+        icone: item.icone,
+        semana1Valor: formatarNumeroInteiro(item.valor1),
+        semana2Valor: formatarNumeroInteiro(item.valor2),
+        variacaoValor: formatarDiferenca(diffValor),
+        variacaoPositiva: diffValor >= 0,
+        variacaoPercentual: formatarDiferencaPercentual(diffPercent),
+        variacaoPercentualPositiva: diffPercent >= 0,
+      };
+    });
+
+    return {
+      resumoSemana1,
+      resumoSemana2,
+      variacaoResumo,
+      subPracasComparativo,
+      semana1Dias,
+      semana2Dias,
+      turnosComparativo,
+      origensComparativo,
+      demandaItens,
+    };
+  }, [semana1, semana2, numeroSemana1, numeroSemana2, aderencia1, aderencia2, horasEntregues1, horasEntregues2, horasPlanejadas1, horasPlanejadas2]);
+
+  const slides = useMemo(() => {
+    if (!dadosProcessados) {
+      safeLog.warn('ApresentacaoView: dados insuficientes para gerar slides', {
+        total: dadosComparacao.length,
+      });
+      return [] as Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
+    }
+
+    const slidesConfig: Array<{ key: string; render: (visible: boolean) => React.ReactNode }> = [];
+    const { resumoSemana1, resumoSemana2, variacaoResumo, subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, demandaItens } = dadosProcessados;
 
     slidesConfig.push({
       key: 'capa',
@@ -210,67 +500,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       ),
     });
 
-    const subPracasSemana1 = semana1.sub_praca || [];
-    const subPracasSemana2 = semana2.sub_praca || [];
-    const subPracasSemana1Map = new Map(
-      subPracasSemana1.map((item) => [(item.sub_praca || '').trim(), item])
-    );
-    const subPracasSemana2Map = new Map(
-      subPracasSemana2.map((item) => [(item.sub_praca || '').trim(), item])
-    );
-
-    const todasSubPracas = Array.from(
-      new Set([...subPracasSemana1Map.keys(), ...subPracasSemana2Map.keys()])
-    )
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-    const subPracasComparativo = todasSubPracas.map((nome) => {
-      const itemSemana1 = subPracasSemana1Map.get(nome) || ({} as any);
-      const itemSemana2 = subPracasSemana2Map.get(nome) || ({} as any);
-      const horasPlanejadasBase = parseFloat(
-        itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0'
-      );
-      const horasSem1 = parseFloat(itemSemana1?.horas_entregues || '0');
-      const horasSem2 = parseFloat(itemSemana2?.horas_entregues || '0');
-      const aderenciaSem1 = itemSemana1?.aderencia_percentual || 0;
-      const aderenciaSem2 = itemSemana2?.aderencia_percentual || 0;
-
-      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
-      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
-      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
-
-      return {
-        nome: nome.toUpperCase(),
-        horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()),
-        semana1: {
-          aderencia: aderenciaSem1,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
-        },
-        semana2: {
-          aderencia: aderenciaSem2,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
-        },
-        variacoes: [
-          {
-            label: 'Δ Horas',
-            valor: formatarDiferenca(diffHoras, true),
-            positivo: diffHoras >= 0,
-          },
-          {
-            label: '% Horas',
-            valor: formatarDiferencaPercentual(diffHorasPercent),
-            positivo: diffHorasPercent >= 0,
-          },
-          {
-            label: '% Aderência',
-            valor: formatarDiferencaPercentual(diffAderenciaPercent),
-            positivo: diffAderenciaPercent >= 0,
-          },
-        ],
-      };
-    });
-
     const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
     subPracasPaginas.forEach((pagina, indice) => {
       slidesConfig.push({
@@ -288,41 +517,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       });
     });
 
-    const diasSemana1Map = new Map((semana1.dia || []).map((item) => [item.dia_da_semana, item]));
-    const diasSemana2Map = new Map((semana2.dia || []).map((item) => [item.dia_da_semana, item]));
-
-    const semana1Dias = diasOrdem.map((dia) => {
-      const info = diasSemana1Map.get(dia) || ({} as any);
-      const horas = parseFloat(info?.horas_entregues || '0');
-      return {
-        nome: dia,
-        sigla: siglaDia(dia),
-        aderencia: info?.aderencia_percentual || 0,
-        horasEntregues: formatarHorasParaHMS(horas.toString()),
-      };
-    });
-
-    const semana2Dias = diasOrdem.map((dia) => {
-      const info1 = diasSemana1Map.get(dia) || ({} as any);
-      const info2 = diasSemana2Map.get(dia) || ({} as any);
-      const horas1 = parseFloat(info1?.horas_entregues || '0');
-      const horas2 = parseFloat(info2?.horas_entregues || '0');
-      const aderencia1Dia = info1?.aderencia_percentual || 0;
-      const aderencia2Dia = info2?.aderencia_percentual || 0;
-      return {
-        nome: dia,
-        sigla: siglaDia(dia),
-        aderencia: aderencia2Dia,
-        horasEntregues: formatarHorasParaHMS(horas2.toString()),
-        diferencaHoras: formatarDiferenca(calcularDiferenca(horas1, horas2), true),
-        diferencaHorasPositiva: horas2 - horas1 >= 0,
-        diferencaPercentualHoras: formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2)),
-        diferencaPercentualHorasPositiva: calcularDiferencaPercentual(horas1, horas2) >= 0,
-        diferencaAderencia: formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0)),
-        diferencaAderenciaPositiva: calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0) >= 0,
-      };
-    });
-
     slidesConfig.push({
       key: 'aderencia-diaria',
       render: (visible) => (
@@ -334,63 +528,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           semana2Dias={semana2Dias}
         />
       ),
-    });
-
-    const turnosSemana1 = semana1.turno || [];
-    const turnosSemana2 = semana2.turno || [];
-    const turnosSemana1Map = new Map(
-      turnosSemana1.map((turno) => [(turno.periodo || '').trim(), turno])
-    );
-    const turnosSemana2Map = new Map(
-      turnosSemana2.map((turno) => [(turno.periodo || '').trim(), turno])
-    );
-
-    const todosTurnos = Array.from(
-      new Set([...turnosSemana1Map.keys(), ...turnosSemana2Map.keys()])
-    )
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-    const turnosComparativo = todosTurnos.map((nomeTurno) => {
-      const turnoSemana1 = turnosSemana1Map.get(nomeTurno) || ({} as any);
-      const turnoSemana2 = turnosSemana2Map.get(nomeTurno) || ({} as any);
-      const horasSem1 = parseFloat(turnoSemana1?.horas_entregues || '0');
-      const horasSem2 = parseFloat(turnoSemana2?.horas_entregues || '0');
-      const aderenciaSem1 = turnoSemana1?.aderencia_percentual || 0;
-      const aderenciaSem2 = turnoSemana2?.aderencia_percentual || 0;
-
-      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
-      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
-      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
-
-      return {
-        nome: nomeTurno.toUpperCase(),
-        semana1: {
-          aderencia: aderenciaSem1,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
-        },
-        semana2: {
-          aderencia: aderenciaSem2,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
-        },
-        variacoes: [
-          {
-            label: 'Δ Horas',
-            valor: formatarDiferenca(diffHoras, true),
-            positivo: diffHoras >= 0,
-          },
-          {
-            label: '% Horas',
-            valor: formatarDiferencaPercentual(diffHorasPercent),
-            positivo: diffHorasPercent >= 0,
-          },
-          {
-            label: '% Aderência',
-            valor: formatarDiferencaPercentual(diffAderenciaPercent),
-            positivo: diffAderenciaPercent >= 0,
-          },
-        ],
-      };
     });
 
     const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
@@ -410,67 +547,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       });
     });
 
-    const origensSemana1 = semana1.origem || [];
-    const origensSemana2 = semana2.origem || [];
-    const origensSemana1Map = new Map(
-      origensSemana1.map((item) => [(item.origem || '').trim(), item])
-    );
-    const origensSemana2Map = new Map(
-      origensSemana2.map((item) => [(item.origem || '').trim(), item])
-    );
-
-    const todasOrigens = Array.from(
-      new Set([...origensSemana1Map.keys(), ...origensSemana2Map.keys()])
-    )
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-    const origensComparativo = todasOrigens.map((origemNome) => {
-      const origemSemana1 = origensSemana1Map.get(origemNome) || ({} as any);
-      const origemSemana2 = origensSemana2Map.get(origemNome) || ({} as any);
-      const horasPlanejadasBase = parseFloat(
-        origemSemana1?.horas_a_entregar || origemSemana2?.horas_a_entregar || '0'
-      );
-      const horasSem1 = parseFloat(origemSemana1?.horas_entregues || '0');
-      const horasSem2 = parseFloat(origemSemana2?.horas_entregues || '0');
-      const aderenciaSem1 = origemSemana1?.aderencia_percentual || 0;
-      const aderenciaSem2 = origemSemana2?.aderencia_percentual || 0;
-
-      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
-      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
-      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
-
-      return {
-        nome: origemNome.toUpperCase(),
-        horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()),
-        semana1: {
-          aderencia: aderenciaSem1,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
-        },
-        semana2: {
-          aderencia: aderenciaSem2,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
-        },
-        variacoes: [
-          {
-            label: 'Δ Horas',
-            valor: formatarDiferenca(diffHoras, true),
-            positivo: diffHoras >= 0,
-          },
-          {
-            label: '% Horas',
-            valor: formatarDiferencaPercentual(diffHorasPercent),
-            positivo: diffHorasPercent >= 0,
-          },
-          {
-            label: '% Aderência',
-            valor: formatarDiferencaPercentual(diffAderenciaPercent),
-            positivo: diffAderenciaPercent >= 0,
-          },
-        ],
-      };
-    });
-
     const origensPaginas = chunkArray(origensComparativo, ORIGENS_PER_PAGE);
     origensPaginas.forEach((pagina, indice) => {
       slidesConfig.push({
@@ -488,49 +564,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       });
     });
 
-    const totaisSemana1 = semana1.totais || {};
-    const totaisSemana2 = semana2.totais || {};
-
-    const demandaItens = [
-      {
-        label: 'Ofertadas',
-        icone: '📦',
-        valor1: Number(totaisSemana1.corridas_ofertadas || 0),
-        valor2: Number(totaisSemana2.corridas_ofertadas || 0),
-      },
-      {
-        label: 'Aceitas',
-        icone: '🤝',
-        valor1: Number(totaisSemana1.corridas_aceitas || 0),
-        valor2: Number(totaisSemana2.corridas_aceitas || 0),
-      },
-      {
-        label: 'Completadas',
-        icone: '🏁',
-        valor1: Number(totaisSemana1.corridas_completadas || 0),
-        valor2: Number(totaisSemana2.corridas_completadas || 0),
-      },
-      {
-        label: 'Rejeitadas',
-        icone: '⛔',
-        valor1: Number(totaisSemana1.corridas_rejeitadas || 0),
-        valor2: Number(totaisSemana2.corridas_rejeitadas || 0),
-      },
-    ].map((item) => {
-      const diffValor = calcularDiferenca(item.valor1, item.valor2);
-      const diffPercent = calcularDiferencaPercentual(item.valor1 || 0.0001, item.valor2 || 0);
-      return {
-        label: item.label,
-        icone: item.icone,
-        semana1Valor: formatarNumeroInteiro(item.valor1),
-        semana2Valor: formatarNumeroInteiro(item.valor2),
-        variacaoValor: formatarDiferenca(diffValor),
-        variacaoPositiva: diffValor >= 0,
-        variacaoPercentual: formatarDiferencaPercentual(diffPercent),
-        variacaoPercentualPositiva: diffPercent >= 0,
-      };
-    });
-
     slidesConfig.push({
       key: 'demanda',
       render: (visible) => (
@@ -544,22 +577,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     });
 
     return slidesConfig;
-  }, [
-    semana1,
-    semana2,
-    numeroSemana1,
-    numeroSemana2,
-    aderencia1,
-    aderencia2,
-    horasEntregues1,
-    horasEntregues2,
-    horasPlanejadas1,
-    horasPlanejadas2,
-    periodoSemana1,
-    periodoSemana2,
-    pracaSelecionada,
-    dadosComparacao.length,
-  ]);
+  }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada]);
 
   useEffect(() => {
     setCurrentSlide((prev) => {
@@ -568,11 +586,12 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     });
   }, [slides.length]);
 
-  // Preparar dados dos slides para pdfmake
+  // Preparar dados dos slides para pdfmake - reutiliza dadosProcessados
   const slidesPDFData = useMemo(() => {
-    if (!semana1 || !semana2) return [];
+    if (!dadosProcessados) return [];
 
     const pdfSlides: any[] = [];
+    const { resumoSemana1, resumoSemana2, variacaoResumo, subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, demandaItens } = dadosProcessados;
 
     // Slide Capa
     pdfSlides.push(
@@ -580,90 +599,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     );
 
     // Slide Aderência Geral
-    const resumoSemana1 = {
-      numeroSemana: numeroSemana1,
-      aderencia: aderencia1,
-      horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadas1).toString()),
-      horasEntregues: formatarHorasParaHMS(Math.abs(horasEntregues1).toString()),
-    };
-
-    const resumoSemana2 = {
-      numeroSemana: numeroSemana2,
-      aderencia: aderencia2,
-      horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadas2).toString()),
-      horasEntregues: formatarHorasParaHMS(Math.abs(horasEntregues2).toString()),
-    };
-
-    const variacaoResumo = {
-      horasDiferenca: formatarDiferenca(calcularDiferenca(horasEntregues1, horasEntregues2), true),
-      horasPercentual: formatarDiferencaPercentual(calcularDiferencaPercentual(horasEntregues1, horasEntregues2)),
-      positiva: horasEntregues2 >= horasEntregues1,
-    };
-
     pdfSlides.push(criarSlideAderenciaGeral(resumoSemana1, resumoSemana2, variacaoResumo));
 
     // Slides Sub-Praças
-    const subPracasSemana1 = semana1.sub_praca || [];
-    const subPracasSemana2 = semana2.sub_praca || [];
-    const subPracasSemana1Map = new Map(
-      subPracasSemana1.map((item) => [(item.sub_praca || '').trim(), item])
-    );
-    const subPracasSemana2Map = new Map(
-      subPracasSemana2.map((item) => [(item.sub_praca || '').trim(), item])
-    );
-
-    const todasSubPracas = Array.from(
-      new Set([...subPracasSemana1Map.keys(), ...subPracasSemana2Map.keys()])
-    )
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-    const subPracasComparativo = todasSubPracas.map((nome) => {
-      const itemSemana1 = subPracasSemana1Map.get(nome) || ({} as any);
-      const itemSemana2 = subPracasSemana2Map.get(nome) || ({} as any);
-      const horasPlanejadasBase = parseFloat(
-        itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0'
-      );
-      const horasSem1 = parseFloat(itemSemana1?.horas_entregues || '0');
-      const horasSem2 = parseFloat(itemSemana2?.horas_entregues || '0');
-      const aderenciaSem1 = itemSemana1?.aderencia_percentual || 0;
-      const aderenciaSem2 = itemSemana2?.aderencia_percentual || 0;
-
-      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
-      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
-      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
-
-      return {
-        nome: nome.toUpperCase(),
-        horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()),
-        semana1: {
-          aderencia: aderenciaSem1,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
-        },
-        semana2: {
-          aderencia: aderenciaSem2,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
-        },
-        variacoes: [
-          {
-            label: 'Δ Horas',
-            valor: formatarDiferenca(diffHoras, true),
-            positivo: diffHoras >= 0,
-          },
-          {
-            label: '% Horas',
-            valor: formatarDiferencaPercentual(diffHorasPercent),
-            positivo: diffHorasPercent >= 0,
-          },
-          {
-            label: '% Aderência',
-            valor: formatarDiferencaPercentual(diffAderenciaPercent),
-            positivo: diffAderenciaPercent >= 0,
-          },
-        ],
-      };
-    });
-
     const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
     subPracasPaginas.forEach((pagina, indice) => {
       pdfSlides.push(
@@ -678,101 +616,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     });
 
     // Slide Aderência Diária
-    const diasSemana1Map = new Map((semana1.dia || []).map((item) => [item.dia_da_semana, item]));
-    const diasSemana2Map = new Map((semana2.dia || []).map((item) => [item.dia_da_semana, item]));
-
-    const semana1Dias = diasOrdem.map((dia) => {
-      const info = diasSemana1Map.get(dia) || ({} as any);
-      const horas = parseFloat(info?.horas_entregues || '0');
-      return {
-        nome: dia,
-        sigla: siglaDia(dia),
-        aderencia: info?.aderencia_percentual || 0,
-        horasEntregues: formatarHorasParaHMS(horas.toString()),
-      };
-    });
-
-    const semana2Dias = diasOrdem.map((dia) => {
-      const info1 = diasSemana1Map.get(dia) || ({} as any);
-      const info2 = diasSemana2Map.get(dia) || ({} as any);
-      const horas1 = parseFloat(info1?.horas_entregues || '0');
-      const horas2 = parseFloat(info2?.horas_entregues || '0');
-      const aderencia1Dia = info1?.aderencia_percentual || 0;
-      const aderencia2Dia = info2?.aderencia_percentual || 0;
-      return {
-        nome: dia,
-        sigla: siglaDia(dia),
-        aderencia: aderencia2Dia,
-        horasEntregues: formatarHorasParaHMS(horas2.toString()),
-        diferencaHoras: formatarDiferenca(calcularDiferenca(horas1, horas2), true),
-        diferencaHorasPositiva: horas2 - horas1 >= 0,
-        diferencaPercentualHoras: formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2)),
-        diferencaPercentualHorasPositiva: calcularDiferencaPercentual(horas1, horas2) >= 0,
-        diferencaAderencia: formatarDiferencaPercentual(calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0)),
-        diferencaAderenciaPositiva: calcularDiferencaPercentual(aderencia1Dia || 0.0001, aderencia2Dia || 0) >= 0,
-      };
-    });
-
     pdfSlides.push(criarSlideAderenciaDiaria(numeroSemana1, numeroSemana2, semana1Dias, semana2Dias));
 
     // Slides Turnos
-    const turnosSemana1 = semana1.turno || [];
-    const turnosSemana2 = semana2.turno || [];
-    const turnosSemana1Map = new Map(
-      turnosSemana1.map((turno) => [(turno.periodo || '').trim(), turno])
-    );
-    const turnosSemana2Map = new Map(
-      turnosSemana2.map((turno) => [(turno.periodo || '').trim(), turno])
-    );
-
-    const todosTurnos = Array.from(
-      new Set([...turnosSemana1Map.keys(), ...turnosSemana2Map.keys()])
-    )
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-    const turnosComparativo = todosTurnos.map((nomeTurno) => {
-      const turnoSemana1 = turnosSemana1Map.get(nomeTurno) || ({} as any);
-      const turnoSemana2 = turnosSemana2Map.get(nomeTurno) || ({} as any);
-      const horasSem1 = parseFloat(turnoSemana1?.horas_entregues || '0');
-      const horasSem2 = parseFloat(turnoSemana2?.horas_entregues || '0');
-      const aderenciaSem1 = turnoSemana1?.aderencia_percentual || 0;
-      const aderenciaSem2 = turnoSemana2?.aderencia_percentual || 0;
-
-      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
-      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
-      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
-
-      return {
-        nome: nomeTurno.toUpperCase(),
-        semana1: {
-          aderencia: aderenciaSem1,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
-        },
-        semana2: {
-          aderencia: aderenciaSem2,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
-        },
-        variacoes: [
-          {
-            label: 'Δ Horas',
-            valor: formatarDiferenca(diffHoras, true),
-            positivo: diffHoras >= 0,
-          },
-          {
-            label: '% Horas',
-            valor: formatarDiferencaPercentual(diffHorasPercent),
-            positivo: diffHorasPercent >= 0,
-          },
-          {
-            label: '% Aderência',
-            valor: formatarDiferencaPercentual(diffAderenciaPercent),
-            positivo: diffAderenciaPercent >= 0,
-          },
-        ],
-      };
-    });
-
     const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
     turnosPaginas.forEach((pagina, indice) => {
       pdfSlides.push(
@@ -787,67 +633,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     });
 
     // Slides Origens
-    const origensSemana1 = semana1.origem || [];
-    const origensSemana2 = semana2.origem || [];
-    const origensSemana1Map = new Map(
-      origensSemana1.map((item) => [(item.origem || '').trim(), item])
-    );
-    const origensSemana2Map = new Map(
-      origensSemana2.map((item) => [(item.origem || '').trim(), item])
-    );
-
-    const todasOrigens = Array.from(
-      new Set([...origensSemana1Map.keys(), ...origensSemana2Map.keys()])
-    )
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-    const origensComparativo = todasOrigens.map((origemNome) => {
-      const origemSemana1 = origensSemana1Map.get(origemNome) || ({} as any);
-      const origemSemana2 = origensSemana2Map.get(origemNome) || ({} as any);
-      const horasPlanejadasBase = parseFloat(
-        origemSemana1?.horas_a_entregar || origemSemana2?.horas_a_entregar || '0'
-      );
-      const horasSem1 = parseFloat(origemSemana1?.horas_entregues || '0');
-      const horasSem2 = parseFloat(origemSemana2?.horas_entregues || '0');
-      const aderenciaSem1 = origemSemana1?.aderencia_percentual || 0;
-      const aderenciaSem2 = origemSemana2?.aderencia_percentual || 0;
-
-      const diffHoras = calcularDiferenca(horasSem1, horasSem2);
-      const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
-      const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
-
-      return {
-        nome: origemNome.toUpperCase(),
-        horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()),
-        semana1: {
-          aderencia: aderenciaSem1,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
-        },
-        semana2: {
-          aderencia: aderenciaSem2,
-          horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
-        },
-        variacoes: [
-          {
-            label: 'Δ Horas',
-            valor: formatarDiferenca(diffHoras, true),
-            positivo: diffHoras >= 0,
-          },
-          {
-            label: '% Horas',
-            valor: formatarDiferencaPercentual(diffHorasPercent),
-            positivo: diffHorasPercent >= 0,
-          },
-          {
-            label: '% Aderência',
-            valor: formatarDiferencaPercentual(diffAderenciaPercent),
-            positivo: diffAderenciaPercent >= 0,
-          },
-        ],
-      };
-    });
-
     const origensPaginas = chunkArray(origensComparativo, ORIGENS_PER_PAGE);
     origensPaginas.forEach((pagina, indice) => {
       pdfSlides.push(
@@ -862,67 +647,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     });
 
     // Slide Demanda e Rejeições
-    const totaisSemana1 = semana1.totais || {};
-    const totaisSemana2 = semana2.totais || {};
-
-    const demandaItens = [
-      {
-        label: 'Ofertadas',
-        icone: '📦',
-        valor1: Number(totaisSemana1.corridas_ofertadas || 0),
-        valor2: Number(totaisSemana2.corridas_ofertadas || 0),
-      },
-      {
-        label: 'Aceitas',
-        icone: '🤝',
-        valor1: Number(totaisSemana1.corridas_aceitas || 0),
-        valor2: Number(totaisSemana2.corridas_aceitas || 0),
-      },
-      {
-        label: 'Completadas',
-        icone: '🏁',
-        valor1: Number(totaisSemana1.corridas_completadas || 0),
-        valor2: Number(totaisSemana2.corridas_completadas || 0),
-      },
-      {
-        label: 'Rejeitadas',
-        icone: '⛔',
-        valor1: Number(totaisSemana1.corridas_rejeitadas || 0),
-        valor2: Number(totaisSemana2.corridas_rejeitadas || 0),
-      },
-    ].map((item) => {
-      const diffValor = calcularDiferenca(item.valor1, item.valor2);
-      const diffPercent = calcularDiferencaPercentual(item.valor1 || 0.0001, item.valor2 || 0);
-      return {
-        label: item.label,
-        icone: item.icone,
-        semana1Valor: formatarNumeroInteiro(item.valor1),
-        semana2Valor: formatarNumeroInteiro(item.valor2),
-        variacaoValor: formatarDiferenca(diffValor),
-        variacaoPositiva: diffValor >= 0,
-        variacaoPercentual: formatarDiferencaPercentual(diffPercent),
-        variacaoPercentualPositiva: diffPercent >= 0,
-      };
-    });
-
     pdfSlides.push(criarSlideDemandaRejeicoes(numeroSemana1, numeroSemana2, demandaItens));
 
     return pdfSlides;
-  }, [
-    semana1,
-    semana2,
-    numeroSemana1,
-    numeroSemana2,
-    aderencia1,
-    aderencia2,
-    horasEntregues1,
-    horasEntregues2,
-    horasPlanejadas1,
-    horasPlanejadas2,
-    periodoSemana1,
-    periodoSemana2,
-    pracaSelecionada,
-  ]);
+  }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada]);
 
   const gerarPDF = async () => {
     console.log('🔵 gerarPDF chamado');

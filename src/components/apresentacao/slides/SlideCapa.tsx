@@ -10,7 +10,7 @@ interface SlideCapaProps {
   periodoSemana2: string;
 }
 
-const SlideCapa: React.FC<SlideCapaProps> = ({
+const SlideCapa: React.FC<SlideCapaProps> = React.memo(({
   isVisible,
   pracaSelecionada,
   numeroSemana1,
@@ -43,7 +43,9 @@ const SlideCapa: React.FC<SlideCapaProps> = ({
       </div>
     </SlideWrapper>
   );
-};
+});
+
+SlideCapa.displayName = 'SlideCapa';
 
 export default SlideCapa;
 

@@ -76,6 +76,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         cachedDataRef.current = data;
         cacheKeyRef.current = payloadKey;
 
+        // Atualizar estados de forma otimizada
         setTotals({
             ofertadas: safeNumber(data.totais?.corridas_ofertadas ?? 0),
             aceitas: safeNumber(data.totais?.corridas_aceitas ?? 0),
@@ -118,7 +119,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       } finally {
         setLoading(false);
       }
-    }, 150);
+    }, 100); // Reduzido de 150ms para 100ms para melhor responsividade
 
     return () => {
       if (dashboardDebounceRef.current) clearTimeout(dashboardDebounceRef.current);

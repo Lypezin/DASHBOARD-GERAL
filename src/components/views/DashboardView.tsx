@@ -4,7 +4,7 @@ import AderenciaCard from '../AderenciaCard';
 import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor, getAderenciaColorHex } from '@/utils/formatters';
 import { useTheme } from '@/contexts/ThemeContext';
 
-function DashboardView({
+const DashboardView = React.memo(function DashboardView({
   aderenciaGeral,
   aderenciaDia,
   aderenciaTurno,
@@ -228,6 +228,8 @@ function DashboardView({
       </div>
     </div>
   );
-}
+});
+
+DashboardView.displayName = 'DashboardView';
 
 export default DashboardView;

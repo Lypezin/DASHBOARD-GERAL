@@ -28,7 +28,7 @@ const buildCircleDasharray = (valor: number) => {
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
-const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
+const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({
   isVisible,
   semana1,
   semana2,
@@ -270,7 +270,9 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = ({
       </div>
     </SlideWrapper>
   );
-};
+});
+
+SlideAderenciaGeral.displayName = 'SlideAderenciaGeral';
 
 export default SlideAderenciaGeral;
 
