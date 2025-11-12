@@ -51,17 +51,12 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     // Se já sabemos que a função não está disponível, verificar se podemos tentar novamente
     if (functionAvailability.status === false) {
       const timeSinceLastCheck = Date.now() - functionAvailability.lastCheck;
-      // Se passou o intervalo, permitir uma nova tentativa
+      // Se ainda não passou o intervalo, não tentar chamar
       if (timeSinceLastCheck < functionAvailability.checkInterval) {
         return;
       }
       // Resetar status para tentar novamente
       functionAvailability.status = null;
-    }
-    
-    // Se ainda não verificou ou resetou, tentar chamar
-    if (functionAvailability.status === false) {
-      return;
     }
     
     try {
