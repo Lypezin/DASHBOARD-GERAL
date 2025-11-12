@@ -52,6 +52,17 @@ const nextConfig = {
     return config;
   },
 
+  // Redirects
+  async redirects() {
+    return [
+      {
+        source: '/favicon.ico',
+        destination: '/favicon.svg',
+        permanent: true,
+      },
+    ];
+  },
+
   // Headers de segurança e performance
   async headers() {
     return [

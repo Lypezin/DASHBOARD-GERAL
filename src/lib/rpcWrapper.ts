@@ -70,14 +70,18 @@ export async function safeRpc<T = any>(
     
     // Se houver erro, sanitizar mensagem em produção
     if (result.error) {
-      // Verificar se é erro 404 (função não encontrada)
+      // Verificar se é erro 400/404 (função não encontrada ou parâmetros inválidos)
       const errorCode = (result.error as any)?.code;
-      const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
-                    (result.error as any)?.message?.includes('404') ||
-                    (result.error as any)?.message?.includes('not found');
+      const errorMessage = String((result.error as any)?.message || '');
+      const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                         errorCode === 'PGRST204' || // Bad Request
+                         errorMessage.includes('400') ||
+                         errorMessage.includes('404') ||
+                         errorMessage.includes('not found') ||
+                         errorMessage.includes('invalid input');
       
-      if (is404 && !IS_DEV) {
-        // Em produção, não logar erros 404 para não poluir o console
+      if (is400or404 && !IS_DEV) {
+        // Em produção, não logar erros 400/404 para não poluir o console
         // Apenas retornar erro silenciosamente
       }
       

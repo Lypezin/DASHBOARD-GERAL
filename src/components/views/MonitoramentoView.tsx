@@ -143,12 +143,34 @@ function MonitoramentoView() {
         setDistribuicaoHora(horaResult.value.data || []);
       }
 
-      if (topResult.status === 'fulfilled' && !topResult.value.error) {
-        setTopUsuarios(topResult.value.data || []);
+      if (topResult.status === 'fulfilled') {
+        if (!topResult.value.error) {
+          setTopUsuarios(topResult.value.data || []);
+        } else {
+          // Tratar erros 400/404 silenciosamente
+          const errorCode = (topResult.value.error as any)?.code;
+          const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                            (topResult.value.error as any)?.message?.includes('400') ||
+                            (topResult.value.error as any)?.message?.includes('404');
+          if (!is400or404 && process.env.NODE_ENV === 'development') {
+            safeLog.warn('Erro ao buscar top_usuarios_ativos:', topResult.value.error);
+          }
+        }
       }
 
-      if (abaResult.status === 'fulfilled' && !abaResult.value.error) {
-        setDistribuicaoAba(abaResult.value.data || []);
+      if (abaResult.status === 'fulfilled') {
+        if (!abaResult.value.error) {
+          setDistribuicaoAba(abaResult.value.data || []);
+        } else {
+          // Tratar erros 400/404 silenciosamente
+          const errorCode = (abaResult.value.error as any)?.code;
+          const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                            (abaResult.value.error as any)?.message?.includes('400') ||
+                            (abaResult.value.error as any)?.message?.includes('404');
+          if (!is400or404 && process.env.NODE_ENV === 'development') {
+            safeLog.warn('Erro ao buscar distribuicao_por_aba:', abaResult.value.error);
+          }
+        }
       }
 
       if (alertasResult.status === 'fulfilled' && !alertasResult.value.error) {
