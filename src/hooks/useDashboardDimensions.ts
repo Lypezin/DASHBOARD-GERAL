@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -14,8 +15,14 @@ export function useDashboardDimensions() {
       setLoading(true);
       try {
         const [anosResult, semanasResult] = await Promise.all([
-          supabase.rpc('listar_anos_disponiveis'),
-          supabase.rpc('listar_todas_semanas')
+          safeRpc<number[]>('listar_anos_disponiveis', {}, {
+            timeout: 30000,
+            validateParams: false
+          }),
+          safeRpc<any[]>('listar_todas_semanas', {}, {
+            timeout: 30000,
+            validateParams: false
+          })
         ]);
 
         if (anosResult.error) throw anosResult.error;

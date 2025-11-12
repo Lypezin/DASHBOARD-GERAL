@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { FilterOption, DashboardResumoData } from '@/types';
 import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 import FiltroSelect from '@/components/FiltroSelect';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { buildFilterPayload } from '@/utils/helpers';
@@ -68,7 +69,10 @@ function ComparacaoView({
   useEffect(() => {
     async function fetchTodasSemanas() {
       try {
-        const { data, error } = await supabase.rpc('listar_todas_semanas');
+        const { data, error } = await safeRpc<any[]>('listar_todas_semanas', {}, {
+          timeout: 30000,
+          validateParams: false
+        });
         if (!error && data) {
           setTodasSemanas(data);
         }
@@ -142,7 +146,10 @@ function ComparacaoView({
         const filtro = buildFilterPayload(filters, currentUser);
         
         // Buscar dados do dashboard
-        const { data, error } = await supabase.rpc('dashboard_resumo', filtro);
+        const { data, error } = await safeRpc<DashboardResumoData>('dashboard_resumo', filtro, {
+          timeout: 30000,
+          validateParams: true
+        });
         if (error) throw error;
         
         return { semana, dados: data as DashboardResumoData };
@@ -173,7 +180,10 @@ function ComparacaoView({
         
         const filtro = buildFilterPayload(filters, currentUser);
         
-        const { data, error } = await supabase.rpc('calcular_utr', filtro);
+        const { data, error } = await safeRpc<any>('calcular_utr', filtro, {
+          timeout: 30000,
+          validateParams: true
+        });
         if (error) throw error;
         
         return { semana, utr: data };

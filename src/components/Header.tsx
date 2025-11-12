@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import Image from 'next/image';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -54,7 +55,10 @@ export function Header() {
     }
 
     try {
-      const { data: profile, error } = await supabase.rpc('get_current_user_profile') as { data: UserProfile | null; error: any };
+      const { data: profile, error } = await safeRpc<UserProfile>('get_current_user_profile', {}, {
+        timeout: 10000,
+        validateParams: false
+      });
       
       if (error) throw error;
 

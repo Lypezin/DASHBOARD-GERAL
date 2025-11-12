@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
 import Image from 'next/image';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -44,7 +45,10 @@ export default function PerfilPage() {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase.rpc('get_current_user_profile') as { data: UserProfile | null; error: any };
+      const { data: profile, error: profileError } = await safeRpc<UserProfile>('get_current_user_profile', {}, {
+        timeout: 10000,
+        validateParams: false
+      });
       
       if (profileError) throw profileError;
 
@@ -270,9 +274,12 @@ export default function PerfilPage() {
         if (IS_DEV) safeLog.error('❌ Erro no upsert direto:', updateError);
         
         // Se não conseguir atualizar na tabela, tentar atualizar via RPC
-        const { error: rpcError } = await supabase.rpc('update_user_avatar', {
+        const { error: rpcError } = await safeRpc('update_user_avatar', {
           p_user_id: authUser.id,
           p_avatar_url: publicUrl
+        }, {
+          timeout: 30000,
+          validateParams: true
         });
 
         if (rpcError) {
@@ -357,9 +364,12 @@ export default function PerfilPage() {
         });
 
       if (updateError) {
-        const { error: rpcError } = await supabase.rpc('update_user_avatar', {
+        const { error: rpcError } = await safeRpc('update_user_avatar', {
           p_user_id: authUser.id,
           p_avatar_url: null
+        }, {
+          timeout: 30000,
+          validateParams: true
         });
 
         if (rpcError) {
@@ -404,10 +414,13 @@ export default function PerfilPage() {
 
       // Primeiro, tentar atualizar via RPC (se existir)
       try {
-        const { data: rpcData, error: rpcError } = await supabase.rpc('update_user_full_name', {
+        const { data: rpcData, error: rpcError } = await safeRpc<{ success?: boolean; error?: string }>('update_user_full_name', {
           p_user_id: authUser.id,
           p_full_name: trimmedName
-        }) as { data: { success?: boolean; error?: string } | null; error: any };
+        }, {
+          timeout: 30000,
+          validateParams: true
+        });
 
         if (!rpcError && rpcData && (rpcData as any).success) {
           // RPC funcionou, continuar

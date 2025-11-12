@@ -4,6 +4,7 @@ import { UsuarioOnline } from '@/types';
 import MetricCard from '../MetricCard';
 import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
 import { sanitizeText } from '@/lib/sanitize';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -108,24 +109,24 @@ function MonitoramentoView() {
       const { inicio, fim } = getPeriodoDatas(periodoAnalise);
       
       const [statsResult, horaResult, topResult, abaResult, alertasResult] = await Promise.allSettled([
-        supabase.rpc('estatisticas_atividade_periodo', {
+        safeRpc<EstatisticasPeriodo>('estatisticas_atividade_periodo', {
           p_data_inicio: inicio,
           p_data_fim: fim
-        }),
-        supabase.rpc('distribuicao_atividades_hora', {
+        }, { timeout: 30000, validateParams: true }),
+        safeRpc<DistribuicaoHora[]>('distribuicao_atividades_hora', {
           p_data_inicio: inicio,
           p_data_fim: fim
-        }),
-        supabase.rpc('top_usuarios_ativos', {
+        }, { timeout: 30000, validateParams: true }),
+        safeRpc<TopUsuario[]>('top_usuarios_ativos', {
           p_limite: 10,
           p_data_inicio: inicio,
           p_data_fim: fim
-        }),
-        supabase.rpc('distribuicao_por_aba', {
+        }, { timeout: 30000, validateParams: true }),
+        safeRpc<DistribuicaoAba[]>('distribuicao_por_aba', {
           p_data_inicio: inicio,
           p_data_fim: fim
-        }),
-        supabase.rpc('verificar_alertas_monitoramento')
+        }, { timeout: 30000, validateParams: true }),
+        safeRpc<Alerta[]>('verificar_alertas_monitoramento', {}, { timeout: 30000, validateParams: false })
       ]);
 
       if (statsResult.status === 'fulfilled' && !statsResult.value.error) {
@@ -157,7 +158,10 @@ function MonitoramentoView() {
       setError(null);
       
       // Buscar usuários online
-      const { data, error } = await supabase.rpc('listar_usuarios_online');
+      const { data, error } = await safeRpc<UsuarioOnline[]>('listar_usuarios_online', {}, {
+        timeout: 30000,
+        validateParams: false
+      });
       
       if (error) {
         safeLog.error('Erro ao buscar usuários online:', error);

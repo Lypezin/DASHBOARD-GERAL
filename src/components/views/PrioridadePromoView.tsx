@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Entregador, EntregadoresData } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 import MetricCard from '../MetricCard';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -52,8 +53,11 @@ function PrioridadePromoView({
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const { data, error } = await supabase.rpc('pesquisar_entregadores', {
+        const { data, error } = await safeRpc<Entregador[]>('pesquisar_entregadores', {
           termo_busca: searchTerm.trim()
+        }, {
+          timeout: 30000,
+          validateParams: true
         });
 
         if (error) throw error;

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Filters } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -88,12 +89,15 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
           descricaoDetalhada = typeof action_details === 'string' ? action_details : `${action_type} na aba ${nomeAba}`;
       }
       
-      const { data, error } = await supabase.rpc('registrar_atividade', {
+      const { data, error } = await safeRpc('registrar_atividade', {
         p_session_id: sessionId,
         p_action_type: action_type,
         p_action_details: descricaoDetalhada,
         p_tab_name: tab_name || activeTabRef.current,
         p_filters_applied: filters_applied as any
+      }, {
+        timeout: 30000,
+        validateParams: true
       });
 
       if (error) {

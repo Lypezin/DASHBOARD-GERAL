@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import type { Conquista, ConquistaNova } from '@/types/conquistas';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -26,7 +27,10 @@ export function useConquistas() {
   // Carregar conquistas do usuário
   const carregarConquistas = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc('listar_conquistas_usuario');
+      const { data, error } = await safeRpc<Conquista[]>('listar_conquistas_usuario', {}, {
+        timeout: 30000,
+        validateParams: false
+      });
       
       if (error) {
         safeLog.error('Erro ao carregar conquistas:', error);
@@ -55,7 +59,10 @@ export function useConquistas() {
   const carregarRanking = useCallback(async () => {
     setLoadingRanking(true);
     try {
-      const { data, error } = await supabase.rpc('ranking_conquistas');
+      const { data, error } = await safeRpc<RankingUsuario[]>('ranking_conquistas', {}, {
+        timeout: 30000,
+        validateParams: false
+      });
       
       if (error) {
         safeLog.error('Erro ao carregar ranking:', error);
@@ -77,7 +84,10 @@ export function useConquistas() {
   // Verificar novas conquistas (com tratamento de erro silencioso)
   const verificarConquistas = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc('verificar_conquistas');
+      const { data, error } = await safeRpc<ConquistaNova[]>('verificar_conquistas', {}, {
+        timeout: 30000,
+        validateParams: false
+      });
       
       if (error) {
         // Silenciar erros 400 (Bad Request) e outros erros esperados
@@ -122,8 +132,11 @@ export function useConquistas() {
   // Marcar conquista como visualizada
   const marcarVisualizada = useCallback(async (conquistaId: string) => {
     try {
-      const { error } = await supabase.rpc('marcar_conquista_visualizada', {
+      const { error } = await safeRpc('marcar_conquista_visualizada', {
         p_conquista_id: conquistaId
+      }, {
+        timeout: 30000,
+        validateParams: true
       });
       
       if (error) {
@@ -180,10 +193,13 @@ export function useConquistas() {
     utrGeral?: number
   ) => {
     try {
-      const { data, error } = await supabase.rpc('verificar_conquistas_dashboard', {
+      const { data, error } = await safeRpc<ConquistaNova[]>('verificar_conquistas_dashboard', {
         p_aderencia_geral: aderenciaGeral ?? null,
         p_taxa_completude: taxaCompletude ?? null,
         p_utr_geral: utrGeral ?? null
+      }, {
+        timeout: 30000,
+        validateParams: true
       });
       
       if (error) {

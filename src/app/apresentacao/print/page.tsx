@@ -1,5 +1,6 @@
 import React from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { safeRpc } from '@/lib/rpcWrapper';
 import { SLIDE_HEIGHT, SLIDE_WIDTH } from '@/components/apresentacao/constants';
 import SlideCapa from '@/components/apresentacao/slides/SlideCapa';
 import SlideAderenciaGeral from '@/components/apresentacao/slides/SlideAderenciaGeral';
@@ -87,10 +88,18 @@ export default async function PrintablePage({ searchParams }: PageProps) {
   });
 
   // Buscar os dois conjuntos de dados via RPC
-  const [{ data: semana1 }, { data: semana2 }] = await Promise.all([
-    supabase.rpc('dashboard_resumo', filterBase(ano1, semanaNum1) as any),
-    supabase.rpc('dashboard_resumo', filterBase(ano2, semanaNum2) as any),
+  const [semana1Result, semana2Result] = await Promise.all([
+    safeRpc('dashboard_resumo', filterBase(ano1, semanaNum1) as any, {
+      timeout: 30000,
+      validateParams: true
+    }),
+    safeRpc('dashboard_resumo', filterBase(ano2, semanaNum2) as any, {
+      timeout: 30000,
+      validateParams: true
+    }),
   ]);
+  const semana1 = semana1Result.data;
+  const semana2 = semana2Result.data;
 
   // Construir dados dos slides (mesma lógica base do ApresentacaoView)
   const numeroSemana1 = extrairNumeroSemana(String(semanaNum1)) || String(semanaNum1);

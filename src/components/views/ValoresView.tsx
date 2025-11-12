@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { ValoresEntregador, Entregador, EntregadoresData } from '@/types';
 import MetricCard from '../MetricCard';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -47,8 +48,11 @@ function ValoresView({
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const { data, error } = await supabase.rpc('pesquisar_valores_entregadores', {
+        const { data, error } = await safeRpc<ValoresEntregador[]>('pesquisar_valores_entregadores', {
           termo_busca: searchTerm.trim()
+        }, {
+          timeout: 30000,
+          validateParams: true
         });
 
         if (error) throw error;

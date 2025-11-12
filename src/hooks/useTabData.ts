@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -39,7 +40,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
 
         switch (tab) {
           case 'utr':
-            result = await supabase.rpc('calcular_utr', filterPayload as any);
+            result = await safeRpc<UtrData>('calcular_utr', filterPayload as any, {
+              timeout: 30000,
+              validateParams: true
+            });
             if (result && !result.error) processedData = result.data;
             break;
 
@@ -47,7 +51,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           case 'prioridade':
             const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
             const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
-            result = await supabase.rpc('listar_entregadores', listarEntregadoresPayload);
+            result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
+              timeout: 30000,
+              validateParams: true
+            });
             if (result?.error) {
               safeLog.error('Erro ao buscar entregadores:', result.error);
               processedData = { entregadores: [], total: 0 };
@@ -82,7 +89,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
               safeLog.info('Buscando valores com payload:', listarValoresPayload);
             }
             
-            result = await supabase.rpc('listar_valores_entregadores', listarValoresPayload);
+            result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
+              timeout: 30000,
+              validateParams: true
+            });
             
             if (result?.error) {
               safeLog.error('Erro ao buscar valores:', result.error);

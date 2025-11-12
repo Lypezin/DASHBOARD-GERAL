@@ -385,7 +385,10 @@ export default function UploadPage() {
       // Usar setTimeout para não bloquear a UI
       setTimeout(async () => {
         try {
-          await supabase.rpc('refresh_mv_aderencia_async');
+          await safeRpc('refresh_mv_aderencia_async', {}, {
+            timeout: 60000, // 60 segundos para refresh de MV
+            validateParams: false
+          });
           if (process.env.NODE_ENV === 'development') {
             safeLog.info('Refresh da materialized view iniciado em segundo plano');
           }
