@@ -37,6 +37,12 @@ export function Header() {
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         router.push('/login');
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Token foi renovado - verificar usuário novamente
+        checkUser();
+      } else if (event === 'USER_UPDATED') {
+        // Usuário foi atualizado - verificar novamente
+        checkUser();
       }
     });
 
@@ -47,27 +53,80 @@ export function Header() {
   }, []);
 
   const checkUser = async () => {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    
-    if (!authUser) {
-      router.push('/login');
-      return;
-    }
-
     try {
-      const { data: profile, error } = await safeRpc<UserProfile>('get_current_user_profile', {}, {
-        timeout: 10000,
-        validateParams: false
-      });
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
       
-      if (error) throw error;
+      if (authError || !authUser) {
+        // Erro de autenticação - apenas redirecionar, não fazer logout forçado
+        if (IS_DEV) safeLog.warn('Usuário não autenticado:', authError);
+        router.push('/login');
+        return;
+      }
 
+      // Tentar buscar perfil com retry e tratamento de erro melhorado
+      let profile: UserProfile | null = null;
+      let profileError: any = null;
+      
+      try {
+        const result = await safeRpc<UserProfile>('get_current_user_profile', {}, {
+          timeout: 10000,
+          validateParams: false
+        });
+        
+        profile = result.data;
+        profileError = result.error;
+      } catch (err) {
+        profileError = err;
+        if (IS_DEV) safeLog.warn('Erro ao buscar perfil (primeira tentativa):', err);
+      }
+      
+      // Se houver erro, tentar novamente uma vez após 1 segundo
+      if (profileError && !profile) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          const retryResult = await safeRpc<UserProfile>('get_current_user_profile', {}, {
+            timeout: 10000,
+            validateParams: false
+          });
+          profile = retryResult.data;
+          profileError = retryResult.error;
+        } catch (retryErr) {
+          profileError = retryErr;
+        }
+      }
+
+      // Se ainda houver erro, verificar se é erro temporário
+      if (profileError) {
+        const errorCode = (profileError as any)?.code || '';
+        const errorMessage = String((profileError as any)?.message || '');
+        const isTemporaryError = errorCode === 'TIMEOUT' || 
+                                errorMessage.includes('timeout') ||
+                                errorMessage.includes('network') ||
+                                errorCode === 'PGRST301';
+        
+        if (isTemporaryError) {
+          // Erro temporário - não fazer logout, apenas logar
+          if (IS_DEV) safeLog.warn('Erro temporário ao buscar perfil, mantendo sessão:', profileError);
+          // Manter usuário logado mesmo com erro temporário
+          return;
+        }
+        
+        // Erro permanente - fazer logout apenas se realmente necessário
+        if (IS_DEV) safeLog.error('Erro ao carregar perfil:', profileError);
+        // Não fazer logout imediatamente - aguardar próxima verificação
+        return;
+      }
+
+      // Verificar se usuário está aprovado
       if (!profile?.is_approved) {
+        // Usuário não aprovado - fazer logout
+        if (IS_DEV) safeLog.warn('Usuário não aprovado, fazendo logout');
         await supabase.auth.signOut();
         router.push('/login');
         return;
       }
 
+      // Tudo OK - definir usuário
       setUser(profile);
       
       // Buscar avatar_url da tabela de perfil se existir
@@ -91,9 +150,9 @@ export function Header() {
         }
       }
     } catch (err) {
-      if (IS_DEV) safeLog.error('Erro ao carregar perfil:', err);
-      await supabase.auth.signOut();
-      router.push('/login');
+      // Erro inesperado - não fazer logout imediatamente
+      if (IS_DEV) safeLog.error('Erro inesperado ao verificar usuário:', err);
+      // Apenas logar o erro, não fazer logout forçado
     }
   };
 

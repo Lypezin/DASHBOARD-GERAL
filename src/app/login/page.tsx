@@ -29,13 +29,45 @@ export default function LoginPage() {
 
       if (signInError) throw signInError;
 
-      // Verificar se o usuário está aprovado
-      const { data: profile, error: profileError } = await supabase
-        .rpc('get_current_user_profile') as { data: any; error: any };
+      // Verificar se o usuário está aprovado com retry
+      let profile: any = null;
+      let profileError: any = null;
+      
+      try {
+        const result = await supabase.rpc('get_current_user_profile') as { data: any; error: any };
+        profile = result.data;
+        profileError = result.error;
+      } catch (err) {
+        profileError = err;
+      }
+      
+      // Se houver erro, tentar novamente uma vez
+      if (profileError && !profile) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          const retryResult = await supabase.rpc('get_current_user_profile') as { data: any; error: any };
+          profile = retryResult.data;
+          profileError = retryResult.error;
+        } catch (retryErr) {
+          profileError = retryErr;
+        }
+      }
 
       if (profileError) {
-        await supabase.auth.signOut();
-        throw new Error('Erro ao carregar perfil do usuário');
+        // Erro ao carregar perfil - fazer logout apenas se for erro permanente
+        const errorCode = (profileError as any)?.code || '';
+        const errorMessage = String((profileError as any)?.message || '');
+        const isTemporaryError = errorCode === 'TIMEOUT' || 
+                                errorMessage.includes('timeout') ||
+                                errorMessage.includes('network');
+        
+        if (isTemporaryError) {
+          // Erro temporário - tentar continuar
+          if (IS_DEV) safeLog.warn('Erro temporário ao carregar perfil no login, continuando...');
+        } else {
+          await supabase.auth.signOut();
+          throw new Error('Erro ao carregar perfil do usuário. Tente novamente.');
+        }
       }
 
       if (!profile?.is_approved) {
