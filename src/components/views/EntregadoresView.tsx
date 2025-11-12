@@ -36,7 +36,7 @@ function EntregadoresView({
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const { data, error } = await safeRpc<Entregador[]>('pesquisar_entregadores', {
+        const { data, error } = await safeRpc<Entregador[] | { entregadores: Entregador[] }>('pesquisar_entregadores', {
           termo_busca: searchTerm.trim()
         }, {
           timeout: 30000,
@@ -44,7 +44,14 @@ function EntregadoresView({
         });
 
         if (error) throw error;
-        setSearchResults(data?.entregadores || []);
+        // A função pode retornar array direto ou objeto com propriedade entregadores
+        if (Array.isArray(data)) {
+          setSearchResults(data);
+        } else if (data && typeof data === 'object' && 'entregadores' in data) {
+          setSearchResults((data as { entregadores: Entregador[] }).entregadores || []);
+        } else {
+          setSearchResults([]);
+        }
       } catch (err) {
         if (IS_DEV) safeLog.error('Erro ao pesquisar entregadores:', err);
         // Fallback para pesquisa local
