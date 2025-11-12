@@ -73,15 +73,71 @@ function ComparacaoView({
           timeout: 30000,
           validateParams: false
         });
-        if (!error && data) {
-          setTodasSemanas(data);
+        
+        if (error) {
+          safeLog.error('Erro ao buscar semanas:', error);
+          // Fallback: usar semanas do prop se disponível
+          if (semanas && semanas.length > 0) {
+            setTodasSemanas(semanas);
+          }
+          return;
+        }
+        
+        if (data) {
+          // A função retorna um objeto com propriedade listar_todas_semanas contendo o array
+          let semanasArray: any[] = [];
+          
+          if (Array.isArray(data)) {
+            semanasArray = data;
+          } else if (data && typeof data === 'object') {
+            // Se for objeto, tentar extrair o array da propriedade listar_todas_semanas
+            semanasArray = (data as any).listar_todas_semanas || (data as any).semanas || [];
+          }
+          
+          // Processar o array de semanas
+          let semanasProcessadas: (number | string)[] = [];
+          
+          if (Array.isArray(semanasArray) && semanasArray.length > 0) {
+            // Se o primeiro item é um objeto, extrair a propriedade de semana
+            if (typeof semanasArray[0] === 'object' && semanasArray[0] !== null) {
+              semanasProcessadas = semanasArray.map((item: any) => {
+                // Tentar diferentes propriedades comuns
+                return item.semana || item.semana_numero || item.numero_semana || item.ano_semana || String(item);
+              }).filter(Boolean);
+            } else {
+              // Já é array de strings/números
+              semanasProcessadas = semanasArray.map((s: any) => String(s));
+            }
+          }
+          
+          if (IS_DEV) {
+            safeLog.info('Semanas carregadas:', { 
+              total: semanasProcessadas.length, 
+              semanas: semanasProcessadas.slice(0, 5),
+              formatoOriginal: Array.isArray(data) ? 'array' : 'objeto'
+            });
+          }
+          
+          if (semanasProcessadas.length > 0) {
+            setTodasSemanas(semanasProcessadas);
+          } else if (semanas && semanas.length > 0) {
+            // Fallback: usar semanas do prop
+            setTodasSemanas(semanas);
+          }
+        } else if (semanas && semanas.length > 0) {
+          // Fallback: usar semanas do prop se data for null
+          setTodasSemanas(semanas);
         }
       } catch (err) {
         safeLog.error('Erro ao buscar semanas:', err);
+        // Fallback: usar semanas do prop
+        if (semanas && semanas.length > 0) {
+          setTodasSemanas(semanas);
+        }
       }
     }
     fetchTodasSemanas();
-  }, []);
+  }, [semanas]);
 
   // Se não for admin e tiver apenas 1 praça, setar automaticamente
   useEffect(() => {
