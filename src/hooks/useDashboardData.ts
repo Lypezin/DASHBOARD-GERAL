@@ -77,6 +77,12 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
           throw error;
         }
         
+        if (!data) {
+          safeLog.warn('dashboard_resumo retornou null');
+          setError('Não foi possível carregar os dados do dashboard.');
+          return;
+        }
+
         cachedDataRef.current = data;
         cacheKeyRef.current = payloadKey;
 
