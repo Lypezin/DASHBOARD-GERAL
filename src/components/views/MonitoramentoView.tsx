@@ -413,7 +413,8 @@ function MonitoramentoView() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [mostrarAnalytics, periodoAnalise]); // Removido fetchEstatisticas e isRefreshing das dependências para evitar loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mostrarAnalytics, periodoAnalise]); // Removido fetchEstatisticas, isRefreshing e autoRefresh das dependências para evitar loops infinitos
 
   // Atualizar ref quando fetchMonitoramento mudar
   useEffect(() => {

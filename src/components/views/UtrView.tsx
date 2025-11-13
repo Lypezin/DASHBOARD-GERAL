@@ -8,6 +8,14 @@ const UtrView = React.memo(function UtrView({
   utrData: UtrData | null;
   loading: boolean;
 }) {
+  // Hooks devem ser chamados antes de qualquer early return
+  // Usar os nomes corretos que vêm do backend (com fallback para compatibilidade)
+  // Memoizar para evitar recálculo desnecessário
+  const porPraca = useMemo(() => utrData?.praca || utrData?.por_praca || [], [utrData?.praca, utrData?.por_praca]);
+  const porSubPraca = useMemo(() => utrData?.sub_praca || utrData?.por_sub_praca || [], [utrData?.sub_praca, utrData?.por_sub_praca]);
+  const porOrigem = useMemo(() => utrData?.origem || utrData?.por_origem || [], [utrData?.origem, utrData?.por_origem]);
+  const porTurno = useMemo(() => utrData?.turno || utrData?.por_turno || [], [utrData?.turno, utrData?.por_turno]);
+
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -35,13 +43,6 @@ const UtrView = React.memo(function UtrView({
       </div>
     );
   }
-
-  // Usar os nomes corretos que vêm do backend (com fallback para compatibilidade)
-  // Memoizar para evitar recálculo desnecessário
-  const porPraca = useMemo(() => utrData.praca || utrData.por_praca || [], [utrData.praca, utrData.por_praca]);
-  const porSubPraca = useMemo(() => utrData.sub_praca || utrData.por_sub_praca || [], [utrData.sub_praca, utrData.por_sub_praca]);
-  const porOrigem = useMemo(() => utrData.origem || utrData.por_origem || [], [utrData.origem, utrData.por_origem]);
-  const porTurno = useMemo(() => utrData.turno || utrData.por_turno || [], [utrData.turno, utrData.por_turno]);
 
   const geral = utrData.geral;
 
