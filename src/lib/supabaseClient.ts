@@ -56,13 +56,27 @@ function getSupabaseClient(): SupabaseClient {
 
   // Em runtime, verificar se as variáveis estão disponíveis
   if (!runtimeUrl || !runtimeKey) {
+    // Log detalhado para diagnóstico
+    if (typeof window !== 'undefined') {
+      console.error('[Supabase Client] Variáveis não encontradas:', {
+        hasRuntimeUrl: !!runtimeUrl,
+        hasRuntimeKey: !!runtimeKey,
+        runtimeUrlValue: runtimeUrl ? '***' : null,
+        isBuildTime,
+        nodeEnv: process.env.NODE_ENV,
+        // Tentar ler de diferentes fontes para debug
+        fromProcessEnv: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        fromWindow: !!(window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL,
+      });
+    }
+    
     // Se estamos em runtime e não temos variáveis, mas temos um mock, usar o mock temporariamente
     // Mas logar um aviso
     if (supabaseInstance && typeof window !== 'undefined') {
       console.warn(
         '[Supabase Client] Variáveis de ambiente não encontradas em runtime. ' +
         'Usando cliente mock. Verifique se NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY ' +
-        'estão configuradas no Vercel e faça um novo deploy.'
+        'estão configuradas no Vercel para o ambiente Production e faça um novo deploy.'
       );
       return supabaseInstance;
     }
