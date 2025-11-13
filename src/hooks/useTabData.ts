@@ -5,7 +5,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-const CACHE_TTL = 30000; // 30 segundos
+const CACHE_TTL = 60000; // 60 segundos (aumentado pois dados vêm de materialized view)
 const MIN_DEBOUNCE = 150; // Debounce mínimo
 const MAX_DEBOUNCE = 800; // Debounce máximo quando há muitas mudanças
 
@@ -201,7 +201,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
             const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
             result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
-              timeout: 30000, // Aumentado para 30s para dar mais tempo (função otimizada)
+              timeout: 15000, // Reduzido para 15s (função otimizada com materialized view - muito mais rápida)
               validateParams: false // Desabilitar validação para evitar problemas
             });
             
@@ -309,7 +309,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             }
             
             result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
-              timeout: 30000, // Aumentado para 30s para dar mais tempo (função otimizada)
+              timeout: 15000, // Reduzido para 15s (função otimizada com materialized view - muito mais rápida)
               validateParams: false // Desabilitar validação para evitar problemas
             });
             
