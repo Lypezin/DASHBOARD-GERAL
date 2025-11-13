@@ -143,7 +143,8 @@ const FiltroBar = React.memo(function FiltroBar({
         filtroModo: filters?.filtroModo,
         dataInicial: filters?.dataInicial,
         dataFinal: filters?.dataFinal,
-    });
+      });
+    }
   }, [isModoIntervalo, filters?.filtroModo, filters?.dataInicial, filters?.dataFinal]);
 
   return (

@@ -7,7 +7,7 @@ import MetricCard from '../MetricCard';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-function EntregadoresView({
+const EntregadoresView = React.memo(function EntregadoresView({
   entregadoresData,
   loading,
 }: {
