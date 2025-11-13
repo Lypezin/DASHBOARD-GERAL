@@ -323,20 +323,20 @@ export function useConquistas() {
 
   // Verificar conquistas periodicamente (a cada 5 minutos para reduzir carga)
   useEffect(() => {
-    // Verificar uma vez ao montar com delay menor para não sobrecarregar na inicialização
+    // Verificar uma vez ao montar com delay maior para garantir que a sessão está estabelecida
     const initialTimeout = setTimeout(() => {
       verificarConquistas();
-    }, 2000); // Delay de 2 segundos na inicialização (reduzido de 5s)
+    }, 5000); // Delay de 5 segundos na inicialização para garantir que a sessão está pronta
     
     const interval = setInterval(() => {
       verificarConquistas();
-    }, 300000); // 5 minutos (300 segundos) - reduzido de 60 segundos
+    }, 300000); // 5 minutos (300 segundos)
 
     return () => {
       clearTimeout(initialTimeout);
       clearInterval(interval);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [verificarConquistas]); // Adicionar verificarConquistas como dependência
 
   // Estatísticas (memoizadas para evitar recálculos desnecessários)
   const stats = useMemo(() => {
