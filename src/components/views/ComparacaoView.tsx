@@ -197,6 +197,9 @@ function ComparacaoView({
           subPracas: [],
           origens: [],
           turnos: [],
+          filtroModo: 'ano_semana' as const,
+          dataInicial: null,
+          dataFinal: null,
         };
         
         const filtro = buildFilterPayload(filters, currentUser);
@@ -232,6 +235,9 @@ function ComparacaoView({
           subPracas: [],
           origens: [],
           turnos: [],
+          filtroModo: 'ano_semana' as const,
+          dataInicial: null,
+          dataFinal: null,
         };
         
         const filtro = buildFilterPayload(filters, currentUser);
