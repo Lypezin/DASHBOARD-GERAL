@@ -117,7 +117,7 @@ export function useConquistas() {
           setRanking(data);
           rankingLastUpdateRef.current = Date.now();
           if (IS_DEV) {
-            safeLog.info('Ranking atualizado com', data.length, 'usuários');
+            safeLog.info(`Ranking atualizado com ${data.length} usuários`);
           }
         } else if (data && typeof data === 'object') {
           // Se for objeto, tentar extrair array
