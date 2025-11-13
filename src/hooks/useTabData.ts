@@ -6,8 +6,13 @@ import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 const CACHE_TTL = 30000; // 30 segundos
+const MIN_DEBOUNCE = 150; // Debounce mínimo
+const MAX_DEBOUNCE = 800; // Debounce máximo quando há muitas mudanças
 
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
+
+// Sistema global de fila para evitar requisições simultâneas
+const requestQueue = new Map<string, { timestamp: number; count: number }>();
 
 export function useTabData(activeTab: string, filterPayload: object, currentUser?: { is_admin: boolean; assigned_pracas: string[] } | null) {
   const [data, setData] = useState<TabData>(null);
@@ -16,6 +21,9 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentTabRef = useRef<string>(activeTab);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isRequestPendingRef = useRef<boolean>(false);
+  const lastRequestTimeRef = useRef<number>(0);
+  const rapidChangeCountRef = useRef<number>(0);
 
   useEffect(() => {
     currentTabRef.current = activeTab;
@@ -25,6 +33,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     // Limpar timeout anterior
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
     }
 
     // Cancelar requisição anterior se existir
@@ -33,12 +42,74 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       abortControllerRef.current = null;
     }
 
+    // Resetar flag de requisição pendente
+    isRequestPendingRef.current = false;
+
+    // Calcular debounce adaptativo baseado em mudanças rápidas
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTimeRef.current;
+    
+    if (timeSinceLastRequest < 500) {
+      // Se houve mudança rápida, aumentar contador e debounce
+      rapidChangeCountRef.current += 1;
+    } else {
+      // Resetar contador se passou tempo suficiente
+      rapidChangeCountRef.current = 0;
+    }
+    
+    lastRequestTimeRef.current = now;
+    
+    // Debounce adaptativo: aumenta quando há muitas mudanças rápidas
+    const adaptiveDebounce = Math.min(
+      MIN_DEBOUNCE + (rapidChangeCountRef.current * 100),
+      MAX_DEBOUNCE
+    );
 
     const fetchDataForTab = async (tab: string) => {
       // Verificar se a tab ainda é a mesma antes de começar
       if (currentTabRef.current !== tab) {
+        isRequestPendingRef.current = false;
         return;
       }
+
+      // Verificar se já há uma requisição pendente para evitar duplicatas
+      if (isRequestPendingRef.current) {
+        if (IS_DEV) {
+          safeLog.warn(`Requisição já pendente para tab ${tab}, ignorando...`);
+        }
+        return;
+      }
+
+      // Verificar se há muitas requisições recentes (rate limiting local)
+      const queueKey = `${tab}-${JSON.stringify(filterPayload)}`;
+      const queueEntry = requestQueue.get(queueKey);
+      const now = Date.now();
+      
+      if (queueEntry && (now - queueEntry.timestamp) < 1000) {
+        // Se houve requisição nos últimos 1 segundo, aguardar
+        if (IS_DEV) {
+          safeLog.warn(`Rate limit local: aguardando antes de nova requisição para ${tab}`);
+        }
+        debounceTimeoutRef.current = setTimeout(() => {
+          if (currentTabRef.current === tab) {
+            fetchDataForTab(tab);
+          }
+        }, 1000);
+        return;
+      }
+
+      // Registrar requisição na fila
+      requestQueue.set(queueKey, { timestamp: now, count: (queueEntry?.count || 0) + 1 });
+      
+      // Limpar entradas antigas da fila (mais de 5 segundos)
+      for (const [key, entry] of requestQueue.entries()) {
+        if (now - entry.timestamp > 5000) {
+          requestQueue.delete(key);
+        }
+      }
+
+      // Marcar como pendente
+      isRequestPendingRef.current = true;
 
       // Cancelar requisição anterior se existir
       if (abortControllerRef.current) {
@@ -54,6 +125,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
         // Verificar novamente se a tab ainda é a mesma
         if (currentTabRef.current !== tab || abortController.signal.aborted) {
+          isRequestPendingRef.current = false;
           return;
         }
         // Para valores, garantir que o cache retorne um array
@@ -62,6 +134,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           : cached.data;
         setData(cachedData);
         setLoading(false);
+        isRequestPendingRef.current = false;
         if (IS_DEV && tab === 'valores') {
           safeLog.info('📦 Dados carregados do cache (valores):', Array.isArray(cachedData) ? cachedData.length : 0);
         }
@@ -70,6 +143,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
 
       // Verificar novamente antes de setar loading
       if (currentTabRef.current !== tab || abortController.signal.aborted) {
+        isRequestPendingRef.current = false;
         return;
       }
 
@@ -79,6 +153,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         // Verificar se a tab mudou durante o carregamento
         if (abortController.signal.aborted || currentTabRef.current !== tab) {
           setLoading(false);
+          isRequestPendingRef.current = false;
           return;
         }
 
@@ -98,6 +173,8 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           case 'prioridade':
             // Verificar se foi abortado antes de fazer a requisição
             if (abortController.signal.aborted || currentTabRef.current !== tab) {
+              isRequestPendingRef.current = false;
+              setLoading(false);
               return;
             }
             
@@ -110,19 +187,44 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             
             // Verificar se foi abortado durante a requisição
             if (abortController.signal.aborted || currentTabRef.current !== tab) {
+              isRequestPendingRef.current = false;
+              setLoading(false);
               return;
             }
             
+            // Verificar se é erro 500 (erro do servidor) e tratar adequadamente
             if (result?.error) {
-              // Verificar se é rate limit
-              const errorCode = (result.error as any)?.code;
+              const errorCode = (result.error as any)?.code || '';
               const errorMessage = String((result.error as any)?.message || '');
+              const is500 = errorCode === 'PGRST301' || 
+                           errorMessage.includes('500') || 
+                           errorMessage.includes('Internal Server Error');
+              
+              if (is500) {
+                // Erro 500: aguardar um pouco antes de tentar novamente
+                safeLog.warn('Erro 500 ao buscar entregadores. Aguardando antes de tentar novamente...');
+                isRequestPendingRef.current = false;
+                setLoading(false);
+                
+                // Tentar novamente após delay maior
+                setTimeout(() => {
+                  if (currentTabRef.current === tab && !abortController.signal.aborted) {
+                    rapidChangeCountRef.current = 0; // Resetar contador de mudanças rápidas
+                    fetchDataForTab(tab);
+                  }
+                }, 3000); // 3 segundos para dar tempo ao servidor
+                return;
+              }
+              
+              // Verificar se é rate limit
               const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
                                  errorMessage.includes('rate limit') ||
                                  errorMessage.includes('429');
               
               if (isRateLimit) {
                 safeLog.warn('Rate limit ao buscar entregadores. Aguardando...');
+                isRequestPendingRef.current = false;
+                setLoading(false);
                 // Tentar novamente após delay
                 setTimeout(() => {
                   if (currentTabRef.current === tab && !abortController.signal.aborted) {
@@ -160,6 +262,8 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           case 'valores':
             // Verificar se foi abortado antes de fazer a requisição
             if (abortController.signal.aborted || currentTabRef.current !== tab) {
+              isRequestPendingRef.current = false;
+              setLoading(false);
               return;
             }
             
@@ -177,19 +281,44 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             
             // Verificar se foi abortado durante a requisição
             if (abortController.signal.aborted || currentTabRef.current !== tab) {
+              isRequestPendingRef.current = false;
+              setLoading(false);
               return;
             }
             
+            // Verificar se é erro 500 (erro do servidor) e tratar adequadamente
             if (result?.error) {
-              // Verificar se é rate limit
-              const errorCode = (result.error as any)?.code;
+              const errorCode = (result.error as any)?.code || '';
               const errorMessage = String((result.error as any)?.message || '');
+              const is500 = errorCode === 'PGRST301' || 
+                           errorMessage.includes('500') || 
+                           errorMessage.includes('Internal Server Error');
+              
+              if (is500) {
+                // Erro 500: aguardar um pouco antes de tentar novamente
+                safeLog.warn('Erro 500 ao buscar valores. Aguardando antes de tentar novamente...');
+                isRequestPendingRef.current = false;
+                setLoading(false);
+                
+                // Tentar novamente após delay maior
+                setTimeout(() => {
+                  if (currentTabRef.current === tab && !abortController.signal.aborted) {
+                    rapidChangeCountRef.current = 0; // Resetar contador de mudanças rápidas
+                    fetchDataForTab(tab);
+                  }
+                }, 3000); // 3 segundos para dar tempo ao servidor
+                return;
+              }
+              
+              // Verificar se é rate limit
               const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
                                  errorMessage.includes('rate limit') ||
                                  errorMessage.includes('429');
               
               if (isRateLimit) {
                 safeLog.warn('Rate limit ao buscar valores. Aguardando...');
+                isRequestPendingRef.current = false;
+                setLoading(false);
                 // Tentar novamente após delay
                 setTimeout(() => {
                   if (currentTabRef.current === tab && !abortController.signal.aborted) {
@@ -313,6 +442,9 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           setData(processedData);
           cacheRef.current.set(cacheKey, { data: processedData, timestamp: Date.now() });
           
+          // Resetar contador de mudanças rápidas quando dados são carregados com sucesso
+          rapidChangeCountRef.current = 0;
+          
           if (IS_DEV && tab === 'valores') {
             safeLog.info('✅ Dados finais setados para valores:', {
               tipo: typeof processedData,
@@ -321,8 +453,14 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             });
           }
         }
+        
+        // Marcar requisição como concluída
+        isRequestPendingRef.current = false;
 
       } catch (err: any) {
+        // Marcar requisição como concluída mesmo em caso de erro
+        isRequestPendingRef.current = false;
+        
         // Ignorar erros de abort (quando tab muda)
         if (err?.name === 'AbortError' || abortController.signal.aborted) {
           return;
@@ -363,16 +501,18 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         if (currentTabRef.current === tab) {
           setLoading(false);
         }
+        // Garantir que flag seja resetada
+        isRequestPendingRef.current = false;
       }
     };
 
     if (['utr', 'entregadores', 'valores', 'prioridade'].includes(activeTab)) {
-        // Usar debounce para evitar requisições muito rápidas quando troca de guia
+        // Usar debounce adaptativo para evitar requisições muito rápidas quando troca de guia
         debounceTimeoutRef.current = setTimeout(() => {
-          if (currentTabRef.current === activeTab) {
+          if (currentTabRef.current === activeTab && !isRequestPendingRef.current) {
             fetchDataForTab(activeTab);
           }
-        }, 150); // Reduzido para 150ms para melhor responsividade
+        }, adaptiveDebounce);
         
         return () => {
           if (debounceTimeoutRef.current) {

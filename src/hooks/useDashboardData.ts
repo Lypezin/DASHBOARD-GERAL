@@ -256,6 +256,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     if (activeTab === 'evolucao') {
       // Adicionar pequeno delay para evitar requisições muito rápidas
       const timeoutId = setTimeout(() => {
+        // Verificar novamente se ainda estamos na tab de evolução antes de fazer requisição
         if (currentEvolucaoTabRef.current === 'evolucao') {
           fetchEvolucaoData();
         }
@@ -266,10 +267,15 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         // Cancelar requisição se o componente desmontar ou tab mudar
         if (evolucaoAbortControllerRef.current) {
           evolucaoAbortControllerRef.current.abort();
+          evolucaoAbortControllerRef.current = null;
         }
       };
     } else {
-      // Se não é a tab de evolução, limpar dados anteriores
+      // Se não é a tab de evolução, cancelar qualquer requisição pendente e limpar dados
+      if (evolucaoAbortControllerRef.current) {
+        evolucaoAbortControllerRef.current.abort();
+        evolucaoAbortControllerRef.current = null;
+      }
       setEvolucaoMensal([]);
       setEvolucaoSemanal([]);
       setUtrSemanal([]);
