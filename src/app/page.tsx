@@ -310,8 +310,14 @@ export default function DashboardPage() {
 
   // Remover notificação de conquista e marcar como visualizada
   const handleFecharConquista = useCallback((codigo: string, conquistaId: string) => {
+    // Remover da lista de notificações primeiro
     removerConquistaNova(codigo);
-    marcarVisualizada(conquistaId);
+    // Marcar como visualizada após um pequeno delay para garantir que a notificação foi removida
+    setTimeout(() => {
+      if (conquistaId) {
+        marcarVisualizada(conquistaId);
+      }
+    }, 100);
   }, [removerConquistaNova, marcarVisualizada]);
 
   // Ref para controlar mudanças de tab e evitar race conditions

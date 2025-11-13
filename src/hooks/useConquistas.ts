@@ -191,6 +191,10 @@ export function useConquistas() {
         return;
       }
 
+      if (IS_DEV) {
+        safeLog.info('🔍 Verificando novas conquistas...');
+      }
+
       const { data, error } = await safeRpc<ConquistaNova[]>('verificar_conquistas', {}, {
         timeout: 30000,
         validateParams: false
@@ -238,21 +242,32 @@ export function useConquistas() {
           
           if (realmenteNovas.length > 0) {
             hasNewConquistas = true;
+            if (IS_DEV) {
+              safeLog.info(`🎉 ${realmenteNovas.length} nova(s) conquista(s) encontrada(s):`, realmenteNovas.map(c => c.conquista_nome));
+            }
           }
           
           // Retornar apenas as realmente novas
           return [...prev, ...realmenteNovas];
         });
+      } else if (IS_DEV && data && Array.isArray(data) && data.length === 0) {
+        safeLog.info('Nenhuma conquista nova encontrada (todas já foram visualizadas ou não há conquistas completas)');
       }
       
       // SEMPRE recarregar conquistas após verificar (pode ter atualizado progresso)
-      try {
-        await carregarConquistas();
-      } catch (err) {
-        if (IS_DEV) {
-          safeLog.warn('Erro ao recarregar conquistas após verificação:', err);
+      // MAS: Aguardar um pouco para não marcar como visualizada antes da notificação aparecer
+      // Se houver novas conquistas, aguardar mais tempo antes de recarregar
+      const delayRecarregar = hasNewConquistas ? 3000 : 1000; // 3 segundos se houver novas, 1 segundo se não
+      
+      setTimeout(async () => {
+        try {
+          await carregarConquistas();
+        } catch (err) {
+          if (IS_DEV) {
+            safeLog.warn('Erro ao recarregar conquistas após verificação:', err);
+          }
         }
-      }
+      }, delayRecarregar);
       
       // SEMPRE atualizar ranking após verificar conquistas (forçar atualização)
       // Aguardar um pouco para garantir que as conquistas foram salvas no banco
@@ -334,24 +349,34 @@ export function useConquistas() {
   }, []);
 
   // Limpar conquistas já visualizadas do estado local (para evitar que apareçam após F5)
+  // IMPORTANTE: Adicionar delay para não remover notificações que acabaram de aparecer
   useEffect(() => {
     // Quando as conquistas são carregadas, remover da lista de notificações as que já foram visualizadas
     // Isso garante que após F5, apenas conquistas realmente novas apareçam
+    // MAS: Adicionar delay para não remover notificações que acabaram de aparecer
     if (conquistas.length > 0 && conquistasNovas.length > 0) {
-      setConquistasNovas(prev => {
-        const codigosVisualizadas = new Set(
-          conquistas
-            .filter(c => c.visualizada)
-            .map(c => c.codigo)
-        );
-        const filtradas = prev.filter(c => !codigosVisualizadas.has(c.conquista_codigo));
-        
-        // Se houve mudança, retornar as filtradas, senão retornar as anteriores (evitar re-render desnecessário)
-        if (filtradas.length !== prev.length) {
-          return filtradas;
-        }
-        return prev;
-      });
+      // Aguardar 2 segundos antes de limpar, para dar tempo da notificação aparecer
+      const timeoutId = setTimeout(() => {
+        setConquistasNovas(prev => {
+          const codigosVisualizadas = new Set(
+            conquistas
+              .filter(c => c.visualizada)
+              .map(c => c.codigo)
+          );
+          const filtradas = prev.filter(c => !codigosVisualizadas.has(c.conquista_codigo));
+          
+          // Se houve mudança, retornar as filtradas, senão retornar as anteriores (evitar re-render desnecessário)
+          if (filtradas.length !== prev.length) {
+            if (IS_DEV) {
+              safeLog.info(`Removendo ${prev.length - filtradas.length} conquistas visualizadas das notificações`);
+            }
+            return filtradas;
+          }
+          return prev;
+        });
+      }, 2000); // 2 segundos de delay
+      
+      return () => clearTimeout(timeoutId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conquistas]); // conquistasNovas.length não precisa estar nas dependências pois verificamos dentro do useEffect
@@ -438,6 +463,13 @@ export function useConquistas() {
       clearTimeout(timeoutId);
     };
   }, [carregarConquistas, carregarRanking]);
+
+  // Log de debug para notificações
+  useEffect(() => {
+    if (IS_DEV && conquistasNovas.length > 0) {
+      safeLog.info(`📢 ${conquistasNovas.length} notificação(ões) de conquista ativa(s):`, conquistasNovas.map(c => c.conquista_nome));
+    }
+  }, [conquistasNovas]);
 
   // Verificar conquistas periodicamente (a cada 5 minutos para reduzir carga)
   useEffect(() => {
