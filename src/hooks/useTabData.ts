@@ -267,19 +267,25 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             } else if (result && result.data) {
                 // Garantir que sempre retornamos um objeto com estrutura válida
                 let entregadores: any[] = [];
+                let total = 0;
                 
                 if (Array.isArray(result.data)) {
                   entregadores = result.data;
+                  total = entregadores.length;
                 } else if (result.data && typeof result.data === 'object') {
-                  // Pode ser { entregadores: [...] } ou outro formato
+                  // A função retorna { entregadores: [...], total: number }
                   entregadores = Array.isArray(result.data.entregadores) 
                     ? result.data.entregadores 
                     : (Array.isArray(result.data.data) ? result.data.data : []);
+                  // Usar o total retornado pela função, ou calcular se não existir
+                  total = typeof result.data.total === 'number' 
+                    ? result.data.total 
+                    : entregadores.length;
                 }
                 
                 processedData = { 
                   entregadores: Array.isArray(entregadores) ? entregadores : [], 
-                  total: Array.isArray(entregadores) ? entregadores.length : 0 
+                  total: total
                 };
             } else {
               // Sem dados retornados
