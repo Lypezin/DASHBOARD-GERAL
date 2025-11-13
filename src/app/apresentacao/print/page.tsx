@@ -1,5 +1,4 @@
 import React from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { SLIDE_HEIGHT, SLIDE_WIDTH } from '@/components/apresentacao/constants';
 import SlideCapa from '@/components/apresentacao/slides/SlideCapa';
