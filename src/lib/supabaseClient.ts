@@ -3,22 +3,35 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// Durante o build, as variáveis de ambiente podem não estar disponíveis
-// Criar um cliente mock para evitar erros durante o build
-// O cliente real será usado em runtime quando as variáveis estiverem disponíveis
+// Verificar se estamos em build time
+// Durante o build do Next.js, algumas variáveis podem não estar disponíveis
+// Mas em runtime (especialmente no Vercel), elas devem estar disponíveis
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
+                    process.env.NEXT_PHASE === 'phase-development-build' ||
+                    (typeof window === 'undefined' && !process.env.VERCEL && !process.env.VERCEL_ENV);
+
 let supabaseInstance: SupabaseClient | null = null;
 
 function getSupabaseClient(): SupabaseClient {
-  // Se já existe uma instância, retornar
+  // Se já existe uma instância e as variáveis estão disponíveis, retornar
+  // Mas se tivermos um mock e agora as variáveis estão disponíveis, recriar
   if (supabaseInstance) {
-    return supabaseInstance;
+    // Se temos variáveis reais e o cliente atual é mock (URL dummy), recriar
+    if (supabaseUrl && supabaseAnonKey && 
+        supabaseUrl !== 'https://placeholder.supabase.co' &&
+        typeof window !== 'undefined') {
+      // Em runtime, recriar com variáveis reais se disponíveis
+      supabaseInstance = null; // Forçar recriação
+    } else {
+      return supabaseInstance;
+    }
   }
 
-  // Se as variáveis não estão disponíveis, criar um cliente mock
-  // Isso permite que o módulo seja importado durante o build sem erros
-  if (!supabaseUrl || !supabaseAnonKey) {
+  // Durante o build, criar um cliente mock para evitar erros
+  // Em runtime, as variáveis devem estar disponíveis
+  if (isBuildTime && (!supabaseUrl || !supabaseAnonKey)) {
     // Durante o build, criar um cliente com valores dummy
-    // Isso será substituído em runtime quando as variáveis estiverem disponíveis
+    // Isso permite que o módulo seja importado sem erros
     const dummyUrl = 'https://placeholder.supabase.co';
     const dummyKey = 'dummy-key';
     
@@ -31,6 +44,12 @@ function getSupabaseClient(): SupabaseClient {
     });
     
     return supabaseInstance;
+  }
+
+  // Em runtime, as variáveis devem estar disponíveis
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Em runtime, lançar erro se as variáveis não estiverem disponíveis
+    throw new Error('As variáveis de ambiente do Supabase não estão configuradas corretamente. Verifique o arquivo .env.local ou as variáveis de ambiente do Vercel.');
   }
 
   // Criar cliente real com as variáveis de ambiente disponíveis
