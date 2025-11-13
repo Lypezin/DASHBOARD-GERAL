@@ -39,9 +39,15 @@ export async function safeRpc<T = any>(
 
     // Validar parâmetros se solicitado
     let validatedParams = params;
-    // Se params for null ou undefined, passar objeto vazio para funções sem parâmetros
-    if (params === null || params === undefined) {
-      validatedParams = {};
+    // IMPORTANTE: Para funções sem parâmetros, o Supabase JS client aceita:
+    // - Não passar o segundo parâmetro: supabase.rpc('function_name')
+    // - Passar undefined: supabase.rpc('function_name', undefined)
+    // - Passar {} vazio: supabase.rpc('function_name', {})
+    // Mas o PostgREST pode reclamar se passarmos {} quando a função não espera parâmetros
+    // Vamos usar undefined para funções sem parâmetros
+    if (params === null || params === undefined || (typeof params === 'object' && Object.keys(params).length === 0)) {
+      // Para funções sem parâmetros, usar undefined
+      validatedParams = undefined;
     } else if (validateParams && params && typeof params === 'object') {
       try {
         validatedParams = validateFilterPayload(params);
@@ -55,7 +61,12 @@ export async function safeRpc<T = any>(
     }
 
     // Criar promise com timeout
-    const rpcPromise = supabase.rpc(functionName, validatedParams);
+    // IMPORTANTE: Para funções sem parâmetros, passar undefined é a forma correta
+    // O Supabase JS client aceita undefined e não envia parâmetros no body da requisição
+    // Isso evita erro 400 do PostgREST quando a função não espera parâmetros
+    const rpcPromise = validatedParams === undefined
+      ? (supabase.rpc as any)(functionName) // Chamar sem segundo parâmetro
+      : supabase.rpc(functionName, validatedParams);
     
     const timeoutPromise = new Promise<{ data: null; error: any }>((resolve) => {
       setTimeout(() => {
