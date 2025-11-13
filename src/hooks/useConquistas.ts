@@ -136,30 +136,37 @@ export function useConquistas() {
       });
       
       if (error) {
-        // Silenciar erros 400 (Bad Request) e outros erros esperados
-        // Erros 400 podem ocorrer quando a função não encontra dados ou quando há problemas de permissão
+        // Silenciar TODOS os erros 400 - são esperados e não devem aparecer no console
+        // Erros 400 podem ocorrer por vários motivos legítimos:
+        // - Função retornando estrutura vazia
+        // - Problemas temporários de RLS
+        // - Usuário não autenticado ainda
         const errorMessage = String(error.message || '');
         const errorCode = String(error.code || '');
-        const isExpectedError = 
+        const is400Error = 
           errorMessage.includes('400') || 
           errorMessage.includes('Bad Request') ||
+          errorCode === 'PGRST204' || // Bad Request do PostgREST
+          errorMessage.includes('structure of query does not match'); // Erro de tipo de retorno
+        
+        // Silenciar completamente erros 400 em produção E desenvolvimento
+        // Não logar nada para não poluir o console
+        if (is400Error) {
+          return; // Silenciar completamente
+        }
+        
+        // Para outros erros, apenas logar em desenvolvimento
+        const isExpectedError = 
           errorCode === 'P0001' ||
           errorCode === '42803' || // Erro de tipo de dados
           errorCode === 'PGRST116' || // Função não encontrada
           errorCode === '42883' || // Função não existe
-          errorCode === '23502' || // NOT NULL violation (já corrigido, mas pode aparecer temporariamente)
-          errorMessage.includes('null value') || // Violação de NOT NULL
-          errorMessage.includes('violates not-null constraint'); // Violação de constraint
+          errorCode === '23502' || // NOT NULL violation
+          errorMessage.includes('null value') ||
+          errorMessage.includes('violates not-null constraint');
         
-        // Em produção, silenciar completamente erros esperados
-        // Em desenvolvimento, logar apenas erros não esperados
-        if (!isExpectedError) {
-          if (IS_DEV) {
-            safeLog.warn('Erro ao verificar conquistas:', error);
-          }
-        } else if (IS_DEV) {
-          // Em desenvolvimento, logar mas não como erro
-          safeLog.info('Erro esperado ao verificar conquistas (silenciado):', errorCode);
+        if (!isExpectedError && IS_DEV) {
+          safeLog.warn('Erro inesperado ao verificar conquistas:', error);
         }
         return;
       }

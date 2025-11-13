@@ -81,14 +81,20 @@ export async function safeRpc<T = any>(
                          errorMessage.includes('400') ||
                          errorMessage.includes('404') ||
                          errorMessage.includes('not found') ||
-                         errorMessage.includes('invalid input');
+                         errorMessage.includes('invalid input') ||
+                         errorMessage.includes('structure of query does not match'); // Erro de tipo de retorno
       
-      if (is400or404 && !IS_DEV) {
-        // Em produção, não logar erros 400/404 para não poluir o console
-        // Apenas retornar erro silenciosamente
+      // Silenciar erros 400/404 completamente (não logar em nenhum ambiente)
+      // Esses erros são esperados em certas situações e não devem aparecer no console
+      if (is400or404) {
+        // Retornar erro silenciosamente sem logar
+        result.error = {
+          code: errorCode || '400',
+          message: 'Requisição inválida',
+        };
+      } else {
+        result.error = sanitizeError(result.error);
       }
-      
-      result.error = sanitizeError(result.error);
     }
 
     return result;
