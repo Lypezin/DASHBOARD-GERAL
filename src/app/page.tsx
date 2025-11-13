@@ -370,8 +370,14 @@ export default function DashboardPage() {
           stats={stats}
           ranking={ranking}
           loadingRanking={loadingRanking}
-          onClose={() => setShowConquistasModal(false)}
-          onLoadRanking={carregarRanking}
+          onClose={() => {
+            setShowConquistasModal(false);
+            // Atualizar ranking quando fechar o modal (caso tenha ganho conquistas)
+            setTimeout(() => {
+              carregarRanking(true); // Forçar atualização
+            }, 500);
+          }}
+          onLoadRanking={() => carregarRanking(true)} // Sempre forçar quando solicitado manualmente
         />
       )}
       <div className="mx-auto max-w-[1920px] px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 md:py-6 lg:py-8">

@@ -79,10 +79,15 @@ const ConquistasModal = memo(function ConquistasModal({
     }
 
     // Carregar ranking sempre que a aba for ativada (para garantir dados atualizados)
+    // Forçar atualização quando mudar para a aba de ranking
     if (onLoadRanking && !loadingRanking) {
-      // Sempre recarregar quando a aba de ranking for ativada para ter dados atualizados
       rankingTentouCarregarRef.current = true;
-      onLoadRanking();
+      // Chamar com pequeno delay para garantir que o estado está pronto
+      setTimeout(() => {
+        if (onLoadRanking) {
+          onLoadRanking();
+        }
+      }, 100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abaAtiva]); // Recarregar sempre que mudar para a aba de ranking
@@ -209,7 +214,10 @@ const ConquistasModal = memo(function ConquistasModal({
               <button
                 onClick={() => {
                   rankingTentouCarregarRef.current = false;
-                  onLoadRanking();
+                  // Forçar atualização do ranking
+                  if (onLoadRanking) {
+                    onLoadRanking();
+                  }
                 }}
                 disabled={loadingRanking}
                 className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import type { Conquista, ConquistaNova } from '@/types/conquistas';
 import { safeLog } from '@/lib/errorHandler';
@@ -23,6 +23,11 @@ export function useConquistas() {
   const [totalPontos, setTotalPontos] = useState(0);
   const [ranking, setRanking] = useState<RankingUsuario[]>([]);
   const [loadingRanking, setLoadingRanking] = useState(false);
+  
+  // Refs para controlar atualizações
+  const rankingLastUpdateRef = useRef<number>(0);
+  const rankingUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const conquistasLastUpdateRef = useRef<number>(0);
 
   // Carregar conquistas do usuário
   const carregarConquistas = useCallback(async () => {
@@ -51,6 +56,7 @@ export function useConquistas() {
 
       if (data) {
         setConquistas(data as Conquista[]);
+        conquistasLastUpdateRef.current = Date.now();
         
         // Calcular total de pontos
         const pontos = (data as Conquista[])
@@ -66,8 +72,19 @@ export function useConquistas() {
     }
   }, []);
 
-  // Carregar ranking de usuários
-  const carregarRanking = useCallback(async () => {
+  // Carregar ranking de usuários (com cache inteligente)
+  const carregarRanking = useCallback(async (force: boolean = false) => {
+    const now = Date.now();
+    const timeSinceLastUpdate = now - rankingLastUpdateRef.current;
+    
+    // Se não for forçado e foi atualizado há menos de 30 segundos, não atualizar
+    if (!force && timeSinceLastUpdate < 30000) {
+      if (IS_DEV) {
+        safeLog.info('Ranking ainda atualizado, pulando recarregamento');
+      }
+      return;
+    }
+    
     setLoadingRanking(true);
     try {
       const { data, error } = await safeRpc<RankingUsuario[]>('ranking_conquistas', {}, {
@@ -87,7 +104,7 @@ export function useConquistas() {
         
         if (!is400or404) {
           safeLog.error('Erro ao carregar ranking:', error);
-        } else if (process.env.NODE_ENV === 'development') {
+        } else if (IS_DEV) {
           safeLog.warn('Função ranking_conquistas não disponível:', error);
         }
         setRanking([]);
@@ -98,10 +115,15 @@ export function useConquistas() {
         // A função pode retornar array ou objeto único
         if (Array.isArray(data)) {
           setRanking(data);
+          rankingLastUpdateRef.current = Date.now();
+          if (IS_DEV) {
+            safeLog.info('Ranking atualizado com', data.length, 'usuários');
+          }
         } else if (data && typeof data === 'object') {
           // Se for objeto, tentar extrair array
           const rankingArray = (data as any).ranking || (data as any).data || [data];
           setRanking(Array.isArray(rankingArray) ? rankingArray : []);
+          rankingLastUpdateRef.current = Date.now();
         } else {
           setRanking([]);
         }
@@ -137,10 +159,6 @@ export function useConquistas() {
       
       if (error) {
         // Silenciar TODOS os erros 400 - são esperados e não devem aparecer no console
-        // Erros 400 podem ocorrer por vários motivos legítimos:
-        // - Função retornando estrutura vazia
-        // - Problemas temporários de RLS
-        // - Usuário não autenticado ainda
         const errorMessage = String(error.message || '');
         const errorCode = String(error.code || '');
         const is400Error = 
@@ -150,7 +168,6 @@ export function useConquistas() {
           errorMessage.includes('structure of query does not match'); // Erro de tipo de retorno
         
         // Silenciar completamente erros 400 em produção E desenvolvimento
-        // Não logar nada para não poluir o console
         if (is400Error) {
           return; // Silenciar completamente
         }
@@ -171,6 +188,8 @@ export function useConquistas() {
         return;
       }
 
+      let hasNewConquistas = false;
+      
       if (data && Array.isArray(data) && data.length > 0) {
         // Filtrar conquistas que já estão na lista de notificações para evitar duplicatas
         setConquistasNovas(prev => {
@@ -178,37 +197,31 @@ export function useConquistas() {
           const novas = data as ConquistaNova[];
           const realmenteNovas = novas.filter(c => c && c.conquista_codigo && !codigosExistentes.has(c.conquista_codigo));
           
+          if (realmenteNovas.length > 0) {
+            hasNewConquistas = true;
+          }
+          
           // Retornar apenas as realmente novas
           return [...prev, ...realmenteNovas];
         });
-        
-        // Recarregar lista de conquistas com tratamento de erro
-        try {
-          await carregarConquistas();
-        } catch (err) {
-          if (IS_DEV) {
-            safeLog.warn('Erro ao recarregar conquistas após verificação:', err);
-          }
+      }
+      
+      // SEMPRE recarregar conquistas após verificar (pode ter atualizado progresso)
+      try {
+        await carregarConquistas();
+      } catch (err) {
+        if (IS_DEV) {
+          safeLog.warn('Erro ao recarregar conquistas após verificação:', err);
         }
-        
-        // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
-        try {
-          await carregarRanking();
-        } catch (err) {
-          if (IS_DEV) {
-            safeLog.warn('Erro ao recarregar ranking após verificação:', err);
-          }
-        }
-      } else {
-        // Mesmo sem novas conquistas, atualizar ranking periodicamente
-        // Mas apenas se não houver muitas chamadas (debounce)
-        const shouldUpdateRanking = Math.random() < 0.1; // 10% de chance para não sobrecarregar
-        if (shouldUpdateRanking) {
-          try {
-            await carregarRanking();
-          } catch (err) {
-            // Silenciar erro silenciosamente
-          }
+      }
+      
+      // SEMPRE atualizar ranking após verificar conquistas (forçar atualização)
+      // Isso garante que o ranking está sempre atualizado
+      try {
+        await carregarRanking(true); // Forçar atualização
+      } catch (err) {
+        if (IS_DEV) {
+          safeLog.warn('Erro ao recarregar ranking após verificação:', err);
         }
       }
     } catch (err) {
@@ -254,8 +267,9 @@ export function useConquistas() {
       );
 
       // Atualizar ranking após marcar como visualizada (pode ter mudado posições)
+      // Não forçar, usar cache se disponível
       try {
-        await carregarRanking();
+        await carregarRanking(false);
       } catch (err) {
         // Silenciar erro silenciosamente
       }
@@ -316,12 +330,18 @@ export function useConquistas() {
         return;
       }
 
+      let hasNewConquistas = false;
+      
       if (data && Array.isArray(data) && data.length > 0) {
         // Filtrar conquistas que já estão na lista de notificações para evitar duplicatas
         setConquistasNovas(prev => {
           const codigosExistentes = new Set(prev.map(c => c.conquista_codigo));
           const novas = data as ConquistaNova[];
           const realmenteNovas = novas.filter(c => c && c.conquista_codigo && !codigosExistentes.has(c.conquista_codigo));
+          
+          if (realmenteNovas.length > 0) {
+            hasNewConquistas = true;
+          }
           
           // Retornar apenas as realmente novas
           return [...prev, ...realmenteNovas];
@@ -337,8 +357,9 @@ export function useConquistas() {
         }
         
         // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
+        // Forçar atualização se houver novas conquistas
         try {
-          await carregarRanking();
+          await carregarRanking(hasNewConquistas);
         } catch (err) {
           if (IS_DEV) {
             safeLog.warn('Erro ao recarregar ranking após verificação do dashboard:', err);
@@ -375,6 +396,30 @@ export function useConquistas() {
     };
   }, [verificarConquistas]); // Adicionar verificarConquistas como dependência
 
+  // Atualizar ranking periodicamente (a cada 2 minutos quando o modal está aberto)
+  // Isso garante que o ranking está sempre atualizado
+  useEffect(() => {
+    // Limpar intervalo anterior se existir
+    if (rankingUpdateIntervalRef.current) {
+      clearInterval(rankingUpdateIntervalRef.current);
+    }
+    
+    // Atualizar ranking periodicamente
+    rankingUpdateIntervalRef.current = setInterval(() => {
+      // Atualizar ranking apenas se não estiver carregando e se passou tempo suficiente
+      if (!loadingRanking) {
+        carregarRanking(false); // Não forçar, usar cache se disponível
+      }
+    }, 120000); // 2 minutos
+
+    return () => {
+      if (rankingUpdateIntervalRef.current) {
+        clearInterval(rankingUpdateIntervalRef.current);
+        rankingUpdateIntervalRef.current = null;
+      }
+    };
+  }, [carregarRanking, loadingRanking]);
+
   // Estatísticas (memoizadas para evitar recálculos desnecessários)
   const stats = useMemo(() => {
     const conquistadas = conquistas.filter(c => c.conquistada).length;
@@ -403,4 +448,3 @@ export function useConquistas() {
     carregarRanking
   };
 }
-
