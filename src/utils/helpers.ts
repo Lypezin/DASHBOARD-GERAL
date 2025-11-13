@@ -95,7 +95,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
   let dataFinal: string | null = null;
   
   // Se modo for intervalo, processar datas
-  if (filters.filtroModo === 'intervalo') {
+  if (filters?.filtroModo === 'intervalo') {
     // Validar e normalizar data inicial
     if (filters.dataInicial && filters.dataInicial.trim() !== '') {
       const dataIni = new Date(filters.dataInicial);

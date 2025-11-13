@@ -53,21 +53,23 @@ const FiltroBar = React.memo(function FiltroBar({
 
   const handleToggleModo = useCallback(() => {
     setFilters((prev) => {
-      const novoModo = prev.filtroModo === 'ano_semana' ? 'intervalo' : 'ano_semana';
+      if (!prev) return prev;
+      const novoModo = (prev.filtroModo ?? 'ano_semana') === 'ano_semana' ? 'intervalo' : 'ano_semana';
       return {
         ...prev,
         filtroModo: novoModo,
         // Limpar filtros do modo anterior
         ano: novoModo === 'intervalo' ? null : prev.ano,
         semana: novoModo === 'intervalo' ? null : prev.semana,
-        semanas: novoModo === 'intervalo' ? [] : prev.semanas,
-        dataInicial: novoModo === 'ano_semana' ? null : prev.dataInicial,
-        dataFinal: novoModo === 'ano_semana' ? null : prev.dataFinal,
+        semanas: novoModo === 'intervalo' ? [] : prev.semanas ?? [],
+        dataInicial: novoModo === 'ano_semana' ? null : prev.dataInicial ?? null,
+        dataFinal: novoModo === 'ano_semana' ? null : prev.dataFinal ?? null,
       };
     });
   }, [setFilters]);
 
   const hasActiveFilters = useMemo(() => {
+    if (!filters) return false;
     if (filters.filtroModo === 'intervalo') {
       return filters.dataInicial !== null || filters.dataFinal !== null || filters.subPraca !== null || filters.origem !== null || filters.turno !== null || (filters.turnos && filters.turnos.length > 0) ||
         (currentUser?.is_admin && filters.praca !== null);
@@ -92,7 +94,7 @@ const FiltroBar = React.memo(function FiltroBar({
     });
   }, [semanas]);
 
-  const isModoIntervalo = filters.filtroModo === 'intervalo';
+  const isModoIntervalo = filters?.filtroModo === 'intervalo';
 
   return (
     <div className="space-y-3 sm:space-y-4 relative">
@@ -124,8 +126,8 @@ const FiltroBar = React.memo(function FiltroBar({
       {/* Filtros de Ano/Semana ou Intervalo de Datas */}
       {isModoIntervalo ? (
         <FiltroDateRange
-          dataInicial={filters.dataInicial}
-          dataFinal={filters.dataFinal}
+          dataInicial={filters?.dataInicial ?? null}
+          dataFinal={filters?.dataFinal ?? null}
           onDataInicialChange={(data) => setFilters(prev => ({ ...prev, dataInicial: data }))}
           onDataFinalChange={(data) => setFilters(prev => ({ ...prev, dataFinal: data }))}
         />
