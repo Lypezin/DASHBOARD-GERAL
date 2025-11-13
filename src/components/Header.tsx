@@ -28,6 +28,8 @@ export function Header() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Adicionar estado de loading
+  const [hasTriedAuth, setHasTriedAuth] = useState(false); // Flag para rastrear tentativas de auth
 
   useEffect(() => {
     checkUser();
@@ -55,14 +57,25 @@ export function Header() {
 
   const checkUser = async () => {
     try {
+      setIsLoading(true);
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !authUser) {
-        // Erro de autenticação - apenas redirecionar, não fazer logout forçado
-        if (IS_DEV) safeLog.warn('Usuário não autenticado:', authError);
+        // Se é a primeira tentativa, aguardar um pouco e tentar novamente
+        if (!hasTriedAuth) {
+          setHasTriedAuth(true);
+          setTimeout(() => checkUser(), 1000);
+          return;
+        }
+        
+        // Erro de autenticação após retry - redirecionar para login
+        if (IS_DEV) safeLog.warn('Usuário não autenticado após retry:', authError);
+        setIsLoading(false);
         router.push('/login');
         return;
       }
+      
+      setHasTriedAuth(true);
 
       // Tentar buscar perfil com retry e tratamento de erro melhorado
       let profile: UserProfile | null = null;
@@ -151,9 +164,11 @@ export function Header() {
         }
       }
     } catch (err) {
-      // Erro inesperado - não fazer logout imediatamente
+      // Erro inesperado - apenas logar, não fazer logout forçado
       if (IS_DEV) safeLog.error('Erro inesperado ao verificar usuário:', err);
-      // Apenas logar o erro, não fazer logout forçado
+    } finally {
+      // Sempre definir loading como false ao final
+      setIsLoading(false);
     }
   };
 
@@ -203,8 +218,13 @@ export function Header() {
     return null;
   }
 
-  // Não mostrar header se não houver usuário autenticado
-  if (!user) {
+  // Se ainda está carregando, não mostrar header para evitar flickers
+  if (isLoading) {
+    return null;
+  }
+
+  // Não mostrar header se não houver usuário autenticado APÓS tentar carregar
+  if (!user && hasTriedAuth) {
     return null;
   }
 

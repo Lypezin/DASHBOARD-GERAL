@@ -27,6 +27,17 @@ export function useConquistas() {
   // Carregar conquistas do usuário
   const carregarConquistas = useCallback(async () => {
     try {
+      // Verificar se o usuário está autenticado antes de tentar carregar conquistas
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) {
+        if (IS_DEV) {
+          safeLog.warn('Tentativa de carregar conquistas sem usuário autenticado');
+        }
+        setConquistas([]);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await safeRpc<Conquista[]>('listar_conquistas_usuario', {}, {
         timeout: 30000,
         validateParams: false
@@ -110,6 +121,15 @@ export function useConquistas() {
   // Verificar novas conquistas (com tratamento de erro silencioso)
   const verificarConquistas = useCallback(async () => {
     try {
+      // Primeiro verificar se o usuário está autenticado
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) {
+        if (IS_DEV) {
+          safeLog.warn('Tentativa de verificar conquistas sem usuário autenticado');
+        }
+        return;
+      }
+
       const { data, error } = await safeRpc<ConquistaNova[]>('verificar_conquistas', {}, {
         timeout: 30000,
         validateParams: false
@@ -123,7 +143,9 @@ export function useConquistas() {
           errorMessage.includes('400') || 
           errorMessage.includes('Bad Request') ||
           error.code === 'P0001' ||
-          error.code === '42803'; // Erro de tipo de dados
+          error.code === '42803' || // Erro de tipo de dados
+          error.code === 'PGRST116' || // Função não encontrada
+          error.code === '42883'; // Função não existe
         
         if (!isExpectedError && IS_DEV) {
           safeLog.warn('Erro ao verificar conquistas:', error);
