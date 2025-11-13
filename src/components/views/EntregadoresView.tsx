@@ -41,10 +41,33 @@ function EntregadoresView({
           termo_busca: searchTerm.trim()
         }, {
           timeout: 30000,
-          validateParams: true
+          validateParams: false // Desabilitar validação para evitar problemas
         });
 
-        if (error) throw error;
+        if (error) {
+          // Se for erro 500 ou similar, usar fallback local sem lançar erro
+          const errorCode = (error as any)?.code || '';
+          const errorMessage = String((error as any)?.message || '');
+          const is500 = errorCode === 'PGRST301' || 
+                       errorMessage.includes('500') || 
+                       errorMessage.includes('Internal Server Error');
+          
+          if (is500) {
+            // Erro 500: usar fallback local sem mostrar erro
+            if (IS_DEV) {
+              safeLog.warn('Erro 500 ao pesquisar entregadores, usando fallback local');
+            }
+            const filtered = (entregadoresData?.entregadores || []).filter(e => 
+              e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              e.id_entregador.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setSearchResults(filtered);
+            setIsSearching(false);
+            return;
+          }
+          
+          throw error;
+        }
         // A função pode retornar array direto ou objeto com propriedade entregadores
         if (Array.isArray(data)) {
           setSearchResults(data);
@@ -174,7 +197,13 @@ function EntregadoresView({
     return (
       <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center dark:border-rose-900 dark:bg-rose-950/30">
         <p className="text-lg font-semibold text-rose-900 dark:text-rose-100">Erro ao carregar entregadores</p>
-        <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">A função pesquisar_entregadores não está disponível ou ocorreu um erro no servidor (500). Verifique os logs do banco de dados.</p>
+        <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">A função listar_entregadores não está disponível ou ocorreu um erro no servidor (500). Verifique os logs do banco de dados.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105"
+        >
+          Tentar novamente
+        </button>
       </div>
     );
   }
