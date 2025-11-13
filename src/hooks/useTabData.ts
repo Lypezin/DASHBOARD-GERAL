@@ -5,7 +5,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-const CACHE_TTL = 60000; // 60 segundos (aumentado pois dados vêm de materialized view)
+const CACHE_TTL = 120000; // 120 segundos (cache mais agressivo similar ao dashboard)
 const DEBOUNCE_MS = 100; // Debounce fixo de 100ms (igual ao Dashboard para consistência)
 
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
@@ -171,10 +171,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
               return;
             }
             
-            const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
-            const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
+            const { p_ano, p_semana, p_praca, p_sub_praca, p_origem, p_data_inicial, p_data_final } = filterPayload as any;
+            const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem, p_data_inicial, p_data_final };
             result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
-              timeout: 15000, // Reduzido para 15s (função otimizada com materialized view - muito mais rápida)
+              timeout: 10000, // Reduzido para 10s (queries devem ser mais rápidas com otimizações)
               validateParams: false // Desabilitar validação para evitar problemas
             });
             
@@ -273,13 +273,13 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
               return;
             }
             
-            const { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem } = filterPayload as any;
-            const listarValoresPayload = { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem };
+            const { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem, p_data_inicial: v_data_inicial, p_data_final: v_data_final } = filterPayload as any;
+            const listarValoresPayload = { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem, p_data_inicial: v_data_inicial, p_data_final: v_data_final };
             
             // Log removido em produção para melhor performance
             
             result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
-              timeout: 15000, // Reduzido para 15s (função otimizada com materialized view - muito mais rápida)
+              timeout: 10000, // Reduzido para 10s (queries devem ser mais rápidas com otimizações)
               validateParams: false // Desabilitar validação para evitar problemas
             });
             

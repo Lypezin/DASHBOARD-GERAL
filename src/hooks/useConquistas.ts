@@ -143,30 +143,18 @@ export function useConquistas() {
         setConquistas(conquistasValidas as Conquista[]);
         conquistasLastUpdateRef.current = Date.now();
         
-        // Calcular total de pontos APENAS de conquistas realmente completas
-        // Garantir que progresso >= 100 E conquistada_em IS NOT NULL (se disponível)
+        // Calcular total de pontos - confiar na função SQL que já valida corretamente
+        // A função SQL retorna conquistada = true apenas quando progresso >= 100 AND conquistada_em IS NOT NULL
+        // Não precisamos fazer validação dupla no frontend
         const pontos = conquistasValidas
-          .filter((c: any) => {
-            // Verificar se está realmente conquistada
-            const isConquistada = c.conquistada === true;
-            // Se tiver progresso, verificar se é >= 100
-            const progressoOk = c.progresso >= 100;
-            // Se tiver conquistada_em, verificar se não é null
-            const conquistadaEmOk = c.conquistada_em !== null && c.conquistada_em !== undefined;
-            
-            // Só contar pontos se estiver realmente completa
-            return isConquistada && progressoOk && conquistadaEmOk;
-          })
+          .filter((c: any) => c.conquistada === true)
           .reduce((sum: number, c: any) => sum + (c.pontos || 0), 0);
         
         setTotalPontos(pontos);
         
         if (IS_DEV) {
           const totalConquistadas = conquistasValidas.filter((c: any) => c.conquistada === true).length;
-          const totalCompletas = conquistasValidas.filter((c: any) => 
-            c.conquistada === true && c.progresso >= 100 && c.conquistada_em !== null && c.conquistada_em !== undefined
-          ).length;
-          safeLog.info(`[useConquistas] 📊 Estatísticas: ${totalConquistadas} marcadas como conquistadas, ${totalCompletas} realmente completas, ${pontos} pontos`);
+          safeLog.info(`[useConquistas] 📊 Estatísticas: ${totalConquistadas} conquistadas, ${pontos} pontos`);
         }
       } else {
         if (IS_DEV) {
@@ -707,24 +695,16 @@ export function useConquistas() {
   // Estatísticas (memoizadas para evitar recálculos desnecessários)
   // IMPORTANTE: Calcular apenas conquistas realmente completas (progresso >= 100 E conquistada_em IS NOT NULL)
   const stats = useMemo(() => {
-    // Filtrar apenas conquistas realmente completas
-    const conquistadasCompletas = conquistas.filter(c => {
-      return c.conquistada === true && 
-             c.progresso >= 100 && 
-             c.conquistada_em !== null && 
-             c.conquistada_em !== undefined;
-    }).length;
-    
-    // Total de conquistas marcadas como conquistadas (pode incluir incompletas)
-    const conquistadasMarcadas = conquistas.filter(c => c.conquistada === true).length;
+    // Simplificar: confiar na função SQL que já valida corretamente
+    // A função SQL retorna conquistada = true apenas quando progresso >= 100 AND conquistada_em IS NOT NULL
+    const conquistadas = conquistas.filter(c => c.conquistada === true).length;
     
     return {
       total: conquistas.length,
-      conquistadas: conquistadasCompletas, // Usar apenas as realmente completas
-      conquistadasMarcadas, // Manter referência para debug se necessário
+      conquistadas: conquistadas, // Usar apenas conquistada === true (função SQL já valida)
       pontos: totalPontos, // Já calculado corretamente em carregarConquistas
       progresso: conquistas.length > 0 
-        ? Math.round((conquistadasCompletas / conquistas.length) * 100)
+        ? Math.round((conquistadas / conquistas.length) * 100)
         : 0
     };
   }, [conquistas, totalPontos]);
