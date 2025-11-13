@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
+// Ler variáveis de ambiente - podem estar disponíveis em diferentes momentos
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -7,31 +8,30 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // Durante o build do Next.js, algumas variáveis podem não estar disponíveis
 // Mas em runtime (especialmente no Vercel), elas devem estar disponíveis
 const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
-                    process.env.NEXT_PHASE === 'phase-development-build' ||
-                    (typeof window === 'undefined' && !process.env.VERCEL && !process.env.VERCEL_ENV);
+                    process.env.NEXT_PHASE === 'phase-development-build';
 
 let supabaseInstance: SupabaseClient | null = null;
 
 function getSupabaseClient(): SupabaseClient {
-  // Se já existe uma instância e as variáveis estão disponíveis, retornar
-  // Mas se tivermos um mock e agora as variáveis estão disponíveis, recriar
-  if (supabaseInstance) {
-    // Se temos variáveis reais e o cliente atual é mock (URL dummy), recriar
-    if (supabaseUrl && supabaseAnonKey && 
-        supabaseUrl !== 'https://placeholder.supabase.co' &&
-        typeof window !== 'undefined') {
-      // Em runtime, recriar com variáveis reais se disponíveis
-      supabaseInstance = null; // Forçar recriação
-    } else {
-      return supabaseInstance;
-    }
+  // Ler variáveis novamente em runtime (podem ter sido definidas após o import)
+  const runtimeUrl = typeof window !== 'undefined' 
+    ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    : process.env.NEXT_PUBLIC_SUPABASE_URL;
+  
+  const runtimeKey = typeof window !== 'undefined'
+    ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const finalUrl = runtimeUrl || supabaseUrl;
+  const finalKey = runtimeKey || supabaseAnonKey;
+
+  // Se já existe uma instância válida, retornar
+  if (supabaseInstance && finalUrl && finalKey && finalUrl !== 'https://placeholder.supabase.co') {
+    return supabaseInstance;
   }
 
   // Durante o build, criar um cliente mock para evitar erros
-  // Em runtime, as variáveis devem estar disponíveis
-  if (isBuildTime && (!supabaseUrl || !supabaseAnonKey)) {
-    // Durante o build, criar um cliente com valores dummy
-    // Isso permite que o módulo seja importado sem erros
+  if (isBuildTime && (!finalUrl || !finalKey)) {
     const dummyUrl = 'https://placeholder.supabase.co';
     const dummyKey = 'dummy-key';
     
@@ -46,14 +46,28 @@ function getSupabaseClient(): SupabaseClient {
     return supabaseInstance;
   }
 
-  // Em runtime, as variáveis devem estar disponíveis
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // Em runtime, lançar erro se as variáveis não estiverem disponíveis
-    throw new Error('As variáveis de ambiente do Supabase não estão configuradas corretamente. Verifique o arquivo .env.local ou as variáveis de ambiente do Vercel.');
+  // Em runtime, verificar se as variáveis estão disponíveis
+  if (!finalUrl || !finalKey) {
+    // Log detalhado para debug (apenas em desenvolvimento)
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.error('[Supabase Client] Variáveis de ambiente não encontradas:', {
+        hasUrl: !!finalUrl,
+        hasKey: !!finalKey,
+        isBuildTime,
+        isClient: typeof window !== 'undefined',
+        envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE')),
+      });
+    }
+    
+    throw new Error(
+      'As variáveis de ambiente do Supabase não estão configuradas corretamente. ' +
+      'Verifique se NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY estão configuradas no Vercel. ' +
+      'Após configurar, faça um novo deploy.'
+    );
   }
 
   // Criar cliente real com as variáveis de ambiente disponíveis
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+  supabaseInstance = createClient(finalUrl, finalKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
