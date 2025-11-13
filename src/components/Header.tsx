@@ -274,7 +274,7 @@ export function Header() {
             </span>
           </button>
           
-          {user.is_admin && (
+          {user?.is_admin && (
               <>
                 <Link
                   href="/upload"
@@ -300,10 +300,10 @@ export function Header() {
                 onClick={() => setShowMenu(!showMenu)}
                 className="flex items-center gap-2 sm:gap-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium hover:shadow-lg"
               >
-                {avatarUrl || user.avatar_url ? (
+                {avatarUrl || user?.avatar_url ? (
                   <Image
-                    src={avatarUrl || user.avatar_url || ''}
-                    alt={user.full_name}
+                    src={avatarUrl || user?.avatar_url || ''}
+                    alt={user?.full_name || 'Usuário'}
                     width={32}
                     height={32}
                     className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover border-2 border-white/40 shadow-md"
@@ -321,25 +321,25 @@ export function Header() {
                 <div className="absolute right-0 mt-3 w-60 sm:w-64 rounded-xl border border-slate-200/50 bg-white shadow-2xl z-50 animate-scale-in overflow-hidden">
                   <div className="border-b border-slate-200 p-4 bg-gradient-to-br from-slate-50 to-blue-50">
                     <div className="flex items-center gap-3 mb-3">
-                      {avatarUrl || user.avatar_url ? (
+                      {avatarUrl || user?.avatar_url ? (
                         <Image
-                          src={avatarUrl || user.avatar_url || ''}
-                          alt={user.full_name}
+                          src={avatarUrl || user?.avatar_url || ''}
+                          alt={user?.full_name || 'Usuário'}
                           width={48}
                           height={48}
                           className="h-12 w-12 rounded-full object-cover border-2 border-white shadow-md"
                         />
                       ) : (
                         <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-md">
-                          {user.full_name.charAt(0).toUpperCase()}
+                          {user?.full_name?.charAt(0).toUpperCase() || 'U'}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-base text-slate-900 truncate">{user.full_name}</p>
-                        <p className="text-xs text-slate-600 truncate mt-0.5">{user.email}</p>
+                        <p className="font-bold text-base text-slate-900 truncate">{user?.full_name || 'Usuário'}</p>
+                        <p className="text-xs text-slate-600 truncate mt-0.5">{user?.email || ''}</p>
                       </div>
                     </div>
-                    {user.is_admin && (
+                    {user?.is_admin && (
                       <span className="inline-flex items-center gap-1 rounded-full gradient-primary px-3 py-1 text-xs font-bold text-white shadow-md">
                         <span>⭐</span>
                         <span>Administrador</span>
@@ -409,7 +409,7 @@ export function Header() {
                 <span>{theme === 'dark' ? 'Tema Escuro' : 'Tema Claro'}</span>
               </button>
               
-              {user.is_admin && (
+              {user?.is_admin && (
                 <>
                   <Link
                     href="/upload"
@@ -440,10 +440,10 @@ export function Header() {
                   }}
                   className="w-full flex items-center gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
                 >
-                  {avatarUrl || user.avatar_url ? (
+                  {avatarUrl || user?.avatar_url ? (
                     <Image
-                      src={avatarUrl || user.avatar_url || ''}
-                      alt={user.full_name}
+                      src={avatarUrl || user?.avatar_url || ''}
+                      alt={user?.full_name || 'Usuário'}
                       width={32}
                       height={32}
                       className="h-8 w-8 rounded-full object-cover border-2 border-white/40 shadow-md"
@@ -454,8 +454,8 @@ export function Header() {
                     </div>
                   )}
                   <div className="flex-1 text-left">
-                    <p className="font-semibold text-sm">{user.full_name}</p>
-                    <p className="text-xs text-blue-100/80 truncate">{user.email}</p>
+                    <p className="font-semibold text-sm">{user?.full_name || 'Usuário'}</p>
+                    <p className="text-xs text-blue-100/80 truncate">{user?.email || ''}</p>
                   </div>
                   <span className="text-xs">▼</span>
                 </button>
