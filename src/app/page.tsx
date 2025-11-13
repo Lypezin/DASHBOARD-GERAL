@@ -128,6 +128,7 @@ export default function DashboardPage() {
       hasFiltroModo: 'filtroModo' in filters,
       filtersKeys: Object.keys(filters),
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Apenas no mount inicial
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);

@@ -72,12 +72,12 @@ const FiltroBar = React.memo(function FiltroBar({
           safeLog.warn('[FiltroBar] handleToggleModo: prev é null/undefined');
           return prev;
         }
-        const novoModo = (prev.filtroModo ?? 'ano_semana') === 'ano_semana' ? 'intervalo' : 'ano_semana';
+        const novoModo: 'ano_semana' | 'intervalo' = (prev.filtroModo ?? 'ano_semana') === 'ano_semana' ? 'intervalo' : 'ano_semana';
         safeLog.info('[FiltroBar] Trocando modo:', {
           modoAtual: prev.filtroModo,
           novoModo,
         });
-        const newFilters = {
+        const newFilters: Filters = {
           ...prev,
           filtroModo: novoModo,
           // Limpar filtros do modo anterior
