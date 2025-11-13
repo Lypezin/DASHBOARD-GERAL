@@ -28,6 +28,7 @@ export function useConquistas() {
   const rankingLastUpdateRef = useRef<number>(0);
   const rankingUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const conquistasLastUpdateRef = useRef<number>(0);
+  const rankingUpdateQueueRef = useRef<boolean>(false); // Flag para evitar múltiplas atualizações simultâneas
 
   // Carregar conquistas do usuário
   const carregarConquistas = useCallback(async () => {
@@ -72,21 +73,36 @@ export function useConquistas() {
     }
   }, []);
 
-  // Carregar ranking de usuários (com cache inteligente)
+  // Carregar ranking de usuários (REFATORADO - sem cache bloqueante quando force=true)
   const carregarRanking = useCallback(async (force: boolean = false) => {
     const now = Date.now();
     const timeSinceLastUpdate = now - rankingLastUpdateRef.current;
     
     // Se não for forçado e foi atualizado há menos de 30 segundos, não atualizar
+    // MAS: se force=true, SEMPRE atualizar independente do cache
     if (!force && timeSinceLastUpdate < 30000) {
       if (IS_DEV) {
         safeLog.info('Ranking ainda atualizado, pulando recarregamento');
       }
       return;
     }
-    
+
+    // Evitar múltiplas chamadas simultâneas
+    if (rankingUpdateQueueRef.current) {
+      if (IS_DEV) {
+        safeLog.info('Ranking já está sendo atualizado, aguardando...');
+      }
+      return;
+    }
+
+    rankingUpdateQueueRef.current = true;
     setLoadingRanking(true);
+    
     try {
+      if (IS_DEV) {
+        safeLog.info(`Carregando ranking (force=${force})...`);
+      }
+
       const { data, error } = await safeRpc<RankingUsuario[]>('ranking_conquistas', {}, {
         timeout: 30000,
         validateParams: false
@@ -114,16 +130,38 @@ export function useConquistas() {
       if (data) {
         // A função pode retornar array ou objeto único
         if (Array.isArray(data)) {
-          setRanking(data);
-          rankingLastUpdateRef.current = Date.now();
-          if (IS_DEV) {
-            safeLog.info(`Ranking atualizado com ${data.length} usuários`);
-          }
+          // Atualizar estado usando função de callback para garantir que sempre pega o valor mais recente
+          setRanking(prevRanking => {
+            // Comparar se os dados realmente mudaram antes de atualizar
+            const dataChanged = JSON.stringify(prevRanking) !== JSON.stringify(data);
+            
+            if (dataChanged || force) {
+              if (IS_DEV) {
+                safeLog.info(`Ranking atualizado com ${data.length} usuários (force=${force}, changed=${dataChanged})`);
+              }
+              rankingLastUpdateRef.current = Date.now();
+              return data;
+            } else {
+              if (IS_DEV) {
+                safeLog.info('Ranking não mudou, mantendo estado anterior');
+              }
+              return prevRanking;
+            }
+          });
         } else if (data && typeof data === 'object') {
           // Se for objeto, tentar extrair array
           const rankingArray = (data as any).ranking || (data as any).data || [data];
-          setRanking(Array.isArray(rankingArray) ? rankingArray : []);
-          rankingLastUpdateRef.current = Date.now();
+          const finalArray = Array.isArray(rankingArray) ? rankingArray : [];
+          
+          setRanking(prevRanking => {
+            const dataChanged = JSON.stringify(prevRanking) !== JSON.stringify(finalArray);
+            
+            if (dataChanged || force) {
+              rankingLastUpdateRef.current = Date.now();
+              return finalArray;
+            }
+            return prevRanking;
+          });
         } else {
           setRanking([]);
         }
@@ -137,6 +175,7 @@ export function useConquistas() {
       setRanking([]);
     } finally {
       setLoadingRanking(false);
+      rankingUpdateQueueRef.current = false;
     }
   }, []);
 
@@ -217,17 +256,18 @@ export function useConquistas() {
       
       // SEMPRE atualizar ranking após verificar conquistas (forçar atualização)
       // Aguardar um pouco para garantir que as conquistas foram salvas no banco
-      setTimeout(async () => {
-        try {
-          // Resetar cache para forçar atualização
-          rankingLastUpdateRef.current = 0;
-          await carregarRanking(true); // Forçar atualização
-        } catch (err) {
-          if (IS_DEV) {
-            safeLog.warn('Erro ao recarregar ranking após verificação:', err);
-          }
+      // Usar Promise para garantir que a atualização aconteça
+      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 segundos de delay
+      
+      try {
+        // Resetar cache para forçar atualização
+        rankingLastUpdateRef.current = 0;
+        await carregarRanking(true); // Forçar atualização
+      } catch (err) {
+        if (IS_DEV) {
+          safeLog.warn('Erro ao recarregar ranking após verificação:', err);
         }
-      }, 1000); // 1 segundo de delay para garantir que as conquistas foram salvas
+      }
     } catch (err) {
       // Silenciar erros em produção, apenas logar em desenvolvimento
       if (IS_DEV) {
@@ -272,14 +312,14 @@ export function useConquistas() {
 
       // Atualizar ranking após marcar como visualizada (pode ter mudado posições)
       // Aguardar um pouco e forçar atualização
-      setTimeout(async () => {
-        try {
-          rankingLastUpdateRef.current = 0; // Resetar cache
-          await carregarRanking(true); // Forçar atualização
-        } catch (err) {
-          // Silenciar erro silenciosamente
-        }
-      }, 500);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      try {
+        rankingLastUpdateRef.current = 0; // Resetar cache
+        await carregarRanking(true); // Forçar atualização
+      } catch (err) {
+        // Silenciar erro silenciosamente
+      }
 
       return true;
     } catch (err) {
@@ -364,18 +404,18 @@ export function useConquistas() {
         }
         
         // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
-        // Forçar atualização se houver novas conquistas
-        setTimeout(async () => {
-          try {
-            // Resetar cache para forçar atualização
-            rankingLastUpdateRef.current = 0;
-            await carregarRanking(true); // Sempre forçar quando há novas conquistas
-          } catch (err) {
-            if (IS_DEV) {
-              safeLog.warn('Erro ao recarregar ranking após verificação do dashboard:', err);
-            }
+        // Aguardar para garantir que as conquistas foram salvas
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        try {
+          // Resetar cache para forçar atualização
+          rankingLastUpdateRef.current = 0;
+          await carregarRanking(true); // Sempre forçar quando há novas conquistas
+        } catch (err) {
+          if (IS_DEV) {
+            safeLog.warn('Erro ao recarregar ranking após verificação do dashboard:', err);
           }
-        }, 1000); // 1 segundo de delay para garantir que as conquistas foram salvas
+        }
       }
     } catch (err) {
       safeLog.error('Erro inesperado ao verificar conquistas do dashboard:', err);
@@ -390,9 +430,13 @@ export function useConquistas() {
     setConquistasNovas([]);
     
     // Carregar ranking inicial após um delay para garantir que tudo está pronto
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       carregarRanking(true); // Forçar atualização inicial
     }, 2000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [carregarConquistas, carregarRanking]);
 
   // Verificar conquistas periodicamente (a cada 5 minutos para reduzir carga)
@@ -423,7 +467,7 @@ export function useConquistas() {
     // Atualizar ranking periodicamente
     rankingUpdateIntervalRef.current = setInterval(() => {
       // Atualizar ranking apenas se não estiver carregando
-      if (!loadingRanking) {
+      if (!loadingRanking && !rankingUpdateQueueRef.current) {
         // Verificar se passou tempo suficiente desde a última atualização
         const now = Date.now();
         const timeSinceLastUpdate = now - rankingLastUpdateRef.current;
