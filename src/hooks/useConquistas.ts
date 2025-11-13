@@ -31,17 +31,42 @@ export function useConquistas() {
   const rankingUpdateQueueRef = useRef<boolean>(false); // Flag para evitar múltiplas atualizações simultâneas
 
   // Carregar conquistas do usuário
-  const carregarConquistas = useCallback(async () => {
+  const carregarConquistas = useCallback(async (retryCount = 0) => {
+    const MAX_RETRIES = 2;
+    
     try {
       // Verificar se o usuário está autenticado antes de tentar carregar conquistas
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        if (IS_DEV) {
+          safeLog.warn('[useConquistas] Erro ao obter sessão:', sessionError);
+        }
+        // Se for erro de cliente mock, tentar recriar
+        const errorMessage = String(sessionError.message || '');
+        if (errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
+          if (typeof (supabase as any)._recreate === 'function') {
+            (supabase as any)._recreate();
+            // Tentar novamente após recriar
+            if (retryCount < MAX_RETRIES) {
+              setTimeout(() => carregarConquistas(retryCount + 1), 1000);
+              return;
+            }
+          }
+        }
+      }
+      
       if (!session?.user?.id) {
         if (IS_DEV) {
-          safeLog.warn('Tentativa de carregar conquistas sem usuário autenticado');
+          safeLog.warn('[useConquistas] Tentativa de carregar conquistas sem usuário autenticado');
         }
         setConquistas([]);
         setLoading(false);
         return;
+      }
+
+      if (IS_DEV) {
+        safeLog.info('[useConquistas] Carregando conquistas...');
       }
 
       const { data, error } = await safeRpc<Conquista[]>('listar_conquistas_usuario', {}, {
@@ -50,12 +75,31 @@ export function useConquistas() {
       });
       
       if (error) {
-        safeLog.error('Erro ao carregar conquistas:', error);
+        const errorMessage = String((error as any)?.message || '');
+        const errorCode = String((error as any)?.code || '');
+        
+        // Se for erro de cliente mock, tentar recriar e retry
+        if ((errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) && retryCount < MAX_RETRIES) {
+          if (typeof (supabase as any)._recreate === 'function') {
+            if (IS_DEV) {
+              safeLog.warn('[useConquistas] Cliente mock detectado, recriando e tentando novamente...');
+            }
+            (supabase as any)._recreate();
+            setTimeout(() => carregarConquistas(retryCount + 1), 1000);
+            return;
+          }
+        }
+        
+        safeLog.error('[useConquistas] Erro ao carregar conquistas:', error);
         setConquistas([]);
+        setLoading(false);
         return;
       }
 
       if (data) {
+        if (IS_DEV) {
+          safeLog.info(`[useConquistas] ✅ ${(data as Conquista[]).length} conquistas carregadas`);
+        }
         setConquistas(data as Conquista[]);
         conquistasLastUpdateRef.current = Date.now();
         
@@ -64,9 +108,14 @@ export function useConquistas() {
           .filter(c => c.conquistada)
           .reduce((sum, c) => sum + c.pontos, 0);
         setTotalPontos(pontos);
+      } else {
+        if (IS_DEV) {
+          safeLog.warn('[useConquistas] Nenhuma conquista retornada');
+        }
+        setConquistas([]);
       }
     } catch (err) {
-      safeLog.error('Erro inesperado ao carregar conquistas:', err);
+      safeLog.error('[useConquistas] Erro inesperado ao carregar conquistas:', err);
       setConquistas([]);
     } finally {
       setLoading(false);
@@ -74,7 +123,8 @@ export function useConquistas() {
   }, []);
 
   // Carregar ranking de usuários (REFATORADO - sem cache bloqueante quando force=true)
-  const carregarRanking = useCallback(async (force: boolean = false) => {
+  const carregarRanking = useCallback(async (force: boolean = false, retryCount = 0) => {
+    const MAX_RETRIES = 2;
     const now = Date.now();
     const timeSinceLastUpdate = now - rankingLastUpdateRef.current;
     
@@ -82,7 +132,7 @@ export function useConquistas() {
     // MAS: se force=true, SEMPRE atualizar independente do cache
     if (!force && timeSinceLastUpdate < 30000) {
       if (IS_DEV) {
-        safeLog.info('Ranking ainda atualizado, pulando recarregamento');
+        safeLog.info('[useConquistas] Ranking ainda atualizado, pulando recarregamento');
       }
       return;
     }
@@ -90,7 +140,7 @@ export function useConquistas() {
     // Evitar múltiplas chamadas simultâneas
     if (rankingUpdateQueueRef.current) {
       if (IS_DEV) {
-        safeLog.info('Ranking já está sendo atualizado, aguardando...');
+        safeLog.info('[useConquistas] Ranking já está sendo atualizado, aguardando...');
       }
       return;
     }
@@ -100,7 +150,7 @@ export function useConquistas() {
     
     try {
       if (IS_DEV) {
-        safeLog.info(`Carregando ranking (force=${force})...`);
+        safeLog.info(`[useConquistas] Carregando ranking (force=${force})...`);
       }
 
       const { data, error } = await safeRpc<RankingUsuario[]>('ranking_conquistas', {}, {
@@ -109,9 +159,23 @@ export function useConquistas() {
       });
       
       if (error) {
-        // Tratar erros 400/404 silenciosamente, mas logar outros erros
-        const errorCode = (error as any)?.code;
         const errorMessage = String((error as any)?.message || '');
+        const errorCode = String((error as any)?.code || '');
+        
+        // Se for erro de cliente mock, tentar recriar e retry
+        if ((errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) && retryCount < MAX_RETRIES) {
+          if (typeof (supabase as any)._recreate === 'function') {
+            if (IS_DEV) {
+              safeLog.warn('[useConquistas] Cliente mock detectado no ranking, recriando e tentando novamente...');
+            }
+            rankingUpdateQueueRef.current = false;
+            (supabase as any)._recreate();
+            setTimeout(() => carregarRanking(force, retryCount + 1), 1000);
+            return;
+          }
+        }
+        
+        // Tratar erros 400/404 silenciosamente, mas logar outros erros
         const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' || 
                           errorCode === 'PGRST204' ||
                           errorMessage.includes('400') ||
@@ -119,15 +183,21 @@ export function useConquistas() {
                           errorMessage.includes('not found');
         
         if (!is400or404) {
-          safeLog.error('Erro ao carregar ranking:', error);
+          safeLog.error('[useConquistas] Erro ao carregar ranking:', error);
         } else if (IS_DEV) {
-          safeLog.warn('Função ranking_conquistas não disponível:', error);
+          safeLog.warn('[useConquistas] Função ranking_conquistas não disponível:', error);
         }
         setRanking([]);
+        rankingUpdateQueueRef.current = false;
+        setLoadingRanking(false);
         return;
       }
 
       if (data) {
+        if (IS_DEV) {
+          safeLog.info(`[useConquistas] ✅ Ranking carregado: ${Array.isArray(data) ? data.length : 'objeto'} itens`);
+        }
+        
         // A função pode retornar array ou objeto único
         if (Array.isArray(data)) {
           // Atualizar estado usando função de callback para garantir que sempre pega o valor mais recente
@@ -137,13 +207,13 @@ export function useConquistas() {
             
             if (dataChanged || force) {
               if (IS_DEV) {
-                safeLog.info(`Ranking atualizado com ${data.length} usuários (force=${force}, changed=${dataChanged})`);
+                safeLog.info(`[useConquistas] Ranking atualizado com ${data.length} usuários (force=${force}, changed=${dataChanged})`);
               }
               rankingLastUpdateRef.current = Date.now();
               return data;
             } else {
               if (IS_DEV) {
-                safeLog.info('Ranking não mudou, mantendo estado anterior');
+                safeLog.info('[useConquistas] Ranking não mudou, mantendo estado anterior');
               }
               return prevRanking;
             }
@@ -449,20 +519,56 @@ export function useConquistas() {
 
   // Carregar conquistas ao montar
   useEffect(() => {
-    carregarConquistas();
-    // Limpar notificações ao montar (após F5, não deve mostrar conquistas já visualizadas)
-    // Isso garante que após refresh, apenas conquistas realmente novas apareçam
-    setConquistasNovas([]);
+    if (IS_DEV) {
+      safeLog.info('[useConquistas] Hook montado, verificando sessão antes de carregar...');
+    }
     
-    // Carregar ranking inicial após um delay para garantir que tudo está pronto
-    const timeoutId = setTimeout(() => {
-      carregarRanking(true); // Forçar atualização inicial
-    }, 2000);
-
+    let timeoutId: NodeJS.Timeout | null = null;
+    
+    // Verificar se há sessão antes de carregar
+    supabase.auth.getSession().then(({ data: { session }, error: sessionError }) => {
+      if (sessionError) {
+        if (IS_DEV) {
+          safeLog.warn('[useConquistas] Erro ao verificar sessão:', sessionError);
+        }
+        setLoading(false);
+        return;
+      }
+      
+      if (session?.user?.id) {
+        if (IS_DEV) {
+          safeLog.info('[useConquistas] Sessão encontrada, carregando conquistas...');
+        }
+        carregarConquistas();
+        // Limpar notificações ao montar (após F5, não deve mostrar conquistas já visualizadas)
+        // Isso garante que após refresh, apenas conquistas realmente novas apareçam
+        setConquistasNovas([]);
+        
+        // Carregar ranking inicial após um delay para garantir que tudo está pronto
+        timeoutId = setTimeout(() => {
+          carregarRanking(true); // Forçar atualização inicial
+        }, 2000);
+      } else {
+        if (IS_DEV) {
+          safeLog.warn('[useConquistas] Nenhuma sessão encontrada ao montar hook');
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      if (IS_DEV) {
+        safeLog.error('[useConquistas] Erro ao verificar sessão ao montar:', err);
+      }
+      setLoading(false);
+    });
+    
+    // Cleanup function
     return () => {
-      clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
-  }, [carregarConquistas, carregarRanking]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Remover dependências para evitar loops infinitos - carregar apenas uma vez ao montar
 
   // Log de debug para notificações
   useEffect(() => {

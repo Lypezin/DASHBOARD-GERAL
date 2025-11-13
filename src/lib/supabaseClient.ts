@@ -18,6 +18,17 @@ function getSupabaseClient(): SupabaseClient {
   const runtimeUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const runtimeKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+  // Log detalhado para debug (apenas em desenvolvimento ou quando há problemas)
+  if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'development' || !runtimeUrl || runtimeUrl.includes('placeholder'))) {
+    console.log('[Supabase Client] Verificando variáveis:', {
+      hasUrl: !!runtimeUrl,
+      hasKey: !!runtimeKey,
+      url: runtimeUrl?.substring(0, 30) + '...',
+      keyLength: runtimeKey?.length || 0,
+      isPlaceholder: runtimeUrl?.includes('placeholder')
+    });
+  }
+
   // Verificar se temos variáveis válidas
   const hasValidVars = runtimeUrl && runtimeKey && 
                        runtimeUrl !== 'https://placeholder.supabase.co' &&
@@ -28,6 +39,9 @@ function getSupabaseClient(): SupabaseClient {
   if (hasValidVars) {
     // Se não temos instância ou a instância atual é mock, criar nova
     if (!supabaseInstance) {
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+        console.log('[Supabase Client] Criando nova instância com variáveis válidas');
+      }
       supabaseInstance = createClient(runtimeUrl, runtimeKey, {
         auth: {
           persistSession: true,
@@ -45,6 +59,9 @@ function getSupabaseClient(): SupabaseClient {
     const currentUrl = (supabaseInstance as any).supabaseUrl;
     if (currentUrl === 'https://placeholder.supabase.co') {
       // Recriar com variáveis reais
+      if (typeof window !== 'undefined') {
+        console.warn('[Supabase Client] ⚠️ Instância mock detectada, recriando com variáveis reais...');
+      }
       supabaseInstance = createClient(runtimeUrl, runtimeKey, {
         auth: {
           persistSession: true,
@@ -55,6 +72,9 @@ function getSupabaseClient(): SupabaseClient {
           flowType: 'pkce'
         }
       });
+      if (typeof window !== 'undefined') {
+        console.log('[Supabase Client] ✅ Cliente recriado com sucesso');
+      }
       return supabaseInstance;
     }
     

@@ -419,14 +419,23 @@ export default function DashboardPage() {
           stats={stats}
           ranking={ranking}
           loadingRanking={loadingRanking}
+          loading={loadingConquistas}
           onClose={() => {
+            if (IS_DEV) {
+              safeLog.info('[DashboardPage] Fechando modal de conquistas');
+            }
             setShowConquistasModal(false);
             // Atualizar ranking quando fechar o modal (caso tenha ganho conquistas)
             setTimeout(() => {
               carregarRanking(true); // Forçar atualização
             }, 500);
           }}
-          onLoadRanking={() => carregarRanking(true)} // Sempre forçar quando solicitado manualmente
+          onLoadRanking={() => {
+            if (IS_DEV) {
+              safeLog.info('[DashboardPage] Carregando ranking manualmente');
+            }
+            carregarRanking(true); // Sempre forçar quando solicitado manualmente
+          }}
         />
       )}
       <div className="mx-auto max-w-[1920px] px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
@@ -459,7 +468,27 @@ export default function DashboardPage() {
               <div className="hidden sm:flex items-center gap-2 md:gap-3 lg:gap-4 xl:gap-5 shrink-0">
                 {/* Botão de Conquistas */}
                 <button
-                  onClick={() => setShowConquistasModal(true)}
+                  onClick={() => {
+                    if (IS_DEV) {
+                      safeLog.info('[DashboardPage] Abrindo modal de conquistas', {
+                        conquistasCount: conquistas.length,
+                        loading: loadingConquistas,
+                        stats
+                      });
+                    }
+                    setShowConquistasModal(true);
+                    // Forçar carregamento de conquistas e ranking quando abrir o modal
+                    if (conquistas.length === 0 && !loadingConquistas) {
+                      if (IS_DEV) {
+                        safeLog.info('[DashboardPage] Nenhuma conquista carregada, forçando carregamento...');
+                      }
+                      // O hook já carrega automaticamente, mas podemos forçar recarregamento
+                    }
+                    // Forçar carregamento do ranking quando abrir o modal
+                    setTimeout(() => {
+                      carregarRanking(true);
+                    }, 500);
+                  }}
                   className="relative group flex flex-col items-center gap-1 px-4 py-2 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   title="Ver conquistas"
                 >

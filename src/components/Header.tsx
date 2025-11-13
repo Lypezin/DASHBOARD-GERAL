@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -30,8 +30,19 @@ export function Header() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Adicionar estado de loading
   const [hasTriedAuth, setHasTriedAuth] = useState(false); // Flag para rastrear tentativas de auth
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Timeout crítico: após 3 segundos, mostrar header mesmo sem usuário
+    loadingTimeoutRef.current = setTimeout(() => {
+      if (isLoading) {
+        if (IS_DEV) {
+          safeLog.warn('[Header] Timeout de loading atingido (3s), mostrando header mesmo sem usuário');
+        }
+        setIsLoading(false);
+      }
+    }, 3000);
+
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -50,6 +61,9 @@ export function Header() {
     });
 
     return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
       subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,9 +72,40 @@ export function Header() {
   const checkUser = async () => {
     try {
       setIsLoading(true);
+      
+      // Verificar se cliente Supabase está usando mock
+      try {
+        // Tentar acessar a URL do cliente de forma segura
+        const runtimeUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (IS_DEV) {
+          safeLog.info('[Header] Verificando variáveis Supabase:', {
+            hasUrl: !!runtimeUrl,
+            isPlaceholder: runtimeUrl?.includes('placeholder')
+          });
+        }
+        
+        // Se estiver usando mock, tentar recriar
+        if (runtimeUrl?.includes('placeholder.supabase.co') && typeof (supabase as any)._recreate === 'function') {
+          if (IS_DEV) {
+            safeLog.warn('[Header] Cliente Supabase está usando mock, tentando recriar...');
+          }
+          (supabase as any)._recreate();
+          // Aguardar um pouco antes de continuar
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (clientErr) {
+        if (IS_DEV) {
+          safeLog.warn('[Header] Erro ao verificar cliente Supabase:', clientErr);
+        }
+      }
+      
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !authUser) {
+        if (IS_DEV) {
+          safeLog.warn('[Header] Erro ao obter usuário:', authError);
+        }
+        
         // Se é a primeira tentativa, aguardar um pouco e tentar novamente
         if (!hasTriedAuth) {
           setHasTriedAuth(true);
@@ -68,10 +113,10 @@ export function Header() {
           return;
         }
         
-        // Erro de autenticação após retry - redirecionar para login
-        if (IS_DEV) safeLog.warn('Usuário não autenticado após retry:', authError);
+        // Erro de autenticação após retry - mas NÃO redirecionar, apenas mostrar header sem usuário
+        if (IS_DEV) safeLog.warn('[Header] Usuário não autenticado após retry, mostrando header sem usuário');
         setIsLoading(false);
-        router.push('/login');
+        // NÃO redirecionar para login - deixar o usuário ver o header
         return;
       }
       
@@ -116,27 +161,33 @@ export function Header() {
         const isTemporaryError = errorCode === 'TIMEOUT' || 
                                 errorMessage.includes('timeout') ||
                                 errorMessage.includes('network') ||
-                                errorCode === 'PGRST301';
+                                errorCode === 'PGRST301' ||
+                                errorMessage.includes('placeholder.supabase.co') ||
+                                errorMessage.includes('ERR_NAME_NOT_RESOLVED');
         
         if (isTemporaryError) {
-          // Erro temporário - não fazer logout, apenas logar
-          if (IS_DEV) safeLog.warn('Erro temporário ao buscar perfil, mantendo sessão:', profileError);
-          // Manter usuário logado mesmo com erro temporário
+          // Erro temporário - não fazer logout, apenas logar e mostrar header sem perfil
+          if (IS_DEV) safeLog.warn('[Header] Erro temporário ao buscar perfil, mostrando header sem perfil:', profileError);
+          setIsLoading(false);
+          // Manter header visível mesmo com erro temporário
           return;
         }
         
-        // Erro permanente - fazer logout apenas se realmente necessário
-        if (IS_DEV) safeLog.error('Erro ao carregar perfil:', profileError);
-        // Não fazer logout imediatamente - aguardar próxima verificação
+        // Erro permanente - mas ainda assim mostrar header
+        if (IS_DEV) safeLog.error('[Header] Erro ao carregar perfil:', profileError);
+        setIsLoading(false);
+        // Não fazer logout - apenas mostrar header sem perfil
         return;
       }
 
       // Verificar se usuário está aprovado
       if (!profile?.is_approved) {
-        // Usuário não aprovado - fazer logout
-        if (IS_DEV) safeLog.warn('Usuário não aprovado, fazendo logout');
-        await supabase.auth.signOut();
-        router.push('/login');
+        // Usuário não aprovado - fazer logout apenas se realmente necessário
+        if (IS_DEV) safeLog.warn('[Header] Usuário não aprovado');
+        // Não fazer logout imediatamente - mostrar header primeiro
+        setIsLoading(false);
+        // Tentar logout em background, mas não bloquear UI
+        supabase.auth.signOut().catch(() => {});
         return;
       }
 
@@ -165,10 +216,17 @@ export function Header() {
       }
     } catch (err) {
       // Erro inesperado - apenas logar, não fazer logout forçado
-      if (IS_DEV) safeLog.error('Erro inesperado ao verificar usuário:', err);
+      if (IS_DEV) safeLog.error('[Header] Erro inesperado ao verificar usuário:', err);
+      // Sempre mostrar header mesmo com erro
+      setIsLoading(false);
     } finally {
       // Sempre definir loading como false ao final
       setIsLoading(false);
+      // Limpar timeout se ainda estiver ativo
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
     }
   };
 
@@ -218,15 +276,17 @@ export function Header() {
     return null;
   }
 
-  // Se ainda está carregando, não mostrar header para evitar flickers
-  if (isLoading) {
+  // CRÍTICO: Sempre mostrar header após timeout ou se já tentou autenticar
+  // Não bloquear a UI indefinidamente
+  // Se ainda está carregando mas já passou do timeout, mostrar header mesmo assim
+  if (isLoading && !hasTriedAuth) {
+    // Apenas não mostrar se ainda não tentou autenticar E está carregando
+    // O timeout vai forçar isLoading para false após 3 segundos
     return null;
   }
 
-  // Não mostrar header se não houver usuário autenticado APÓS tentar carregar
-  if (!user && hasTriedAuth) {
-    return null;
-  }
+  // Mostrar header mesmo sem usuário - não bloquear a UI
+  // O header pode mostrar estado "carregando" ou opções limitadas
 
   return (
     <>
