@@ -216,14 +216,18 @@ export function useConquistas() {
       }
       
       // SEMPRE atualizar ranking após verificar conquistas (forçar atualização)
-      // Isso garante que o ranking está sempre atualizado
-      try {
-        await carregarRanking(true); // Forçar atualização
-      } catch (err) {
-        if (IS_DEV) {
-          safeLog.warn('Erro ao recarregar ranking após verificação:', err);
+      // Aguardar um pouco para garantir que as conquistas foram salvas no banco
+      setTimeout(async () => {
+        try {
+          // Resetar cache para forçar atualização
+          rankingLastUpdateRef.current = 0;
+          await carregarRanking(true); // Forçar atualização
+        } catch (err) {
+          if (IS_DEV) {
+            safeLog.warn('Erro ao recarregar ranking após verificação:', err);
+          }
         }
-      }
+      }, 1000); // 1 segundo de delay para garantir que as conquistas foram salvas
     } catch (err) {
       // Silenciar erros em produção, apenas logar em desenvolvimento
       if (IS_DEV) {
@@ -267,12 +271,15 @@ export function useConquistas() {
       );
 
       // Atualizar ranking após marcar como visualizada (pode ter mudado posições)
-      // Não forçar, usar cache se disponível
-      try {
-        await carregarRanking(false);
-      } catch (err) {
-        // Silenciar erro silenciosamente
-      }
+      // Aguardar um pouco e forçar atualização
+      setTimeout(async () => {
+        try {
+          rankingLastUpdateRef.current = 0; // Resetar cache
+          await carregarRanking(true); // Forçar atualização
+        } catch (err) {
+          // Silenciar erro silenciosamente
+        }
+      }, 500);
 
       return true;
     } catch (err) {
@@ -358,13 +365,17 @@ export function useConquistas() {
         
         // Recarregar ranking para atualizar posições (sempre recarregar quando há nova conquista)
         // Forçar atualização se houver novas conquistas
-        try {
-          await carregarRanking(hasNewConquistas);
-        } catch (err) {
-          if (IS_DEV) {
-            safeLog.warn('Erro ao recarregar ranking após verificação do dashboard:', err);
+        setTimeout(async () => {
+          try {
+            // Resetar cache para forçar atualização
+            rankingLastUpdateRef.current = 0;
+            await carregarRanking(true); // Sempre forçar quando há novas conquistas
+          } catch (err) {
+            if (IS_DEV) {
+              safeLog.warn('Erro ao recarregar ranking após verificação do dashboard:', err);
+            }
           }
-        }
+        }, 1000); // 1 segundo de delay para garantir que as conquistas foram salvas
       }
     } catch (err) {
       safeLog.error('Erro inesperado ao verificar conquistas do dashboard:', err);
@@ -377,7 +388,12 @@ export function useConquistas() {
     // Limpar notificações ao montar (após F5, não deve mostrar conquistas já visualizadas)
     // Isso garante que após refresh, apenas conquistas realmente novas apareçam
     setConquistasNovas([]);
-  }, [carregarConquistas]);
+    
+    // Carregar ranking inicial após um delay para garantir que tudo está pronto
+    setTimeout(() => {
+      carregarRanking(true); // Forçar atualização inicial
+    }, 2000);
+  }, [carregarConquistas, carregarRanking]);
 
   // Verificar conquistas periodicamente (a cada 5 minutos para reduzir carga)
   useEffect(() => {
@@ -396,8 +412,8 @@ export function useConquistas() {
     };
   }, [verificarConquistas]); // Adicionar verificarConquistas como dependência
 
-  // Atualizar ranking periodicamente (a cada 2 minutos quando o modal está aberto)
-  // Isso garante que o ranking está sempre atualizado
+  // Atualizar ranking periodicamente (a cada 1 minuto)
+  // Isso garante que o ranking está sempre atualizado, mesmo quando outras pessoas ganham conquistas
   useEffect(() => {
     // Limpar intervalo anterior se existir
     if (rankingUpdateIntervalRef.current) {
@@ -406,11 +422,18 @@ export function useConquistas() {
     
     // Atualizar ranking periodicamente
     rankingUpdateIntervalRef.current = setInterval(() => {
-      // Atualizar ranking apenas se não estiver carregando e se passou tempo suficiente
+      // Atualizar ranking apenas se não estiver carregando
       if (!loadingRanking) {
-        carregarRanking(false); // Não forçar, usar cache se disponível
+        // Verificar se passou tempo suficiente desde a última atualização
+        const now = Date.now();
+        const timeSinceLastUpdate = now - rankingLastUpdateRef.current;
+        
+        // Se passou mais de 30 segundos, atualizar (não forçar para não sobrecarregar)
+        if (timeSinceLastUpdate >= 30000) {
+          carregarRanking(false);
+        }
       }
-    }, 120000); // 2 minutos
+    }, 60000); // 1 minuto (mais frequente para garantir atualização)
 
     return () => {
       if (rankingUpdateIntervalRef.current) {

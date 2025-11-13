@@ -82,12 +82,16 @@ const ConquistasModal = memo(function ConquistasModal({
     // Forçar atualização quando mudar para a aba de ranking
     if (onLoadRanking && !loadingRanking) {
       rankingTentouCarregarRef.current = true;
-      // Chamar com pequeno delay para garantir que o estado está pronto
+      // Chamar imediatamente e também após um delay para garantir atualização
+      if (onLoadRanking) {
+        onLoadRanking(); // Chamar imediatamente
+      }
+      // Também chamar após delay para garantir que está atualizado
       setTimeout(() => {
-        if (onLoadRanking) {
+        if (onLoadRanking && !loadingRanking) {
           onLoadRanking();
         }
-      }, 100);
+      }, 500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abaAtiva]); // Recarregar sempre que mudar para a aba de ranking

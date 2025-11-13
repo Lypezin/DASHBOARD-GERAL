@@ -226,6 +226,10 @@ export default function DashboardPage() {
     // Isso garante que a atividade foi registrada no banco antes de verificar
     filterChangeTimeoutRef.current = setTimeout(() => {
       verificarConquistas();
+      // Também atualizar ranking após verificar conquistas (com delay adicional)
+      setTimeout(() => {
+        carregarRanking(true); // Forçar atualização do ranking
+      }, 1500); // 1.5 segundos após verificar conquistas
     }, 2000);
     
     return () => {
@@ -233,7 +237,7 @@ export default function DashboardPage() {
         clearTimeout(filterChangeTimeoutRef.current);
       }
     };
-  }, [JSON.stringify(filters), currentUser, verificarConquistas]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(filters), currentUser, verificarConquistas, carregarRanking]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Verificar conquistas baseadas em dados do dashboard quando estiverem disponíveis
   useEffect(() => {
