@@ -30,8 +30,21 @@ function cleanupExpiredRecords() {
 }
 
 // Limpar registros expirados a cada minuto
+// Armazenar referência do interval para poder limpar se necessário
+let cleanupInterval: NodeJS.Timeout | null = null;
+
 if (typeof window !== 'undefined') {
-  setInterval(cleanupExpiredRecords, 60000);
+  cleanupInterval = setInterval(cleanupExpiredRecords, 60000);
+  
+  // Limpar interval quando a página for descarregada (prevenção de memory leak)
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('beforeunload', () => {
+      if (cleanupInterval) {
+        clearInterval(cleanupInterval);
+        cleanupInterval = null;
+      }
+    });
+  }
 }
 
 /**

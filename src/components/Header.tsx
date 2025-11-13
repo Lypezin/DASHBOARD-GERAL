@@ -56,15 +56,31 @@ export function Header() {
         checkUser();
       } else if (event === 'USER_UPDATED') {
         // Usuário foi atualizado - verificar novamente
+        if (IS_DEV) safeLog.info('[Header] Evento USER_UPDATED recebido, atualizando perfil...');
         checkUser();
       }
     });
+
+    // Listener para evento customizado de atualização de perfil
+    const handleProfileUpdate = (event: CustomEvent) => {
+      if (IS_DEV) safeLog.info('[Header] Evento customizado userProfileUpdated recebido, atualizando perfil...', event.detail);
+      // Forçar atualização imediata do perfil
+      checkUser();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
+    }
 
     return () => {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
       }
       subscription.unsubscribe();
+      // Remover listener de evento customizado
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -29,10 +29,33 @@ export function useConquistas() {
   const rankingUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const conquistasLastUpdateRef = useRef<number>(0);
   const rankingUpdateQueueRef = useRef<boolean>(false); // Flag para evitar múltiplas atualizações simultâneas
+  const conquistasLoadingRef = useRef<boolean>(false); // Flag para evitar múltiplas cargas simultâneas
+  const conquistasVerifyingRef = useRef<boolean>(false); // Flag para evitar múltiplas verificações simultâneas
 
   // Carregar conquistas do usuário
-  const carregarConquistas = useCallback(async (retryCount = 0) => {
+  const carregarConquistas = useCallback(async (retryCount = 0, force = false) => {
     const MAX_RETRIES = 2;
+    
+    // Evitar múltiplas cargas simultâneas (exceto se forçado)
+    if (!force && conquistasLoadingRef.current) {
+      if (IS_DEV) {
+        safeLog.info('[useConquistas] Carregamento de conquistas já em andamento, ignorando...');
+      }
+      return;
+    }
+
+    // Se não for forçado e foi atualizado há menos de 5 segundos, não atualizar
+    const now = Date.now();
+    const timeSinceLastUpdate = now - conquistasLastUpdateRef.current;
+    if (!force && timeSinceLastUpdate < 5000) {
+      if (IS_DEV) {
+        safeLog.info('[useConquistas] Conquistas ainda atualizadas, pulando recarregamento');
+      }
+      return;
+    }
+    
+    conquistasLoadingRef.current = true;
+    setLoading(true);
     
     try {
       // Verificar se o usuário está autenticado antes de tentar carregar conquistas
@@ -49,7 +72,8 @@ export function useConquistas() {
             (supabase as any)._recreate();
             // Tentar novamente após recriar
             if (retryCount < MAX_RETRIES) {
-              setTimeout(() => carregarConquistas(retryCount + 1), 1000);
+              conquistasLoadingRef.current = false;
+              setTimeout(() => carregarConquistas(retryCount + 1, force), 1000);
               return;
             }
           }
@@ -61,7 +85,9 @@ export function useConquistas() {
           safeLog.warn('[useConquistas] Tentativa de carregar conquistas sem usuário autenticado');
         }
         setConquistas([]);
+        setTotalPontos(0);
         setLoading(false);
+        conquistasLoadingRef.current = false;
         return;
       }
 
@@ -85,40 +111,77 @@ export function useConquistas() {
               safeLog.warn('[useConquistas] Cliente mock detectado, recriando e tentando novamente...');
             }
             (supabase as any)._recreate();
-            setTimeout(() => carregarConquistas(retryCount + 1), 1000);
+            conquistasLoadingRef.current = false;
+            setTimeout(() => carregarConquistas(retryCount + 1, force), 1000);
             return;
           }
         }
         
         safeLog.error('[useConquistas] Erro ao carregar conquistas:', error);
         setConquistas([]);
+        setTotalPontos(0);
         setLoading(false);
+        conquistasLoadingRef.current = false;
         return;
       }
 
-      if (data) {
+      // Validar dados antes de atualizar estado
+      if (data && Array.isArray(data)) {
+        // Validar que cada conquista tem a estrutura correta
+        const conquistasValidas = data.filter((c: any) => {
+          return c && 
+                 typeof c.conquistada === 'boolean' &&
+                 typeof c.pontos === 'number' &&
+                 typeof c.progresso === 'number';
+        });
+
         if (IS_DEV) {
-          safeLog.info(`[useConquistas] ✅ ${(data as Conquista[]).length} conquistas carregadas`);
+          safeLog.info(`[useConquistas] ✅ ${conquistasValidas.length} conquistas carregadas (${data.length} total, ${data.length - conquistasValidas.length} inválidas)`);
         }
-        setConquistas(data as Conquista[]);
+
+        // Atualizar estado com dados validados
+        setConquistas(conquistasValidas as Conquista[]);
         conquistasLastUpdateRef.current = Date.now();
         
-        // Calcular total de pontos
-        const pontos = (data as Conquista[])
-          .filter(c => c.conquistada)
-          .reduce((sum, c) => sum + c.pontos, 0);
+        // Calcular total de pontos APENAS de conquistas realmente completas
+        // Garantir que progresso >= 100 E conquistada_em IS NOT NULL (se disponível)
+        const pontos = conquistasValidas
+          .filter((c: any) => {
+            // Verificar se está realmente conquistada
+            const isConquistada = c.conquistada === true;
+            // Se tiver progresso, verificar se é >= 100
+            const progressoOk = c.progresso >= 100;
+            // Se tiver conquistada_em, verificar se não é null
+            const conquistadaEmOk = c.conquistada_em !== null && c.conquistada_em !== undefined;
+            
+            // Só contar pontos se estiver realmente completa
+            return isConquistada && progressoOk && conquistadaEmOk;
+          })
+          .reduce((sum: number, c: any) => sum + (c.pontos || 0), 0);
+        
         setTotalPontos(pontos);
+        
+        if (IS_DEV) {
+          const totalConquistadas = conquistasValidas.filter((c: any) => c.conquistada === true).length;
+          const totalCompletas = conquistasValidas.filter((c: any) => 
+            c.conquistada === true && c.progresso >= 100 && c.conquistada_em !== null && c.conquistada_em !== undefined
+          ).length;
+          safeLog.info(`[useConquistas] 📊 Estatísticas: ${totalConquistadas} marcadas como conquistadas, ${totalCompletas} realmente completas, ${pontos} pontos`);
+        }
       } else {
         if (IS_DEV) {
-          safeLog.warn('[useConquistas] Nenhuma conquista retornada');
+          safeLog.warn('[useConquistas] Nenhuma conquista retornada ou dados inválidos');
         }
         setConquistas([]);
+        setTotalPontos(0);
       }
     } catch (err) {
       safeLog.error('[useConquistas] Erro inesperado ao carregar conquistas:', err);
       setConquistas([]);
+      setTotalPontos(0);
     } finally {
       setLoading(false);
+      conquistasLoadingRef.current = false;
     }
   }, []);
 
@@ -251,6 +314,16 @@ export function useConquistas() {
 
   // Verificar novas conquistas (com tratamento de erro silencioso)
   const verificarConquistas = useCallback(async () => {
+    // Evitar múltiplas verificações simultâneas
+    if (conquistasVerifyingRef.current) {
+      if (IS_DEV) {
+        safeLog.info('[useConquistas] Verificação de conquistas já em andamento, ignorando...');
+      }
+      return;
+    }
+
+    conquistasVerifyingRef.current = true;
+
     try {
       // Primeiro verificar se o usuário está autenticado
       const { data: { session } } = await supabase.auth.getSession();
@@ -258,6 +331,7 @@ export function useConquistas() {
         if (IS_DEV) {
           safeLog.warn('Tentativa de verificar conquistas sem usuário autenticado');
         }
+        conquistasVerifyingRef.current = false;
         return;
       }
 
@@ -331,7 +405,8 @@ export function useConquistas() {
       
       setTimeout(async () => {
         try {
-          await carregarConquistas();
+          // Forçar recarregamento para garantir dados frescos
+          await carregarConquistas(0, true);
         } catch (err) {
           if (IS_DEV) {
             safeLog.warn('Erro ao recarregar conquistas após verificação:', err);
@@ -358,6 +433,8 @@ export function useConquistas() {
       if (IS_DEV) {
         safeLog.error('Erro inesperado ao verificar conquistas:', err);
       }
+    } finally {
+      conquistasVerifyingRef.current = false;
     }
   }, [carregarConquistas, carregarRanking]);
 
@@ -491,7 +568,8 @@ export function useConquistas() {
         
         // Recarregar lista de conquistas com tratamento de erro
         try {
-          await carregarConquistas();
+          // Forçar recarregamento para garantir dados frescos
+          await carregarConquistas(0, true);
         } catch (err) {
           if (IS_DEV) {
             safeLog.warn('Erro ao recarregar conquistas após verificação do dashboard:', err);
@@ -539,7 +617,8 @@ export function useConquistas() {
         if (IS_DEV) {
           safeLog.info('[useConquistas] Sessão encontrada, carregando conquistas...');
         }
-        carregarConquistas();
+        // Forçar carregamento inicial para garantir dados frescos após F5
+        carregarConquistas(0, true);
         // Limpar notificações ao montar (após F5, não deve mostrar conquistas já visualizadas)
         // Isso garante que após refresh, apenas conquistas realmente novas apareçam
         setConquistasNovas([]);
@@ -626,14 +705,26 @@ export function useConquistas() {
   }, [carregarRanking, loadingRanking]);
 
   // Estatísticas (memoizadas para evitar recálculos desnecessários)
+  // IMPORTANTE: Calcular apenas conquistas realmente completas (progresso >= 100 E conquistada_em IS NOT NULL)
   const stats = useMemo(() => {
-    const conquistadas = conquistas.filter(c => c.conquistada).length;
+    // Filtrar apenas conquistas realmente completas
+    const conquistadasCompletas = conquistas.filter(c => {
+      return c.conquistada === true && 
+             c.progresso >= 100 && 
+             c.conquistada_em !== null && 
+             c.conquistada_em !== undefined;
+    }).length;
+    
+    // Total de conquistas marcadas como conquistadas (pode incluir incompletas)
+    const conquistadasMarcadas = conquistas.filter(c => c.conquistada === true).length;
+    
     return {
       total: conquistas.length,
-      conquistadas,
-      pontos: totalPontos,
+      conquistadas: conquistadasCompletas, // Usar apenas as realmente completas
+      conquistadasMarcadas, // Manter referência para debug se necessário
+      pontos: totalPontos, // Já calculado corretamente em carregarConquistas
       progresso: conquistas.length > 0 
-        ? Math.round((conquistadas / conquistas.length) * 100)
+        ? Math.round((conquistadasCompletas / conquistas.length) * 100)
         : 0
     };
   }, [conquistas, totalPontos]);

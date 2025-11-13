@@ -302,6 +302,17 @@ export default function PerfilPage() {
       setUser(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
       setPreviewUrl(publicUrl);
 
+      // Aguardar um pouco para garantir que o evento USER_UPDATED foi processado
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Forçar atualização do Header através de evento customizado
+      // Isso garante que o Header atualize mesmo se o evento USER_UPDATED não for capturado
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('userProfileUpdated', {
+          detail: { avatar_url: publicUrl }
+        }));
+      }
+
       // Limpar input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -380,6 +391,16 @@ export default function PerfilPage() {
       setUser(prev => prev ? { ...prev, avatar_url: null } : null);
       setPreviewUrl(null);
       setSuccess('Foto removida com sucesso!');
+      
+      // Aguardar um pouco para garantir que o evento USER_UPDATED foi processado
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Forçar atualização do Header através de evento customizado
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('userProfileUpdated', {
+          detail: { avatar_url: null }
+        }));
+      }
     } catch (err: any) {
       safeLog.error('Erro ao remover foto:', err);
       setError(err.message || 'Erro ao remover foto. Tente novamente.');
@@ -435,6 +456,7 @@ export default function PerfilPage() {
       }
 
       // Sempre atualizar também no Supabase Auth (user_metadata) como fallback
+      // Isso dispara o evento USER_UPDATED automaticamente
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           ...authUser.user_metadata,
@@ -464,8 +486,19 @@ export default function PerfilPage() {
         if (IS_DEV) safeLog.warn('Erro ao atualizar user_profiles:', err);
       }
 
+      // Aguardar um pouco para garantir que o evento USER_UPDATED foi processado
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       // Recarregar o perfil para garantir que está atualizado
       await checkUser();
+      
+      // Forçar atualização do Header através de evento customizado
+      // Isso garante que o Header atualize mesmo se o evento USER_UPDATED não for capturado
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('userProfileUpdated', {
+          detail: { full_name: trimmedName }
+        }));
+      }
 
       setSuccess('Nome atualizado com sucesso!');
       setIsEditingName(false);

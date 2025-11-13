@@ -300,6 +300,8 @@ export default function DashboardPage() {
   }, [activeTab, aderenciaGeral, totals, verificarConquistasDashboard]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lógica para buscar dados do usuário
+  const verifyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -330,10 +332,16 @@ export default function DashboardPage() {
             });
                     }
                   
+          // Limpar timeout anterior se existir
+          if (verifyTimeoutRef.current) {
+            clearTimeout(verifyTimeoutRef.current);
+          }
+          
           // Verificar conquistas após carregar perfil (primeiro acesso)
           // Aguardar um pouco para garantir que a atividade de login foi registrada
-          setTimeout(() => {
+          verifyTimeoutRef.current = setTimeout(() => {
             verificarConquistas();
+            verifyTimeoutRef.current = null;
           }, 2000);
                   } else {
           setCurrentUser(null);
@@ -345,6 +353,14 @@ export default function DashboardPage() {
     };
 
     fetchUser();
+    
+    // Cleanup: limpar timeout se componente desmontar
+    return () => {
+      if (verifyTimeoutRef.current) {
+        clearTimeout(verifyTimeoutRef.current);
+        verifyTimeoutRef.current = null;
+      }
+    };
   }, [verificarConquistas]);
 
   // Remover notificação de conquista e marcar como visualizada

@@ -6,8 +6,7 @@ import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 const CACHE_TTL = 60000; // 60 segundos (aumentado pois dados vêm de materialized view)
-const MIN_DEBOUNCE = 150; // Debounce mínimo
-const MAX_DEBOUNCE = 800; // Debounce máximo quando há muitas mudanças
+const DEBOUNCE_MS = 100; // Debounce fixo de 100ms (igual ao Dashboard para consistência)
 
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 
@@ -22,8 +21,6 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
   const currentTabRef = useRef<string>(activeTab);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isRequestPendingRef = useRef<boolean>(false);
-  const lastRequestTimeRef = useRef<number>(0);
-  const rapidChangeCountRef = useRef<number>(0);
   const lastFilterPayloadRef = useRef<string>('');
   const requestIdRef = useRef<number>(0);
   const lastSuccessfulTabRef = useRef<string>('');
@@ -50,28 +47,6 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     const filterPayloadChanged = lastFilterPayloadRef.current !== currentFilterPayloadStr;
     lastFilterPayloadRef.current = currentFilterPayloadStr;
 
-    // Calcular debounce adaptativo baseado em mudanças rápidas
-    const now = Date.now();
-    const timeSinceLastRequest = now - lastRequestTimeRef.current;
-    
-    // Resetar contador se passou tempo suficiente desde a última requisição (mais de 1 segundo = usuário parou)
-    if (timeSinceLastRequest > 1000) {
-      rapidChangeCountRef.current = 0;
-      // Se passou mais de 1 segundo, resetar flag de pendente para permitir nova requisição
-      isRequestPendingRef.current = false;
-    } else if (timeSinceLastRequest < 300) {
-      // Se houve mudança muito rápida, aumentar contador
-      rapidChangeCountRef.current += 1;
-    }
-    
-    lastRequestTimeRef.current = now;
-    
-    // Debounce adaptativo: aumenta quando há mudanças rápidas, mas sem bloquear completamente
-    // Se passou mais de 1 segundo, usar debounce mínimo para permitir requisição imediata
-    const adaptiveDebounce = timeSinceLastRequest > 1000 
-      ? MIN_DEBOUNCE 
-      : Math.min(MIN_DEBOUNCE + (rapidChangeCountRef.current * 50), MAX_DEBOUNCE);
-
     const fetchDataForTab = async (tab: string) => {
       // Verificar se a tab ainda é a mesma antes de começar
       if (currentTabRef.current !== tab) {
@@ -80,18 +55,11 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       }
 
       // Verificar se já há uma requisição pendente para evitar duplicatas
-      // MAS: se passou mais de 2 segundos desde a última requisição, permitir nova requisição mesmo se pendente
-      const timeSinceLastRequestCheck = Date.now() - lastRequestTimeRef.current;
-      if (isRequestPendingRef.current && timeSinceLastRequestCheck < 2000) {
+      if (isRequestPendingRef.current) {
         if (IS_DEV) {
           safeLog.warn(`Requisição já pendente para tab ${tab}, ignorando...`);
         }
         return;
-      }
-      
-      // Se passou mais de 2 segundos, forçar reset da flag pendente
-      if (timeSinceLastRequestCheck >= 2000) {
-        isRequestPendingRef.current = false;
       }
 
       // Verificar se há muitas requisições recentes para a mesma tab (rate limiting local mais suave)
@@ -236,7 +204,6 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                 // Tentar novamente após delay maior
                 setTimeout(() => {
                   if (currentTabRef.current === tab && !abortController.signal.aborted) {
-                    rapidChangeCountRef.current = 0; // Resetar contador de mudanças rápidas
                     fetchDataForTab(tab);
                   }
                 }, 3000); // 3 segundos para dar tempo ao servidor
@@ -344,7 +311,6 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                 // Tentar novamente após delay maior, mas apenas se ainda estiver na mesma tab
                 setTimeout(() => {
                   if (currentTabRef.current === tab && !abortController.signal.aborted && !isRequestPendingRef.current) {
-                    rapidChangeCountRef.current = 0; // Resetar contador de mudanças rápidas
                     isRequestPendingRef.current = false; // Garantir que não está pendente
                     fetchDataForTab(tab);
                   }
@@ -485,8 +451,6 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           setData(processedData);
           cacheRef.current.set(cacheKey, { data: processedData, timestamp: Date.now() });
           
-          // Resetar contador de mudanças rápidas quando dados são carregados com sucesso
-          rapidChangeCountRef.current = 0;
           lastSuccessfulTabRef.current = tab;
           
           if (IS_DEV && tab === 'valores') {
@@ -552,12 +516,12 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     };
 
     if (['utr', 'entregadores', 'valores', 'prioridade'].includes(activeTab)) {
-        // Usar debounce adaptativo para evitar requisições muito rápidas quando troca de guia
+        // Usar debounce fixo de 100ms (igual ao Dashboard) para consistência e melhor performance
         debounceTimeoutRef.current = setTimeout(() => {
           if (currentTabRef.current === activeTab && !isRequestPendingRef.current) {
             fetchDataForTab(activeTab);
           }
-        }, adaptiveDebounce);
+        }, DEBOUNCE_MS);
         
         return () => {
           if (debounceTimeoutRef.current) {

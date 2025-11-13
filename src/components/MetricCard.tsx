@@ -1,6 +1,6 @@
 import React from 'react';
 
-function MetricCard({ 
+const MetricCard = React.memo(function MetricCard({ 
   title, 
   value, 
   icon, 
@@ -49,6 +49,8 @@ function MetricCard({
       </div>
     </div>
   );
-}
+});
+
+MetricCard.displayName = 'MetricCard';
 
 export default MetricCard;
