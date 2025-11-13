@@ -72,7 +72,28 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
           timeout: 30000,
           validateParams: true
         });
+        
         if (error) {
+          const errorCode = (error as any)?.code || '';
+          const errorMessage = String((error as any)?.message || '');
+          
+          // Verificar se é erro de cliente mock (placeholder)
+          if (errorMessage.includes('placeholder.supabase.co') || 
+              errorMessage.includes('ERR_NAME_NOT_RESOLVED') ||
+              errorCode === 'ENOTFOUND') {
+            safeLog.error(
+              '[useDashboardData] ⚠️ Cliente Supabase está usando mock! ' +
+              'Variáveis de ambiente não estão disponíveis. ' +
+              'Verifique se NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY estão configuradas no Vercel ' +
+              'e faça um NOVO BUILD (não apenas redeploy).'
+            );
+            setError(
+              'Variáveis de ambiente do Supabase não estão configuradas. ' +
+              'Após configurar no Vercel, faça um novo build.'
+            );
+            return;
+          }
+          
           safeLog.error('Erro ao carregar dashboard_resumo:', error);
           throw error;
         }

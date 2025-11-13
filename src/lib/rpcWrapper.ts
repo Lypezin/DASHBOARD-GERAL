@@ -62,6 +62,27 @@ export async function safeRpc<T = any>(
       }
     }
 
+    // Verificar se o cliente Supabase está usando mock (placeholder)
+    // Se estiver, tentar recriar o cliente antes de fazer a requisição
+    try {
+      const clientUrl = (supabase as any).supabaseUrl;
+      if (clientUrl === 'https://placeholder.supabase.co' && typeof window !== 'undefined') {
+        const recreateFn = (supabase as any)._recreate;
+        if (recreateFn && typeof recreateFn === 'function') {
+          recreateFn();
+        }
+        safeLog.error(
+          `[safeRpc] ⚠️ Tentando fazer requisição com cliente mock! ` +
+          `Variáveis de ambiente não estão disponíveis. ` +
+          `Função: ${functionName}. ` +
+          `IMPORTANTE: Variáveis NEXT_PUBLIC_ são injetadas durante o BUILD. ` +
+          `Após configurar no Vercel, faça um NOVO BUILD (não apenas redeploy).`
+        );
+      }
+    } catch (e) {
+      // Ignorar erro ao verificar URL do cliente
+    }
+
     // Criar promise com timeout
     // IMPORTANTE: Para funções sem parâmetros, passar undefined é a forma correta
     // O Supabase JS client aceita undefined e não envia parâmetros no body da requisição

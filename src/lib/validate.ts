@@ -99,10 +99,12 @@ export function validateFilterPayload(payload: any): any {
     }
   }
   
-  // Validar que se uma data estiver definida, a outra também deve estar (apenas se ambas forem fornecidas)
-  // Permitir que ambas sejam null (modo ano/semana)
-  if ((validated.p_data_inicial && !validated.p_data_final) || (!validated.p_data_inicial && validated.p_data_final)) {
-    throw new Error('Ambas as datas (inicial e final) devem ser definidas para usar o filtro de intervalo.');
+  // Validar que se uma data estiver definida, a outra também deve estar
+  // Mas apenas validar se pelo menos uma foi fornecida (não bloquear se ambas forem null)
+  if (validated.p_data_inicial || validated.p_data_final) {
+    if ((validated.p_data_inicial && !validated.p_data_final) || (!validated.p_data_inicial && validated.p_data_final)) {
+      throw new Error('Ambas as datas (inicial e final) devem ser definidas para usar o filtro de intervalo.');
+    }
   }
 
   // Validar praça (pode ser string única ou múltiplas separadas por vírgula)

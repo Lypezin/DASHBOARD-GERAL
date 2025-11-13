@@ -13,101 +13,112 @@ const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
 let supabaseInstance: SupabaseClient | null = null;
 
 function getSupabaseClient(): SupabaseClient {
-  // Ler variáveis novamente em runtime (podem ter sido definidas após o import)
+  // Ler variáveis novamente em runtime
   // No Next.js, variáveis NEXT_PUBLIC_ são injetadas no build e disponíveis em runtime
   const runtimeUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const runtimeKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Se temos variáveis válidas e o cliente atual é mock, recriar
-  if (supabaseInstance && runtimeUrl && runtimeKey && 
-      runtimeUrl !== 'https://placeholder.supabase.co' &&
-      runtimeUrl.includes('.supabase.co')) {
-    // Verificar se o cliente atual é mock (comparando URL)
-    const currentUrl = (supabaseInstance as any).supabaseUrl;
-    if (currentUrl === 'https://placeholder.supabase.co') {
-      // Forçar recriação com variáveis reais
-      supabaseInstance = null;
-    }
-  }
+  // Verificar se temos variáveis válidas
+  const hasValidVars = runtimeUrl && runtimeKey && 
+                       runtimeUrl !== 'https://placeholder.supabase.co' &&
+                       runtimeUrl.includes('.supabase.co') &&
+                       runtimeKey.length > 20; // Chave válida tem mais de 20 caracteres
 
-  // Se já existe uma instância válida (não mock), retornar
-  if (supabaseInstance) {
-    const currentUrl = (supabaseInstance as any).supabaseUrl;
-    if (currentUrl && currentUrl !== 'https://placeholder.supabase.co') {
+  // Se temos variáveis válidas, verificar se precisamos recriar o cliente
+  if (hasValidVars) {
+    // Se não temos instância ou a instância atual é mock, criar nova
+    if (!supabaseInstance) {
+      supabaseInstance = createClient(runtimeUrl, runtimeKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+          storageKey: 'supabase.auth.token',
+          flowType: 'pkce'
+        }
+      });
       return supabaseInstance;
     }
-  }
-
-  // Durante o build, criar um cliente mock para evitar erros
-  if (isBuildTime && (!runtimeUrl || !runtimeKey)) {
-    const dummyUrl = 'https://placeholder.supabase.co';
-    const dummyKey = 'dummy-key';
     
-    supabaseInstance = createClient(dummyUrl, dummyKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-      }
-    });
+    // Verificar se a instância atual é mock
+    const currentUrl = (supabaseInstance as any).supabaseUrl;
+    if (currentUrl === 'https://placeholder.supabase.co') {
+      // Recriar com variáveis reais
+      supabaseInstance = createClient(runtimeUrl, runtimeKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+          storageKey: 'supabase.auth.token',
+          flowType: 'pkce'
+        }
+      });
+      return supabaseInstance;
+    }
     
+    // Instância válida já existe
     return supabaseInstance;
   }
 
-  // Em runtime, verificar se as variáveis estão disponíveis
-  if (!runtimeUrl || !runtimeKey) {
-    // Log detalhado para diagnóstico
-    if (typeof window !== 'undefined') {
-      console.error('[Supabase Client] Variáveis não encontradas:', {
-        hasRuntimeUrl: !!runtimeUrl,
-        hasRuntimeKey: !!runtimeKey,
-        runtimeUrlValue: runtimeUrl ? '***' : null,
-        isBuildTime,
-        nodeEnv: process.env.NODE_ENV,
-        // Tentar ler de diferentes fontes para debug
-        fromProcessEnv: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-        fromWindow: !!(window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL,
+  // Durante o build, criar um cliente mock para evitar erros
+  if (isBuildTime) {
+    if (!supabaseInstance) {
+      const dummyUrl = 'https://placeholder.supabase.co';
+      const dummyKey = 'dummy-key';
+      
+      supabaseInstance = createClient(dummyUrl, dummyKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        }
       });
     }
-    
-    // Se estamos em runtime e não temos variáveis, mas temos um mock, usar o mock temporariamente
-    // Mas logar um aviso
-    if (supabaseInstance && typeof window !== 'undefined') {
-      console.warn(
-        '[Supabase Client] Variáveis de ambiente não encontradas em runtime. ' +
-        'Usando cliente mock. Verifique se NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY ' +
-        'estão configuradas no Vercel para o ambiente Production e faça um novo deploy.'
-      );
-      return supabaseInstance;
-    }
-    
-    // Se não temos nem mock nem variáveis, lançar erro
-    throw new Error(
-      'As variáveis de ambiente do Supabase não estão configuradas corretamente. ' +
-      'Verifique se NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY estão configuradas no Vercel. ' +
-      'Após configurar, faça um novo deploy.'
-    );
+    return supabaseInstance;
   }
 
-  // Criar cliente real com as variáveis de ambiente disponíveis
-  supabaseInstance = createClient(runtimeUrl, runtimeKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-      storageKey: 'supabase.auth.token',
-      flowType: 'pkce'
+  // Em runtime sem variáveis válidas
+  // Se já temos um mock, usar temporariamente mas logar aviso
+  if (supabaseInstance && typeof window !== 'undefined') {
+    const currentUrl = (supabaseInstance as any).supabaseUrl;
+    if (currentUrl === 'https://placeholder.supabase.co') {
+      console.error(
+        '[Supabase Client] ⚠️ Variáveis de ambiente não encontradas em runtime!\n' +
+        'Verifique se NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY estão configuradas no Vercel.\n' +
+        'Após configurar, faça um novo deploy (não apenas redeploy, mas um novo build).\n' +
+        'Variáveis NEXT_PUBLIC_ são injetadas durante o build, não em runtime.'
+      );
+      return supabaseInstance; // Retornar mock temporariamente
     }
-  });
+  }
 
-  return supabaseInstance;
+  // Se não temos variáveis e não temos mock, lançar erro
+  throw new Error(
+    'As variáveis de ambiente do Supabase não estão configuradas corretamente. ' +
+    'Verifique se NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY estão configuradas no Vercel. ' +
+    'IMPORTANTE: Variáveis NEXT_PUBLIC_ são injetadas durante o BUILD. ' +
+    'Após configurar as variáveis, você DEVE fazer um NOVO BUILD (não apenas redeploy).'
+  );
+}
+
+// Função para forçar recriação do cliente (útil quando variáveis são configuradas após o build)
+export function recreateSupabaseClient() {
+  supabaseInstance = null;
+  // Tentar criar novamente na próxima chamada
+  return getSupabaseClient();
 }
 
 // Exportar uma função getter que cria o cliente sob demanda
 // Isso evita erros durante o build
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
+    // Se for a propriedade especial _recreate, forçar recriação
+    if (prop === '_recreate') {
+      return () => recreateSupabaseClient();
+    }
+    
     const client = getSupabaseClient();
     const value = (client as any)[prop];
     
