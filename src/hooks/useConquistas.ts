@@ -138,17 +138,28 @@ export function useConquistas() {
       if (error) {
         // Silenciar erros 400 (Bad Request) e outros erros esperados
         // Erros 400 podem ocorrer quando a função não encontra dados ou quando há problemas de permissão
-        const errorMessage = error.message || '';
+        const errorMessage = String(error.message || '');
+        const errorCode = String(error.code || '');
         const isExpectedError = 
           errorMessage.includes('400') || 
           errorMessage.includes('Bad Request') ||
-          error.code === 'P0001' ||
-          error.code === '42803' || // Erro de tipo de dados
-          error.code === 'PGRST116' || // Função não encontrada
-          error.code === '42883'; // Função não existe
+          errorCode === 'P0001' ||
+          errorCode === '42803' || // Erro de tipo de dados
+          errorCode === 'PGRST116' || // Função não encontrada
+          errorCode === '42883' || // Função não existe
+          errorCode === '23502' || // NOT NULL violation (já corrigido, mas pode aparecer temporariamente)
+          errorMessage.includes('null value') || // Violação de NOT NULL
+          errorMessage.includes('violates not-null constraint'); // Violação de constraint
         
-        if (!isExpectedError && IS_DEV) {
-          safeLog.warn('Erro ao verificar conquistas:', error);
+        // Em produção, silenciar completamente erros esperados
+        // Em desenvolvimento, logar apenas erros não esperados
+        if (!isExpectedError) {
+          if (IS_DEV) {
+            safeLog.warn('Erro ao verificar conquistas:', error);
+          }
+        } else if (IS_DEV) {
+          // Em desenvolvimento, logar mas não como erro
+          safeLog.info('Erro esperado ao verificar conquistas (silenciado):', errorCode);
         }
         return;
       }
