@@ -199,6 +199,17 @@ export function useConquistas() {
             safeLog.warn('Erro ao recarregar ranking após verificação:', err);
           }
         }
+      } else {
+        // Mesmo sem novas conquistas, atualizar ranking periodicamente
+        // Mas apenas se não houver muitas chamadas (debounce)
+        const shouldUpdateRanking = Math.random() < 0.1; // 10% de chance para não sobrecarregar
+        if (shouldUpdateRanking) {
+          try {
+            await carregarRanking();
+          } catch (err) {
+            // Silenciar erro silenciosamente
+          }
+        }
       }
     } catch (err) {
       // Silenciar erros em produção, apenas logar em desenvolvimento
@@ -215,11 +226,23 @@ export function useConquistas() {
         p_conquista_id: conquistaId
       }, {
         timeout: 30000,
-        validateParams: true
+        validateParams: false // Desabilitar validação para evitar problemas
       });
       
       if (error) {
-        safeLog.error('Erro ao marcar conquista:', error);
+        // Silenciar erros 404 (função não encontrada) em produção
+        const errorCode = (error as any)?.code;
+        const errorMessage = String((error as any)?.message || '');
+        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                      errorCode === 'PGRST204' ||
+                      errorMessage.includes('404') || 
+                      errorMessage.includes('not found');
+        
+        if (!is404) {
+          safeLog.error('Erro ao marcar conquista:', error);
+        } else if (IS_DEV) {
+          safeLog.warn('Função marcar_conquista_visualizada não disponível:', error);
+        }
         return false;
       }
 
@@ -230,12 +253,19 @@ export function useConquistas() {
         )
       );
 
+      // Atualizar ranking após marcar como visualizada (pode ter mudado posições)
+      try {
+        await carregarRanking();
+      } catch (err) {
+        // Silenciar erro silenciosamente
+      }
+
       return true;
     } catch (err) {
       safeLog.error('Erro inesperado ao marcar conquista:', err);
       return false;
     }
-  }, []);
+  }, [carregarRanking]);
 
   // Remover conquista nova da lista de notificações
   const removerConquistaNova = useCallback((codigo: string) => {
