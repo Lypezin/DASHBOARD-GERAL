@@ -118,6 +118,17 @@ export default function DashboardPage() {
     dataInicial: null,
     dataFinal: null,
   });
+
+  // Log para debug - verificar inicialização dos filtros
+  useEffect(() => {
+    safeLog.info('[DashboardPage] Filters inicializados:', {
+      filtroModo: filters.filtroModo,
+      dataInicial: filters.dataInicial,
+      dataFinal: filters.dataFinal,
+      hasFiltroModo: 'filtroModo' in filters,
+      filtersKeys: Object.keys(filters),
+    });
+  }, []); // Apenas no mount inicial
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
   const [showConquistasModal, setShowConquistasModal] = useState(false);
@@ -152,7 +163,20 @@ export default function DashboardPage() {
     aderenciaGeral
   } = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
 
-  const filterPayload = useMemo(() => buildFilterPayload(filters, currentUser), [filters, currentUser]);
+  const filterPayload = useMemo(() => {
+    safeLog.info('[DashboardPage] Gerando filterPayload com:', {
+      filters,
+      currentUser: currentUser ? { is_admin: currentUser.is_admin, hasAssignedPracas: currentUser.assigned_pracas.length > 0 } : null,
+    });
+    try {
+      const payload = buildFilterPayload(filters, currentUser);
+      safeLog.info('[DashboardPage] filterPayload gerado com sucesso:', payload);
+      return payload;
+    } catch (error) {
+      safeLog.error('[DashboardPage] Erro ao gerar filterPayload:', error);
+      throw error;
+    }
+  }, [filters, currentUser]);
   
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 

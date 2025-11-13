@@ -1,4 +1,5 @@
 import { Filters } from '@/types';
+import { safeLog } from '@/lib/errorHandler';
 
 export const safeNumber = (value: any): number => {
   const num = Number(value);
@@ -14,6 +15,22 @@ export const arraysEqual = <T>(a: T[], b: T[]): boolean => {
 };
 
 export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: boolean; assigned_pracas: string[] } | null) => {
+  // Log para debug
+  try {
+    safeLog.info('[buildFilterPayload] Iniciando com filters:', {
+      hasFilters: !!filters,
+      filtroModo: filters?.filtroModo,
+      dataInicial: filters?.dataInicial,
+      dataFinal: filters?.dataFinal,
+      ano: filters?.ano,
+      semana: filters?.semana,
+      filtersType: typeof filters,
+      filtersKeys: filters ? Object.keys(filters) : 'filters is null/undefined',
+    });
+  } catch (error) {
+    safeLog.error('[buildFilterPayload] Erro ao logar filters:', error);
+  }
+
   const MAX_ARRAY_SIZE = 50;
   
   let subPraca: string | null = null;
@@ -96,6 +113,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
   
   // Se modo for intervalo, processar datas
   if (filters?.filtroModo === 'intervalo') {
+    safeLog.info('[buildFilterPayload] Modo intervalo detectado, processando datas');
     // Validar e normalizar data inicial
     if (filters.dataInicial && filters.dataInicial.trim() !== '') {
       const dataIni = new Date(filters.dataInicial);
@@ -129,7 +147,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
     dataFinal = null;
   }
 
-  return {
+  const payload = {
     p_ano: ano,
     p_semana: semana,
     p_praca: praca,
@@ -139,4 +157,9 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
     p_data_inicial: dataInicial,
     p_data_final: dataFinal,
   } as const;
+
+  // Log para debug
+  safeLog.info('[buildFilterPayload] Payload gerado:', payload);
+
+  return payload;
 };

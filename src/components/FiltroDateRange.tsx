@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 
 interface FiltroDateRangeProps {
   dataInicial: string | null;
@@ -13,25 +14,46 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = ({
   onDataInicialChange,
   onDataFinalChange,
 }) => {
+  // Log para debug
+  useEffect(() => {
+    safeLog.info('[FiltroDateRange] Props recebidas:', {
+      dataInicial,
+      dataFinal,
+      dataInicialType: typeof dataInicial,
+      dataFinalType: typeof dataFinal,
+    });
+  }, [dataInicial, dataFinal]);
   const handleDataInicialChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value || null;
-    onDataInicialChange(value);
-    
-    // Se data inicial for maior que data final, ajustar data final
-    if (value && dataFinal && value > dataFinal) {
-      onDataFinalChange(value);
+    try {
+      const value = e.target.value || null;
+      safeLog.info('[FiltroDateRange] Data inicial alterada:', { value, dataFinal });
+      onDataInicialChange(value);
+      
+      // Se data inicial for maior que data final, ajustar data final
+      if (value && dataFinal && value > dataFinal) {
+        safeLog.info('[FiltroDateRange] Ajustando data final para:', value);
+        onDataFinalChange(value);
+      }
+    } catch (error) {
+      safeLog.error('[FiltroDateRange] Erro em handleDataInicialChange:', error);
     }
   }, [dataFinal, onDataInicialChange, onDataFinalChange]);
 
   const handleDataFinalChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value || null;
-    
-    // Validar que data final >= data inicial
-    if (value && dataInicial && value < dataInicial) {
-      // Se data final for menor que inicial, ajustar para igual
-      onDataFinalChange(dataInicial);
-    } else {
-      onDataFinalChange(value);
+    try {
+      const value = e.target.value || null;
+      safeLog.info('[FiltroDateRange] Data final alterada:', { value, dataInicial });
+      
+      // Validar que data final >= data inicial
+      if (value && dataInicial && value < dataInicial) {
+        // Se data final for menor que inicial, ajustar para igual
+        safeLog.info('[FiltroDateRange] Ajustando data final para data inicial:', dataInicial);
+        onDataFinalChange(dataInicial);
+      } else {
+        onDataFinalChange(value);
+      }
+    } catch (error) {
+      safeLog.error('[FiltroDateRange] Erro em handleDataFinalChange:', error);
     }
   }, [dataInicial, onDataFinalChange]);
 

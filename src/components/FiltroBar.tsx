@@ -1,8 +1,9 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import { Filters, FilterOption } from '@/types';
 import FiltroSelect from './FiltroSelect';
 import FiltroMultiSelect from './FiltroMultiSelect';
 import FiltroDateRange from './FiltroDateRange';
+import { safeLog } from '@/lib/errorHandler';
 
 const FiltroBar = React.memo(function FiltroBar({
   filters,
@@ -25,6 +26,18 @@ const FiltroBar = React.memo(function FiltroBar({
   turnos: FilterOption[];
   currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
 }) {
+  // Log para debug
+  useEffect(() => {
+    safeLog.info('[FiltroBar] Filters recebidos:', {
+      filtroModo: filters?.filtroModo,
+      dataInicial: filters?.dataInicial,
+      dataFinal: filters?.dataFinal,
+      ano: filters?.ano,
+      semana: filters?.semana,
+      hasFiltroModo: 'filtroModo' in (filters || {}),
+      filtersKeys: filters ? Object.keys(filters) : 'filters is null/undefined',
+    });
+  }, [filters]);
   const handleChange = useCallback((key: keyof Filters, rawValue: string | null) => {
     setFilters((prev) => {
       let processedValue: any = null;
@@ -52,20 +65,34 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [setFilters, currentUser]);
 
   const handleToggleModo = useCallback(() => {
-    setFilters((prev) => {
-      if (!prev) return prev;
-      const novoModo = (prev.filtroModo ?? 'ano_semana') === 'ano_semana' ? 'intervalo' : 'ano_semana';
-      return {
-        ...prev,
-        filtroModo: novoModo,
-        // Limpar filtros do modo anterior
-        ano: novoModo === 'intervalo' ? null : prev.ano,
-        semana: novoModo === 'intervalo' ? null : prev.semana,
-        semanas: novoModo === 'intervalo' ? [] : prev.semanas ?? [],
-        dataInicial: novoModo === 'ano_semana' ? null : prev.dataInicial ?? null,
-        dataFinal: novoModo === 'ano_semana' ? null : prev.dataFinal ?? null,
-      };
-    });
+    safeLog.info('[FiltroBar] handleToggleModo chamado');
+    try {
+      setFilters((prev) => {
+        if (!prev) {
+          safeLog.warn('[FiltroBar] handleToggleModo: prev é null/undefined');
+          return prev;
+        }
+        const novoModo = (prev.filtroModo ?? 'ano_semana') === 'ano_semana' ? 'intervalo' : 'ano_semana';
+        safeLog.info('[FiltroBar] Trocando modo:', {
+          modoAtual: prev.filtroModo,
+          novoModo,
+        });
+        const newFilters = {
+          ...prev,
+          filtroModo: novoModo,
+          // Limpar filtros do modo anterior
+          ano: novoModo === 'intervalo' ? null : prev.ano,
+          semana: novoModo === 'intervalo' ? null : prev.semana,
+          semanas: novoModo === 'intervalo' ? [] : prev.semanas ?? [],
+          dataInicial: novoModo === 'ano_semana' ? null : prev.dataInicial ?? null,
+          dataFinal: novoModo === 'ano_semana' ? null : prev.dataFinal ?? null,
+        };
+        safeLog.info('[FiltroBar] Novos filters após toggle:', newFilters);
+        return newFilters;
+      });
+    } catch (error) {
+      safeLog.error('[FiltroBar] Erro em handleToggleModo:', error);
+    }
   }, [setFilters]);
 
   const hasActiveFilters = useMemo(() => {
@@ -95,6 +122,16 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [semanas]);
 
   const isModoIntervalo = filters?.filtroModo === 'intervalo';
+
+  // Log para debug
+  useEffect(() => {
+    safeLog.info('[FiltroBar] Estado do modo:', {
+      isModoIntervalo,
+      filtroModo: filters?.filtroModo,
+      dataInicial: filters?.dataInicial,
+      dataFinal: filters?.dataFinal,
+    });
+  }, [isModoIntervalo, filters?.filtroModo, filters?.dataInicial, filters?.dataFinal]);
 
   return (
     <div className="space-y-3 sm:space-y-4 relative">
