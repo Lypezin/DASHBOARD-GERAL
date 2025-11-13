@@ -25,8 +25,8 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
   const lastRequestTimeRef = useRef<number>(0);
   const rapidChangeCountRef = useRef<number>(0);
   const lastFilterPayloadRef = useRef<string>('');
-  const cooldownUntilRef = useRef<number>(0);
   const requestIdRef = useRef<number>(0);
+  const lastSuccessfulTabRef = useRef<string>('');
 
   useEffect(() => {
     currentTabRef.current = activeTab;
@@ -45,9 +45,6 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       abortControllerRef.current = null;
     }
 
-    // Resetar flag de requisição pendente
-    isRequestPendingRef.current = false;
-
     // Verificar se o filterPayload realmente mudou
     const currentFilterPayloadStr = JSON.stringify(filterPayload);
     const filterPayloadChanged = lastFilterPayloadRef.current !== currentFilterPayloadStr;
@@ -57,48 +54,23 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTimeRef.current;
     
-    // Verificar cooldown (bloqueio após mudanças muito rápidas)
-    if (now < cooldownUntilRef.current) {
-      const remainingCooldown = cooldownUntilRef.current - now;
-      if (IS_DEV) {
-        safeLog.warn(`Cooldown ativo: aguardando ${remainingCooldown}ms antes de permitir nova requisição`);
-      }
-      // Aguardar até o cooldown acabar
-      debounceTimeoutRef.current = setTimeout(() => {
-        if (currentTabRef.current === activeTab) {
-          // Recriar o useEffect após cooldown
-          const event = new Event('cooldown-ended');
-          window.dispatchEvent(event);
-        }
-      }, remainingCooldown);
-      return;
-    }
-    
-    if (timeSinceLastRequest < 500) {
-      // Se houve mudança rápida, aumentar contador e debounce
-      rapidChangeCountRef.current += 1;
-      
-      // Se há muitas mudanças rápidas, ativar cooldown
-      if (rapidChangeCountRef.current >= 3) {
-        cooldownUntilRef.current = now + 2000; // 2 segundos de cooldown
-        rapidChangeCountRef.current = 0;
-        if (IS_DEV) {
-          safeLog.warn('Muitas mudanças rápidas detectadas. Ativando cooldown de 2 segundos.');
-        }
-        return;
-      }
-    } else {
-      // Resetar contador se passou tempo suficiente
+    // Resetar contador se passou tempo suficiente desde a última requisição (mais de 1 segundo = usuário parou)
+    if (timeSinceLastRequest > 1000) {
       rapidChangeCountRef.current = 0;
+      // Se passou mais de 1 segundo, resetar flag de pendente para permitir nova requisição
+      isRequestPendingRef.current = false;
+    } else if (timeSinceLastRequest < 300) {
+      // Se houve mudança muito rápida, aumentar contador
+      rapidChangeCountRef.current += 1;
     }
     
     lastRequestTimeRef.current = now;
     
-    // Debounce adaptativo: aumenta quando há muitas mudanças rápidas
-    const adaptiveDebounce = Math.min(
-      MIN_DEBOUNCE + (rapidChangeCountRef.current * 150),
-      MAX_DEBOUNCE
-    );
+    // Debounce adaptativo: aumenta quando há mudanças rápidas, mas sem bloquear completamente
+    // Se passou mais de 1 segundo, usar debounce mínimo para permitir requisição imediata
+    const adaptiveDebounce = timeSinceLastRequest > 1000 
+      ? MIN_DEBOUNCE 
+      : Math.min(MIN_DEBOUNCE + (rapidChangeCountRef.current * 50), MAX_DEBOUNCE);
 
     const fetchDataForTab = async (tab: string) => {
       // Verificar se a tab ainda é a mesma antes de começar
@@ -108,37 +80,39 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       }
 
       // Verificar se já há uma requisição pendente para evitar duplicatas
-      if (isRequestPendingRef.current) {
+      // MAS: se passou mais de 2 segundos desde a última requisição, permitir nova requisição mesmo se pendente
+      const timeSinceLastRequestCheck = Date.now() - lastRequestTimeRef.current;
+      if (isRequestPendingRef.current && timeSinceLastRequestCheck < 2000) {
         if (IS_DEV) {
           safeLog.warn(`Requisição já pendente para tab ${tab}, ignorando...`);
         }
         return;
       }
+      
+      // Se passou mais de 2 segundos, forçar reset da flag pendente
+      if (timeSinceLastRequestCheck >= 2000) {
+        isRequestPendingRef.current = false;
+      }
 
-      // Verificar se há muitas requisições recentes (rate limiting local)
+      // Verificar se há muitas requisições recentes para a mesma tab (rate limiting local mais suave)
       const queueKey = `${tab}-${JSON.stringify(filterPayload)}`;
       const queueEntry = requestQueue.get(queueKey);
       const now = Date.now();
       
-      if (queueEntry && (now - queueEntry.timestamp) < 1000) {
-        // Se houve requisição nos últimos 1 segundo, aguardar
+      // Apenas bloquear se houve requisição muito recente (menos de 300ms) para a mesma tab e payload
+      if (queueEntry && (now - queueEntry.timestamp) < 300) {
         if (IS_DEV) {
-          safeLog.warn(`Rate limit local: aguardando antes de nova requisição para ${tab}`);
+          safeLog.warn(`Rate limit local: requisição muito recente para ${tab}, ignorando...`);
         }
-        debounceTimeoutRef.current = setTimeout(() => {
-          if (currentTabRef.current === tab) {
-            fetchDataForTab(tab);
-          }
-        }, 1000);
         return;
       }
 
       // Registrar requisição na fila
       requestQueue.set(queueKey, { timestamp: now, count: (queueEntry?.count || 0) + 1 });
       
-      // Limpar entradas antigas da fila (mais de 5 segundos)
+      // Limpar entradas antigas da fila (mais de 3 segundos)
       for (const [key, entry] of requestQueue.entries()) {
-        if (now - entry.timestamp > 5000) {
+        if (now - entry.timestamp > 3000) {
           requestQueue.delete(key);
         }
       }
@@ -202,8 +176,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           case 'utr':
             result = await safeRpc<UtrData>('calcular_utr', filterPayload as any, {
               timeout: 30000,
-              validateParams: true,
-              signal: abortController.signal
+              validateParams: true
             });
             
             // Verificar se esta requisição ainda é a mais recente
@@ -229,8 +202,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
             result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
               timeout: 30000, // Aumentado para 30s para dar mais tempo (função otimizada)
-              validateParams: false, // Desabilitar validação para evitar problemas
-              signal: abortController.signal
+              validateParams: false // Desabilitar validação para evitar problemas
             });
             
             // Verificar se esta requisição ainda é a mais recente
@@ -280,9 +252,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                 safeLog.warn('Rate limit ao buscar entregadores. Aguardando...');
                 isRequestPendingRef.current = false;
                 setLoading(false);
-                // Tentar novamente após delay
+                // Tentar novamente após delay, mas apenas se ainda estiver na mesma tab
                 setTimeout(() => {
-                  if (currentTabRef.current === tab && !abortController.signal.aborted) {
+                  if (currentTabRef.current === tab && !abortController.signal.aborted && !isRequestPendingRef.current) {
+                    isRequestPendingRef.current = false; // Garantir que não está pendente
                     fetchDataForTab(tab);
                   }
                 }, 5000);
@@ -331,8 +304,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             
             result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
               timeout: 30000, // Aumentado para 30s para dar mais tempo (função otimizada)
-              validateParams: false, // Desabilitar validação para evitar problemas
-              signal: abortController.signal
+              validateParams: false // Desabilitar validação para evitar problemas
             });
             
             // Verificar se esta requisição ainda é a mais recente
@@ -363,13 +335,14 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                 isRequestPendingRef.current = false;
                 setLoading(false);
                 
-                // Tentar novamente após delay maior
+                // Tentar novamente após delay maior, mas apenas se ainda estiver na mesma tab
                 setTimeout(() => {
-                  if (currentTabRef.current === tab && !abortController.signal.aborted) {
+                  if (currentTabRef.current === tab && !abortController.signal.aborted && !isRequestPendingRef.current) {
                     rapidChangeCountRef.current = 0; // Resetar contador de mudanças rápidas
+                    isRequestPendingRef.current = false; // Garantir que não está pendente
                     fetchDataForTab(tab);
                   }
-                }, 3000); // 3 segundos para dar tempo ao servidor
+                }, 2000); // 2 segundos para dar tempo ao servidor
                 return;
               }
               
@@ -382,9 +355,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                 safeLog.warn('Rate limit ao buscar valores. Aguardando...');
                 isRequestPendingRef.current = false;
                 setLoading(false);
-                // Tentar novamente após delay
+                // Tentar novamente após delay, mas apenas se ainda estiver na mesma tab
                 setTimeout(() => {
-                  if (currentTabRef.current === tab && !abortController.signal.aborted) {
+                  if (currentTabRef.current === tab && !abortController.signal.aborted && !isRequestPendingRef.current) {
+                    isRequestPendingRef.current = false; // Garantir que não está pendente
                     fetchDataForTab(tab);
                   }
                 }, 5000);
@@ -501,12 +475,13 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         }
         
         // Verificar se ainda estamos na mesma tab antes de atualizar estado
-        if (currentTabRef.current === tab && !abortController.signal.aborted) {
+        if (currentTabRef.current === tab && !abortController.signal.aborted && currentRequestId === requestIdRef.current) {
           setData(processedData);
           cacheRef.current.set(cacheKey, { data: processedData, timestamp: Date.now() });
           
           // Resetar contador de mudanças rápidas quando dados são carregados com sucesso
           rapidChangeCountRef.current = 0;
+          lastSuccessfulTabRef.current = tab;
           
           if (IS_DEV && tab === 'valores') {
             safeLog.info('✅ Dados finais setados para valores:', {
@@ -539,9 +514,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
 
         if (isRateLimit) {
           safeLog.warn(`Rate limit atingido para aba ${tab}. Aguardando...`);
-          // Tentar novamente após um delay
+          // Tentar novamente após um delay, mas apenas se ainda estiver na mesma tab
           setTimeout(() => {
-            if (currentTabRef.current === tab && !abortController.signal.aborted) {
+            if (currentTabRef.current === tab && !abortController.signal.aborted && !isRequestPendingRef.current) {
+              isRequestPendingRef.current = false; // Garantir que não está pendente
               fetchDataForTab(tab);
             }
           }, 5000); // 5 segundos

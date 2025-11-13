@@ -11,6 +11,8 @@ const DEFAULT_TIMEOUT = 30000; // 30 segundos
 
 /**
  * Executa uma chamada RPC com timeout e validação
+ * NOTA: Removido suporte a AbortSignal pois o Supabase JS client não suporta nativamente
+ * O cancelamento é feito no nível do hook através de verificação de estado
  */
 export async function safeRpc<T = any>(
   functionName: string,
@@ -18,21 +20,9 @@ export async function safeRpc<T = any>(
   options: {
     timeout?: number;
     validateParams?: boolean;
-    signal?: AbortSignal;
   } = {}
 ): Promise<{ data: T | null; error: any }> {
-  const { timeout = DEFAULT_TIMEOUT, validateParams = true, signal } = options;
-  
-  // Verificar se foi abortado antes de começar
-  if (signal?.aborted) {
-    return {
-      data: null,
-      error: {
-        message: 'Requisição cancelada',
-        code: 'ABORTED'
-      }
-    };
-  }
+  const { timeout = DEFAULT_TIMEOUT, validateParams = true } = options;
 
   try {
     // Verificar rate limiting
@@ -72,43 +62,27 @@ export async function safeRpc<T = any>(
       }
     }
 
-    // Criar promise com timeout e suporte a AbortController
+    // Criar promise com timeout
     // IMPORTANTE: Para funções sem parâmetros, passar undefined é a forma correta
     // O Supabase JS client aceita undefined e não envia parâmetros no body da requisição
     // Isso evita erro 400 do PostgREST quando a função não espera parâmetros
-    const rpcOptions: any = {};
-    if (signal) {
-      rpcOptions.signal = signal;
-    }
-    
     const rpcPromise = validatedParams === undefined
-      ? (supabase.rpc as any)(functionName, rpcOptions) // Chamar com opções
-      : supabase.rpc(functionName, validatedParams, rpcOptions);
+      ? (supabase.rpc as any)(functionName) // Chamar sem segundo parâmetro
+      : supabase.rpc(functionName, validatedParams);
     
-    // Criar timeout que também respeita o AbortSignal
+    // Criar timeout
     let timeoutId: NodeJS.Timeout | null = null;
     const timeoutPromise = new Promise<{ data: null; error: any }>((resolve) => {
       timeoutId = setTimeout(() => {
-        if (!signal?.aborted) {
-          resolve({
-            data: null,
-            error: {
-              message: 'A requisição demorou muito para responder. Tente novamente.',
-              code: 'TIMEOUT'
-            }
-          });
-        }
+        resolve({
+          data: null,
+          error: {
+            message: 'A requisição demorou muito para responder. Tente novamente.',
+            code: 'TIMEOUT'
+          }
+        });
       }, timeout);
     });
-
-    // Limpar timeout se abortado
-    if (signal) {
-      signal.addEventListener('abort', () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-      });
-    }
 
     try {
       const result = await Promise.race([rpcPromise, timeoutPromise]);
@@ -116,17 +90,6 @@ export async function safeRpc<T = any>(
       // Limpar timeout se ainda estiver ativo
       if (timeoutId) {
         clearTimeout(timeoutId);
-      }
-      
-      // Verificar se foi abortado
-      if (signal?.aborted) {
-        return {
-          data: null,
-          error: {
-            message: 'Requisição cancelada',
-            code: 'ABORTED'
-          }
-        };
       }
     
       // Se houver erro, sanitizar mensagem em produção
@@ -160,17 +123,6 @@ export async function safeRpc<T = any>(
       // Limpar timeout em caso de erro
       if (timeoutId) {
         clearTimeout(timeoutId);
-      }
-      
-      // Ignorar erros de abort
-      if (error?.name === 'AbortError' || signal?.aborted) {
-        return {
-          data: null,
-          error: {
-            message: 'Requisição cancelada',
-            code: 'ABORTED'
-          }
-        };
       }
       
       return {
