@@ -81,6 +81,10 @@ export interface Filters {
   origens: string[];
   turnos: string[];
   semanas: number[];
+  // Filtro de intervalo de datas
+  filtroModo: 'ano_semana' | 'intervalo';
+  dataInicial: string | null; // Formato: YYYY-MM-DD
+  dataFinal: string | null; // Formato: YYYY-MM-DD
 }
 
 export interface DimensoesDashboard {

@@ -103,7 +103,21 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade' | 'comparacao'>('dashboard');
-  const [filters, setFilters] = useState<Filters>({ ano: null, semana: null, praca: null, subPraca: null, origem: null, turno: null, subPracas: [], origens: [], turnos: [], semanas: [] });
+  const [filters, setFilters] = useState<Filters>({ 
+    ano: null, 
+    semana: null, 
+    praca: null, 
+    subPraca: null, 
+    origem: null, 
+    turno: null, 
+    subPracas: [], 
+    origens: [], 
+    turnos: [], 
+    semanas: [],
+    filtroModo: 'ano_semana',
+    dataInicial: null,
+    dataFinal: null,
+  });
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
   const [showConquistasModal, setShowConquistasModal] = useState(false);

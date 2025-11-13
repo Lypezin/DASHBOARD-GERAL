@@ -27,6 +27,84 @@ export function validateFilterPayload(payload: any): any {
     validated.p_semana = semana;
   }
 
+  // Validar data inicial
+  if (payload.p_data_inicial !== undefined && payload.p_data_inicial !== null) {
+    const dataInicial = String(payload.p_data_inicial).trim();
+    if (dataInicial !== '') {
+      // Validar formato YYYY-MM-DD
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(dataInicial)) {
+        throw new Error('Data inicial inválida. Use o formato YYYY-MM-DD.');
+      }
+      
+      const data = new Date(dataInicial);
+      if (isNaN(data.getTime())) {
+        throw new Error('Data inicial inválida.');
+      }
+      
+      // Validar range: não permitir datas futuras ou muito antigas
+      const hoje = new Date();
+      hoje.setHours(23, 59, 59, 999); // Fim do dia de hoje
+      const dataMinima = new Date('2020-01-01');
+      
+      if (data > hoje) {
+        throw new Error('Data inicial não pode ser futura.');
+      }
+      
+      if (data < dataMinima) {
+        throw new Error('Data inicial não pode ser anterior a 2020-01-01.');
+      }
+      
+      validated.p_data_inicial = dataInicial;
+    }
+  }
+
+  // Validar data final
+  if (payload.p_data_final !== undefined && payload.p_data_final !== null) {
+    const dataFinal = String(payload.p_data_final).trim();
+    if (dataFinal !== '') {
+      // Validar formato YYYY-MM-DD
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(dataFinal)) {
+        throw new Error('Data final inválida. Use o formato YYYY-MM-DD.');
+      }
+      
+      const data = new Date(dataFinal);
+      if (isNaN(data.getTime())) {
+        throw new Error('Data final inválida.');
+      }
+      
+      // Validar range: não permitir datas futuras ou muito antigas
+      const hoje = new Date();
+      hoje.setHours(23, 59, 59, 999); // Fim do dia de hoje
+      const dataMinima = new Date('2020-01-01');
+      
+      if (data > hoje) {
+        throw new Error('Data final não pode ser futura.');
+      }
+      
+      if (data < dataMinima) {
+        throw new Error('Data final não pode ser anterior a 2020-01-01.');
+      }
+      
+      // Validar que data final >= data inicial
+      if (validated.p_data_inicial) {
+        const dataIni = new Date(validated.p_data_inicial);
+        if (data < dataIni) {
+          throw new Error('Data final deve ser maior ou igual à data inicial.');
+        }
+      }
+      
+      validated.p_data_final = dataFinal;
+    }
+  }
+  
+  // Validar que se uma data estiver definida, a outra também deve estar (apenas se ambas forem fornecidas)
+  // Permitir que ambas sejam null (modo ano/semana)
+  if ((validated.p_data_inicial && !validated.p_data_final) || (!validated.p_data_inicial && validated.p_data_final)) {
+    throw new Error('Ambas as datas (inicial e final) devem ser definidas para usar o filtro de intervalo.');
+  }
+
   // Validar praça (pode ser string única ou múltiplas separadas por vírgula)
   if (payload.p_praca) {
     let pracas: string[];

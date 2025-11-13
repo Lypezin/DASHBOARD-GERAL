@@ -90,6 +90,45 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
     }
   }
 
+  // Processar intervalo de datas
+  let dataInicial: string | null = null;
+  let dataFinal: string | null = null;
+  
+  // Se modo for intervalo, processar datas
+  if (filters.filtroModo === 'intervalo') {
+    // Validar e normalizar data inicial
+    if (filters.dataInicial && filters.dataInicial.trim() !== '') {
+      const dataIni = new Date(filters.dataInicial);
+      if (!isNaN(dataIni.getTime())) {
+        // Garantir formato YYYY-MM-DD
+        dataInicial = dataIni.toISOString().split('T')[0];
+      }
+    }
+    
+    // Validar e normalizar data final
+    if (filters.dataFinal && filters.dataFinal.trim() !== '') {
+      const dataFim = new Date(filters.dataFinal);
+      if (!isNaN(dataFim.getTime())) {
+        // Garantir formato YYYY-MM-DD
+        dataFinal = dataFim.toISOString().split('T')[0];
+      }
+    }
+    
+    // Validar que data final >= data inicial
+    if (dataInicial && dataFinal && dataFinal < dataInicial) {
+      // Se data final for menor que inicial, usar data inicial como final também
+      dataFinal = dataInicial;
+    }
+    
+    // Se modo intervalo estiver ativo, anular ano e semana
+    ano = null;
+    semana = null;
+  } else {
+    // Se modo ano_semana estiver ativo, anular datas
+    dataInicial = null;
+    dataFinal = null;
+  }
+
   return {
     p_ano: ano,
     p_semana: semana,
@@ -97,5 +136,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
     p_sub_praca: subPraca,
     p_origem: origem,
     p_turno: turno,
+    p_data_inicial: dataInicial,
+    p_data_final: dataFinal,
   } as const;
 };
