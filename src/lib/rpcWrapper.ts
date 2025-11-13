@@ -18,9 +18,21 @@ export async function safeRpc<T = any>(
   options: {
     timeout?: number;
     validateParams?: boolean;
+    signal?: AbortSignal;
   } = {}
 ): Promise<{ data: T | null; error: any }> {
-  const { timeout = DEFAULT_TIMEOUT, validateParams = true } = options;
+  const { timeout = DEFAULT_TIMEOUT, validateParams = true, signal } = options;
+  
+  // Verificar se foi abortado antes de começar
+  if (signal?.aborted) {
+    return {
+      data: null,
+      error: {
+        message: 'Requisição cancelada',
+        code: 'ABORTED'
+      }
+    };
+  }
 
   try {
     // Verificar rate limiting
@@ -60,55 +72,112 @@ export async function safeRpc<T = any>(
       }
     }
 
-    // Criar promise com timeout
+    // Criar promise com timeout e suporte a AbortController
     // IMPORTANTE: Para funções sem parâmetros, passar undefined é a forma correta
     // O Supabase JS client aceita undefined e não envia parâmetros no body da requisição
     // Isso evita erro 400 do PostgREST quando a função não espera parâmetros
-    const rpcPromise = validatedParams === undefined
-      ? (supabase.rpc as any)(functionName) // Chamar sem segundo parâmetro
-      : supabase.rpc(functionName, validatedParams);
+    const rpcOptions: any = {};
+    if (signal) {
+      rpcOptions.signal = signal;
+    }
     
+    const rpcPromise = validatedParams === undefined
+      ? (supabase.rpc as any)(functionName, rpcOptions) // Chamar com opções
+      : supabase.rpc(functionName, validatedParams, rpcOptions);
+    
+    // Criar timeout que também respeita o AbortSignal
+    let timeoutId: NodeJS.Timeout | null = null;
     const timeoutPromise = new Promise<{ data: null; error: any }>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          data: null,
-          error: {
-            message: 'A requisição demorou muito para responder. Tente novamente.',
-            code: 'TIMEOUT'
-          }
-        });
+      timeoutId = setTimeout(() => {
+        if (!signal?.aborted) {
+          resolve({
+            data: null,
+            error: {
+              message: 'A requisição demorou muito para responder. Tente novamente.',
+              code: 'TIMEOUT'
+            }
+          });
+        }
       }, timeout);
     });
 
-    const result = await Promise.race([rpcPromise, timeoutPromise]);
-    
-    // Se houver erro, sanitizar mensagem em produção
-    if (result.error) {
-      // Verificar se é erro 400/404 (função não encontrada ou parâmetros inválidos)
-      const errorCode = (result.error as any)?.code;
-      const errorMessage = String((result.error as any)?.message || '');
-      const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' || 
-                         errorCode === 'PGRST204' || // Bad Request
-                         errorMessage.includes('400') ||
-                         errorMessage.includes('404') ||
-                         errorMessage.includes('not found') ||
-                         errorMessage.includes('invalid input') ||
-                         errorMessage.includes('structure of query does not match'); // Erro de tipo de retorno
-      
-      // Silenciar erros 400/404 completamente (não logar em nenhum ambiente)
-      // Esses erros são esperados em certas situações e não devem aparecer no console
-      if (is400or404) {
-        // Retornar erro silenciosamente sem logar
-        result.error = {
-          code: errorCode || '400',
-          message: 'Requisição inválida',
-        };
-      } else {
-        result.error = sanitizeError(result.error);
-      }
+    // Limpar timeout se abortado
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      });
     }
 
-    return result;
+    try {
+      const result = await Promise.race([rpcPromise, timeoutPromise]);
+      
+      // Limpar timeout se ainda estiver ativo
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
+      // Verificar se foi abortado
+      if (signal?.aborted) {
+        return {
+          data: null,
+          error: {
+            message: 'Requisição cancelada',
+            code: 'ABORTED'
+          }
+        };
+      }
+    
+      // Se houver erro, sanitizar mensagem em produção
+      if (result.error) {
+        // Verificar se é erro 400/404 (função não encontrada ou parâmetros inválidos)
+        const errorCode = (result.error as any)?.code;
+        const errorMessage = String((result.error as any)?.message || '');
+        const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                           errorCode === 'PGRST204' || // Bad Request
+                           errorMessage.includes('400') ||
+                           errorMessage.includes('404') ||
+                           errorMessage.includes('not found') ||
+                           errorMessage.includes('invalid input') ||
+                           errorMessage.includes('structure of query does not match'); // Erro de tipo de retorno
+        
+        // Silenciar erros 400/404 completamente (não logar em nenhum ambiente)
+        // Esses erros são esperados em certas situações e não devem aparecer no console
+        if (is400or404) {
+          // Retornar erro silenciosamente sem logar
+          result.error = {
+            code: errorCode || '400',
+            message: 'Requisição inválida',
+          };
+        } else {
+          result.error = sanitizeError(result.error);
+        }
+      }
+
+      return result;
+    } catch (error: any) {
+      // Limpar timeout em caso de erro
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
+      // Ignorar erros de abort
+      if (error?.name === 'AbortError' || signal?.aborted) {
+        return {
+          data: null,
+          error: {
+            message: 'Requisição cancelada',
+            code: 'ABORTED'
+          }
+        };
+      }
+      
+      return {
+        data: null,
+        error: sanitizeError(error)
+      };
+    }
   } catch (error: any) {
     return {
       data: null,

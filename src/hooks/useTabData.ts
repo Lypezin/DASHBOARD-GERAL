@@ -24,6 +24,9 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
   const isRequestPendingRef = useRef<boolean>(false);
   const lastRequestTimeRef = useRef<number>(0);
   const rapidChangeCountRef = useRef<number>(0);
+  const lastFilterPayloadRef = useRef<string>('');
+  const cooldownUntilRef = useRef<number>(0);
+  const requestIdRef = useRef<number>(0);
 
   useEffect(() => {
     currentTabRef.current = activeTab;
@@ -45,13 +48,45 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     // Resetar flag de requisição pendente
     isRequestPendingRef.current = false;
 
+    // Verificar se o filterPayload realmente mudou
+    const currentFilterPayloadStr = JSON.stringify(filterPayload);
+    const filterPayloadChanged = lastFilterPayloadRef.current !== currentFilterPayloadStr;
+    lastFilterPayloadRef.current = currentFilterPayloadStr;
+
     // Calcular debounce adaptativo baseado em mudanças rápidas
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTimeRef.current;
     
+    // Verificar cooldown (bloqueio após mudanças muito rápidas)
+    if (now < cooldownUntilRef.current) {
+      const remainingCooldown = cooldownUntilRef.current - now;
+      if (IS_DEV) {
+        safeLog.warn(`Cooldown ativo: aguardando ${remainingCooldown}ms antes de permitir nova requisição`);
+      }
+      // Aguardar até o cooldown acabar
+      debounceTimeoutRef.current = setTimeout(() => {
+        if (currentTabRef.current === activeTab) {
+          // Recriar o useEffect após cooldown
+          const event = new Event('cooldown-ended');
+          window.dispatchEvent(event);
+        }
+      }, remainingCooldown);
+      return;
+    }
+    
     if (timeSinceLastRequest < 500) {
       // Se houve mudança rápida, aumentar contador e debounce
       rapidChangeCountRef.current += 1;
+      
+      // Se há muitas mudanças rápidas, ativar cooldown
+      if (rapidChangeCountRef.current >= 3) {
+        cooldownUntilRef.current = now + 2000; // 2 segundos de cooldown
+        rapidChangeCountRef.current = 0;
+        if (IS_DEV) {
+          safeLog.warn('Muitas mudanças rápidas detectadas. Ativando cooldown de 2 segundos.');
+        }
+        return;
+      }
     } else {
       // Resetar contador se passou tempo suficiente
       rapidChangeCountRef.current = 0;
@@ -61,7 +96,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     
     // Debounce adaptativo: aumenta quando há muitas mudanças rápidas
     const adaptiveDebounce = Math.min(
-      MIN_DEBOUNCE + (rapidChangeCountRef.current * 100),
+      MIN_DEBOUNCE + (rapidChangeCountRef.current * 150),
       MAX_DEBOUNCE
     );
 
@@ -160,12 +195,24 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         let result: { data: any, error: any } | null = null;
         let processedData: TabData = null;
 
+        // Gerar ID único para esta requisição
+        const currentRequestId = ++requestIdRef.current;
+        
         switch (tab) {
           case 'utr':
             result = await safeRpc<UtrData>('calcular_utr', filterPayload as any, {
               timeout: 30000,
-              validateParams: true
+              validateParams: true,
+              signal: abortController.signal
             });
+            
+            // Verificar se esta requisição ainda é a mais recente
+            if (currentRequestId !== requestIdRef.current || abortController.signal.aborted || currentTabRef.current !== tab) {
+              isRequestPendingRef.current = false;
+              setLoading(false);
+              return;
+            }
+            
             if (result && !result.error) processedData = result.data;
             break;
 
@@ -182,8 +229,16 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
             result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
               timeout: 30000, // Aumentado para 30s para dar mais tempo (função otimizada)
-              validateParams: false // Desabilitar validação para evitar problemas
+              validateParams: false, // Desabilitar validação para evitar problemas
+              signal: abortController.signal
             });
+            
+            // Verificar se esta requisição ainda é a mais recente
+            if (currentRequestId !== requestIdRef.current) {
+              isRequestPendingRef.current = false;
+              setLoading(false);
+              return;
+            }
             
             // Verificar se foi abortado durante a requisição
             if (abortController.signal.aborted || currentTabRef.current !== tab) {
@@ -276,8 +331,16 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             
             result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
               timeout: 30000, // Aumentado para 30s para dar mais tempo (função otimizada)
-              validateParams: false // Desabilitar validação para evitar problemas
+              validateParams: false, // Desabilitar validação para evitar problemas
+              signal: abortController.signal
             });
+            
+            // Verificar se esta requisição ainda é a mais recente
+            if (currentRequestId !== requestIdRef.current) {
+              isRequestPendingRef.current = false;
+              setLoading(false);
+              return;
+            }
             
             // Verificar se foi abortado durante a requisição
             if (abortController.signal.aborted || currentTabRef.current !== tab) {
