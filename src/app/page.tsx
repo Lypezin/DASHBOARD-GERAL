@@ -212,7 +212,28 @@ export default function DashboardPage() {
     };
   }, [activeTab, registrarAtividade, filters, verificarConquistas, currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Removido verificação de conquistas ao aplicar filtros - muito frequente e desnecessário
+  // Verificar conquistas após aplicar filtros (com debounce para não sobrecarregar)
+  const filterChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    // Limpar timeout anterior
+    if (filterChangeTimeoutRef.current) {
+      clearTimeout(filterChangeTimeoutRef.current);
+    }
+    
+    // Verificar conquistas após 2 segundos de aplicar filtros
+    // Isso garante que a atividade foi registrada no banco antes de verificar
+    filterChangeTimeoutRef.current = setTimeout(() => {
+      verificarConquistas();
+    }, 2000);
+    
+    return () => {
+      if (filterChangeTimeoutRef.current) {
+        clearTimeout(filterChangeTimeoutRef.current);
+      }
+    };
+  }, [JSON.stringify(filters), currentUser, verificarConquistas]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Verificar conquistas baseadas em dados do dashboard quando estiverem disponíveis
   useEffect(() => {
