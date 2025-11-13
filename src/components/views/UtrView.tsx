@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { UtrData } from '@/types';
 
-function UtrView({
+const UtrView = React.memo(function UtrView({
   utrData,
   loading,
 }: {
@@ -37,10 +37,11 @@ function UtrView({
   }
 
   // Usar os nomes corretos que vêm do backend (com fallback para compatibilidade)
-  const porPraca = utrData.praca || utrData.por_praca || [];
-  const porSubPraca = utrData.sub_praca || utrData.por_sub_praca || [];
-  const porOrigem = utrData.origem || utrData.por_origem || [];
-  const porTurno = utrData.turno || utrData.por_turno || [];
+  // Memoizar para evitar recálculo desnecessário
+  const porPraca = useMemo(() => utrData.praca || utrData.por_praca || [], [utrData.praca, utrData.por_praca]);
+  const porSubPraca = useMemo(() => utrData.sub_praca || utrData.por_sub_praca || [], [utrData.sub_praca, utrData.por_sub_praca]);
+  const porOrigem = useMemo(() => utrData.origem || utrData.por_origem || [], [utrData.origem, utrData.por_origem]);
+  const porTurno = useMemo(() => utrData.turno || utrData.por_turno || [], [utrData.turno, utrData.por_turno]);
 
   const geral = utrData.geral;
 
@@ -190,6 +191,8 @@ function UtrView({
       )}
     </div>
   );
-}
+});
+
+UtrView.displayName = 'UtrView';
 
 export default UtrView;

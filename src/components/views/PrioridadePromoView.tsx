@@ -7,7 +7,7 @@ import MetricCard from '../MetricCard';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-function PrioridadePromoView({
+const PrioridadePromoView = React.memo(function PrioridadePromoView({
   entregadoresData,
   loading,
 }: {
@@ -630,6 +630,8 @@ function PrioridadePromoView({
       </div>
     </div>
   );
-}
+});
+
+PrioridadePromoView.displayName = 'PrioridadePromoView';
 
 export default PrioridadePromoView;

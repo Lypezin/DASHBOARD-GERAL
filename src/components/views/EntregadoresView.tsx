@@ -456,6 +456,8 @@ function EntregadoresView({
       </div>
     </div>
   );
-}
+});
+
+EntregadoresView.displayName = 'EntregadoresView';
 
 export default EntregadoresView;

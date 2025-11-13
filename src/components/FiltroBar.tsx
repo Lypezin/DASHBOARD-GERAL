@@ -5,6 +5,8 @@ import FiltroMultiSelect from './FiltroMultiSelect';
 import FiltroDateRange from './FiltroDateRange';
 import { safeLog } from '@/lib/errorHandler';
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 const FiltroBar = React.memo(function FiltroBar({
   filters,
   setFilters,
@@ -26,17 +28,19 @@ const FiltroBar = React.memo(function FiltroBar({
   turnos: FilterOption[];
   currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
 }) {
-  // Log para debug
+  // Log para debug (apenas em desenvolvimento)
   useEffect(() => {
-    safeLog.info('[FiltroBar] Filters recebidos:', {
-      filtroModo: filters?.filtroModo,
-      dataInicial: filters?.dataInicial,
-      dataFinal: filters?.dataFinal,
-      ano: filters?.ano,
-      semana: filters?.semana,
-      hasFiltroModo: 'filtroModo' in (filters || {}),
-      filtersKeys: filters ? Object.keys(filters) : 'filters is null/undefined',
-    });
+    if (IS_DEV) {
+      safeLog.info('[FiltroBar] Filters recebidos:', {
+        filtroModo: filters?.filtroModo,
+        dataInicial: filters?.dataInicial,
+        dataFinal: filters?.dataFinal,
+        ano: filters?.ano,
+        semana: filters?.semana,
+        hasFiltroModo: 'filtroModo' in (filters || {}),
+        filtersKeys: filters ? Object.keys(filters) : 'filters is null/undefined',
+      });
+    }
   }, [filters]);
   const handleChange = useCallback((key: keyof Filters, rawValue: string | null) => {
     setFilters((prev) => {
@@ -65,18 +69,24 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [setFilters, currentUser]);
 
   const handleToggleModo = useCallback(() => {
-    safeLog.info('[FiltroBar] handleToggleModo chamado');
+    if (IS_DEV) {
+      safeLog.info('[FiltroBar] handleToggleModo chamado');
+    }
     try {
       setFilters((prev) => {
         if (!prev) {
-          safeLog.warn('[FiltroBar] handleToggleModo: prev é null/undefined');
+          if (IS_DEV) {
+            safeLog.warn('[FiltroBar] handleToggleModo: prev é null/undefined');
+          }
           return prev;
         }
         const novoModo: 'ano_semana' | 'intervalo' = (prev.filtroModo ?? 'ano_semana') === 'ano_semana' ? 'intervalo' : 'ano_semana';
-        safeLog.info('[FiltroBar] Trocando modo:', {
-          modoAtual: prev.filtroModo,
-          novoModo,
-        });
+        if (IS_DEV) {
+          safeLog.info('[FiltroBar] Trocando modo:', {
+            modoAtual: prev.filtroModo,
+            novoModo,
+          });
+        }
         const newFilters: Filters = {
           ...prev,
           filtroModo: novoModo,
@@ -87,7 +97,9 @@ const FiltroBar = React.memo(function FiltroBar({
           dataInicial: novoModo === 'ano_semana' ? null : prev.dataInicial ?? null,
           dataFinal: novoModo === 'ano_semana' ? null : prev.dataFinal ?? null,
         };
-        safeLog.info('[FiltroBar] Novos filters após toggle:', newFilters);
+        if (IS_DEV) {
+          safeLog.info('[FiltroBar] Novos filters após toggle:', newFilters);
+        }
         return newFilters;
       });
     } catch (error) {
@@ -123,13 +135,14 @@ const FiltroBar = React.memo(function FiltroBar({
 
   const isModoIntervalo = filters?.filtroModo === 'intervalo';
 
-  // Log para debug
+  // Log para debug (apenas em desenvolvimento)
   useEffect(() => {
-    safeLog.info('[FiltroBar] Estado do modo:', {
-      isModoIntervalo,
-      filtroModo: filters?.filtroModo,
-      dataInicial: filters?.dataInicial,
-      dataFinal: filters?.dataFinal,
+    if (IS_DEV) {
+      safeLog.info('[FiltroBar] Estado do modo:', {
+        isModoIntervalo,
+        filtroModo: filters?.filtroModo,
+        dataInicial: filters?.dataInicial,
+        dataFinal: filters?.dataFinal,
     });
   }, [isModoIntervalo, filters?.filtroModo, filters?.dataInicial, filters?.dataFinal]);
 

@@ -119,15 +119,17 @@ export default function DashboardPage() {
     dataFinal: null,
   });
 
-  // Log para debug - verificar inicialização dos filtros
+  // Log para debug - verificar inicialização dos filtros (apenas em desenvolvimento)
   useEffect(() => {
-    safeLog.info('[DashboardPage] Filters inicializados:', {
-      filtroModo: filters.filtroModo,
-      dataInicial: filters.dataInicial,
-      dataFinal: filters.dataFinal,
-      hasFiltroModo: 'filtroModo' in filters,
-      filtersKeys: Object.keys(filters),
-    });
+    if (IS_DEV) {
+      safeLog.info('[DashboardPage] Filters inicializados:', {
+        filtroModo: filters.filtroModo,
+        dataInicial: filters.dataInicial,
+        dataFinal: filters.dataFinal,
+        hasFiltroModo: 'filtroModo' in filters,
+        filtersKeys: Object.keys(filters),
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Apenas no mount inicial
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
@@ -165,13 +167,17 @@ export default function DashboardPage() {
   } = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
 
   const filterPayload = useMemo(() => {
-    safeLog.info('[DashboardPage] Gerando filterPayload com:', {
-      filters,
-      currentUser: currentUser ? { is_admin: currentUser.is_admin, hasAssignedPracas: currentUser.assigned_pracas.length > 0 } : null,
-    });
+    if (IS_DEV) {
+      safeLog.info('[DashboardPage] Gerando filterPayload com:', {
+        filters,
+        currentUser: currentUser ? { is_admin: currentUser.is_admin, hasAssignedPracas: currentUser.assigned_pracas.length > 0 } : null,
+      });
+    }
     try {
       const payload = buildFilterPayload(filters, currentUser);
-      safeLog.info('[DashboardPage] filterPayload gerado com sucesso:', payload);
+      if (IS_DEV) {
+        safeLog.info('[DashboardPage] filterPayload gerado com sucesso:', payload);
+      }
       return payload;
     } catch (error) {
       safeLog.error('[DashboardPage] Erro ao gerar filterPayload:', error);
@@ -182,8 +188,15 @@ export default function DashboardPage() {
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
   // Mapeia os dados do useTabData para as props dos componentes de view
-  const utrData = activeTab === 'utr' ? tabData as UtrData : null;
-  const entregadoresData = activeTab === 'entregadores' ? tabData as EntregadoresData : null;
+  // Memoizar para evitar recriação desnecessária
+  const utrData = useMemo(() => {
+    return activeTab === 'utr' ? (tabData as UtrData) : null;
+  }, [activeTab, tabData]);
+  
+  const entregadoresData = useMemo(() => {
+    return activeTab === 'entregadores' ? (tabData as EntregadoresData) : null;
+  }, [activeTab, tabData]);
+  
   const valoresData = useMemo(() => {
     if (activeTab !== 'valores') return [];
     if (!tabData) return [];
@@ -194,7 +207,10 @@ export default function DashboardPage() {
     // Se não é array e não é null, não deve acontecer para valores, mas retornar array vazio por segurança
     return [];
   }, [activeTab, tabData]);
-  const prioridadeData = activeTab === 'prioridade' ? tabData as EntregadoresData : null;
+  
+  const prioridadeData = useMemo(() => {
+    return activeTab === 'prioridade' ? (tabData as EntregadoresData) : null;
+  }, [activeTab, tabData]);
   
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
   const { 

@@ -79,9 +79,14 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       requestQueue.set(queueKey, { timestamp: now, count: (queueEntry?.count || 0) + 1 });
       
       // Limpar entradas antigas da fila (mais de 3 segundos)
+      // Otimizar: limitar iterações para evitar travamentos com filas muito grandes
+      let cleanedCount = 0;
+      const maxCleanup = 50; // Limitar limpeza para evitar travamentos
       for (const [key, entry] of requestQueue.entries()) {
+        if (cleanedCount >= maxCleanup) break; // Parar após limpar muitas entradas
         if (now - entry.timestamp > 3000) {
           requestQueue.delete(key);
+          cleanedCount++;
         }
       }
 
@@ -271,9 +276,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             const { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem } = filterPayload as any;
             const listarValoresPayload = { p_ano: v_ano, p_semana: v_semana, p_praca: v_praca, p_sub_praca: v_sub_praca, p_origem: v_origem };
             
-            if (IS_DEV) {
-              safeLog.info('Buscando valores com payload:', listarValoresPayload);
-            }
+            // Log removido em produção para melhor performance
             
             result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
               timeout: 15000, // Reduzido para 15s (função otimizada com materialized view - muito mais rápida)
@@ -344,19 +347,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                 // Supabase pode retornar como objeto ou string JSON
                 let dataObj: any = result.data;
                 
-                if (IS_DEV) {
-                  safeLog.info('Dados brutos recebidos:', {
-                    tipo: typeof dataObj,
-                    isArray: Array.isArray(dataObj),
-                    isNull: dataObj === null,
-                    isUndefined: dataObj === undefined,
-                    keys: dataObj && typeof dataObj === 'object' && !Array.isArray(dataObj) ? Object.keys(dataObj) : null,
-                    hasEntregadores: dataObj && typeof dataObj === 'object' && 'entregadores' in dataObj,
-                    sample: typeof dataObj === 'string' 
-                      ? dataObj.substring(0, 200) 
-                      : (dataObj ? JSON.stringify(dataObj).substring(0, 200) : 'null/undefined')
-                  });
-                }
+                // Log detalhado removido em produção para melhor performance
                 
                 // Tentar parsear se for string
                 if (typeof dataObj === 'string') {
@@ -373,17 +364,13 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                   if (Array.isArray(dataObj)) {
                     // Se já é um array, usar diretamente
                     processedData = dataObj;
-                    if (IS_DEV) {
-                      safeLog.info('✅ Dados processados como array direto:', { length: dataObj.length, tipo: 'entregadores' });
-                    }
+                    // Log removido em produção
                   } else if (dataObj && typeof dataObj === 'object' && 'entregadores' in dataObj) {
                     // Se é objeto com propriedade entregadores
                     const entregadores = dataObj.entregadores;
                     if (Array.isArray(entregadores)) {
                       processedData = entregadores;
-                      if (IS_DEV) {
-                        safeLog.info('✅ Dados processados de objeto.entregadores:', { length: entregadores.length, tipo: 'entregadores' });
-                      }
+                      // Log removido em produção
                     } else {
                       if (IS_DEV) {
                         safeLog.warn('entregadores não é um array:', { tipo: typeof entregadores, valor: entregadores });
@@ -397,9 +384,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                     for (const key of possibleKeys) {
                       if (dataObj && typeof dataObj === 'object' && key in dataObj && Array.isArray(dataObj[key])) {
                         processedData = dataObj[key];
-                        if (IS_DEV) {
-                          safeLog.info(`✅ Dados encontrados em ${key}:`, { length: processedData.length });
-                        }
+                        // Log removido em produção
                         found = true;
                         break;
                       }
@@ -453,13 +438,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
           
           lastSuccessfulTabRef.current = tab;
           
-          if (IS_DEV && tab === 'valores') {
-            safeLog.info('✅ Dados finais setados para valores:', {
-              tipo: typeof processedData,
-              isArray: Array.isArray(processedData),
-              length: Array.isArray(processedData) ? processedData.length : 0
-            });
-          }
+          // Log removido em produção
         }
         
         // Marcar requisição como concluída

@@ -7,7 +7,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-function ValoresView({
+const ValoresView = React.memo(function ValoresView({
   valoresData,
   loading,
 }: {
@@ -408,6 +408,8 @@ function ValoresView({
       </div>
     </div>
   );
-}
+});
+
+ValoresView.displayName = 'ValoresView';
 
 export default ValoresView;
