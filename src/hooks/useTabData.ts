@@ -15,13 +15,31 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
   const cacheRef = useRef<Map<string, { data: any; timestamp: number }>>(new Map());
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentTabRef = useRef<string>(activeTab);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     currentTabRef.current = activeTab;
   }, [activeTab]);
 
   useEffect(() => {
+    // Limpar timeout anterior
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Cancelar requisição anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+
     const fetchDataForTab = async (tab: string) => {
+      // Verificar se a tab ainda é a mesma antes de começar
+      if (currentTabRef.current !== tab) {
+        return;
+      }
+
       // Cancelar requisição anterior se existir
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -34,6 +52,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       const cached = cacheRef.current.get(cacheKey);
 
       if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        // Verificar novamente se a tab ainda é a mesma
+        if (currentTabRef.current !== tab || abortController.signal.aborted) {
+          return;
+        }
         // Para valores, garantir que o cache retorne um array
         const cachedData = tab === 'valores' 
           ? (Array.isArray(cached.data) ? cached.data : [])
@@ -46,11 +68,17 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         return;
       }
 
+      // Verificar novamente antes de setar loading
+      if (currentTabRef.current !== tab || abortController.signal.aborted) {
+        return;
+      }
+
       setLoading(true);
 
       try {
         // Verificar se a tab mudou durante o carregamento
         if (abortController.signal.aborted || currentTabRef.current !== tab) {
+          setLoading(false);
           return;
         }
 
@@ -76,7 +104,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             const { p_ano, p_semana, p_praca, p_sub_praca, p_origem } = filterPayload as any;
             const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem };
             result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
-              timeout: 20000, // Reduzido para 20s
+              timeout: 30000, // Aumentado para 30s para dar mais tempo (função otimizada)
               validateParams: false // Desabilitar validação para evitar problemas
             });
             
@@ -143,7 +171,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             }
             
             result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
-              timeout: 20000, // Reduzido para 20s
+              timeout: 30000, // Aumentado para 30s para dar mais tempo (função otimizada)
               validateParams: false // Desabilitar validação para evitar problemas
             });
             
@@ -339,18 +367,22 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     };
 
     if (['utr', 'entregadores', 'valores', 'prioridade'].includes(activeTab)) {
-        // Aumentar delay para evitar requisições muito rápidas
-        const timeoutId = setTimeout(() => {
+        // Usar debounce para evitar requisições muito rápidas quando troca de guia
+        debounceTimeoutRef.current = setTimeout(() => {
           if (currentTabRef.current === activeTab) {
             fetchDataForTab(activeTab);
           }
-        }, 300); // Aumentado de 200ms para 300ms
+        }, 150); // Reduzido para 150ms para melhor responsividade
         
         return () => {
-          clearTimeout(timeoutId);
+          if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+            debounceTimeoutRef.current = null;
+          }
           // Cancelar requisição se o componente desmontar ou tab mudar
           if (abortControllerRef.current) {
             abortControllerRef.current.abort();
+            abortControllerRef.current = null;
           }
         };
     } else {
