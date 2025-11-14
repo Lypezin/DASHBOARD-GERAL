@@ -256,3 +256,28 @@ export interface DadosMarketing {
   created_at: string;
   updated_at: string;
 }
+
+export interface MarketingDateFilter {
+  dataInicial: string | null; // YYYY-MM-DD
+  dataFinal: string | null; // YYYY-MM-DD
+}
+
+export interface MarketingFilters {
+  filtroLiberacao: MarketingDateFilter;
+  filtroEnviados: MarketingDateFilter;
+  filtroRodouDia: MarketingDateFilter;
+}
+
+export interface MarketingCityData {
+  cidade: string;
+  enviado: number;
+  liberado: number;
+  rodandoInicio: number;
+}
+
+export interface MarketingTotals {
+  criado: number; // Total de registros
+  enviado: number; // Contagem com filtro de Enviados
+  liberado: number; // Contagem com filtro de Liberação
+  rodandoInicio: number; // Contagem com filtro de Rodou Dia
+}
