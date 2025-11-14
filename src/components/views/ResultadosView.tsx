@@ -39,8 +39,8 @@ const ATENDENTES_FOTOS: { [key: string]: string | null } = {
   'Fernanda Raphaelly': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/FERNANDA%20FOTO.png',
   'Beatriz Angelo': null,
   'Melissa': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/MELISSA%20FOTO.png',
-  'Carolini Braguini': null,
-  'Caroline Florencio': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/CAROL%20FOTO.jpg',
+  'Carolini Braguini': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/CAROL%20FOTO.jpg',
+  'Caroline Florencio': null,
 };
 
 // Função auxiliar para construir query de cidade (reutilizada de MarketingDashboardView)

@@ -50,14 +50,17 @@ const AtendenteCard: React.FC<AtendenteCardProps> = ({
         
         <div className="relative flex items-center gap-4">
           {/* Avatar com foto ou iniciais */}
-          <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatarColor} text-xl font-bold text-white shadow-lg ring-2 ring-white/20 overflow-hidden`}>
+          <div className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatarColor} text-xl font-bold text-white shadow-lg ring-2 ring-white/20 overflow-hidden`}>
             {fotoUrl ? (
               <Image
                 src={fotoUrl}
                 alt={nome}
-                width={64}
-                height={64}
+                width={80}
+                height={80}
+                quality={95}
+                priority
                 className="h-full w-full object-cover"
+                unoptimized={fotoUrl.includes('supabase.co')}
                 onError={(e) => {
                   // Fallback para iniciais se a imagem falhar
                   const target = e.target as HTMLImageElement;
