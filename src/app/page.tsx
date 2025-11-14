@@ -43,6 +43,10 @@ const DashboardView = dynamic(() => import('@/components/views/DashboardView').t
   loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
   ssr: false
 });
+const MarketingView = dynamic(() => import('@/components/views/MarketingView').then(mod => ({ default: mod.default })), {
+  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div></div>,
+  ssr: false
+});
 const AnaliseView = dynamic(() => import('@/components/views/AnaliseView').then(mod => ({ default: mod.default })), {
   loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
   ssr: false
@@ -434,6 +438,7 @@ export default function DashboardPage() {
                     <TabButton label="Monitor" active={activeTab === 'monitoramento'} onClick={() => handleTabChange('monitoramento')} />
                   )}
                   <TabButton label="Comparar" active={activeTab === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
+                  <TabButton label="Marketing" active={activeTab === 'marketing'} onClick={() => handleTabChange('marketing')} />
                 </div>
                 </div>
               </div>
@@ -525,6 +530,9 @@ export default function DashboardPage() {
                         origens={origens}
                         currentUser={currentUser}
                       />
+                    )}
+                    {activeTab === 'marketing' && (
+                      <MarketingView />
                     )}
                   </Suspense>
                 </ErrorBoundary>

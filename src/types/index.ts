@@ -239,3 +239,18 @@ export interface UtrSemanal {
   total_corridas: number;
   utr: number;
 }
+
+export interface DadosMarketing {
+  id: number;
+  nome: string | null;
+  status: string | null;
+  id_entregador: string;
+  regiao_atuacao: string | null;
+  data_liberacao: string; // DATE format (YYYY-MM-DD)
+  sub_praca_abc: string | null;
+  telefone_trabalho: string | null;
+  outro_telefone: string | null;
+  data_envio: string | null; // DATE format (YYYY-MM-DD)
+  created_at: string;
+  updated_at: string;
+}

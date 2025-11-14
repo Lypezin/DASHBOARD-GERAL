@@ -33,6 +33,18 @@ const COLUMN_MAP: { [key: string]: string } = {
   soma_das_taxas_das_corridas_aceitas: 'soma_das_taxas_das_corridas_aceitas',
 };
 
+const MARKETING_COLUMN_MAP: { [key: string]: string } = {
+  'Nome': 'nome',
+  'Status': 'status',
+  'Id do entregador*': 'id_entregador',
+  'Região de Atuação': 'regiao_atuacao',
+  'Data de Liberação*': 'data_liberacao',
+  'SubPraça 2.0 (ABC)': 'sub_praca_abc',
+  'Telefone de trabalho': 'telefone_trabalho',
+  'Outro número de telefone': 'outro_telefone',
+  'Data de Envio': 'data_envio',
+};
+
 const BATCH_SIZE = 500;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_FILES = 10; // Máximo de arquivos por upload
@@ -70,6 +82,49 @@ function convertFractionToHHMMSS(fraction: number): string {
   return convertSecondsToHHMMSS(totalSeconds);
 }
 
+// Converter data DD/MM/YYYY para YYYY-MM-DD (formato PostgreSQL)
+function convertDDMMYYYYToDate(dateStr: string | null | undefined): string | null {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  
+  // Remover espaços e tentar diferentes formatos
+  const cleaned = dateStr.trim();
+  
+  // Formato DD/MM/YYYY
+  const ddmmyyyyMatch = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (ddmmyyyyMatch) {
+    const [, day, month, year] = ddmmyyyyMatch;
+    const dayNum = parseInt(day, 10);
+    const monthNum = parseInt(month, 10);
+    const yearNum = parseInt(year, 10);
+    
+    // Validar data
+    if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12 && yearNum >= 1900 && yearNum <= 2100) {
+      return `${yearNum}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+  }
+  
+  // Se já estiver no formato YYYY-MM-DD, retornar como está
+  const yyyymmddMatch = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (yyyymmddMatch) {
+    return cleaned;
+  }
+  
+  // Tentar parsear como Date se for um formato conhecido
+  try {
+    const date = new Date(cleaned);
+    if (!isNaN(date.getTime())) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+  } catch (e) {
+    // Ignorar erro
+  }
+  
+  return null;
+}
+
 interface UserProfile {
   is_admin: boolean;
   is_approved: boolean;
@@ -78,10 +133,15 @@ interface UserProfile {
 export default function UploadPage() {
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
+  const [marketingFiles, setMarketingFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadingMarketing, setUploadingMarketing] = useState(false);
   const [message, setMessage] = useState('');
+  const [marketingMessage, setMarketingMessage] = useState('');
   const [progress, setProgress] = useState(0);
+  const [marketingProgress, setMarketingProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
+  const [marketingProgressLabel, setMarketingProgressLabel] = useState('');
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -241,6 +301,29 @@ export default function UploadPage() {
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
+  };
+
+  const handleMarketingFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+
+    for (const file of selectedFiles) {
+      const validation = validateFile(file);
+      if (validation.valid) {
+        validFiles.push(file);
+      } else {
+        setMarketingMessage(`⚠️ ${validation.error}`);
+      }
+    }
+
+    if (validFiles.length > 0) {
+      setMarketingFiles([...marketingFiles, ...validFiles]);
+      setMarketingMessage('');
+    }
+  };
+
+  const removeMarketingFile = (index: number) => {
+    setMarketingFiles(marketingFiles.filter((_, i) => i !== index));
   };
 
   const handleUpload = async () => {
@@ -416,6 +499,169 @@ export default function UploadPage() {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
     setUploading(false);
+  };
+
+  const handleMarketingUpload = async () => {
+    if (marketingFiles.length === 0) {
+      setMarketingMessage('Por favor, selecione pelo menos um arquivo.');
+      return;
+    }
+
+    // Verificar rate limiting
+    const rateLimit = uploadRateLimiter();
+    if (!rateLimit.allowed) {
+      const waitTime = Math.ceil((rateLimit.resetTime - Date.now()) / 1000 / 60);
+      setMarketingMessage(`⚠️ Muitos uploads recentes. Aguarde ${waitTime} minuto(s) antes de tentar novamente.`);
+      return;
+    }
+
+    setUploadingMarketing(true);
+    setMarketingMessage('');
+    setMarketingProgress(0);
+    setMarketingProgressLabel('Iniciando upload...');
+
+    try {
+      // PASSO 1: Deletar todos os registros existentes (sobrescrita)
+      setMarketingProgressLabel('Removendo dados antigos...');
+      setMarketingProgress(5);
+      
+      // Buscar todos os IDs primeiro e depois deletar
+      const { data: existingData, error: fetchError } = await supabase
+        .from('dados_marketing')
+        .select('id');
+      
+      if (fetchError) {
+        throw new Error(`Erro ao buscar dados existentes: ${fetchError.message}`);
+      }
+      
+      if (existingData && existingData.length > 0) {
+        const idsToDelete = existingData.map(item => item.id);
+        const { error: deleteError } = await supabase
+          .from('dados_marketing')
+          .delete()
+          .in('id', idsToDelete);
+        
+        if (deleteError) {
+          throw new Error(`Erro ao remover dados antigos: ${deleteError.message}`);
+        }
+      }
+
+      setMarketingProgress(10);
+      setMarketingProgressLabel('Dados antigos removidos. Processando novos dados...');
+
+      const totalFiles = marketingFiles.length;
+      let successCount = 0;
+      let errorCount = 0;
+      let totalInsertedRows = 0;
+
+      for (let fileIdx = 0; fileIdx < marketingFiles.length; fileIdx++) {
+        const file = marketingFiles[fileIdx];
+        setMarketingProgressLabel(`Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`);
+
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const workbook = XLSX.read(arrayBuffer, { raw: true });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+
+          setMarketingProgressLabel('Processando e validando dados...');
+          const fileProgress = 10 + (fileIdx / totalFiles) * 80;
+          setMarketingProgress(fileProgress);
+
+          const sanitizedData = rawData
+            .map((row: any, rowIndex: number) => {
+              const sanitized: any = {};
+              
+              for (const excelCol in MARKETING_COLUMN_MAP) {
+                const dbCol = MARKETING_COLUMN_MAP[excelCol];
+                let value = row[excelCol];
+
+                // Sanitizar strings
+                if (typeof value === 'string' && !dbCol.includes('data')) {
+                  try {
+                    value = validateString(value, 500, dbCol, true);
+                  } catch (e) {
+                    value = String(value).substring(0, 500).replace(/[<>'"]/g, '');
+                  }
+                }
+
+                // Converter datas
+                if (dbCol === 'data_liberacao' || dbCol === 'data_envio') {
+                  value = convertDDMMYYYYToDate(value);
+                  
+                  // Validar campo obrigatório data_liberacao
+                  if (dbCol === 'data_liberacao' && !value) {
+                    throw new Error(`Linha ${rowIndex + 2}: Campo obrigatório "Data de Liberação*" está vazio ou inválido`);
+                  }
+                }
+
+                // Validar campo obrigatório id_entregador
+                if (dbCol === 'id_entregador') {
+                  if (!value || (typeof value === 'string' && value.trim() === '')) {
+                    throw new Error(`Linha ${rowIndex + 2}: Campo obrigatório "Id do entregador*" está vazio`);
+                  }
+                  value = String(value).trim();
+                }
+
+                sanitized[dbCol] = value === null || value === undefined || value === '' ? null : value;
+              }
+
+              return sanitized;
+            })
+            .filter((row: any) => {
+              // Filtrar linhas vazias
+              const hasData = Object.values(row).some((v) => v !== null && v !== undefined && v !== '');
+              return hasData;
+            });
+
+          const totalRows = sanitizedData.length;
+          let insertedRows = 0;
+
+          // Inserir em lotes
+          for (let i = 0; i < totalRows; i += BATCH_SIZE) {
+            const batch = sanitizedData.slice(i, i + BATCH_SIZE);
+            const { error: batchError } = await supabase
+              .from('dados_marketing')
+              .insert(batch, { count: 'exact' });
+
+            if (batchError) {
+              throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}`);
+            }
+
+            insertedRows += batch.length;
+            totalInsertedRows += batch.length;
+            const batchProgress = (insertedRows / totalRows) * (80 / totalFiles);
+            setMarketingProgress(10 + (fileIdx / totalFiles) * 80 + batchProgress);
+            setMarketingProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${totalRows} linhas inseridas`);
+          }
+
+          successCount++;
+        } catch (error: any) {
+          safeLog.error(`Erro no arquivo ${file.name}:`, error);
+          errorCount++;
+          setMarketingMessage(`⚠️ Erro ao processar ${file.name}: ${error.message}`);
+        }
+      }
+
+      setMarketingProgress(100);
+      setMarketingProgressLabel('Concluído!');
+
+      if (errorCount === 0) {
+        setMarketingMessage(`✅ Upload concluído com sucesso! ${totalInsertedRows} registro(s) importado(s) de ${successCount} arquivo(s).`);
+      } else {
+        setMarketingMessage(`⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Total: ${totalInsertedRows} registro(s).`);
+      }
+
+      setMarketingFiles([]);
+      const marketingFileInput = document.querySelector('input[type="file"][data-marketing="true"]') as HTMLInputElement;
+      if (marketingFileInput) marketingFileInput.value = '';
+    } catch (error: any) {
+      safeLog.error('Erro no upload de Marketing:', error);
+      setMarketingMessage(`❌ Erro: ${error.message || 'Erro desconhecido'}`);
+    } finally {
+      setUploadingMarketing(false);
+    }
   };
 
   // Mostrar loading enquanto verifica autenticação
@@ -613,6 +859,184 @@ export default function UploadPage() {
                   {Object.keys(COLUMN_MAP).map((col) => (
                     <div key={col} className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 dark:bg-slate-900">
                       <span className="text-blue-600">✓</span>
+                      <code className="text-xs text-slate-700 dark:text-slate-300">{col}</code>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </div>
+          </div>
+
+          {/* Seção de Upload Marketing */}
+          <div className="mt-8 overflow-hidden rounded-3xl border border-purple-200 bg-white shadow-2xl dark:border-purple-900 dark:bg-slate-900">
+            {/* Header do Card Marketing */}
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-8 text-center">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <span className="text-4xl">📢</span>
+              </div>
+              <h2 className="text-3xl font-bold text-white">Upload de Dados Marketing</h2>
+              <p className="mt-2 text-purple-100">Importe planilha de Marketing (sobrescreve dados anteriores)</p>
+            </div>
+
+            {/* Conteúdo Marketing */}
+            <div className="p-8">
+              {/* Área de Upload Marketing */}
+              <div className="relative">
+                <input
+                  type="file"
+                  data-marketing="true"
+                  accept=".xlsx, .xls"
+                  multiple
+                  onChange={handleMarketingFileChange}
+                  disabled={uploadingMarketing}
+                  className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                />
+                <div className="rounded-2xl border-2 border-dashed border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50 p-12 text-center transition-all duration-300 hover:border-purple-400 hover:bg-gradient-to-br hover:from-purple-100 hover:to-pink-100 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:border-purple-700 dark:from-purple-950/30 dark:to-pink-950/30 dark:hover:border-purple-600">
+                  {marketingFiles.length === 0 ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
+                        <span className="text-3xl">📁</span>
+                      </div>
+                      <div>
+                        <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">
+                          Clique para selecionar ou arraste os arquivos aqui
+                        </p>
+                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                          ⚠️ Atenção: Os dados anteriores serão substituídos
+                        </p>
+                        <p className="mt-1 text-xs text-slate-400">Formatos aceitos: .xlsx, .xls</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                        <span className="text-3xl">✅</span>
+                      </div>
+                      <div>
+                        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
+                          {marketingFiles.length} arquivo(s) selecionado(s)
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Lista de Arquivos Marketing */}
+              {marketingFiles.length > 0 && !uploadingMarketing && (
+                <div className="mt-4 space-y-2">
+                  {marketingFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-lg border border-purple-200 bg-purple-50 p-3 dark:border-purple-800 dark:bg-purple-950/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">📄</span>
+                        <div>
+                          <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeMarketingFile(index)}
+                        className="rounded-lg bg-rose-100 p-2 text-rose-600 transition-colors hover:bg-rose-200 dark:bg-rose-950/30 dark:text-rose-400"
+                      >
+                        <span>🗑️</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Botão de Upload Marketing */}
+              <button
+                onClick={handleMarketingUpload}
+                disabled={uploadingMarketing || marketingFiles.length === 0}
+                className="mt-6 w-full transform rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
+              >
+                {uploadingMarketing ? (
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    <span>Processando...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-xl">🚀</span>
+                    <span>Enviar {marketingFiles.length} Arquivo(s) Marketing</span>
+                  </div>
+                )}
+              </button>
+
+              {/* Barra de Progresso Marketing */}
+              {uploadingMarketing && (
+                <div className="mt-6 space-y-3 animate-in fade-in duration-300">
+                  <div className="overflow-hidden rounded-full bg-slate-200 shadow-inner dark:bg-slate-800">
+                    <div
+                      className="h-3 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 shadow-lg transition-all duration-500"
+                      style={{ width: `${marketingProgress}%` }}
+                    ></div>
+                  </div>
+                  {marketingProgressLabel && (
+                    <div className="text-center">
+                      <p className="font-semibold text-slate-700 dark:text-slate-300">{marketingProgressLabel}</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{marketingProgress.toFixed(1)}% concluído</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Mensagem de Status Marketing */}
+              {marketingMessage && (
+                <div
+                  className={`mt-6 animate-in fade-in slide-in-from-top-2 rounded-xl border-2 p-4 duration-300 ${
+                    marketingMessage.includes('✅')
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
+                      : marketingMessage.includes('❌')
+                      ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200'
+                      : 'border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-900 dark:bg-purple-950/30 dark:text-purple-200'
+                  }`}
+                >
+                  <p className="font-medium">{marketingMessage}</p>
+                </div>
+              )}
+
+              {/* Informações Marketing */}
+              <div className="mt-8 rounded-xl bg-purple-50 p-6 dark:bg-purple-950/30">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">💡</span>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-purple-900 dark:text-purple-100">Importante sobre Marketing</h3>
+                    <ul className="mt-3 space-y-2 text-sm text-purple-800 dark:text-purple-200">
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-purple-600">⚠️</span>
+                        <span><strong>Sobrescrita:</strong> Todos os dados anteriores serão removidos e substituídos pelos novos</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-purple-600">•</span>
+                        <span>Campos obrigatórios: <strong>Id do entregador*</strong> e <strong>Data de Liberação*</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-purple-600">•</span>
+                        <span>Formato de data: <strong>DD/MM/YYYY</strong> (ex: 14/11/2025)</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Colunas Esperadas Marketing */}
+              <details className="mt-6 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
+                <summary className="cursor-pointer font-semibold text-slate-700 dark:text-slate-300">
+                  📋 Ver colunas esperadas na planilha Marketing
+                </summary>
+                <div className="mt-4 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+                  {Object.keys(MARKETING_COLUMN_MAP).map((col) => (
+                    <div key={col} className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 dark:bg-slate-900">
+                      <span className={col.includes('*') ? 'text-red-600' : 'text-purple-600'}>
+                        {col.includes('*') ? '⚠️' : '✓'}
+                      </span>
                       <code className="text-xs text-slate-700 dark:text-slate-300">{col}</code>
                     </div>
                   ))}
