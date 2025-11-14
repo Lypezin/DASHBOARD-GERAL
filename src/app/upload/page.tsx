@@ -569,51 +569,103 @@ export default function UploadPage() {
           const fileProgress = 10 + (fileIdx / totalFiles) * 80;
           setMarketingProgress(fileProgress);
 
+          // Verificar se há dados
+          if (!rawData || rawData.length === 0) {
+            throw new Error('A planilha está vazia ou não contém dados válidos');
+          }
+
+          // Verificar colunas disponíveis na planilha
+          const firstRow = rawData[0] as any;
+          const availableColumns = Object.keys(firstRow || {});
+          const requiredColumns = Object.keys(MARKETING_COLUMN_MAP);
+          
+          // Criar mapeamento flexível (case-insensitive, remove espaços extras)
+          const columnMapping: { [key: string]: string } = {};
+          for (const excelCol of requiredColumns) {
+            const normalizedRequired = excelCol.toLowerCase().trim();
+            const foundCol = availableColumns.find(
+              col => col.toLowerCase().trim() === normalizedRequired
+            );
+            if (foundCol) {
+              columnMapping[excelCol] = foundCol;
+            } else {
+              columnMapping[excelCol] = excelCol; // Tentar usar o nome original mesmo assim
+            }
+          }
+          
+          const missingColumns = requiredColumns.filter(col => {
+            const mappedCol = columnMapping[col];
+            return !availableColumns.includes(mappedCol);
+          });
+          
+          if (missingColumns.length > 0) {
+            safeLog.warn('Colunas não encontradas na planilha:', missingColumns);
+            safeLog.info('Colunas disponíveis na planilha:', availableColumns);
+            safeLog.info('Colunas esperadas:', requiredColumns);
+          }
+
           const sanitizedData = rawData
             .map((row: any, rowIndex: number) => {
-              const sanitized: any = {};
-              
-              for (const excelCol in MARKETING_COLUMN_MAP) {
-                const dbCol = MARKETING_COLUMN_MAP[excelCol];
-                let value = row[excelCol];
+              try {
+                const sanitized: any = {};
+                
+                for (const excelCol in MARKETING_COLUMN_MAP) {
+                  const dbCol = MARKETING_COLUMN_MAP[excelCol];
+                  // Usar mapeamento flexível para encontrar a coluna
+                  const actualColName = columnMapping[excelCol] || excelCol;
+                  let value = row[actualColName];
 
-                // Sanitizar strings
-                if (typeof value === 'string' && !dbCol.includes('data')) {
-                  try {
-                    value = validateString(value, 500, dbCol, true);
-                  } catch (e) {
-                    value = String(value).substring(0, 500).replace(/[<>'"]/g, '');
+                  // Se a coluna não existe na planilha, usar null
+                  if (value === undefined) {
+                    sanitized[dbCol] = null;
+                    continue;
                   }
+
+                  // Sanitizar strings
+                  if (typeof value === 'string' && !dbCol.includes('data')) {
+                    try {
+                      value = validateString(value, 500, dbCol, true);
+                    } catch (e) {
+                      value = String(value).substring(0, 500).replace(/[<>'"]/g, '');
+                    }
+                  }
+
+                  // Converter datas
+                  if (dbCol === 'data_liberacao' || dbCol === 'data_envio') {
+                    value = convertDDMMYYYYToDate(value);
+                    
+                    // Validar campo obrigatório data_liberacao
+                    if (dbCol === 'data_liberacao' && !value) {
+                      throw new Error(`Linha ${rowIndex + 2}: Campo obrigatório "Data de Liberação*" está vazio ou inválido`);
+                    }
+                  }
+
+                  // Validar campo obrigatório id_entregador
+                  if (dbCol === 'id_entregador') {
+                    if (!value || (typeof value === 'string' && value.trim() === '')) {
+                      throw new Error(`Linha ${rowIndex + 2}: Campo obrigatório "Id do entregador*" está vazio`);
+                    }
+                    value = String(value).trim();
+                  }
+
+                  sanitized[dbCol] = value === null || value === undefined || value === '' ? null : value;
                 }
 
-                // Converter datas
-                if (dbCol === 'data_liberacao' || dbCol === 'data_envio') {
-                  value = convertDDMMYYYYToDate(value);
-                  
-                  // Validar campo obrigatório data_liberacao
-                  if (dbCol === 'data_liberacao' && !value) {
-                    throw new Error(`Linha ${rowIndex + 2}: Campo obrigatório "Data de Liberação*" está vazio ou inválido`);
-                  }
-                }
-
-                // Validar campo obrigatório id_entregador
-                if (dbCol === 'id_entregador') {
-                  if (!value || (typeof value === 'string' && value.trim() === '')) {
-                    throw new Error(`Linha ${rowIndex + 2}: Campo obrigatório "Id do entregador*" está vazio`);
-                  }
-                  value = String(value).trim();
-                }
-
-                sanitized[dbCol] = value === null || value === undefined || value === '' ? null : value;
+                return sanitized;
+              } catch (rowError: any) {
+                // Capturar erro específico da linha e relançar com contexto
+                throw new Error(`Erro na linha ${rowIndex + 2}: ${rowError.message}`);
               }
-
-              return sanitized;
             })
             .filter((row: any) => {
               // Filtrar linhas vazias
               const hasData = Object.values(row).some((v) => v !== null && v !== undefined && v !== '');
               return hasData;
             });
+
+          if (sanitizedData.length === 0) {
+            throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados e se os campos obrigatórios estão preenchidos.');
+          }
 
           const totalRows = sanitizedData.length;
           let insertedRows = 0;
@@ -640,7 +692,17 @@ export default function UploadPage() {
         } catch (error: any) {
           safeLog.error(`Erro no arquivo ${file.name}:`, error);
           errorCount++;
-          setMarketingMessage(`⚠️ Erro ao processar ${file.name}: ${error.message}`);
+          const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
+          setMarketingMessage(`⚠️ Erro ao processar ${file.name}: ${errorMessage}`);
+          
+          // Se for erro de validação, mostrar mais detalhes
+          if (IS_DEV) {
+            console.error('Detalhes do erro:', {
+              file: file.name,
+              error: error,
+              stack: error?.stack
+            });
+          }
         }
       }
 
