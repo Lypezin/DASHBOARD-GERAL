@@ -45,6 +45,7 @@ const MARKETING_COLUMN_MAP: { [key: string]: string } = {
   'Data de Envio': 'data_envio',
   'Rodando': 'rodando',
   'Rodou dia': 'rodou_dia',
+  'Responsável': 'responsavel',
 };
 
 const BATCH_SIZE = 500;

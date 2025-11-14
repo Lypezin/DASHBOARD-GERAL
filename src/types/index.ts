@@ -253,6 +253,7 @@ export interface DadosMarketing {
   data_envio: string | null; // DATE format (YYYY-MM-DD)
   rodando: string | null; // "Sim" ou "Não"
   rodou_dia: string | null; // DATE format (YYYY-MM-DD)
+  responsavel: string | null; // Nome do atendente responsável
   created_at: string;
   updated_at: string;
 }
