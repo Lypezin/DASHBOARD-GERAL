@@ -663,22 +663,28 @@ export default function UploadPage() {
                     }
                   }
 
-                  // Converter datas
+                  // Converter datas (ambas podem ser null)
                   if (dbCol === 'data_liberacao' || dbCol === 'data_envio') {
                     value = convertDDMMYYYYToDate(value);
-                    
-                    // Validar campo obrigatório data_liberacao
-                    if (dbCol === 'data_liberacao' && !value) {
-                      throw new Error(`Linha ${rowIndex + 2}: Campo obrigatório "Data de Liberação*" está vazio ou inválido`);
+                    // Se não conseguir converter, usar null (não é obrigatório)
+                    if (!value) {
+                      value = null;
                     }
                   }
 
-                  // Validar campo obrigatório id_entregador
+                  // Processar id_entregador (não obrigatório, pode ser null)
                   if (dbCol === 'id_entregador') {
-                    if (!value || (typeof value === 'string' && value.trim() === '')) {
-                      throw new Error(`Linha ${rowIndex + 2}: Campo obrigatório "Id do entregador*" está vazio`);
+                    if (value && typeof value === 'string') {
+                      value = value.trim();
+                      // Se após trim ficar vazio, usar null
+                      if (value === '') {
+                        value = null;
+                      }
+                    } else if (value) {
+                      value = String(value).trim();
+                    } else {
+                      value = null; // Permitir null
                     }
-                    value = String(value).trim();
                   }
 
                   sanitized[dbCol] = value === null || value === undefined || value === '' ? null : value;
@@ -698,7 +704,7 @@ export default function UploadPage() {
 
           if (sanitizedData.length === 0) {
             console.error('Nenhum dado válido após processamento');
-            throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados e se os campos obrigatórios (Id do entregador* e Data de Liberação*) estão preenchidos.');
+            throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados.');
           }
 
           console.log(`Dados sanitizados: ${sanitizedData.length} linhas válidas`);
@@ -1129,11 +1135,11 @@ export default function UploadPage() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="mt-0.5 text-purple-600">•</span>
-                        <span>Campos obrigatórios: <strong>Id do entregador*</strong> e <strong>Data de Liberação*</strong></span>
+                        <span>Formato de data: <strong>DD/MM/YYYY</strong> (ex: 14/11/2025)</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="mt-0.5 text-purple-600">•</span>
-                        <span>Formato de data: <strong>DD/MM/YYYY</strong> (ex: 14/11/2025)</span>
+                        <span>Todos os campos são opcionais</span>
                       </li>
                     </ul>
                   </div>

@@ -244,9 +244,9 @@ export interface DadosMarketing {
   id: number;
   nome: string | null;
   status: string | null;
-  id_entregador: string;
+  id_entregador: string | null; // Pode ser null
   regiao_atuacao: string | null;
-  data_liberacao: string; // DATE format (YYYY-MM-DD)
+  data_liberacao: string | null; // DATE format (YYYY-MM-DD), pode ser null
   sub_praca_abc: string | null;
   telefone_trabalho: string | null;
   outro_telefone: string | null;
