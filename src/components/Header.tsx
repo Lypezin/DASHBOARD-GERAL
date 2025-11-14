@@ -18,8 +18,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Settings, LogOut, ChevronDown } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Settings, LogOut, ChevronDown, Menu, Moon, Sun } from 'lucide-react';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -35,12 +44,11 @@ interface UserProfile {
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, setTheme } = useTheme();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Adicionar estado de loading
-  const [hasTriedAuth, setHasTriedAuth] = useState(false); // Flag para rastrear tentativas de auth
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasTriedAuth, setHasTriedAuth] = useState(false);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -290,52 +298,43 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="container mx-auto flex h-14 md:h-16 items-center justify-between px-4 sm:px-5 md:px-6 lg:px-8 gap-3 min-w-0">
           <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0 flex-shrink overflow-hidden" prefetch={false}>
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg p-1.5 sm:p-2 group-hover:from-blue-700 group-hover:to-indigo-700 transition-all duration-200 shadow-md flex-shrink-0">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg p-1.5 sm:p-2 group-hover:from-blue-700 group-hover:to-indigo-700 transition-all duration-200 shadow-sm flex-shrink-0">
               <span className="text-lg sm:text-xl block text-white">📊</span>
             </div>
             <div className="hidden sm:block min-w-0 overflow-hidden">
-              <span className="font-bold text-sm sm:text-base md:text-lg text-slate-900 dark:text-white tracking-tight truncate block">Dashboard Operacional</span>
-              <p className="text-slate-600 dark:text-slate-400 text-xs font-medium hidden md:block truncate">Sistema de Análise</p>
+              <span className="font-bold text-sm sm:text-base md:text-lg text-foreground tracking-tight truncate block">Dashboard Operacional</span>
+              <p className="text-muted-foreground text-xs font-medium hidden md:block truncate">Sistema de Análise</p>
             </div>
-            <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white sm:hidden truncate">Dashboard</span>
+            <span className="font-bold text-sm sm:text-base text-foreground sm:hidden truncate">Dashboard</span>
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2.5 flex-shrink-0 min-w-0">
-            <Link
-              href="/"
-              className={`px-3 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap flex-shrink-0 ${
-                pathname === '/' 
-                  ? 'bg-blue-600 text-white shadow-md' 
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-              prefetch={false}
+          <nav className="hidden md:flex items-center gap-2 flex-shrink-0 min-w-0">
+            <Button
+              asChild
+              variant={pathname === '/' ? 'default' : 'ghost'}
+              size="sm"
             >
-              Dashboard
+              <Link href="/" prefetch={false}>
+                Dashboard
             </Link>
+            </Button>
 
-            {/* Toggle de Tema Moderno */}
-            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg px-1.5 py-1">
-              <button
-                onClick={toggleTheme}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
-                  theme === 'dark' ? 'bg-indigo-600' : 'bg-yellow-400'
-                }`}
-                title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
+            {/* Toggle de Tema com Switch */}
+            <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/50">
+              <Sun className="h-4 w-4 text-muted-foreground" />
+              <Switch
+                checked={theme === 'dark'}
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
                 aria-label={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
-              >
-                <span
-                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-transform duration-200 ${
-                    theme === 'dark' ? 'translate-x-4' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
+              />
+              <Moon className="h-4 w-4 text-muted-foreground" />
             </div>
           
-            {user?.is_admin && (
+          {user?.is_admin && (
               <>
                 <Button
                   asChild
@@ -345,7 +344,7 @@ export function Header() {
                 >
                   <Link href="/upload" prefetch={false}>
                     Upload
-                  </Link>
+                </Link>
                 </Button>
                 <Button
                   asChild
@@ -355,7 +354,7 @@ export function Header() {
                 >
                   <Link href="/upload" prefetch={false}>
                     📤
-                  </Link>
+                </Link>
                 </Button>
                 <Button
                   asChild
@@ -390,7 +389,7 @@ export function Header() {
                   <Avatar className="h-7 w-7 border-2 border-slate-200 dark:border-slate-700">
                     <AvatarImage src={avatarUrl || user?.avatar_url || undefined} alt={user?.full_name || 'Usuário'} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs font-semibold">
-                      {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+                          {user?.full_name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden xl:inline text-sm font-medium">
@@ -411,12 +410,12 @@ export function Header() {
                     <div className="flex flex-col min-w-0 flex-1">
                       <p className="font-semibold text-sm text-foreground truncate">{user?.full_name || 'Usuário'}</p>
                       <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+                      </div>
                     </div>
-                  </div>
-                  {user?.is_admin && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+                    {user?.is_admin && (
+                    <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">
                       Administrador
-                    </span>
+                    </Badge>
                   )}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -428,136 +427,110 @@ export function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={handleLogout}
+                    onClick={handleLogout}
                   className="text-rose-600 dark:text-rose-400 focus:text-rose-600 dark:focus:text-rose-400 focus:bg-rose-50 dark:focus:bg-rose-950/20 cursor-pointer"
-                >
+                  >
                   <LogOut className="h-4 w-4 mr-2.5" />
-                  <span>Sair da Conta</span>
+                    <span>Sair da Conta</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </nav>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="md:hidden flex items-center justify-center w-9 h-9 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-all duration-200"
-            aria-label="Menu"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {showMobileMenu ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+          {/* Mobile Menu com Sheet */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Abrir menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2.5">
+                  <Avatar className="h-10 w-10 border-2 border-border">
+                    <AvatarImage src={avatarUrl || user?.avatar_url || undefined} alt={user?.full_name || 'Usuário'} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm font-semibold">
+                      {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <p className="font-semibold text-sm text-foreground truncate">{user?.full_name || 'Usuário'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
         </div>
-
-        {/* Mobile Menu */}
-        {showMobileMenu && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-            <div className="container mx-auto px-4 py-3 space-y-1.5">
-              <Link
-                href="/"
-                onClick={() => setShowMobileMenu(false)}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                  pathname === '/'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-                prefetch={false}
-              >
-                Dashboard
-              </Link>
-
-              <div className="w-full flex items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-lg">
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Tema</span>
-                <button
-                  onClick={toggleTheme}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    theme === 'dark' ? 'bg-indigo-600' : 'bg-yellow-400'
-                  }`}
-                  title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
+                </SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 space-y-2">
+                <Button
+                  asChild
+                  variant={pathname === '/' ? 'default' : 'ghost'}
+                  className="w-full justify-start"
                 >
-                  <span
-                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-transform duration-200 ${
-                      theme === 'dark' ? 'translate-x-4' : 'translate-x-0.5'
-                    }`}
+                  <Link href="/" prefetch={false}>
+                    Dashboard
+              </Link>
+                </Button>
+
+                <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-md bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <Sun className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Tema</span>
+                  </div>
+                  <Switch
+                    checked={theme === 'dark'}
+                    onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                    aria-label={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
                   />
-                </button>
-              </div>
+                  <Moon className="h-4 w-4 text-muted-foreground" />
+                </div>
               
               {user?.is_admin && (
                 <>
-                  <Link
-                    href="/upload"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                      pathname === '/upload'
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                    prefetch={false}
-                  >
-                    Upload
+                    <Button
+                      asChild
+                      variant={pathname === '/upload' ? 'default' : 'ghost'}
+                      className="w-full justify-start"
+                    >
+                      <Link href="/upload" prefetch={false}>
+                        Upload
                   </Link>
-                  <Link
-                    href="/admin"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                      pathname === '/admin'
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                    prefetch={false}
-                  >
-                    Admin
+                    </Button>
+                    <Button
+                      asChild
+                      variant={pathname === '/admin' ? 'default' : 'ghost'}
+                      className="w-full justify-start"
+                    >
+                      <Link href="/admin" prefetch={false}>
+                        Admin
                   </Link>
+                    </Button>
                 </>
               )}
 
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-                <Link
-                  href="/perfil"
-                  onClick={() => setShowMobileMenu(false)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium ${
-                    pathname === '/perfil'
-                      ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
+                <Separator className="my-4" />
+
+                <Button
+                  asChild
+                  variant={pathname === '/perfil' ? 'default' : 'ghost'}
+                  className="w-full justify-start"
                 >
-                  {avatarUrl || user?.avatar_url ? (
-                    <Image
-                      src={avatarUrl || user?.avatar_url || ''}
-                      alt={user?.full_name || 'Usuário'}
-                      width={32}
-                      height={32}
-                      className="h-8 w-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm"
-                    />
-                  ) : (
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold shadow-sm">
-                      {user?.full_name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                  )}
-                  <div className="flex-1 text-left min-w-0">
-                    <p className="font-semibold text-sm truncate">{user?.full_name || 'Usuário'}</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{user?.email || ''}</p>
-                  </div>
-                </Link>
-                <button
+                  <Link href="/perfil" prefetch={false}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
                   onClick={handleLogout}
-                  className="w-full mt-1.5 flex items-center gap-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  <span>Sair da Conta</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair da Conta
+                </Button>
+                  </div>
+            </SheetContent>
+          </Sheet>
+                  </div>
       </header>
     </>
   );
