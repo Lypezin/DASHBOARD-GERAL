@@ -34,18 +34,30 @@ export function Header() {
   
   // Fechar menu ao clicar fora
   const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   
   useEffect(() => {
+    if (!showMenu) return;
+    
     const handleClickOutside = (event: MouseEvent) => {
-      if (showMenu && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        menuRef.current && 
+        !menuRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target)
+      ) {
         setShowMenu(false);
       }
     };
     
-    // Sempre adicionar o listener, mas só fechar se o menu estiver aberto
-    document.addEventListener('mousedown', handleClickOutside);
+    // Usar setTimeout para evitar que o evento de abertura seja capturado
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 0);
     
     return () => {
+      clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showMenu]);
@@ -297,93 +309,93 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl backdrop-blur-xl animate-slide-down">
-        <div className="container mx-auto flex h-16 md:h-20 items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8 gap-2 sm:gap-3 min-w-0 relative">
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-shrink overflow-hidden" prefetch={false}>
-            <div className="bg-white/20 backdrop-blur-md rounded-xl p-2 sm:p-2.5 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-xl ring-2 ring-white/20 flex-shrink-0">
-              <span className="text-xl sm:text-2xl block">📊</span>
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg">
+        <div className="container mx-auto flex h-14 md:h-16 items-center justify-between px-4 sm:px-5 md:px-6 lg:px-8 gap-3 min-w-0">
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0 flex-shrink overflow-hidden" prefetch={false}>
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg p-1.5 sm:p-2 group-hover:from-blue-700 group-hover:to-indigo-700 transition-all duration-200 shadow-md flex-shrink-0">
+              <span className="text-lg sm:text-xl block text-white">📊</span>
             </div>
             <div className="hidden sm:block min-w-0 overflow-hidden">
-              <span className="font-extrabold text-base sm:text-lg md:text-xl text-white tracking-tight truncate block drop-shadow-lg">Dashboard Operacional</span>
-              <p className="text-blue-100/95 text-xs sm:text-sm font-semibold hidden md:block truncate">Sistema de Análise</p>
+              <span className="font-bold text-sm sm:text-base md:text-lg text-slate-900 dark:text-white tracking-tight truncate block">Dashboard Operacional</span>
+              <p className="text-slate-600 dark:text-slate-400 text-xs font-medium hidden md:block truncate">Sistema de Análise</p>
             </div>
-            <span className="font-extrabold text-base sm:text-lg text-white sm:hidden truncate drop-shadow-lg">Dashboard</span>
+            <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white sm:hidden truncate">Dashboard</span>
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2 md:gap-2.5 flex-shrink-0 min-w-0 overflow-hidden">
+          <nav className="hidden md:flex items-center gap-2.5 flex-shrink-0 min-w-0">
             <Link
               href="/"
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-300 font-semibold whitespace-nowrap flex-shrink-0 ${
+              className={`px-3 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap flex-shrink-0 ${
                 pathname === '/' 
-                  ? 'bg-white/30 backdrop-blur-md text-white shadow-xl border-2 border-white/50 scale-105' 
-                  : 'bg-white/15 backdrop-blur-sm hover:bg-white/25 text-white border border-white/20 hover:border-white/40 hover:shadow-xl hover:scale-105'
+                  ? 'bg-blue-600 text-white shadow-md' 
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
               prefetch={false}
             >
-              <span className="text-base">📈</span>
-              <span className="text-sm">Dashboard</span>
+              Dashboard
             </Link>
 
             {/* Toggle de Tema Moderno */}
-            <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-xl px-2 py-1.5 border border-white/20">
-              <span className="text-xs sm:text-sm font-medium text-white/90 hidden sm:inline">☀️</span>
+            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg px-1.5 py-1">
               <button
                 onClick={toggleTheme}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent ${
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
                   theme === 'dark' ? 'bg-indigo-600' : 'bg-yellow-400'
                 }`}
                 title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
                 aria-label={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${
-                    theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-transform duration-200 ${
+                    theme === 'dark' ? 'translate-x-4' : 'translate-x-0.5'
                   }`}
                 />
               </button>
-              <span className="text-xs sm:text-sm font-medium text-white/90 hidden sm:inline">🌙</span>
             </div>
           
             {user?.is_admin && (
               <>
                 <Link
                   href="/upload"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-300 font-semibold whitespace-nowrap flex-shrink-0 ${
+                  className={`px-3 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap flex-shrink-0 ${
                     pathname === '/upload'
-                      ? 'bg-white/30 backdrop-blur-md text-white shadow-xl border-2 border-white/50 scale-105'
-                      : 'bg-white/15 backdrop-blur-sm hover:bg-white/25 text-white border border-white/20 hover:border-white/40 hover:shadow-xl hover:scale-105'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                   prefetch={false}
                 >
-                  <span className="text-base">📤</span>
-                  <span className="text-sm hidden xl:inline">Upload</span>
+                  <span className="hidden xl:inline">Upload</span>
+                  <span className="xl:hidden">📤</span>
                 </Link>
                 <Link
                   href="/admin"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-300 font-semibold whitespace-nowrap flex-shrink-0 ${
+                  className={`px-3 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap flex-shrink-0 ${
                     pathname === '/admin'
-                      ? 'bg-white/30 backdrop-blur-md text-white shadow-xl border-2 border-white/50 scale-105'
-                      : 'bg-white/15 backdrop-blur-sm hover:bg-white/25 text-white border border-white/20 hover:border-white/40 hover:shadow-xl hover:scale-105'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                   prefetch={false}
                 >
-                  <span className="text-base">⚙️</span>
-                  <span className="text-sm hidden xl:inline">Admin</span>
+                  <span className="hidden xl:inline">Admin</span>
+                  <span className="xl:hidden">⚙️</span>
                 </Link>
               </>
             )}
 
             <div ref={menuRef} className="relative flex-shrink-0">
               <button
+                ref={buttonRef}
                 type="button"
-                onClick={() => {
-                  setShowMenu(!showMenu);
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowMenu(prev => !prev);
                 }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 font-semibold whitespace-nowrap ${
+                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap ${
                   showMenu
-                    ? 'bg-white/30 backdrop-blur-md text-white shadow-xl border-2 border-white/50 scale-105'
-                    : 'bg-white/15 backdrop-blur-sm hover:bg-white/25 text-white border border-white/20 hover:border-white/40 hover:shadow-xl hover:scale-105'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
                 aria-expanded={showMenu}
                 aria-haspopup="true"
@@ -392,74 +404,85 @@ export function Header() {
                   <Image
                     src={avatarUrl || user?.avatar_url || ''}
                     alt={user?.full_name || 'Usuário'}
-                    width={32}
-                    height={32}
-                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover border-2 border-white/50 shadow-lg flex-shrink-0"
+                    width={28}
+                    height={28}
+                    className="h-7 w-7 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0"
                   />
                 ) : (
-                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/25 flex items-center justify-center border-2 border-white/40 flex-shrink-0 shadow-lg">
-                    <span className="text-sm">👤</span>
+                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold shadow-sm flex-shrink-0">
+                    {user?.full_name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 )}
-                <span className="text-sm font-medium hidden xl:inline">Conta</span>
-                <span className={`text-xs transition-transform duration-300 flex-shrink-0 ${showMenu ? 'rotate-180' : ''}`}>▼</span>
+                <span className="hidden xl:inline">{user?.full_name?.split(' ')[0] || 'Conta'}</span>
+                <svg 
+                  className={`w-3 h-3 transition-transform duration-200 flex-shrink-0 ${showMenu ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
 
               {showMenu && (
                 <div 
-                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border-2 border-white/30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl z-[9999] animate-scale-in overflow-hidden ring-2 ring-white/20"
+                  className="absolute right-0 top-full mt-1.5 w-56 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl z-[9999] overflow-hidden"
                   role="menu"
                   aria-orientation="vertical"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="border-b border-slate-200/50 dark:border-slate-700/50 p-4 bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900">
-                    <div className="flex items-center gap-3 mb-3 min-w-0">
+                  <div className="border-b border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-800/50">
+                    <div className="flex items-center gap-2.5 mb-2 min-w-0">
                       {avatarUrl || user?.avatar_url ? (
                         <Image
                           src={avatarUrl || user?.avatar_url || ''}
                           alt={user?.full_name || 'Usuário'}
-                          width={56}
-                          height={56}
-                          className="h-12 w-12 rounded-full object-cover border-4 border-white dark:border-slate-700 shadow-xl flex-shrink-0 ring-2 ring-blue-200 dark:ring-blue-800"
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0"
                         />
                       ) : (
-                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-xl flex-shrink-0 ring-2 ring-blue-200 dark:ring-blue-800">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm flex-shrink-0">
                           {user?.full_name?.charAt(0).toUpperCase() || 'U'}
                         </div>
                       )}
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <p className="font-bold text-base text-slate-900 dark:text-white truncate">{user?.full_name || 'Usuário'}</p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email || ''}</p>
+                        <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{user?.full_name || 'Usuário'}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{user?.email || ''}</p>
                       </div>
                     </div>
                     {user?.is_admin && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-3 py-1.5 text-xs font-bold text-white shadow-lg whitespace-nowrap">
-                        <span>⭐</span>
-                        <span>Administrador</span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+                        Administrador
                       </span>
                     )}
                   </div>
                   <Link
                     href="/perfil"
                     onClick={() => setShowMenu(false)}
-                    className={`w-full p-4 text-left text-sm font-semibold transition-all flex items-center gap-3 group border-b border-slate-100 dark:border-slate-700/50 whitespace-nowrap ${
+                    className={`w-full px-3 py-2.5 text-left text-sm font-medium transition-colors flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-700/50 ${
                       pathname === '/perfil'
-                        ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/30'
+                        ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <span className="text-lg group-hover:scale-110 transition-transform flex-shrink-0">⚙️</span>
-                    <span className="truncate">Meu Perfil</span>
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>Meu Perfil</span>
                   </Link>
                   <button
                     onClick={() => {
                       setShowMenu(false);
                       handleLogout();
                     }}
-                    className="w-full p-4 text-left text-sm font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all rounded-b-2xl flex items-center gap-3 group whitespace-nowrap"
+                    className="w-full px-3 py-2.5 text-left text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors flex items-center gap-2.5"
                   >
-                    <span className="text-lg group-hover:scale-110 transition-transform flex-shrink-0">🚪</span>
-                    <span className="truncate">Sair da Conta</span>
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Sair da Conta</span>
                   </button>
                 </div>
               )}
@@ -469,50 +492,51 @@ export function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="md:hidden flex items-center justify-center w-10 h-10 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg transition-all duration-200 border border-white/15 hover:border-white/30"
+            className="md:hidden flex items-center justify-center w-9 h-9 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-all duration-200"
             aria-label="Menu"
           >
-            <span className="text-xl">{showMobileMenu ? '✕' : '☰'}</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {showMobileMenu ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
           </button>
         </div>
 
         {/* Mobile Menu */}
         {showMobileMenu && (
-          <div className="md:hidden border-t border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 animate-slide-down">
-            <div className="container mx-auto px-3 sm:px-4 py-4 space-y-2">
+          <div className="md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+            <div className="container mx-auto px-4 py-3 space-y-1.5">
               <Link
                 href="/"
                 onClick={() => setShowMobileMenu(false)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
                   pathname === '/'
-                    ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
-                    : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
                 prefetch={false}
               >
-                <span className="text-lg">📈</span>
-                <span>Dashboard</span>
+                Dashboard
               </Link>
 
-              <div className="w-full flex items-center justify-between gap-3 bg-white/10 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/15">
-                <span className="text-sm font-medium text-white">Tema</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">☀️</span>
-                  <button
-                    onClick={toggleTheme}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 ${
-                      theme === 'dark' ? 'bg-indigo-600' : 'bg-yellow-400'
+              <div className="w-full flex items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-lg">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Tema</span>
+                <button
+                  onClick={toggleTheme}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    theme === 'dark' ? 'bg-indigo-600' : 'bg-yellow-400'
+                  }`}
+                  title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-transform duration-200 ${
+                      theme === 'dark' ? 'translate-x-4' : 'translate-x-0.5'
                     }`}
-                    title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${
-                        theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                  <span className="text-sm">🌙</span>
-                </div>
+                  />
+                </button>
               </div>
               
               {user?.is_admin && (
@@ -520,40 +544,38 @@ export function Header() {
                   <Link
                     href="/upload"
                     onClick={() => setShowMobileMenu(false)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
                       pathname === '/upload'
-                        ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
-                        : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                     prefetch={false}
                   >
-                    <span className="text-lg">📤</span>
-                    <span>Upload</span>
+                    Upload
                   </Link>
                   <Link
                     href="/admin"
                     onClick={() => setShowMobileMenu(false)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
                       pathname === '/admin'
-                        ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
-                        : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                     prefetch={false}
                   >
-                    <span className="text-lg">⚙️</span>
-                    <span>Admin</span>
+                    Admin
                   </Link>
                 </>
               )}
 
-              <div className="pt-2 border-t border-white/20">
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
                 <Link
                   href="/perfil"
                   onClick={() => setShowMobileMenu(false)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium ${
                     pathname === '/perfil'
-                      ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
-                      : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30'
+                      ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
                   {avatarUrl || user?.avatar_url ? (
@@ -562,23 +584,25 @@ export function Header() {
                       alt={user?.full_name || 'Usuário'}
                       width={32}
                       height={32}
-                      className="h-8 w-8 rounded-full object-cover border-2 border-white/40 shadow-md"
+                      className="h-8 w-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm"
                     />
                   ) : (
-                    <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
-                      <span className="text-base">👤</span>
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold shadow-sm">
+                      {user?.full_name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
-                  <div className="flex-1 text-left">
-                    <p className="font-semibold text-sm">{user?.full_name || 'Usuário'}</p>
-                    <p className="text-xs text-blue-100/80 truncate">{user?.email || ''}</p>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="font-semibold text-sm truncate">{user?.full_name || 'Usuário'}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{user?.email || ''}</p>
                   </div>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="w-full mt-2 flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium text-rose-100"
+                  className="w-full mt-1.5 flex items-center gap-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium"
                 >
-                  <span className="text-lg">🚪</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
                   <span>Sair da Conta</span>
                 </button>
               </div>

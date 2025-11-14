@@ -423,17 +423,17 @@ export default function DashboardPage() {
               {/* Tabs com scroll horizontal em mobile */}
               <div className="relative" style={{ position: 'relative', zIndex: 1 }}>
                 <div className="flex gap-1 sm:gap-1.5 md:gap-2 overflow-x-auto pb-2 sm:pb-3 -mx-3 sm:-mx-4 md:mx-0 px-3 sm:px-4 md:px-0 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
-                  <TabButton label="Dashboard" icon="📊" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
-                  <TabButton label="Análise" icon="📈" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
-                  <TabButton label="UTR" icon="📏" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
-                  <TabButton label="Entregadores" icon="👥" active={activeTab === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
-                  <TabButton label="Valores" icon="💰" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
-                  <TabButton label="Prioridade/Promo" icon="⭐" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
-                  <TabButton label="Evolução" icon="📉" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
+                  <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
+                  <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
+                  <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
+                  <TabButton label="Entregadores" active={activeTab === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
+                  <TabButton label="Valores" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
+                  <TabButton label="Prioridade/Promo" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
+                  <TabButton label="Evolução" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
                   {currentUser?.is_admin && (
-                    <TabButton label="Monitor" icon="🔍" active={activeTab === 'monitoramento'} onClick={() => handleTabChange('monitoramento')} />
+                    <TabButton label="Monitor" active={activeTab === 'monitoramento'} onClick={() => handleTabChange('monitoramento')} />
                   )}
-                  <TabButton label="Comparar" icon="⚖️" active={activeTab === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
+                  <TabButton label="Comparar" active={activeTab === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
                 </div>
                 </div>
               </div>
