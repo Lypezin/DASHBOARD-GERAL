@@ -103,7 +103,7 @@ import { useTabData } from '@/hooks/useTabData'; // Importa o novo hook
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade' | 'comparacao'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade' | 'comparacao' | 'marketing'>('dashboard');
   const [filters, setFilters] = useState<Filters>({ 
     ano: null, 
     semana: null, 
