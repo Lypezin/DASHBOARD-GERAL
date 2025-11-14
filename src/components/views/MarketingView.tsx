@@ -34,15 +34,21 @@ function buildDateFilterQuery(
   dateColumn: string,
   filter: MarketingDateFilter
 ) {
+  // Se não há filtro aplicado, contar apenas registros onde a data não é null
+  if (!filter.dataInicial && !filter.dataFinal) {
+    query = query.not(dateColumn, 'is', null);
+    return query;
+  }
+  
+  // Se há filtro, aplicar intervalo
   if (filter.dataInicial) {
     query = query.gte(dateColumn, filter.dataInicial);
   }
   if (filter.dataFinal) {
-    // Adicionar 1 dia para incluir o dia final completo
-    const finalDate = new Date(filter.dataFinal);
-    finalDate.setDate(finalDate.getDate() + 1);
-    query = query.lt(dateColumn, finalDate.toISOString().split('T')[0]);
+    // Usar lte para incluir o dia final completo
+    query = query.lte(dateColumn, filter.dataFinal);
   }
+  
   return query;
 }
 

@@ -406,7 +406,7 @@ export default function DashboardPage() {
               {/* Subtle glow */}
               <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
               <div className="relative">
-              {activeTab !== 'comparacao' && (
+              {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
                 <>
                   <div className="relative">
                   <FiltroBar
