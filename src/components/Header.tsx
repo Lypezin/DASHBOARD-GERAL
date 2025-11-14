@@ -8,6 +8,18 @@ import { useTheme } from '@/contexts/ThemeContext';
 import Image from 'next/image';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Settings, LogOut, ChevronDown } from 'lucide-react';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -25,42 +37,11 @@ export function Header() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [showMenu, setShowMenu] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Adicionar estado de loading
   const [hasTriedAuth, setHasTriedAuth] = useState(false); // Flag para rastrear tentativas de auth
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Fechar menu ao clicar fora
-  const menuRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  
-  useEffect(() => {
-    if (!showMenu) return;
-    
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (
-        menuRef.current && 
-        !menuRef.current.contains(target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(target)
-      ) {
-        setShowMenu(false);
-      }
-    };
-    
-    // Usar setTimeout para evitar que o evento de abertura seja capturado
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 0);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showMenu]);
 
   useEffect(() => {
     // Timeout crítico: após 3 segundos, mostrar header mesmo sem usuário
@@ -356,137 +337,105 @@ export function Header() {
           
             {user?.is_admin && (
               <>
-                <Link
-                  href="/upload"
-                  className={`px-3 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap flex-shrink-0 ${
-                    pathname === '/upload'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                  prefetch={false}
+                <Button
+                  asChild
+                  variant={pathname === '/upload' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="hidden xl:inline-flex"
                 >
-                  <span className="hidden xl:inline">Upload</span>
-                  <span className="xl:hidden">📤</span>
-                </Link>
-                <Link
-                  href="/admin"
-                  className={`px-3 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap flex-shrink-0 ${
-                    pathname === '/admin'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                  prefetch={false}
+                  <Link href="/upload" prefetch={false}>
+                    Upload
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant={pathname === '/upload' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="xl:hidden"
                 >
-                  <span className="hidden xl:inline">Admin</span>
-                  <span className="xl:hidden">⚙️</span>
-                </Link>
+                  <Link href="/upload" prefetch={false}>
+                    📤
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant={pathname === '/admin' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="hidden xl:inline-flex"
+                >
+                  <Link href="/admin" prefetch={false}>
+                    Admin
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant={pathname === '/admin' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="xl:hidden"
+                >
+                  <Link href="/admin" prefetch={false}>
+                    ⚙️
+                  </Link>
+                </Button>
               </>
             )}
 
-            <div ref={menuRef} className="relative flex-shrink-0">
-              <button
-                ref={buttonRef}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowMenu(prev => !prev);
-                }}
-                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap ${
-                  showMenu
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-                aria-expanded={showMenu}
-                aria-haspopup="true"
-              >
-                {avatarUrl || user?.avatar_url ? (
-                  <Image
-                    src={avatarUrl || user?.avatar_url || ''}
-                    alt={user?.full_name || 'Usuário'}
-                    width={28}
-                    height={28}
-                    className="h-7 w-7 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0"
-                  />
-                ) : (
-                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold shadow-sm flex-shrink-0">
-                    {user?.full_name?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                )}
-                <span className="hidden xl:inline">{user?.full_name?.split(' ')[0] || 'Conta'}</span>
-                <svg 
-                  className={`w-3 h-3 transition-transform duration-200 flex-shrink-0 ${showMenu ? 'rotate-180' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2 px-2.5 h-9"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {showMenu && (
-                <div 
-                  className="absolute right-0 top-full mt-1.5 w-56 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl z-[9999] overflow-hidden"
-                  role="menu"
-                  aria-orientation="vertical"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="border-b border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-800/50">
-                    <div className="flex items-center gap-2.5 mb-2 min-w-0">
-                      {avatarUrl || user?.avatar_url ? (
-                        <Image
-                          src={avatarUrl || user?.avatar_url || ''}
-                          alt={user?.full_name || 'Usuário'}
-                          width={40}
-                          height={40}
-                          className="h-10 w-10 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm flex-shrink-0">
-                          {user?.full_name?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{user?.full_name || 'Usuário'}</p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{user?.email || ''}</p>
-                      </div>
+                  <Avatar className="h-7 w-7 border-2 border-slate-200 dark:border-slate-700">
+                    <AvatarImage src={avatarUrl || user?.avatar_url || undefined} alt={user?.full_name || 'Usuário'} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs font-semibold">
+                      {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden xl:inline text-sm font-medium">
+                    {user?.full_name?.split(' ')[0] || 'Conta'}
+                  </span>
+                  <ChevronDown className="h-3 w-3 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="p-3">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <Avatar className="h-10 w-10 border-2 border-slate-200 dark:border-slate-700">
+                      <AvatarImage src={avatarUrl || user?.avatar_url || undefined} alt={user?.full_name || 'Usuário'} />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm font-semibold">
+                        {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <p className="font-semibold text-sm text-foreground truncate">{user?.full_name || 'Usuário'}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
                     </div>
-                    {user?.is_admin && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
-                        Administrador
-                      </span>
-                    )}
                   </div>
-                  <Link
-                    href="/perfil"
-                    onClick={() => setShowMenu(false)}
-                    className={`w-full px-3 py-2.5 text-left text-sm font-medium transition-colors flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-700/50 ${
-                      pathname === '/perfil'
-                        ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+                  {user?.is_admin && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+                      Administrador
+                    </span>
+                  )}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/perfil" className="flex items-center gap-2.5 cursor-pointer">
+                    <Settings className="h-4 w-4" />
                     <span>Meu Perfil</span>
                   </Link>
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      handleLogout();
-                    }}
-                    className="w-full px-3 py-2.5 text-left text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors flex items-center gap-2.5"
-                  >
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    <span>Sair da Conta</span>
-                  </button>
-                </div>
-              )}
-            </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-rose-600 dark:text-rose-400 focus:text-rose-600 dark:focus:text-rose-400 focus:bg-rose-50 dark:focus:bg-rose-950/20 cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4 mr-2.5" />
+                  <span>Sair da Conta</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           {/* Mobile Menu Button */}
