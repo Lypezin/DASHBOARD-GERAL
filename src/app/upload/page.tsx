@@ -303,12 +303,12 @@ export default function UploadPage() {
     setFiles(files.filter((_, i) => i !== index));
   };
 
-  const handleMarketingFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMarketingFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     const validFiles: File[] = [];
 
     for (const file of selectedFiles) {
-      const validation = validateFile(file);
+      const validation = await validateFile(file);
       if (validation.valid) {
         validFiles.push(file);
       } else {
