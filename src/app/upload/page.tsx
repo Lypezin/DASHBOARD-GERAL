@@ -576,33 +576,73 @@ export default function UploadPage() {
       setMarketingProgress(5);
       
       try {
-        // Buscar todos os IDs primeiro e depois deletar
-        const { data: existingData, error: fetchError } = await supabase
-          .from('dados_marketing')
-          .select('id');
+        // Usar função RPC para deletar todos os registros de forma eficiente
+        console.log('Iniciando remoção de dados antigos...');
         
-        if (fetchError) {
-          console.error('Erro ao buscar dados existentes:', fetchError);
-          throw new Error(`Erro ao buscar dados existentes: ${fetchError.message}`);
-        }
+        const { data: deletedCount, error: rpcError } = await supabase
+          .rpc('delete_all_dados_marketing');
         
-        if (existingData && existingData.length > 0) {
-          const idsToDelete = existingData.map(item => item.id);
-          const { error: deleteError } = await supabase
-            .from('dados_marketing')
-            .delete()
-            .in('id', idsToDelete);
+        if (rpcError) {
+          console.error('Erro ao deletar via RPC:', rpcError);
           
-          if (deleteError) {
-            console.error('Erro ao deletar dados antigos:', deleteError);
-            throw new Error(`Erro ao remover dados antigos: ${deleteError.message}`);
+          // Fallback: tentar deletar em lotes menores se a função RPC não existir
+          if (rpcError.code === 'PGRST116' || rpcError.message?.includes('function') || rpcError.message?.includes('not found')) {
+            console.log('Função RPC não encontrada, usando fallback de deleção em lotes...');
+            
+            let deletedCount = 0;
+            let hasMore = true;
+            const deleteBatchSize = 500; // Lotes menores para evitar Bad Request
+            
+            while (hasMore) {
+              const { data: batchData, error: fetchError } = await supabase
+                .from('dados_marketing')
+                .select('id')
+                .limit(deleteBatchSize);
+              
+              if (fetchError) {
+                throw new Error(`Erro ao buscar dados: ${fetchError.message}`);
+              }
+              
+              if (!batchData || batchData.length === 0) {
+                hasMore = false;
+                break;
+              }
+              
+              const idsToDelete = batchData.map(item => item.id);
+              console.log(`Deletando lote de ${idsToDelete.length} registros...`);
+              
+              const { error: deleteError } = await supabase
+                .from('dados_marketing')
+                .delete()
+                .in('id', idsToDelete);
+              
+              if (deleteError) {
+                throw new Error(`Erro ao remover dados: ${deleteError.message}`);
+              }
+              
+              deletedCount += idsToDelete.length;
+              console.log(`Lote deletado. Total: ${deletedCount}`);
+              
+              if (batchData.length < deleteBatchSize) {
+                hasMore = false;
+              }
+            }
+            
+            console.log(`✅ Removidos ${deletedCount} registros antigos (fallback)`);
+          } else {
+            throw new Error(`Erro ao remover dados antigos: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}`);
           }
-          console.log(`Removidos ${existingData.length} registros antigos`);
         } else {
-          console.log('Nenhum registro antigo para remover');
+          console.log(`✅ Removidos ${deletedCount || 0} registros antigos`);
         }
       } catch (deleteErr: any) {
         console.error('Erro na etapa de remoção:', deleteErr);
+        console.error('Detalhes do erro:', {
+          message: deleteErr.message,
+          code: deleteErr.code,
+          details: deleteErr.details,
+          hint: deleteErr.hint
+        });
         throw new Error(`Erro ao preparar banco de dados: ${deleteErr.message || deleteErr}`);
       }
 
