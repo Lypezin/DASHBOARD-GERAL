@@ -78,7 +78,7 @@ const AtendenteCard: React.FC<AtendenteCardProps> = ({
           
           {/* Nome */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white truncate" title={nome}>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight break-words" title={nome}>
               {nome}
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">

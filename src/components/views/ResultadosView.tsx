@@ -16,7 +16,6 @@ const ATENDENTES = [
   'Beatriz Angelo',
   'Melissa',
   'Carolini Braguini',
-  'Caroline Florencio', // Corrigido: sem acento para corresponder ao banco de dados
 ];
 
 // Lista de cidades (mesmas do MarketingDashboardView)
@@ -40,7 +39,6 @@ const ATENDENTES_FOTOS: { [key: string]: string | null } = {
   'Beatriz Angelo': null,
   'Melissa': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/MELISSA%20FOTO.png',
   'Carolini Braguini': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/CAROL%20FOTO.jpg',
-  'Caroline Florencio': null,
 };
 
 // Função auxiliar para construir query de cidade (reutilizada de MarketingDashboardView)
