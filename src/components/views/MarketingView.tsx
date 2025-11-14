@@ -8,13 +8,37 @@ import { safeLog } from '@/lib/errorHandler';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 // Formatar data de YYYY-MM-DD para DD/MM/YYYY
-function formatDate(dateStr: string | null): string {
+function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '-';
+  
   try {
-    const [year, month, day] = dateStr.split('-');
-    return `${day}/${month}/${year}`;
-  } catch (e) {
+    // Se já estiver no formato DD/MM/YYYY, retornar como está
+    if (typeof dateStr === 'string' && dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      return dateStr;
+    }
+    
+    // Tentar formato YYYY-MM-DD
+    if (typeof dateStr === 'string' && dateStr.includes('-')) {
+      const parts = dateStr.split('T')[0].split('-'); // Remove hora se houver
+      if (parts.length === 3) {
+        const [year, month, day] = parts;
+        return `${day}/${month}/${year}`;
+      }
+    }
+    
+    // Tentar parsear como Date
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+    
     return dateStr;
+  } catch (e) {
+    console.warn('Erro ao formatar data:', dateStr, e);
+    return dateStr || '-';
   }
 }
 
@@ -38,6 +62,11 @@ const MarketingView = React.memo(function MarketingView() {
           throw fetchError;
         }
 
+        if (IS_DEV && marketingData && marketingData.length > 0) {
+          console.log('Dados recebidos do banco:', marketingData.slice(0, 2));
+          console.log('Exemplo de data_liberacao:', marketingData[0]?.data_liberacao, typeof marketingData[0]?.data_liberacao);
+          console.log('Exemplo de data_envio:', marketingData[0]?.data_envio, typeof marketingData[0]?.data_envio);
+        }
         setData(marketingData || []);
       } catch (err: any) {
         safeLog.error('Erro ao buscar dados de Marketing:', err);
@@ -141,7 +170,7 @@ const MarketingView = React.memo(function MarketingView() {
                   {item.regiao_atuacao || '-'}
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
-                  {formatDate(item.data_liberacao)}
+                  {item.data_liberacao ? formatDate(item.data_liberacao) : '-'}
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
                   {item.sub_praca_abc || '-'}
@@ -153,7 +182,7 @@ const MarketingView = React.memo(function MarketingView() {
                   {item.outro_telefone || '-'}
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
-                  {formatDate(item.data_envio)}
+                  {item.data_envio ? formatDate(item.data_envio) : '-'}
                 </td>
               </tr>
             ))}
