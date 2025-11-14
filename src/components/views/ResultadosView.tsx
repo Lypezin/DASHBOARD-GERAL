@@ -34,13 +34,13 @@ const CIDADES = [
   'São Bernardo',
 ];
 
-// Mapeamento de fotos dos atendentes (hardcoded inicialmente)
+// Mapeamento de fotos dos atendentes
 const ATENDENTES_FOTOS: { [key: string]: string | null } = {
-  'Fernanda Raphaelly': null,
+  'Fernanda Raphaelly': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/FERNANDA%20FOTO.png',
   'Beatriz Angelo': null,
-  'Melissa': null,
+  'Melissa': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/MELISSA%20FOTO.png',
   'Carolini Braguini': null,
-  'Caroline Florencio': null,
+  'Caroline Florencio': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/CAROL%20FOTO.jpg',
 };
 
 // Função auxiliar para construir query de cidade (reutilizada de MarketingDashboardView)
