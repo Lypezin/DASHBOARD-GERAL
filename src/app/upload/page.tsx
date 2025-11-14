@@ -520,50 +520,80 @@ export default function UploadPage() {
     setMarketingProgress(0);
     setMarketingProgressLabel('Iniciando upload...');
 
+    const totalFiles = marketingFiles.length;
+    let successCount = 0;
+    let errorCount = 0;
+    let totalInsertedRows = 0;
+    let lastError: string = '';
+
     try {
       // PASSO 1: Deletar todos os registros existentes (sobrescrita)
       setMarketingProgressLabel('Removendo dados antigos...');
       setMarketingProgress(5);
       
-      // Buscar todos os IDs primeiro e depois deletar
-      const { data: existingData, error: fetchError } = await supabase
-        .from('dados_marketing')
-        .select('id');
-      
-      if (fetchError) {
-        throw new Error(`Erro ao buscar dados existentes: ${fetchError.message}`);
-      }
-      
-      if (existingData && existingData.length > 0) {
-        const idsToDelete = existingData.map(item => item.id);
-        const { error: deleteError } = await supabase
+      try {
+        // Buscar todos os IDs primeiro e depois deletar
+        const { data: existingData, error: fetchError } = await supabase
           .from('dados_marketing')
-          .delete()
-          .in('id', idsToDelete);
+          .select('id');
         
-        if (deleteError) {
-          throw new Error(`Erro ao remover dados antigos: ${deleteError.message}`);
+        if (fetchError) {
+          console.error('Erro ao buscar dados existentes:', fetchError);
+          throw new Error(`Erro ao buscar dados existentes: ${fetchError.message}`);
         }
+        
+        if (existingData && existingData.length > 0) {
+          const idsToDelete = existingData.map(item => item.id);
+          const { error: deleteError } = await supabase
+            .from('dados_marketing')
+            .delete()
+            .in('id', idsToDelete);
+          
+          if (deleteError) {
+            console.error('Erro ao deletar dados antigos:', deleteError);
+            throw new Error(`Erro ao remover dados antigos: ${deleteError.message}`);
+          }
+          console.log(`Removidos ${existingData.length} registros antigos`);
+        } else {
+          console.log('Nenhum registro antigo para remover');
+        }
+      } catch (deleteErr: any) {
+        console.error('Erro na etapa de remoção:', deleteErr);
+        throw new Error(`Erro ao preparar banco de dados: ${deleteErr.message || deleteErr}`);
       }
 
       setMarketingProgress(10);
       setMarketingProgressLabel('Dados antigos removidos. Processando novos dados...');
 
-      const totalFiles = marketingFiles.length;
-      let successCount = 0;
-      let errorCount = 0;
-      let totalInsertedRows = 0;
-
       for (let fileIdx = 0; fileIdx < marketingFiles.length; fileIdx++) {
         const file = marketingFiles[fileIdx];
         setMarketingProgressLabel(`Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`);
+        console.log(`Iniciando processamento do arquivo: ${file.name}`);
 
         try {
+          console.log('Lendo arquivo...');
           const arrayBuffer = await file.arrayBuffer();
+          console.log('Arquivo lido, tamanho:', arrayBuffer.byteLength);
+          
+          console.log('Lendo workbook Excel...');
           const workbook = XLSX.read(arrayBuffer, { raw: true });
+          console.log('Sheets disponíveis:', workbook.SheetNames);
+          
+          if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+            throw new Error('A planilha não contém nenhuma aba');
+          }
+          
           const sheetName = workbook.SheetNames[0];
+          console.log('Usando sheet:', sheetName);
+          
           const worksheet = workbook.Sheets[sheetName];
+          if (!worksheet) {
+            throw new Error(`A aba "${sheetName}" está vazia ou inválida`);
+          }
+          
+          console.log('Convertendo para JSON...');
           const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+          console.log(`Total de linhas lidas: ${rawData.length}`);
 
           setMarketingProgressLabel('Processando e validando dados...');
           const fileProgress = 10 + (fileIdx / totalFiles) * 80;
@@ -571,8 +601,11 @@ export default function UploadPage() {
 
           // Verificar se há dados
           if (!rawData || rawData.length === 0) {
+            console.error('Planilha vazia ou sem dados');
             throw new Error('A planilha está vazia ou não contém dados válidos');
           }
+          
+          console.log('Primeira linha de exemplo:', rawData[0]);
 
           // Verificar colunas disponíveis na planilha
           const firstRow = rawData[0] as any;
@@ -664,21 +697,36 @@ export default function UploadPage() {
             });
 
           if (sanitizedData.length === 0) {
-            throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados e se os campos obrigatórios estão preenchidos.');
+            console.error('Nenhum dado válido após processamento');
+            throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados e se os campos obrigatórios (Id do entregador* e Data de Liberação*) estão preenchidos.');
           }
+
+          console.log(`Dados sanitizados: ${sanitizedData.length} linhas válidas`);
+          console.log('Exemplo de dado sanitizado:', sanitizedData[0]);
 
           const totalRows = sanitizedData.length;
           let insertedRows = 0;
 
           // Inserir em lotes
+          console.log('Iniciando inserção no banco de dados...');
           for (let i = 0; i < totalRows; i += BATCH_SIZE) {
             const batch = sanitizedData.slice(i, i + BATCH_SIZE);
-            const { error: batchError } = await supabase
+            console.log(`Inserindo lote ${Math.floor(i / BATCH_SIZE) + 1}, ${batch.length} registros`);
+            
+            const { data: insertData, error: batchError } = await supabase
               .from('dados_marketing')
-              .insert(batch, { count: 'exact' });
+              .insert(batch, { count: 'exact' })
+              .select();
 
             if (batchError) {
-              throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}`);
+              console.error('Erro ao inserir lote:', batchError);
+              console.error('Detalhes do erro:', {
+                code: batchError.code,
+                message: batchError.message,
+                details: batchError.details,
+                hint: batchError.hint
+              });
+              throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}${batchError.details ? ` (${batchError.details})` : ''}`);
             }
 
             insertedRows += batch.length;
@@ -686,23 +734,19 @@ export default function UploadPage() {
             const batchProgress = (insertedRows / totalRows) * (80 / totalFiles);
             setMarketingProgress(10 + (fileIdx / totalFiles) * 80 + batchProgress);
             setMarketingProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${totalRows} linhas inseridas`);
+            console.log(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
           }
 
+          console.log(`Arquivo ${file.name} processado com sucesso: ${insertedRows} registros inseridos`);
           successCount++;
         } catch (error: any) {
-          safeLog.error(`Erro no arquivo ${file.name}:`, error);
+          console.error(`❌ ERRO no arquivo ${file.name}:`, error);
+          console.error('Stack trace:', error?.stack);
           errorCount++;
           const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
+          lastError = errorMessage;
           setMarketingMessage(`⚠️ Erro ao processar ${file.name}: ${errorMessage}`);
-          
-          // Se for erro de validação, mostrar mais detalhes
-          if (IS_DEV) {
-            console.error('Detalhes do erro:', {
-              file: file.name,
-              error: error,
-              stack: error?.stack
-            });
-          }
+          safeLog.error(`Erro no arquivo ${file.name}:`, error);
         }
       }
 
@@ -710,19 +754,27 @@ export default function UploadPage() {
       setMarketingProgressLabel('Concluído!');
 
       if (errorCount === 0) {
-        setMarketingMessage(`✅ Upload concluído com sucesso! ${totalInsertedRows} registro(s) importado(s) de ${successCount} arquivo(s).`);
+        const successMsg = `✅ Upload concluído com sucesso! ${totalInsertedRows} registro(s) importado(s) de ${successCount} arquivo(s).`;
+        console.log(successMsg);
+        setMarketingMessage(successMsg);
       } else {
-        setMarketingMessage(`⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Total: ${totalInsertedRows} registro(s).`);
+        const errorMsg = `⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Total: ${totalInsertedRows} registro(s).${lastError ? ` Último erro: ${lastError}` : ''}`;
+        console.error(errorMsg);
+        setMarketingMessage(errorMsg);
       }
 
       setMarketingFiles([]);
       const marketingFileInput = document.querySelector('input[type="file"][data-marketing="true"]') as HTMLInputElement;
       if (marketingFileInput) marketingFileInput.value = '';
     } catch (error: any) {
+      console.error('❌ ERRO GERAL no upload de Marketing:', error);
+      console.error('Stack trace completo:', error?.stack);
       safeLog.error('Erro no upload de Marketing:', error);
-      setMarketingMessage(`❌ Erro: ${error.message || 'Erro desconhecido'}`);
+      const errorMsg = `❌ Erro: ${error?.message || error?.toString() || 'Erro desconhecido'}`;
+      setMarketingMessage(errorMsg);
     } finally {
       setUploadingMarketing(false);
+      console.log('Upload finalizado');
     }
   };
 
