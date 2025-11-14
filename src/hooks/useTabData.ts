@@ -104,6 +104,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       const cacheKey = `${tab}-${JSON.stringify(filterPayload)}`;
       const cached = cacheRef.current.get(cacheKey);
 
+      // Cache imediato (igual ao Dashboard) - sem debounce quando há cache válido
       if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
         // Verificar novamente se a tab ainda é a mesma
         if (currentTabRef.current !== tab || abortController.signal.aborted) {
@@ -120,7 +121,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         if (IS_DEV && tab === 'valores') {
           safeLog.info('📦 Dados carregados do cache (valores):', Array.isArray(cachedData) ? cachedData.length : 0);
         }
-        return;
+        return; // Retornar imediatamente quando há cache (igual ao Dashboard)
       }
 
       // Verificar novamente antes de setar loading

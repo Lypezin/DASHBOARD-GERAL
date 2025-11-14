@@ -29,7 +29,7 @@ const MetricCard = React.memo(function MetricCard({
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0 pr-2 overflow-hidden">
           <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">{title}</p>
-          <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white whitespace-nowrap overflow-hidden">{typeof value === 'number' ? value.toLocaleString('pt-BR') : value}</p>
+          <p className="mt-1 sm:mt-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white whitespace-nowrap overflow-hidden text-ellipsis leading-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>{typeof value === 'number' ? value.toLocaleString('pt-BR') : value}</p>
           {percentage !== undefined && (
             <div className="mt-2 sm:mt-3 flex items-center gap-2 flex-wrap">
               <div className="rounded-lg bg-blue-50 px-2 py-1 dark:bg-blue-950/30">
