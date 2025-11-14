@@ -10,8 +10,6 @@ import FiltroSelect from '@/components/FiltroSelect';
 import FiltroMultiSelect from '@/components/FiltroMultiSelect';
 import FiltroBar from '@/components/FiltroBar';
 import TabButton from '@/components/TabButton';
-import ConquistaNotificacao from '@/components/ConquistaNotificacao';
-import ConquistasModal from '@/components/ConquistasModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { registerChartJS } from '@/lib/chartConfig';
 import {
@@ -81,7 +79,6 @@ const ComparacaoView = dynamic(() => import('@/components/views/ComparacaoView')
 // Hook Imports
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUserActivity } from '@/hooks/useUserActivity';
-import { useConquistas } from '@/hooks/useConquistas';
 import { useTabData } from '@/hooks/useTabData'; // Importa o novo hook
 
 // =================================================================================
@@ -134,7 +131,6 @@ export default function DashboardPage() {
   }, []); // Apenas no mount inicial
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
-  const [showConquistasModal, setShowConquistasModal] = useState(false);
   const [chartReady, setChartReady] = useState(false);
 
   // Registrar Chart.js apenas no cliente (após montagem)
@@ -213,19 +209,6 @@ export default function DashboardPage() {
   }, [activeTab, tabData]);
   
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
-  const { 
-    conquistas, 
-    conquistasNovas, 
-    loading: loadingConquistas, 
-    stats, 
-    ranking,
-    loadingRanking,
-    verificarConquistas, 
-    verificarConquistasDashboard,
-    marcarVisualizada, 
-    removerConquistaNova,
-    carregarRanking
-  } = useConquistas();
 
   // Ajustar automaticamente o ano da evolução para o mais recente disponível quando o atual não existir
   useEffect(() => {
@@ -238,7 +221,7 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anosDisponiveis]); // anoEvolucao não precisa estar nas dependências - queremos verificar apenas quando anosDisponiveis mudar
 
-  // Lógica para registrar atividade do usuário e verificar conquistas imediatamente
+  // Lógica para registrar atividade do usuário
   // Adicionar debounce para evitar múltiplas chamadas quando há mudanças rápidas de tab
   const tabChangeTimeoutRef2 = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
@@ -252,12 +235,6 @@ export default function DashboardPage() {
     // Adicionar pequeno delay para evitar race conditions
     tabChangeTimeoutRef2.current = setTimeout(() => {
       registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
-      
-      // Verificar conquistas imediatamente ao mudar de aba (especialmente para primeiro acesso e curioso)
-      // Usar delay para garantir que a atividade foi registrada no banco antes de verificar
-      setTimeout(() => {
-        verificarConquistas();
-      }, 1000); // 1 segundo de delay para garantir que a atividade foi salva no banco
     }, 100); // 100ms de debounce para evitar múltiplas chamadas
     
     return () => {
@@ -265,55 +242,7 @@ export default function DashboardPage() {
         clearTimeout(tabChangeTimeoutRef2.current);
       }
     };
-  }, [activeTab, registrarAtividade, filters, verificarConquistas, currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Verificar conquistas após aplicar filtros (com debounce para não sobrecarregar)
-  const filterChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  useEffect(() => {
-    if (!currentUser) return;
-    
-    // Limpar timeout anterior
-    if (filterChangeTimeoutRef.current) {
-      clearTimeout(filterChangeTimeoutRef.current);
-    }
-    
-    // Verificar conquistas após 2 segundos de aplicar filtros
-    // Isso garante que a atividade foi registrada no banco antes de verificar
-    filterChangeTimeoutRef.current = setTimeout(() => {
-      verificarConquistas();
-      // Também atualizar ranking após verificar conquistas (com delay adicional)
-      setTimeout(() => {
-        carregarRanking(true); // Forçar atualização do ranking
-      }, 1500); // 1.5 segundos após verificar conquistas
-    }, 2000);
-    
-    return () => {
-      if (filterChangeTimeoutRef.current) {
-        clearTimeout(filterChangeTimeoutRef.current);
-      }
-    };
-  }, [JSON.stringify(filters), currentUser, verificarConquistas, carregarRanking]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Verificar conquistas baseadas em dados do dashboard quando estiverem disponíveis
-  useEffect(() => {
-    if (activeTab === 'dashboard' && aderenciaGeral) {
-      // Calcular taxa de completude (se disponível)
-      const taxaCompletude = totals?.completadas && totals?.ofertadas
-        ? (totals.completadas / totals.ofertadas) * 100
-        : undefined;
-      
-      // Verificar conquistas do dashboard
-      const timeoutId = setTimeout(() => {
-        verificarConquistasDashboard(
-          aderenciaGeral.aderencia_percentual,
-          taxaCompletude,
-          undefined // UTR precisa ser calculado separadamente
-        );
-      }, 1000);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [activeTab, aderenciaGeral, totals, verificarConquistasDashboard]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTab, registrarAtividade, filters, currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lógica para buscar dados do usuário
   const verifyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -348,17 +277,6 @@ export default function DashboardPage() {
             });
                     }
                   
-          // Limpar timeout anterior se existir
-          if (verifyTimeoutRef.current) {
-            clearTimeout(verifyTimeoutRef.current);
-          }
-          
-          // Verificar conquistas após carregar perfil (primeiro acesso)
-          // Aguardar um pouco para garantir que a atividade de login foi registrada
-          verifyTimeoutRef.current = setTimeout(() => {
-            verificarConquistas();
-            verifyTimeoutRef.current = null;
-          }, 2000);
                   } else {
           setCurrentUser(null);
         }
@@ -370,26 +288,7 @@ export default function DashboardPage() {
 
     fetchUser();
     
-    // Cleanup: limpar timeout se componente desmontar
-    return () => {
-      if (verifyTimeoutRef.current) {
-        clearTimeout(verifyTimeoutRef.current);
-        verifyTimeoutRef.current = null;
-      }
-    };
-  }, [verificarConquistas]);
-
-  // Remover notificação de conquista e marcar como visualizada
-  const handleFecharConquista = useCallback((codigo: string, conquistaId: string) => {
-    // Remover da lista de notificações primeiro
-    removerConquistaNova(codigo);
-    // Marcar como visualizada após um pequeno delay para garantir que a notificação foi removida
-    setTimeout(() => {
-      if (conquistaId) {
-        marcarVisualizada(conquistaId);
-      }
-    }, 100);
-  }, [removerConquistaNova, marcarVisualizada]);
+  }, []);
 
   // Ref para controlar mudanças de tab e evitar race conditions
   const tabChangeRef = useRef(false);
@@ -428,48 +327,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Notificações de conquistas */}
-      {conquistasNovas.map((conquista, index) => {
-        const conquistaCompleta = conquistas.find(c => c.codigo === conquista.conquista_codigo);
-        return (
-          <div
-            key={`${conquista.conquista_codigo}-${index}`}
-            style={{ bottom: `${4 + index * 140}px` }}
-          >
-            <ConquistaNotificacao
-              conquista={conquista}
-              onClose={() => handleFecharConquista(conquista.conquista_codigo, conquistaCompleta?.conquista_id || '')}
-            />
-          </div>
-        );
-      })}
-
-      {/* Modal de conquistas */}
-      {showConquistasModal && (
-        <ConquistasModal
-          conquistas={conquistas}
-          stats={stats}
-          ranking={ranking}
-          loadingRanking={loadingRanking}
-          loading={loadingConquistas}
-          onClose={() => {
-            if (IS_DEV) {
-              safeLog.info('[DashboardPage] Fechando modal de conquistas');
-            }
-            setShowConquistasModal(false);
-            // Atualizar ranking quando fechar o modal (caso tenha ganho conquistas)
-            setTimeout(() => {
-              carregarRanking(true); // Forçar atualização
-            }, 500);
-          }}
-          onLoadRanking={() => {
-            if (IS_DEV) {
-              safeLog.info('[DashboardPage] Carregando ranking manualmente');
-            }
-            carregarRanking(true); // Sempre forçar quando solicitado manualmente
-          }}
-        />
-      )}
       <div className="mx-auto max-w-[1920px] px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
         {/* Header Principal Redesenhado */}
         <header className="mb-4 sm:mb-6 lg:mb-8 animate-fade-in">
@@ -498,46 +355,6 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="hidden sm:flex items-center gap-2 md:gap-3 lg:gap-4 xl:gap-5 shrink-0">
-                {/* Botão de Conquistas */}
-                <button
-                  onClick={() => {
-                    if (IS_DEV) {
-                      safeLog.info('[DashboardPage] Abrindo modal de conquistas', {
-                        conquistasCount: conquistas.length,
-                        loading: loadingConquistas,
-                        stats
-                      });
-                    }
-                    setShowConquistasModal(true);
-                    // Forçar carregamento de conquistas e ranking quando abrir o modal
-                    if (conquistas.length === 0 && !loadingConquistas) {
-                      if (IS_DEV) {
-                        safeLog.info('[DashboardPage] Nenhuma conquista carregada, forçando carregamento...');
-                      }
-                      // O hook já carrega automaticamente, mas podemos forçar recarregamento
-                    }
-                    // Forçar carregamento do ranking quando abrir o modal
-                    setTimeout(() => {
-                      carregarRanking(true);
-                    }, 500);
-                  }}
-                  className="relative group flex flex-col items-center gap-1 px-4 py-2 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                  title="Ver conquistas"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🏆</span>
-                    <div className="text-left">
-                      <p className="text-xs font-bold text-white leading-none">Conquistas</p>
-                      <p className="text-lg font-black text-white leading-none">{stats.conquistadas}/{stats.total}</p>
-                    </div>
-                  </div>
-                  {conquistasNovas.length > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white animate-pulse">
-                      {conquistasNovas.length}
-                    </span>
-                  )}
-                </button>
-                
                 <div className="text-right">
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Última atualização</p>
                   <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
