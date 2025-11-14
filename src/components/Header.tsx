@@ -324,50 +324,50 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl backdrop-blur-xl animate-slide-down">
-        <div className="container mx-auto flex h-16 md:h-18 items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 group" prefetch={false}>
-            <div className="bg-white/15 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-2.5 group-hover:bg-white/25 group-hover:scale-105 transition-all duration-300 shadow-lg">
-              <span className="text-lg sm:text-xl md:text-2xl">📊</span>
+      <header className="sticky top-0 z-50 border-b border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl backdrop-blur-xl animate-slide-down overflow-hidden">
+        <div className="container mx-auto flex h-16 md:h-18 items-center justify-between px-2 sm:px-3 md:px-4 lg:px-6 gap-1.5 sm:gap-2 min-w-0">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group min-w-0 flex-shrink overflow-hidden" prefetch={false}>
+            <div className="bg-white/15 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 group-hover:bg-white/25 group-hover:scale-105 transition-all duration-300 shadow-lg flex-shrink-0">
+              <span className="text-lg sm:text-xl">📊</span>
             </div>
-            <div className="hidden sm:block">
-              <span className="font-bold text-base sm:text-lg md:text-xl text-white tracking-tight">Dashboard Operacional</span>
-              <p className="text-blue-100/90 text-xs sm:text-sm font-medium hidden md:block">Sistema de Análise</p>
+            <div className="hidden sm:block min-w-0 overflow-hidden">
+              <span className="font-bold text-sm sm:text-base md:text-lg text-white tracking-tight truncate block">Dashboard Operacional</span>
+              <p className="text-blue-100/90 text-xs font-medium hidden md:block truncate">Sistema de Análise</p>
             </div>
-            <span className="font-bold text-base sm:text-lg text-white sm:hidden">Dashboard</span>
+            <span className="font-bold text-sm sm:text-base text-white sm:hidden truncate">Dashboard</span>
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2 md:gap-2.5">
+          <nav className="hidden md:flex items-center gap-1 md:gap-1.5 flex-shrink-0 min-w-0 overflow-hidden">
             <Link
               href="/"
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 font-medium ${
+              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-lg transition-all duration-200 font-medium whitespace-nowrap flex-shrink-0 ${
                 pathname === '/' 
                   ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40' 
                   : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30 hover:shadow-lg'
               }`}
               prefetch={false}
             >
-              <span className="text-base sm:text-lg">📈</span>
-              <span className="text-sm sm:text-base">Dashboard</span>
+              <span className="text-sm sm:text-base">📈</span>
+              <span className="text-xs sm:text-sm">Dashboard</span>
             </Link>
             
           <button
             onClick={() => setShowHistory(true)}
-            className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
+            className="flex items-center gap-1 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-lg transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium whitespace-nowrap flex-shrink-0"
             title="Histórico de Atualizações"
           >
-            <span className="text-base sm:text-lg">📋</span>
-            <span className="text-sm sm:text-base hidden lg:inline">Histórico</span>
+            <span className="text-sm sm:text-base">📋</span>
+            <span className="text-xs sm:text-sm hidden xl:inline">Histórico</span>
           </button>
 
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
+            className="flex items-center gap-1 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-lg transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium whitespace-nowrap flex-shrink-0"
             title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
           >
-            <span className="text-base sm:text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
-            <span className="text-sm sm:text-base hidden lg:inline">
+            <span className="text-sm sm:text-base">{theme === 'dark' ? '🌙' : '☀️'}</span>
+            <span className="text-xs sm:text-sm hidden xl:inline">
               {theme === 'dark' ? 'Escuro' : 'Claro'}
             </span>
           </button>
@@ -376,35 +376,35 @@ export function Header() {
               <>
                 <Link
                   href="/upload"
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 font-medium ${
+                  className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-lg transition-all duration-200 font-medium whitespace-nowrap flex-shrink-0 ${
                     pathname === '/upload'
                       ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
                       : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30 hover:shadow-lg'
                   }`}
                   prefetch={false}
                 >
-                  <span className="text-base sm:text-lg">📤</span>
-                  <span className="text-sm sm:text-base hidden lg:inline">Upload</span>
+                  <span className="text-sm sm:text-base">📤</span>
+                  <span className="text-xs sm:text-sm hidden xl:inline">Upload</span>
                 </Link>
                 <Link
                   href="/admin"
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 font-medium ${
+                  className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-lg transition-all duration-200 font-medium whitespace-nowrap flex-shrink-0 ${
                     pathname === '/admin'
                       ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
                       : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30 hover:shadow-lg'
                   }`}
                   prefetch={false}
                 >
-                  <span className="text-base sm:text-lg">⚙️</span>
-                  <span className="text-sm sm:text-base hidden lg:inline">Admin</span>
+                  <span className="text-sm sm:text-base">⚙️</span>
+                  <span className="text-xs sm:text-sm hidden xl:inline">Admin</span>
                 </Link>
               </>
             )}
 
-            <div className="relative menu-container">
+            <div className="relative menu-container flex-shrink-0">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className={`flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 font-medium ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-lg transition-all duration-200 font-medium whitespace-nowrap ${
                   showMenu
                     ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
                     : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30 hover:shadow-lg'
@@ -416,41 +416,41 @@ export function Header() {
                     alt={user?.full_name || 'Usuário'}
                     width={32}
                     height={32}
-                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover border-2 border-white/40 shadow-md"
+                    className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 rounded-full object-cover border-2 border-white/40 shadow-md flex-shrink-0"
                   />
                 ) : (
-                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
-                    <span className="text-base sm:text-lg">👤</span>
+                  <div className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30 flex-shrink-0">
+                    <span className="text-xs sm:text-sm md:text-base">👤</span>
                   </div>
                 )}
-                <span className="text-sm sm:text-base font-medium hidden lg:inline">Conta</span>
-                <span className="text-xs transition-transform duration-200" style={{transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)'}}>▼</span>
+                <span className="text-xs sm:text-sm font-medium hidden xl:inline">Conta</span>
+                <span className="text-xs transition-transform duration-200 flex-shrink-0" style={{transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)'}}>▼</span>
               </button>
 
               {showMenu && (
                 <div className="absolute right-0 mt-2 w-56 sm:w-64 rounded-xl border border-slate-200/50 bg-white dark:bg-slate-900 dark:border-slate-700/50 shadow-2xl z-50 animate-scale-in overflow-hidden">
-                  <div className="border-b border-slate-200 dark:border-slate-700 p-4 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-900">
-                    <div className="flex items-center gap-3 mb-3">
+                  <div className="border-b border-slate-200 dark:border-slate-700 p-3 sm:p-4 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-900">
+                    <div className="flex items-center gap-2.5 sm:gap-3 mb-3 min-w-0">
                       {avatarUrl || user?.avatar_url ? (
                         <Image
                           src={avatarUrl || user?.avatar_url || ''}
                           alt={user?.full_name || 'Usuário'}
                           width={48}
                           height={48}
-                          className="h-12 w-12 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-md"
+                          className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-md flex-shrink-0"
                         />
                       ) : (
-                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg sm:text-xl font-bold shadow-md flex-shrink-0">
                           {user?.full_name?.charAt(0).toUpperCase() || 'U'}
                         </div>
                       )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-base text-slate-900 dark:text-white truncate">{user?.full_name || 'Usuário'}</p>
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <p className="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">{user?.full_name || 'Usuário'}</p>
                         <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email || ''}</p>
                       </div>
                     </div>
                     {user?.is_admin && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-1 text-xs font-bold text-white shadow-md">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-2.5 sm:px-3 py-1 text-xs font-bold text-white shadow-md whitespace-nowrap">
                         <span>⭐</span>
                         <span>Administrador</span>
                       </span>
@@ -459,21 +459,21 @@ export function Header() {
                   <Link
                     href="/perfil"
                     onClick={() => setShowMenu(false)}
-                    className={`w-full p-4 text-left text-sm font-semibold transition-all flex items-center gap-2.5 group border-b border-slate-100 dark:border-slate-700 ${
+                    className={`w-full p-3 sm:p-4 text-left text-sm font-semibold transition-all flex items-center gap-2.5 group border-b border-slate-100 dark:border-slate-700 whitespace-nowrap ${
                       pathname === '/perfil'
                         ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
                         : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20'
                     }`}
                   >
-                    <span className="text-lg group-hover:scale-110 transition-transform">⚙️</span>
-                    <span>Meu Perfil</span>
+                    <span className="text-base sm:text-lg group-hover:scale-110 transition-transform flex-shrink-0">⚙️</span>
+                    <span className="truncate">Meu Perfil</span>
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full p-4 text-left text-sm font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all rounded-b-xl flex items-center gap-2.5 group"
+                    className="w-full p-3 sm:p-4 text-left text-sm font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all rounded-b-xl flex items-center gap-2.5 group whitespace-nowrap"
                   >
-                    <span className="text-lg group-hover:scale-110 transition-transform">🚪</span>
-                    <span>Sair da Conta</span>
+                    <span className="text-base sm:text-lg group-hover:scale-110 transition-transform flex-shrink-0">🚪</span>
+                    <span className="truncate">Sair da Conta</span>
                   </button>
                 </div>
               )}
