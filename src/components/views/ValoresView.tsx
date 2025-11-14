@@ -385,17 +385,17 @@ const ValoresView = React.memo(function ValoresView({
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                    <span className="inline-flex items-center rounded-lg bg-emerald-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100">
+                    <span className="inline-flex items-center rounded-lg bg-emerald-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100 whitespace-nowrap">
                       {formatarReal(totalTaxas)}
                     </span>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs sm:text-sm">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs sm:text-sm whitespace-nowrap">
                       {numeroCorridas.toLocaleString('pt-BR')}
                     </span>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                    <span className="inline-flex items-center rounded-lg bg-blue-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold text-blue-900 dark:bg-blue-950/50 dark:text-blue-100">
+                    <span className="inline-flex items-center rounded-lg bg-blue-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 whitespace-nowrap">
                       {formatarReal(taxaMedia)}
                     </span>
                   </td>

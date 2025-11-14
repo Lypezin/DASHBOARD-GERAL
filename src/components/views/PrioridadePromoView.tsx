@@ -589,34 +589,34 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
                   }`}
                 >
                   <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{entregador.nome_entregador}</td>
-                  <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300">{entregador.corridas_ofertadas}</td>
-                  <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400">{entregador.corridas_aceitas}</td>
-                  <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400">{entregador.corridas_rejeitadas}</td>
+                  <td className="px-6 py-4 text-center text-slate-700 dark:text-slate-300 whitespace-nowrap">{entregador.corridas_ofertadas.toLocaleString('pt-BR')}</td>
+                  <td className="px-6 py-4 text-center text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{entregador.corridas_aceitas.toLocaleString('pt-BR')}</td>
+                  <td className="px-6 py-4 text-center text-rose-700 dark:text-rose-400 whitespace-nowrap">{entregador.corridas_rejeitadas.toLocaleString('pt-BR')}</td>
                   <td className="px-6 py-4">
-                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getAceitasBg(percentualAceitas)}`}>
-                      <span className={`text-lg font-bold ${getAceitasColor(percentualAceitas)}`}>
+                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getAceitasBg(percentualAceitas)} whitespace-nowrap`}>
+                      <span className={`text-base font-bold ${getAceitasColor(percentualAceitas)}`}>
                         {percentualAceitas.toFixed(2)}%
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400">{entregador.corridas_completadas}</td>
+                  <td className="px-6 py-4 text-center text-blue-700 dark:text-blue-400 whitespace-nowrap">{entregador.corridas_completadas.toLocaleString('pt-BR')}</td>
                   <td className="px-6 py-4">
-                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getCompletadasBg(percentualCompletadas)}`}>
-                      <span className={`text-lg font-bold ${getCompletadasColor(percentualCompletadas)}`}>
+                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getCompletadasBg(percentualCompletadas)} whitespace-nowrap`}>
+                      <span className={`text-base font-bold ${getCompletadasColor(percentualCompletadas)}`}>
                         {percentualCompletadas.toFixed(2)}%
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getAderenciaBg(entregador.aderencia_percentual ?? 0)}`}>
-                      <span className={`text-lg font-bold ${getAderenciaColor(entregador.aderencia_percentual ?? 0)}`}>
+                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getAderenciaBg(entregador.aderencia_percentual ?? 0)} whitespace-nowrap`}>
+                      <span className={`text-base font-bold ${getAderenciaColor(entregador.aderencia_percentual ?? 0)}`}>
                         {(entregador.aderencia_percentual ?? 0).toFixed(2)}%
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)}`}>
-                      <span className={`text-lg font-bold ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)}`}>
+                    <div className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)} whitespace-nowrap`}>
+                      <span className={`text-base font-bold ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)}`}>
                         {(entregador.rejeicao_percentual ?? 0).toFixed(2)}%
                       </span>
                     </div>

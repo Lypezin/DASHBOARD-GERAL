@@ -429,20 +429,20 @@ const EntregadoresView = React.memo(function EntregadoresView({
                   }`}
                 >
                   <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-semibold text-xs sm:text-sm text-slate-900 dark:text-white">{entregador.nome_entregador}</td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-slate-700 dark:text-slate-300">{entregador.corridas_ofertadas}</td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-emerald-700 dark:text-emerald-400">{entregador.corridas_aceitas}</td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-rose-700 dark:text-rose-400">{entregador.corridas_rejeitadas}</td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-blue-700 dark:text-blue-400">{entregador.corridas_completadas}</td>
+                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{entregador.corridas_ofertadas.toLocaleString('pt-BR')}</td>
+                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{entregador.corridas_aceitas.toLocaleString('pt-BR')}</td>
+                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-rose-700 dark:text-rose-400 whitespace-nowrap">{entregador.corridas_rejeitadas.toLocaleString('pt-BR')}</td>
+                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-blue-700 dark:text-blue-400 whitespace-nowrap">{entregador.corridas_completadas.toLocaleString('pt-BR')}</td>
                   <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-                    <div className={`flex items-center justify-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-3 py-1 sm:py-2 ${getAderenciaBg(entregador.aderencia_percentual ?? 0)}`}>
-                      <span className={`text-xs sm:text-sm md:text-lg font-bold ${getAderenciaColor(entregador.aderencia_percentual ?? 0)}`}>
+                    <div className={`flex items-center justify-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-3 py-1 sm:py-2 ${getAderenciaBg(entregador.aderencia_percentual ?? 0)} whitespace-nowrap`}>
+                      <span className={`text-xs sm:text-sm md:text-base font-bold ${getAderenciaColor(entregador.aderencia_percentual ?? 0)}`}>
                         {(entregador.aderencia_percentual ?? 0).toFixed(2)}%
                       </span>
                     </div>
                   </td>
                   <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-                    <div className={`flex items-center justify-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-3 py-1 sm:py-2 ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)}`}>
-                      <span className={`text-xs sm:text-sm md:text-lg font-bold ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)}`}>
+                    <div className={`flex items-center justify-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-3 py-1 sm:py-2 ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)} whitespace-nowrap`}>
+                      <span className={`text-xs sm:text-sm md:text-base font-bold ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)}`}>
                         {(entregador.rejeicao_percentual ?? 0).toFixed(2)}%
                       </span>
                     </div>
