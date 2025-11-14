@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import Image from 'next/image';
 import { safeLog } from '@/lib/errorHandler';
@@ -22,6 +22,7 @@ interface UserProfile {
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [showMenu, setShowMenu] = useState(false);
@@ -31,6 +32,23 @@ export function Header() {
   const [isLoading, setIsLoading] = useState(true); // Adicionar estado de loading
   const [hasTriedAuth, setHasTriedAuth] = useState(false); // Flag para rastrear tentativas de auth
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Fechar menu ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showMenu && !(event.target as Element).closest('.menu-container')) {
+        setShowMenu(false);
+      }
+    };
+    
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
 
   useEffect(() => {
     // Timeout crítico: após 3 segundos, mostrar header mesmo sem usuário
@@ -320,14 +338,18 @@ export function Header() {
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2 sm:gap-2.5 md:gap-3">
+          <nav className="hidden md:flex items-center gap-2 md:gap-2.5">
             <Link
               href="/"
-              className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 font-medium ${
+                pathname === '/' 
+                  ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40' 
+                  : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30 hover:shadow-lg'
+              }`}
               prefetch={false}
             >
               <span className="text-base sm:text-lg">📈</span>
-              <span className="text-sm sm:text-base hidden xs:inline">Dashboard</span>
+              <span className="text-sm sm:text-base">Dashboard</span>
             </Link>
             
           <button
@@ -336,7 +358,7 @@ export function Header() {
             title="Histórico de Atualizações"
           >
             <span className="text-base sm:text-lg">📋</span>
-            <span className="text-sm sm:text-base hidden md:inline">Histórico</span>
+            <span className="text-sm sm:text-base hidden lg:inline">Histórico</span>
           </button>
 
           <button
@@ -345,7 +367,7 @@ export function Header() {
             title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
           >
             <span className="text-base sm:text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
-            <span className="text-sm sm:text-base hidden md:inline">
+            <span className="text-sm sm:text-base hidden lg:inline">
               {theme === 'dark' ? 'Escuro' : 'Claro'}
             </span>
           </button>
@@ -354,27 +376,39 @@ export function Header() {
               <>
                 <Link
                   href="/upload"
-                  className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 font-medium ${
+                    pathname === '/upload'
+                      ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
+                      : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30 hover:shadow-lg'
+                  }`}
                   prefetch={false}
                 >
                   <span className="text-base sm:text-lg">📤</span>
-                  <span className="text-sm sm:text-base hidden md:inline">Upload</span>
+                  <span className="text-sm sm:text-base hidden lg:inline">Upload</span>
                 </Link>
                 <Link
                   href="/admin"
-                  className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg border border-white/15 hover:border-white/30 font-medium"
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 font-medium ${
+                    pathname === '/admin'
+                      ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
+                      : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30 hover:shadow-lg'
+                  }`}
                   prefetch={false}
                 >
                   <span className="text-base sm:text-lg">⚙️</span>
-                  <span className="text-sm sm:text-base hidden md:inline">Admin</span>
+                  <span className="text-sm sm:text-base hidden lg:inline">Admin</span>
                 </Link>
               </>
             )}
 
-            <div className="relative">
+            <div className="relative menu-container">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="flex items-center gap-2 sm:gap-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium hover:shadow-lg"
+                className={`flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 font-medium ${
+                  showMenu
+                    ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
+                    : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30 hover:shadow-lg'
+                }`}
               >
                 {avatarUrl || user?.avatar_url ? (
                   <Image
@@ -389,13 +423,13 @@ export function Header() {
                     <span className="text-base sm:text-lg">👤</span>
                   </div>
                 )}
-                <span className="text-sm sm:text-base font-medium">Conta</span>
-                <span className="text-xs hidden sm:inline transition-transform duration-200" style={{transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)'}}>▼</span>
+                <span className="text-sm sm:text-base font-medium hidden lg:inline">Conta</span>
+                <span className="text-xs transition-transform duration-200" style={{transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)'}}>▼</span>
               </button>
 
               {showMenu && (
-                <div className="absolute right-0 mt-3 w-60 sm:w-64 rounded-xl border border-slate-200/50 bg-white shadow-2xl z-50 animate-scale-in overflow-hidden">
-                  <div className="border-b border-slate-200 p-4 bg-gradient-to-br from-slate-50 to-blue-50">
+                <div className="absolute right-0 mt-2 w-56 sm:w-64 rounded-xl border border-slate-200/50 bg-white dark:bg-slate-900 dark:border-slate-700/50 shadow-2xl z-50 animate-scale-in overflow-hidden">
+                  <div className="border-b border-slate-200 dark:border-slate-700 p-4 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-900">
                     <div className="flex items-center gap-3 mb-3">
                       {avatarUrl || user?.avatar_url ? (
                         <Image
@@ -403,7 +437,7 @@ export function Header() {
                           alt={user?.full_name || 'Usuário'}
                           width={48}
                           height={48}
-                          className="h-12 w-12 rounded-full object-cover border-2 border-white shadow-md"
+                          className="h-12 w-12 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-md"
                         />
                       ) : (
                         <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-md">
@@ -411,12 +445,12 @@ export function Header() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-base text-slate-900 truncate">{user?.full_name || 'Usuário'}</p>
-                        <p className="text-xs text-slate-600 truncate mt-0.5">{user?.email || ''}</p>
+                        <p className="font-bold text-base text-slate-900 dark:text-white truncate">{user?.full_name || 'Usuário'}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email || ''}</p>
                       </div>
                     </div>
                     {user?.is_admin && (
-                      <span className="inline-flex items-center gap-1 rounded-full gradient-primary px-3 py-1 text-xs font-bold text-white shadow-md">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-1 text-xs font-bold text-white shadow-md">
                         <span>⭐</span>
                         <span>Administrador</span>
                       </span>
@@ -425,14 +459,18 @@ export function Header() {
                   <Link
                     href="/perfil"
                     onClick={() => setShowMenu(false)}
-                    className="w-full p-4 text-left text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-all flex items-center gap-2.5 group border-b border-slate-100"
+                    className={`w-full p-4 text-left text-sm font-semibold transition-all flex items-center gap-2.5 group border-b border-slate-100 dark:border-slate-700 ${
+                      pathname === '/perfil'
+                        ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
+                        : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20'
+                    }`}
                   >
                     <span className="text-lg group-hover:scale-110 transition-transform">⚙️</span>
                     <span>Meu Perfil</span>
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full p-4 text-left text-sm font-bold text-rose-600 hover:bg-rose-50 transition-all rounded-b-xl flex items-center gap-2.5 group"
+                    className="w-full p-4 text-left text-sm font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all rounded-b-xl flex items-center gap-2.5 group"
                   >
                     <span className="text-lg group-hover:scale-110 transition-transform">🚪</span>
                     <span>Sair da Conta</span>
@@ -459,7 +497,11 @@ export function Header() {
               <Link
                 href="/"
                 onClick={() => setShowMobileMenu(false)}
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                  pathname === '/'
+                    ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
+                    : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30'
+                }`}
                 prefetch={false}
               >
                 <span className="text-lg">📈</span>
@@ -490,7 +532,11 @@ export function Header() {
                   <Link
                     href="/upload"
                     onClick={() => setShowMobileMenu(false)}
-                    className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+                    className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                      pathname === '/upload'
+                        ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
+                        : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30'
+                    }`}
                     prefetch={false}
                   >
                     <span className="text-lg">📤</span>
@@ -499,7 +545,11 @@ export function Header() {
                   <Link
                     href="/admin"
                     onClick={() => setShowMobileMenu(false)}
-                    className="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+                    className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                      pathname === '/admin'
+                        ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
+                        : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30'
+                    }`}
                     prefetch={false}
                   >
                     <span className="text-lg">⚙️</span>
@@ -509,12 +559,14 @@ export function Header() {
               )}
 
               <div className="pt-2 border-t border-white/20">
-                <button
-                  onClick={() => {
-                    setShowMenu(!showMenu);
-                    setShowMobileMenu(false);
-                  }}
-                  className="w-full flex items-center gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
+                <Link
+                  href="/perfil"
+                  onClick={() => setShowMobileMenu(false)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                    pathname === '/perfil'
+                      ? 'bg-white/25 backdrop-blur-sm text-white shadow-lg border-2 border-white/40'
+                      : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/15 hover:border-white/30'
+                  }`}
                 >
                   {avatarUrl || user?.avatar_url ? (
                     <Image
@@ -533,7 +585,13 @@ export function Header() {
                     <p className="font-semibold text-sm">{user?.full_name || 'Usuário'}</p>
                     <p className="text-xs text-blue-100/80 truncate">{user?.email || ''}</p>
                   </div>
-                  <span className="text-xs">▼</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full mt-2 flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium text-rose-100"
+                >
+                  <span className="text-lg">🚪</span>
+                  <span>Sair da Conta</span>
                 </button>
               </div>
             </div>
