@@ -43,6 +43,8 @@ const MARKETING_COLUMN_MAP: { [key: string]: string } = {
   'Telefone de trabalho': 'telefone_trabalho',
   'Outro número de telefone': 'outro_telefone',
   'Data de Envio': 'data_envio',
+  'Rodando': 'rodando',
+  'Rodou dia': 'rodou_dia',
 };
 
 const BATCH_SIZE = 500;
@@ -738,8 +740,8 @@ export default function UploadPage() {
                     continue;
                   }
 
-                  // Sanitizar strings
-                  if (typeof value === 'string' && !dbCol.includes('data')) {
+                  // Sanitizar strings (exceto datas e rodando, que têm processamento especial)
+                  if (typeof value === 'string' && !dbCol.includes('data') && dbCol !== 'rodando') {
                     try {
                       value = validateString(value, 500, dbCol, true);
                     } catch (e) {
@@ -747,8 +749,8 @@ export default function UploadPage() {
                     }
                   }
 
-                  // Converter datas (ambas podem ser null)
-                  if (dbCol === 'data_liberacao' || dbCol === 'data_envio') {
+                  // Converter datas (todas podem ser null)
+                  if (dbCol === 'data_liberacao' || dbCol === 'data_envio' || dbCol === 'rodou_dia') {
                     const originalValue = value;
                     value = convertDDMMYYYYToDate(value);
                     // Se não conseguir converter, usar null (não é obrigatório)
@@ -761,6 +763,36 @@ export default function UploadPage() {
                       if (IS_DEV && rowIndex < 3) {
                         console.log(`Data convertida ${dbCol}:`, originalValue, '->', value);
                       }
+                    }
+                  }
+
+                  // Processar "Rodando" - normalizar para "Sim" ou "Não"
+                  if (dbCol === 'rodando') {
+                    if (value && typeof value === 'string') {
+                      const normalized = value.trim().toLowerCase();
+                      if (normalized === 'sim' || normalized === 's' || normalized === 'yes' || normalized === 'y' || normalized === '1' || normalized === 'true') {
+                        value = 'Sim';
+                      } else if (normalized === 'não' || normalized === 'nao' || normalized === 'n' || normalized === 'no' || normalized === '0' || normalized === 'false' || normalized === '') {
+                        value = 'Não';
+                      } else {
+                        // Se não for reconhecido, tentar manter o valor original ou usar null
+                        value = value.trim();
+                        if (value === '') {
+                          value = null;
+                        }
+                      }
+                    } else if (value) {
+                      // Se for número, converter
+                      const numValue = Number(value);
+                      if (numValue === 1 || numValue === 1.0) {
+                        value = 'Sim';
+                      } else if (numValue === 0 || numValue === 0.0) {
+                        value = 'Não';
+                      } else {
+                        value = null;
+                      }
+                    } else {
+                      value = null; // Permitir null
                     }
                   }
 

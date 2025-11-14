@@ -251,6 +251,8 @@ export interface DadosMarketing {
   telefone_trabalho: string | null;
   outro_telefone: string | null;
   data_envio: string | null; // DATE format (YYYY-MM-DD)
+  rodando: string | null; // "Sim" ou "Não"
+  rodou_dia: string | null; // DATE format (YYYY-MM-DD)
   created_at: string;
   updated_at: string;
 }

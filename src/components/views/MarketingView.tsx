@@ -147,6 +147,8 @@ const MarketingView = React.memo(function MarketingView() {
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Telefone Trabalho</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Outro Telefone</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Data Envio</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Rodando</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Rodou Dia</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -164,7 +166,7 @@ const MarketingView = React.memo(function MarketingView() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm font-mono text-slate-900 dark:text-slate-100">
-                  {item.id_entregador}
+                  {item.id_entregador || '-'}
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
                   {item.regiao_atuacao || '-'}
@@ -183,6 +185,22 @@ const MarketingView = React.memo(function MarketingView() {
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
                   {item.data_envio ? formatDate(item.data_envio) : '-'}
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  {item.rodando ? (
+                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                      item.rodando === 'Sim' 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' 
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-200'
+                    }`}>
+                      {item.rodando}
+                    </span>
+                  ) : (
+                    '-'
+                  )}
+                </td>
+                <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  {item.rodou_dia ? formatDate(item.rodou_dia) : '-'}
                 </td>
               </tr>
             ))}
