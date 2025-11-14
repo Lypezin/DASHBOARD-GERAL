@@ -5,7 +5,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-const CACHE_TTL = 120000; // 120 segundos (cache mais agressivo similar ao dashboard)
+const CACHE_TTL = 180000; // 180 segundos (cache mais agressivo para melhor performance)
 const DEBOUNCE_MS = 100; // Debounce fixo de 100ms (igual ao Dashboard para consistência)
 
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
