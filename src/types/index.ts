@@ -282,3 +282,10 @@ export interface MarketingTotals {
   liberado: number; // Contagem com filtro de Liberação
   rodandoInicio: number; // Contagem com filtro de Rodou Dia
 }
+
+export interface AtendenteCidadeData {
+  atendente: string;
+  cidade: string;
+  enviado: number;
+  liberado: number;
+}

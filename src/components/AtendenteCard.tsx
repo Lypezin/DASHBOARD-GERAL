@@ -1,12 +1,14 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import MarketingCard from './MarketingCard';
 
 interface AtendenteCardProps {
   nome: string;
   enviado: number;
   liberado: number;
+  fotoUrl?: string | null;
 }
 
 // Função para obter iniciais do nome
@@ -35,6 +37,7 @@ const AtendenteCard: React.FC<AtendenteCardProps> = ({
   nome,
   enviado,
   liberado,
+  fotoUrl,
 }) => {
   const iniciais = getIniciais(nome);
   const avatarColor = getAvatarColor(nome);
@@ -46,9 +49,28 @@ const AtendenteCard: React.FC<AtendenteCardProps> = ({
         <div className={`absolute right-0 top-0 h-24 w-24 rounded-full bg-gradient-to-br ${avatarColor} opacity-10 blur-2xl transition-opacity group-hover:opacity-25`}></div>
         
         <div className="relative flex items-center gap-4">
-          {/* Avatar */}
-          <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatarColor} text-xl font-bold text-white shadow-lg ring-2 ring-white/20`}>
-            {iniciais}
+          {/* Avatar com foto ou iniciais */}
+          <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatarColor} text-xl font-bold text-white shadow-lg ring-2 ring-white/20 overflow-hidden`}>
+            {fotoUrl ? (
+              <Image
+                src={fotoUrl}
+                alt={nome}
+                width={64}
+                height={64}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  // Fallback para iniciais se a imagem falhar
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = iniciais;
+                  }
+                }}
+              />
+            ) : (
+              iniciais
+            )}
           </div>
           
           {/* Nome */}
