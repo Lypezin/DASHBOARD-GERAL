@@ -42,12 +42,8 @@ export function Header() {
       }
     };
     
-    if (showMenu) {
-      // Usar setTimeout para evitar que o evento de abertura seja capturado
-      setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-      }, 0);
-    }
+    // Sempre adicionar o listener, mas só fechar se o menu estiver aberto
+    document.addEventListener('mousedown', handleClickOutside);
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -301,8 +297,8 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl backdrop-blur-xl animate-slide-down overflow-hidden">
-        <div className="container mx-auto flex h-16 md:h-20 items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8 gap-2 sm:gap-3 min-w-0">
+      <header className="sticky top-0 z-50 border-b border-white/20 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl backdrop-blur-xl animate-slide-down">
+        <div className="container mx-auto flex h-16 md:h-20 items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8 gap-2 sm:gap-3 min-w-0 relative">
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-shrink overflow-hidden" prefetch={false}>
             <div className="bg-white/20 backdrop-blur-md rounded-xl p-2 sm:p-2.5 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-xl ring-2 ring-white/20 flex-shrink-0">
               <span className="text-xl sm:text-2xl block">📊</span>
@@ -329,16 +325,25 @@ export function Header() {
               <span className="text-sm">Dashboard</span>
             </Link>
 
-            <button
-              onClick={toggleTheme}
-              className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm hover:bg-white/25 text-white px-3 py-2 rounded-xl transition-all duration-300 hover:shadow-xl border border-white/20 hover:border-white/40 font-semibold whitespace-nowrap flex-shrink-0 hover:scale-105"
-              title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
-            >
-              <span className="text-base">{theme === 'dark' ? '🌙' : '☀️'}</span>
-              <span className="text-sm hidden xl:inline">
-                {theme === 'dark' ? 'Escuro' : 'Claro'}
-              </span>
-            </button>
+            {/* Toggle de Tema Moderno */}
+            <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-xl px-2 py-1.5 border border-white/20">
+              <span className="text-xs sm:text-sm font-medium text-white/90 hidden sm:inline">☀️</span>
+              <button
+                onClick={toggleTheme}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent ${
+                  theme === 'dark' ? 'bg-indigo-600' : 'bg-yellow-400'
+                }`}
+                title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
+                aria-label={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${
+                    theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className="text-xs sm:text-sm font-medium text-white/90 hidden sm:inline">🌙</span>
+            </div>
           
             {user?.is_admin && (
               <>
@@ -371,8 +376,8 @@ export function Header() {
 
             <div ref={menuRef} className="relative flex-shrink-0">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
+                type="button"
+                onClick={() => {
                   setShowMenu(!showMenu);
                 }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 font-semibold whitespace-nowrap ${
@@ -380,6 +385,8 @@ export function Header() {
                     ? 'bg-white/30 backdrop-blur-md text-white shadow-xl border-2 border-white/50 scale-105'
                     : 'bg-white/15 backdrop-blur-sm hover:bg-white/25 text-white border border-white/20 hover:border-white/40 hover:shadow-xl hover:scale-105'
                 }`}
+                aria-expanded={showMenu}
+                aria-haspopup="true"
               >
                 {avatarUrl || user?.avatar_url ? (
                   <Image
@@ -399,7 +406,12 @@ export function Header() {
               </button>
 
               {showMenu && (
-                <div className="absolute right-0 mt-3 w-64 rounded-2xl border-2 border-white/30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl z-[100] animate-scale-in overflow-hidden ring-2 ring-white/20">
+                <div 
+                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border-2 border-white/30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl z-[9999] animate-scale-in overflow-hidden ring-2 ring-white/20"
+                  role="menu"
+                  aria-orientation="vertical"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="border-b border-slate-200/50 dark:border-slate-700/50 p-4 bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900">
                     <div className="flex items-center gap-3 mb-3 min-w-0">
                       {avatarUrl || user?.avatar_url ? (
@@ -482,13 +494,26 @@ export function Header() {
                 <span>Dashboard</span>
               </Link>
 
-              <button
-                onClick={toggleTheme}
-                className="w-full flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3 rounded-xl transition-all duration-200 border border-white/15 hover:border-white/30 font-medium"
-              >
-                <span className="text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
-                <span>{theme === 'dark' ? 'Tema Escuro' : 'Tema Claro'}</span>
-              </button>
+              <div className="w-full flex items-center justify-between gap-3 bg-white/10 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/15">
+                <span className="text-sm font-medium text-white">Tema</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">☀️</span>
+                  <button
+                    onClick={toggleTheme}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 ${
+                      theme === 'dark' ? 'bg-indigo-600' : 'bg-yellow-400'
+                    }`}
+                    title={theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro'}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${
+                        theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm">🌙</span>
+                </div>
+              </div>
               
               {user?.is_admin && (
                 <>
