@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MarketingDateFilter as MarketingDateFilterType } from '@/types';
 
 interface MarketingDateFilterProps {
@@ -14,22 +14,56 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
   filter,
   onFilterChange,
 }) => {
+  // Estado local para valores temporários (não aplicados ainda)
+  const [tempDataInicial, setTempDataInicial] = useState<string>(filter.dataInicial || '');
+  const [tempDataFinal, setTempDataFinal] = useState<string>(filter.dataFinal || '');
+
+  // Sincronizar estado local quando filtro externo mudar
+  useEffect(() => {
+    setTempDataInicial(filter.dataInicial || '');
+    setTempDataFinal(filter.dataFinal || '');
+  }, [filter.dataInicial, filter.dataFinal]);
+
   const handleDataInicialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value || null;
-    onFilterChange({
-      ...filter,
-      dataInicial: value,
-    });
+    const value = e.target.value;
+    setTempDataInicial(value);
+    // Não aplicar automaticamente - apenas atualizar estado local
   };
 
   const handleDataFinalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value || null;
+    const value = e.target.value;
+    setTempDataFinal(value);
+    // Não aplicar automaticamente - apenas atualizar estado local
+  };
+
+  const handleDataInicialBlur = () => {
+    // Aplicar filtro apenas quando campo perder foco e data estiver completa
+    const value = tempDataInicial || null;
+    
+    // Validar data final se necessário
+    let finalValue = tempDataFinal || null;
+    if (value && finalValue && finalValue < value) {
+      finalValue = value;
+      setTempDataFinal(value);
+    }
+    
+    onFilterChange({
+      dataInicial: value,
+      dataFinal: finalValue || filter.dataFinal,
+    });
+  };
+
+  const handleDataFinalBlur = () => {
+    // Aplicar filtro apenas quando campo perder foco e data estiver completa
+    const value = tempDataFinal || null;
     
     // Validar que data final >= data inicial
-    if (value && filter.dataInicial && value < filter.dataInicial) {
+    if (value && tempDataInicial && value < tempDataInicial) {
+      const adjustedValue = tempDataInicial;
+      setTempDataFinal(adjustedValue);
       onFilterChange({
         ...filter,
-        dataFinal: filter.dataInicial,
+        dataFinal: adjustedValue,
       });
     } else {
       onFilterChange({
@@ -39,7 +73,20 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, field: 'inicial' | 'final') => {
+    // Aplicar filtro quando pressionar Enter
+    if (e.key === 'Enter') {
+      if (field === 'inicial') {
+        handleDataInicialBlur();
+      } else {
+        handleDataFinalBlur();
+      }
+    }
+  };
+
   const handleLimpar = () => {
+    setTempDataInicial('');
+    setTempDataFinal('');
     onFilterChange({
       dataInicial: null,
       dataFinal: null,
@@ -74,8 +121,10 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
           </label>
           <input
             type="date"
-            value={filter.dataInicial || ''}
+            value={tempDataInicial}
             onChange={handleDataInicialChange}
+            onBlur={handleDataInicialBlur}
+            onKeyDown={(e) => handleKeyDown(e, 'inicial')}
             min={dataMinima}
             max={hoje}
             className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 shadow-sm transition-all focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-purple-400"
@@ -87,9 +136,11 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
           </label>
           <input
             type="date"
-            value={filter.dataFinal || ''}
+            value={tempDataFinal}
             onChange={handleDataFinalChange}
-            min={filter.dataInicial || dataMinima}
+            onBlur={handleDataFinalBlur}
+            onKeyDown={(e) => handleKeyDown(e, 'final')}
+            min={tempDataInicial || dataMinima}
             max={hoje}
             className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 shadow-sm transition-all focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-purple-400"
           />
