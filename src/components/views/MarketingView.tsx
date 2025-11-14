@@ -16,6 +16,7 @@ const SANTO_ANDRE_SUB_PRACAS = ['Vila Aquino', 'São Caetano'];
 const SAO_BERNARDO_SUB_PRACAS = ['Diadema', 'Nova petrópolis', 'Rudge Ramos'];
 
 // Lista de cidades para os cartões
+// Nota: ABC 2.0 não aparece na lista pois é usado apenas para separar Santo André e São Bernardo
 const CIDADES = [
   'São Paulo 2.0',
   'Salvador 2.0',
@@ -25,7 +26,6 @@ const CIDADES = [
   'Taboão da Serra e Embu das Artes 2.0',
   'Santo André',
   'São Bernardo',
-  'ABC 2.0',
 ];
 
 // Função auxiliar para construir query com filtro de data
