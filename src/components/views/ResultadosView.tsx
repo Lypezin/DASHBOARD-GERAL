@@ -36,7 +36,7 @@ const CIDADES = [
 // Mapeamento de fotos dos atendentes
 const ATENDENTES_FOTOS: { [key: string]: string | null } = {
   'Fernanda Raphaelly': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/FERNANDA%20FOTO.png',
-  'Beatriz Angelo': null,
+  'Beatriz Angelo': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/FOTO%20BEATRIZ.png',
   'Melissa': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/MELISSA%20FOTO.png',
   'Carolini Braguini': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/CAROL%20FOTO.jpg',
 };
@@ -280,7 +280,7 @@ const ResultadosView = React.memo(function ResultadosView() {
         <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
           Resultados por Atendente
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {atendentesData.map((atendenteData) => (
             <div key={atendenteData.nome} className="space-y-4">
               <AtendenteCard
@@ -292,28 +292,44 @@ const ResultadosView = React.memo(function ResultadosView() {
               
               {/* Métricas por Cidade */}
               {atendenteData.cidades && atendenteData.cidades.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                <div className="space-y-3">
+                  <h4 className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                    <svg className="h-4 w-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
                     Por Cidade
                   </h4>
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                     {atendenteData.cidades
                       .filter(c => c.enviado > 0 || c.liberado > 0)
                       .map((cidadeData) => (
                         <div
                           key={`${atendenteData.nome}-${cidadeData.cidade}`}
-                          className="rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-800/50"
+                          className="group rounded-lg border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-3 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900/50 dark:hover:border-purple-500"
                         >
-                          <p className="text-xs font-medium text-slate-900 dark:text-white mb-1 truncate" title={cidadeData.cidade}>
+                          <p className="text-xs font-semibold text-slate-900 dark:text-white mb-2.5 truncate" title={cidadeData.cidade}>
                             {cidadeData.cidade}
                           </p>
-                          <div className="flex items-center justify-between gap-2 text-xs">
-                            <span className="text-emerald-600 dark:text-emerald-400">
-                              📤 {cidadeData.enviado}
-                            </span>
-                            <span className="text-blue-600 dark:text-blue-400">
-                              ✅ {cidadeData.liberado}
-                            </span>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center gap-1.5 rounded-md bg-emerald-50/80 px-2 py-1.5 dark:bg-emerald-950/30">
+                              <svg className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                              </svg>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300">Enviado</p>
+                                <p className="text-xs font-bold text-emerald-900 dark:text-emerald-100 font-mono">{cidadeData.enviado.toLocaleString('pt-BR')}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 rounded-md bg-blue-50/80 px-2 py-1.5 dark:bg-blue-950/30">
+                              <svg className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-medium text-blue-700 dark:text-blue-300">Liberado</p>
+                                <p className="text-xs font-bold text-blue-900 dark:text-blue-100 font-mono">{cidadeData.liberado.toLocaleString('pt-BR')}</p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ))}
