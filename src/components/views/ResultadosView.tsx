@@ -445,9 +445,6 @@ const ResultadosView = React.memo(function ResultadosView() {
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate" title={atendenteData.nome}>
                       {atendenteData.nome}
                     </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                      Atendente
-                    </p>
                   </div>
                 </div>
                 
