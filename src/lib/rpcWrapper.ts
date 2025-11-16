@@ -47,18 +47,31 @@ export async function safeRpc<T = any>(
     // - Passar {} vazio: supabase.rpc('function_name', {})
     // Mas o PostgREST pode reclamar se passarmos {} quando a função não espera parâmetros
     // Vamos usar undefined para funções sem parâmetros
-    if (params === null || params === undefined || (typeof params === 'object' && Object.keys(params).length === 0)) {
+    
+    // Normalizar parâmetros: converter undefined para null e manter null como está
+    // Isso garante que funções RPC que esperam null para usar DEFAULT funcionem corretamente
+    if (params && typeof params === 'object' && !Array.isArray(params)) {
+      const normalizedParams: any = {};
+      for (const [key, value] of Object.entries(params)) {
+        // Converter undefined para null, manter null como está
+        normalizedParams[key] = value === undefined ? null : value;
+      }
+      validatedParams = normalizedParams;
+    } else if (params === null || params === undefined || (typeof params === 'object' && Object.keys(params).length === 0)) {
       // Para funções sem parâmetros, usar undefined
       validatedParams = undefined;
-    } else if (validateParams && params && typeof params === 'object') {
+    }
+    
+    // Aplicar validação se solicitado e se ainda temos parâmetros
+    if (validateParams && validatedParams && typeof validatedParams === 'object' && validatedParams !== undefined) {
       try {
-        validatedParams = validateFilterPayload(params);
+        validatedParams = validateFilterPayload(validatedParams);
       } catch (validationError: any) {
         if (IS_DEV) {
           safeLog.warn(`Validação falhou para ${functionName}:`, validationError);
         }
         // Em produção, usar parâmetros originais mas limitar arrays
-        validatedParams = sanitizeParams(params);
+        validatedParams = sanitizeParams(validatedParams);
       }
     }
 

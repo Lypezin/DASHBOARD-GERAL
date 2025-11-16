@@ -115,13 +115,7 @@ const ResultadosView = React.memo(function ResultadosView() {
   const fetchAtendentesData = async () => {
     try {
       // Tentar usar RPC primeiro
-      // Construir parâmetros apenas com valores não-null
-      const rpcParams: any = {};
-      if (filters.filtroEnviados.dataInicial) rpcParams.data_envio_inicial = filters.filtroEnviados.dataInicial;
-      if (filters.filtroEnviados.dataFinal) rpcParams.data_envio_final = filters.filtroEnviados.dataFinal;
-      if (filters.filtroLiberacao.dataInicial) rpcParams.data_liberacao_inicial = filters.filtroLiberacao.dataInicial;
-      if (filters.filtroLiberacao.dataFinal) rpcParams.data_liberacao_final = filters.filtroLiberacao.dataFinal;
-
+      // Sempre passar todos os parâmetros (null quando não há filtro)
       const { data: rpcData, error: rpcError } = await safeRpc<Array<{
         responsavel: string;
         enviado: number;
@@ -129,7 +123,12 @@ const ResultadosView = React.memo(function ResultadosView() {
         cidade: string;
         cidade_enviado: number;
         cidade_liberado: number;
-      }>>('get_marketing_atendentes_data', Object.keys(rpcParams).length > 0 ? rpcParams : undefined);
+      }>>('get_marketing_atendentes_data', {
+        data_envio_inicial: filters.filtroEnviados.dataInicial || null,
+        data_envio_final: filters.filtroEnviados.dataFinal || null,
+        data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
+        data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
+      }, { validateParams: false });
 
       if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
         // Agrupar dados por atendente
@@ -137,37 +136,25 @@ const ResultadosView = React.memo(function ResultadosView() {
         let totalEnviado = 0;
         let totalLiberado = 0;
 
-        // Primeiro, calcular totais por atendente (somar todas as cidades)
-        const atendentesTotals = new Map<string, { enviado: number; liberado: number }>();
-        
-        for (const item of rpcData) {
-          if (!atendentesTotals.has(item.responsavel)) {
-            atendentesTotals.set(item.responsavel, { enviado: 0, liberado: 0 });
-          }
-          const totals = atendentesTotals.get(item.responsavel)!;
-          totals.enviado += item.cidade_enviado || 0;
-          totals.liberado += item.cidade_liberado || 0;
-        }
-
-        // Agora criar estrutura de dados
+        // Processar dados RPC
         for (const item of rpcData) {
           if (!atendentesMap.has(item.responsavel)) {
-            const totals = atendentesTotals.get(item.responsavel)!;
+            // Primeira vez que vemos este atendente - usar totais da função RPC
             atendentesMap.set(item.responsavel, {
               nome: item.responsavel,
-              enviado: totals.enviado,
-              liberado: totals.liberado,
+              enviado: item.enviado || 0,
+              liberado: item.liberado || 0,
               fotoUrl: ATENDENTES_FOTOS[item.responsavel] || null,
               cidades: [],
             });
-            totalEnviado += totals.enviado;
-            totalLiberado += totals.liberado;
+            totalEnviado += item.enviado || 0;
+            totalLiberado += item.liberado || 0;
           }
 
           const atendenteData = atendentesMap.get(item.responsavel)!;
           
-          // Adicionar dados da cidade
-          if (item.cidade) {
+          // Adicionar dados da cidade (apenas se cidade_enviado ou cidade_liberado > 0)
+          if (item.cidade && (item.cidade_enviado > 0 || item.cidade_liberado > 0)) {
             atendenteData.cidades!.push({
               atendente: item.responsavel,
               cidade: item.cidade,
