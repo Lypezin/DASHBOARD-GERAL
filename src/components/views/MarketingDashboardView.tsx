@@ -33,11 +33,13 @@ function buildDateFilterQuery(
   dateColumn: string,
   filter: MarketingDateFilter
 ) {
+  // Se não há filtro aplicado, contar apenas registros onde a data não é null
   if (!filter.dataInicial && !filter.dataFinal) {
     query = query.not(dateColumn, 'is', null);
     return query;
   }
   
+  // Se há filtro, aplicar intervalo (não aplicar not null aqui)
   if (filter.dataInicial) {
     query = query.gte(dateColumn, filter.dataInicial);
   }
@@ -90,19 +92,21 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   const fetchTotals = async () => {
     try {
       // Tentar usar RPC primeiro
+      // Construir parâmetros apenas com valores não-null
+      const rpcParams: any = {};
+      if (filters.filtroEnviados.dataInicial) rpcParams.data_envio_inicial = filters.filtroEnviados.dataInicial;
+      if (filters.filtroEnviados.dataFinal) rpcParams.data_envio_final = filters.filtroEnviados.dataFinal;
+      if (filters.filtroLiberacao.dataInicial) rpcParams.data_liberacao_inicial = filters.filtroLiberacao.dataInicial;
+      if (filters.filtroLiberacao.dataFinal) rpcParams.data_liberacao_final = filters.filtroLiberacao.dataFinal;
+      if (filters.filtroRodouDia.dataInicial) rpcParams.rodou_dia_inicial = filters.filtroRodouDia.dataInicial;
+      if (filters.filtroRodouDia.dataFinal) rpcParams.rodou_dia_final = filters.filtroRodouDia.dataFinal;
+
       const { data: rpcData, error: rpcError } = await safeRpc<Array<{
         criado: number;
         enviado: number;
         liberado: number;
         rodando_inicio: number;
-      }>>('get_marketing_totals', {
-        data_envio_inicial: filters.filtroEnviados.dataInicial || null,
-        data_envio_final: filters.filtroEnviados.dataFinal || null,
-        data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
-        data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
-        rodou_dia_inicial: filters.filtroRodouDia.dataInicial || null,
-        rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
-      });
+      }>>('get_marketing_totals', Object.keys(rpcParams).length > 0 ? rpcParams : undefined);
 
       if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
         const totalsData = rpcData[0];
@@ -157,19 +161,21 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   const fetchCitiesData = async () => {
     try {
       // Tentar usar RPC primeiro
+      // Construir parâmetros apenas com valores não-null
+      const rpcParams: any = {};
+      if (filters.filtroEnviados.dataInicial) rpcParams.data_envio_inicial = filters.filtroEnviados.dataInicial;
+      if (filters.filtroEnviados.dataFinal) rpcParams.data_envio_final = filters.filtroEnviados.dataFinal;
+      if (filters.filtroLiberacao.dataInicial) rpcParams.data_liberacao_inicial = filters.filtroLiberacao.dataInicial;
+      if (filters.filtroLiberacao.dataFinal) rpcParams.data_liberacao_final = filters.filtroLiberacao.dataFinal;
+      if (filters.filtroRodouDia.dataInicial) rpcParams.rodou_dia_inicial = filters.filtroRodouDia.dataInicial;
+      if (filters.filtroRodouDia.dataFinal) rpcParams.rodou_dia_final = filters.filtroRodouDia.dataFinal;
+
       const { data: rpcData, error: rpcError } = await safeRpc<Array<{
         cidade: string;
         enviado: number;
         liberado: number;
         rodando_inicio: number;
-      }>>('get_marketing_cities_data', {
-        data_envio_inicial: filters.filtroEnviados.dataInicial || null,
-        data_envio_final: filters.filtroEnviados.dataFinal || null,
-        data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
-        data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
-        rodou_dia_inicial: filters.filtroRodouDia.dataInicial || null,
-        rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
-      });
+      }>>('get_marketing_cities_data', Object.keys(rpcParams).length > 0 ? rpcParams : undefined);
 
       if (!rpcError && rpcData && Array.isArray(rpcData)) {
         // Mapear dados RPC para o formato esperado, garantindo todas as cidades

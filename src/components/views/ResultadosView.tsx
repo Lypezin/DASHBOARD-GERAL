@@ -6,8 +6,6 @@ import { MarketingFilters, MarketingDateFilter, AtendenteCidadeData } from '@/ty
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
-import MarketingCard from '@/components/MarketingCard';
-import AtendenteCard from '@/components/AtendenteCard';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Send, CheckCircle2 } from 'lucide-react';
@@ -117,6 +115,13 @@ const ResultadosView = React.memo(function ResultadosView() {
   const fetchAtendentesData = async () => {
     try {
       // Tentar usar RPC primeiro
+      // Construir parâmetros apenas com valores não-null
+      const rpcParams: any = {};
+      if (filters.filtroEnviados.dataInicial) rpcParams.data_envio_inicial = filters.filtroEnviados.dataInicial;
+      if (filters.filtroEnviados.dataFinal) rpcParams.data_envio_final = filters.filtroEnviados.dataFinal;
+      if (filters.filtroLiberacao.dataInicial) rpcParams.data_liberacao_inicial = filters.filtroLiberacao.dataInicial;
+      if (filters.filtroLiberacao.dataFinal) rpcParams.data_liberacao_final = filters.filtroLiberacao.dataFinal;
+
       const { data: rpcData, error: rpcError } = await safeRpc<Array<{
         responsavel: string;
         enviado: number;
@@ -124,14 +129,9 @@ const ResultadosView = React.memo(function ResultadosView() {
         cidade: string;
         cidade_enviado: number;
         cidade_liberado: number;
-      }>>('get_marketing_atendentes_data', {
-        data_envio_inicial: filters.filtroEnviados.dataInicial || null,
-        data_envio_final: filters.filtroEnviados.dataFinal || null,
-        data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
-        data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
-      });
+      }>>('get_marketing_atendentes_data', Object.keys(rpcParams).length > 0 ? rpcParams : undefined);
 
-      if (!rpcError && rpcData) {
+      if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
         // Agrupar dados por atendente
         const atendentesMap = new Map<string, AtendenteData>();
         let totalEnviado = 0;
@@ -343,98 +343,186 @@ const ResultadosView = React.memo(function ResultadosView() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Cartão de Totais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <MarketingCard
-          title="Total Enviado"
-          value={totais.totalEnviado}
-          icon="📤"
-          color="green"
-        />
-        <MarketingCard
-          title="Total Liberado"
-          value={totais.totalLiberado}
-          icon="✅"
-          color="purple"
-        />
-      </div>
+    <div className="space-y-4">
+      {/* Header com Totais e Filtros */}
+      <div className="space-y-4">
+        {/* Cards de Totais - Destaque */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Card className="border-emerald-200/50 bg-gradient-to-br from-emerald-50 to-green-50 shadow-md hover:shadow-lg transition-shadow dark:border-emerald-800/50 dark:from-emerald-950/30 dark:to-green-950/30">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide mb-1">
+                    Total Enviado
+                  </p>
+                  <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">
+                    {totais.totalEnviado.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 dark:bg-emerald-500/30">
+                  <Send className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+              </div>
+            </div>
+          </Card>
+          <Card className="border-blue-200/50 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-md hover:shadow-lg transition-shadow dark:border-blue-800/50 dark:from-blue-950/30 dark:to-indigo-950/30">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-1">
+                    Total Liberado
+                  </p>
+                  <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                    {totais.totalLiberado.toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/20 dark:bg-blue-500/30">
+                  <CheckCircle2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
 
-      {/* Filtros de Data */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <MarketingDateFilterComponent
-          label="Filtro de Liberação"
-          filter={filters.filtroLiberacao}
-          onFilterChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
-        />
-        <MarketingDateFilterComponent
-          label="Filtro de Enviados"
-          filter={filters.filtroEnviados}
-          onFilterChange={(filter) => handleFilterChange('filtroEnviados', filter)}
-        />
-      </div>
-
-      {/* Lista de Atendentes */}
-      <div>
-        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
-          Resultados por Atendente
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {atendentesData.map((atendenteData) => (
-            <div key={atendenteData.nome} className="space-y-4">
-              <AtendenteCard
-                nome={atendenteData.nome}
-                enviado={atendenteData.enviado}
-                liberado={atendenteData.liberado}
-                fotoUrl={atendenteData.fotoUrl}
+        {/* Filtros em linha horizontal compacta */}
+        <Card className="border-slate-200/50 bg-white/80 shadow-sm dark:border-slate-700/50 dark:bg-slate-800/80">
+          <div className="p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:via-slate-600"></div>
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide px-2">
+                Filtros
+              </p>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:via-slate-600"></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <MarketingDateFilterComponent
+                label="Filtro de Liberação"
+                filter={filters.filtroLiberacao}
+                onFilterChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
               />
+              <MarketingDateFilterComponent
+                label="Filtro de Enviados"
+                filter={filters.filtroEnviados}
+                onFilterChange={(filter) => handleFilterChange('filtroEnviados', filter)}
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Separador Visual */}
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
+        <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+          Resultados por Atendente
+          <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+        </h3>
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
+      </div>
+
+      {/* Grid de Atendentes - Layout Melhorado */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {atendentesData.map((atendenteData) => (
+          <Card 
+            key={atendenteData.nome} 
+            className="group border-slate-200/50 bg-white/90 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-slate-700/50 dark:bg-slate-800/90"
+          >
+            <div className="p-4 space-y-4">
+              {/* Card do Atendente - Compacto */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  {atendenteData.fotoUrl ? (
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full ring-2 ring-purple-200 dark:ring-purple-800">
+                      <img
+                        src={atendenteData.fotoUrl}
+                        alt={atendenteData.nome}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            const iniciais = atendenteData.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                            parent.innerHTML = `<div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm">${iniciais}</div>`;
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm ring-2 ring-purple-200 dark:ring-purple-800">
+                      {atendenteData.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate" title={atendenteData.nome}>
+                      {atendenteData.nome}
+                    </h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                      Atendente
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Métricas do Atendente */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-lg bg-emerald-50/80 p-2.5 dark:bg-emerald-950/30">
+                    <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300 mb-1">Enviado</p>
+                    <p className="text-lg font-bold text-emerald-900 dark:text-emerald-100 font-mono">{atendenteData.enviado.toLocaleString('pt-BR')}</p>
+                  </div>
+                  <div className="rounded-lg bg-blue-50/80 p-2.5 dark:bg-blue-950/30">
+                    <p className="text-[10px] font-medium text-blue-700 dark:text-blue-300 mb-1">Liberado</p>
+                    <p className="text-lg font-bold text-blue-900 dark:text-blue-100 font-mono">{atendenteData.liberado.toLocaleString('pt-BR')}</p>
+                  </div>
+                </div>
+              </div>
               
-              {/* Métricas por Cidade */}
+              {/* Métricas por Cidade - Integradas */}
               {atendenteData.cidades && atendenteData.cidades.filter(c => c.enviado > 0 || c.liberado > 0).length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 px-1">
+                <div className="space-y-2 pt-3 border-t border-slate-200/50 dark:border-slate-700/50">
+                  <div className="flex items-center gap-1.5 mb-2">
                     <MapPin className="h-3.5 w-3.5 text-purple-500" />
-                    <h4 className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
-                      Por Cidade
+                    <h4 className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                      Por Cidade ({atendenteData.cidades.filter(c => c.enviado > 0 || c.liberado > 0).length})
                     </h4>
                   </div>
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-transparent">
                     {atendenteData.cidades
                       .filter(c => c.enviado > 0 || c.liberado > 0)
                       .map((cidadeData) => (
-                        <Card
+                        <div
                           key={`${atendenteData.nome}-${cidadeData.cidade}`}
-                          className="group border-slate-200/50 bg-white/80 p-2 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300/50 dark:border-slate-700/50 dark:bg-slate-800/50 dark:hover:border-purple-500/50"
+                          className="group/city rounded-lg border border-slate-200/50 bg-gradient-to-br from-slate-50 to-white p-2.5 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300/50 dark:border-slate-700/50 dark:from-slate-800/50 dark:to-slate-900/50 dark:hover:border-purple-500/50"
                         >
-                          <p className="text-[10px] font-semibold text-slate-900 dark:text-white mb-1.5 truncate" title={cidadeData.cidade}>
+                          <p className="text-[11px] font-semibold text-slate-900 dark:text-white mb-2 truncate" title={cidadeData.cidade}>
                             {cidadeData.cidade}
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             <Badge 
                               variant="secondary" 
-                              className="bg-emerald-50 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5"
+                              className="bg-emerald-50/80 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800 px-2 py-0.5"
                             >
-                              <Send className="h-2.5 w-2.5 mr-0.5" />
-                              <span className="text-[9px] font-medium mr-0.5">E:</span>
-                              <span className="text-[10px] font-bold font-mono">{cidadeData.enviado.toLocaleString('pt-BR')}</span>
+                              <Send className="h-3 w-3 mr-1" />
+                              <span className="text-[10px] font-medium">Enviado:</span>
+                              <span className="text-[11px] font-bold font-mono ml-1">{cidadeData.enviado.toLocaleString('pt-BR')}</span>
                             </Badge>
                             <Badge 
                               variant="secondary" 
-                              className="bg-blue-50 text-blue-900 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-100 border-blue-200 dark:border-blue-800 px-1.5 py-0.5"
+                              className="bg-blue-50/80 text-blue-900 hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-100 border-blue-200 dark:border-blue-800 px-2 py-0.5"
                             >
-                              <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
-                              <span className="text-[9px] font-medium mr-0.5">L:</span>
-                              <span className="text-[10px] font-bold font-mono">{cidadeData.liberado.toLocaleString('pt-BR')}</span>
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              <span className="text-[10px] font-medium">Liberado:</span>
+                              <span className="text-[11px] font-bold font-mono ml-1">{cidadeData.liberado.toLocaleString('pt-BR')}</span>
                             </Badge>
                           </div>
-                        </Card>
+                        </div>
                       ))}
                   </div>
                 </div>
               )}
             </div>
-          ))}
-        </div>
+          </Card>
+        ))}
       </div>
     </div>
   );
