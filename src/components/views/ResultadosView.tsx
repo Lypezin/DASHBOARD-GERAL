@@ -402,7 +402,7 @@ const ResultadosView = React.memo(function ResultadosView() {
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
         <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-          Resultados por Atendente
+          Resultados por Responsável
           <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
         </h3>
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
