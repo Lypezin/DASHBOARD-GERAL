@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { MarketingFilters, MarketingTotals, MarketingCityData, MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 import MarketingCard from '@/components/MarketingCard';
 import MarketingCityCard from '@/components/MarketingCityCard';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
@@ -88,6 +89,36 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
 
   const fetchTotals = async () => {
     try {
+      // Tentar usar RPC primeiro
+      const { data: rpcData, error: rpcError } = await safeRpc<{
+        criado: number;
+        enviado: number;
+        liberado: number;
+        rodando_inicio: number;
+      }>('get_marketing_totals', {
+        data_envio_inicial: filters.filtroEnviados.dataInicial || null,
+        data_envio_final: filters.filtroEnviados.dataFinal || null,
+        data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
+        data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
+        rodou_dia_inicial: filters.filtroRodouDia.dataInicial || null,
+        rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
+      });
+
+      if (!rpcError && rpcData) {
+        setTotals({
+          criado: rpcData.criado || 0,
+          enviado: rpcData.enviado || 0,
+          liberado: rpcData.liberado || 0,
+          rodandoInicio: rpcData.rodando_inicio || 0,
+        });
+        return;
+      }
+
+      // Fallback para queries diretas
+      if (IS_DEV) {
+        safeLog.warn('RPC get_marketing_totals não disponível, usando fallback');
+      }
+
       const { count: criadoCount } = await supabase
         .from('dados_marketing')
         .select('*', { count: 'exact', head: true });
@@ -124,6 +155,42 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
 
   const fetchCitiesData = async () => {
     try {
+      // Tentar usar RPC primeiro
+      const { data: rpcData, error: rpcError } = await safeRpc<Array<{
+        cidade: string;
+        enviado: number;
+        liberado: number;
+        rodando_inicio: number;
+      }>>('get_marketing_cities_data', {
+        data_envio_inicial: filters.filtroEnviados.dataInicial || null,
+        data_envio_final: filters.filtroEnviados.dataFinal || null,
+        data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
+        data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
+        rodou_dia_inicial: filters.filtroRodouDia.dataInicial || null,
+        rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
+      });
+
+      if (!rpcError && rpcData) {
+        // Mapear dados RPC para o formato esperado, garantindo todas as cidades
+        const rpcMap = new Map(rpcData.map(item => [item.cidade, item]));
+        const citiesDataArray: MarketingCityData[] = CIDADES.map(cidade => {
+          const rpcItem = rpcMap.get(cidade);
+          return {
+            cidade,
+            enviado: rpcItem?.enviado || 0,
+            liberado: rpcItem?.liberado || 0,
+            rodandoInicio: rpcItem?.rodando_inicio || 0,
+          };
+        });
+        setCitiesData(citiesDataArray);
+        return;
+      }
+
+      // Fallback para queries diretas
+      if (IS_DEV) {
+        safeLog.warn('RPC get_marketing_cities_data não disponível, usando fallback');
+      }
+
       const citiesDataArray: MarketingCityData[] = [];
 
       for (const cidade of CIDADES) {

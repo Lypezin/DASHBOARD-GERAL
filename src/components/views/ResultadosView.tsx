@@ -4,9 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { MarketingFilters, MarketingDateFilter, AtendenteCidadeData } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import MarketingCard from '@/components/MarketingCard';
 import AtendenteCard from '@/components/AtendenteCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { MapPin, Send, CheckCircle2 } from 'lucide-react';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -112,6 +117,101 @@ const ResultadosView = React.memo(function ResultadosView() {
   // Função para buscar dados dos atendentes
   const fetchAtendentesData = async () => {
     try {
+      // Tentar usar RPC primeiro
+      const { data: rpcData, error: rpcError } = await safeRpc<Array<{
+        responsavel: string;
+        enviado: number;
+        liberado: number;
+        cidade: string;
+        cidade_enviado: number;
+        cidade_liberado: number;
+      }>>('get_marketing_atendentes_data', {
+        data_envio_inicial: filters.filtroEnviados.dataInicial || null,
+        data_envio_final: filters.filtroEnviados.dataFinal || null,
+        data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
+        data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
+      });
+
+      if (!rpcError && rpcData) {
+        // Agrupar dados por atendente
+        const atendentesMap = new Map<string, AtendenteData>();
+        let totalEnviado = 0;
+        let totalLiberado = 0;
+
+        // Primeiro, calcular totais por atendente (somar todas as cidades)
+        const atendentesTotals = new Map<string, { enviado: number; liberado: number }>();
+        
+        for (const item of rpcData) {
+          if (!atendentesTotals.has(item.responsavel)) {
+            atendentesTotals.set(item.responsavel, { enviado: 0, liberado: 0 });
+          }
+          const totals = atendentesTotals.get(item.responsavel)!;
+          totals.enviado += item.cidade_enviado || 0;
+          totals.liberado += item.cidade_liberado || 0;
+        }
+
+        // Agora criar estrutura de dados
+        for (const item of rpcData) {
+          if (!atendentesMap.has(item.responsavel)) {
+            const totals = atendentesTotals.get(item.responsavel)!;
+            atendentesMap.set(item.responsavel, {
+              nome: item.responsavel,
+              enviado: totals.enviado,
+              liberado: totals.liberado,
+              fotoUrl: ATENDENTES_FOTOS[item.responsavel] || null,
+              cidades: [],
+            });
+            totalEnviado += totals.enviado;
+            totalLiberado += totals.liberado;
+          }
+
+          const atendenteData = atendentesMap.get(item.responsavel)!;
+          
+          // Adicionar dados da cidade
+          if (item.cidade) {
+            atendenteData.cidades!.push({
+              atendente: item.responsavel,
+              cidade: item.cidade,
+              enviado: item.cidade_enviado || 0,
+              liberado: item.cidade_liberado || 0,
+            });
+          }
+        }
+
+        // Garantir que todos os atendentes estejam presentes
+        const atendentesDataArray: AtendenteData[] = ATENDENTES.map(atendente => {
+          const data = atendentesMap.get(atendente);
+          if (data) {
+            return data;
+          }
+          // Se não encontrado no RPC, criar entrada vazia
+          return {
+            nome: atendente,
+            enviado: 0,
+            liberado: 0,
+            fotoUrl: ATENDENTES_FOTOS[atendente] || null,
+            cidades: CIDADES.map(cidade => ({
+              atendente,
+              cidade,
+              enviado: 0,
+              liberado: 0,
+            })),
+          };
+        });
+
+        setAtendentesData(atendentesDataArray);
+        setTotais({
+          totalEnviado,
+          totalLiberado,
+        });
+        return;
+      }
+
+      // Fallback para queries diretas
+      if (IS_DEV) {
+        safeLog.warn('RPC get_marketing_atendentes_data não disponível, usando fallback');
+      }
+
       const atendentesDataArray: AtendenteData[] = [];
       let totalEnviado = 0;
       let totalLiberado = 0;
@@ -292,49 +392,57 @@ const ResultadosView = React.memo(function ResultadosView() {
               
               {/* Métricas por Cidade */}
               {atendenteData.cidades && atendenteData.cidades.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
-                    <svg className="h-4 w-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Por Cidade
-                  </h4>
-                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                    {atendenteData.cidades
-                      .filter(c => c.enviado > 0 || c.liberado > 0)
-                      .map((cidadeData) => (
-                        <div
-                          key={`${atendenteData.nome}-${cidadeData.cidade}`}
-                          className="group rounded-lg border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-3 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900/50 dark:hover:border-purple-500"
-                        >
-                          <p className="text-xs font-semibold text-slate-900 dark:text-white mb-2.5 truncate" title={cidadeData.cidade}>
-                            {cidadeData.cidade}
-                          </p>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="flex items-center gap-1.5 rounded-md bg-emerald-50/80 px-2 py-1.5 dark:bg-emerald-950/30">
-                              <svg className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                              </svg>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300">Enviado</p>
-                                <p className="text-xs font-bold text-emerald-900 dark:text-emerald-100 font-mono">{cidadeData.enviado.toLocaleString('pt-BR')}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 rounded-md bg-blue-50/80 px-2 py-1.5 dark:bg-blue-950/30">
-                              <svg className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-[10px] font-medium text-blue-700 dark:text-blue-300">Liberado</p>
-                                <p className="text-xs font-bold text-blue-900 dark:text-blue-100 font-mono">{cidadeData.liberado.toLocaleString('pt-BR')}</p>
-                              </div>
-                            </div>
+                <Card className="border-slate-200/50 bg-gradient-to-br from-white to-slate-50/50 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300/50 dark:border-slate-700/50 dark:from-slate-800 dark:to-slate-900/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                      <MapPin className="h-4 w-4 text-purple-500" />
+                      Por Cidade
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value={`cidades-${atendenteData.nome}`} className="border-none">
+                        <AccordionTrigger className="py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:no-underline">
+                          Ver cidades ({atendenteData.cidades.filter(c => c.enviado > 0 || c.liberado > 0).length})
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                            {atendenteData.cidades
+                              .filter(c => c.enviado > 0 || c.liberado > 0)
+                              .map((cidadeData) => (
+                                <Card
+                                  key={`${atendenteData.nome}-${cidadeData.cidade}`}
+                                  className="group border-slate-200/50 bg-white/80 p-3 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300/50 dark:border-slate-700/50 dark:bg-slate-800/50 dark:hover:border-purple-500/50"
+                                >
+                                  <p className="text-xs font-semibold text-slate-900 dark:text-white mb-2.5 truncate" title={cidadeData.cidade}>
+                                    {cidadeData.cidade}
+                                  </p>
+                                  <div className="flex flex-wrap gap-2">
+                                    <Badge 
+                                      variant="secondary" 
+                                      className="bg-emerald-50 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800"
+                                    >
+                                      <Send className="h-3 w-3 mr-1" />
+                                      <span className="text-[10px] font-medium mr-1">Enviado:</span>
+                                      <span className="text-xs font-bold font-mono">{cidadeData.enviado.toLocaleString('pt-BR')}</span>
+                                    </Badge>
+                                    <Badge 
+                                      variant="secondary" 
+                                      className="bg-blue-50 text-blue-900 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-100 border-blue-200 dark:border-blue-800"
+                                    >
+                                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                                      <span className="text-[10px] font-medium mr-1">Liberado:</span>
+                                      <span className="text-xs font-bold font-mono">{cidadeData.liberado.toLocaleString('pt-BR')}</span>
+                                    </Badge>
+                                  </div>
+                                </Card>
+                              ))}
                           </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </CardContent>
+                </Card>
               )}
             </div>
           ))}
