@@ -90,12 +90,12 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   const fetchTotals = async () => {
     try {
       // Tentar usar RPC primeiro
-      const { data: rpcData, error: rpcError } = await safeRpc<{
+      const { data: rpcData, error: rpcError } = await safeRpc<Array<{
         criado: number;
         enviado: number;
         liberado: number;
         rodando_inicio: number;
-      }>('get_marketing_totals', {
+      }>>('get_marketing_totals', {
         data_envio_inicial: filters.filtroEnviados.dataInicial || null,
         data_envio_final: filters.filtroEnviados.dataFinal || null,
         data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
@@ -104,12 +104,13 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
         rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
       });
 
-      if (!rpcError && rpcData) {
+      if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
+        const totalsData = rpcData[0];
         setTotals({
-          criado: rpcData.criado || 0,
-          enviado: rpcData.enviado || 0,
-          liberado: rpcData.liberado || 0,
-          rodandoInicio: rpcData.rodando_inicio || 0,
+          criado: totalsData.criado || 0,
+          enviado: totalsData.enviado || 0,
+          liberado: totalsData.liberado || 0,
+          rodandoInicio: totalsData.rodando_inicio || 0,
         });
         return;
       }
@@ -170,7 +171,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
         rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
       });
 
-      if (!rpcError && rpcData) {
+      if (!rpcError && rpcData && Array.isArray(rpcData)) {
         // Mapear dados RPC para o formato esperado, garantindo todas as cidades
         const rpcMap = new Map(rpcData.map(item => [item.cidade, item]));
         const citiesDataArray: MarketingCityData[] = CIDADES.map(cidade => {
@@ -288,7 +289,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   return (
     <div className="space-y-6">
       {/* Filtros de Data */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <MarketingDateFilterComponent
           label="Filtro de Liberação"
           filter={filters.filtroLiberacao}

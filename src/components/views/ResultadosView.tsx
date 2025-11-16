@@ -8,9 +8,8 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import MarketingCard from '@/components/MarketingCard';
 import AtendenteCard from '@/components/AtendenteCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { MapPin, Send, CheckCircle2 } from 'lucide-react';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -362,7 +361,7 @@ const ResultadosView = React.memo(function ResultadosView() {
       </div>
 
       {/* Filtros de Data */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <MarketingDateFilterComponent
           label="Filtro de Liberação"
           filter={filters.filtroLiberacao}
@@ -391,58 +390,47 @@ const ResultadosView = React.memo(function ResultadosView() {
               />
               
               {/* Métricas por Cidade */}
-              {atendenteData.cidades && atendenteData.cidades.length > 0 && (
-                <Card className="border-slate-200/50 bg-gradient-to-br from-white to-slate-50/50 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300/50 dark:border-slate-700/50 dark:from-slate-800 dark:to-slate-900/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
-                      <MapPin className="h-4 w-4 text-purple-500" />
+              {atendenteData.cidades && atendenteData.cidades.filter(c => c.enviado > 0 || c.liberado > 0).length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 px-1">
+                    <MapPin className="h-3.5 w-3.5 text-purple-500" />
+                    <h4 className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
                       Por Cidade
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value={`cidades-${atendenteData.nome}`} className="border-none">
-                        <AccordionTrigger className="py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:no-underline">
-                          Ver cidades ({atendenteData.cidades.filter(c => c.enviado > 0 || c.liberado > 0).length})
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                            {atendenteData.cidades
-                              .filter(c => c.enviado > 0 || c.liberado > 0)
-                              .map((cidadeData) => (
-                                <Card
-                                  key={`${atendenteData.nome}-${cidadeData.cidade}`}
-                                  className="group border-slate-200/50 bg-white/80 p-3 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300/50 dark:border-slate-700/50 dark:bg-slate-800/50 dark:hover:border-purple-500/50"
-                                >
-                                  <p className="text-xs font-semibold text-slate-900 dark:text-white mb-2.5 truncate" title={cidadeData.cidade}>
-                                    {cidadeData.cidade}
-                                  </p>
-                                  <div className="flex flex-wrap gap-2">
-                                    <Badge 
-                                      variant="secondary" 
-                                      className="bg-emerald-50 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800"
-                                    >
-                                      <Send className="h-3 w-3 mr-1" />
-                                      <span className="text-[10px] font-medium mr-1">Enviado:</span>
-                                      <span className="text-xs font-bold font-mono">{cidadeData.enviado.toLocaleString('pt-BR')}</span>
-                                    </Badge>
-                                    <Badge 
-                                      variant="secondary" 
-                                      className="bg-blue-50 text-blue-900 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-100 border-blue-200 dark:border-blue-800"
-                                    >
-                                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                                      <span className="text-[10px] font-medium mr-1">Liberado:</span>
-                                      <span className="text-xs font-bold font-mono">{cidadeData.liberado.toLocaleString('pt-BR')}</span>
-                                    </Badge>
-                                  </div>
-                                </Card>
-                              ))}
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {atendenteData.cidades
+                      .filter(c => c.enviado > 0 || c.liberado > 0)
+                      .map((cidadeData) => (
+                        <Card
+                          key={`${atendenteData.nome}-${cidadeData.cidade}`}
+                          className="group border-slate-200/50 bg-white/80 p-2 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300/50 dark:border-slate-700/50 dark:bg-slate-800/50 dark:hover:border-purple-500/50"
+                        >
+                          <p className="text-[10px] font-semibold text-slate-900 dark:text-white mb-1.5 truncate" title={cidadeData.cidade}>
+                            {cidadeData.cidade}
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            <Badge 
+                              variant="secondary" 
+                              className="bg-emerald-50 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5"
+                            >
+                              <Send className="h-2.5 w-2.5 mr-0.5" />
+                              <span className="text-[9px] font-medium mr-0.5">E:</span>
+                              <span className="text-[10px] font-bold font-mono">{cidadeData.enviado.toLocaleString('pt-BR')}</span>
+                            </Badge>
+                            <Badge 
+                              variant="secondary" 
+                              className="bg-blue-50 text-blue-900 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-100 border-blue-200 dark:border-blue-800 px-1.5 py-0.5"
+                            >
+                              <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                              <span className="text-[9px] font-medium mr-0.5">L:</span>
+                              <span className="text-[10px] font-bold font-mono">{cidadeData.liberado.toLocaleString('pt-BR')}</span>
+                            </Badge>
                           </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </CardContent>
-                </Card>
+                        </Card>
+                      ))}
+                  </div>
+                </div>
               )}
             </div>
           ))}
