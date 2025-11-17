@@ -48,6 +48,13 @@ const MARKETING_COLUMN_MAP: { [key: string]: string } = {
   'Responsável': 'responsavel',
 };
 
+const VALORES_CIDADE_COLUMN_MAP: { [key: string]: string } = {
+  'DATA': 'data',
+  'ID': 'id_atendente',
+  'CIDADE': 'cidade',
+  'VALOR': 'valor',
+};
+
 const BATCH_SIZE = 500;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_FILES = 10; // Máximo de arquivos por upload
@@ -181,14 +188,19 @@ export default function UploadPage() {
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [marketingFiles, setMarketingFiles] = useState<File[]>([]);
+  const [valoresCidadeFiles, setValoresCidadeFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadingMarketing, setUploadingMarketing] = useState(false);
+  const [uploadingValoresCidade, setUploadingValoresCidade] = useState(false);
   const [message, setMessage] = useState('');
   const [marketingMessage, setMarketingMessage] = useState('');
+  const [valoresCidadeMessage, setValoresCidadeMessage] = useState('');
   const [progress, setProgress] = useState(0);
   const [marketingProgress, setMarketingProgress] = useState(0);
+  const [valoresCidadeProgress, setValoresCidadeProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
   const [marketingProgressLabel, setMarketingProgressLabel] = useState('');
+  const [valoresCidadeProgressLabel, setValoresCidadeProgressLabel] = useState('');
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -371,6 +383,29 @@ export default function UploadPage() {
 
   const removeMarketingFile = (index: number) => {
     setMarketingFiles(marketingFiles.filter((_, i) => i !== index));
+  };
+
+  const handleValoresCidadeFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+
+    for (const file of selectedFiles) {
+      const validation = await validateFile(file);
+      if (validation.valid) {
+        validFiles.push(file);
+      } else {
+        setValoresCidadeMessage(`⚠️ ${validation.error}`);
+      }
+    }
+
+    if (validFiles.length > 0) {
+      setValoresCidadeFiles([...valoresCidadeFiles, ...validFiles]);
+      setValoresCidadeMessage('');
+    }
+  };
+
+  const removeValoresCidadeFile = (index: number) => {
+    setValoresCidadeFiles(valoresCidadeFiles.filter((_, i) => i !== index));
   };
 
   const handleUpload = async () => {
@@ -909,6 +944,332 @@ export default function UploadPage() {
     }
   };
 
+  const handleValoresCidadeUpload = async () => {
+    if (valoresCidadeFiles.length === 0) {
+      setValoresCidadeMessage('Por favor, selecione pelo menos um arquivo.');
+      return;
+    }
+
+    // Verificar rate limiting
+    const rateLimit = uploadRateLimiter();
+    if (!rateLimit.allowed) {
+      const waitTime = Math.ceil((rateLimit.resetTime - Date.now()) / 1000 / 60);
+      setValoresCidadeMessage(`⚠️ Muitos uploads recentes. Aguarde ${waitTime} minuto(s) antes de tentar novamente.`);
+      return;
+    }
+
+    setUploadingValoresCidade(true);
+    setValoresCidadeMessage('');
+    setValoresCidadeProgress(0);
+    setValoresCidadeProgressLabel('Iniciando upload...');
+
+    const totalFiles = valoresCidadeFiles.length;
+    let successCount = 0;
+    let errorCount = 0;
+    let totalInsertedRows = 0;
+    let lastError: string = '';
+
+    try {
+      // PASSO 1: Deletar todos os registros existentes (sobrescrita)
+      setValoresCidadeProgressLabel('Removendo dados antigos...');
+      setValoresCidadeProgress(5);
+      
+      try {
+        console.log('Iniciando remoção de dados antigos...');
+        
+        const { data: deletedCount, error: rpcError } = await supabase
+          .rpc('delete_all_dados_valores_cidade');
+        
+        if (rpcError) {
+          console.error('Erro ao deletar via RPC:', rpcError);
+          
+          // Fallback: tentar deletar em lotes menores se a função RPC não existir
+          if (rpcError.code === 'PGRST116' || rpcError.message?.includes('function') || rpcError.message?.includes('not found')) {
+            console.log('Função RPC não encontrada, usando fallback de deleção em lotes...');
+            
+            let deletedCount = 0;
+            let hasMore = true;
+            const deleteBatchSize = 500;
+            
+            while (hasMore) {
+              const { data: batchData, error: fetchError } = await supabase
+                .from('dados_valores_cidade')
+                .select('id')
+                .limit(deleteBatchSize);
+              
+              if (fetchError) {
+                throw new Error(`Erro ao buscar dados: ${fetchError.message}`);
+              }
+              
+              if (!batchData || batchData.length === 0) {
+                hasMore = false;
+                break;
+              }
+              
+              const idsToDelete = batchData.map(item => item.id);
+              console.log(`Deletando lote de ${idsToDelete.length} registros...`);
+              
+              const { error: deleteError } = await supabase
+                .from('dados_valores_cidade')
+                .delete()
+                .in('id', idsToDelete);
+              
+              if (deleteError) {
+                throw new Error(`Erro ao remover dados: ${deleteError.message}`);
+              }
+              
+              deletedCount += idsToDelete.length;
+              console.log(`Lote deletado. Total: ${deletedCount}`);
+              
+              if (batchData.length < deleteBatchSize) {
+                hasMore = false;
+              }
+            }
+            
+            console.log(`✅ Removidos ${deletedCount} registros antigos (fallback)`);
+          } else {
+            throw new Error(`Erro ao remover dados antigos: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}`);
+          }
+        } else {
+          console.log(`✅ Removidos ${deletedCount || 0} registros antigos`);
+        }
+      } catch (deleteErr: any) {
+        console.error('Erro na etapa de remoção:', deleteErr);
+        throw new Error(`Erro ao preparar banco de dados: ${deleteErr.message || deleteErr}`);
+      }
+
+      setValoresCidadeProgress(10);
+      setValoresCidadeProgressLabel('Dados antigos removidos. Processando novos dados...');
+
+      for (let fileIdx = 0; fileIdx < valoresCidadeFiles.length; fileIdx++) {
+        const file = valoresCidadeFiles[fileIdx];
+        setValoresCidadeProgressLabel(`Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`);
+        console.log(`Iniciando processamento do arquivo: ${file.name}`);
+
+        try {
+          console.log('Lendo arquivo...');
+          const arrayBuffer = await file.arrayBuffer();
+          console.log('Arquivo lido, tamanho:', arrayBuffer.byteLength);
+          
+          console.log('Lendo workbook Excel...');
+          const workbook = XLSX.read(arrayBuffer, { raw: true });
+          console.log('Sheets disponíveis:', workbook.SheetNames);
+          
+          if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+            throw new Error('A planilha não contém nenhuma aba');
+          }
+          
+          const sheetName = workbook.SheetNames[0];
+          console.log('Usando sheet:', sheetName);
+          
+          const worksheet = workbook.Sheets[sheetName];
+          if (!worksheet) {
+            throw new Error(`A aba "${sheetName}" está vazia ou inválida`);
+          }
+          
+          console.log('Convertendo para JSON...');
+          const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+          console.log(`Total de linhas lidas: ${rawData.length}`);
+
+          setValoresCidadeProgressLabel('Processando e validando dados...');
+          const fileProgress = 10 + (fileIdx / totalFiles) * 80;
+          setValoresCidadeProgress(fileProgress);
+
+          // Verificar se há dados
+          if (!rawData || rawData.length === 0) {
+            console.error('Planilha vazia ou sem dados');
+            throw new Error('A planilha está vazia ou não contém dados válidos');
+          }
+          
+          console.log('Primeira linha de exemplo:', rawData[0]);
+
+          // Verificar colunas disponíveis na planilha
+          const firstRow = rawData[0] as any;
+          const availableColumns = Object.keys(firstRow || {});
+          const requiredColumns = Object.keys(VALORES_CIDADE_COLUMN_MAP);
+          
+          // Criar mapeamento flexível (case-insensitive, remove espaços extras)
+          const columnMapping: { [key: string]: string } = {};
+          for (const excelCol of requiredColumns) {
+            const normalizedRequired = excelCol.toLowerCase().trim();
+            const foundCol = availableColumns.find(
+              col => col.toLowerCase().trim() === normalizedRequired
+            );
+            if (foundCol) {
+              columnMapping[excelCol] = foundCol;
+            } else {
+              columnMapping[excelCol] = excelCol; // Tentar usar o nome original mesmo assim
+            }
+          }
+          
+          const missingColumns = requiredColumns.filter(col => {
+            const mappedCol = columnMapping[col];
+            return !availableColumns.includes(mappedCol);
+          });
+          
+          if (missingColumns.length > 0) {
+            safeLog.warn('Colunas não encontradas na planilha:', missingColumns);
+            safeLog.info('Colunas disponíveis na planilha:', availableColumns);
+            safeLog.info('Colunas esperadas:', requiredColumns);
+          }
+
+          const sanitizedData = rawData
+            .map((row: any, rowIndex: number) => {
+              try {
+                const sanitized: any = {};
+                
+                for (const excelCol in VALORES_CIDADE_COLUMN_MAP) {
+                  const dbCol = VALORES_CIDADE_COLUMN_MAP[excelCol];
+                  // Usar mapeamento flexível para encontrar a coluna
+                  const actualColName = columnMapping[excelCol] || excelCol;
+                  let value = row[actualColName];
+
+                  // Se a coluna não existe na planilha, usar null
+                  if (value === undefined) {
+                    sanitized[dbCol] = null;
+                    continue;
+                  }
+
+                  // Processar DATA
+                  if (dbCol === 'data') {
+                    const originalValue = value;
+                    value = convertDDMMYYYYToDate(value);
+                    if (!value) {
+                      throw new Error(`Data inválida na linha ${rowIndex + 2}: ${originalValue}`);
+                    }
+                  }
+
+                  // Processar ID (id_atendente)
+                  if (dbCol === 'id_atendente') {
+                    if (value && typeof value === 'string') {
+                      value = value.trim();
+                      if (value === '') {
+                        throw new Error(`ID do atendente vazio na linha ${rowIndex + 2}`);
+                      }
+                    } else if (value) {
+                      value = String(value).trim();
+                    } else {
+                      throw new Error(`ID do atendente inválido na linha ${rowIndex + 2}`);
+                    }
+                  }
+
+                  // Processar CIDADE
+                  if (dbCol === 'cidade') {
+                    if (value && typeof value === 'string') {
+                      value = validateString(value, 200, dbCol, true);
+                    } else if (value) {
+                      value = String(value).trim();
+                    } else {
+                      throw new Error(`Cidade vazia na linha ${rowIndex + 2}`);
+                    }
+                  }
+
+                  // Processar VALOR
+                  if (dbCol === 'valor') {
+                    if (value === null || value === undefined || value === '') {
+                      throw new Error(`Valor vazio na linha ${rowIndex + 2}`);
+                    }
+                    // Converter para número
+                    const numValue = typeof value === 'string' 
+                      ? parseFloat(value.replace(',', '.').replace(/[^\d.-]/g, ''))
+                      : Number(value);
+                    
+                    if (isNaN(numValue)) {
+                      throw new Error(`Valor inválido na linha ${rowIndex + 2}: ${value}`);
+                    }
+                    value = numValue;
+                  }
+
+                  sanitized[dbCol] = value;
+                }
+
+                return sanitized;
+              } catch (rowError: any) {
+                throw new Error(`Erro na linha ${rowIndex + 2}: ${rowError.message}`);
+              }
+            })
+            .filter((row: any) => {
+              // Filtrar linhas vazias
+              const hasData = Object.values(row).some((v) => v !== null && v !== undefined && v !== '');
+              return hasData;
+            });
+
+          if (sanitizedData.length === 0) {
+            console.error('Nenhum dado válido após processamento');
+            throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados.');
+          }
+
+          console.log(`Dados sanitizados: ${sanitizedData.length} linhas válidas`);
+          console.log('Exemplo de dado sanitizado:', sanitizedData[0]);
+
+          const totalRows = sanitizedData.length;
+          let insertedRows = 0;
+
+          // Inserir em lotes
+          console.log('Iniciando inserção no banco de dados...');
+          for (let i = 0; i < totalRows; i += BATCH_SIZE) {
+            const batch = sanitizedData.slice(i, i + BATCH_SIZE);
+            console.log(`Inserindo lote ${Math.floor(i / BATCH_SIZE) + 1}, ${batch.length} registros`);
+            
+            const { data: insertData, error: batchError } = await supabase
+              .from('dados_valores_cidade')
+              .insert(batch, { count: 'exact' })
+              .select();
+
+            if (batchError) {
+              console.error('Erro ao inserir lote:', batchError);
+              throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}${batchError.details ? ` (${batchError.details})` : ''}`);
+            }
+
+            insertedRows += batch.length;
+            totalInsertedRows += batch.length;
+            const batchProgress = (insertedRows / totalRows) * (80 / totalFiles);
+            setValoresCidadeProgress(10 + (fileIdx / totalFiles) * 80 + batchProgress);
+            setValoresCidadeProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${totalRows} linhas inseridas`);
+            console.log(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
+          }
+
+          console.log(`Arquivo ${file.name} processado com sucesso: ${insertedRows} registros inseridos`);
+          successCount++;
+        } catch (error: any) {
+          console.error(`❌ ERRO no arquivo ${file.name}:`, error);
+          console.error('Stack trace:', error?.stack);
+          errorCount++;
+          const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
+          lastError = errorMessage;
+          setValoresCidadeMessage(`⚠️ Erro ao processar ${file.name}: ${errorMessage}`);
+          safeLog.error(`Erro no arquivo ${file.name}:`, error);
+        }
+      }
+
+      setValoresCidadeProgress(100);
+      setValoresCidadeProgressLabel('Concluído!');
+
+      if (errorCount === 0) {
+        const successMsg = `✅ Upload concluído com sucesso! ${totalInsertedRows} registro(s) importado(s) de ${successCount} arquivo(s).`;
+        console.log(successMsg);
+        setValoresCidadeMessage(successMsg);
+      } else {
+        const errorMsg = `⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Total: ${totalInsertedRows} registro(s).${lastError ? ` Último erro: ${lastError}` : ''}`;
+        console.error(errorMsg);
+        setValoresCidadeMessage(errorMsg);
+      }
+
+      setValoresCidadeFiles([]);
+      const valoresCidadeFileInput = document.querySelector('input[type="file"][data-valores-cidade="true"]') as HTMLInputElement;
+      if (valoresCidadeFileInput) valoresCidadeFileInput.value = '';
+    } catch (error: any) {
+      console.error('❌ ERRO GERAL no upload de Valores por Cidade:', error);
+      console.error('Stack trace completo:', error?.stack);
+      safeLog.error('Erro no upload de Valores por Cidade:', error);
+      const errorMsg = `❌ Erro: ${error?.message || error?.toString() || 'Erro desconhecido'}`;
+      setValoresCidadeMessage(errorMsg);
+    } finally {
+      setUploadingValoresCidade(false);
+      console.log('Upload finalizado');
+    }
+  };
+
   // Mostrar loading enquanto verifica autenticação
   if (loading) {
     return (
@@ -1282,6 +1643,186 @@ export default function UploadPage() {
                       <span className={col.includes('*') ? 'text-red-600' : 'text-purple-600'}>
                         {col.includes('*') ? '⚠️' : '✓'}
                       </span>
+                      <code className="text-xs text-slate-700 dark:text-slate-300">{col}</code>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </div>
+          </div>
+
+          {/* Seção de Upload Valores por Cidade */}
+          <div className="mt-8 overflow-hidden rounded-3xl border border-emerald-200 bg-white shadow-2xl dark:border-emerald-900 dark:bg-slate-900">
+            {/* Header do Card Valores por Cidade */}
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-8 text-center">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <span className="text-4xl">💰</span>
+              </div>
+              <h2 className="text-3xl font-bold text-white">Upload de Valores por Cidade</h2>
+              <p className="mt-2 text-emerald-100">Importe planilha de Valores por Cidade (sobrescreve dados anteriores)</p>
+            </div>
+
+            {/* Conteúdo Valores por Cidade */}
+            <div className="p-8">
+              {/* Área de Upload Valores por Cidade */}
+              <div className="relative">
+                <input
+                  type="file"
+                  data-valores-cidade="true"
+                  accept=".xlsx, .xls"
+                  multiple
+                  onChange={handleValoresCidadeFileChange}
+                  disabled={uploadingValoresCidade}
+                  className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                />
+                <div className="rounded-2xl border-2 border-dashed border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 p-12 text-center transition-all duration-300 hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-100 hover:to-teal-100 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:border-emerald-700 dark:from-emerald-950/30 dark:to-teal-950/30 dark:hover:border-emerald-600">
+                  {valoresCidadeFiles.length === 0 ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                        <span className="text-3xl">📁</span>
+                      </div>
+                      <div>
+                        <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">
+                          Clique para selecionar ou arraste os arquivos aqui
+                        </p>
+                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                          ⚠️ Atenção: Os dados anteriores serão substituídos
+                        </p>
+                        <p className="mt-1 text-xs text-slate-400">Formatos aceitos: .xlsx, .xls</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                        <span className="text-3xl">✅</span>
+                      </div>
+                      <div>
+                        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
+                          {valoresCidadeFiles.length} arquivo(s) selecionado(s)
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Lista de Arquivos Valores por Cidade */}
+              {valoresCidadeFiles.length > 0 && !uploadingValoresCidade && (
+                <div className="mt-4 space-y-2">
+                  {valoresCidadeFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">📄</span>
+                        <div>
+                          <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeValoresCidadeFile(index)}
+                        className="rounded-lg bg-rose-100 p-2 text-rose-600 transition-colors hover:bg-rose-200 dark:bg-rose-950/30 dark:text-rose-400"
+                      >
+                        <span>🗑️</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Botão de Upload Valores por Cidade */}
+              <button
+                onClick={handleValoresCidadeUpload}
+                disabled={uploadingValoresCidade || valoresCidadeFiles.length === 0}
+                className="mt-6 w-full transform rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
+              >
+                {uploadingValoresCidade ? (
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    <span>Processando...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-xl">🚀</span>
+                    <span>Enviar {valoresCidadeFiles.length} Arquivo(s) Valores por Cidade</span>
+                  </div>
+                )}
+              </button>
+
+              {/* Barra de Progresso Valores por Cidade */}
+              {uploadingValoresCidade && (
+                <div className="mt-6 space-y-3 animate-in fade-in duration-300">
+                  <div className="overflow-hidden rounded-full bg-slate-200 shadow-inner dark:bg-slate-800">
+                    <div
+                      className="h-3 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 shadow-lg transition-all duration-500"
+                      style={{ width: `${valoresCidadeProgress}%` }}
+                    ></div>
+                  </div>
+                  {valoresCidadeProgressLabel && (
+                    <div className="text-center">
+                      <p className="font-semibold text-slate-700 dark:text-slate-300">{valoresCidadeProgressLabel}</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{valoresCidadeProgress.toFixed(1)}% concluído</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Mensagem de Status Valores por Cidade */}
+              {valoresCidadeMessage && (
+                <div
+                  className={`mt-6 animate-in fade-in slide-in-from-top-2 rounded-xl border-2 p-4 duration-300 ${
+                    valoresCidadeMessage.includes('✅')
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
+                      : valoresCidadeMessage.includes('❌')
+                      ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200'
+                      : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
+                  }`}
+                >
+                  <p className="font-medium">{valoresCidadeMessage}</p>
+                </div>
+              )}
+
+              {/* Informações Valores por Cidade */}
+              <div className="mt-8 rounded-xl bg-emerald-50 p-6 dark:bg-emerald-950/30">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">💡</span>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-emerald-900 dark:text-emerald-100">Importante sobre Valores por Cidade</h3>
+                    <ul className="mt-3 space-y-2 text-sm text-emerald-800 dark:text-emerald-200">
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-emerald-600">⚠️</span>
+                        <span><strong>Sobrescrita:</strong> Todos os dados anteriores serão removidos e substituídos pelos novos</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-emerald-600">•</span>
+                        <span>Formato de data: <strong>DD/MM/YYYY</strong> (ex: 14/11/2025)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-emerald-600">•</span>
+                        <span>Colunas obrigatórias: <strong>DATA</strong>, <strong>ID</strong>, <strong>CIDADE</strong>, <strong>VALOR</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-emerald-600">•</span>
+                        <span>O valor deve ser numérico (aceita vírgula ou ponto como separador decimal)</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Colunas Esperadas Valores por Cidade */}
+              <details className="mt-6 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
+                <summary className="cursor-pointer font-semibold text-slate-700 dark:text-slate-300">
+                  📋 Ver colunas esperadas na planilha Valores por Cidade
+                </summary>
+                <div className="mt-4 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+                  {Object.keys(VALORES_CIDADE_COLUMN_MAP).map((col) => (
+                    <div key={col} className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 dark:bg-slate-900">
+                      <span className="text-emerald-600">✓</span>
                       <code className="text-xs text-slate-700 dark:text-slate-300">{col}</code>
                     </div>
                   ))}

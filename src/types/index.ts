@@ -289,3 +289,31 @@ export interface AtendenteCidadeData {
   enviado: number;
   liberado: number;
 }
+
+export interface DadosValoresCidade {
+  id: number;
+  data: string; // DATE format (YYYY-MM-DD)
+  id_atendente: string;
+  cidade: string;
+  valor: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ValoresCidadeDateFilter {
+  dataInicial: string | null; // YYYY-MM-DD
+  dataFinal: string | null; // YYYY-MM-DD
+}
+
+export interface ValoresCidadePorCidade {
+  cidade: string;
+  valor_total: number;
+}
+
+// Mapeamento de IDs de atendentes para nomes
+export const MAPEAMENTO_ATENDENTES: { [key: string]: string } = {
+  '6905': 'Carol',
+  '4182': 'Mellisa',
+  '6976': 'Beatriz',
+  '5457': 'Fernanda',
+};
