@@ -6,6 +6,7 @@ import { ValoresCidadeDateFilter, ValoresCidadePorCidade, MarketingDateFilter } 
 import { safeLog } from '@/lib/errorHandler';
 import MarketingCard from '@/components/MarketingCard';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
+import CustoPorLiberadoCard from '@/components/CustoPorLiberadoCard';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -180,6 +181,8 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
           return {
             ...cidadeData,
             custo_por_liberado: custoPorLiberado,
+            quantidade_liberados: quantidadeLiberados,
+            valor_total_enviados: valorCidadeEnviados,
           };
         })
       );
@@ -354,13 +357,13 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {cidadesData.map((cidadeData) => (
-                <MarketingCard
+                <CustoPorLiberadoCard
                   key={`custo-${cidadeData.cidade}`}
-                  title={`${cidadeData.cidade} - Custo/Liberado`}
-                  value={cidadeData.custo_por_liberado || 0}
-                  icon="📊"
+                  cidade={cidadeData.cidade}
+                  custoPorLiberado={cidadeData.custo_por_liberado || 0}
+                  quantidadeLiberados={cidadeData.quantidade_liberados || 0}
+                  valorTotalEnviados={cidadeData.valor_total_enviados || 0}
                   color="purple"
-                  formatCurrency={true}
                 />
               ))}
             </div>

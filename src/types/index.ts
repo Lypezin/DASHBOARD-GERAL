@@ -309,6 +309,8 @@ export interface ValoresCidadePorCidade {
   cidade: string;
   valor_total: number;
   custo_por_liberado?: number;
+  quantidade_liberados?: number;
+  valor_total_enviados?: number; // Valor total no período de Enviados para calcular faltam
 }
 
 // Mapeamento de IDs de atendentes para nomes
