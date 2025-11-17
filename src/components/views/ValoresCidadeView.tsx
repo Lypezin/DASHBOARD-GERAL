@@ -9,12 +9,41 @@ import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+// Função auxiliar para construir query com filtro de data
+function buildDateFilterQuery(
+  query: any,
+  dateColumn: string,
+  filter: MarketingDateFilter
+) {
+  // Se não há filtro aplicado, contar apenas registros onde a data não é null
+  if (!filter.dataInicial && !filter.dataFinal) {
+    query = query.not(dateColumn, 'is', null);
+    return query;
+  }
+  
+  // Se há filtro, aplicar intervalo (não aplicar not null aqui)
+  if (filter.dataInicial) {
+    query = query.gte(dateColumn, filter.dataInicial);
+  }
+  if (filter.dataFinal) {
+    query = query.lte(dateColumn, filter.dataFinal);
+  }
+  
+  return query;
+}
+
 const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cidadesData, setCidadesData] = useState<ValoresCidadePorCidade[]>([]);
   const [totalGeral, setTotalGeral] = useState<number>(0);
+  const [custoPorLiberado, setCustoPorLiberado] = useState<number>(0);
+  const [quantidadeLiberados, setQuantidadeLiberados] = useState<number>(0);
   const [filter, setFilter] = useState<ValoresCidadeDateFilter>({
+    dataInicial: null,
+    dataFinal: null,
+  });
+  const [filterEnviados, setFilterEnviados] = useState<MarketingDateFilter>({
     dataInicial: null,
     dataFinal: null,
   });
@@ -24,7 +53,7 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
       setLoading(true);
       setError(null);
 
-      // Construir query base
+      // Construir query base para valores
       let query = supabase
         .from('dados_valores_cidade')
         .select('cidade, valor');
@@ -43,25 +72,21 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
         throw new Error(`Erro ao buscar dados: ${queryError.message}`);
       }
 
-      if (!data || data.length === 0) {
-        setCidadesData([]);
-        setTotalGeral(0);
-        return;
-      }
-
       // Agrupar por cidade e somar valores
       const cidadeMap = new Map<string, number>();
 
-      data.forEach((row: any) => {
-        const cidade = row.cidade || 'Não especificada';
-        const valor = Number(row.valor) || 0;
-        
-        if (cidadeMap.has(cidade)) {
-          cidadeMap.set(cidade, cidadeMap.get(cidade)! + valor);
-        } else {
-          cidadeMap.set(cidade, valor);
-        }
-      });
+      if (data && data.length > 0) {
+        data.forEach((row: any) => {
+          const cidade = row.cidade || 'Não especificada';
+          const valor = Number(row.valor) || 0;
+          
+          if (cidadeMap.has(cidade)) {
+            cidadeMap.set(cidade, cidadeMap.get(cidade)! + valor);
+          } else {
+            cidadeMap.set(cidade, valor);
+          }
+        });
+      }
 
       // Converter para array e ordenar por valor (decrescente)
       const cidadesArray: ValoresCidadePorCidade[] = Array.from(cidadeMap.entries())
@@ -73,9 +98,61 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
 
       setCidadesData(cidadesArray);
 
-      // Calcular total geral
+      // Calcular total geral (usando filtro de Data)
       const total = cidadesArray.reduce((sum, item) => sum + item.valor_total, 0);
       setTotalGeral(total);
+
+      // Buscar quantidade de liberados (com filtro de Enviados e status = 'Liberado')
+      let liberadosQuery = supabase
+        .from('dados_marketing')
+        .select('*', { count: 'exact', head: true });
+      
+      // Aplicar filtro de data_envio (filtro de Enviados)
+      liberadosQuery = buildDateFilterQuery(liberadosQuery, 'data_envio', filterEnviados);
+      
+      // Filtrar apenas os com status = 'Liberado'
+      liberadosQuery = liberadosQuery.eq('status', 'Liberado');
+
+      const { count: liberadosCount, error: liberadosError } = await liberadosQuery;
+
+      // Buscar valor total usando o mesmo filtro de Enviados para calcular custo por liberado
+      let valorTotalQuery = supabase
+        .from('dados_valores_cidade')
+        .select('valor');
+
+      // Aplicar filtro de data usando o filtro de Enviados
+      if (filterEnviados.dataInicial) {
+        valorTotalQuery = valorTotalQuery.gte('data', filterEnviados.dataInicial);
+      }
+      if (filterEnviados.dataFinal) {
+        valorTotalQuery = valorTotalQuery.lte('data', filterEnviados.dataFinal);
+      }
+
+      const { data: valorData, error: valorError } = await valorTotalQuery;
+      
+      // Calcular valor total para o período do filtro de Enviados
+      let valorTotalParaCusto = 0;
+      if (!valorError && valorData) {
+        valorTotalParaCusto = valorData.reduce((sum: number, row: any) => {
+          return sum + (Number(row.valor) || 0);
+        }, 0);
+      }
+
+      if (liberadosError) {
+        safeLog.warn('Erro ao buscar quantidade de liberados:', liberadosError);
+        setQuantidadeLiberados(0);
+        setCustoPorLiberado(0);
+      } else {
+        const quantidade = liberadosCount || 0;
+        setQuantidadeLiberados(quantidade);
+        
+        // Calcular custo por liberado: valor total (do período de Enviados) / quantidade de liberados
+        if (quantidade > 0) {
+          setCustoPorLiberado(valorTotalParaCusto / quantidade);
+        } else {
+          setCustoPorLiberado(0);
+        }
+      }
     } catch (err: any) {
       safeLog.error('Erro ao buscar dados de Valores por Cidade:', err);
       setError(err.message || 'Erro ao carregar dados de Valores por Cidade');
@@ -87,10 +164,14 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter.dataInicial, filter.dataFinal]);
+  }, [filter.dataInicial, filter.dataFinal, filterEnviados.dataInicial, filterEnviados.dataFinal]);
 
   const handleFilterChange = (newFilter: ValoresCidadeDateFilter) => {
     setFilter(newFilter);
+  };
+
+  const handleFilterEnviadosChange = (newFilter: MarketingDateFilter) => {
+    setFilterEnviados(newFilter);
   };
 
   if (loading) {
@@ -124,22 +205,35 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
 
   return (
     <div className="space-y-6">
-      {/* Filtro de Data */}
+      {/* Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <MarketingDateFilterComponent
           label="Filtro de Data"
           filter={filter as MarketingDateFilter}
           onFilterChange={(newFilter) => handleFilterChange(newFilter as ValoresCidadeDateFilter)}
         />
+        <MarketingDateFilterComponent
+          label="Filtro de Enviados"
+          filter={filterEnviados}
+          onFilterChange={handleFilterEnviadosChange}
+        />
       </div>
 
-      {/* Cartão de Total Geral */}
+      {/* Cartões Principais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MarketingCard
           title="Total Geral"
           value={totalGeral}
           icon="💰"
           color="green"
+          formatCurrency={true}
+        />
+        <MarketingCard
+          title="Custo por Liberado"
+          value={custoPorLiberado}
+          icon="📊"
+          color="purple"
+          formatCurrency={true}
         />
       </div>
 
@@ -163,6 +257,7 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
                 value={cidadeData.valor_total}
                 icon="🏙️"
                 color="blue"
+                formatCurrency={true}
               />
             ))}
           </div>

@@ -7,6 +7,7 @@ interface MarketingCardProps {
   value: number;
   icon: string;
   color?: 'blue' | 'green' | 'purple' | 'orange';
+  formatCurrency?: boolean; // Nova prop para formatação de moeda
 }
 
 const MarketingCard: React.FC<MarketingCardProps> = ({
@@ -14,7 +15,18 @@ const MarketingCard: React.FC<MarketingCardProps> = ({
   value,
   icon,
   color = 'purple',
+  formatCurrency = false,
 }) => {
+  // Função para formatar valor
+  const formatValue = (val: number): string => {
+    if (formatCurrency) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(val);
+    }
+    return val.toLocaleString('pt-BR');
+  };
   const colorClasses: Record<string, { gradient: string; bg: string; text: string }> = {
     blue: {
       gradient: 'from-blue-500 to-cyan-500',
@@ -48,7 +60,7 @@ const MarketingCard: React.FC<MarketingCardProps> = ({
         <div className="flex-1 min-w-0 pr-1 sm:pr-2">
           <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">{title}</p>
           <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white leading-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
-            {value.toLocaleString('pt-BR')}
+            {formatValue(value)}
           </p>
         </div>
         <div className={`flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br ${colors.gradient} text-lg sm:text-xl md:text-2xl text-white shadow-xl ring-2 ring-white/20 transition-all duration-300 group-hover:rotate-6 group-hover:scale-110 group-hover:shadow-2xl flex-shrink-0`}>
