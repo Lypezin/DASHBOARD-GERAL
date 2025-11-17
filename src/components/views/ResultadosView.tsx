@@ -9,6 +9,8 @@ import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Send, CheckCircle2 } from 'lucide-react';
+import MarketingCard from '@/components/MarketingCard';
+import CustoPorLiberadoCard from '@/components/CustoPorLiberadoCard';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -86,8 +88,16 @@ interface AtendenteData {
   nome: string;
   enviado: number;
   liberado: number;
+  custoPorLiberado?: number;
   fotoUrl?: string | null;
   cidades?: AtendenteCidadeData[];
+}
+
+interface CidadeCustoData {
+  cidade: string;
+  custoPorLiberado: number;
+  quantidadeLiberados: number;
+  valorTotal: number;
 }
 
 interface TotaisData {
@@ -106,13 +116,204 @@ const ResultadosView = React.memo(function ResultadosView() {
   const [filters, setFilters] = useState<{
     filtroLiberacao: MarketingDateFilter;
     filtroEnviados: MarketingDateFilter;
+    filtroEnviadosLiberados: MarketingDateFilter; // Novo filtro para Enviados com status Liberado
   }>({
     filtroLiberacao: { dataInicial: null, dataFinal: null },
     filtroEnviados: { dataInicial: null, dataFinal: null },
+    filtroEnviadosLiberados: { dataInicial: null, dataFinal: null },
   });
+  const [cidadesCustoData, setCidadesCustoData] = useState<CidadeCustoData[]>([]);
+
+  // Função para buscar custo por liberado por atendente e por cidade
+  const fetchCustoPorLiberado = async (atendentesDataAtual: AtendenteData[]) => {
+    try {
+      // Buscar valores por cidade usando o filtro de Enviados Liberados
+      let valoresQuery = supabase
+        .from('dados_valores_cidade')
+        .select('cidade, valor');
+
+      if (filters.filtroEnviadosLiberados.dataInicial) {
+        valoresQuery = valoresQuery.gte('data', filters.filtroEnviadosLiberados.dataInicial);
+      }
+      if (filters.filtroEnviadosLiberados.dataFinal) {
+        valoresQuery = valoresQuery.lte('data', filters.filtroEnviadosLiberados.dataFinal);
+      }
+
+      const { data: valoresData, error: valoresError } = await valoresQuery;
+
+      // Agrupar valores por cidade
+      const valoresPorCidade = new Map<string, number>();
+      if (!valoresError && valoresData) {
+        valoresData.forEach((row: any) => {
+          const cidade = row.cidade || 'Não especificada';
+          const valor = Number(row.valor) || 0;
+          if (valoresPorCidade.has(cidade)) {
+            valoresPorCidade.set(cidade, valoresPorCidade.get(cidade)! + valor);
+          } else {
+            valoresPorCidade.set(cidade, valor);
+          }
+        });
+      }
+
+      // Mapear nome da cidade para regiao_atuacao
+      const cidadeToRegiao: { [key: string]: string } = {
+        'SÃO PAULO': 'São Paulo 2.0',
+        'MANAUS': 'Manaus 2.0',
+        'ABC': 'ABC 2.0',
+        'SOROCABA': 'Sorocaba 2.0',
+        'GUARULHOS': 'Guarulhos 2.0',
+        'SALVADOR': 'Salvador 2.0',
+        'TABOÃO DA SERRA E EMBU DAS ARTES': 'Taboão da Serra e Embu das Artes 2.0',
+      };
+
+      // Calcular custo por liberado por atendente
+      const atendentesComCusto = await Promise.all(
+        atendentesDataAtual.map(async (atendente) => {
+          // Buscar liberados deste atendente (com filtro de Enviados Liberados e status = 'Liberado')
+          let liberadosQuery = supabase
+            .from('dados_marketing')
+            .select('*', { count: 'exact', head: true });
+
+          liberadosQuery = buildDateFilterQuery(liberadosQuery, 'data_envio', filters.filtroEnviadosLiberados);
+          liberadosQuery = liberadosQuery.eq('status', 'Liberado');
+          liberadosQuery = liberadosQuery.eq('responsavel', atendente.nome);
+
+          const { count: liberadosCount } = await liberadosQuery;
+          const quantidadeLiberados = liberadosCount || 0;
+
+          // Buscar valor total deste atendente (somar valores de todas as cidades que ele trabalha)
+          // Precisamos buscar as cidades que o atendente trabalha e somar os valores
+          let valorTotalAtendente = 0;
+          
+          // Buscar cidades que o atendente trabalha
+          let cidadesAtendenteQuery = supabase
+            .from('dados_marketing')
+            .select('regiao_atuacao, sub_praca_abc')
+            .eq('responsavel', atendente.nome)
+            .not('regiao_atuacao', 'is', null);
+
+          const { data: cidadesAtendente } = await cidadesAtendenteQuery;
+          
+          if (cidadesAtendente) {
+            const cidadesUnicas = new Set<string>();
+            cidadesAtendente.forEach((row: any) => {
+              let cidadeNome = '';
+              if (row.regiao_atuacao === 'ABC 2.0') {
+                if (SANTO_ANDRE_SUB_PRACAS.includes(row.sub_praca_abc)) {
+                  cidadeNome = 'Santo André';
+                } else if (SAO_BERNARDO_SUB_PRACAS.includes(row.sub_praca_abc)) {
+                  cidadeNome = 'São Bernardo';
+                } else {
+                  cidadeNome = 'ABC';
+                }
+              } else {
+                cidadeNome = row.regiao_atuacao;
+              }
+              cidadesUnicas.add(cidadeNome);
+            });
+
+            // Somar valores das cidades que o atendente trabalha
+            // Criar mapeamento reverso: regiao_atuacao -> nome da cidade em dados_valores_cidade
+            const regiaoToCidadeValores: { [key: string]: string } = {
+              'São Paulo 2.0': 'SÃO PAULO',
+              'Manaus 2.0': 'MANAUS',
+              'ABC 2.0': 'ABC',
+              'Sorocaba 2.0': 'SOROCABA',
+              'Guarulhos 2.0': 'GUARULHOS',
+              'Salvador 2.0': 'SALVADOR',
+              'Taboão da Serra e Embu das Artes 2.0': 'TABOÃO DA SERRA E EMBU DAS ARTES',
+            };
+
+            for (const cidadeNome of cidadesUnicas) {
+              // Tentar encontrar o valor usando o nome da cidade diretamente
+              let valorCidade = valoresPorCidade.get(cidadeNome) || 0;
+              
+              // Se não encontrou, tentar mapear
+              if (valorCidade === 0) {
+                // Se for uma cidade do ABC, tentar buscar por "ABC"
+                if (cidadeNome === 'Santo André' || cidadeNome === 'São Bernardo' || cidadeNome === 'ABC 2.0') {
+                  valorCidade = valoresPorCidade.get('ABC') || 0;
+                } else {
+                  // Tentar buscar pelo nome em maiúsculas
+                  const cidadeUpper = cidadeNome.toUpperCase();
+                  valorCidade = valoresPorCidade.get(cidadeUpper) || valoresPorCidade.get(cidadeNome) || 0;
+                }
+              }
+              
+              valorTotalAtendente += valorCidade;
+            }
+          }
+
+          // Calcular custo por liberado
+          let custoPorLiberado = 0;
+          if (quantidadeLiberados > 0) {
+            custoPorLiberado = valorTotalAtendente / quantidadeLiberados;
+          }
+
+          return {
+            ...atendente,
+            custoPorLiberado,
+          };
+        })
+      );
+
+      // Calcular custo por liberado por cidade (apenas cidades com valores)
+      const cidadesComCusto: CidadeCustoData[] = [];
+      
+      for (const [cidadeNome, valorTotal] of valoresPorCidade.entries()) {
+        const cidadeUpper = cidadeNome.toUpperCase();
+        const regiaoAtuacao = cidadeToRegiao[cidadeUpper] || cidadeNome;
+
+        // Buscar quantidade de liberados para esta cidade
+        let liberadosQuery = supabase
+          .from('dados_marketing')
+          .select('*', { count: 'exact', head: true });
+
+        liberadosQuery = buildDateFilterQuery(liberadosQuery, 'data_envio', filters.filtroEnviadosLiberados);
+        liberadosQuery = liberadosQuery.eq('status', 'Liberado');
+
+        // Mapear cidade para regiao_atuacao
+        // Cidades da tabela valores podem estar em maiúsculas ou formatos diferentes
+        if (cidadeUpper === 'ABC' || cidadeNome === 'ABC') {
+          // Para ABC, buscar todos do ABC 2.0 (sem filtrar sub_praca específica)
+          liberadosQuery = liberadosQuery.eq('regiao_atuacao', 'ABC 2.0');
+        } else if (cidadeNome === 'Santo André' || cidadeUpper === 'SANTO ANDRÉ') {
+          liberadosQuery = liberadosQuery
+            .eq('regiao_atuacao', 'ABC 2.0')
+            .in('sub_praca_abc', SANTO_ANDRE_SUB_PRACAS);
+        } else if (cidadeNome === 'São Bernardo' || cidadeUpper === 'SÃO BERNARDO') {
+          liberadosQuery = liberadosQuery
+            .eq('regiao_atuacao', 'ABC 2.0')
+            .in('sub_praca_abc', SAO_BERNARDO_SUB_PRACAS);
+        } else {
+          // Para outras cidades, usar o mapeamento
+          liberadosQuery = liberadosQuery.eq('regiao_atuacao', regiaoAtuacao);
+        }
+
+        const { count: liberadosCount } = await liberadosQuery;
+        const quantidadeLiberados = liberadosCount || 0;
+
+        if (quantidadeLiberados > 0) {
+          const custoPorLiberado = valorTotal / quantidadeLiberados;
+          cidadesComCusto.push({
+            cidade: cidadeNome,
+            custoPorLiberado,
+            quantidadeLiberados,
+            valorTotal,
+          });
+        }
+      }
+
+      setAtendentesData(atendentesComCusto);
+      setCidadesCustoData(cidadesComCusto.sort((a, b) => b.custoPorLiberado - a.custoPorLiberado));
+    } catch (err: any) {
+      safeLog.error('Erro ao buscar custo por liberado:', err);
+      // Não lançar erro, apenas logar
+    }
+  };
 
   // Função para buscar dados dos atendentes
-  const fetchAtendentesData = async () => {
+  const fetchAtendentesData = async (): Promise<AtendenteData[]> => {
     try {
       // Tentar usar RPC primeiro
       // Sempre passar todos os parâmetros (null quando não há filtro)
@@ -190,7 +391,7 @@ const ResultadosView = React.memo(function ResultadosView() {
           totalEnviado,
           totalLiberado,
         });
-        return;
+        return atendentesDataArray;
       }
 
       // Fallback para queries diretas
@@ -267,6 +468,7 @@ const ResultadosView = React.memo(function ResultadosView() {
         totalEnviado,
         totalLiberado,
       });
+      return atendentesDataArray;
     } catch (err: any) {
       safeLog.error('Erro ao buscar dados dos atendentes:', err);
       throw err;
@@ -280,7 +482,11 @@ const ResultadosView = React.memo(function ResultadosView() {
       setError(null);
 
       try {
-        await fetchAtendentesData();
+        const atendentesDataResult = await fetchAtendentesData();
+        // Buscar custo por liberado após buscar dados dos atendentes
+        if (atendentesDataResult && atendentesDataResult.length > 0) {
+          await fetchCustoPorLiberado(atendentesDataResult);
+        }
       } catch (err: any) {
         safeLog.error('Erro ao buscar dados de Resultados:', err);
         setError(err.message || 'Erro ao carregar dados de Resultados');
@@ -291,9 +497,9 @@ const ResultadosView = React.memo(function ResultadosView() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.filtroLiberacao, filters.filtroEnviados]);
+  }, [filters.filtroLiberacao, filters.filtroEnviados, filters.filtroEnviadosLiberados]);
 
-  const handleFilterChange = (filterName: 'filtroLiberacao' | 'filtroEnviados', filter: MarketingDateFilter) => {
+  const handleFilterChange = (filterName: 'filtroLiberacao' | 'filtroEnviados' | 'filtroEnviadosLiberados', filter: MarketingDateFilter) => {
     setFilters(prev => ({
       ...prev,
       [filterName]: filter,
@@ -381,7 +587,7 @@ const ResultadosView = React.memo(function ResultadosView() {
               </p>
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:via-slate-600"></div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <MarketingDateFilterComponent
                 label="Filtro de Liberação"
                 filter={filters.filtroLiberacao}
@@ -392,10 +598,82 @@ const ResultadosView = React.memo(function ResultadosView() {
                 filter={filters.filtroEnviados}
                 onFilterChange={(filter) => handleFilterChange('filtroEnviados', filter)}
               />
+              <MarketingDateFilterComponent
+                label="Filtro de Enviados (Liberados)"
+                filter={filters.filtroEnviadosLiberados}
+                onFilterChange={(filter) => handleFilterChange('filtroEnviadosLiberados', filter)}
+              />
             </div>
           </div>
         </Card>
       </div>
+
+      {/* Separador Visual */}
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
+        <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+          Resultados por Responsável
+          <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+        </h3>
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
+      </div>
+
+      {/* Seção de Custo por Liberado por Atendente */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+            Custo por Liberado por Atendente
+            <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+          </h3>
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {atendentesData
+            .filter(atendente => atendente.custoPorLiberado !== undefined && atendente.custoPorLiberado > 0)
+            .map((atendenteData) => (
+              <MarketingCard
+                key={`custo-${atendenteData.nome}`}
+                title={atendenteData.nome}
+                value={atendenteData.custoPorLiberado || 0}
+                icon="👤"
+                color="purple"
+                formatCurrency={true}
+              />
+            ))}
+        </div>
+      </div>
+
+      {/* Seção de Custo por Liberado por Cidade */}
+      {cidadesCustoData.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+              Custo por Liberado por Cidade
+              <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
+            </h3>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {cidadesCustoData.map((cidadeData) => (
+              <CustoPorLiberadoCard
+                key={`custo-cidade-${cidadeData.cidade}`}
+                cidade={cidadeData.cidade}
+                custoPorLiberado={cidadeData.custoPorLiberado}
+                quantidadeLiberados={cidadeData.quantidadeLiberados}
+                valorTotalEnviados={cidadeData.valorTotal}
+                color="purple"
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Separador Visual */}
       <div className="flex items-center gap-3">
@@ -459,6 +737,21 @@ const ResultadosView = React.memo(function ResultadosView() {
                     <p className="text-lg font-bold text-blue-900 dark:text-blue-100 font-mono">{atendenteData.liberado.toLocaleString('pt-BR')}</p>
                   </div>
                 </div>
+
+                {/* Custo por Liberado do Atendente */}
+                {atendenteData.custoPorLiberado !== undefined && atendenteData.custoPorLiberado > 0 && (
+                  <div className="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+                    <div className="rounded-lg bg-purple-50/80 p-2.5 dark:bg-purple-950/30">
+                      <p className="text-[10px] font-medium text-purple-700 dark:text-purple-300 mb-1">Custo por Liberado</p>
+                      <p className="text-lg font-bold text-purple-900 dark:text-purple-100 font-mono">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(atendenteData.custoPorLiberado)}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
               
               {/* Métricas por Cidade - Integradas */}
