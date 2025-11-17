@@ -288,6 +288,9 @@ export interface AtendenteCidadeData {
   cidade: string;
   enviado: number;
   liberado: number;
+  custoPorLiberado?: number;
+  quantidadeLiberados?: number;
+  valorTotal?: number;
 }
 
 export interface DadosValoresCidade {
