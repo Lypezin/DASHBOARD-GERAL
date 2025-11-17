@@ -983,9 +983,9 @@ export default function UploadPage() {
         if (rpcError) {
           console.error('Erro ao deletar via RPC:', rpcError);
           
-          // Fallback: tentar deletar em lotes menores se a função RPC não existir
-          if (rpcError.code === 'PGRST116' || rpcError.message?.includes('function') || rpcError.message?.includes('not found')) {
-            console.log('Função RPC não encontrada, usando fallback de deleção em lotes...');
+          // Fallback: tentar deletar em lotes menores se a função RPC não existir ou falhar
+          if (rpcError.code === 'PGRST116' || rpcError.message?.includes('function') || rpcError.message?.includes('not found') || rpcError.message?.includes('WHERE clause')) {
+            console.log('Função RPC não disponível ou bloqueada, usando fallback de deleção em lotes...');
             
             let deletedCount = 0;
             let hasMore = true;
@@ -1007,6 +1007,13 @@ export default function UploadPage() {
               }
               
               const idsToDelete = batchData.map(item => item.id);
+              
+              // Garantir que temos IDs para deletar
+              if (idsToDelete.length === 0) {
+                hasMore = false;
+                break;
+              }
+              
               console.log(`Deletando lote de ${idsToDelete.length} registros...`);
               
               const { error: deleteError } = await supabase
