@@ -186,19 +186,40 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
 
       setCidadesData(cidadesComCusto);
 
-      // Calcular média geral de custo por liberado (opcional, para o card principal)
+      // Calcular média geral de custo por liberado considerando apenas as cidades que têm valores
       const totalValorEnviados = Array.from(valoresEnviadosPorCidade.values()).reduce((sum, val) => sum + val, 0);
       
-      // Buscar total de liberados (todas as cidades)
-      let totalLiberadosQuery = supabase
-        .from('dados_marketing')
-        .select('*', { count: 'exact', head: true });
+      // Buscar total de liberados apenas das cidades que têm valores no período
+      // Usar as mesmas cidades que aparecem em valoresEnviadosPorCidade
+      const cidadesComValores = Array.from(valoresEnviadosPorCidade.keys());
       
-      totalLiberadosQuery = buildDateFilterQuery(totalLiberadosQuery, 'data_envio', filterEnviados);
-      totalLiberadosQuery = totalLiberadosQuery.eq('status', 'Liberado');
+      let totalLiberados = 0;
+      
+      // Somar liberados de cada cidade que tem valores
+      for (const cidadeNome of cidadesComValores) {
+        const cidadeUpper = cidadeNome.toUpperCase();
+        const regiaoAtuacao = cidadeToRegiao[cidadeUpper] || cidadeNome;
 
-      const { count: totalLiberadosCount } = await totalLiberadosQuery;
-      const totalLiberados = totalLiberadosCount || 0;
+        let liberadosQuery = supabase
+          .from('dados_marketing')
+          .select('*', { count: 'exact', head: true });
+
+        // Aplicar filtro de data_envio (filtro de Enviados)
+        liberadosQuery = buildDateFilterQuery(liberadosQuery, 'data_envio', filterEnviados);
+
+        // Filtrar por cidade e status Liberado
+        liberadosQuery = liberadosQuery.eq('status', 'Liberado');
+        
+        // Mapear cidade para regiao_atuacao
+        if (cidadeUpper === 'ABC') {
+          liberadosQuery = liberadosQuery.eq('regiao_atuacao', 'ABC 2.0');
+        } else {
+          liberadosQuery = liberadosQuery.eq('regiao_atuacao', regiaoAtuacao);
+        }
+
+        const { count: liberadosCount } = await liberadosQuery;
+        totalLiberados += liberadosCount || 0;
+      }
 
       if (totalLiberados > 0) {
         setCustoPorLiberado(totalValorEnviados / totalLiberados);
