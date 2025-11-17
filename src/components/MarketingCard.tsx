@@ -57,13 +57,13 @@ const MarketingCard: React.FC<MarketingCardProps> = ({
       <div className={`absolute right-0 top-0 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br ${colors.gradient} opacity-10 blur-3xl transition-opacity group-hover:opacity-25`}></div>
       
       <div className="relative flex items-start justify-between gap-2 sm:gap-3">
-        <div className="flex-1 min-w-0 pr-1 sm:pr-2">
+        <div className="flex-1 min-w-0 pr-2 sm:pr-3 overflow-hidden">
           <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">{title}</p>
-          <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white leading-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          <p className="mt-1 sm:mt-2 text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white leading-tight break-words" style={{ fontVariantNumeric: 'tabular-nums', wordBreak: 'break-word' }}>
             {formatValue(value)}
           </p>
         </div>
-        <div className={`flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br ${colors.gradient} text-lg sm:text-xl md:text-2xl text-white shadow-xl ring-2 ring-white/20 transition-all duration-300 group-hover:rotate-6 group-hover:scale-110 group-hover:shadow-2xl flex-shrink-0`}>
+        <div className={`flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br ${colors.gradient} text-lg sm:text-xl md:text-2xl text-white shadow-xl ring-2 ring-white/20 transition-all duration-300 group-hover:rotate-6 group-hover:scale-110 group-hover:shadow-2xl`}>
           {icon}
         </div>
       </div>

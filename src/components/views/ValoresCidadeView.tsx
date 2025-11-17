@@ -88,7 +88,7 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
         });
       }
 
-      // Converter para array e ordenar por valor (decrescente)
+      // Converter para array inicial
       const cidadesArray: ValoresCidadePorCidade[] = Array.from(cidadeMap.entries())
         .map(([cidade, valor_total]) => ({
           cidade,
@@ -96,63 +96,116 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
         }))
         .sort((a, b) => b.valor_total - a.valor_total);
 
-      setCidadesData(cidadesArray);
-
       // Calcular total geral (usando filtro de Data)
       const total = cidadesArray.reduce((sum, item) => sum + item.valor_total, 0);
       setTotalGeral(total);
 
-      // Buscar quantidade de liberados (com filtro de Enviados e status = 'Liberado')
-      let liberadosQuery = supabase
-        .from('dados_marketing')
-        .select('*', { count: 'exact', head: true });
-      
-      // Aplicar filtro de data_envio (filtro de Enviados)
-      liberadosQuery = buildDateFilterQuery(liberadosQuery, 'data_envio', filterEnviados);
-      
-      // Filtrar apenas os com status = 'Liberado'
-      liberadosQuery = liberadosQuery.eq('status', 'Liberado');
-
-      const { count: liberadosCount, error: liberadosError } = await liberadosQuery;
-
-      // Buscar valor total usando o mesmo filtro de Enviados para calcular custo por liberado
-      let valorTotalQuery = supabase
+      // Buscar valores por cidade usando o filtro de Enviados
+      let valoresEnviadosQuery = supabase
         .from('dados_valores_cidade')
-        .select('valor');
+        .select('cidade, valor');
 
       // Aplicar filtro de data usando o filtro de Enviados
       if (filterEnviados.dataInicial) {
-        valorTotalQuery = valorTotalQuery.gte('data', filterEnviados.dataInicial);
+        valoresEnviadosQuery = valoresEnviadosQuery.gte('data', filterEnviados.dataInicial);
       }
       if (filterEnviados.dataFinal) {
-        valorTotalQuery = valorTotalQuery.lte('data', filterEnviados.dataFinal);
+        valoresEnviadosQuery = valoresEnviadosQuery.lte('data', filterEnviados.dataFinal);
       }
 
-      const { data: valorData, error: valorError } = await valorTotalQuery;
+      const { data: valoresEnviadosData, error: valoresEnviadosError } = await valoresEnviadosQuery;
+
+      // Agrupar valores por cidade do período de Enviados
+      const valoresEnviadosPorCidade = new Map<string, number>();
+      if (!valoresEnviadosError && valoresEnviadosData) {
+        valoresEnviadosData.forEach((row: any) => {
+          const cidade = row.cidade || 'Não especificada';
+          const valor = Number(row.valor) || 0;
+          if (valoresEnviadosPorCidade.has(cidade)) {
+            valoresEnviadosPorCidade.set(cidade, valoresEnviadosPorCidade.get(cidade)! + valor);
+          } else {
+            valoresEnviadosPorCidade.set(cidade, valor);
+          }
+        });
+      }
+
+      // Buscar liberados por cidade (com filtro de Enviados e status = 'Liberado')
+      // Mapear nome da cidade para regiao_atuacao
+      const cidadeToRegiao: { [key: string]: string } = {
+        'SÃO PAULO': 'São Paulo 2.0',
+        'MANAUS': 'Manaus 2.0',
+        'ABC': 'ABC 2.0',
+        'SOROCABA': 'Sorocaba 2.0',
+        'GUARULHOS': 'Guarulhos 2.0',
+        'SALVADOR': 'Salvador 2.0',
+        'TABOÃO DA SERRA E EMBU DAS ARTES': 'Taboão da Serra e Embu das Artes 2.0',
+      };
+
+      // Calcular custo por liberado para cada cidade
+      const cidadesComCusto = await Promise.all(
+        cidadesArray.map(async (cidadeData) => {
+          const cidadeNome = cidadeData.cidade.toUpperCase();
+          const regiaoAtuacao = cidadeToRegiao[cidadeNome] || cidadeData.cidade;
+
+          // Buscar quantidade de liberados para esta cidade
+          let liberadosQuery = supabase
+            .from('dados_marketing')
+            .select('*', { count: 'exact', head: true });
+
+          // Aplicar filtro de data_envio (filtro de Enviados)
+          liberadosQuery = buildDateFilterQuery(liberadosQuery, 'data_envio', filterEnviados);
+
+          // Filtrar por cidade e status Liberado
+          liberadosQuery = liberadosQuery.eq('status', 'Liberado');
+          
+          // Mapear cidade para regiao_atuacao
+          if (cidadeNome === 'ABC') {
+            liberadosQuery = liberadosQuery.eq('regiao_atuacao', 'ABC 2.0');
+          } else {
+            liberadosQuery = liberadosQuery.eq('regiao_atuacao', regiaoAtuacao);
+          }
+
+          const { count: liberadosCount } = await liberadosQuery;
+          const quantidadeLiberados = liberadosCount || 0;
+
+          // Buscar valor total para esta cidade no período de Enviados
+          const valorCidadeEnviados = valoresEnviadosPorCidade.get(cidadeData.cidade) || 0;
+
+          // Calcular custo por liberado para esta cidade
+          let custoPorLiberado = 0;
+          if (quantidadeLiberados > 0) {
+            custoPorLiberado = valorCidadeEnviados / quantidadeLiberados;
+          }
+
+          return {
+            ...cidadeData,
+            custo_por_liberado: custoPorLiberado,
+          };
+        })
+      );
+
+      setCidadesData(cidadesComCusto);
+
+      // Calcular média geral de custo por liberado (opcional, para o card principal)
+      const totalValorEnviados = Array.from(valoresEnviadosPorCidade.values()).reduce((sum, val) => sum + val, 0);
       
-      // Calcular valor total para o período do filtro de Enviados
-      let valorTotalParaCusto = 0;
-      if (!valorError && valorData) {
-        valorTotalParaCusto = valorData.reduce((sum: number, row: any) => {
-          return sum + (Number(row.valor) || 0);
-        }, 0);
-      }
+      // Buscar total de liberados (todas as cidades)
+      let totalLiberadosQuery = supabase
+        .from('dados_marketing')
+        .select('*', { count: 'exact', head: true });
+      
+      totalLiberadosQuery = buildDateFilterQuery(totalLiberadosQuery, 'data_envio', filterEnviados);
+      totalLiberadosQuery = totalLiberadosQuery.eq('status', 'Liberado');
 
-      if (liberadosError) {
-        safeLog.warn('Erro ao buscar quantidade de liberados:', liberadosError);
-        setQuantidadeLiberados(0);
-        setCustoPorLiberado(0);
+      const { count: totalLiberadosCount } = await totalLiberadosQuery;
+      const totalLiberados = totalLiberadosCount || 0;
+
+      if (totalLiberados > 0) {
+        setCustoPorLiberado(totalValorEnviados / totalLiberados);
       } else {
-        const quantidade = liberadosCount || 0;
-        setQuantidadeLiberados(quantidade);
-        
-        // Calcular custo por liberado: valor total (do período de Enviados) / quantidade de liberados
-        if (quantidade > 0) {
-          setCustoPorLiberado(valorTotalParaCusto / quantidade);
-        } else {
-          setCustoPorLiberado(0);
-        }
+        setCustoPorLiberado(0);
       }
+      setQuantidadeLiberados(totalLiberados);
     } catch (err: any) {
       safeLog.error('Erro ao buscar dados de Valores por Cidade:', err);
       setError(err.message || 'Erro ao carregar dados de Valores por Cidade');
@@ -238,30 +291,60 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
       </div>
 
       {/* Cartões de Cidade */}
-      <div>
-        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
-          Valores por Cidade
-        </h3>
-        {cidadesData.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
-            <p className="text-slate-500 dark:text-slate-400">
-              Nenhum dado encontrado para o período selecionado.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cidadesData.map((cidadeData) => (
-              <MarketingCard
-                key={cidadeData.cidade}
-                title={cidadeData.cidade}
-                value={cidadeData.valor_total}
-                icon="🏙️"
-                color="blue"
-                formatCurrency={true}
-              />
-            ))}
-          </div>
-        )}
+      <div className="space-y-6">
+        {/* Valores por Cidade */}
+        <div>
+          <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+            Valores por Cidade
+          </h3>
+          {cidadesData.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
+              <p className="text-slate-500 dark:text-slate-400">
+                Nenhum dado encontrado para o período selecionado.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cidadesData.map((cidadeData) => (
+                <MarketingCard
+                  key={cidadeData.cidade}
+                  title={cidadeData.cidade}
+                  value={cidadeData.valor_total}
+                  icon="🏙️"
+                  color="blue"
+                  formatCurrency={true}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Custo por Liberado por Cidade */}
+        <div>
+          <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+            Custo por Liberado por Cidade
+          </h3>
+          {cidadesData.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
+              <p className="text-slate-500 dark:text-slate-400">
+                Nenhum dado encontrado para o período selecionado.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cidadesData.map((cidadeData) => (
+                <MarketingCard
+                  key={`custo-${cidadeData.cidade}`}
+                  title={`${cidadeData.cidade} - Custo/Liberado`}
+                  value={cidadeData.custo_por_liberado || 0}
+                  icon="📊"
+                  color="purple"
+                  formatCurrency={true}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

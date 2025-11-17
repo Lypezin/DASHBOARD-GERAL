@@ -308,6 +308,7 @@ export interface ValoresCidadeDateFilter {
 export interface ValoresCidadePorCidade {
   cidade: string;
   valor_total: number;
+  custo_por_liberado?: number;
 }
 
 // Mapeamento de IDs de atendentes para nomes
