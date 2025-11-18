@@ -1,175 +1,149 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Entregador, EntregadoresData } from '@/types';
+import { EntregadorMarketing } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import MetricCard from '../MetricCard';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-const EntregadoresView = React.memo(function EntregadoresView({
-  entregadoresData,
-  loading,
-}: {
-  entregadoresData: EntregadoresData | null;
-  loading: boolean;
-}) {
-  const [sortField, setSortField] = useState<keyof Entregador>('aderencia_percentual');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<Entregador[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+const EntregadoresView = React.memo(function EntregadoresView() {
+  const [entregadores, setEntregadores] = useState<EntregadorMarketing[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Pesquisa com debounce
   useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+    fetchEntregadores();
+  }, []);
 
-    if (!searchTerm.trim()) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-
-    setIsSearching(true);
-    searchTimeoutRef.current = setTimeout(async () => {
-      try {
-        const { data, error } = await safeRpc<Entregador[] | { entregadores: Entregador[] }>('pesquisar_entregadores', {
-          termo_busca: searchTerm.trim()
-        }, {
-          timeout: 30000,
-          validateParams: false // Desabilitar validação para evitar problemas
-        });
-
-        if (error) {
-          // Se for erro 500 ou similar, usar fallback local sem lançar erro
-          const errorCode = (error as any)?.code || '';
-          const errorMessage = String((error as any)?.message || '');
-          const is500 = errorCode === 'PGRST301' || 
-                       errorMessage.includes('500') || 
-                       errorMessage.includes('Internal Server Error');
-          
-          if (is500) {
-            // Erro 500: usar fallback local sem mostrar erro
-            if (IS_DEV) {
-              safeLog.warn('Erro 500 ao pesquisar entregadores, usando fallback local');
-            }
-            const filtered = (entregadoresData?.entregadores || []).filter(e => 
-              e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              e.id_entregador.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            setSearchResults(filtered);
-            setIsSearching(false);
-            return;
-          }
-          
-          throw error;
-        }
-        // A função pode retornar array direto ou objeto com propriedade entregadores
-        if (Array.isArray(data)) {
-          setSearchResults(data);
-        } else if (data && typeof data === 'object' && 'entregadores' in data) {
-          setSearchResults((data as { entregadores: Entregador[] }).entregadores || []);
-        } else {
-          setSearchResults([]);
-        }
-      } catch (err) {
-        if (IS_DEV) safeLog.error('Erro ao pesquisar entregadores:', err);
-        // Fallback para pesquisa local
-        const filtered = (entregadoresData?.entregadores || []).filter(e => 
-          e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          e.id_entregador.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setSearchResults(filtered);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 400);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [searchTerm, entregadoresData]);
-
-  // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
-  // Usar useMemo para evitar recriação desnecessária
-  const dataToDisplay = useMemo(() => {
+  const fetchEntregadores = async () => {
     try {
-      // Garantir que entregadoresData.entregadores existe e é um array
-      const baseData = entregadoresData?.entregadores;
-      const baseArray = Array.isArray(baseData) ? baseData : [];
-      return (searchTerm.trim() && Array.isArray(searchResults) && searchResults.length > 0) ? searchResults : baseArray;
-    } catch (err) {
-      safeLog.error('Erro ao processar dados de entregadores:', err);
-      setError('Erro ao processar dados. Tente recarregar a página.');
-      return [];
+      setLoading(true);
+      setError(null);
+
+      // Usar função RPC para buscar entregadores com dados agregados
+      const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', undefined, {
+        timeout: 30000,
+        validateParams: false
+      });
+
+      if (rpcError) {
+        // Se a função RPC não existir, fazer fallback para query direta
+        const errorCode = (rpcError as any)?.code || '';
+        const errorMessage = String((rpcError as any)?.message || '');
+        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                      errorCode === 'PGRST204' ||
+                      errorMessage.includes('404') || 
+                      errorMessage.includes('not found');
+
+        if (is404) {
+          // Função RPC não existe, usar fallback
+          if (IS_DEV) {
+            safeLog.warn('Função RPC get_entregadores_marketing não encontrada, usando fallback');
+          }
+          await fetchEntregadoresFallback();
+          return;
+        }
+        
+        throw rpcError;
+      }
+
+      if (!data || !Array.isArray(data)) {
+        setEntregadores([]);
+        setLoading(false);
+        return;
+      }
+
+      setEntregadores(data);
+
+      if (IS_DEV) {
+        safeLog.info(`✅ ${data.length} entregador(es) encontrado(s)`);
+      }
+    } catch (err: any) {
+      safeLog.error('Erro ao buscar entregadores:', err);
+      setError(err.message || 'Erro ao carregar entregadores');
+    } finally {
+      setLoading(false);
     }
-  }, [searchTerm, searchResults, entregadoresData]);
+  };
 
-  // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
-  // IMPORTANTE: useMemo deve estar antes de qualquer early return (regras dos hooks do React)
-  const sortedEntregadores: Entregador[] = useMemo(() => {
-    if (!Array.isArray(dataToDisplay) || dataToDisplay.length === 0) return [];
-    
-    // Criar uma cópia do array para não mutar o original
-    const dataCopy = [...dataToDisplay];
-    
-    return dataCopy.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-      
-      // Tratar valores nulos/undefined - colocar no final
-      if (aValue == null && bValue == null) return 0;
-      if (aValue == null) return 1;
-      if (bValue == null) return -1;
-      
-      // Se for campo de string (nome_entregador ou id_entregador)
-      if (sortField === 'nome_entregador' || sortField === 'id_entregador') {
-        const aStr = String(aValue).toLowerCase().trim();
-        const bStr = String(bValue).toLowerCase().trim();
-        const comparison = aStr.localeCompare(bStr, 'pt-BR', { sensitivity: 'base', numeric: true });
-        return sortDirection === 'asc' ? comparison : -comparison;
-      }
-      
-      // Para valores numéricos (todos os outros campos)
-      // Garantir conversão correta para número
-      const aNum = Number(aValue) || 0;
-      const bNum = Number(bValue) || 0;
-      
-      // Comparação numérica precisa
-      const comparison = aNum - bNum;
-      
-      // Se os números forem iguais, manter ordem estável usando nome como desempate
-      if (comparison === 0) {
-        const aNome = a.nome_entregador || '';
-        const bNome = b.nome_entregador || '';
-        return aNome.localeCompare(bNome, 'pt-BR');
-      }
-      
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-  }, [dataToDisplay, sortField, sortDirection]);
+  const fetchEntregadoresFallback = async () => {
+    try {
+      // Fallback: buscar entregadores que aparecem em ambas as tabelas
+      // Primeiro, buscar IDs únicos de entregadores do marketing
+      const { data: entregadoresIds, error: idsError } = await supabase
+        .from('dados_marketing')
+        .select('id_entregador, nome')
+        .not('id_entregador', 'is', null);
 
-  const handleSort = (field: keyof Entregador) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
+      if (idsError) throw idsError;
+
+      if (!entregadoresIds || entregadoresIds.length === 0) {
+        setEntregadores([]);
+        return;
+      }
+
+      // Para cada entregador, verificar se existe em dados_corridas e agregar
+      const entregadoresComDados: EntregadorMarketing[] = [];
+
+      for (const entregador of entregadoresIds) {
+        if (!entregador.id_entregador) continue;
+
+        // Verificar se o ID existe em dados_corridas e agregar
+        const { data: corridasData, error: corridasError } = await supabase
+          .from('dados_corridas')
+          .select('numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas')
+          .eq('id_da_pessoa_entregadora', entregador.id_entregador);
+
+        if (corridasError) {
+          if (IS_DEV) {
+            safeLog.warn(`Erro ao buscar corridas para entregador ${entregador.id_entregador}:`, corridasError);
+          }
+          continue;
+        }
+
+        // Se não há corridas, pular este entregador
+        if (!corridasData || corridasData.length === 0) {
+          continue;
+        }
+
+        // Agregar dados
+        const total_ofertadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_ofertadas || 0), 0);
+        const total_aceitas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_aceitas || 0), 0);
+        const total_completadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_completadas || 0), 0);
+        const total_rejeitadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_rejeitadas || 0), 0);
+
+        entregadoresComDados.push({
+          id_entregador: entregador.id_entregador,
+          nome: entregador.nome || 'Nome não informado',
+          total_ofertadas,
+          total_aceitas,
+          total_completadas,
+          total_rejeitadas,
+        });
+      }
+
+      // Ordenar por nome
+      entregadoresComDados.sort((a, b) => a.nome.localeCompare(b.nome));
+
+      setEntregadores(entregadoresComDados);
+
+      if (IS_DEV) {
+        safeLog.info(`✅ ${entregadoresComDados.length} entregador(es) encontrado(s) (fallback)`);
+      }
+    } catch (err: any) {
+      safeLog.error('Erro no fallback ao buscar entregadores:', err);
+      throw err;
     }
   };
 
   if (loading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
+      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando entregadores...</p>
+          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div>
+          <p className="mt-4 text-lg font-semibold text-purple-700 dark:text-purple-200">Carregando entregadores...</p>
         </div>
       </div>
     );
@@ -177,283 +151,117 @@ const EntregadoresView = React.memo(function EntregadoresView({
 
   if (error) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="max-w-md mx-auto rounded-xl border border-rose-200 bg-white p-6 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
-          <div className="text-4xl mb-4">⚠️</div>
-          <p className="text-lg font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
+      <div className="flex h-[60vh] items-center justify-center animate-fade-in">
+        <div className="max-w-sm mx-auto rounded-xl border border-rose-200 bg-white p-6 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
+          <div className="text-4xl">⚠️</div>
+          <p className="mt-4 text-lg font-bold text-rose-900 dark:text-rose-100">Erro ao carregar entregadores</p>
           <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>
           <button
-            onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105"
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              fetchEntregadores();
+            }}
+            className="mt-4 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-rose-700"
           >
-            Tentar novamente
+            Tentar Novamente
           </button>
         </div>
       </div>
     );
   }
 
-  if (!entregadoresData) {
-    return (
-      <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center dark:border-rose-900 dark:bg-rose-950/30">
-        <p className="text-lg font-semibold text-rose-900 dark:text-rose-100">Erro ao carregar entregadores</p>
-        <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">A função listar_entregadores não está disponível ou ocorreu um erro no servidor (500). Verifique os logs do banco de dados.</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105"
-        >
-          Tentar novamente
-        </button>
-      </div>
-    );
-  }
-
-  // Garantir que entregadores existe e é um array
-  const entregadores = Array.isArray(entregadoresData?.entregadores) 
-    ? entregadoresData.entregadores 
-    : [];
-
-  if (entregadores.length === 0) {
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
-        <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Nenhum entregador encontrado</p>
-        <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">Tente ajustar os filtros para ver os dados.</p>
-      </div>
-    );
-  }
-
-  const SortIcon = ({ field }: { field: keyof Entregador }) => {
-    if (sortField !== field) {
-      return <span className="ml-1 text-slate-400">⇅</span>;
-    }
-    return <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
-  };
-
-  const getAderenciaColor = (aderencia: number) => {
-    if (aderencia >= 90) return 'text-emerald-700 dark:text-emerald-400';
-    if (aderencia >= 70) return 'text-amber-700 dark:text-amber-400';
-    return 'text-rose-700 dark:text-rose-400';
-  };
-
-  const getAderenciaBg = (aderencia: number) => {
-    if (aderencia >= 90) return 'bg-emerald-50 dark:bg-emerald-950/30';
-    if (aderencia >= 70) return 'bg-amber-50 dark:bg-amber-950/30';
-    return 'bg-rose-50 dark:bg-rose-950/30';
-  };
-
-  const getRejeicaoColor = (rejeicao: number) => {
-    if (rejeicao <= 10) return 'text-emerald-700 dark:text-emerald-400';
-    if (rejeicao <= 30) return 'text-amber-700 dark:text-amber-400';
-    return 'text-rose-700 dark:text-rose-400';
-  };
-
-  const getRejeicaoBg = (rejeicao: number) => {
-    if (rejeicao <= 10) return 'bg-emerald-50 dark:bg-emerald-950/30';
-    if (rejeicao <= 30) return 'bg-amber-50 dark:bg-amber-950/30';
-    return 'bg-rose-50 dark:bg-rose-950/30';
-  };
-
-  // Calcular estatísticas gerais
-  const totalOfertadas = dataToDisplay.reduce((sum, e) => sum + e.corridas_ofertadas, 0);
-  const totalAceitas = dataToDisplay.reduce((sum, e) => sum + e.corridas_aceitas, 0);
-  const totalRejeitadas = dataToDisplay.reduce((sum, e) => sum + e.corridas_rejeitadas, 0);
-  const totalCompletadas = dataToDisplay.reduce((sum, e) => sum + e.corridas_completadas, 0);
-  const totalEntregadores = dataToDisplay.length;
-  const aderenciaMedia = totalEntregadores > 0 ? dataToDisplay.reduce((sum, e) => sum + e.aderencia_percentual, 0) / totalEntregadores : 0;
-  const rejeicaoMedia = totalEntregadores > 0 ? dataToDisplay.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / totalEntregadores : 0;
-
   return (
-    <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
-      {/* Barra de Pesquisa */}
-      <div className="rounded-lg sm:rounded-xl border border-blue-200 bg-white p-3 sm:p-4 shadow-lg dark:border-blue-800 dark:bg-slate-900">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="🔍 Pesquisar entregador por nome ou ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 sm:px-4 py-2.5 sm:py-3 pl-10 sm:pl-12 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
-          />
-          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
-            {isSearching ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600"></div>
-            ) : (
-              <span className="text-lg">🔍</span>
-            )}
-          </div>
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
-            >
-              <span className="text-lg">✕</span>
-            </button>
-          )}
-        </div>
-        {searchTerm && (
-          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
-            {isSearching ? (
-              'Pesquisando...'
-            ) : (
-              `Encontrado${totalEntregadores === 1 ? '' : 's'} ${totalEntregadores} resultado${totalEntregadores === 1 ? '' : 's'}`
-            )}
-          </p>
-        )}
-      </div>
-
-      {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-        <MetricCard
-          title="Entregadores"
-          value={totalEntregadores}
-          icon="👥"
-          color="blue"
-        />
-        <MetricCard
-          title="Ofertadas"
-          value={totalOfertadas}
-          icon="📢"
-          color="purple"
-        />
-        <MetricCard
-          title="Aceitas"
-          value={totalAceitas}
-          icon="✅"
-          color="green"
-        />
-        <MetricCard
-          title="Rejeitadas"
-          value={totalRejeitadas}
-          icon="❌"
-          color="red"
-        />
-        <MetricCard
-          title="Completadas"
-          value={totalCompletadas}
-          icon="🏁"
-          color="cyan"
-        />
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Médias</p>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-600 dark:text-slate-400">Aderência:</span>
-                <span className={`text-sm font-bold ${getAderenciaColor(aderenciaMedia)}`}>{aderenciaMedia.toFixed(1)}%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-600 dark:text-slate-400">Rejeição:</span>
-                <span className={`text-sm font-bold ${getRejeicaoColor(rejeicaoMedia)}`}>{rejeicaoMedia.toFixed(1)}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-6 dark:border-purple-900 dark:from-purple-950/30 dark:to-pink-950/30">
+        <h2 className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+          Entregadores do Marketing
+        </h2>
+        <p className="mt-2 text-sm text-purple-700 dark:text-purple-300">
+          Entregadores que aparecem tanto no marketing quanto nas corridas ({entregadores.length} entregador{entregadores.length !== 1 ? 'es' : ''})
+        </p>
       </div>
 
       {/* Tabela de Entregadores */}
-      <div className="rounded-lg sm:rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-800 dark:bg-slate-900 overflow-hidden">
-        <div className="max-h-[500px] sm:max-h-[600px] overflow-x-auto overflow-y-auto">
-          <table className="w-full min-w-[800px]">
-            <thead className="sticky top-0 z-10">
-              <tr className="border-b border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-left text-xs sm:text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50 whitespace-nowrap"
-                  onClick={() => handleSort('nome_entregador')}
-                >
-                  <span className="hidden sm:inline">Entregador</span>
-                  <span className="sm:hidden">Nome</span>
-                  <SortIcon field="nome_entregador" />
-                </th>
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50 whitespace-nowrap"
-                  onClick={() => handleSort('corridas_ofertadas')}
-                >
-                  <span className="hidden md:inline">Ofertadas</span>
-                  <span className="md:hidden">Of.</span>
-                  <SortIcon field="corridas_ofertadas" />
-                </th>
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50 whitespace-nowrap"
-                  onClick={() => handleSort('corridas_aceitas')}
-                >
-                  <span className="hidden md:inline">Aceitas</span>
-                  <span className="md:hidden">Ac.</span>
-                  <SortIcon field="corridas_aceitas" />
-                </th>
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50 whitespace-nowrap"
-                  onClick={() => handleSort('corridas_rejeitadas')}
-                >
-                  <span className="hidden md:inline">Rejeitadas</span>
-                  <span className="md:hidden">Rej.</span>
-                  <SortIcon field="corridas_rejeitadas" />
-                </th>
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50 whitespace-nowrap"
-                  onClick={() => handleSort('corridas_completadas')}
-                >
-                  <span className="hidden md:inline">Completadas</span>
-                  <span className="md:hidden">Comp.</span>
-                  <SortIcon field="corridas_completadas" />
-                </th>
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50 whitespace-nowrap"
-                  onClick={() => handleSort('aderencia_percentual')}
-                >
-                  <span className="hidden sm:inline">Aderência</span>
-                  <span className="sm:hidden">Ad.</span>
-                  <SortIcon field="aderencia_percentual" />
-                </th>
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 dark:text-blue-100 dark:hover:bg-blue-900/50 whitespace-nowrap"
-                  onClick={() => handleSort('rejeicao_percentual')}
-                >
-                  <span className="hidden sm:inline">% Rejeição</span>
-                  <span className="sm:hidden">% Rej.</span>
-                  <SortIcon field="rejeicao_percentual" />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedEntregadores.map((entregador, index) => {
-                // Garantir que o número seja sempre sequencial (ranking)
-                const ranking = index + 1;
-                
-                return (
-                <tr
-                  key={`${entregador.id_entregador}-${sortField}-${sortDirection}-${ranking}`}
-                  className={`border-b border-blue-100 transition-colors hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-950/20 ${
-                    ranking % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/30 dark:bg-slate-800/30'
-                  }`}
-                >
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-semibold text-xs sm:text-sm text-slate-900 dark:text-white">{entregador.nome_entregador}</td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{entregador.corridas_ofertadas.toLocaleString('pt-BR')}</td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{entregador.corridas_aceitas.toLocaleString('pt-BR')}</td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-rose-700 dark:text-rose-400 whitespace-nowrap">{entregador.corridas_rejeitadas.toLocaleString('pt-BR')}</td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-blue-700 dark:text-blue-400 whitespace-nowrap">{entregador.corridas_completadas.toLocaleString('pt-BR')}</td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-                    <div className={`flex items-center justify-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-3 py-1 sm:py-2 ${getAderenciaBg(entregador.aderencia_percentual ?? 0)} whitespace-nowrap`}>
-                      <span className={`text-xs sm:text-sm md:text-base font-bold ${getAderenciaColor(entregador.aderencia_percentual ?? 0)}`}>
-                        {(entregador.aderencia_percentual ?? 0).toFixed(2)}%
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-                    <div className={`flex items-center justify-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-3 py-1 sm:py-2 ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)} whitespace-nowrap`}>
-                      <span className={`text-xs sm:text-sm md:text-base font-bold ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)}`}>
-                        {(entregador.rejeicao_percentual ?? 0).toFixed(2)}%
-                      </span>
-                    </div>
-                  </td>
+      {entregadores.length > 0 ? (
+        <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    ID
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    Nome
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    Ofertadas
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    Aceitas
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    Completadas
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    Rejeitadas
+                  </th>
                 </tr>
-                );
-              })}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                {entregadores.map((entregador, idx) => (
+                  <tr
+                    key={entregador.id_entregador}
+                    className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-mono text-slate-600 dark:text-slate-400">
+                        {entregador.id_entregador.substring(0, 8)}...
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-slate-900 dark:text-white">
+                        {entregador.nome}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                        {entregador.total_ofertadas.toLocaleString('pt-BR')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                        {entregador.total_aceitas.toLocaleString('pt-BR')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                        {entregador.total_completadas.toLocaleString('pt-BR')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">
+                        {entregador.total_rejeitadas.toLocaleString('pt-BR')}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900 dark:bg-amber-950/30">
+          <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">
+            Nenhum entregador encontrado
+          </p>
+          <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+            Não há entregadores que aparecem tanto no marketing quanto nas corridas.
+          </p>
+        </div>
+      )}
     </div>
   );
 });

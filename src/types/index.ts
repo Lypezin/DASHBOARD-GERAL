@@ -283,6 +283,15 @@ export interface MarketingTotals {
   rodandoInicio: number; // Contagem com filtro de Rodou Dia
 }
 
+export interface EntregadorMarketing {
+  id_entregador: string;
+  nome: string;
+  total_ofertadas: number;
+  total_aceitas: number;
+  total_completadas: number;
+  total_rejeitadas: number;
+}
+
 export interface AtendenteCidadeData {
   atendente: string;
   cidade: string;

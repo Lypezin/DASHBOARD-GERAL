@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import MarketingDashboardView from './MarketingDashboardView';
 import ResultadosView from './ResultadosView';
 import ValoresCidadeView from './ValoresCidadeView';
+import EntregadoresView from './EntregadoresView';
 import TabButton from '@/components/TabButton';
 
 const MarketingView = React.memo(function MarketingView() {
-  const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'resultados' | 'valores-cidade'>('dashboard');
+  const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'resultados' | 'valores-cidade' | 'entregadores'>('dashboard');
 
   return (
     <div className="space-y-6">
@@ -29,6 +30,11 @@ const MarketingView = React.memo(function MarketingView() {
             active={activeSubTab === 'valores-cidade'}
             onClick={() => setActiveSubTab('valores-cidade')}
           />
+          <TabButton
+            label="Entregadores"
+            active={activeSubTab === 'entregadores'}
+            onClick={() => setActiveSubTab('entregadores')}
+          />
         </div>
       </div>
 
@@ -36,6 +42,7 @@ const MarketingView = React.memo(function MarketingView() {
       {activeSubTab === 'dashboard' && <MarketingDashboardView />}
       {activeSubTab === 'resultados' && <ResultadosView />}
       {activeSubTab === 'valores-cidade' && <ValoresCidadeView />}
+      {activeSubTab === 'entregadores' && <EntregadoresView />}
     </div>
   );
 });
