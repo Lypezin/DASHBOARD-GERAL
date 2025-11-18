@@ -194,8 +194,8 @@ function MonitoramentoView() {
       setError(null);
       
       // Buscar usuários online
-      // A função não aceita parâmetros, então passamos null em vez de {}
-      const { data, error } = await safeRpc<UsuarioOnline[]>('listar_usuarios_online', null, {
+      // A função não aceita parâmetros, então passamos undefined
+      const { data, error } = await safeRpc<UsuarioOnline[]>('listar_usuarios_online', undefined, {
         timeout: 20000, // Reduzido para 20s
         validateParams: false
       });
@@ -260,14 +260,25 @@ function MonitoramentoView() {
       }
       
       // Validar dados recebidos
-      if (!data || !Array.isArray(data)) {
-        safeLog.warn('Dados de usuários online inválidos:', data);
+      if (!data) {
+        // Se data é null/undefined mas não há erro, pode ser que a função retornou vazio
+        if (IS_DEV) {
+          safeLog.warn('Função listar_usuarios_online retornou null/undefined. Verificando se há usuários online...');
+        }
+        setUsuarios([]);
+        return;
+      }
+      
+      if (!Array.isArray(data)) {
+        safeLog.warn('Dados de usuários online inválidos (não é array):', data);
         setUsuarios([]);
         return;
       }
       
       if (data.length > 0) {
         safeLog.info(`✅ ${data.length} usuário(s) online encontrado(s)`);
+      } else if (IS_DEV) {
+        safeLog.info('ℹ️ Nenhum usuário online no momento (array vazio)');
       }
       
       // Buscar atividades recentes (últimas 100) - com tratamento de erro não bloqueante
