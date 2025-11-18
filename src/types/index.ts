@@ -293,6 +293,7 @@ export interface EntregadorMarketing {
   total_segundos: number;
   ultima_data: string | null;
   dias_sem_rodar: number | null;
+  regiao_atuacao: string | null;
 }
 
 export interface AtendenteCidadeData {

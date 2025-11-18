@@ -32,6 +32,20 @@ const EntregadoresView = React.memo(function EntregadoresView({
     dataInicial: null,
     dataFinal: null,
   });
+  const [cidadeSelecionada, setCidadeSelecionada] = useState<string>('');
+
+  // Lista de cidades disponíveis (mesmas do MarketingDashboardView)
+  const CIDADES = [
+    '',
+    'São Paulo 2.0',
+    'Salvador 2.0',
+    'Guarulhos 2.0',
+    'Manaus 2.0',
+    'Sorocaba 2.0',
+    'Taboão da Serra e Embu das Artes 2.0',
+    'Santo André',
+    'São Bernardo',
+  ];
 
   const fetchEntregadoresFallback = useCallback(async () => {
     try {
@@ -89,6 +103,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
           total_segundos: 0, // Fallback não calcula horas
           ultima_data: null, // Fallback não calcula última data
           dias_sem_rodar: null, // Fallback não calcula dias sem rodar
+          regiao_atuacao: null, // Fallback não calcula região
         });
       }
 
@@ -111,16 +126,22 @@ const EntregadoresView = React.memo(function EntregadoresView({
       setLoading(true);
       setError(null);
 
-      // Preparar parâmetros do filtro rodou_dia
-      const params = filtroRodouDia.dataInicial || filtroRodouDia.dataFinal
-        ? {
-            rodou_dia_inicial: filtroRodouDia.dataInicial || null,
-            rodou_dia_final: filtroRodouDia.dataFinal || null,
-          }
-        : undefined;
+      // Preparar parâmetros do filtro rodou_dia e cidade
+      const params: any = {};
+      
+      if (filtroRodouDia.dataInicial || filtroRodouDia.dataFinal) {
+        params.rodou_dia_inicial = filtroRodouDia.dataInicial || null;
+        params.rodou_dia_final = filtroRodouDia.dataFinal || null;
+      }
+      
+      if (cidadeSelecionada) {
+        params.cidade = cidadeSelecionada;
+      }
+      
+      const finalParams = Object.keys(params).length > 0 ? params : undefined;
 
       // Usar função RPC para buscar entregadores com dados agregados
-      const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', params, {
+      const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', finalParams, {
         timeout: 30000,
         validateParams: false
       });
@@ -163,7 +184,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
     } finally {
       setLoading(false);
     }
-  }, [fetchEntregadoresFallback, filtroRodouDia]);
+  }, [fetchEntregadoresFallback, filtroRodouDia, cidadeSelecionada]);
 
   useEffect(() => {
     // Se não houver props (guia de marketing), buscar dados
@@ -181,6 +202,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
         total_segundos: 0, // EntregadoresData não tem horas
         ultima_data: null, // EntregadoresData não tem última data
         dias_sem_rodar: null, // EntregadoresData não tem dias sem rodar
+        regiao_atuacao: null, // EntregadoresData não tem região
       }));
       setEntregadores(converted);
       setLoading(false);
@@ -188,7 +210,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
       // Se loading for fornecido externamente, usar ele
       setLoading(externalLoading || false);
     }
-  }, [entregadoresData, externalLoading, fetchEntregadores, filtroRodouDia]);
+  }, [entregadoresData, externalLoading, fetchEntregadores, filtroRodouDia, cidadeSelecionada]);
 
   // Usar loading externo se fornecido, senão usar loading interno
   const isLoading = externalLoading !== undefined ? externalLoading : loading;
@@ -230,6 +252,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
       const dadosExportacao = entregadoresFiltrados.map((entregador) => ({
         'ID Entregador': entregador.id_entregador,
         'Nome': entregador.nome,
+        'Cidade': entregador.regiao_atuacao || 'N/A',
         'Total Ofertadas': entregador.total_ofertadas,
         'Total Aceitas': entregador.total_aceitas,
         'Total Completadas': entregador.total_completadas,
@@ -251,6 +274,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
       const colWidths = [
         { wch: 36 }, // ID Entregador
         { wch: 40 }, // Nome
+        { wch: 30 }, // Cidade
         { wch: 15 }, // Total Ofertadas
         { wch: 15 }, // Total Aceitas
         { wch: 18 }, // Total Completadas
@@ -339,7 +363,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
       </div>
 
       {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Campo de Busca */}
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
           <div className="relative">
@@ -352,6 +376,24 @@ const EntregadoresView = React.memo(function EntregadoresView({
               className="pl-10 w-full"
             />
           </div>
+        </div>
+
+        {/* Filtro de Cidade */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Cidade
+          </label>
+          <select
+            value={cidadeSelecionada}
+            onChange={(e) => setCidadeSelecionada(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition-colors focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-purple-400"
+          >
+            {CIDADES.map((cidade) => (
+              <option key={cidade} value={cidade}>
+                {cidade || 'Todas as cidades'}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Filtro Rodou Dia */}
