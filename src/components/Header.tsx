@@ -148,10 +148,13 @@ export function Header() {
           return;
         }
         
-        // Erro de autenticação após retry - mas NÃO redirecionar, apenas mostrar header sem usuário
-        if (IS_DEV) safeLog.warn('[Header] Usuário não autenticado após retry, mostrando header sem usuário');
+        // Erro de autenticação após retry - redirecionar para login
+        if (IS_DEV) safeLog.warn('[Header] Usuário não autenticado após retry, redirecionando para login');
         setIsLoading(false);
-        // NÃO redirecionar para login - deixar o usuário ver o header
+        // Redirecionar para login se não estiver na página de login
+        if (pathname !== '/login' && pathname !== '/registro') {
+          router.push('/login');
+        }
         return;
       }
       

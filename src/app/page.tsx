@@ -103,6 +103,9 @@ import { useTabData } from '@/hooks/useTabData'; // Importa o novo hook
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade' | 'comparacao' | 'marketing'>('dashboard');
   const [filters, setFilters] = useState<Filters>({ 
     ano: null, 
@@ -136,6 +139,99 @@ export default function DashboardPage() {
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
   const [chartReady, setChartReady] = useState(false);
+
+  // Verificar autenticação antes de permitir acesso
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      try {
+        // Verificar sessão atual (não apenas getUser, mas também getSession para garantir validade)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session || !session.user) {
+          // Sem sessão válida - limpar qualquer sessão antiga e redirecionar
+          if (IS_DEV) {
+            safeLog.warn('[DashboardPage] Sem sessão válida, limpando e redirecionando para login');
+          }
+          await supabase.auth.signOut();
+          // Limpar localStorage do Supabase
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('supabase.auth.token');
+            const keysToRemove: string[] = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+          }
+          router.push('/login');
+          return;
+        }
+
+        // Verificar se o usuário está aprovado
+        try {
+          const { data: profile, error: profileError } = await safeRpc<{ is_approved: boolean }>('get_current_user_profile', {}, {
+            timeout: 10000,
+            validateParams: false
+          });
+
+          if (profileError) {
+            // Erro ao buscar perfil - fazer logout e redirecionar
+            if (IS_DEV) {
+              safeLog.warn('[DashboardPage] Erro ao buscar perfil, fazendo logout:', profileError);
+            }
+            await supabase.auth.signOut();
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('supabase.auth.token');
+            }
+            router.push('/login');
+            return;
+          }
+
+          if (!profile?.is_approved) {
+            // Usuário não aprovado - fazer logout e redirecionar
+            if (IS_DEV) {
+              safeLog.warn('[DashboardPage] Usuário não aprovado, fazendo logout');
+            }
+            await supabase.auth.signOut();
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('supabase.auth.token');
+            }
+            router.push('/login');
+            return;
+          }
+
+          // Usuário autenticado e aprovado
+          setIsAuthenticated(true);
+        } catch (err) {
+          // Erro ao verificar perfil - fazer logout e redirecionar
+          if (IS_DEV) {
+            safeLog.error('[DashboardPage] Erro ao verificar perfil:', err);
+          }
+          await supabase.auth.signOut();
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('supabase.auth.token');
+          }
+          router.push('/login');
+        }
+      } catch (err) {
+        // Erro inesperado - fazer logout e redirecionar
+        if (IS_DEV) {
+          safeLog.error('[DashboardPage] Erro ao verificar autenticação:', err);
+        }
+        await supabase.auth.signOut();
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('supabase.auth.token');
+        }
+        router.push('/login');
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuthentication();
+  }, [router]);
 
   // Registrar Chart.js apenas no cliente (após montagem)
   useEffect(() => {
@@ -328,6 +424,23 @@ export default function DashboardPage() {
       tabChangeRef.current = false;
     }, 800);
   }, []);
+
+  // Mostrar loading enquanto verifica autenticação
+  if (isCheckingAuth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+          <p className="mt-4 text-lg font-semibold text-slate-700 dark:text-slate-200">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se não estiver autenticado, não renderizar nada (já foi redirecionado)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen">
