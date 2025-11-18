@@ -1,74 +1,27 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { EntregadorMarketing } from '@/types';
+import { EntregadorMarketing, EntregadoresData } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-const EntregadoresView = React.memo(function EntregadoresView() {
+interface EntregadoresViewProps {
+  entregadoresData?: EntregadoresData | null;
+  loading?: boolean;
+}
+
+const EntregadoresView = React.memo(function EntregadoresView({
+  entregadoresData,
+  loading: externalLoading
+}: EntregadoresViewProps = {}) {
   const [entregadores, setEntregadores] = useState<EntregadorMarketing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchEntregadores();
-  }, []);
-
-  const fetchEntregadores = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Usar função RPC para buscar entregadores com dados agregados
-      const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', undefined, {
-        timeout: 30000,
-        validateParams: false
-      });
-
-      if (rpcError) {
-        // Se a função RPC não existir, fazer fallback para query direta
-        const errorCode = (rpcError as any)?.code || '';
-        const errorMessage = String((rpcError as any)?.message || '');
-        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
-                      errorCode === 'PGRST204' ||
-                      errorMessage.includes('404') || 
-                      errorMessage.includes('not found');
-
-        if (is404) {
-          // Função RPC não existe, usar fallback
-          if (IS_DEV) {
-            safeLog.warn('Função RPC get_entregadores_marketing não encontrada, usando fallback');
-          }
-          await fetchEntregadoresFallback();
-          return;
-        }
-        
-        throw rpcError;
-      }
-
-      if (!data || !Array.isArray(data)) {
-        setEntregadores([]);
-        setLoading(false);
-        return;
-      }
-
-      setEntregadores(data);
-
-      if (IS_DEV) {
-        safeLog.info(`✅ ${data.length} entregador(es) encontrado(s)`);
-      }
-    } catch (err: any) {
-      safeLog.error('Erro ao buscar entregadores:', err);
-      setError(err.message || 'Erro ao carregar entregadores');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchEntregadoresFallback = async () => {
+  const fetchEntregadoresFallback = useCallback(async () => {
     try {
       // Fallback: buscar entregadores que aparecem em ambas as tabelas
       // Primeiro, buscar IDs únicos de entregadores do marketing
@@ -136,9 +89,85 @@ const EntregadoresView = React.memo(function EntregadoresView() {
       safeLog.error('Erro no fallback ao buscar entregadores:', err);
       throw err;
     }
-  };
+  }, []);
 
-  if (loading) {
+  const fetchEntregadores = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Usar função RPC para buscar entregadores com dados agregados
+      const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', undefined, {
+        timeout: 30000,
+        validateParams: false
+      });
+
+      if (rpcError) {
+        // Se a função RPC não existir, fazer fallback para query direta
+        const errorCode = (rpcError as any)?.code || '';
+        const errorMessage = String((rpcError as any)?.message || '');
+        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
+                      errorCode === 'PGRST204' ||
+                      errorMessage.includes('404') || 
+                      errorMessage.includes('not found');
+
+        if (is404) {
+          // Função RPC não existe, usar fallback
+          if (IS_DEV) {
+            safeLog.warn('Função RPC get_entregadores_marketing não encontrada, usando fallback');
+          }
+          await fetchEntregadoresFallback();
+          return;
+        }
+        
+        throw rpcError;
+      }
+
+      if (!data || !Array.isArray(data)) {
+        setEntregadores([]);
+        setLoading(false);
+        return;
+      }
+
+      setEntregadores(data);
+
+      if (IS_DEV) {
+        safeLog.info(`✅ ${data.length} entregador(es) encontrado(s)`);
+      }
+    } catch (err: any) {
+      safeLog.error('Erro ao buscar entregadores:', err);
+      setError(err.message || 'Erro ao carregar entregadores');
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchEntregadoresFallback]);
+
+  useEffect(() => {
+    // Se não houver props (guia de marketing), buscar dados
+    if (entregadoresData === undefined && externalLoading === undefined) {
+      fetchEntregadores();
+    } else if (entregadoresData) {
+      // Se houver props (página principal), converter EntregadoresData para EntregadorMarketing[]
+      const converted: EntregadorMarketing[] = (entregadoresData.entregadores || []).map(e => ({
+        id_entregador: e.id_entregador,
+        nome: e.nome_entregador,
+        total_ofertadas: e.corridas_ofertadas,
+        total_aceitas: e.corridas_aceitas,
+        total_completadas: e.corridas_completadas,
+        total_rejeitadas: e.corridas_rejeitadas,
+      }));
+      setEntregadores(converted);
+      setLoading(false);
+    } else {
+      // Se loading for fornecido externamente, usar ele
+      setLoading(externalLoading || false);
+    }
+  }, [entregadoresData, externalLoading, fetchEntregadores]);
+
+  // Usar loading externo se fornecido, senão usar loading interno
+  const isLoading = externalLoading !== undefined ? externalLoading : loading;
+
+  if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
         <div className="text-center">
