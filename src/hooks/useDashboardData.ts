@@ -130,30 +130,37 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
 
           setPracas(pracasDisponiveis);
           
-          // Filtrar sub-praças baseado nas praças permitidas do usuário
-          let subPracasDisponiveis: FilterOption[] = [];
-          
-          // Se o usuário não é admin e tem praças atribuídas, buscar sub-praças APENAS do banco
+          // Filtrar dimensões (sub-praças, turnos, origens) baseado nas praças permitidas do usuário
+          // Se o usuário não é admin e tem praças atribuídas, buscar dimensões APENAS do banco
           if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+            // Buscar todas as dimensões em paralelo para melhor performance
             try {
-              // Buscar sub-praças que pertencem às praças permitidas usando a função RPC
-              // IMPORTANTE: Usar APENAS as sub-praças retornadas pela função RPC, não as do dashboard_resumo
-              const { data: subPracasPermitidas, error: subPracasError } = await safeRpc<Array<{ sub_praca: string }>>('get_subpracas_by_praca', { p_pracas: currentUser.assigned_pracas }, {
-                timeout: 10000,
-                validateParams: false
-              });
+              const [subPracasResult, turnosResult, origensResult] = await Promise.all([
+                safeRpc<Array<{ sub_praca: string }>>('get_subpracas_by_praca', { p_pracas: currentUser.assigned_pracas }, {
+                  timeout: 10000,
+                  validateParams: false
+                }),
+                safeRpc<Array<{ turno: string }>>('get_turnos_by_praca', { p_pracas: currentUser.assigned_pracas }, {
+                  timeout: 10000,
+                  validateParams: false
+                }),
+                safeRpc<Array<{ origem: string }>>('get_origens_by_praca', { p_pracas: currentUser.assigned_pracas }, {
+                  timeout: 10000,
+                  validateParams: false
+                })
+              ]);
               
-              if (!subPracasError && subPracasPermitidas && Array.isArray(subPracasPermitidas)) {
-                // A função RPC retorna um array de objetos { sub_praca: string }
-                // Extrair apenas os valores de sub_praca
-                subPracasDisponiveis = subPracasPermitidas.map((item: { sub_praca: string }) => ({
+              // Processar sub-praças
+              let subPracasDisponiveis: FilterOption[] = [];
+              if (!subPracasResult.error && subPracasResult.data && Array.isArray(subPracasResult.data)) {
+                subPracasDisponiveis = subPracasResult.data.map((item: { sub_praca: string }) => ({
                   value: String(item.sub_praca),
                   label: String(item.sub_praca)
                 }));
               } else {
-                // Se houver erro na busca, usar fallback: filtrar as do dashboard_resumo por nome
+                // Fallback: filtrar por nome
                 if (IS_DEV) {
-                  safeLog.warn('Erro ao buscar sub-praças do banco, usando fallback:', subPracasError);
+                  safeLog.warn('Erro ao buscar sub-praças do banco, usando fallback:', subPracasResult.error);
                 }
                 const subPracasDoDashboard = Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
                 subPracasDisponiveis = subPracasDoDashboard.filter((sp) => {
@@ -164,29 +171,62 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                   });
                 });
               }
+              setSubPracas(subPracasDisponiveis);
+              
+              // Processar turnos
+              let turnosDisponiveis: FilterOption[] = [];
+              if (!turnosResult.error && turnosResult.data && Array.isArray(turnosResult.data)) {
+                turnosDisponiveis = turnosResult.data.map((item: { turno: string }) => ({
+                  value: String(item.turno),
+                  label: String(item.turno)
+                }));
+              } else {
+                // Fallback: usar do dashboard
+                if (IS_DEV) {
+                  safeLog.warn('Erro ao buscar turnos do banco, usando fallback:', turnosResult.error);
+                }
+                turnosDisponiveis = Array.isArray((data.dimensoes as any).turnos) ? (data.dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) })) : [];
+              }
+              setTurnos(turnosDisponiveis);
+              
+              // Processar origens
+              let origensDisponiveis: FilterOption[] = [];
+              if (!origensResult.error && origensResult.data && Array.isArray(origensResult.data)) {
+                origensDisponiveis = origensResult.data.map((item: { origem: string }) => ({
+                  value: String(item.origem),
+                  label: String(item.origem)
+                }));
+              } else {
+                // Fallback: usar do dashboard
+                if (IS_DEV) {
+                  safeLog.warn('Erro ao buscar origens do banco, usando fallback:', origensResult.error);
+                }
+                origensDisponiveis = Array.isArray(data.dimensoes.origens) ? data.dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) })) : [];
+              }
+              setOrigens(origensDisponiveis);
+              
             } catch (err) {
-              // Em caso de erro, usar fallback
+              // Em caso de erro geral, usar fallback para todas as dimensões
               if (IS_DEV) {
-                safeLog.warn('Erro ao buscar sub-praças, usando fallback:', err);
+                safeLog.warn('Erro ao buscar dimensões do banco, usando fallback:', err);
               }
               const subPracasDoDashboard = Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
-              subPracasDisponiveis = subPracasDoDashboard.filter((sp) => {
+              const subPracasFiltradas = subPracasDoDashboard.filter((sp) => {
                 const subPracaValue = sp.value.toUpperCase();
                 return currentUser.assigned_pracas.some((praca) => {
                   const pracaValue = praca.toUpperCase();
                   return subPracaValue.includes(pracaValue) || subPracaValue.startsWith(pracaValue);
                 });
               });
+              setSubPracas(subPracasFiltradas);
+              setTurnos(Array.isArray((data.dimensoes as any).turnos) ? (data.dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) })) : []);
+              setOrigens(Array.isArray(data.dimensoes.origens) ? data.dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) })) : []);
             }
           } else {
-            // Se for admin ou não tiver restrições, usar todas as sub-praças do dashboard_resumo
-            subPracasDisponiveis = Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
-          }
-          
-          setSubPracas(subPracasDisponiveis);
-          setOrigens(Array.isArray(data.dimensoes.origens) ? data.dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) })) : []);
-          if (Array.isArray((data.dimensoes as any).turnos)) {
-            setTurnos((data.dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) })));
+            // Se for admin ou não tiver restrições, usar todas as dimensões do dashboard_resumo
+            setSubPracas(Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : []);
+            setTurnos(Array.isArray((data.dimensoes as any).turnos) ? (data.dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) })) : []);
+            setOrigens(Array.isArray(data.dimensoes.origens) ? data.dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) })) : []);
           }
         }
       } catch (err: any) {
