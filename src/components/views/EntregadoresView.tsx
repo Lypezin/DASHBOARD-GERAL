@@ -60,8 +60,8 @@ const EntregadoresView = React.memo(function EntregadoresView({
 
       if (!entregadoresIds || entregadoresIds.length === 0) {
         setEntregadores([]);
-        return;
-      }
+      return;
+    }
 
       // Para cada entregador, verificar se existe em dados_corridas e agregar
       const entregadoresComDados: EntregadorMarketing[] = [];
@@ -76,7 +76,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
           .eq('id_da_pessoa_entregadora', entregador.id_entregador);
 
         if (corridasError) {
-          if (IS_DEV) {
+            if (IS_DEV) {
             safeLog.warn(`Erro ao buscar corridas para entregador ${entregador.id_entregador}:`, corridasError);
           }
           continue;
@@ -265,6 +265,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
           : entregador.dias_sem_rodar === 0
           ? 'Hoje'
           : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`,
+        'Rodando': entregador.total_completadas > 30 ? 'SIM' : 'NÃO',
       }));
 
       // Criar workbook
@@ -283,6 +284,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
         { wch: 15 }, // Horas
         { wch: 12 }, // Última Data
         { wch: 15 }, // Dias sem Rodar
+        { wch: 12 }, // Rodando
       ];
       ws['!cols'] = colWidths;
 
@@ -339,7 +341,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
     );
   }
 
-  return (
+    return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-6 dark:border-purple-900 dark:from-purple-950/30 dark:to-pink-950/30">
@@ -360,20 +362,20 @@ const EntregadoresView = React.memo(function EntregadoresView({
             <Download className="mr-2 h-4 w-4" />
             Exportar Excel
           </Button>
-        </div>
+      </div>
       </div>
 
       {/* Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Campo de Busca */}
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-          <div className="relative">
+        <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
             <Input
-              type="text"
+            type="text"
               placeholder="Pesquisar por nome ou ID do entregador..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-full"
             />
           </div>
@@ -447,89 +449,104 @@ const EntregadoresView = React.memo(function EntregadoresView({
                   </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Ofertadas
-                  </th>
+                </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Aceitas
-                  </th>
+                </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Completadas
-                  </th>
+                </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Rejeitadas
-                  </th>
+                </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Horas
-                  </th>
+                </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Dias sem Rodar
-                  </th>
-                </tr>
-              </thead>
+                </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    Rodando
+                </th>
+              </tr>
+            </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                {entregadoresFiltrados.map((entregador, idx) => (
-                  <tr
-                    key={entregador.id_entregador}
-                    className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-mono text-slate-600 dark:text-slate-400">
-                        {entregador.id_entregador.substring(0, 8)}...
+                {entregadoresFiltrados.map((entregador, idx) => {
+                  const estaRodando = entregador.total_completadas > 30;
+                return (
+                <tr
+                      key={entregador.id_entregador}
+                      className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-mono text-slate-600 dark:text-slate-400">
+                          {entregador.id_entregador.substring(0, 8)}...
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-slate-900 dark:text-white">
+                          {entregador.nome}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                          {entregador.total_ofertadas.toLocaleString('pt-BR')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                          {entregador.total_aceitas.toLocaleString('pt-BR')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                          {entregador.total_completadas.toLocaleString('pt-BR')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">
+                          {entregador.total_rejeitadas.toLocaleString('pt-BR')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                          {formatarSegundosParaHoras(entregador.total_segundos || 0)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <span className={`text-sm font-semibold ${
+                          entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
+                            ? 'text-slate-400 dark:text-slate-500'
+                            : entregador.dias_sem_rodar === 0
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : entregador.dias_sem_rodar <= 3
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-rose-600 dark:text-rose-400'
+                        }`}>
+                          {entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
+                            ? 'N/A'
+                            : entregador.dias_sem_rodar === 0
+                            ? 'Hoje'
+                            : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`
+                          }
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-slate-900 dark:text-white">
-                        {entregador.nome}
+                  </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className={`text-sm font-semibold ${
+                          estaRodando
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-slate-400 dark:text-slate-500'
+                        }`}>
+                          {estaRodando ? 'SIM' : 'NÃO'}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {entregador.total_ofertadas.toLocaleString('pt-BR')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                        {entregador.total_aceitas.toLocaleString('pt-BR')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                        {entregador.total_completadas.toLocaleString('pt-BR')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">
-                        {entregador.total_rejeitadas.toLocaleString('pt-BR')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-                        {formatarSegundosParaHoras(entregador.total_segundos || 0)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <span className={`text-sm font-semibold ${
-                        entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
-                          ? 'text-slate-400 dark:text-slate-500'
-                          : entregador.dias_sem_rodar === 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : entregador.dias_sem_rodar <= 3
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}>
-                        {entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
-                          ? 'N/A'
-                          : entregador.dias_sem_rodar === 0
-                          ? 'Hoje'
-                          : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`
-                        }
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  </td>
+                </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
+      </div>
       ) : (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900 dark:bg-amber-950/30">
           <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">
