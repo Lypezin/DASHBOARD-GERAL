@@ -276,7 +276,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
         </div>
         {sortedEntregadores.length === 0 && searchTerm && (
           <div className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-            Nenhum entregador encontrado com o termo "{searchTerm}"
+            Nenhum entregador encontrado com o termo &quot;{searchTerm}&quot;
           </div>
         )}
       </div>
