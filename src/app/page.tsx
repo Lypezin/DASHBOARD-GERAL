@@ -64,7 +64,7 @@ const ValoresView = dynamic(() => import('@/components/views/ValoresView').then(
   loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
   ssr: false
 });
-const EntregadoresView = dynamic(() => import('@/components/views/EntregadoresView').then(mod => ({ default: mod.default })), {
+const EntregadoresMainView = dynamic(() => import('@/components/views/EntregadoresMainView').then(mod => ({ default: mod.default })), {
   loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
   ssr: false
 });
@@ -675,7 +675,7 @@ export default function DashboardPage() {
                     )}
                     
                     {activeTab === 'entregadores' && (
-                      <EntregadoresView
+                      <EntregadoresMainView
                         entregadoresData={entregadoresData}
                         loading={loadingTabData}
                       />

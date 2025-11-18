@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { EntregadorMarketing, EntregadoresData, MarketingDateFilter } from '@/types';
+import { EntregadorMarketing, MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -16,13 +16,10 @@ import * as XLSX from 'xlsx';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 interface EntregadoresViewProps {
-  entregadoresData?: EntregadoresData | null;
-  loading?: boolean;
+  // Este componente é usado apenas no Marketing, não recebe props
 }
 
 const EntregadoresView = React.memo(function EntregadoresView({
-  entregadoresData,
-  loading: externalLoading
 }: EntregadoresViewProps = {}) {
   const [entregadores, setEntregadores] = useState<EntregadorMarketing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -187,34 +184,13 @@ const EntregadoresView = React.memo(function EntregadoresView({
   }, [fetchEntregadoresFallback, filtroRodouDia, cidadeSelecionada]);
 
   useEffect(() => {
-    // Se não houver props (guia de marketing), buscar dados
-    if (entregadoresData === undefined && externalLoading === undefined) {
-      fetchEntregadores();
-    } else if (entregadoresData) {
-      // Se houver props (página principal), converter EntregadoresData para EntregadorMarketing[]
-      const converted: EntregadorMarketing[] = (entregadoresData.entregadores || []).map(e => ({
-        id_entregador: e.id_entregador,
-        nome: e.nome_entregador,
-        total_ofertadas: e.corridas_ofertadas,
-        total_aceitas: e.corridas_aceitas,
-        total_completadas: e.corridas_completadas,
-        total_rejeitadas: e.corridas_rejeitadas,
-        total_segundos: 0, // EntregadoresData não tem horas
-        ultima_data: null, // EntregadoresData não tem última data
-        dias_sem_rodar: null, // EntregadoresData não tem dias sem rodar
-        regiao_atuacao: null, // EntregadoresData não tem região
-      }));
-      setEntregadores(converted);
-      setLoading(false);
-    } else {
-      // Se loading for fornecido externamente, usar ele
-      setLoading(externalLoading || false);
-    }
+    // Este componente é usado apenas no Marketing, sempre buscar dados
+    fetchEntregadores();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entregadoresData, externalLoading, fetchEntregadores]);
+  }, [fetchEntregadores]);
 
-  // Usar loading externo se fornecido, senão usar loading interno
-  const isLoading = externalLoading !== undefined ? externalLoading : loading;
+  // Usar loading interno
+  const isLoading = loading;
 
   // Filtrar entregadores por nome ou ID
   const entregadoresFiltrados = useMemo(() => {
