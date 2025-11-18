@@ -131,29 +131,32 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
           setPracas(pracasDisponiveis);
           
           // Filtrar sub-praças baseado nas praças permitidas do usuário
-          let subPracasDisponiveis: FilterOption[] = Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
+          let subPracasDisponiveis: FilterOption[] = [];
           
-          // Se o usuário não é admin e tem praças atribuídas, buscar sub-praças corretas do banco
+          // Se o usuário não é admin e tem praças atribuídas, buscar sub-praças APENAS do banco
           if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
             try {
               // Buscar sub-praças que pertencem às praças permitidas usando a função RPC
-              const { data: subPracasPermitidas, error: subPracasError } = await safeRpc<string[]>('get_subpracas_by_praca', { p_pracas: currentUser.assigned_pracas }, {
+              // IMPORTANTE: Usar APENAS as sub-praças retornadas pela função RPC, não as do dashboard_resumo
+              const { data: subPracasPermitidas, error: subPracasError } = await safeRpc<Array<{ sub_praca: string }>>('get_subpracas_by_praca', { p_pracas: currentUser.assigned_pracas }, {
                 timeout: 10000,
                 validateParams: false
               });
               
               if (!subPracasError && subPracasPermitidas && Array.isArray(subPracasPermitidas)) {
-                // Filtrar apenas as sub-praças que estão na lista permitida
-                const subPracasPermitidasSet = new Set(subPracasPermitidas.map(sp => String(sp).toUpperCase()));
-                subPracasDisponiveis = subPracasDisponiveis.filter((sp) => {
-                  return subPracasPermitidasSet.has(sp.value.toUpperCase());
-                });
+                // A função RPC retorna um array de objetos { sub_praca: string }
+                // Extrair apenas os valores de sub_praca
+                subPracasDisponiveis = subPracasPermitidas.map((item: { sub_praca: string }) => ({
+                  value: String(item.sub_praca),
+                  label: String(item.sub_praca)
+                }));
               } else {
-                // Se houver erro na busca, usar fallback: filtrar por nome (menos preciso, mas melhor que nada)
+                // Se houver erro na busca, usar fallback: filtrar as do dashboard_resumo por nome
                 if (IS_DEV) {
                   safeLog.warn('Erro ao buscar sub-praças do banco, usando fallback:', subPracasError);
                 }
-                subPracasDisponiveis = subPracasDisponiveis.filter((sp) => {
+                const subPracasDoDashboard = Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
+                subPracasDisponiveis = subPracasDoDashboard.filter((sp) => {
                   const subPracaValue = sp.value.toUpperCase();
                   return currentUser.assigned_pracas.some((praca) => {
                     const pracaValue = praca.toUpperCase();
@@ -166,7 +169,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
               if (IS_DEV) {
                 safeLog.warn('Erro ao buscar sub-praças, usando fallback:', err);
               }
-              subPracasDisponiveis = subPracasDisponiveis.filter((sp) => {
+              const subPracasDoDashboard = Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
+              subPracasDisponiveis = subPracasDoDashboard.filter((sp) => {
                 const subPracaValue = sp.value.toUpperCase();
                 return currentUser.assigned_pracas.some((praca) => {
                   const pracaValue = praca.toUpperCase();
@@ -174,6 +178,9 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
                 });
               });
             }
+          } else {
+            // Se for admin ou não tiver restrições, usar todas as sub-praças do dashboard_resumo
+            subPracasDisponiveis = Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
           }
           
           setSubPracas(subPracasDisponiveis);
