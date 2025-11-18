@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,34 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Verificar se há sessão inválida ao carregar a página e limpar
+  useEffect(() => {
+    const checkAndCleanInvalidSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        // Se houver sessão mas não for válida (sem user), limpar
+        if (session && !session.user) {
+          await supabase.auth.signOut();
+          if (typeof window !== 'undefined') {
+            const keysToRemove: string[] = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+          }
+        }
+      } catch (err) {
+        // Ignorar erros silenciosamente
+        if (IS_DEV) safeLog.warn('Erro ao verificar sessão no login:', err);
+      }
+    };
+    
+    checkAndCleanInvalidSession();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

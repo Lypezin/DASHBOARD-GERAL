@@ -145,6 +145,34 @@ export default function DashboardPage() {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
+        // PRIMEIRO: Limpar qualquer sessão inválida do localStorage antes de verificar
+        if (typeof window !== 'undefined') {
+          // Verificar se há tokens antigos que podem estar causando problemas
+          const hasOldTokens = Array.from({ length: localStorage.length }, (_, i) => {
+            const key = localStorage.key(i);
+            return key && (key.startsWith('sb-') || key.includes('supabase'));
+          }).some(Boolean);
+          
+          if (hasOldTokens) {
+            // Verificar se a sessão é válida antes de limpar
+            const { data: { session: testSession } } = await supabase.auth.getSession();
+            if (!testSession || !testSession.user) {
+              // Sessão inválida - limpar tudo
+              if (IS_DEV) {
+                safeLog.warn('[DashboardPage] Limpando sessões inválidas do localStorage');
+              }
+              const keysToRemove: string[] = [];
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                  keysToRemove.push(key);
+                }
+              }
+              keysToRemove.forEach(key => localStorage.removeItem(key));
+            }
+          }
+        }
+        
         // Verificar sessão atual (não apenas getUser, mas também getSession para garantir validade)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
@@ -155,6 +183,50 @@ export default function DashboardPage() {
           }
           await supabase.auth.signOut();
           // Limpar localStorage do Supabase
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('supabase.auth.token');
+            const keysToRemove: string[] = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+          }
+          router.push('/login');
+          return;
+        }
+        
+        // Verificar se o token da sessão ainda é válido fazendo uma chamada ao servidor
+        try {
+          const { data: { user: verifiedUser }, error: verifyError } = await supabase.auth.getUser();
+          if (verifyError || !verifiedUser) {
+            // Token inválido - limpar e redirecionar
+            if (IS_DEV) {
+              safeLog.warn('[DashboardPage] Token inválido, limpando e redirecionando para login');
+            }
+            await supabase.auth.signOut();
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('supabase.auth.token');
+              const keysToRemove: string[] = [];
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                  keysToRemove.push(key);
+                }
+              }
+              keysToRemove.forEach(key => localStorage.removeItem(key));
+            }
+            router.push('/login');
+            return;
+          }
+        } catch (verifyErr) {
+          // Erro ao verificar token - limpar e redirecionar
+          if (IS_DEV) {
+            safeLog.warn('[DashboardPage] Erro ao verificar token, limpando e redirecionando para login:', verifyErr);
+          }
+          await supabase.auth.signOut();
           if (typeof window !== 'undefined') {
             localStorage.removeItem('supabase.auth.token');
             const keysToRemove: string[] = [];
