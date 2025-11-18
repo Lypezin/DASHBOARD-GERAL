@@ -130,7 +130,7 @@ const ResultadosView = React.memo(function ResultadosView() {
         'Carolini Braguini': '6905',
         'Melissa': '4182',
         'Beatriz Angelo': '6976',
-        'Fernanda Raphaelly': '5457',
+        'Fernanda Raphaelly': '5447',
       };
 
       // Buscar valores por cidade e por atendente usando o filtro de Enviados Liberados

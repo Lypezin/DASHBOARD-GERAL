@@ -321,5 +321,5 @@ export const MAPEAMENTO_ATENDENTES: { [key: string]: string } = {
   '6905': 'Carol',
   '4182': 'Mellisa',
   '6976': 'Beatriz',
-  '5457': 'Fernanda',
+  '5447': 'Fernanda',
 };
