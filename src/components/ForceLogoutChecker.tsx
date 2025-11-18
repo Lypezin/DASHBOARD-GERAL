@@ -9,7 +9,8 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 
 /**
  * Componente que verifica no Supabase se deve forçar logout de todos os usuários
- * Quando ativo, força logout uma vez e depois desativa automaticamente
+ * Quando ativo, força logout de todos os usuários que acessarem o sistema
+ * A flag deve ser desativada manualmente quando desejar parar de forçar logout
  */
 export function ForceLogoutChecker() {
   const router = useRouter();
@@ -60,35 +61,6 @@ export function ForceLogoutChecker() {
         // Se estiver ativo, executar logout
         if (IS_DEV) {
           safeLog.info('[ForceLogoutChecker] Flag de logout forçado detectada no Supabase, executando logout...');
-        }
-
-        // IMPORTANTE: Desativar a flag ANTES do logout, pois após signOut a sessão não existe mais
-        try {
-          const { error: deactivateError } = await supabase.rpc('deactivate_force_logout');
-          if (deactivateError && IS_DEV) {
-            safeLog.warn('[ForceLogoutChecker] Erro ao desativar flag (não crítico):', deactivateError);
-          } else if (IS_DEV) {
-            safeLog.info('[ForceLogoutChecker] Flag desativada com sucesso no banco de dados');
-          }
-        } catch (rpcError) {
-          // Se falhar ao desativar, tentar atualizar diretamente
-          if (IS_DEV) {
-            safeLog.warn('[ForceLogoutChecker] Erro ao chamar RPC, tentando atualização direta:', rpcError);
-          }
-          try {
-            await supabase
-              .from('force_logout_config')
-              .update({ 
-                is_active: false, 
-                executed_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', 1);
-          } catch (updateError) {
-            if (IS_DEV) {
-              safeLog.warn('[ForceLogoutChecker] Erro ao atualizar flag diretamente (não crítico):', updateError);
-            }
-          }
         }
 
         // Limpar todas as sessões do Supabase

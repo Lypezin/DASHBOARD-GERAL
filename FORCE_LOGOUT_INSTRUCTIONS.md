@@ -4,7 +4,7 @@ Este sistema permite forçar logout de todos os usuários uma vez, útil após a
 
 ## Como Funciona
 
-O componente `ForceLogoutChecker` verifica no banco de dados Supabase se o logout forçado está ativo. Quando ativo, força logout de todos os usuários que acessarem o sistema. Após executar, a flag é desativada automaticamente no banco de dados.
+O componente `ForceLogoutChecker` verifica no banco de dados Supabase se o logout forçado está ativo. Quando ativo, força logout de **todos os usuários** que acessarem o sistema. A flag permanece ativa até que você a desative manualmente, garantindo que todos os usuários sejam deslogados.
 
 ## Como Ativar
 
@@ -65,11 +65,12 @@ WHERE id = 1;
 
 ## O Que Acontece Quando Ativado
 
-1. Todos os usuários que acessarem o sistema serão automaticamente deslogados
+1. **Todos os usuários** que acessarem o sistema serão automaticamente deslogados
 2. Todas as sessões do Supabase serão limpas
 3. Os dados de autenticação no localStorage serão removidos
 4. Os usuários serão redirecionados para a página de login
-5. Após executar, a flag é automaticamente desativada no banco de dados
+5. **A flag permanece ativa** até que você a desative manualmente
+6. Após fazer login novamente, os usuários **não serão mais deslogados** (a flag só desloga na primeira vez que acessam)
 
 ## Verificar Status
 
@@ -88,17 +89,26 @@ SELECT public.check_force_logout();
 ## Importante
 
 - ⚠️ **Use apenas quando necessário**: Esta funcionalidade força logout de TODOS os usuários
-- ✅ **Executa apenas uma vez**: Após executar, a flag é desativada automaticamente no banco
+- ✅ **Desative manualmente**: Após garantir que todos foram deslogados, **desative a flag manualmente**
 - 🔄 **Não requer deploy**: A ativação/desativação é feita diretamente no banco de dados
 - 🔒 **Seguro**: A flag é verificada no banco, garantindo controle centralizado
+- 🔁 **Funciona por sessão**: Cada usuário será deslogado apenas uma vez por sessão (usando sessionStorage)
+
+## Fluxo de Uso Recomendado
+
+1. **Ative a flag**: `SELECT public.activate_force_logout();`
+2. **Aguarde alguns minutos**: Todos os usuários que acessarem serão deslogados
+3. **Verifique se todos foram deslogados**: Aguarde um tempo razoável (ex: 10-15 minutos)
+4. **Desative a flag**: `SELECT public.deactivate_force_logout();`
 
 ## Verificação
 
 Após ativar, quando qualquer usuário acessar o sistema:
-- Será automaticamente deslogado
+- Será automaticamente deslogado na primeira vez que acessar
 - Verá a página de login
 - Poderá fazer login novamente normalmente
-- A flag será automaticamente desativada após a execução
+- **Após fazer login, não será mais deslogado** (mesmo que a flag ainda esteja ativa)
+- A flag permanece ativa até você desativá-la manualmente
 
 ## Estrutura da Tabela
 
