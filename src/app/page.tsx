@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
