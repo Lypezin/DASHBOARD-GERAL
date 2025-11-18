@@ -138,12 +138,15 @@ const ResultadosView = React.memo(function ResultadosView() {
         .from('dados_valores_cidade')
         .select('id_atendente, cidade, valor');
 
+      // Aplicar filtro de data se houver
       if (filters.filtroEnviadosLiberados.dataInicial) {
         valoresQuery = valoresQuery.gte('data', filters.filtroEnviadosLiberados.dataInicial);
       }
       if (filters.filtroEnviadosLiberados.dataFinal) {
         valoresQuery = valoresQuery.lte('data', filters.filtroEnviadosLiberados.dataFinal);
       }
+      
+      // Se não há filtro, ainda buscar valores (não aplicar not null aqui para não limitar demais)
 
       const { data: valoresData, error: valoresError } = await valoresQuery;
 
@@ -151,14 +154,17 @@ const ResultadosView = React.memo(function ResultadosView() {
       const valoresPorAtendenteECidade = new Map<string, Map<string, number>>();
       if (!valoresError && valoresData) {
         valoresData.forEach((row: any) => {
-          const idAtendente = String(row.id_atendente || '').trim();
+          // Normalizar ID do atendente (pode vir como string ou número)
+          const idAtendenteRaw = row.id_atendente;
+          const idAtendente = idAtendenteRaw != null ? String(idAtendenteRaw).trim() : '';
           const cidade = String(row.cidade || 'Não especificada').trim();
           const valor = Number(row.valor) || 0;
           
-          // Encontrar o nome do atendente pelo ID
+          // Encontrar o nome do atendente pelo ID (comparar normalizado)
           let atendenteNome = '';
           for (const [nome, id] of Object.entries(atendenteToId)) {
-            if (String(id).trim() === idAtendente) {
+            const idNormalizado = String(id).trim();
+            if (idNormalizado === idAtendente) {
               atendenteNome = nome;
               break;
             }
@@ -175,6 +181,16 @@ const ResultadosView = React.memo(function ResultadosView() {
               cidadeMap.set(cidade, valor);
             }
           }
+        });
+      }
+      
+      // Debug: verificar se encontrou valores para Fernanda
+      if (IS_DEV) {
+        const valoresFernanda = valoresPorAtendenteECidade.get('Fernanda Raphaelly');
+        safeLog.info('Valores encontrados para Fernanda Raphaelly:', {
+          encontrou: !!valoresFernanda,
+          valores: valoresFernanda ? Array.from(valoresFernanda.entries()) : [],
+          totalValores: valoresData?.length || 0,
         });
       }
 
@@ -308,13 +324,29 @@ const ResultadosView = React.memo(function ResultadosView() {
 
           // Calcular custo por liberado total do atendente
           let custoPorLiberado = 0;
-          if (quantidadeLiberados > 0) {
+          if (quantidadeLiberados > 0 && valorTotalAtendente > 0) {
             custoPorLiberado = valorTotalAtendente / quantidadeLiberados;
+          }
+
+          // Debug para Fernanda Raphaelly
+          if (IS_DEV && atendente.nome === 'Fernanda Raphaelly') {
+            safeLog.info('Fernanda Raphaelly - Debug:', {
+              quantidadeLiberados,
+              valorTotalAtendente,
+              custoPorLiberado,
+              valoresAtendente: Array.from(valoresAtendente.entries()),
+              cidadesComCusto: cidadesComCustoAtendente.map(c => ({
+                cidade: c.cidade,
+                valorTotal: c.valorTotal,
+                quantidadeLiberados: c.quantidadeLiberados,
+                custoPorLiberado: c.custoPorLiberado,
+              })),
+            });
           }
 
           return {
             ...atendente,
-            custoPorLiberado,
+            custoPorLiberado: custoPorLiberado > 0 ? custoPorLiberado : undefined,
             cidades: cidadesComCustoAtendente,
           };
         })
@@ -639,11 +671,11 @@ const ResultadosView = React.memo(function ResultadosView() {
         {atendentesData.map((atendenteData) => (
           <Card 
             key={atendenteData.nome} 
-            className="group border-slate-200/50 bg-white/90 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-slate-700/50 dark:bg-slate-800/90"
+            className="group border-slate-200/50 bg-white/90 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-slate-700/50 dark:bg-slate-800/90 flex flex-col h-full"
           >
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-4 flex flex-col flex-1 min-h-0 overflow-hidden">
               {/* Card do Atendente - Compacto */}
-              <div className="space-y-3">
+              <div className="space-y-3 flex-shrink-0">
                 <div className="flex items-center gap-3">
                   {atendenteData.fotoUrl ? (
                     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full ring-2 ring-purple-200 dark:ring-purple-800">
@@ -687,7 +719,7 @@ const ResultadosView = React.memo(function ResultadosView() {
                 </div>
 
                 {/* Custo por Liberado do Atendente */}
-                {atendenteData.custoPorLiberado !== undefined && atendenteData.custoPorLiberado > 0 && (
+                {atendenteData.custoPorLiberado !== undefined && atendenteData.custoPorLiberado > 0 ? (
                   <div className="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
                     <div className="rounded-lg bg-purple-50/80 p-2.5 dark:bg-purple-950/30">
                       <p className="text-[10px] font-medium text-purple-700 dark:text-purple-300 mb-1">Custo por Liberado</p>
@@ -699,19 +731,19 @@ const ResultadosView = React.memo(function ResultadosView() {
                       </p>
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
               
               {/* Métricas por Cidade - Integradas */}
               {atendenteData.cidades && atendenteData.cidades.filter(c => c.enviado > 0 || c.liberado > 0).length > 0 && (
-                <div className="space-y-2 pt-3 border-t border-slate-200/50 dark:border-slate-700/50">
-                  <div className="flex items-center gap-1.5 mb-2">
+                <div className="space-y-2 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 flex-1 min-h-0 flex flex-col overflow-hidden">
+                  <div className="flex items-center gap-1.5 mb-2 flex-shrink-0">
                     <MapPin className="h-3.5 w-3.5 text-purple-500" />
                     <h4 className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
                       Por Cidade ({atendenteData.cidades.filter(c => c.enviado > 0 || c.liberado > 0).length})
                     </h4>
                   </div>
-                  <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-transparent">
+                  <div className="space-y-1.5 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-transparent flex-1 min-h-0">
                     {atendenteData.cidades
                       .filter(c => c.enviado > 0 || c.liberado > 0)
                       .map((cidadeData) => (
