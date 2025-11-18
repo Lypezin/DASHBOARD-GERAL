@@ -7,9 +7,11 @@ import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, Download } from 'lucide-react';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import MarketingCard from '@/components/MarketingCard';
+import * as XLSX from 'xlsx';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -221,6 +223,64 @@ const EntregadoresView = React.memo(function EntregadoresView({
     };
   }, [entregadoresFiltrados]);
 
+  // Função para exportar dados para Excel
+  const exportarParaExcel = useCallback(() => {
+    try {
+      // Preparar dados para exportação
+      const dadosExportacao = entregadoresFiltrados.map((entregador) => ({
+        'ID Entregador': entregador.id_entregador,
+        'Nome': entregador.nome,
+        'Total Ofertadas': entregador.total_ofertadas,
+        'Total Aceitas': entregador.total_aceitas,
+        'Total Completadas': entregador.total_completadas,
+        'Total Rejeitadas': entregador.total_rejeitadas,
+        'Horas (HH:MM:SS)': formatarSegundosParaHoras(entregador.total_segundos || 0),
+        'Última Data': entregador.ultima_data || 'N/A',
+        'Dias sem Rodar': entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
+          ? 'N/A'
+          : entregador.dias_sem_rodar === 0
+          ? 'Hoje'
+          : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`,
+      }));
+
+      // Criar workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(dadosExportacao);
+
+      // Ajustar largura das colunas
+      const colWidths = [
+        { wch: 36 }, // ID Entregador
+        { wch: 40 }, // Nome
+        { wch: 15 }, // Total Ofertadas
+        { wch: 15 }, // Total Aceitas
+        { wch: 18 }, // Total Completadas
+        { wch: 18 }, // Total Rejeitadas
+        { wch: 15 }, // Horas
+        { wch: 12 }, // Última Data
+        { wch: 15 }, // Dias sem Rodar
+      ];
+      ws['!cols'] = colWidths;
+
+      // Adicionar worksheet ao workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Entregadores');
+
+      // Gerar nome do arquivo com data/hora
+      const agora = new Date();
+      const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+      const nomeArquivo = `entregadores_marketing_${dataHora}.xlsx`;
+
+      // Exportar arquivo
+      XLSX.writeFile(wb, nomeArquivo);
+
+      if (IS_DEV) {
+        safeLog.info(`✅ Arquivo Excel exportado: ${nomeArquivo} (${dadosExportacao.length} registros)`);
+      }
+    } catch (err: any) {
+      safeLog.error('Erro ao exportar para Excel:', err);
+      alert('Erro ao exportar dados para Excel. Por favor, tente novamente.');
+    }
+  }, [entregadoresFiltrados, formatarSegundosParaHoras]);
+
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
@@ -258,12 +318,24 @@ const EntregadoresView = React.memo(function EntregadoresView({
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-6 dark:border-purple-900 dark:from-purple-950/30 dark:to-pink-950/30">
-        <h2 className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-          Entregadores do Marketing
-        </h2>
-        <p className="mt-2 text-sm text-purple-700 dark:text-purple-300">
-          Entregadores que aparecem tanto no marketing quanto nas corridas ({entregadoresFiltrados.length} de {entregadores.length} entregador{entregadores.length !== 1 ? 'es' : ''})
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+              Entregadores do Marketing
+            </h2>
+            <p className="mt-2 text-sm text-purple-700 dark:text-purple-300">
+              Entregadores que aparecem tanto no marketing quanto nas corridas ({entregadoresFiltrados.length} de {entregadores.length} entregador{entregadores.length !== 1 ? 'es' : ''})
+            </p>
+          </div>
+          <Button
+            onClick={exportarParaExcel}
+            disabled={entregadoresFiltrados.length === 0}
+            className="bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-800 shrink-0"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Excel
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
