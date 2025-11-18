@@ -291,6 +291,8 @@ export interface EntregadorMarketing {
   total_completadas: number;
   total_rejeitadas: number;
   total_segundos: number;
+  ultima_data: string | null;
+  dias_sem_rodar: number | null;
 }
 
 export interface AtendenteCidadeData {

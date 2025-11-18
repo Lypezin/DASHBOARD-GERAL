@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { EntregadorMarketing, EntregadoresData } from '@/types';
+import { EntregadorMarketing, EntregadoresData, MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
+import MarketingCard from '@/components/MarketingCard';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -24,6 +26,10 @@ const EntregadoresView = React.memo(function EntregadoresView({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filtroRodouDia, setFiltroRodouDia] = useState<MarketingDateFilter>({
+    dataInicial: null,
+    dataFinal: null,
+  });
 
   const fetchEntregadoresFallback = useCallback(async () => {
     try {
@@ -79,6 +85,8 @@ const EntregadoresView = React.memo(function EntregadoresView({
           total_completadas,
           total_rejeitadas,
           total_segundos: 0, // Fallback não calcula horas
+          ultima_data: null, // Fallback não calcula última data
+          dias_sem_rodar: null, // Fallback não calcula dias sem rodar
         });
       }
 
@@ -101,8 +109,16 @@ const EntregadoresView = React.memo(function EntregadoresView({
       setLoading(true);
       setError(null);
 
+      // Preparar parâmetros do filtro rodou_dia
+      const params = filtroRodouDia.dataInicial || filtroRodouDia.dataFinal
+        ? {
+            rodou_dia_inicial: filtroRodouDia.dataInicial || null,
+            rodou_dia_final: filtroRodouDia.dataFinal || null,
+          }
+        : undefined;
+
       // Usar função RPC para buscar entregadores com dados agregados
-      const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', undefined, {
+      const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', params, {
         timeout: 30000,
         validateParams: false
       });
@@ -145,7 +161,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
     } finally {
       setLoading(false);
     }
-  }, [fetchEntregadoresFallback]);
+  }, [fetchEntregadoresFallback, filtroRodouDia]);
 
   useEffect(() => {
     // Se não houver props (guia de marketing), buscar dados
@@ -161,6 +177,8 @@ const EntregadoresView = React.memo(function EntregadoresView({
         total_completadas: e.corridas_completadas,
         total_rejeitadas: e.corridas_rejeitadas,
         total_segundos: 0, // EntregadoresData não tem horas
+        ultima_data: null, // EntregadoresData não tem última data
+        dias_sem_rodar: null, // EntregadoresData não tem dias sem rodar
       }));
       setEntregadores(converted);
       setLoading(false);
@@ -168,7 +186,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
       // Se loading for fornecido externamente, usar ele
       setLoading(externalLoading || false);
     }
-  }, [entregadoresData, externalLoading, fetchEntregadores]);
+  }, [entregadoresData, externalLoading, fetchEntregadores, filtroRodouDia]);
 
   // Usar loading externo se fornecido, senão usar loading interno
   const isLoading = externalLoading !== undefined ? externalLoading : loading;
@@ -192,6 +210,16 @@ const EntregadoresView = React.memo(function EntregadoresView({
     const horas = segundos / 3600;
     return formatarHorasParaHMS(horas);
   }, []);
+
+  // Calcular totais para os cartões
+  const totais = useMemo(() => {
+    const totalEntregadores = entregadoresFiltrados.length;
+    const totalSegundos = entregadoresFiltrados.reduce((sum, e) => sum + (e.total_segundos || 0), 0);
+    return {
+      totalEntregadores,
+      totalSegundos,
+    };
+  }, [entregadoresFiltrados]);
 
   if (isLoading) {
     return (
@@ -238,17 +266,54 @@ const EntregadoresView = React.memo(function EntregadoresView({
         </p>
       </div>
 
-      {/* Campo de Busca */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-          <Input
-            type="text"
-            placeholder="Pesquisar por nome ou ID do entregador..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 w-full"
-          />
+      {/* Filtros */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Campo de Busca */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Input
+              type="text"
+              placeholder="Pesquisar por nome ou ID do entregador..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+        </div>
+
+        {/* Filtro Rodou Dia */}
+        <MarketingDateFilterComponent
+          label="Filtro de Rodou Dia"
+          filter={filtroRodouDia}
+          onFilterChange={(filter) => {
+            setFiltroRodouDia(filter);
+            // O fetchEntregadores será chamado automaticamente pelo useEffect quando filtroRodouDia mudar
+          }}
+        />
+      </div>
+
+      {/* Cartões de Total */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <MarketingCard
+          title="Total de Entregadores"
+          value={totais.totalEntregadores}
+          icon="👥"
+          color="purple"
+        />
+        <div className="group relative overflow-hidden rounded-xl border border-slate-200/50 bg-white/90 backdrop-blur-sm p-4 sm:p-5 md:p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-slate-300 dark:border-slate-700/50 dark:bg-slate-900/90">
+          <div className="absolute right-0 top-0 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 opacity-10 blur-3xl transition-opacity group-hover:opacity-25"></div>
+          <div className="relative flex items-start justify-between gap-2 sm:gap-3">
+            <div className="flex-1 min-w-0 pr-2 sm:pr-3 overflow-hidden">
+              <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">Total de Horas</p>
+              <p className="mt-1 sm:mt-2 text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white leading-tight break-words" style={{ fontVariantNumeric: 'tabular-nums', wordBreak: 'break-word' }}>
+                {formatarSegundosParaHoras(totais.totalSegundos)}
+              </p>
+            </div>
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-lg sm:text-xl md:text-2xl text-white shadow-xl ring-2 ring-white/20 transition-all duration-300 group-hover:rotate-6 group-hover:scale-110 group-hover:shadow-2xl">
+              ⏱️
+            </div>
+          </div>
         </div>
       </div>
 
@@ -279,6 +344,9 @@ const EntregadoresView = React.memo(function EntregadoresView({
                   </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Horas
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    Dias sem Rodar
                   </th>
                 </tr>
               </thead>
@@ -321,6 +389,24 @@ const EntregadoresView = React.memo(function EntregadoresView({
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                         {formatarSegundosParaHoras(entregador.total_segundos || 0)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <span className={`text-sm font-semibold ${
+                        entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
+                          ? 'text-slate-400 dark:text-slate-500'
+                          : entregador.dias_sem_rodar === 0
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : entregador.dias_sem_rodar <= 3
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-rose-600 dark:text-rose-400'
+                      }`}>
+                        {entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
+                          ? 'N/A'
+                          : entregador.dias_sem_rodar === 0
+                          ? 'Hoje'
+                          : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`
+                        }
                       </span>
                     </td>
                   </tr>
