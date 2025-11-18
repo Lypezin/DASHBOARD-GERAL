@@ -447,6 +447,9 @@ const EntregadoresView = React.memo(function EntregadoresView({
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Nome
                   </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    Cidade
+                  </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Ofertadas
                 </th>
@@ -486,6 +489,11 @@ const EntregadoresView = React.memo(function EntregadoresView({
                       <td className="px-6 py-4">
                         <span className="text-sm font-medium text-slate-900 dark:text-white">
                           {entregador.nome}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          {entregador.regiao_atuacao || 'N/A'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
