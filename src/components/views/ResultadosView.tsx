@@ -151,14 +151,14 @@ const ResultadosView = React.memo(function ResultadosView() {
       const valoresPorAtendenteECidade = new Map<string, Map<string, number>>();
       if (!valoresError && valoresData) {
         valoresData.forEach((row: any) => {
-          const idAtendente = row.id_atendente || '';
-          const cidade = row.cidade || 'Não especificada';
+          const idAtendente = String(row.id_atendente || '').trim();
+          const cidade = String(row.cidade || 'Não especificada').trim();
           const valor = Number(row.valor) || 0;
           
           // Encontrar o nome do atendente pelo ID
           let atendenteNome = '';
           for (const [nome, id] of Object.entries(atendenteToId)) {
-            if (id === idAtendente) {
+            if (String(id).trim() === idAtendente) {
               atendenteNome = nome;
               break;
             }
@@ -225,20 +225,40 @@ const ResultadosView = React.memo(function ResultadosView() {
           const cidadesComCustoAtendente = await Promise.all(
             (atendente.cidades || []).map(async (cidadeData) => {
               // Mapear nome da cidade para o formato usado em dados_valores_cidade
-              const cidadeUpper = cidadeData.cidade.toUpperCase();
+              const cidadeUpper = cidadeData.cidade.toUpperCase().trim();
+              const cidadeNormalizada = cidadeData.cidade.trim();
               
               // Tentar encontrar o valor usando o nome da cidade diretamente
-              let valorCidade = valoresAtendente.get(cidadeData.cidade) || 0;
+              let valorCidade = valoresAtendente.get(cidadeNormalizada) || 0;
               
               // Se não encontrou, tentar mapear
               if (valorCidade === 0) {
                 // Se for uma cidade do ABC, tentar buscar por "ABC"
                 if (cidadeData.cidade === 'Santo André' || cidadeData.cidade === 'São Bernardo' || cidadeData.cidade === 'ABC 2.0') {
                   valorCidade = valoresAtendente.get('ABC') || 0;
+                  // Também tentar variações
+                  if (valorCidade === 0) {
+                    valorCidade = valoresAtendente.get('ABC 2.0') || 0;
+                  }
                 } else {
                   // Tentar buscar pelo nome em maiúsculas ou pelo mapeamento
                   const regiaoMapeada = regiaoToCidadeValores[cidadeData.cidade] || cidadeUpper;
-                  valorCidade = valoresAtendente.get(regiaoMapeada) || valoresAtendente.get(cidadeUpper) || valoresAtendente.get(cidadeData.cidade) || 0;
+                  valorCidade = valoresAtendente.get(regiaoMapeada) || 
+                                valoresAtendente.get(cidadeUpper) || 
+                                valoresAtendente.get(cidadeNormalizada) || 
+                                valoresAtendente.get(cidadeData.cidade) || 0;
+                  
+                  // Se ainda não encontrou, tentar todas as variações possíveis
+                  if (valorCidade === 0) {
+                    for (const [cidadeKey, valor] of valoresAtendente.entries()) {
+                      if (cidadeKey.toUpperCase().trim() === cidadeUpper || 
+                          cidadeKey.trim() === cidadeNormalizada ||
+                          cidadeKey.toUpperCase().trim() === regiaoMapeada.toUpperCase().trim()) {
+                        valorCidade = valor;
+                        break;
+                      }
+                    }
+                  }
                 }
               }
 
@@ -601,17 +621,6 @@ const ResultadosView = React.memo(function ResultadosView() {
             </div>
           </div>
         </Card>
-      </div>
-
-      {/* Separador Visual */}
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-          Resultados por Responsável
-          <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-        </h3>
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
       </div>
 
       {/* Separador Visual */}
