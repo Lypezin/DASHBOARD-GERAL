@@ -290,6 +290,7 @@ export interface EntregadorMarketing {
   total_aceitas: number;
   total_completadas: number;
   total_rejeitadas: number;
+  total_segundos: number;
 }
 
 export interface AtendenteCidadeData {

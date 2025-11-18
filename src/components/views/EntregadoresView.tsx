@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { EntregadorMarketing, EntregadoresData } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { formatarHorasParaHMS } from '@/utils/formatters';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -20,6 +23,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
   const [entregadores, setEntregadores] = useState<EntregadorMarketing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   const fetchEntregadoresFallback = useCallback(async () => {
     try {
@@ -74,6 +78,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
           total_aceitas,
           total_completadas,
           total_rejeitadas,
+          total_segundos: 0, // Fallback não calcula horas
         });
       }
 
@@ -155,6 +160,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
         total_aceitas: e.corridas_aceitas,
         total_completadas: e.corridas_completadas,
         total_rejeitadas: e.corridas_rejeitadas,
+        total_segundos: 0, // EntregadoresData não tem horas
       }));
       setEntregadores(converted);
       setLoading(false);
@@ -166,6 +172,26 @@ const EntregadoresView = React.memo(function EntregadoresView({
 
   // Usar loading externo se fornecido, senão usar loading interno
   const isLoading = externalLoading !== undefined ? externalLoading : loading;
+
+  // Filtrar entregadores por nome ou ID
+  const entregadoresFiltrados = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return entregadores;
+    }
+    
+    const termo = searchTerm.toLowerCase().trim();
+    return entregadores.filter(e => 
+      e.nome.toLowerCase().includes(termo) ||
+      e.id_entregador.toLowerCase().includes(termo)
+    );
+  }, [entregadores, searchTerm]);
+
+  // Função para formatar segundos em horas (HH:MM:SS)
+  const formatarSegundosParaHoras = useCallback((segundos: number): string => {
+    if (!segundos || segundos === 0) return '00:00:00';
+    const horas = segundos / 3600;
+    return formatarHorasParaHMS(horas);
+  }, []);
 
   if (isLoading) {
     return (
@@ -208,8 +234,22 @@ const EntregadoresView = React.memo(function EntregadoresView({
           Entregadores do Marketing
         </h2>
         <p className="mt-2 text-sm text-purple-700 dark:text-purple-300">
-          Entregadores que aparecem tanto no marketing quanto nas corridas ({entregadores.length} entregador{entregadores.length !== 1 ? 'es' : ''})
+          Entregadores que aparecem tanto no marketing quanto nas corridas ({entregadoresFiltrados.length} de {entregadores.length} entregador{entregadores.length !== 1 ? 'es' : ''})
         </p>
+      </div>
+
+      {/* Campo de Busca */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Pesquisar por nome ou ID do entregador..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-full"
+          />
+        </div>
       </div>
 
       {/* Tabela de Entregadores */}
@@ -237,10 +277,13 @@ const EntregadoresView = React.memo(function EntregadoresView({
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                     Rejeitadas
                   </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
+                    Horas
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                {entregadores.map((entregador, idx) => (
+                {entregadoresFiltrados.map((entregador, idx) => (
                   <tr
                     key={entregador.id_entregador}
                     className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
@@ -275,6 +318,11 @@ const EntregadoresView = React.memo(function EntregadoresView({
                         {entregador.total_rejeitadas.toLocaleString('pt-BR')}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                        {formatarSegundosParaHoras(entregador.total_segundos || 0)}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -284,10 +332,12 @@ const EntregadoresView = React.memo(function EntregadoresView({
       ) : (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900 dark:bg-amber-950/30">
           <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">
-            Nenhum entregador encontrado
+            {searchTerm.trim() ? 'Nenhum entregador encontrado' : 'Nenhum entregador disponível'}
           </p>
           <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
-            Não há entregadores que aparecem tanto no marketing quanto nas corridas.
+            {searchTerm.trim() 
+              ? `Nenhum entregador corresponde à pesquisa "${searchTerm}".`
+              : 'Não há entregadores que aparecem tanto no marketing quanto nas corridas.'}
           </p>
         </div>
       )}
