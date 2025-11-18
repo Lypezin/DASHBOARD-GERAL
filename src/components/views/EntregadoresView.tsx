@@ -210,7 +210,8 @@ const EntregadoresView = React.memo(function EntregadoresView({
       // Se loading for fornecido externamente, usar ele
       setLoading(externalLoading || false);
     }
-  }, [entregadoresData, externalLoading, fetchEntregadores, filtroRodouDia, cidadeSelecionada]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entregadoresData, externalLoading, fetchEntregadores]);
 
   // Usar loading externo se fornecido, senão usar loading interno
   const isLoading = externalLoading !== undefined ? externalLoading : loading;
