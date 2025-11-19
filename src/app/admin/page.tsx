@@ -218,16 +218,70 @@ export default function AdminPage() {
     if (!selectedUser) return;
 
     try {
-      const { error } = await safeRpc('approve_user', {
-        user_id: selectedUser.id,
-        pracas: selectedPracas,
-        p_role: selectedRole,
-      }, {
-        timeout: 30000,
-        validateParams: true
-      });
+      let result: any;
+      let error: any;
+      
+      // Tentar chamar diretamente primeiro (bypass do safeRpc para debug)
+      try {
+        const directResult = await supabase.rpc('approve_user', {
+          user_id: selectedUser.id,
+          pracas: selectedPracas,
+          p_role: selectedRole,
+        });
+        result = directResult.data;
+        error = directResult.error;
+      } catch (rpcErr) {
+        // Se falhar, tentar com safeRpc
+        const safeResult = await safeRpc('approve_user', {
+          user_id: selectedUser.id,
+          pracas: selectedPracas,
+          p_role: selectedRole,
+        }, {
+          timeout: 30000,
+          validateParams: false
+        });
+        result = safeResult.data;
+        error = safeResult.error;
+      }
 
-      if (error) throw error;
+      if (error) {
+        // Verificar se é erro 404 (função não encontrada)
+        const errorCode = (error as any)?.code;
+        const errorMessage = String((error as any)?.message || '');
+        const is404 = errorCode === 'PGRST116' || 
+                     errorCode === '42883' ||
+                     errorMessage.includes('404') || 
+                     errorMessage.includes('not found') ||
+                     (errorMessage.includes('function') && errorMessage.includes('does not exist'));
+        
+        if (is404) {
+          if (IS_DEV) {
+            safeLog.warn('Função RPC não encontrada, tentando atualização direta via Supabase');
+          }
+          // Fallback: atualizar diretamente via Supabase client
+          const updateData: any = {
+            is_approved: true,
+            assigned_pracas: selectedRole === 'marketing' ? [] : selectedPracas,
+            approved_at: new Date().toISOString(),
+            approved_by: currentUser?.id || null
+          };
+          
+          // Atualizar role e is_admin baseado no selectedRole
+          if (selectedRole) {
+            updateData.role = selectedRole;
+            updateData.is_admin = (selectedRole === 'admin');
+          }
+          
+          const { error: updateError } = await supabase
+            .from('user_profiles')
+            .update(updateData)
+            .eq('id', selectedUser.id);
+          
+          if (updateError) throw updateError;
+        } else {
+          throw error;
+        }
+      }
 
       setShowModal(false);
       setSelectedUser(null);
@@ -235,7 +289,17 @@ export default function AdminPage() {
       setSelectedRole('user');
       fetchData();
     } catch (err: any) {
-      alert('Erro ao aprovar usuário: ' + err.message);
+      const errorMessage = err?.message || err?.toString() || 'Ocorreu um erro. Tente novamente mais tarde.';
+      if (IS_DEV) {
+        safeLog.error('Erro ao aprovar usuário:', {
+          error: err,
+          user_id: selectedUser?.id,
+          pracas: selectedPracas,
+          role: selectedRole,
+          errorMessage
+        });
+      }
+      alert('Erro ao aprovar usuário: ' + errorMessage);
     }
   };
 
