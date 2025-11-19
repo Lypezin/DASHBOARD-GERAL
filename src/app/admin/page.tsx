@@ -241,18 +241,48 @@ export default function AdminPage() {
 
   const handleUpdatePracas = async (userId: string, pracas: string[]) => {
     try {
-      const { error } = await safeRpc('update_user_pracas', {
-        user_id: userId,
-        pracas: pracas,
-      }, {
-        timeout: 30000,
-        validateParams: true
-      });
+      // Buscar o usuário para pegar o role atual
+      const user = users.find(u => u.id === userId);
+      const currentRole = user?.role || 'user';
+      
+      // Tentar chamar diretamente primeiro
+      let result: any;
+      let error: any;
+      
+      try {
+        const directResult = await supabase.rpc('update_user_pracas', {
+          user_id: userId,
+          pracas: pracas,
+          p_role: currentRole,
+        });
+        result = directResult.data;
+        error = directResult.error;
+      } catch (rpcErr) {
+        // Se falhar, tentar com safeRpc
+        const safeResult = await safeRpc('update_user_pracas', {
+          user_id: userId,
+          pracas: pracas,
+          p_role: currentRole,
+        }, {
+          timeout: 30000,
+          validateParams: false
+        });
+        result = safeResult.data;
+        error = safeResult.error;
+      }
 
       if (error) throw error;
       fetchData();
     } catch (err: any) {
-      alert('Erro ao atualizar praças: ' + err.message);
+      const errorMessage = err?.message || err?.toString() || 'Ocorreu um erro. Tente novamente mais tarde.';
+      if (IS_DEV) {
+        safeLog.error('Erro ao atualizar praças (handleUpdatePracas):', {
+          error: err,
+          user_id: userId,
+          pracas: pracas
+        });
+      }
+      alert('Erro ao atualizar praças: ' + errorMessage);
     }
   };
 
@@ -293,16 +323,59 @@ export default function AdminPage() {
     if (!editingUser) return;
 
     try {
-      const { error } = await safeRpc('update_user_pracas', {
-        user_id: editingUser.id,
-        pracas: selectedPracas,
-        p_role: selectedRole,
-      }, {
-        timeout: 30000,
-        validateParams: true
-      });
+      // Tentar chamar diretamente primeiro para evitar problemas de cache do PostgREST
+      let result: any;
+      let error: any;
+      
+      try {
+        const directResult = await supabase.rpc('update_user_pracas', {
+          user_id: editingUser.id,
+          pracas: selectedPracas,
+          p_role: selectedRole,
+        });
+        result = directResult.data;
+        error = directResult.error;
+      } catch (rpcErr) {
+        // Se falhar, tentar com safeRpc
+        const safeResult = await safeRpc('update_user_pracas', {
+          user_id: editingUser.id,
+          pracas: selectedPracas,
+          p_role: selectedRole,
+        }, {
+          timeout: 30000,
+          validateParams: false // Desabilitar validação para evitar problemas
+        });
+        result = safeResult.data;
+        error = safeResult.error;
+      }
 
-      if (error) throw error;
+      if (error) {
+        // Se for erro 404, tentar atualizar diretamente via Supabase
+        if ((error as any)?.code === 'PGRST116' || (error as any)?.message?.includes('404') || (error as any)?.message?.includes('not found')) {
+          if (IS_DEV) {
+            safeLog.warn('Função RPC não encontrada, tentando atualização direta via Supabase');
+          }
+          
+          // Fallback: atualizar diretamente via Supabase
+          const updateData: any = {
+            assigned_pracas: selectedPracas
+          };
+          
+          if (selectedRole) {
+            updateData.role = selectedRole;
+            updateData.is_admin = (selectedRole === 'admin');
+          }
+          
+          const { error: updateError } = await supabase
+            .from('user_profiles')
+            .update(updateData)
+            .eq('id', editingUser.id);
+          
+          if (updateError) throw updateError;
+        } else {
+          throw error;
+        }
+      }
 
       setShowEditModal(false);
       setEditingUser(null);
