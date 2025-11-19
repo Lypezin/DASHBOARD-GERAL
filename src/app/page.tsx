@@ -545,13 +545,13 @@ export default function DashboardPage() {
           <div className="space-y-4 animate-fade-in">
             {/* Filtros - Container Separado */}
             {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
-              <div className="relative group">
+              <div className="relative group" style={{ zIndex: 1 }}>
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
-                <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-6 sm:p-8 backdrop-blur-sm overflow-visible">
+                <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-6 sm:p-8 backdrop-blur-sm" style={{ overflow: 'visible' }}>
                   <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl pointer-events-none"></div>
                   
-                  <div className="relative z-10">
+                  <div className="relative" style={{ zIndex: 1 }}>
                     <FiltroBar
                       filters={filters}
                       setFilters={setFilters}

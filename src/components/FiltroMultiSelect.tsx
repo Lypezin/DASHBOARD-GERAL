@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 type FilterOption = {
   value: string;
@@ -14,19 +15,45 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   disabled?: boolean;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const wrapperRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node) &&
+          dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [wrapperRef]);
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const updatePosition = () => {
+        if (buttonRef.current) {
+          const rect = buttonRef.current.getBoundingClientRect();
+          setDropdownPosition({
+            top: rect.bottom + window.scrollY + 4,
+            left: rect.left + window.scrollX,
+            width: rect.width
+          });
+        }
+      };
+      
+      updatePosition();
+      window.addEventListener('scroll', updatePosition, true);
+      window.addEventListener('resize', updatePosition);
+      
+      return () => {
+        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener('resize', updatePosition);
+      };
+    }
+  }, [isOpen]);
 
 
   const handleSelect = (value: string) => {
@@ -40,10 +67,42 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
     onSelectionChange(newSelected);
   };
 
+  const dropdownContent = isOpen && !disabled && options.length > 0 && typeof window !== 'undefined' ? createPortal(
+    <div 
+      ref={dropdownRef}
+      className="fixed rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700 z-[9999]"
+      style={{ 
+        top: `${dropdownPosition.top}px`,
+        left: `${dropdownPosition.left}px`,
+        width: `${dropdownPosition.width}px`,
+        zIndex: 9999
+      }}
+    >
+      <ul className="max-h-60 overflow-auto p-1">
+        {options.map((option) => (
+          <li
+            key={option.value}
+            className="p-2 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-md"
+            onClick={() => handleSelect(option.value)}
+          >
+            <input
+              type="checkbox"
+              checked={selected.includes(option.value)}
+              readOnly
+              className="mr-2"
+            />
+            {option.label}
+          </li>
+        ))}
+      </ul>
+    </div>,
+    document.body
+  ) : null;
+
   return (
-    <div className="flex flex-col gap-1 sm:gap-1.5 relative z-50" ref={wrapperRef}>
+    <div className="flex flex-col gap-1 sm:gap-1.5 relative" ref={wrapperRef}>
       <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">{label}</span>
-      <div className="relative z-50">
+      <div className="relative">
         <button
           ref={buttonRef}
           onClick={() => setIsOpen(!isOpen)}
@@ -52,32 +111,8 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
         >
           {selected.length > 0 ? `${selected.length} selecionado(s)` : placeholder}
         </button>
-        {isOpen && !disabled && options.length > 0 && (
-          <div 
-            ref={dropdownRef}
-            className="absolute z-[100] mt-1 w-full rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
-            style={{ zIndex: 9999 }}
-          >
-            <ul className="max-h-60 overflow-auto p-1">
-              {options.map((option) => (
-                <li
-                  key={option.value}
-                  className="p-2 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-md"
-                  onClick={() => handleSelect(option.value)}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(option.value)}
-                    readOnly
-                    className="mr-2"
-                  />
-                  {option.label}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
+      {dropdownContent}
     </div>
   );
 });
