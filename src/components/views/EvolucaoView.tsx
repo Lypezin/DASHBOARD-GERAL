@@ -1071,51 +1071,12 @@ function EvolucaoView({
                     </div>
                   </div>
                 ) : chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
-                  (() => {
-                    try {
-                      // Verificar se há valores idênticos entre datasets
-                        const datasets = chartData.datasets;
-                        for (let i = 0; i < datasets.length; i++) {
-                          for (let j = i + 1; j < datasets.length; j++) {
-                            const d1 = datasets[i];
-                            const d2 = datasets[j];
-                            const values1 = d1.data.filter(v => v != null);
-                            const values2 = d2.data.filter(v => v != null);
-                            
-                            if (values1.length === values2.length && values1.length > 0) {
-                              const allEqual = values1.every((v, idx) => v === values2[idx]);
-                              if (allEqual) {
-                                if (IS_DEV) {
-                                  safeLog.warn(`⚠️ [EVOLUÇÃO] ${d1.label} e ${d2.label} têm valores idênticos!`, {
-                                  valores: values1.slice(0, 5),
-                                  issoPodeSerNormal: 'Se todas as corridas ofertadas foram aceitas e completadas'
-                                });
-                              }
-                            }
-                          }
-                        }
-                      
-                      return (
-                        <Line 
-                          data={chartData} 
-                          options={chartOptions}
-                          redraw={true}
-                          updateMode="resize"
-                        />
-                      );
-                    } catch (error: any) {
-                      safeLog.error('❌ [EVOLUÇÃO] Erro ao renderizar gráfico:', error);
-                      setChartError('Erro ao renderizar gráfico. Tente recarregar a página.');
-                      return (
-                        <div className="flex h-full items-center justify-center">
-                          <div className="text-center">
-                            <p className="text-red-600 dark:text-red-400 font-semibold mb-2">Erro ao carregar gráfico</p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Tente recarregar a página.</p>
-                          </div>
-                        </div>
-                      );
-                    }
-                  })()
+                  <Line 
+                    data={chartData} 
+                    options={chartOptions}
+                    redraw={true}
+                    updateMode="resize"
+                  />
                 ) : (
                   <div className="relative z-10 flex h-[500px] items-center justify-center">
                     <div className="text-center">
@@ -1133,6 +1094,7 @@ function EvolucaoView({
                 )}
               </div>
             </div>
+          </div>
           </div>
         ) : (
           <div className="relative z-10 flex h-[500px] items-center justify-center">
@@ -1152,6 +1114,7 @@ function EvolucaoView({
             </div>
           </div>
         )}
+        </div>
       </div>
       {/* Cards com estatísticas - Design Premium */}
       {dadosAtivos.length > 0 && (
