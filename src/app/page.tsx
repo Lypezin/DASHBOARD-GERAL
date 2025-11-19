@@ -515,32 +515,44 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        {/* Header Principal - Design Melhorado */}
-        <header className="mb-6 animate-fade-in">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl bg-blue-600 shadow-lg">
-                <span className="text-2xl sm:text-3xl">📊</span>
+        {/* Header Principal - Design Ultra Moderno */}
+        <header className="mb-8 animate-fade-in">
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 rounded-3xl bg-gradient-to-br from-white via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/50 shadow-xl border-0 backdrop-blur-sm">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-3xl"></div>
+              
+              <div className="relative flex items-center gap-5">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl blur-lg opacity-50"></div>
+                  <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl">
+                    <span className="text-3xl sm:text-4xl">📊</span>
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-white dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent tracking-tight">
+                    Dashboard Operacional
+                  </h1>
+                  <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 font-medium mt-1">
+                    Sistema de Análise e Monitoramento
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
-                  Dashboard Operacional
-                </h1>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Sistema de Análise e Monitoramento
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-xs text-slate-500 dark:text-slate-400">Atualizado</p>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                  {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
-              <div className="relative h-10 w-10 rounded-lg bg-emerald-500 flex items-center justify-center shadow-md">
-                <div className="absolute inset-0 rounded-lg bg-emerald-400/50 animate-ping"></div>
-                <span className="relative text-white text-lg">🟢</span>
+              
+              <div className="relative flex items-center gap-4">
+                <div className="text-right hidden sm:block">
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Atualizado</p>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white mt-1">
+                    {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-emerald-400 rounded-xl blur-lg opacity-50 animate-pulse"></div>
+                  <div className="relative h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                    <span className="relative text-white text-xl">🟢</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -573,34 +585,48 @@ export default function DashboardPage() {
 
         {!loading && !error && (
           <div className="space-y-6 animate-fade-in">
-            {/* Filtros e Tabs - Design Melhorado */}
+            {/* Filtros e Tabs - Design Ultra Moderno */}
             {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
-              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-6">
-                <div className="mb-4">
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Filtros</h2>
-                  <FiltroBar
-                    filters={filters}
-                    setFilters={setFilters}
-                    anos={anosDisponiveis}
-                    semanas={semanasDisponiveis}
-                    pracas={pracas}
-                    subPracas={subPracas}
-                    origens={origens}
-                    turnos={turnos}
-                    currentUser={currentUser}
-                  />
-                </div>
-                <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
-                    <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
-                    <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
-                    <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
-                    <TabButton label="Entregadores" active={activeTab === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
-                    <TabButton label="Valores" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
-                    <TabButton label="Prioridade/Promo" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
-                    <TabButton label="Evolução" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
-                    <TabButton label="Comparar" active={(activeTab as TabType) === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
-                    <TabButton label="Marketing" active={(activeTab as TabType) === 'marketing'} onClick={() => handleTabChange('marketing')} />
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-300/20 to-slate-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                <div className="relative bg-gradient-to-br from-white via-white to-slate-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/30 rounded-3xl border-0 shadow-xl p-6 sm:p-8 backdrop-blur-sm overflow-hidden">
+                  <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 rounded-full blur-3xl"></div>
+                  
+                  <div className="relative mb-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center shadow-md">
+                        <span className="text-lg">🔍</span>
+                      </div>
+                      <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                        Filtros
+                      </h2>
+                    </div>
+                    <FiltroBar
+                      filters={filters}
+                      setFilters={setFilters}
+                      anos={anosDisponiveis}
+                      semanas={semanasDisponiveis}
+                      pracas={pracas}
+                      subPracas={subPracas}
+                      origens={origens}
+                      turnos={turnos}
+                      currentUser={currentUser}
+                    />
+                  </div>
+                  
+                  <div className="relative border-t border-slate-200/50 dark:border-slate-700/50 pt-6">
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
+                      <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
+                      <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
+                      <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
+                      <TabButton label="Entregadores" active={activeTab === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
+                      <TabButton label="Valores" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
+                      <TabButton label="Prioridade/Promo" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
+                      <TabButton label="Evolução" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
+                      <TabButton label="Comparar" active={(activeTab as TabType) === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
+                      <TabButton label="Marketing" active={(activeTab as TabType) === 'marketing'} onClick={() => handleTabChange('marketing')} />
+                    </div>
                   </div>
                 </div>
               </div>

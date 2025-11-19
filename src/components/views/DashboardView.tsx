@@ -103,276 +103,351 @@ const DashboardView = React.memo(function DashboardView({
   }, [aderenciaGeral]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Aderência Geral - Design Melhorado */}
+    <div className="space-y-8 animate-fade-in">
+      {/* Aderência Geral - Design Ultra Moderno */}
       {aderenciaGeral && (
-        <Card className="border-2 shadow-lg bg-white dark:bg-slate-900">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Aderência Geral</CardTitle>
-            <CardDescription>Performance global do período</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-              {/* Gráfico Circular Central - Grande */}
-              <div className="flex justify-center lg:justify-start order-2 lg:order-1">
-                <div className="relative">
-                  <CircularProgress
-                    value={aderenciaGeral.aderencia_percentual ?? 0}
-                    size={240}
-                    strokeWidth={20}
-                    color={getAderenciaColorHex(aderenciaGeral.aderencia_percentual ?? 0, theme === 'dark')}
-                    backgroundColor="rgba(0, 0, 0, 0.08)"
-                    showLabel={true}
-                    label="Taxa Atual"
-                  />
+        <div className="relative group">
+          {/* Glow effect sutil */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/50 rounded-3xl overflow-hidden">
+            {/* Decorative gradient overlay */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-3xl"></div>
+            
+            <CardHeader className="relative pb-6">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                  <span className="text-2xl">📊</span>
+                </div>
+                <div>
+                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                    Aderência Geral
+                  </CardTitle>
+                  <CardDescription className="text-base mt-1">Performance global do período</CardDescription>
                 </div>
               </div>
+            </CardHeader>
+            
+            <CardContent className="relative">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                {/* Gráfico Circular Central - Grande com efeito glow */}
+                <div className="flex justify-center lg:justify-start order-2 lg:order-1">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-full blur-2xl"></div>
+                    <CircularProgress
+                      value={aderenciaGeral.aderencia_percentual ?? 0}
+                      size={260}
+                      strokeWidth={22}
+                      color={getAderenciaColorHex(aderenciaGeral.aderencia_percentual ?? 0, theme === 'dark')}
+                      backgroundColor="rgba(0, 0, 0, 0.06)"
+                      showLabel={true}
+                      label="Taxa Atual"
+                    />
+                  </div>
+                </div>
 
-              {/* Cards de Métricas - Lado Direito */}
-              <div className="space-y-4 order-1 lg:order-2">
-                <Card className="border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
-                  <CardContent className="pt-6">
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Tempo Planejado</p>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                      {formatarHorasCompacta(aderenciaGeral.horas_a_entregar)}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-3">
-                      {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
-                    </p>
-                    <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: '100%' }}></div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
-                  <CardContent className="pt-6">
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Tempo Entregue</p>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                      {formatarHorasCompacta(aderenciaGeral.horas_entregues)}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-3">
-                      {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
-                    </p>
-                    <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-blue-500 rounded-full transition-all duration-500" 
-                        style={{ 
-                          width: `${Math.min(((aderenciaGeral.aderencia_percentual ?? 0) / 100) * 100, 100)}%` 
-                        }}
-                      ></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Gap de Performance - Card Destaque */}
-              {calcularGap && (
-                <Card className="border-2 border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-md order-3">
-                  <CardContent className="pt-6">
-                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3">Gap de Performance</p>
-                    <p className="text-3xl sm:text-4xl font-bold text-blue-900 dark:text-blue-100 mb-2 font-mono">
-                      {calcularGap.formatado}
-                    </p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-4">
-                      Diferença entre planejado e entregue
-                    </p>
-                    {/* Indicador de variação */}
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700">
-                        <span className="text-xs font-semibold">+5.2%</span>
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Aderência por Dia da Semana - Design Melhorado */}
-      {aderenciaDiaOrdenada.length > 0 && (
-        <Card className="border-2 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Aderência por Dia da Semana</CardTitle>
-            <CardDescription>Distribuição semanal de performance</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-              {aderenciaDiaOrdenada.map((dia, index) => {
-                const aderencia = dia.aderencia_percentual || 0;
-                const textColorHex = getAderenciaColorHex(aderencia, theme === 'dark');
-                const isToday = new Date().getDay() === (index + 1) % 7;
-                
-                return (
-                  <Card 
-                    key={`dia-${index}`}
-                    className={`border-2 transition-all hover:shadow-lg ${isToday ? 'ring-2 ring-blue-500' : ''}`}
-                    style={{ borderColor: textColorHex }}
-                  >
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-bold text-slate-900 dark:text-white">{dia.dia_da_semana}</h4>
-                        <Badge 
-                          className="text-white"
-                          style={{ backgroundColor: textColorHex }}
-                        >
-                          {aderencia.toFixed(1)}%
-                        </Badge>
-                      </div>
-                      
-                      {/* Barra de progresso */}
-                      <div className="mb-4">
-                        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ 
-                              backgroundColor: textColorHex,
-                              width: `${Math.min(aderencia, 100)}%` 
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      {/* Dados */}
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-600 dark:text-slate-400">Planejado:</span>
-                          <span className="font-semibold text-slate-900 dark:text-white font-mono text-xs">
-                            {formatarHorasParaHMS(dia.horas_a_entregar)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-600 dark:text-slate-400">Entregue:</span>
-                          <span 
-                            className="font-semibold font-mono text-xs"
-                            style={{ color: textColorHex }}
-                          >
-                            {formatarHorasParaHMS(dia.horas_entregues)}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Aderência Detalhada (Turno/Sub Praça/Origem) - Design Melhorado */}
-      <Card className="border-2 shadow-lg">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-2xl font-bold">Aderência Detalhada</CardTitle>
-              <CardDescription>Análise por segmento operacional</CardDescription>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
-              <button
-                onClick={() => setViewMode('turno')}
-                className={`shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  viewMode === 'turno'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                }`}
-              >
-                Turno
-              </button>
-              <button
-                onClick={() => setViewMode('sub_praca')}
-                className={`shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  viewMode === 'sub_praca'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                }`}
-              >
-                Sub Praça
-              </button>
-              <button
-                onClick={() => setViewMode('origem')}
-                className={`shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  viewMode === 'origem'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                }`}
-              >
-                Origem
-              </button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {dataToRender.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {dataToRender.map((item, index) => {
-                const statusColor = item.aderencia >= 90 ? 'emerald' : item.aderencia >= 70 ? 'amber' : 'rose';
-                const statusText = item.aderencia >= 90 ? 'Excelente' : item.aderencia >= 70 ? 'Bom' : item.aderencia >= 50 ? 'Médio' : 'Crítico';
-                
-                return (
-                  <Card key={`${viewMode}-${index}`} className="border-2 hover:shadow-lg transition-all">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">{item.label}</h3>
-                        <Badge 
-                          variant="outline"
-                          className={`${
-                            statusColor === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' :
-                            statusColor === 'amber' ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700' :
-                            'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-700'
-                          }`}
-                        >
-                          {statusText}
-                        </Badge>
-                      </div>
-                      
-                      <div className="mb-4">
-                        <p className="text-3xl font-bold mb-2" style={{ color: getAderenciaColorHex(item.aderencia, theme === 'dark') }}>
-                          {item.aderencia.toFixed(1)}%
+                {/* Cards de Métricas - Lado Direito com design moderno */}
+                <div className="space-y-5 order-1 lg:order-2">
+                  <div className="relative group/card">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-300 to-slate-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
+                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-800 dark:to-slate-900/80 rounded-2xl overflow-hidden backdrop-blur-sm">
+                      <CardContent className="pt-6 pb-5">
+                        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wide">Tempo Planejado</p>
+                        <p className="text-4xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
+                          {formatarHorasCompacta(aderenciaGeral.horas_a_entregar)}
                         </p>
-                        <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-mono mb-4">
+                          {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
+                        </p>
+                        <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 shadow-lg" style={{ width: '100%' }}></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="relative group/card">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-indigo-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
+                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-800 dark:to-slate-900/80 rounded-2xl overflow-hidden backdrop-blur-sm">
+                      <CardContent className="pt-6 pb-5">
+                        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wide">Tempo Entregue</p>
+                        <p className="text-4xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
+                          {formatarHorasCompacta(aderenciaGeral.horas_entregues)}
+                        </p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-mono mb-4">
+                          {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
+                        </p>
+                        <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
                           <div 
-                            className="h-full rounded-full transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-700 shadow-lg" 
                             style={{ 
-                              backgroundColor: getAderenciaColorHex(item.aderencia, theme === 'dark'),
-                              width: `${Math.min(item.aderencia, 100)}%` 
+                              width: `${Math.min(((aderenciaGeral.aderencia_percentual ?? 0) / 100) * 100, 100)}%` 
                             }}
                           ></div>
                         </div>
-                      </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
 
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-slate-600 dark:text-slate-400">Planejado:</span>
-                          <span className="font-semibold text-slate-900 dark:text-white font-mono">
-                            {formatarHorasParaHMS(item.horasAEntregar)}
-                          </span>
+                {/* Gap de Performance - Card Destaque com gradiente */}
+                {calcularGap && (
+                  <div className="relative order-3">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-3xl blur opacity-30"></div>
+                    <Card className="relative border-0 shadow-2xl bg-gradient-to-br from-blue-50 via-indigo-50/50 to-purple-50/30 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-purple-950/20 rounded-3xl overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-2xl"></div>
+                      <CardContent className="relative pt-8 pb-6">
+                        <p className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-4 uppercase tracking-wider">Gap de Performance</p>
+                        <p className="text-5xl font-black text-blue-900 dark:text-blue-100 mb-3 font-mono tracking-tight">
+                          {calcularGap.formatado}
+                        </p>
+                        <p className="text-sm text-blue-600/80 dark:text-blue-400/80 mb-5 font-medium">
+                          Diferença entre planejado e entregue
+                        </p>
+                        {/* Indicador de variação */}
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0 shadow-md px-3 py-1">
+                            <span className="text-xs font-bold">+5.2%</span>
+                          </Badge>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600 dark:text-slate-400">Entregue:</span>
-                          <span 
-                            className="font-semibold font-mono"
-                            style={{ color: getAderenciaColorHex(item.aderencia, theme === 'dark') }}
-                          >
-                            {formatarHorasParaHMS(item.horasEntregues)}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Aderência por Dia da Semana - Design Ultra Moderno */}
+      {aderenciaDiaOrdenada.length > 0 && (
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-rose-500/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-slate-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/30 rounded-3xl overflow-hidden">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-full blur-3xl"></div>
+            
+            <CardHeader className="relative pb-6">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
+                  <span className="text-2xl">📅</span>
+                </div>
+                <div>
+                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                    Aderência por Dia da Semana
+                  </CardTitle>
+                  <CardDescription className="text-base mt-1">Distribuição semanal de performance</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="relative">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-5">
+                {aderenciaDiaOrdenada.map((dia, index) => {
+                  const aderencia = dia.aderencia_percentual || 0;
+                  const textColorHex = getAderenciaColorHex(aderencia, theme === 'dark');
+                  const isToday = new Date().getDay() === (index + 1) % 7;
+                  
+                  return (
+                    <div key={`dia-${index}`} className="relative group/card">
+                      <div className={`absolute -inset-0.5 rounded-2xl blur transition-all duration-300 ${
+                        isToday 
+                          ? 'bg-gradient-to-r from-blue-400 to-indigo-500 opacity-60' 
+                          : 'bg-gradient-to-r from-slate-300 to-slate-400 opacity-0 group-hover/card:opacity-20'
+                      }`}></div>
+                      
+                      <Card 
+                        className={`relative border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-800 dark:to-slate-900/80 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+                          isToday ? 'ring-2 ring-blue-400/50' : ''
+                        }`}
+                      >
+                        <CardContent className="pt-6 pb-5">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-bold text-lg text-slate-900 dark:text-white">{dia.dia_da_semana}</h4>
+                            <Badge 
+                              className="text-white shadow-md border-0 font-bold"
+                              style={{ 
+                                background: `linear-gradient(135deg, ${textColorHex}, ${textColorHex}dd)`
+                              }}
+                            >
+                              {aderencia.toFixed(1)}%
+                            </Badge>
+                          </div>
+                          
+                          {/* Barra de progresso moderna */}
+                          <div className="mb-5">
+                            <div className="h-4 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
+                              <div 
+                                className="h-full rounded-full transition-all duration-700 shadow-lg"
+                                style={{ 
+                                  background: `linear-gradient(90deg, ${textColorHex}, ${textColorHex}dd)`,
+                                  width: `${Math.min(aderencia, 100)}%` 
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Dados */}
+                          <div className="space-y-3 text-sm">
+                            <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
+                              <span className="text-slate-500 dark:text-slate-400 font-medium">Planejado:</span>
+                              <span className="font-bold text-slate-900 dark:text-white font-mono text-xs">
+                                {formatarHorasParaHMS(dia.horas_a_entregar)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
+                              <span className="text-slate-500 dark:text-slate-400 font-medium">Entregue:</span>
+                              <span 
+                                className="font-bold font-mono text-xs"
+                                style={{ color: textColorHex }}
+                              >
+                                {formatarHorasParaHMS(dia.horas_entregues)}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Aderência Detalhada (Turno/Sub Praça/Origem) - Design Ultra Moderno */}
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-slate-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/30 rounded-3xl overflow-hidden">
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-emerald-500/5 to-teal-500/5 rounded-full blur-3xl"></div>
+          
+          <CardHeader className="relative pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                  <span className="text-2xl">📋</span>
+                </div>
+                <div>
+                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                    Aderência Detalhada
+                  </CardTitle>
+                  <CardDescription className="text-base mt-1">Análise por segmento operacional</CardDescription>
+                </div>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0">
+                <button
+                  onClick={() => setViewMode('turno')}
+                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                    viewMode === 'turno'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105'
+                  }`}
+                >
+                  Turno
+                </button>
+                <button
+                  onClick={() => setViewMode('sub_praca')}
+                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                    viewMode === 'sub_praca'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105'
+                  }`}
+                >
+                  Sub Praça
+                </button>
+                <button
+                  onClick={() => setViewMode('origem')}
+                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                    viewMode === 'origem'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105'
+                  }`}
+                >
+                  Origem
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📊</div>
-              <p className="text-slate-500 dark:text-slate-400">Nenhum dado disponível para este filtro</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          
+          <CardContent className="relative">
+            {dataToRender.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {dataToRender.map((item, index) => {
+                  const statusColor = item.aderencia >= 90 ? 'emerald' : item.aderencia >= 70 ? 'amber' : 'rose';
+                  const statusText = item.aderencia >= 90 ? 'Excelente' : item.aderencia >= 70 ? 'Bom' : item.aderencia >= 50 ? 'Médio' : 'Crítico';
+                  const colorHex = getAderenciaColorHex(item.aderencia, theme === 'dark');
+                  
+                  return (
+                    <div key={`${viewMode}-${index}`} className="relative group/card">
+                      <div className="absolute -inset-0.5 rounded-2xl blur opacity-0 group-hover/card:opacity-30 transition-opacity" style={{
+                        background: `linear-gradient(135deg, ${colorHex}, ${colorHex}88)`
+                      }}></div>
+                      
+                      <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-800 dark:to-slate-900/80 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                        <CardContent className="pt-6 pb-5">
+                          <div className="flex items-center justify-between mb-5">
+                            <h3 className="font-bold text-xl text-slate-900 dark:text-white">{item.label}</h3>
+                            <Badge 
+                              className={`font-bold border-0 shadow-md ${
+                                statusColor === 'emerald' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white' :
+                                statusColor === 'amber' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white' :
+                                'bg-gradient-to-r from-rose-500 to-rose-600 text-white'
+                              }`}
+                            >
+                              {statusText}
+                            </Badge>
+                          </div>
+                          
+                          <div className="mb-5">
+                            <p className="text-4xl font-black mb-3 tracking-tight" style={{ color: colorHex }}>
+                              {item.aderencia.toFixed(1)}%
+                            </p>
+                            <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
+                              <div 
+                                className="h-full rounded-full transition-all duration-700 shadow-lg"
+                                style={{ 
+                                  background: `linear-gradient(90deg, ${colorHex}, ${colorHex}dd)`,
+                                  width: `${Math.min(item.aderencia, 100)}%` 
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3 text-sm">
+                            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/50">
+                              <span className="text-slate-500 dark:text-slate-400 font-semibold">Planejado:</span>
+                              <span className="font-bold text-slate-900 dark:text-white font-mono">
+                                {formatarHorasParaHMS(item.horasAEntregar)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/50">
+                              <span className="text-slate-500 dark:text-slate-400 font-semibold">Entregue:</span>
+                              <span 
+                                className="font-bold font-mono"
+                                style={{ color: colorHex }}
+                              >
+                                {formatarHorasParaHMS(item.horasEntregues)}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className="text-7xl mb-6 opacity-50">📊</div>
+                <p className="text-slate-500 dark:text-slate-400 text-lg">Nenhum dado disponível para este filtro</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 });
