@@ -1,3 +1,30 @@
+/**
+ * Converte formato HH:MM:SS ou número para horas decimais
+ * @param valor - String no formato HH:MM:SS ou número (decimal ou string numérica)
+ * @returns Número em horas decimais
+ */
+export function converterHorasParaDecimal(valor: string | number): number {
+  if (typeof valor === 'number') return valor;
+  if (!valor || valor === '0' || valor === '00:00:00') return 0;
+  
+  // Se já for um número decimal (string)
+  if (!valor.includes(':')) {
+    const num = parseFloat(valor);
+    return isNaN(num) ? 0 : num;
+  }
+  
+  // Se for formato HH:MM:SS
+  const parts = valor.split(':');
+  if (parts.length === 3) {
+    const horas = parseInt(parts[0]) || 0;
+    const minutos = parseInt(parts[1]) || 0;
+    const segundos = parseInt(parts[2]) || 0;
+    return horas + minutos / 60 + segundos / 3600;
+  }
+  
+  return 0;
+}
+
 export function formatarHorasParaHMS(horasDecimais: string | number): string {
   // Se já for string no formato HH:MM:SS, retornar como está
   if (typeof horasDecimais === 'string' && horasDecimais.includes(':')) {

@@ -5,6 +5,7 @@ import {
   FilterOption, Filters, DashboardResumoData, EvolucaoMensal, EvolucaoSemanal, UtrSemanal
 } from '@/types';
 import { buildFilterPayload, safeNumber } from '@/utils/helpers';
+import { converterHorasParaDecimal } from '@/utils/formatters';
 import { useDashboardDimensions } from './useDashboardDimensions';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
@@ -404,8 +405,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     
     const { totalHorasAEntregar, totalHorasEntregues } = aderenciaSemanal.reduce(
       (acc, semana) => ({
-        totalHorasAEntregar: acc.totalHorasAEntregar + parseFloat(semana.horas_a_entregar || '0'),
-        totalHorasEntregues: acc.totalHorasEntregues + parseFloat(semana.horas_entregues || '0')
+        totalHorasAEntregar: acc.totalHorasAEntregar + converterHorasParaDecimal(semana.horas_a_entregar || '0'),
+        totalHorasEntregues: acc.totalHorasEntregues + converterHorasParaDecimal(semana.horas_entregues || '0')
       }),
       { totalHorasAEntregar: 0, totalHorasEntregues: 0 }
     );

@@ -4,7 +4,7 @@ import { FilterOption, DashboardResumoData } from '@/types';
 import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import FiltroSelect from '@/components/FiltroSelect';
-import { formatarHorasParaHMS } from '@/utils/formatters';
+import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatters';
 import { buildFilterPayload } from '@/utils/helpers';
 import MetricCard from '@/components/MetricCard';
 import { Bar, Line } from 'react-chartjs-2';
@@ -597,7 +597,7 @@ function ComparacaoView({
             <MetricCard
               title="Horas Entregues"
               value={formatarHorasParaHMS(
-                      dadosComparacao.reduce((sum, d) => sum + parseFloat(d.semanal[0]?.horas_entregues ?? '0'), 0).toString()
+                      dadosComparacao.reduce((sum, d) => sum + converterHorasParaDecimal(d.semanal[0]?.horas_entregues ?? '0'), 0).toString()
                     )}
               icon="⏱️"
               color="purple"

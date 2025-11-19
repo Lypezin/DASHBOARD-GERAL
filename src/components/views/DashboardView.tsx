@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
 import AderenciaCard from '../AderenciaCard';
-import { formatarHorasParaHMS, formatarHorasCompacta, getAderenciaColor, getAderenciaBgColor, getAderenciaColorHex } from '@/utils/formatters';
+import { formatarHorasParaHMS, formatarHorasCompacta, getAderenciaColor, getAderenciaBgColor, getAderenciaColorHex, converterHorasParaDecimal } from '@/utils/formatters';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CircularProgress } from '@/components/ui/circular-progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,31 +74,8 @@ const DashboardView = React.memo(function DashboardView({
     const planejadoStr = aderenciaGeral.horas_a_entregar || '0';
     const entregueStr = aderenciaGeral.horas_entregues || '0';
     
-    // Converter formato HH:MM:SS para horas decimais
-    const parseHoras = (str: string | number): number => {
-      if (typeof str === 'number') return str;
-      if (!str || str === '0') return 0;
-      
-      // Se já for um número decimal (string)
-      if (!str.includes(':')) {
-        const num = parseFloat(str);
-        return isNaN(num) ? 0 : num;
-      }
-      
-      // Se for formato HH:MM:SS
-      const parts = str.split(':');
-      if (parts.length === 3) {
-        const horas = parseInt(parts[0]) || 0;
-        const minutos = parseInt(parts[1]) || 0;
-        const segundos = parseInt(parts[2]) || 0;
-        return horas + minutos / 60 + segundos / 3600;
-      }
-      
-      return 0;
-    };
-    
-    const planejado = parseHoras(planejadoStr);
-    const entregue = parseHoras(entregueStr);
+    const planejado = converterHorasParaDecimal(planejadoStr);
+    const entregue = converterHorasParaDecimal(entregueStr);
     const gap = Math.max(0, planejado - entregue);
     
     return {

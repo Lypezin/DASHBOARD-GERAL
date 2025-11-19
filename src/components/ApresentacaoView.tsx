@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { DashboardResumoData } from '@/types';
-import { formatarHorasParaHMS } from '@/utils/formatters';
+import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatters';
 import {
   criarSlideCapa,
   criarSlideAderenciaGeral,
@@ -173,10 +173,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       periodoSemana2: calcularPeriodoSemana(numSem2),
       aderencia1: sem1?.semanal?.[0]?.aderencia_percentual || 0,
       aderencia2: sem2?.semanal?.[0]?.aderencia_percentual || 0,
-      horasEntregues1: parseFloat(sem1?.semanal?.[0]?.horas_entregues || '0'),
-      horasEntregues2: parseFloat(sem2?.semanal?.[0]?.horas_entregues || '0'),
-      horasPlanejadas1: parseFloat(sem1?.semanal?.[0]?.horas_a_entregar || '0'),
-      horasPlanejadas2: parseFloat(sem2?.semanal?.[0]?.horas_a_entregar || '0'),
+      horasEntregues1: converterHorasParaDecimal(sem1?.semanal?.[0]?.horas_entregues || '0'),
+      horasEntregues2: converterHorasParaDecimal(sem2?.semanal?.[0]?.horas_entregues || '0'),
+      horasPlanejadas1: converterHorasParaDecimal(sem1?.semanal?.[0]?.horas_a_entregar || '0'),
+      horasPlanejadas2: converterHorasParaDecimal(sem2?.semanal?.[0]?.horas_a_entregar || '0'),
     };
   }, [dadosComparacao, semanasSelecionadas]);
 
@@ -225,11 +225,11 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     const subPracasComparativo = todasSubPracas.map((nome) => {
       const itemSemana1 = subPracasSemana1Map.get(nome) || ({} as any);
       const itemSemana2 = subPracasSemana2Map.get(nome) || ({} as any);
-      const horasPlanejadasBase = parseFloat(
+      const horasPlanejadasBase = converterHorasParaDecimal(
         itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0'
       );
-      const horasSem1 = parseFloat(itemSemana1?.horas_entregues || '0');
-      const horasSem2 = parseFloat(itemSemana2?.horas_entregues || '0');
+      const horasSem1 = converterHorasParaDecimal(itemSemana1?.horas_entregues || '0');
+      const horasSem2 = converterHorasParaDecimal(itemSemana2?.horas_entregues || '0');
       const aderenciaSem1 = itemSemana1?.aderencia_percentual || 0;
       const aderenciaSem2 = itemSemana2?.aderencia_percentual || 0;
 
@@ -274,7 +274,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 
     const semana1Dias = diasOrdem.map((dia) => {
       const info = diasSemana1Map.get(dia) || ({} as any);
-      const horas = parseFloat(info?.horas_entregues || '0');
+      const horas = converterHorasParaDecimal(info?.horas_entregues || '0');
       return {
         nome: dia,
         sigla: siglaDia(dia),
@@ -286,8 +286,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     const semana2Dias = diasOrdem.map((dia) => {
       const info1 = diasSemana1Map.get(dia) || ({} as any);
       const info2 = diasSemana2Map.get(dia) || ({} as any);
-      const horas1 = parseFloat(info1?.horas_entregues || '0');
-      const horas2 = parseFloat(info2?.horas_entregues || '0');
+      const horas1 = converterHorasParaDecimal(info1?.horas_entregues || '0');
+      const horas2 = converterHorasParaDecimal(info2?.horas_entregues || '0');
       const aderencia1Dia = info1?.aderencia_percentual || 0;
       const aderencia2Dia = info2?.aderencia_percentual || 0;
       return {
@@ -323,8 +323,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     const turnosComparativo = todosTurnos.map((nomeTurno) => {
       const turnoSemana1 = turnosSemana1Map.get(nomeTurno) || ({} as any);
       const turnoSemana2 = turnosSemana2Map.get(nomeTurno) || ({} as any);
-      const horasSem1 = parseFloat(turnoSemana1?.horas_entregues || '0');
-      const horasSem2 = parseFloat(turnoSemana2?.horas_entregues || '0');
+      const horasSem1 = converterHorasParaDecimal(turnoSemana1?.horas_entregues || '0');
+      const horasSem2 = converterHorasParaDecimal(turnoSemana2?.horas_entregues || '0');
       const aderenciaSem1 = turnoSemana1?.aderencia_percentual || 0;
       const aderenciaSem2 = turnoSemana2?.aderencia_percentual || 0;
 
@@ -381,11 +381,11 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     const origensComparativo = todasOrigens.map((origemNome) => {
       const origemSemana1 = origensSemana1Map.get(origemNome) || ({} as any);
       const origemSemana2 = origensSemana2Map.get(origemNome) || ({} as any);
-      const horasPlanejadasBase = parseFloat(
+      const horasPlanejadasBase = converterHorasParaDecimal(
         origemSemana1?.horas_a_entregar || origemSemana2?.horas_a_entregar || '0'
       );
-      const horasSem1 = parseFloat(origemSemana1?.horas_entregues || '0');
-      const horasSem2 = parseFloat(origemSemana2?.horas_entregues || '0');
+      const horasSem1 = converterHorasParaDecimal(origemSemana1?.horas_entregues || '0');
+      const horasSem2 = converterHorasParaDecimal(origemSemana2?.horas_entregues || '0');
       const aderenciaSem1 = origemSemana1?.aderencia_percentual || 0;
       const aderenciaSem2 = origemSemana2?.aderencia_percentual || 0;
 

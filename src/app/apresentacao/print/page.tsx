@@ -1,6 +1,7 @@
 import React from 'react';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { SLIDE_HEIGHT, SLIDE_WIDTH } from '@/components/apresentacao/constants';
+import { converterHorasParaDecimal } from '@/utils/formatters';
 import SlideCapa from '@/components/apresentacao/slides/SlideCapa';
 import SlideAderenciaGeral from '@/components/apresentacao/slides/SlideAderenciaGeral';
 import SlideSubPracas from '@/components/apresentacao/slides/SlideSubPracas';
@@ -106,10 +107,10 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   const aderencia1 = semana1?.semanal?.[0]?.aderencia_percentual || 0;
   const aderencia2 = semana2?.semanal?.[0]?.aderencia_percentual || 0;
-  const horasEntregues1 = parseFloat(semana1?.semanal?.[0]?.horas_entregues || '0');
-  const horasEntregues2 = parseFloat(semana2?.semanal?.[0]?.horas_entregues || '0');
-  const horasPlanejadas1 = parseFloat(semana1?.semanal?.[0]?.horas_a_entregar || '0');
-  const horasPlanejadas2 = parseFloat(semana2?.semanal?.[0]?.horas_a_entregar || '0');
+  const horasEntregues1 = converterHorasParaDecimal(semana1?.semanal?.[0]?.horas_entregues || '0');
+  const horasEntregues2 = converterHorasParaDecimal(semana2?.semanal?.[0]?.horas_entregues || '0');
+  const horasPlanejadas1 = converterHorasParaDecimal(semana1?.semanal?.[0]?.horas_a_entregar || '0');
+  const horasPlanejadas2 = converterHorasParaDecimal(semana2?.semanal?.[0]?.horas_a_entregar || '0');
 
   const resumoSemana1 = {
     numeroSemana: numeroSemana1,
@@ -143,9 +144,9 @@ export default async function PrintablePage({ searchParams }: PageProps) {
   const subPracasComparativo = todasSubPracas.map((nome) => {
     const itemSemana1 = subPracasSemana1Map.get(nome) || ({} as any);
     const itemSemana2 = subPracasSemana2Map.get(nome) || ({} as any);
-    const horasPlanejadasBase = parseFloat(itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0');
-    const horasSem1 = parseFloat(itemSemana1?.horas_entregues || '0');
-    const horasSem2 = parseFloat(itemSemana2?.horas_entregues || '0');
+    const horasPlanejadasBase = converterHorasParaDecimal(itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0');
+    const horasSem1 = converterHorasParaDecimal(itemSemana1?.horas_entregues || '0');
+    const horasSem2 = converterHorasParaDecimal(itemSemana2?.horas_entregues || '0');
     const aderenciaSem1 = itemSemana1?.aderencia_percentual || 0;
     const aderenciaSem2 = itemSemana2?.aderencia_percentual || 0;
 
@@ -172,14 +173,14 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   const semana1Dias = diasOrdem.map((dia) => {
     const info = diasSemana1Map.get(dia) || ({} as any);
-    const horas = parseFloat(info?.horas_entregues || '0');
+    const horas = converterHorasParaDecimal(info?.horas_entregues || '0');
     return { nome: dia, sigla: siglaDia(dia), aderencia: info?.aderencia_percentual || 0, horasEntregues: formatHMS(horas.toString()) };
   });
   const semana2Dias = diasOrdem.map((dia) => {
     const info1 = diasSemana1Map.get(dia) || ({} as any);
     const info2 = diasSemana2Map.get(dia) || ({} as any);
-    const horas1 = parseFloat(info1?.horas_entregues || '0');
-    const horas2 = parseFloat(info2?.horas_entregues || '0');
+    const horas1 = converterHorasParaDecimal(info1?.horas_entregues || '0');
+    const horas2 = converterHorasParaDecimal(info2?.horas_entregues || '0');
     const aderencia1Dia = info1?.aderencia_percentual || 0;
     const aderencia2Dia = info2?.aderencia_percentual || 0;
     const difHoras = horas2 - horas1;
@@ -203,8 +204,8 @@ export default async function PrintablePage({ searchParams }: PageProps) {
   const turnosComparativo = todosTurnos.map((nomeTurno) => {
     const t1 = turnosSemana1Map.get(nomeTurno) || ({} as any);
     const t2 = turnosSemana2Map.get(nomeTurno) || ({} as any);
-    const h1 = parseFloat(t1?.horas_entregues || '0');
-    const h2 = parseFloat(t2?.horas_entregues || '0');
+    const h1 = converterHorasParaDecimal(t1?.horas_entregues || '0');
+    const h2 = converterHorasParaDecimal(t2?.horas_entregues || '0');
     const a1 = t1?.aderencia_percentual || 0;
     const a2 = t2?.aderencia_percentual || 0;
     return {
@@ -229,9 +230,9 @@ export default async function PrintablePage({ searchParams }: PageProps) {
   const origensComparativo = todasOrigens.map((nome) => {
     const o1 = origensSemana1Map.get(nome) || ({} as any);
     const o2 = origensSemana2Map.get(nome) || ({} as any);
-    const horasPlanejadasBase = parseFloat(o1?.horas_a_entregar || o2?.horas_a_entregar || '0');
-    const h1 = parseFloat(o1?.horas_entregues || '0');
-    const h2 = parseFloat(o2?.horas_entregues || '0');
+    const horasPlanejadasBase = converterHorasParaDecimal(o1?.horas_a_entregar || o2?.horas_a_entregar || '0');
+    const h1 = converterHorasParaDecimal(o1?.horas_entregues || '0');
+    const h2 = converterHorasParaDecimal(o2?.horas_entregues || '0');
     const a1 = o1?.aderencia_percentual || 0;
     const a2 = o2?.aderencia_percentual || 0;
     return {
