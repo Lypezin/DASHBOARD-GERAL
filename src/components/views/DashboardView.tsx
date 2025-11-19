@@ -243,12 +243,12 @@ const DashboardView = React.memo(function DashboardView({
             </CardHeader>
           
             <CardContent className="relative">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3 sm:gap-4">
-            {aderenciaDiaOrdenada.map((dia, index) => {
-              const aderencia = dia.aderencia_percentual || 0;
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4 sm:gap-5">
+                {aderenciaDiaOrdenada.map((dia, index) => {
+                  const aderencia = dia.aderencia_percentual || 0;
                   const isToday = new Date().getDay() === (index + 1) % 7;
-              
-              return (
+                  
+                  return (
                     <div key={`dia-${index}`} className="relative group/card min-w-0">
                       <div className={`absolute -inset-0.5 rounded-2xl blur transition-all duration-300 ${
                         isToday 
@@ -261,11 +261,11 @@ const DashboardView = React.memo(function DashboardView({
                           isToday ? 'ring-2 ring-blue-400/50' : ''
                         }`}
                       >
-                        <CardContent className="pt-4 pb-3 min-w-0 w-full">
-                          <div className="flex items-center justify-between mb-3 gap-1.5">
-                            <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate flex-1 min-w-0">{dia.dia_da_semana}</h4>
+                        <CardContent className="pt-5 pb-4 min-w-0 w-full">
+                          <div className="flex items-center justify-between mb-4 gap-2">
+                            <h4 className="font-bold text-base text-slate-900 dark:text-white truncate flex-1 min-w-0">{dia.dia_da_semana}</h4>
                             <Badge 
-                              className="text-white shadow-md border-0 font-bold shrink-0 text-[10px] px-1.5 py-0.5"
+                              className="text-white shadow-md border-0 font-bold shrink-0 text-xs px-2 py-1"
                               style={{ 
                                 background: aderencia >= 90 
                                   ? `linear-gradient(135deg, #059669, #10b981)` // Verde para bom
@@ -279,8 +279,8 @@ const DashboardView = React.memo(function DashboardView({
                           </div>
                           
                           {/* Barra de progresso moderna */}
-                          <div className="mb-3">
-                            <div className="h-2.5 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
+                          <div className="mb-4">
+                            <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
                               <div 
                                 className="h-full rounded-full transition-all duration-700 shadow-lg"
                                 style={{ 
@@ -292,21 +292,21 @@ const DashboardView = React.memo(function DashboardView({
                                   width: `${Math.min(aderencia, 100)}%` 
                                 }}
                               ></div>
-                      </div>
-                    </div>
+                            </div>
+                          </div>
 
                           {/* Dados */}
-                          <div className="space-y-2 text-[10px]">
-                            <div className="flex flex-col gap-0.5 p-1.5 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 min-w-0 w-full overflow-hidden">
-                              <span className="text-slate-500 dark:text-slate-400 font-semibold text-[9px] uppercase leading-tight">Planejado:</span>
-                              <span className="font-bold text-slate-900 dark:text-white font-mono text-[10px] break-all leading-tight overflow-wrap-anywhere">
+                          <div className="space-y-2.5 text-xs">
+                            <div className="flex flex-col gap-1 p-2.5 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 min-w-0 w-full overflow-hidden">
+                              <span className="text-slate-500 dark:text-slate-400 font-semibold text-[11px] uppercase leading-tight">Planejado:</span>
+                              <span className="font-bold text-slate-900 dark:text-white font-mono text-xs break-words leading-snug">
                                 {formatarHorasParaHMS(dia.horas_a_entregar)}
                               </span>
-                    </div>
-                            <div className="flex flex-col gap-0.5 p-1.5 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 min-w-0 w-full overflow-hidden">
-                              <span className="text-slate-500 dark:text-slate-400 font-semibold text-[9px] uppercase leading-tight">Entregue:</span>
+                            </div>
+                            <div className="flex flex-col gap-1 p-2.5 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 min-w-0 w-full overflow-hidden">
+                              <span className="text-slate-500 dark:text-slate-400 font-semibold text-[11px] uppercase leading-tight">Entregue:</span>
                               <span 
-                                className="font-bold font-mono text-[10px] break-all leading-tight overflow-wrap-anywhere"
+                                className="font-bold font-mono text-xs break-words leading-snug"
                                 style={{ 
                                   color: aderencia >= 90 
                                     ? (theme === 'dark' ? '#10b981' : '#059669') // Verde para bom
@@ -317,14 +317,14 @@ const DashboardView = React.memo(function DashboardView({
                               >
                                 {formatarHorasParaHMS(dia.horas_entregues)}
                               </span>
-                      </div>
-                      </div>
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
-                </div>
-              );
-            })}
-          </div>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         </div>
