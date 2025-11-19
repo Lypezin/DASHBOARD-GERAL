@@ -350,10 +350,10 @@ const DashboardView = React.memo(function DashboardView({
                   <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Análise por segmento operacional</CardDescription>
             </div>
           </div>
-              <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0">
+              <div className="flex gap-3 flex-wrap">
             <button
               onClick={() => setViewMode('turno')}
-                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                 viewMode === 'turno'
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
                       : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
@@ -363,7 +363,7 @@ const DashboardView = React.memo(function DashboardView({
             </button>
             <button
               onClick={() => setViewMode('sub_praca')}
-                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                 viewMode === 'sub_praca'
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
                       : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
@@ -373,7 +373,7 @@ const DashboardView = React.memo(function DashboardView({
             </button>
             <button
               onClick={() => setViewMode('origem')}
-                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                 viewMode === 'origem'
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
                       : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
