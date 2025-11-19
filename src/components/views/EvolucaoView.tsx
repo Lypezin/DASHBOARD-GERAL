@@ -1095,7 +1095,6 @@ function EvolucaoView({
               </div>
             </div>
           </div>
-          </div>
         ) : (
           <div className="relative z-10 flex h-[500px] items-center justify-center">
             <div className="text-center max-w-md mx-auto">
