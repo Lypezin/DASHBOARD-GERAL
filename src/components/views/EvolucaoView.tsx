@@ -876,7 +876,6 @@ function EvolucaoView({
               </div>
 
               {/* Toggle Mensal/Semanal */}
-              <div className="flex flex-wrap items-center gap-3">
               <div className="flex gap-2">
                 <button
                   onClick={() => setViewMode('mensal')}
@@ -900,67 +899,66 @@ function EvolucaoView({
                 </button>
               </div>
 
-                {/* Seletor de Métricas (Múltipla Seleção) */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Métricas:</label>
-                  <div className="flex flex-wrap gap-2">
-                    {(['ofertadas', 'aceitas', 'completadas', 'horas'] as const).map(metric => {
-                      const labels: Record<typeof metric, string> = {
-                        ofertadas: '📢 Ofertadas',
-                        aceitas: '✅ Aceitas',
-                        completadas: '🚗 Completadas',
-                        horas: '⏱️ Horas',
-                      };
-                      const colors: Record<typeof metric, { bg: string; border: string; dot: string }> = {
-                        ofertadas: { bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-300 dark:border-cyan-700', dot: 'bg-cyan-500' },
-                        aceitas: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-300 dark:border-emerald-700', dot: 'bg-emerald-500' },
-                        completadas: { bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-300 dark:border-blue-700', dot: 'bg-blue-500' },
-                        horas: { bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-300 dark:border-orange-700', dot: 'bg-orange-500' },
-                      };
-                      const metricColors = colors[metric];
-                      return (
-                        <label
-                          key={metric}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
-                            selectedMetrics.has(metric)
-                              ? `${metricColors.bg} ${metricColors.border}`
-                              : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-700 hover:border-blue-400'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedMetrics.has(metric)}
-                            onChange={(e) => {
-                              const newSet = new Set(selectedMetrics);
-                              if (e.target.checked) {
-                                newSet.add(metric);
-                              } else {
-                                newSet.delete(metric);
-                                // Garantir que pelo menos uma métrica esteja selecionada
-                                if (newSet.size === 0) {
-                                  newSet.add('completadas');
-                                }
+              {/* Seletor de Métricas (Múltipla Seleção) */}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Métricas:</label>
+                <div className="flex flex-wrap gap-2">
+                  {(['ofertadas', 'aceitas', 'completadas', 'horas'] as const).map(metric => {
+                    const labels: Record<typeof metric, string> = {
+                      ofertadas: '📢 Ofertadas',
+                      aceitas: '✅ Aceitas',
+                      completadas: '🚗 Completadas',
+                      horas: '⏱️ Horas',
+                    };
+                    const colors: Record<typeof metric, { bg: string; border: string; dot: string }> = {
+                      ofertadas: { bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-300 dark:border-cyan-700', dot: 'bg-cyan-500' },
+                      aceitas: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-300 dark:border-emerald-700', dot: 'bg-emerald-500' },
+                      completadas: { bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-300 dark:border-blue-700', dot: 'bg-blue-500' },
+                      horas: { bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-300 dark:border-orange-700', dot: 'bg-orange-500' },
+                    };
+                    const metricColors = colors[metric];
+                    return (
+                      <label
+                        key={metric}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
+                          selectedMetrics.has(metric)
+                            ? `${metricColors.bg} ${metricColors.border}`
+                            : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-700 hover:border-blue-400'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedMetrics.has(metric)}
+                          onChange={(e) => {
+                            const newSet = new Set(selectedMetrics);
+                            if (e.target.checked) {
+                              newSet.add(metric);
+                            } else {
+                              newSet.delete(metric);
+                              // Garantir que pelo menos uma métrica esteja selecionada
+                              if (newSet.size === 0) {
+                                newSet.add('completadas');
                               }
-                              setSelectedMetrics(newSet);
-                            }}
-                            className={`w-4 h-4 rounded focus:ring-2 ${
-                              metric === 'ofertadas' ? 'text-cyan-600 focus:ring-cyan-500' :
-                              metric === 'aceitas' ? 'text-emerald-600 focus:ring-emerald-500' :
-                              metric === 'completadas' ? 'text-blue-600 focus:ring-blue-500' :
-                              'text-orange-600 focus:ring-orange-500'
-                            }`}
-                          />
-                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                            <span className={`w-3 h-3 rounded-full ${metricColors.dot} shadow-md`}></span>
-                            {labels[metric]}
-                          </span>
-                        </label>
-                      );
-                    })}
+                            }
+                            setSelectedMetrics(newSet);
+                          }}
+                          className={`w-4 h-4 rounded focus:ring-2 ${
+                            metric === 'ofertadas' ? 'text-cyan-600 focus:ring-cyan-500' :
+                            metric === 'aceitas' ? 'text-emerald-600 focus:ring-emerald-500' :
+                            metric === 'completadas' ? 'text-blue-600 focus:ring-blue-500' :
+                            'text-orange-600 focus:ring-orange-500'
+                          }`}
+                        />
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                          <span className={`w-3 h-3 rounded-full ${metricColors.dot} shadow-md`}></span>
+                          {labels[metric]}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
           </div>
         </div>
       </div>

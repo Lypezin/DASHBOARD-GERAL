@@ -90,6 +90,15 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     return sortDirection === 'asc' ? '↑' : '↓';
   };
 
+  // Calcular estatísticas antes dos early returns
+  const totalEntregadores = sortedEntregadores.length;
+  const aderenciaMedia = totalEntregadores > 0
+    ? sortedEntregadores.reduce((sum, e) => sum + e.aderencia_percentual, 0) / totalEntregadores
+    : 0;
+  const rejeicaoMedia = totalEntregadores > 0
+    ? sortedEntregadores.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / totalEntregadores
+    : 0;
+
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
@@ -112,14 +121,6 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
       </div>
     );
   }
-
-  const totalEntregadores = sortedEntregadores.length;
-  const aderenciaMedia = totalEntregadores > 0
-    ? sortedEntregadores.reduce((sum, e) => sum + e.aderencia_percentual, 0) / totalEntregadores
-    : 0;
-  const rejeicaoMedia = totalEntregadores > 0
-    ? sortedEntregadores.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / totalEntregadores
-    : 0;
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
