@@ -201,15 +201,9 @@ const DashboardView = React.memo(function DashboardView({
                         <p className="text-2xl sm:text-3xl font-black text-blue-900 dark:text-blue-100 mb-3 font-mono tracking-tight break-all leading-tight">
                           {calcularGap.formatado}
                         </p>
-                        <p className="text-sm text-blue-600/80 dark:text-blue-400/80 mb-5 font-medium">
+                        <p className="text-sm text-blue-600/80 dark:text-blue-400/80 font-medium">
                           Diferença entre planejado e entregue
                         </p>
-                        {/* Indicador de variação */}
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-md px-3 py-1">
-                            <span className="text-xs font-bold">+5.2%</span>
-                          </Badge>
-                        </div>
                       </CardContent>
                     </Card>
                   </div>
