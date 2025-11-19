@@ -29,6 +29,10 @@ const EntregadoresView = React.memo(function EntregadoresView({
     dataInicial: null,
     dataFinal: null,
   });
+  const [filtroDataInicio, setFiltroDataInicio] = useState<MarketingDateFilter>({
+    dataInicial: null,
+    dataFinal: null,
+  });
   const [cidadeSelecionada, setCidadeSelecionada] = useState<string>('');
 
   // Lista de cidades disponíveis (mesmas do MarketingDashboardView)
@@ -65,6 +69,44 @@ const EntregadoresView = React.memo(function EntregadoresView({
 
       for (const entregador of entregadoresIds) {
         if (!entregador.id_entregador) continue;
+
+        // Buscar primeira data do entregador em dados_corridas
+        const { data: primeiraDataResult, error: primeiraDataError } = await supabase
+          .from('dados_corridas')
+          .select('data_do_periodo')
+          .eq('id_da_pessoa_entregadora', entregador.id_entregador)
+          .not('data_do_periodo', 'is', null)
+          .order('data_do_periodo', { ascending: true })
+          .limit(1);
+
+        if (primeiraDataError) {
+          if (IS_DEV) {
+            safeLog.warn(`Erro ao buscar primeira data para entregador ${entregador.id_entregador}:`, primeiraDataError);
+          }
+        }
+
+        // Aplicar filtro de data início se especificado
+        if (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) {
+          if (!primeiraDataResult || primeiraDataResult.length === 0) {
+            continue; // Se não tem primeira data, pular
+          }
+          
+          const primeiraData = primeiraDataResult[0].data_do_periodo;
+          if (!primeiraData) {
+            continue;
+          }
+
+          // Verificar se a primeira data está dentro do intervalo
+          const dataInicio = filtroDataInicio.dataInicial;
+          const dataFim = filtroDataInicio.dataFinal;
+          
+          if (dataInicio && primeiraData < dataInicio) {
+            continue; // Primeira data é anterior ao início do intervalo
+          }
+          if (dataFim && primeiraData > dataFim) {
+            continue; // Primeira data é posterior ao fim do intervalo
+          }
+        }
 
         // Verificar se o ID existe em dados_corridas e agregar
         const { data: corridasData, error: corridasError } = await supabase
@@ -116,19 +158,24 @@ const EntregadoresView = React.memo(function EntregadoresView({
       safeLog.error('Erro no fallback ao buscar entregadores:', err);
       throw err;
     }
-  }, []);
+  }, [filtroDataInicio]);
 
   const fetchEntregadores = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Preparar parâmetros do filtro rodou_dia e cidade
+      // Preparar parâmetros do filtro rodou_dia, data início e cidade
       const params: any = {};
       
       if (filtroRodouDia.dataInicial || filtroRodouDia.dataFinal) {
         params.rodou_dia_inicial = filtroRodouDia.dataInicial || null;
         params.rodou_dia_final = filtroRodouDia.dataFinal || null;
+      }
+      
+      if (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) {
+        params.data_inicio_inicial = filtroDataInicio.dataInicial || null;
+        params.data_inicio_final = filtroDataInicio.dataFinal || null;
       }
       
       if (cidadeSelecionada) {
@@ -181,7 +228,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
     } finally {
       setLoading(false);
     }
-  }, [fetchEntregadoresFallback, filtroRodouDia, cidadeSelecionada]);
+  }, [fetchEntregadoresFallback, filtroRodouDia, filtroDataInicio, cidadeSelecionada]);
 
   useEffect(() => {
     // Este componente é usado apenas no Marketing, sempre buscar dados
@@ -395,6 +442,16 @@ const EntregadoresView = React.memo(function EntregadoresView({
           onFilterChange={(filter) => {
             setFiltroRodouDia(filter);
             // O fetchEntregadores será chamado automaticamente pelo useEffect quando filtroRodouDia mudar
+          }}
+        />
+        
+        {/* Filtro Data Início */}
+        <MarketingDateFilterComponent
+          label="Data Início"
+          filter={filtroDataInicio}
+          onFilterChange={(filter) => {
+            setFiltroDataInicio(filter);
+            // O fetchEntregadores será chamado automaticamente pelo useEffect quando filtroDataInicio mudar
           }}
         />
       </div>
