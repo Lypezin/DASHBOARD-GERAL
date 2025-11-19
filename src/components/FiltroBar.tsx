@@ -148,7 +148,7 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [isModoIntervalo, filters?.filtroModo, filters?.dataInicial, filters?.dataFinal]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative z-10">
       {/* Switch para alternar entre modos */}
       <div className="flex items-center justify-center sm:justify-start gap-3 pb-3 border-b border-slate-200 dark:border-slate-700">
         <span className={`text-sm font-medium ${!isModoIntervalo ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>

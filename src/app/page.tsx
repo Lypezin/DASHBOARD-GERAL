@@ -548,10 +548,10 @@ export default function DashboardPage() {
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
-                <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-6 sm:p-8 backdrop-blur-sm overflow-hidden">
-                  <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
+                <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-6 sm:p-8 backdrop-blur-sm overflow-visible">
+                  <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl pointer-events-none"></div>
                   
-                  <div className="relative">
+                  <div className="relative z-10">
                     <FiltroBar
                       filters={filters}
                       setFilters={setFilters}
@@ -570,13 +570,13 @@ export default function DashboardPage() {
 
             {/* Tabs - Container Separado */}
             {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
-              <div className="relative group">
+              <div className="relative group z-0">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
-                <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-4 sm:p-6 backdrop-blur-sm overflow-hidden">
-                  <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
+                <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-4 sm:p-6 backdrop-blur-sm overflow-x-auto overflow-y-visible">
+                  <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl pointer-events-none"></div>
                   
-                  <div className="relative flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
+                  <div className="relative flex gap-3 pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
                     <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
                     <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
                     <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
