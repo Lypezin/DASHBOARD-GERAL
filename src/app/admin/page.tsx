@@ -15,6 +15,7 @@ interface User {
   is_admin: boolean;
   is_approved: boolean;
   assigned_pracas: string[];
+  role?: 'admin' | 'marketing' | 'user';
   created_at: string;
   approved_at: string | null;
 }
@@ -36,6 +37,7 @@ export default function AdminPage() {
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedPracas, setSelectedPracas] = useState<string[]>([]);
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'marketing' | 'user'>('user');
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -208,6 +210,7 @@ export default function AdminPage() {
   const handleApproveUser = (user: User) => {
     setSelectedUser(user);
     setSelectedPracas(user.assigned_pracas || []);
+    setSelectedRole(user.role || 'user');
     setShowModal(true);
   };
 
@@ -218,6 +221,7 @@ export default function AdminPage() {
       const { error } = await safeRpc('approve_user', {
         user_id: selectedUser.id,
         pracas: selectedPracas,
+        p_role: selectedRole,
       }, {
         timeout: 30000,
         validateParams: true
@@ -228,6 +232,7 @@ export default function AdminPage() {
       setShowModal(false);
       setSelectedUser(null);
       setSelectedPracas([]);
+      setSelectedRole('user');
       fetchData();
     } catch (err: any) {
       alert('Erro ao aprovar usuário: ' + err.message);
@@ -280,6 +285,7 @@ export default function AdminPage() {
   const handleEditPracas = (user: User) => {
     setEditingUser(user);
     setSelectedPracas(user.assigned_pracas || []);
+    setSelectedRole(user.role || 'user');
     setShowEditModal(true);
   };
 
@@ -290,6 +296,7 @@ export default function AdminPage() {
       const { error } = await safeRpc('update_user_pracas', {
         user_id: editingUser.id,
         pracas: selectedPracas,
+        p_role: selectedRole,
       }, {
         timeout: 30000,
         validateParams: true
@@ -300,6 +307,7 @@ export default function AdminPage() {
       setShowEditModal(false);
       setEditingUser(null);
       setSelectedPracas([]);
+      setSelectedRole('user');
       fetchData();
     } catch (err: any) {
       alert('Erro ao atualizar praças: ' + err.message);
@@ -559,6 +567,11 @@ export default function AdminPage() {
                             Admin
                           </span>
                         )}
+                        {user.role === 'marketing' && !user.is_admin && (
+                          <span className="inline-block rounded bg-pink-100 px-2 py-0.5 text-xs font-semibold text-pink-700">
+                            Marketing
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="py-3 text-sm text-slate-600">{user.email}</td>
@@ -657,6 +670,26 @@ export default function AdminPage() {
 
             <div className="p-6">
               <div className="mb-6">
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Cargo:
+                  </label>
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value as 'admin' | 'marketing' | 'user')}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="user">Usuário</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {selectedRole === 'marketing' && 'Marketing tem acesso a todas as cidades, mas sem privilégios de admin'}
+                    {selectedRole === 'admin' && 'Administrador tem acesso total ao sistema'}
+                    {selectedRole === 'user' && 'Usuário comum com acesso apenas às praças selecionadas'}
+                  </p>
+                </div>
+                
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-sm font-semibold text-slate-700">Selecione as praças:</p>
                   <span className="text-xs text-slate-500">
@@ -734,6 +767,26 @@ export default function AdminPage() {
 
             <div className="p-6">
               <div className="mb-6">
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Cargo:
+                  </label>
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value as 'admin' | 'marketing' | 'user')}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                  >
+                    <option value="user">Usuário</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {selectedRole === 'marketing' && 'Marketing tem acesso a todas as cidades, mas sem privilégios de admin'}
+                    {selectedRole === 'admin' && 'Administrador tem acesso total ao sistema'}
+                    {selectedRole === 'user' && 'Usuário comum com acesso apenas às praças selecionadas'}
+                  </p>
+                </div>
+                
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-sm font-semibold text-slate-700">Selecione as praças de acesso:</p>
                   <span className="text-xs text-slate-500">
@@ -782,7 +835,7 @@ export default function AdminPage() {
                 </button>
                 <button
                   onClick={handleSaveApproval}
-                  disabled={selectedPracas.length === 0}
+                  disabled={selectedRole !== 'marketing' && selectedPracas.length === 0}
                   className="flex-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 py-3 font-semibold text-white transition-all hover:from-emerald-700 hover:to-teal-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:from-slate-300 disabled:to-slate-400 shadow-lg"
                 >
                   ✅ Aprovar Acesso

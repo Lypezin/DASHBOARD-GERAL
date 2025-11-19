@@ -13,7 +13,7 @@ type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 // Sistema global de fila para evitar requisições simultâneas
 const requestQueue = new Map<string, { timestamp: number; count: number }>();
 
-export function useTabData(activeTab: string, filterPayload: object, currentUser?: { is_admin: boolean; assigned_pracas: string[] } | null) {
+export function useTabData(activeTab: string, filterPayload: object, currentUser?: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null) {
   const [data, setData] = useState<TabData>(null);
   const [loading, setLoading] = useState(false);
   const cacheRef = useRef<Map<string, { data: any; timestamp: number }>>(new Map());

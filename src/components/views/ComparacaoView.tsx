@@ -24,7 +24,7 @@ function ComparacaoView({
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
-  currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
+  currentUser: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null;
 }) {
   const [semanasSelecionadas, setSemanasSelecionadas] = useState<string[]>([]);
   const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(null);

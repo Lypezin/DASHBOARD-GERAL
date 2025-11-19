@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import {
   Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem,
-  FilterOption, Filters, DashboardResumoData, EvolucaoMensal, EvolucaoSemanal, UtrSemanal
+  FilterOption, Filters, DashboardResumoData, EvolucaoMensal, EvolucaoSemanal, UtrSemanal,
+  CurrentUser, hasFullCityAccess
 } from '@/types';
 import { buildFilterPayload, safeNumber } from '@/utils/helpers';
 import { converterHorasParaDecimal } from '@/utils/formatters';
@@ -12,7 +13,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export function useDashboardData(initialFilters: Filters, activeTab: string, anoEvolucao: number, currentUser?: { is_admin: boolean; assigned_pracas: string[] } | null) {
+export function useDashboardData(initialFilters: Filters, activeTab: string, anoEvolucao: number, currentUser?: CurrentUser | null) {
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
@@ -124,7 +125,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         if (data.dimensoes) {
           let pracasDisponiveis: FilterOption[] = Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
 
-          if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+          // Marketing tem acesso a todas as cidades, então não precisa filtrar
+          if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
             const pracasPermitidas = new Set(currentUser.assigned_pracas);
             pracasDisponiveis = pracasDisponiveis.filter((p) => pracasPermitidas.has(p.value));
           }
@@ -132,8 +134,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
           setPracas(pracasDisponiveis);
           
           // Filtrar dimensões (sub-praças, turnos, origens) baseado nas praças permitidas do usuário
-          // Se o usuário não é admin e tem praças atribuídas, buscar dimensões APENAS do banco
-          if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+          // Marketing tem acesso a todas as cidades, então não precisa filtrar
+          if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
             // Buscar todas as dimensões em paralelo para melhor performance
             try {
               const [subPracasResult, turnosResult, origensResult] = await Promise.all([

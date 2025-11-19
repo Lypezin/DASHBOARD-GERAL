@@ -15,7 +15,7 @@ const functionAvailability = {
   checkInterval: 60000 // Verificar novamente após 1 minuto se foi marcada como indisponível
 };
 
-export function useUserActivity(activeTab: string, filters: any, currentUser: { is_admin: boolean; assigned_pracas: string[] } | null) {
+export function useUserActivity(activeTab: string, filters: any, currentUser: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null) {
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [sessionId, setSessionId] = useState<string>('');
 

@@ -1,4 +1,4 @@
-import { Filters } from '@/types';
+import { Filters, CurrentUser, hasFullCityAccess } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 
 export const safeNumber = (value: any): number => {
@@ -14,7 +14,7 @@ export const arraysEqual = <T>(a: T[], b: T[]): boolean => {
   return true;
 };
 
-export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: boolean; assigned_pracas: string[] } | null) => {
+export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser | null) => {
   // Log para debug
   try {
     safeLog.info('[buildFilterPayload] Iniciando com filters:', {
@@ -81,8 +81,9 @@ export const buildFilterPayload = (filters: Filters, currentUser?: { is_admin: b
     praca = praca.substring(0, 100);
   }
 
-  // Aplicar permissões: se não for admin, forçar as praças atribuídas
-  if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length > 0) {
+  // Aplicar permissões: se não for admin nem marketing, forçar as praças atribuídas
+  // Marketing tem acesso a todas as cidades, então não precisa restringir
+  if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
     // Se tiver apenas uma praça, SEMPRE usar ela (ignorar qualquer seleção)
     if (currentUser.assigned_pracas.length === 1) {
       praca = currentUser.assigned_pracas[0];

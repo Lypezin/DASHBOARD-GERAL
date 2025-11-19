@@ -420,7 +420,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data: profile, error } = await safeRpc<{ is_admin: boolean; assigned_pracas: string[] }>('get_current_user_profile', {}, {
+        const { data: profile, error } = await safeRpc<{ is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' }>('get_current_user_profile', {}, {
           timeout: 10000,
           validateParams: false
         });
@@ -433,8 +433,10 @@ export default function DashboardPage() {
       
         if (profile) {
           setCurrentUser(profile);
-          // Aplicar filtro automático se não for admin e tiver apenas uma praça
-          if (!profile.is_admin && profile.assigned_pracas.length === 1) {
+          // Aplicar filtro automático se não for admin nem marketing e tiver apenas uma praça
+          // Marketing tem acesso a todas as cidades, então não precisa aplicar filtro automático
+          const isMarketing = profile.role === 'marketing';
+          if (!profile.is_admin && !isMarketing && profile.assigned_pracas.length === 1) {
             setFilters(prev => {
               // Só atualizar se ainda não tiver a praça definida
               if (prev.praca !== profile.assigned_pracas[0]) {
