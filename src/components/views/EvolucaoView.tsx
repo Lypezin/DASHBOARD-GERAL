@@ -673,7 +673,7 @@ function EvolucaoView({
             }
             return '';
           },
-        }
+        },
       },
     },
     scales: {
@@ -961,6 +961,7 @@ function EvolucaoView({
             </div>
           </div>
         </div>
+        </div>
       </div>
       {/* Gráfico de Evolução - Visual Premium */}
       <div className="relative group">
@@ -1093,7 +1094,6 @@ function EvolucaoView({
                             }
                           }
                         }
-                      }
                       
                       return (
                         <Line 
