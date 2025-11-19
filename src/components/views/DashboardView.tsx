@@ -107,38 +107,44 @@ const DashboardView = React.memo(function DashboardView({
       {/* Aderência Geral - Design Ultra Moderno */}
       {aderenciaGeral && (
         <div className="relative group">
-          {/* Glow effect sutil */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          {/* Glow effect sutil azul */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           
-          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/50 rounded-3xl overflow-hidden">
-            {/* Decorative gradient overlay */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-3xl"></div>
+          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 rounded-3xl overflow-hidden">
+            {/* Decorative gradient overlay azul */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
             
             <CardHeader className="relative pb-6">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                   <span className="text-2xl">📊</span>
                 </div>
                 <div>
-                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                  <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
                     Aderência Geral
                   </CardTitle>
-                  <CardDescription className="text-base mt-1">Performance global do período</CardDescription>
+                  <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Performance global do período</CardDescription>
                 </div>
               </div>
             </CardHeader>
             
             <CardContent className="relative">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-                {/* Gráfico Circular Central - Grande com efeito glow */}
+                {/* Gráfico Circular Central - Grande com efeito glow azul */}
                 <div className="flex justify-center lg:justify-start order-2 lg:order-1">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-full blur-2xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-blue-500/20 rounded-full blur-2xl"></div>
                     <CircularProgress
                       value={aderenciaGeral.aderencia_percentual ?? 0}
                       size={260}
                       strokeWidth={22}
-                      color={getAderenciaColorHex(aderenciaGeral.aderencia_percentual ?? 0, theme === 'dark')}
+                      color={
+                        (aderenciaGeral.aderencia_percentual ?? 0) >= 90 
+                          ? (theme === 'dark' ? '#10b981' : '#059669') // Verde para bom
+                          : (aderenciaGeral.aderencia_percentual ?? 0) >= 70
+                          ? (theme === 'dark' ? '#3b82f6' : '#2563eb') // Azul para médio
+                          : (theme === 'dark' ? '#ef4444' : '#dc2626') // Vermelho para ruim
+                      }
                       backgroundColor="rgba(0, 0, 0, 0.06)"
                       showLabel={true}
                       label="Taxa Atual"
@@ -149,8 +155,8 @@ const DashboardView = React.memo(function DashboardView({
                 {/* Cards de Métricas - Lado Direito com design moderno */}
                 <div className="space-y-5 order-1 lg:order-2">
                   <div className="relative group/card">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-300 to-slate-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
-                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-800 dark:to-slate-900/80 rounded-2xl overflow-hidden backdrop-blur-sm">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-blue-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
+                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm">
                       <CardContent className="pt-6 pb-5">
                         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wide">Tempo Planejado</p>
                         <p className="text-4xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
@@ -167,8 +173,8 @@ const DashboardView = React.memo(function DashboardView({
                   </div>
 
                   <div className="relative group/card">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-indigo-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
-                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-800 dark:to-slate-900/80 rounded-2xl overflow-hidden backdrop-blur-sm">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-blue-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
+                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm">
                       <CardContent className="pt-6 pb-5">
                         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wide">Tempo Entregue</p>
                         <p className="text-4xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
@@ -179,7 +185,7 @@ const DashboardView = React.memo(function DashboardView({
                         </p>
                         <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
                           <div 
-                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-700 shadow-lg" 
+                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 shadow-lg" 
                             style={{ 
                               width: `${Math.min(((aderenciaGeral.aderencia_percentual ?? 0) / 100) * 100, 100)}%` 
                             }}
@@ -190,12 +196,12 @@ const DashboardView = React.memo(function DashboardView({
                   </div>
                 </div>
 
-                {/* Gap de Performance - Card Destaque com gradiente */}
+                {/* Gap de Performance - Card Destaque com gradiente azul */}
                 {calcularGap && (
                   <div className="relative order-3">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-3xl blur opacity-30"></div>
-                    <Card className="relative border-0 shadow-2xl bg-gradient-to-br from-blue-50 via-indigo-50/50 to-purple-50/30 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-purple-950/20 rounded-3xl overflow-hidden">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-2xl"></div>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-3xl blur opacity-30"></div>
+                    <Card className="relative border-0 shadow-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/30 rounded-3xl overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-blue-500/20 rounded-full blur-2xl"></div>
                       <CardContent className="relative pt-8 pb-6">
                         <p className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-4 uppercase tracking-wider">Gap de Performance</p>
                         <p className="text-5xl font-black text-blue-900 dark:text-blue-100 mb-3 font-mono tracking-tight">
@@ -206,7 +212,7 @@ const DashboardView = React.memo(function DashboardView({
                         </p>
                         {/* Indicador de variação */}
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0 shadow-md px-3 py-1">
+                          <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-md px-3 py-1">
                             <span className="text-xs font-bold">+5.2%</span>
                           </Badge>
                         </div>
@@ -223,21 +229,21 @@ const DashboardView = React.memo(function DashboardView({
       {/* Aderência por Dia da Semana - Design Ultra Moderno */}
       {aderenciaDiaOrdenada.length > 0 && (
         <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-rose-500/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           
-          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-slate-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/30 rounded-3xl overflow-hidden">
-            <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-full blur-3xl"></div>
+          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
             
             <CardHeader className="relative pb-6">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                   <span className="text-2xl">📅</span>
                 </div>
                 <div>
-                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                  <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
                     Aderência por Dia da Semana
                   </CardTitle>
-                  <CardDescription className="text-base mt-1">Distribuição semanal de performance</CardDescription>
+                  <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Distribuição semanal de performance</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -246,19 +252,18 @@ const DashboardView = React.memo(function DashboardView({
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-5">
                 {aderenciaDiaOrdenada.map((dia, index) => {
                   const aderencia = dia.aderencia_percentual || 0;
-                  const textColorHex = getAderenciaColorHex(aderencia, theme === 'dark');
                   const isToday = new Date().getDay() === (index + 1) % 7;
                   
                   return (
                     <div key={`dia-${index}`} className="relative group/card">
                       <div className={`absolute -inset-0.5 rounded-2xl blur transition-all duration-300 ${
                         isToday 
-                          ? 'bg-gradient-to-r from-blue-400 to-indigo-500 opacity-60' 
-                          : 'bg-gradient-to-r from-slate-300 to-slate-400 opacity-0 group-hover/card:opacity-20'
+                          ? 'bg-gradient-to-r from-blue-400 to-blue-500 opacity-60' 
+                          : 'bg-gradient-to-r from-blue-300 to-blue-400 opacity-0 group-hover/card:opacity-20'
                       }`}></div>
                       
                       <Card 
-                        className={`relative border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-800 dark:to-slate-900/80 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+                        className={`relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl ${
                           isToday ? 'ring-2 ring-blue-400/50' : ''
                         }`}
                       >
@@ -268,7 +273,11 @@ const DashboardView = React.memo(function DashboardView({
                             <Badge 
                               className="text-white shadow-md border-0 font-bold"
                               style={{ 
-                                background: `linear-gradient(135deg, ${textColorHex}, ${textColorHex}dd)`
+                                background: aderencia >= 90 
+                                  ? `linear-gradient(135deg, #059669, #10b981)` // Verde para bom
+                                  : aderencia >= 70
+                                  ? `linear-gradient(135deg, #2563eb, #3b82f6)` // Azul para médio
+                                  : `linear-gradient(135deg, #dc2626, #ef4444)` // Vermelho para ruim
                               }}
                             >
                               {aderencia.toFixed(1)}%
@@ -281,7 +290,11 @@ const DashboardView = React.memo(function DashboardView({
                               <div 
                                 className="h-full rounded-full transition-all duration-700 shadow-lg"
                                 style={{ 
-                                  background: `linear-gradient(90deg, ${textColorHex}, ${textColorHex}dd)`,
+                                  background: aderencia >= 90 
+                                    ? `linear-gradient(90deg, #059669, #10b981)` // Verde para bom
+                                    : aderencia >= 70
+                                    ? `linear-gradient(90deg, #2563eb, #3b82f6)` // Azul para médio
+                                    : `linear-gradient(90deg, #dc2626, #ef4444)`, // Vermelho para ruim
                                   width: `${Math.min(aderencia, 100)}%` 
                                 }}
                               ></div>
@@ -300,7 +313,13 @@ const DashboardView = React.memo(function DashboardView({
                               <span className="text-slate-500 dark:text-slate-400 font-medium">Entregue:</span>
                               <span 
                                 className="font-bold font-mono text-xs"
-                                style={{ color: textColorHex }}
+                                style={{ 
+                                  color: aderencia >= 90 
+                                    ? (theme === 'dark' ? '#10b981' : '#059669') // Verde para bom
+                                    : aderencia >= 70
+                                    ? (theme === 'dark' ? '#3b82f6' : '#2563eb') // Azul para médio
+                                    : (theme === 'dark' ? '#ef4444' : '#dc2626') // Vermelho para ruim
+                                }}
                               >
                                 {formatarHorasParaHMS(dia.horas_entregues)}
                               </span>
@@ -319,22 +338,22 @@ const DashboardView = React.memo(function DashboardView({
 
       {/* Aderência Detalhada (Turno/Sub Praça/Origem) - Design Ultra Moderno */}
       <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
-        <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-slate-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/30 rounded-3xl overflow-hidden">
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-emerald-500/5 to-teal-500/5 rounded-full blur-3xl"></div>
+        <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
           
           <CardHeader className="relative pb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                   <span className="text-2xl">📋</span>
                 </div>
                 <div>
-                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                  <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
                     Aderência Detalhada
                   </CardTitle>
-                  <CardDescription className="text-base mt-1">Análise por segmento operacional</CardDescription>
+                  <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Análise por segmento operacional</CardDescription>
                 </div>
               </div>
               <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0">
@@ -342,8 +361,8 @@ const DashboardView = React.memo(function DashboardView({
                   onClick={() => setViewMode('turno')}
                   className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                     viewMode === 'turno'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
                   }`}
                 >
                   Turno
@@ -352,8 +371,8 @@ const DashboardView = React.memo(function DashboardView({
                   onClick={() => setViewMode('sub_praca')}
                   className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                     viewMode === 'sub_praca'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
                   }`}
                 >
                   Sub Praça
@@ -362,8 +381,8 @@ const DashboardView = React.memo(function DashboardView({
                   onClick={() => setViewMode('origem')}
                   className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                     viewMode === 'origem'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
                   }`}
                 >
                   Origem
@@ -376,25 +395,29 @@ const DashboardView = React.memo(function DashboardView({
             {dataToRender.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {dataToRender.map((item, index) => {
-                  const statusColor = item.aderencia >= 90 ? 'emerald' : item.aderencia >= 70 ? 'amber' : 'rose';
+                  const statusColor = item.aderencia >= 90 ? 'emerald' : item.aderencia >= 70 ? 'blue' : 'red';
                   const statusText = item.aderencia >= 90 ? 'Excelente' : item.aderencia >= 70 ? 'Bom' : item.aderencia >= 50 ? 'Médio' : 'Crítico';
                   const colorHex = getAderenciaColorHex(item.aderencia, theme === 'dark');
                   
                   return (
                     <div key={`${viewMode}-${index}`} className="relative group/card">
-                      <div className="absolute -inset-0.5 rounded-2xl blur opacity-0 group-hover/card:opacity-30 transition-opacity" style={{
-                        background: `linear-gradient(135deg, ${colorHex}, ${colorHex}88)`
-                      }}></div>
+                      <div className={`absolute -inset-0.5 rounded-2xl blur opacity-0 group-hover/card:opacity-30 transition-opacity ${
+                        item.aderencia >= 90 
+                          ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' // Verde para bom
+                          : item.aderencia >= 70
+                          ? 'bg-gradient-to-r from-blue-400 to-blue-500' // Azul para médio
+                          : 'bg-gradient-to-r from-red-400 to-red-500' // Vermelho para ruim
+                      }`}></div>
                       
-                      <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-800 dark:to-slate-900/80 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                      <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
                         <CardContent className="pt-6 pb-5">
                           <div className="flex items-center justify-between mb-5">
                             <h3 className="font-bold text-xl text-slate-900 dark:text-white">{item.label}</h3>
                             <Badge 
                               className={`font-bold border-0 shadow-md ${
                                 statusColor === 'emerald' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white' :
-                                statusColor === 'amber' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white' :
-                                'bg-gradient-to-r from-rose-500 to-rose-600 text-white'
+                                statusColor === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' :
+                                'bg-gradient-to-r from-red-500 to-red-600 text-white'
                               }`}
                             >
                               {statusText}
@@ -402,14 +425,27 @@ const DashboardView = React.memo(function DashboardView({
                           </div>
                           
                           <div className="mb-5">
-                            <p className="text-4xl font-black mb-3 tracking-tight" style={{ color: colorHex }}>
+                            <p 
+                              className="text-4xl font-black mb-3 tracking-tight" 
+                              style={{ 
+                                color: item.aderencia >= 90 
+                                  ? (theme === 'dark' ? '#10b981' : '#059669') // Verde para bom
+                                  : item.aderencia >= 70
+                                  ? (theme === 'dark' ? '#3b82f6' : '#2563eb') // Azul para médio
+                                  : (theme === 'dark' ? '#ef4444' : '#dc2626') // Vermelho para ruim
+                              }}
+                            >
                               {item.aderencia.toFixed(1)}%
                             </p>
                             <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
                               <div 
                                 className="h-full rounded-full transition-all duration-700 shadow-lg"
                                 style={{ 
-                                  background: `linear-gradient(90deg, ${colorHex}, ${colorHex}dd)`,
+                                  background: item.aderencia >= 90 
+                                    ? `linear-gradient(90deg, #059669, #10b981)` // Verde para bom
+                                    : item.aderencia >= 70
+                                    ? `linear-gradient(90deg, #2563eb, #3b82f6)` // Azul para médio
+                                    : `linear-gradient(90deg, #dc2626, #ef4444)`, // Vermelho para ruim
                                   width: `${Math.min(item.aderencia, 100)}%` 
                                 }}
                               ></div>
@@ -427,7 +463,13 @@ const DashboardView = React.memo(function DashboardView({
                               <span className="text-slate-500 dark:text-slate-400 font-semibold">Entregue:</span>
                               <span 
                                 className="font-bold font-mono"
-                                style={{ color: colorHex }}
+                                style={{ 
+                                  color: item.aderencia >= 90 
+                                    ? (theme === 'dark' ? '#10b981' : '#059669') // Verde para bom
+                                    : item.aderencia >= 70
+                                    ? (theme === 'dark' ? '#3b82f6' : '#2563eb') // Azul para médio
+                                    : (theme === 'dark' ? '#ef4444' : '#dc2626') // Vermelho para ruim
+                                }}
                               >
                                 {formatarHorasParaHMS(item.horasEntregues)}
                               </span>

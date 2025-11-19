@@ -58,8 +58,9 @@ export function getAderenciaBgColor(value: number): string {
 }
 
 // Retorna a cor hexadecimal para uso em style={{ backgroundColor: ... }}
+// Verde para bom (>= 90), Vermelho para ruim (< 70), Azul para médio (70-90)
 export function getAderenciaColorHex(value: number, isDark: boolean = false): string {
-  if (value >= 90) return isDark ? '#10b981' : '#059669'; // emerald-400 : emerald-600
-  if (value >= 70) return isDark ? '#fbbf24' : '#d97706'; // amber-400 : amber-600
-  return isDark ? '#fb7185' : '#e11d48'; // rose-400 : rose-600
+  if (value >= 90) return isDark ? '#10b981' : '#059669'; // emerald-400 : emerald-600 (VERDE - BOM)
+  if (value >= 70) return isDark ? '#3b82f6' : '#2563eb'; // blue-500 : blue-600 (AZUL - MÉDIO)
+  return isDark ? '#ef4444' : '#dc2626'; // red-500 : red-600 (VERMELHO - RUIM)
 }
