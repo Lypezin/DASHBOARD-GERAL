@@ -174,45 +174,62 @@ const FiltroBar = React.memo(function FiltroBar({
         </span>
       </div>
 
-      {/* Filtros de Ano/Semana ou Intervalo de Datas */}
-      {isModoIntervalo ? (
-        <FiltroDateRange
-          dataInicial={filters?.dataInicial ?? null}
-          dataFinal={filters?.dataFinal ?? null}
-          onDataInicialChange={(data) => setFilters(prev => ({ ...prev, dataInicial: data }))}
-          onDataFinalChange={(data) => setFilters(prev => ({ ...prev, dataFinal: data }))}
-        />
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anosOptions} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
-          <FiltroMultiSelect 
-            label="Semana" 
-            selected={filters.semanas ? filters.semanas.map(String) : []} 
-            options={semanasOptions} 
-            placeholder="Todas" 
-            onSelectionChange={(values) => setFilters(prev => ({...prev, semanas: values.map(v => parseInt(v))}))} 
-          />
-        </div>
-      )}
+      {/* Filtros em linha horizontal */}
+      <div className="flex flex-wrap items-end gap-3">
+        {/* Filtros de Ano/Semana ou Intervalo de Datas */}
+        {isModoIntervalo ? (
+          <div className="flex flex-wrap items-end gap-3 flex-1 min-w-0">
+            <FiltroDateRange
+              dataInicial={filters?.dataInicial ?? null}
+              dataFinal={filters?.dataFinal ?? null}
+              onDataInicialChange={(data) => setFilters(prev => ({ ...prev, dataInicial: data }))}
+              onDataFinalChange={(data) => setFilters(prev => ({ ...prev, dataFinal: data }))}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="flex-shrink-0">
+              <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anosOptions} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
+            </div>
+            <div className="flex-shrink-0">
+              <FiltroMultiSelect 
+                label="Semana" 
+                selected={filters.semanas ? filters.semanas.map(String) : []} 
+                options={semanasOptions} 
+                placeholder="Todas" 
+                onSelectionChange={(values) => setFilters(prev => ({...prev, semanas: values.map(v => parseInt(v))}))} 
+              />
+            </div>
+          </>
+        )}
 
-      {/* Outros filtros (sempre visíveis) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <FiltroSelect label="Praça" value={filters.praca ?? ''} options={pracas} placeholder="Todas" onChange={(value) => handleChange('praca', value)} disabled={shouldDisablePracaFilter} />
-        <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, subPracas: values}))} />
-        <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, origens: values}))} />
-        <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({...prev, turnos: values}))} />
-      </div>
-      {hasActiveFilters && (
-        <div className="flex justify-end pt-2">
-          <button 
-            onClick={handleClearFilters} 
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-            <span>Limpar Filtros</span>
-          </button>
+        {/* Outros filtros (sempre visíveis) */}
+        <div className="flex-shrink-0">
+          <FiltroSelect label="Praça" value={filters.praca ?? ''} options={pracas} placeholder="Todas" onChange={(value) => handleChange('praca', value)} disabled={shouldDisablePracaFilter} />
         </div>
-      )}
+        <div className="flex-shrink-0">
+          <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, subPracas: values}))} />
+        </div>
+        <div className="flex-shrink-0">
+          <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, origens: values}))} />
+        </div>
+        <div className="flex-shrink-0">
+          <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({...prev, turnos: values}))} />
+        </div>
+        
+        {/* Botão Limpar Filtros */}
+        {hasActiveFilters && (
+          <div className="flex-shrink-0">
+            <button 
+              onClick={handleClearFilters} 
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors h-[42px]"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              <span>Limpar</span>
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 });

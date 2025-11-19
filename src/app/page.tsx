@@ -515,48 +515,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">
       <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-        {/* Header Principal - Design Ultra Moderno */}
-        <header className="mb-8 animate-fade-in">
-          <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
-            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 rounded-3xl bg-gradient-to-br from-white via-white to-blue-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 shadow-xl border-0 backdrop-blur-sm">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-              
-              <div className="relative flex items-center gap-5">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl blur-lg opacity-50"></div>
-                  <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-xl">
-                    <span className="text-3xl sm:text-4xl">📊</span>
-                  </div>
-                </div>
-                <div>
-                  <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                    Dashboard Operacional
-                  </h1>
-                  <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 font-medium mt-1">
-                    Sistema de Análise e Monitoramento
-                  </p>
-                </div>
-              </div>
-              
-              <div className="relative flex items-center gap-4">
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Atualizado</p>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white mt-1">
-                    {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-0 bg-emerald-400 rounded-xl blur-lg opacity-50 animate-pulse"></div>
-                  <div className="relative h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
-                    <span className="relative text-white text-xl">🟢</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
 
         {loading && (
           <div className="flex h-[60vh] sm:h-[70vh] items-center justify-center">
@@ -593,15 +551,7 @@ export default function DashboardPage() {
                 <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-6 sm:p-8 backdrop-blur-sm overflow-hidden">
                   <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
                   
-                  <div className="relative mb-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
-                        <span className="text-lg">🔍</span>
-                      </div>
-                      <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        Filtros
-                      </h2>
-                    </div>
+                  <div className="relative">
                     <FiltroBar
                       filters={filters}
                       setFilters={setFilters}
@@ -615,7 +565,7 @@ export default function DashboardPage() {
                     />
                   </div>
                   
-                  <div className="relative border-t border-slate-200/50 dark:border-slate-700/50 pt-6">
+                  <div className="relative border-t border-slate-200/50 dark:border-slate-700/50 pt-6 mt-6">
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
                       <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
                       <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
