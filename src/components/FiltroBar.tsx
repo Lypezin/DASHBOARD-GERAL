@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
-import { Filters, FilterOption } from '@/types';
+import { Filters, FilterOption, CurrentUser, hasFullCityAccess } from '@/types';
 import FiltroSelect from './FiltroSelect';
 import FiltroMultiSelect from './FiltroMultiSelect';
 import FiltroDateRange from './FiltroDateRange';
@@ -26,7 +26,7 @@ const FiltroBar = React.memo(function FiltroBar({
   subPracas: FilterOption[];
   origens: FilterOption[];
   turnos: FilterOption[];
-  currentUser: { is_admin: boolean; assigned_pracas: string[] } | null;
+  currentUser: CurrentUser | null;
 }) {
   // Log para debug (apenas em desenvolvimento)
   useEffect(() => {
@@ -59,7 +59,8 @@ const FiltroBar = React.memo(function FiltroBar({
   const handleClearFilters = useCallback(() => {
     setFilters({
       ano: null, semana: null,
-      praca: currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1 ? currentUser.assigned_pracas[0] : null,
+      // Marketing tem acesso a todas as cidades, então não precisa restringir
+      praca: currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length === 1 ? currentUser.assigned_pracas[0] : null,
       subPraca: null, origem: null, turno: null,
       subPracas: [], origens: [], turnos: [], semanas: [],
       filtroModo: 'ano_semana',
@@ -111,15 +112,16 @@ const FiltroBar = React.memo(function FiltroBar({
     if (!filters) return false;
     if (filters.filtroModo === 'intervalo') {
       return filters.dataInicial !== null || filters.dataFinal !== null || filters.subPraca !== null || filters.origem !== null || filters.turno !== null || (filters.turnos && filters.turnos.length > 0) ||
-        (currentUser?.is_admin && filters.praca !== null);
+        (hasFullCityAccess(currentUser) && filters.praca !== null);
     } else {
       return filters.ano !== null || filters.semana !== null || (filters.semanas && filters.semanas.length > 0) || filters.subPraca !== null || filters.origem !== null || filters.turno !== null || (filters.turnos && filters.turnos.length > 0) ||
-        (currentUser?.is_admin && filters.praca !== null);
+        (hasFullCityAccess(currentUser) && filters.praca !== null);
     }
   }, [filters, currentUser]);
 
   const shouldDisablePracaFilter = useMemo(() => {
-    return Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
+    // Marketing tem acesso a todas as cidades, então não precisa desabilitar o filtro
+    return Boolean(currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length === 1);
   }, [currentUser]);
 
   const anosOptions = useMemo(() => {

@@ -28,6 +28,8 @@ import {
   EntregadoresData,
   ValoresEntregador,
   ValoresData,
+  CurrentUser,
+  hasFullCityAccess,
   UsuarioOnline,
   EvolucaoMensal,
   EvolucaoSemanal,
@@ -135,7 +137,7 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Apenas no mount inicial
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
-  const [currentUser, setCurrentUser] = useState<{ is_admin: boolean; assigned_pracas: string[] } | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [chartReady, setChartReady] = useState(false);
 
   // Verificar autenticação antes de permitir acesso
@@ -435,21 +437,19 @@ export default function DashboardPage() {
           setCurrentUser(profile);
           // Aplicar filtro automático se não for admin nem marketing e tiver apenas uma praça
           // Marketing tem acesso a todas as cidades, então não precisa aplicar filtro automático
-          const isMarketing = profile.role === 'marketing';
-          if (!profile.is_admin && !isMarketing && profile.assigned_pracas.length === 1) {
+          if (!hasFullCityAccess(profile) && profile.assigned_pracas.length === 1) {
             setFilters(prev => {
               // Só atualizar se ainda não tiver a praça definida
               if (prev.praca !== profile.assigned_pracas[0]) {
-        return {
+                return {
                   ...prev,
                   praca: profile.assigned_pracas[0]
                 };
               }
               return prev;
             });
-                    }
-                  
-                  } else {
+          }
+        } else {
           setCurrentUser(null);
         }
       } catch (err) {

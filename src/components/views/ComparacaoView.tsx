@@ -139,9 +139,11 @@ function ComparacaoView({
     fetchTodasSemanas();
   }, [semanas]);
 
-  // Se não for admin e tiver apenas 1 praça, setar automaticamente
+  // Se não for admin nem marketing e tiver apenas 1 praça, setar automaticamente
+  // Marketing tem acesso a todas as cidades, então não precisa aplicar filtro automático
   useEffect(() => {
-    if (currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1) {
+    const isMarketing = currentUser?.role === 'marketing';
+    if (currentUser && !currentUser.is_admin && !isMarketing && currentUser.assigned_pracas.length === 1) {
       setPracaSelecionada(currentUser.assigned_pracas[0]);
     }
   }, [currentUser]);
@@ -443,7 +445,9 @@ function ComparacaoView({
   );
 
   // Verificar se deve desabilitar o filtro de praça
-  const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && currentUser.assigned_pracas.length === 1);
+  // Marketing tem acesso a todas as cidades, então não precisa desabilitar o filtro
+  const isMarketing = currentUser?.role === 'marketing';
+  const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && !isMarketing && currentUser.assigned_pracas.length === 1);
 
   return (
     <div className="space-y-6 animate-fade-in">
