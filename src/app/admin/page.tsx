@@ -491,7 +491,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-8">
         <div className="mx-auto max-w-7xl px-4">
           {/* Skeleton Header */}
           <div className="mb-8 animate-pulse">
@@ -501,46 +501,46 @@ export default function AdminPage() {
           
           {/* Skeleton Cards */}
           <div className="space-y-6">
-            <div className="rounded-xl bg-white p-6 shadow-md">
+            <div className="rounded-xl bg-white dark:bg-slate-900 p-6 shadow-md border border-slate-200 dark:border-slate-800">
               <div className="mb-4 flex items-center gap-2">
-                <div className="h-6 w-6 bg-amber-200 rounded animate-pulse"></div>
-                <div className="h-6 w-48 bg-slate-200 rounded animate-pulse"></div>
+                <div className="h-6 w-6 bg-amber-200 dark:bg-amber-900 rounded animate-pulse"></div>
+                <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
               </div>
               <div className="space-y-4">
                 {[1, 2].map((i) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/30 p-4">
                     <div className="space-y-2 flex-1">
-                      <div className="h-5 w-48 bg-amber-200 rounded animate-pulse"></div>
-                      <div className="h-4 w-64 bg-amber-200 rounded animate-pulse"></div>
+                      <div className="h-5 w-48 bg-amber-200 dark:bg-amber-900 rounded animate-pulse"></div>
+                      <div className="h-4 w-64 bg-amber-200 dark:bg-amber-900 rounded animate-pulse"></div>
                     </div>
-                    <div className="h-8 w-20 bg-emerald-200 rounded animate-pulse"></div>
+                    <div className="h-8 w-20 bg-emerald-200 dark:bg-emerald-900 rounded animate-pulse"></div>
                   </div>
                 ))}
               </div>
             </div>
             
-            <div className="rounded-xl bg-white p-6 shadow-md">
+            <div className="rounded-xl bg-white dark:bg-slate-900 p-6 shadow-md border border-slate-200 dark:border-slate-800">
               <div className="mb-4 flex items-center gap-2">
-                <div className="h-6 w-6 bg-blue-200 rounded animate-pulse"></div>
-                <div className="h-6 w-32 bg-slate-200 rounded animate-pulse"></div>
+                <div className="h-6 w-6 bg-blue-200 dark:bg-blue-900 rounded animate-pulse"></div>
+                <div className="h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b">
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
                       {[1, 2, 3, 4, 5].map((i) => (
                         <th key={i} className="pb-3">
-                          <div className="h-4 w-16 bg-slate-200 rounded animate-pulse"></div>
+                          <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {[1, 2, 3, 4].map((i) => (
-                      <tr key={i} className="border-b">
+                      <tr key={i} className="border-b border-slate-100 dark:border-slate-800">
                         {[1, 2, 3, 4, 5].map((j) => (
                           <td key={j} className="py-3">
-                            <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
+                            <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
                           </td>
                         ))}
                       </tr>
@@ -556,8 +556,8 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 py-8">
-      <div className="mx-auto max-w-7xl px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header melhorado com estatísticas */}
         <div className="mb-8">
           <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-indigo-600 to-purple-600 p-6 shadow-xl">
@@ -582,12 +582,12 @@ export default function AdminPage() {
         </div>
 
         {error && (
-          <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 shadow-lg animate-pulse">
+          <div className="mb-6 rounded-xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/30 p-4 shadow-lg">
             <div className="flex items-center gap-3">
               <span className="text-2xl">⚠️</span>
               <div>
-                <h3 className="font-bold text-rose-800">Erro no Carregamento</h3>
-                <p className="text-sm text-rose-700">{error}</p>
+                <h3 className="font-bold text-rose-800 dark:text-rose-200">Erro no Carregamento</h3>
+                <p className="text-sm text-rose-700 dark:text-rose-300">{error}</p>
               </div>
             </div>
           </div>
@@ -595,24 +595,24 @@ export default function AdminPage() {
 
         {/* Usuários Pendentes */}
         {pendingUsers.length > 0 && (
-          <div className="mb-8 rounded-xl border border-amber-200 bg-white p-6 shadow-md">
-            <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-slate-900">
+          <div className="mb-8 rounded-xl border border-amber-200 dark:border-amber-900 bg-white dark:bg-slate-900 p-6 shadow-md">
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-slate-100">
               <span className="text-2xl">⏳</span>
               Usuários Aguardando Aprovação ({pendingUsers.length})
             </h2>
             <div className="space-y-4">
               {pendingUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+                <div key={user.id} className="flex items-center justify-between rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/30 p-4">
                   <div>
-                    <p className="font-semibold text-slate-900">{user.full_name}</p>
-                    <p className="text-sm text-slate-600">{user.email}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">{user.full_name}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{user.email}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-500">
                       Cadastrado em {new Date(user.created_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <button
                     onClick={() => handleApproveUser(user)}
-                    className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-emerald-700"
+                    className="rounded-lg bg-emerald-600 dark:bg-emerald-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-emerald-700 dark:hover:bg-emerald-600"
                   >
                     Aprovar
                   </button>
@@ -623,48 +623,50 @@ export default function AdminPage() {
         )}
 
         {/* Todos os Usuários */}
-        <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md">
-          <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-slate-900">
+        <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-white dark:bg-slate-900 p-6 shadow-md">
+          <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-slate-100">
             <span className="text-2xl">👥</span>
             Todos os Usuários ({users.length})
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="pb-3 text-left text-sm font-semibold text-slate-700">Nome</th>
-                  <th className="pb-3 text-left text-sm font-semibold text-slate-700">Email</th>
-                  <th className="pb-3 text-left text-sm font-semibold text-slate-700">Status</th>
-                  <th className="pb-3 text-left text-sm font-semibold text-slate-700">Praças</th>
-                  <th className="pb-3 text-left text-sm font-semibold text-slate-700">Ações</th>
+                <tr className="border-b border-slate-200 dark:border-slate-700">
+                  <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Nome</th>
+                  <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Email</th>
+                  <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Status</th>
+                  <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Praças</th>
+                  <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
-                  <tr key={user.id} className="border-b border-slate-100">
+                  <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="py-3">
-                      <div>
-                        <p className="font-semibold text-slate-900">{user.full_name}</p>
-                        {user.is_admin && (
-                          <span className="inline-block rounded bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">
-                            Admin
-                          </span>
-                        )}
-                        {user.role === 'marketing' && !user.is_admin && (
-                          <span className="inline-block rounded bg-pink-100 px-2 py-0.5 text-xs font-semibold text-pink-700">
-                            Marketing
-                          </span>
-                        )}
+                      <div className="flex flex-col gap-1">
+                        <p className="font-semibold text-slate-900 dark:text-slate-100">{user.full_name}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {user.is_admin && (
+                            <span className="inline-block rounded bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300">
+                              Admin
+                            </span>
+                          )}
+                          {user.role === 'marketing' && !user.is_admin && (
+                            <span className="inline-block rounded bg-pink-100 dark:bg-pink-900/50 px-2 py-0.5 text-xs font-semibold text-pink-700 dark:text-pink-300">
+                              Marketing
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
-                    <td className="py-3 text-sm text-slate-600">{user.email}</td>
+                    <td className="py-3 text-sm text-slate-600 dark:text-slate-400">{user.email}</td>
                     <td className="py-3">
                       {user.is_approved ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-2 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                           ✓ Aprovado
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/50 px-2 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
                           ⏳ Pendente
                         </span>
                       )}
@@ -675,14 +677,14 @@ export default function AdminPage() {
                           {user.assigned_pracas.map((praca) => (
                             <span
                               key={praca}
-                              className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
+                              className="rounded bg-blue-100 dark:bg-blue-900/50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300"
                             >
                               {praca}
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-slate-400">Nenhuma</span>
+                        <span className="text-slate-400 dark:text-slate-500">Nenhuma</span>
                       )}
                     </td>
                     <td className="py-3">
@@ -690,7 +692,7 @@ export default function AdminPage() {
                         {!user.is_admin && !user.is_approved && (
                           <button
                             onClick={() => handleApproveUser(user)}
-                            className="rounded bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-200"
+                            className="rounded bg-emerald-100 dark:bg-emerald-900/50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 transition-colors hover:bg-emerald-200 dark:hover:bg-emerald-900"
                           >
                             Aprovar
                           </button>
@@ -700,13 +702,13 @@ export default function AdminPage() {
                           <>
                             <button
                               onClick={() => handleEditPracas(user)}
-                              className="rounded bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-200"
+                              className="rounded bg-blue-100 dark:bg-blue-900/50 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 transition-colors hover:bg-blue-200 dark:hover:bg-blue-900"
                             >
                               Editar Praças
                             </button>
                             <button
                               onClick={() => handleRevokeAccess(user.id)}
-                              className="rounded bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-200"
+                              className="rounded bg-rose-100 dark:bg-rose-900/50 px-3 py-1 text-xs font-semibold text-rose-700 dark:text-rose-300 transition-colors hover:bg-rose-200 dark:hover:bg-rose-900"
                             >
                               Revogar
                             </button>
@@ -718,8 +720,8 @@ export default function AdminPage() {
                             onClick={() => handleToggleAdmin(user.id, user.is_admin)}
                             className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
                               user.is_admin
-                                ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                                : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                                ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900'
+                                : 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900'
                             }`}
                           >
                             {user.is_admin ? 'Remover Admin' : 'Tornar Admin'}
@@ -737,8 +739,8 @@ export default function AdminPage() {
 
       {/* Modal de Edição de Praças */}
       {showEditModal && editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl animate-scale-in max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 shadow-2xl animate-scale-in max-h-[90vh] overflow-hidden border border-slate-200 dark:border-slate-800">
             {/* Header do Modal */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
               <h3 className="text-xl font-bold flex items-center gap-2">
@@ -754,19 +756,19 @@ export default function AdminPage() {
             <div className="p-6">
               <div className="mb-6">
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                     Cargo:
                   </label>
                   <select
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value as 'admin' | 'marketing' | 'user')}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
                   >
                     <option value="user">Usuário</option>
                     <option value="marketing">Marketing</option>
                     <option value="admin">Administrador</option>
                   </select>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                     {selectedRole === 'marketing' && 'Marketing tem acesso a todas as cidades, mas sem privilégios de admin'}
                     {selectedRole === 'admin' && 'Administrador tem acesso total ao sistema'}
                     {selectedRole === 'user' && 'Usuário comum com acesso apenas às praças selecionadas'}
@@ -774,32 +776,32 @@ export default function AdminPage() {
                 </div>
                 
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-slate-700">Selecione as praças:</p>
-                  <span className="text-xs text-slate-500">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Selecione as praças:</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {selectedPracas.length} de {pracasDisponiveis.length} selecionadas
                   </span>
                 </div>
                 
                 {pracasDisponiveis.length === 0 ? (
-                  <div className="rounded-lg border-2 border-dashed border-slate-200 p-8 text-center">
+                  <div className="rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 p-8 text-center bg-slate-50 dark:bg-slate-800/50">
                     <span className="text-4xl mb-2 block">🏢</span>
-                    <p className="text-sm text-slate-500">Nenhuma praça disponível</p>
-                    <p className="text-xs text-slate-400 mt-1">Verifique a conexão ou tente recarregar</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Nenhuma praça disponível</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Verifique a conexão ou tente recarregar</p>
                   </div>
                 ) : (
-                  <div className="max-h-60 space-y-2 overflow-y-auto rounded-lg border border-slate-200 p-2">
+                  <div className="max-h-60 space-y-2 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700 p-2 bg-slate-50 dark:bg-slate-800/50">
                     {pracasDisponiveis.map((praca) => (
                       <label
                         key={praca}
-                        className="flex items-center gap-3 rounded-lg border border-transparent p-3 cursor-pointer transition-all hover:border-blue-200 hover:bg-blue-50 group"
+                        className="flex items-center gap-3 rounded-lg border border-transparent p-3 cursor-pointer transition-all hover:border-blue-200 dark:hover:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30 group"
                       >
                         <input
                           type="checkbox"
                           checked={selectedPracas.includes(praca)}
                           onChange={() => togglePracaSelection(praca)}
-                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-colors"
+                          className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
                         />
-                        <span className="text-sm font-medium text-slate-900 group-hover:text-blue-700">
+                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100 group-hover:text-blue-700 dark:group-hover:text-blue-300">
                           {praca}
                         </span>
                       </label>
@@ -815,14 +817,14 @@ export default function AdminPage() {
                     setEditingUser(null);
                     setSelectedPracas([]);
                   }}
-                  className="flex-1 rounded-lg border-2 border-slate-200 py-3 font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50"
+                  className="flex-1 rounded-lg border-2 border-slate-200 dark:border-slate-700 py-3 font-semibold text-slate-700 dark:text-slate-300 transition-all hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSaveEditPracas}
-                  disabled={selectedPracas.length === 0}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-3 font-semibold text-white transition-all hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:from-slate-300 disabled:to-slate-400 shadow-lg"
+                  disabled={selectedRole !== 'marketing' && selectedPracas.length === 0}
+                  className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700 py-3 font-semibold text-white transition-all hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:from-slate-300 disabled:to-slate-400 shadow-lg"
                 >
                   💾 Salvar Alterações
                 </button>
@@ -834,8 +836,8 @@ export default function AdminPage() {
 
       {/* Modal de Aprovação */}
       {showModal && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl animate-scale-in max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 shadow-2xl animate-scale-in max-h-[90vh] overflow-hidden border border-slate-200 dark:border-slate-800">
             {/* Header do Modal */}
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white">
               <h3 className="text-xl font-bold flex items-center gap-2">
@@ -851,19 +853,19 @@ export default function AdminPage() {
             <div className="p-6">
               <div className="mb-6">
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                     Cargo:
                   </label>
                   <select
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value as 'admin' | 'marketing' | 'user')}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:border-emerald-500 dark:focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-900"
                   >
                     <option value="user">Usuário</option>
                     <option value="marketing">Marketing</option>
                     <option value="admin">Administrador</option>
                   </select>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                     {selectedRole === 'marketing' && 'Marketing tem acesso a todas as cidades, mas sem privilégios de admin'}
                     {selectedRole === 'admin' && 'Administrador tem acesso total ao sistema'}
                     {selectedRole === 'user' && 'Usuário comum com acesso apenas às praças selecionadas'}
@@ -871,32 +873,32 @@ export default function AdminPage() {
                 </div>
                 
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-slate-700">Selecione as praças de acesso:</p>
-                  <span className="text-xs text-slate-500">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Selecione as praças de acesso:</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {selectedPracas.length} de {pracasDisponiveis.length} selecionadas
                   </span>
                 </div>
                 
                 {pracasDisponiveis.length === 0 ? (
-                  <div className="rounded-lg border-2 border-dashed border-amber-200 bg-amber-50 p-8 text-center">
+                  <div className="rounded-lg border-2 border-dashed border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-8 text-center">
                     <span className="text-4xl mb-2 block">⚠️</span>
-                    <p className="text-sm text-amber-700">Nenhuma praça disponível</p>
-                    <p className="text-xs text-amber-600 mt-1">O usuário não poderá ser aprovado sem praças</p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">Nenhuma praça disponível</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">O usuário não poderá ser aprovado sem praças</p>
                   </div>
                 ) : (
-                  <div className="max-h-60 space-y-2 overflow-y-auto rounded-lg border border-slate-200 p-2">
+                  <div className="max-h-60 space-y-2 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700 p-2 bg-slate-50 dark:bg-slate-800/50">
                     {pracasDisponiveis.map((praca) => (
                       <label
                         key={praca}
-                        className="flex items-center gap-3 rounded-lg border border-transparent p-3 cursor-pointer transition-all hover:border-emerald-200 hover:bg-emerald-50 group"
+                        className="flex items-center gap-3 rounded-lg border border-transparent p-3 cursor-pointer transition-all hover:border-emerald-200 dark:hover:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 group"
                       >
                         <input
                           type="checkbox"
                           checked={selectedPracas.includes(praca)}
                           onChange={() => togglePracaSelection(praca)}
-                          className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-2 focus:ring-emerald-500 transition-colors"
+                          className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 transition-colors"
                         />
-                        <span className="text-sm font-medium text-slate-900 group-hover:text-emerald-700">
+                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300">
                           {praca}
                         </span>
                       </label>
@@ -912,14 +914,14 @@ export default function AdminPage() {
                     setSelectedUser(null);
                     setSelectedPracas([]);
                   }}
-                  className="flex-1 rounded-lg border-2 border-slate-200 py-3 font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50"
+                  className="flex-1 rounded-lg border-2 border-slate-200 dark:border-slate-700 py-3 font-semibold text-slate-700 dark:text-slate-300 transition-all hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSaveApproval}
                   disabled={selectedRole !== 'marketing' && selectedPracas.length === 0}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 py-3 font-semibold text-white transition-all hover:from-emerald-700 hover:to-teal-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:from-slate-300 disabled:to-slate-400 shadow-lg"
+                  className="flex-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-700 dark:to-teal-700 py-3 font-semibold text-white transition-all hover:from-emerald-700 hover:to-teal-700 dark:hover:from-emerald-600 dark:hover:to-teal-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:from-slate-300 disabled:to-slate-400 shadow-lg"
                 >
                   ✅ Aprovar Acesso
                 </button>
