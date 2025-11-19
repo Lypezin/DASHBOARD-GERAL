@@ -201,12 +201,6 @@ export interface UsuarioOnline {
   is_active?: boolean;
 }
 
-export interface MonitoramentoData {
-  success: boolean;
-  total_online: number;
-  usuarios: UsuarioOnline[];
-}
-
 export interface EvolucaoMensal {
   ano: number;
   mes: number;

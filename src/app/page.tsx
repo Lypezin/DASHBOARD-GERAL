@@ -29,7 +29,6 @@ import {
   ValoresEntregador,
   ValoresData,
   UsuarioOnline,
-  MonitoramentoData,
   EvolucaoMensal,
   EvolucaoSemanal,
   UtrSemanal,
@@ -72,10 +71,6 @@ const PrioridadePromoView = dynamic(() => import('@/components/views/PrioridadeP
   loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
   ssr: false
 });
-const MonitoramentoView = dynamic(() => import('@/components/views/MonitoramentoView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
-  ssr: false
-});
 const ComparacaoView = dynamic(() => import('@/components/views/ComparacaoView').then(mod => ({ default: mod.default })), {
   loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
   ssr: false
@@ -107,7 +102,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'monitoramento' | 'prioridade' | 'comparacao' | 'marketing'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'prioridade' | 'comparacao' | 'marketing'>('dashboard');
   const [filters, setFilters] = useState<Filters>({ 
     ano: null, 
     semana: null, 
@@ -620,9 +615,6 @@ export default function DashboardPage() {
                   <TabButton label="Valores" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
                   <TabButton label="Prioridade/Promo" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
                   <TabButton label="Evolução" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
-                  {currentUser?.is_admin && (
-                    <TabButton label="Monitor" active={activeTab === 'monitoramento'} onClick={() => handleTabChange('monitoramento')} />
-                  )}
                   <TabButton label="Comparar" active={activeTab === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
                   <TabButton label="Marketing" active={activeTab === 'marketing'} onClick={() => handleTabChange('marketing')} />
                 </div>
@@ -704,9 +696,6 @@ export default function DashboardPage() {
                         anosDisponiveis={anosDisponiveis}
                         onAnoChange={setAnoEvolucao}
                       />
-                    )}
-                    {activeTab === 'monitoramento' && (
-                      <MonitoramentoView />
                     )}
                     {activeTab === 'comparacao' && (
                       <ComparacaoView

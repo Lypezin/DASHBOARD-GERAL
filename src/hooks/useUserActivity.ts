@@ -123,8 +123,7 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
         entregadores: 'Entregadores',
         valores: 'Valores',
         prioridade: 'Prioridade/Promo',
-        evolucao: 'Evolução',
-        monitoramento: 'Monitoramento'
+        evolucao: 'Evolução'
       };
       const currentTab = tab_name || activeTabRef.current;
       const nomeAba = tabNames[currentTab] || currentTab;
