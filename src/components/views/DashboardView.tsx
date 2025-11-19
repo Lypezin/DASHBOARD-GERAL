@@ -159,13 +159,10 @@ const DashboardView = React.memo(function DashboardView({
                     <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm">
                       <CardContent className="pt-6 pb-5">
                         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wide">Tempo Planejado</p>
-                        <p className="text-4xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
-                          {formatarHorasCompacta(aderenciaGeral.horas_a_entregar)}
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 font-mono mb-4">
+                        <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mb-1 tracking-tight font-mono break-all leading-tight">
                           {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
                         </p>
-                        <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
+                        <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner mt-4">
                           <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 shadow-lg" style={{ width: '100%' }}></div>
                         </div>
                       </CardContent>
@@ -177,13 +174,10 @@ const DashboardView = React.memo(function DashboardView({
                     <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm">
                       <CardContent className="pt-6 pb-5">
                         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wide">Tempo Entregue</p>
-                        <p className="text-4xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
-                          {formatarHorasCompacta(aderenciaGeral.horas_entregues)}
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 font-mono mb-4">
+                        <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mb-1 tracking-tight font-mono break-all leading-tight">
                           {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
                         </p>
-                        <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
+                        <div className="h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner mt-4">
                           <div 
                             className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 shadow-lg" 
                             style={{ 
@@ -204,7 +198,7 @@ const DashboardView = React.memo(function DashboardView({
                       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-blue-500/20 rounded-full blur-2xl"></div>
                       <CardContent className="relative pt-8 pb-6">
                         <p className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-4 uppercase tracking-wider">Gap de Performance</p>
-                        <p className="text-5xl font-black text-blue-900 dark:text-blue-100 mb-3 font-mono tracking-tight">
+                        <p className="text-2xl sm:text-3xl font-black text-blue-900 dark:text-blue-100 mb-3 font-mono tracking-tight break-all leading-tight">
                           {calcularGap.formatado}
                         </p>
                         <p className="text-sm text-blue-600/80 dark:text-blue-400/80 mb-5 font-medium">
@@ -238,24 +232,24 @@ const DashboardView = React.memo(function DashboardView({
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                   <span className="text-2xl">📅</span>
-                </div>
-                <div>
+            </div>
+            <div>
                   <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
                     Aderência por Dia da Semana
                   </CardTitle>
                   <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Distribuição semanal de performance</CardDescription>
-                </div>
-              </div>
+            </div>
+          </div>
             </CardHeader>
-            
+          
             <CardContent className="relative">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-5">
-                {aderenciaDiaOrdenada.map((dia, index) => {
-                  const aderencia = dia.aderencia_percentual || 0;
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3 sm:gap-4">
+            {aderenciaDiaOrdenada.map((dia, index) => {
+              const aderencia = dia.aderencia_percentual || 0;
                   const isToday = new Date().getDay() === (index + 1) % 7;
-                  
-                  return (
-                    <div key={`dia-${index}`} className="relative group/card">
+              
+              return (
+                    <div key={`dia-${index}`} className="relative group/card min-w-0">
                       <div className={`absolute -inset-0.5 rounded-2xl blur transition-all duration-300 ${
                         isToday 
                           ? 'bg-gradient-to-r from-blue-400 to-blue-500 opacity-60' 
@@ -267,11 +261,11 @@ const DashboardView = React.memo(function DashboardView({
                           isToday ? 'ring-2 ring-blue-400/50' : ''
                         }`}
                       >
-                        <CardContent className="pt-6 pb-5">
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-bold text-lg text-slate-900 dark:text-white">{dia.dia_da_semana}</h4>
+                        <CardContent className="pt-4 pb-3 min-w-0 w-full">
+                          <div className="flex items-center justify-between mb-3 gap-1.5">
+                            <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate flex-1 min-w-0">{dia.dia_da_semana}</h4>
                             <Badge 
-                              className="text-white shadow-md border-0 font-bold"
+                              className="text-white shadow-md border-0 font-bold shrink-0 text-[10px] px-1.5 py-0.5"
                               style={{ 
                                 background: aderencia >= 90 
                                   ? `linear-gradient(135deg, #059669, #10b981)` // Verde para bom
@@ -285,8 +279,8 @@ const DashboardView = React.memo(function DashboardView({
                           </div>
                           
                           {/* Barra de progresso moderna */}
-                          <div className="mb-5">
-                            <div className="h-4 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
+                          <div className="mb-3">
+                            <div className="h-2.5 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
                               <div 
                                 className="h-full rounded-full transition-all duration-700 shadow-lg"
                                 style={{ 
@@ -298,21 +292,21 @@ const DashboardView = React.memo(function DashboardView({
                                   width: `${Math.min(aderencia, 100)}%` 
                                 }}
                               ></div>
-                            </div>
-                          </div>
+                      </div>
+                    </div>
 
                           {/* Dados */}
-                          <div className="space-y-3 text-sm">
-                            <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                              <span className="text-slate-500 dark:text-slate-400 font-medium">Planejado:</span>
-                              <span className="font-bold text-slate-900 dark:text-white font-mono text-xs">
+                          <div className="space-y-2 text-[10px]">
+                            <div className="flex flex-col gap-0.5 p-1.5 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 min-w-0 w-full overflow-hidden">
+                              <span className="text-slate-500 dark:text-slate-400 font-semibold text-[9px] uppercase leading-tight">Planejado:</span>
+                              <span className="font-bold text-slate-900 dark:text-white font-mono text-[10px] break-all leading-tight overflow-wrap-anywhere">
                                 {formatarHorasParaHMS(dia.horas_a_entregar)}
                               </span>
-                            </div>
-                            <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                              <span className="text-slate-500 dark:text-slate-400 font-medium">Entregue:</span>
+                    </div>
+                            <div className="flex flex-col gap-0.5 p-1.5 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 min-w-0 w-full overflow-hidden">
+                              <span className="text-slate-500 dark:text-slate-400 font-semibold text-[9px] uppercase leading-tight">Entregue:</span>
                               <span 
-                                className="font-bold font-mono text-xs"
+                                className="font-bold font-mono text-[10px] break-all leading-tight overflow-wrap-anywhere"
                                 style={{ 
                                   color: aderencia >= 90 
                                     ? (theme === 'dark' ? '#10b981' : '#059669') // Verde para bom
@@ -323,14 +317,14 @@ const DashboardView = React.memo(function DashboardView({
                               >
                                 {formatarHorasParaHMS(dia.horas_entregues)}
                               </span>
-                            </div>
-                          </div>
+                      </div>
+                      </div>
                         </CardContent>
                       </Card>
-                    </div>
-                  );
-                })}
-              </div>
+                </div>
+              );
+            })}
+          </div>
             </CardContent>
           </Card>
         </div>
@@ -345,54 +339,54 @@ const DashboardView = React.memo(function DashboardView({
           
           <CardHeader className="relative pb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-              <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                   <span className="text-2xl">📋</span>
-                </div>
-                <div>
+            </div>
+            <div>
                   <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
                     Aderência Detalhada
                   </CardTitle>
                   <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Análise por segmento operacional</CardDescription>
-                </div>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0">
-                <button
-                  onClick={() => setViewMode('turno')}
-                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
-                    viewMode === 'turno'
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
-                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
-                  }`}
-                >
-                  Turno
-                </button>
-                <button
-                  onClick={() => setViewMode('sub_praca')}
-                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
-                    viewMode === 'sub_praca'
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
-                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
-                  }`}
-                >
-                  Sub Praça
-                </button>
-                <button
-                  onClick={() => setViewMode('origem')}
-                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
-                    viewMode === 'origem'
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
-                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
-                  }`}
-                >
-                  Origem
-                </button>
-              </div>
             </div>
+          </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0">
+            <button
+              onClick={() => setViewMode('turno')}
+                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                viewMode === 'turno'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
+              }`}
+            >
+                  Turno
+            </button>
+            <button
+              onClick={() => setViewMode('sub_praca')}
+                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                viewMode === 'sub_praca'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
+              }`}
+            >
+                  Sub Praça
+            </button>
+            <button
+              onClick={() => setViewMode('origem')}
+                  className={`shrink-0 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                viewMode === 'origem'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
+              }`}
+            >
+                  Origem
+            </button>
+          </div>
+        </div>
           </CardHeader>
-          
+
           <CardContent className="relative">
-            {dataToRender.length > 0 ? (
+        {dataToRender.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {dataToRender.map((item, index) => {
                   const statusColor = item.aderencia >= 90 ? 'emerald' : item.aderencia >= 70 ? 'blue' : 'red';
@@ -480,13 +474,13 @@ const DashboardView = React.memo(function DashboardView({
                     </div>
                   );
                 })}
-              </div>
-            ) : (
+          </div>
+        ) : (
               <div className="text-center py-16">
                 <div className="text-7xl mb-6 opacity-50">📊</div>
                 <p className="text-slate-500 dark:text-slate-400 text-lg">Nenhum dado disponível para este filtro</p>
-              </div>
-            )}
+          </div>
+        )}
           </CardContent>
         </Card>
       </div>
