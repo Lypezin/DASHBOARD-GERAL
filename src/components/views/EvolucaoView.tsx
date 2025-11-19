@@ -836,17 +836,26 @@ function EvolucaoView({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header com controles */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
-        <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-blue-950/30">
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
+          
+          <div className="relative border-b border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100/50 px-6 py-4 dark:border-blue-800 dark:from-slate-800 dark:to-blue-950/30">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                <span className="text-xl">📉</span>
-                Evolução {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
-              </h3>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                Acompanhe a evolução de corridas e horas ao longo do tempo
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                <span className="text-2xl">📉</span>
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold text-slate-900 dark:text-white">
+                  Evolução {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
+                </h3>
+                <p className="mt-1 text-base text-slate-600 dark:text-slate-400">
+                  Acompanhe a evolução de corridas e horas ao longo do tempo
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -871,20 +880,20 @@ function EvolucaoView({
               <div className="flex gap-2">
                 <button
                   onClick={() => setViewMode('mensal')}
-                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                  className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
                     viewMode === 'mensal'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                      : 'bg-white text-slate-700 hover:bg-blue-50 border-2 border-blue-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-blue-950/20 dark:border-blue-800'
                   }`}
                 >
                   📅 Mensal
                 </button>
                 <button
                   onClick={() => setViewMode('semanal')}
-                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                  className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
                     viewMode === 'semanal'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                      : 'bg-white text-slate-700 hover:bg-blue-50 border-2 border-blue-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-blue-950/20 dark:border-blue-800'
                   }`}
                 >
                   📊 Semanal
@@ -956,7 +965,10 @@ function EvolucaoView({
         </div>
       </div>
       {/* Gráfico de Evolução - Visual Premium */}
-      <div className="relative rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10 overflow-hidden">
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div className="relative rounded-3xl border-0 bg-gradient-to-br from-white via-white to-blue-50/20 p-8 shadow-xl dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 overflow-hidden">
         {/* Elementos decorativos de fundo */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
@@ -1147,8 +1159,7 @@ function EvolucaoView({
       {dadosAtivos.length > 0 && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {/* Total de Corridas */}
-          <div className="group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-blue-100/30 to-indigo-100/20 dark:from-blue-950/20 dark:via-blue-900/10 dark:to-indigo-950/10"></div>
+          <div className="group relative rounded-2xl border-0 bg-gradient-to-br from-white via-white to-blue-50/30 p-6 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start justify-between">
               <div className="flex-1">
@@ -1163,76 +1174,73 @@ function EvolucaoView({
                   {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} analisadas
                 </p>
               </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 🚗
               </div>
             </div>
           </div>
 
           {/* Total de Horas */}
-          <div className="group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-emerald-100/30 to-teal-100/20 dark:from-emerald-950/20 dark:via-emerald-900/10 dark:to-teal-950/10"></div>
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="group relative rounded-2xl border-0 bg-gradient-to-br from-white via-white to-blue-50/30 p-6 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
                   Total de Horas
                 </p>
-                <p className="mt-3 text-4xl font-black text-emerald-900 dark:text-emerald-100 tracking-tight">
+                <p className="mt-3 text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">
                   {formatarHorasParaHMS(dadosAtivos.reduce((sum, d) => sum + d.total_segundos, 0) / 3600)}
                 </p>
-                <p className="mt-1 text-xs text-emerald-600/70 dark:text-emerald-400/70 font-medium">
+                <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
                   Tempo total trabalhado
                 </p>
               </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 ⏱️
               </div>
             </div>
           </div>
 
           {/* Média de Corridas */}
-          <div className="group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-purple-100/30 to-pink-100/20 dark:from-purple-950/20 dark:via-purple-900/10 dark:to-pink-950/10"></div>
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="group relative rounded-2xl border-0 bg-gradient-to-br from-white via-white to-blue-50/30 p-6 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
                   Média {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
                 </p>
-                <p className="mt-3 text-4xl font-black text-purple-900 dark:text-purple-100 tracking-tight">
+                <p className="mt-3 text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">
                   {dadosAtivos.length > 0 ? (dadosAtivos.reduce((sum, d) => sum + ((d as any).corridas_completadas || (d as any).total_corridas || 0), 0) / dadosAtivos.length).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                 </p>
-                <p className="mt-1 text-xs text-purple-600/70 dark:text-purple-400/70 font-medium">
+                <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
                   Corridas por período
                 </p>
               </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 📊
               </div>
             </div>
           </div>
 
           {/* Período */}
-          <div className="group relative rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-6 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 via-amber-100/30 to-orange-100/20 dark:from-amber-950/20 dark:via-amber-900/10 dark:to-orange-950/10"></div>
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="group relative rounded-2xl border-0 bg-gradient-to-br from-white via-white to-blue-50/30 p-6 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
                   Período Analisado
                 </p>
-                <p className="mt-3 text-4xl font-black text-amber-900 dark:text-amber-100 tracking-tight">
+                <p className="mt-3 text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">
                   {anoSelecionado}
                 </p>
-                <p className="mt-1 text-xs text-amber-600/70 dark:text-amber-400/70 font-medium">
+                <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
                   {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} registradas
                 </p>
               </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
                 📅
               </div>
             </div>

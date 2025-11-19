@@ -4,6 +4,8 @@ import { ValoresEntregador, Entregador, EntregadoresData } from '@/types';
 import MetricCard from '../MetricCard';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -231,46 +233,54 @@ const ValoresView = React.memo(function ValoresView({
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in">
       {/* Barra de Pesquisa */}
-      <div className="rounded-lg sm:rounded-xl border border-blue-200 bg-white p-3 sm:p-4 shadow-lg dark:border-blue-800 dark:bg-slate-900">
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
+          
+          <CardContent className="relative p-6">
         <div className="relative">
           <input
             type="text"
             placeholder="🔍 Pesquisar entregador por nome ou ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 sm:px-4 py-2.5 sm:py-3 pl-10 sm:pl-12 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
+            className="w-full rounded-xl border-2 border-blue-200 bg-white px-4 py-3 pl-12 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-blue-800 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
           />
-          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
-            {isSearching ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600"></div>
-            ) : (
-              <span className="text-lg">🔍</span>
+            <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+              {isSearching ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600"></div>
+              ) : (
+                <span className="text-lg">🔍</span>
+              )}
+            </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+              >
+                <span className="text-lg">✕</span>
+              </button>
             )}
           </div>
           {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
-            >
-              <span className="text-lg">✕</span>
-            </button>
+            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+              {isSearching ? (
+                'Pesquisando...'
+              ) : (
+                `Encontrado${totalEntregadores === 1 ? '' : 's'} ${totalEntregadores} resultado${totalEntregadores === 1 ? '' : 's'}`
+              )}
+            </p>
           )}
-        </div>
-        {searchTerm && (
-          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
-            {isSearching ? (
-              'Pesquisando...'
-            ) : (
-              `Encontrado${totalEntregadores === 1 ? '' : 's'} ${totalEntregadores} resultado${totalEntregadores === 1 ? '' : 's'}`
-            )}
-          </p>
-        )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
         <MetricCard
           title="Total Geral"
           value={totalGeral}
@@ -287,124 +297,140 @@ const ValoresView = React.memo(function ValoresView({
           title="Total Corridas"
           value={totalCorridas}
           icon="🚗"
-          color="purple"
+          color="blue"
         />
         <MetricCard
           title="Taxa Média"
           value={taxaMediaGeral}
           icon="📊"
-          color="red"
+          color="blue"
         />
       </div>
 
       {/* Tabela de Valores */}
-      <div className="rounded-lg sm:rounded-xl md:rounded-2xl border border-blue-200 bg-white shadow-xl dark:border-blue-800 dark:bg-slate-900 overflow-hidden">
-        <div className="border-b border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 sm:p-4 md:p-6 dark:border-blue-800 dark:from-blue-950/30 dark:to-indigo-950/30">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="text-xl sm:text-2xl md:text-3xl">💰</span>
-            <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white">Valores por Entregador</h3>
-          </div>
-          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            Clique nos cabeçalhos para ordenar • Total de {totalEntregadores} entregadores
-          </p>
-        </div>
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
-        <div className="max-h-[500px] sm:max-h-[600px] overflow-x-auto overflow-y-auto">
-          <table className="w-full min-w-[600px]">
-            <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800">
-              <tr className="border-b-2 border-slate-200 dark:border-slate-700">
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-left text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 whitespace-nowrap"
-                  onClick={() => handleSort('nome_entregador')}
-                >
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <span className="text-sm sm:text-base">👤</span>
-                    <span className="truncate">Entregador</span>
-                    <SortIcon field="nome_entregador" />
-                  </div>
-                </th>
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 whitespace-nowrap"
-                  onClick={() => handleSort('total_taxas')}
-                >
-                  <div className="flex items-center justify-end gap-1 sm:gap-2">
-                    <span className="text-xs sm:text-sm md:text-base">💵</span>
-                    <span className="truncate">Total</span>
-                    <SortIcon field="total_taxas" />
-                  </div>
-                </th>
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 whitespace-nowrap"
-                  onClick={() => handleSort('numero_corridas_aceitas')}
-                >
-                  <div className="flex items-center justify-end gap-1 sm:gap-2">
-                    <span className="text-xs sm:text-sm md:text-base">🚗</span>
-                    <span className="truncate">Corridas</span>
-                    <SortIcon field="numero_corridas_aceitas" />
-                  </div>
-                </th>
-                <th 
-                  className="cursor-pointer px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-right text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 whitespace-nowrap"
-                  onClick={() => handleSort('taxa_media')}
-                >
-                  <div className="flex items-center justify-end gap-1 sm:gap-2">
-                    <span className="text-xs sm:text-sm md:text-base">📊</span>
-                    <span className="truncate">Média</span>
-                    <SortIcon field="taxa_media" />
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-              {sortedValores.map((entregador, index) => {
-                // Validação de segurança: garantir que entregador existe
-                if (!entregador) return null;
-                
-                // Garantir que o número seja sempre sequencial (ranking)
-                const ranking = index + 1;
-                
-                // Garantir que todos os valores numéricos existam antes de usar
-                // Converter para número para garantir que seja numérico
-                const totalTaxas = Number(entregador.total_taxas) || 0;
-                const numeroCorridas = Number(entregador.numero_corridas_aceitas) || 0;
-                const taxaMedia = Number(entregador.taxa_media) || 0;
-                const nomeEntregador = String(entregador.nome_entregador || entregador.id_entregador || 'N/A');
-                const idEntregador = String(entregador.id_entregador || `entregador-${index}`);
-                
-                return (
-                <tr 
-                  key={`${idEntregador}-${sortField}-${sortDirection}-${ranking}`}
-                  className="group transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/20"
-                >
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-xs sm:text-sm font-bold text-white shadow-sm">
-                        {ranking}
-                      </div>
-                      <span className="font-medium text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-none">{nomeEntregador}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                    <span className="inline-flex items-center rounded-lg bg-emerald-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100 whitespace-nowrap">
-                      {formatarReal(totalTaxas)}
-                    </span>
-                  </td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs sm:text-sm whitespace-nowrap">
-                      {numeroCorridas.toLocaleString('pt-BR')}
-                    </span>
-                  </td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                    <span className="inline-flex items-center rounded-lg bg-blue-100 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 whitespace-nowrap">
-                      {formatarReal(taxaMedia)}
-                    </span>
-                  </td>
-                </tr>
-                );
-              }).filter(Boolean)}
-            </tbody>
-          </table>
-        </div>
+        <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
+          
+          <CardHeader className="relative pb-6">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                <span className="text-2xl">💰</span>
+              </div>
+              <div>
+                <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
+                  Valores por Entregador
+                </CardTitle>
+                <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">
+                  Clique nos cabeçalhos para ordenar • Total de {totalEntregadores} entregadores
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="relative">
+            <div className="max-h-[500px] sm:max-h-[600px] overflow-x-auto overflow-y-auto">
+              <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/50 shadow-lg overflow-hidden">
+                <table className="w-full min-w-[600px]">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-slate-800 dark:to-slate-700 border-b-2 border-blue-200 dark:border-slate-600">
+                      <th 
+                        className="cursor-pointer px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
+                        onClick={() => handleSort('nome_entregador')}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">👤</span>
+                          <span className="truncate">Entregador</span>
+                          <SortIcon field="nome_entregador" />
+                        </div>
+                      </th>
+                      <th 
+                        className="cursor-pointer px-4 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
+                        onClick={() => handleSort('total_taxas')}
+                      >
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="text-base">💵</span>
+                          <span className="truncate">Total</span>
+                          <SortIcon field="total_taxas" />
+                        </div>
+                      </th>
+                      <th 
+                        className="cursor-pointer px-4 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
+                        onClick={() => handleSort('numero_corridas_aceitas')}
+                      >
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="text-base">🚗</span>
+                          <span className="truncate">Corridas</span>
+                          <SortIcon field="numero_corridas_aceitas" />
+                        </div>
+                      </th>
+                      <th 
+                        className="cursor-pointer px-4 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
+                        onClick={() => handleSort('taxa_media')}
+                      >
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="text-base">📊</span>
+                          <span className="truncate">Média</span>
+                          <SortIcon field="taxa_media" />
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {sortedValores.map((entregador, index) => {
+                      // Validação de segurança: garantir que entregador existe
+                      if (!entregador) return null;
+                      
+                      // Garantir que o número seja sempre sequencial (ranking)
+                      const ranking = index + 1;
+                      
+                      // Garantir que todos os valores numéricos existam antes de usar
+                      // Converter para número para garantir que seja numérico
+                      const totalTaxas = Number(entregador.total_taxas) || 0;
+                      const numeroCorridas = Number(entregador.numero_corridas_aceitas) || 0;
+                      const taxaMedia = Number(entregador.taxa_media) || 0;
+                      const nomeEntregador = String(entregador.nome_entregador || entregador.id_entregador || 'N/A');
+                      const idEntregador = String(entregador.id_entregador || `entregador-${index}`);
+                      
+                      return (
+                      <tr 
+                        key={`${idEntregador}-${sortField}-${sortDirection}-${ranking}`}
+                        className="group transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/20"
+                      >
+                        <td className="px-4 py-4 text-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-sm font-bold text-white shadow-sm">
+                              {ranking}
+                            </div>
+                            <span className="font-semibold text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-none">{nomeEntregador}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-right">
+                          <Badge className="bg-emerald-100 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100 font-bold whitespace-nowrap">
+                            {formatarReal(totalTaxas)}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-4 text-right">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm whitespace-nowrap">
+                            {numeroCorridas.toLocaleString('pt-BR')}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-right">
+                          <Badge className="bg-blue-100 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 font-semibold whitespace-nowrap">
+                            {formatarReal(taxaMedia)}
+                          </Badge>
+                        </td>
+                      </tr>
+                      );
+                    }).filter(Boolean)}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
