@@ -52,16 +52,21 @@ const DashboardView = React.memo(function DashboardView({
     }
   }, [viewMode, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
-  // Ordem dos dias da semana
-  const diasDaSemanaOrdem = useMemo(() => ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'], []);
-  
+  // Ordem dos dias da semana - ordenar por dia_iso (1=Segunda, 7=Domingo)
+  // Filtrar itens inválidos (N/D ou dia_iso inválido)
   const aderenciaDiaOrdenada = useMemo(() => {
-    return [...aderenciaDia].sort((a, b) => {
-      const indexA = diasDaSemanaOrdem.indexOf(a.dia_da_semana);
-      const indexB = diasDaSemanaOrdem.indexOf(b.dia_da_semana);
-      return indexA - indexB;
-    });
-  }, [aderenciaDia, diasDaSemanaOrdem]);
+    return [...aderenciaDia]
+      .filter(dia => 
+        dia.dia_da_semana && 
+        dia.dia_da_semana !== 'N/D' && 
+        dia.dia_iso >= 1 && 
+        dia.dia_iso <= 7
+      )
+      .sort((a, b) => {
+        // Ordenar por dia_iso (1=Segunda, 7=Domingo)
+        return (a.dia_iso || 0) - (b.dia_iso || 0);
+      });
+  }, [aderenciaDia]);
 
   // Calcular gap de performance
   const calcularGap = useMemo(() => {
