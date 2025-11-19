@@ -610,13 +610,13 @@ export default function DashboardPage() {
             {(activeTab === 'comparacao' || activeTab === 'marketing') && (
               <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-4">
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
-                  <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
-                  <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
-                  <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
-                  <TabButton label="Entregadores" active={activeTab === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
-                  <TabButton label="Valores" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
-                  <TabButton label="Prioridade/Promo" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
-                  <TabButton label="Evolução" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
+                  <TabButton label="Dashboard" active={(activeTab as TabType) === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
+                  <TabButton label="Análise" active={(activeTab as TabType) === 'analise'} onClick={() => handleTabChange('analise')} />
+                  <TabButton label="UTR" active={(activeTab as TabType) === 'utr'} onClick={() => handleTabChange('utr')} />
+                  <TabButton label="Entregadores" active={(activeTab as TabType) === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
+                  <TabButton label="Valores" active={(activeTab as TabType) === 'valores'} onClick={() => handleTabChange('valores')} />
+                  <TabButton label="Prioridade/Promo" active={(activeTab as TabType) === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
+                  <TabButton label="Evolução" active={(activeTab as TabType) === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
                   <TabButton label="Comparar" active={activeTab === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
                   <TabButton label="Marketing" active={activeTab === 'marketing'} onClick={() => handleTabChange('marketing')} />
                 </div>
