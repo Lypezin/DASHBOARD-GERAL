@@ -310,7 +310,17 @@ export default function AdminPage() {
       setSelectedRole('user');
       fetchData();
     } catch (err: any) {
-      alert('Erro ao atualizar praças: ' + err.message);
+      const errorMessage = err?.message || err?.toString() || 'Ocorreu um erro. Tente novamente mais tarde.';
+      if (IS_DEV) {
+        safeLog.error('Erro ao atualizar praças:', {
+          error: err,
+          user_id: editingUser?.id,
+          pracas: selectedPracas,
+          role: selectedRole,
+          errorMessage
+        });
+      }
+      alert('Erro ao atualizar praças: ' + errorMessage);
     }
   };
 
