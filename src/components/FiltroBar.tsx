@@ -148,17 +148,17 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [isModoIntervalo, filters?.filtroModo, filters?.dataInicial, filters?.dataFinal]);
 
   return (
-    <div className="space-y-3 sm:space-y-4 relative">
+    <div className="space-y-4">
       {/* Switch para alternar entre modos */}
-      <div className="flex items-center justify-center sm:justify-start gap-3 pb-2 border-b border-gray-200 dark:border-gray-700">
-        <span className={`text-sm font-medium ${!isModoIntervalo ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+      <div className="flex items-center justify-center sm:justify-start gap-3 pb-3 border-b border-slate-200 dark:border-slate-700">
+        <span className={`text-sm font-medium ${!isModoIntervalo ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>
           Ano/Semana
         </span>
         <button
           type="button"
           onClick={handleToggleModo}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-            isModoIntervalo ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+            isModoIntervalo ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
           }`}
           role="switch"
           aria-checked={isModoIntervalo}
@@ -169,7 +169,7 @@ const FiltroBar = React.memo(function FiltroBar({
             }`}
           />
         </button>
-        <span className={`text-sm font-medium ${isModoIntervalo ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+        <span className={`text-sm font-medium ${isModoIntervalo ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>
           Intervalo de Datas
         </span>
       </div>
@@ -183,7 +183,7 @@ const FiltroBar = React.memo(function FiltroBar({
           onDataFinalChange={(data) => setFilters(prev => ({ ...prev, dataFinal: data }))}
         />
       ) : (
-        <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anosOptions} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
           <FiltroMultiSelect 
             label="Semana" 
@@ -196,16 +196,19 @@ const FiltroBar = React.memo(function FiltroBar({
       )}
 
       {/* Outros filtros (sempre visíveis) */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <FiltroSelect label="Praça" value={filters.praca ?? ''} options={pracas} placeholder="Todas" onChange={(value) => handleChange('praca', value)} disabled={shouldDisablePracaFilter} />
         <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, subPracas: values}))} />
         <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, origens: values}))} />
         <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({...prev, turnos: values}))} />
       </div>
       {hasActiveFilters && (
-        <div className="flex justify-center sm:justify-end animate-scale-in">
-          <button onClick={handleClearFilters} className="inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg">
-            <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        <div className="flex justify-end pt-2">
+          <button 
+            onClick={handleClearFilters} 
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             <span>Limpar Filtros</span>
           </button>
         </div>

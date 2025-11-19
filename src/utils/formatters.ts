@@ -1,4 +1,9 @@
 export function formatarHorasParaHMS(horasDecimais: string | number): string {
+  // Se já for string no formato HH:MM:SS, retornar como está
+  if (typeof horasDecimais === 'string' && horasDecimais.includes(':')) {
+    return horasDecimais;
+  }
+  
   const horas = typeof horasDecimais === 'string' ? parseFloat(horasDecimais) : horasDecimais;
   
   if (isNaN(horas) || horas === 0) return '00:00:00';
@@ -9,6 +14,35 @@ export function formatarHorasParaHMS(horasDecimais: string | number): string {
   const segundos = Math.round((minutosDecimais - minutosInteiros) * 60);
   
   return `${String(horasInteiras).padStart(2, '0')}:${String(minutosInteiros).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+}
+
+// Formata horas grandes para exibição compacta (ex: 890.5k)
+export function formatarHorasCompacta(horasDecimais: string | number): string {
+  // Se já for string no formato HH:MM:SS, converter primeiro
+  let horas: number;
+  if (typeof horasDecimais === 'string' && horasDecimais.includes(':')) {
+    const parts = horasDecimais.split(':');
+    if (parts.length === 3) {
+      const h = parseInt(parts[0]) || 0;
+      const m = parseInt(parts[1]) || 0;
+      const s = parseInt(parts[2]) || 0;
+      horas = h + m / 60 + s / 3600;
+    } else {
+      horas = parseFloat(horasDecimais) || 0;
+    }
+  } else {
+    horas = typeof horasDecimais === 'string' ? parseFloat(horasDecimais) : horasDecimais;
+  }
+  
+  if (isNaN(horas) || horas === 0) return '0';
+  
+  // Se for muito grande, usar notação compacta
+  if (horas >= 1000) {
+    const milhares = horas / 1000;
+    return `${milhares.toFixed(1)}k`;
+  }
+  
+  return horas.toFixed(1);
 }
 
 export function getAderenciaColor(value: number): string {

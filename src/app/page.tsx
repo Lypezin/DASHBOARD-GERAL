@@ -512,44 +512,33 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-[1920px] px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
-        {/* Header Principal Redesenhado */}
-        <header className="mb-4 sm:mb-6 lg:mb-8 animate-fade-in">
-          <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/80 backdrop-blur-xl shadow-2xl transition-all duration-300 hover:shadow-3xl dark:border-white/10 dark:bg-slate-900/80">
-            {/* Glow effect */}
-            <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
-            
-            {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5"></div>
-            
-            {/* Shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            
-            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 lg:gap-5 p-4 sm:p-6 lg:p-8">
-              <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 min-w-0 flex-1">
-                <div className="flex h-14 w-14 sm:h-16 sm:w-16 lg:h-20 lg:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-lg ring-2 ring-white/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                  <span className="text-3xl sm:text-3xl lg:text-4xl">📊</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-indigo-200 truncate">
-                    Dashboard Operacional
-                  </h1>
-                  <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm lg:text-base font-semibold text-slate-600 dark:text-slate-400 truncate">
-                    Sistema de Análise e Monitoramento em Tempo Real
-                  </p>
-                </div>
+      <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        {/* Header Principal - Design Melhorado */}
+        <header className="mb-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl bg-blue-600 shadow-lg">
+                <span className="text-2xl sm:text-3xl">📊</span>
               </div>
-              <div className="hidden sm:flex items-center gap-2 md:gap-3 lg:gap-4 xl:gap-5 shrink-0">
-                <div className="text-right">
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Última atualização</p>
-                  <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                    {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-                <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shrink-0 shadow-lg ring-2 ring-emerald-500/20">
-                  <div className="absolute inset-0 rounded-xl bg-emerald-400/50 animate-ping"></div>
-                  <span className="relative text-xl sm:text-2xl">🟢</span>
-                </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+                  Dashboard Operacional
+                </h1>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Sistema de Análise e Monitoramento
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs text-slate-500 dark:text-slate-400">Atualizado</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                  {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              <div className="relative h-10 w-10 rounded-lg bg-emerald-500 flex items-center justify-center shadow-md">
+                <div className="absolute inset-0 rounded-lg bg-emerald-400/50 animate-ping"></div>
+                <span className="relative text-white text-lg">🟢</span>
               </div>
             </div>
           </div>
@@ -581,15 +570,12 @@ export default function DashboardPage() {
         )}
 
         {!loading && !error && (
-          <div className="space-y-4 sm:space-y-6 animate-fade-in">
-            {/* Header com filtros e tabs */}
-            <div className="group relative rounded-xl sm:rounded-2xl border border-white/20 bg-white/80 backdrop-blur-xl p-3 sm:p-4 md:p-5 lg:p-7 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/80 animate-slide-down" style={{ position: 'relative', zIndex: 10 }}>
-              {/* Subtle glow */}
-              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
-              <div className="relative">
-              {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
-                <>
-                  <div className="relative">
+          <div className="space-y-6 animate-fade-in">
+            {/* Filtros e Tabs - Design Melhorado */}
+            {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
+              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-6">
+                <div className="mb-4">
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Filtros</h2>
                   <FiltroBar
                     filters={filters}
                     setFilters={setFilters}
@@ -601,13 +587,27 @@ export default function DashboardPage() {
                     turnos={turnos}
                     currentUser={currentUser}
                   />
+                </div>
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
+                    <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
+                    <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
+                    <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
+                    <TabButton label="Entregadores" active={activeTab === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
+                    <TabButton label="Valores" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
+                    <TabButton label="Prioridade/Promo" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
+                    <TabButton label="Evolução" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
+                    <TabButton label="Comparar" active={activeTab === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
+                    <TabButton label="Marketing" active={activeTab === 'marketing'} onClick={() => handleTabChange('marketing')} />
                   </div>
-                  <div className="my-3 sm:my-4 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent dark:via-blue-700"></div>
-                </>
-              )}
-              {/* Tabs com scroll horizontal em mobile */}
-              <div className="relative" style={{ position: 'relative', zIndex: 1 }}>
-                <div className="flex gap-1 sm:gap-1.5 md:gap-2 overflow-x-auto pb-2 sm:pb-3 -mx-3 sm:-mx-4 md:mx-0 px-3 sm:px-4 md:px-0 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
+                </div>
+              </div>
+            )}
+            
+            {/* Tabs apenas para comparacao e marketing */}
+            {(activeTab === 'comparacao' || activeTab === 'marketing') && (
+              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
                   <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
                   <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
                   <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
@@ -618,9 +618,8 @@ export default function DashboardPage() {
                   <TabButton label="Comparar" active={activeTab === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
                   <TabButton label="Marketing" active={activeTab === 'marketing'} onClick={() => handleTabChange('marketing')} />
                 </div>
-                </div>
               </div>
-            </div>
+            )}
 
             {/* Conteúdo */}
             <main>

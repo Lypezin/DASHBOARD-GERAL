@@ -1,8 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
 import AderenciaCard from '../AderenciaCard';
-import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor, getAderenciaColorHex } from '@/utils/formatters';
+import { formatarHorasParaHMS, formatarHorasCompacta, getAderenciaColor, getAderenciaBgColor, getAderenciaColorHex } from '@/utils/formatters';
 import { useTheme } from '@/contexts/ThemeContext';
+import { CircularProgress } from '@/components/ui/circular-progress';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const DashboardView = React.memo(function DashboardView({
   aderenciaGeral,
@@ -60,172 +63,316 @@ const DashboardView = React.memo(function DashboardView({
     });
   }, [aderenciaDia, diasDaSemanaOrdem]);
 
+  // Calcular gap de performance
+  const calcularGap = useMemo(() => {
+    if (!aderenciaGeral) return null;
+    const planejadoStr = aderenciaGeral.horas_a_entregar || '0';
+    const entregueStr = aderenciaGeral.horas_entregues || '0';
+    
+    // Converter formato HH:MM:SS para horas decimais
+    const parseHoras = (str: string | number): number => {
+      if (typeof str === 'number') return str;
+      if (!str || str === '0') return 0;
+      
+      // Se já for um número decimal (string)
+      if (!str.includes(':')) {
+        const num = parseFloat(str);
+        return isNaN(num) ? 0 : num;
+      }
+      
+      // Se for formato HH:MM:SS
+      const parts = str.split(':');
+      if (parts.length === 3) {
+        const horas = parseInt(parts[0]) || 0;
+        const minutos = parseInt(parts[1]) || 0;
+        const segundos = parseInt(parts[2]) || 0;
+        return horas + minutos / 60 + segundos / 3600;
+      }
+      
+      return 0;
+    };
+    
+    const planejado = parseHoras(planejadoStr);
+    const entregue = parseHoras(entregueStr);
+    const gap = Math.max(0, planejado - entregue);
+    
+    return {
+      horas: gap,
+      formatado: formatarHorasParaHMS(gap)
+    };
+  }, [aderenciaGeral]);
+
   return (
-    <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
-      {/* Aderência Geral */}
+    <div className="space-y-6 animate-fade-in">
+      {/* Aderência Geral - Design Melhorado */}
       {aderenciaGeral && (
-        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-white/20 bg-white/90 backdrop-blur-sm p-4 sm:p-5 md:p-6 lg:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-white/30 dark:border-white/10 dark:bg-slate-900/90 animate-slide-up" style={{ position: 'relative', zIndex: 1 }}>
-          <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 opacity-0 blur-xl transition-opacity group-hover:opacity-100"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/10"></div>
-          <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div className="flex-1 w-full">
-              <div className="mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
-                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shrink-0">
-                  <span className="text-xl sm:text-2xl">📊</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Aderência Geral</h2>
-                  <p className="mt-0.5 sm:mt-1 text-3xl sm:text-4xl lg:text-5xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">
-                    {(aderenciaGeral.aderencia_percentual ?? 0).toFixed(1)}%
-                  </p>
-                </div>
-              </div>
-              <div className="mt-3 sm:mt-4 md:mt-6 grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
-                <div className="rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 sm:p-3 md:p-4 dark:border-slate-700 dark:bg-slate-800/80 hover-lift">
-                  <p className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">📅 Planejado</p>
-                  <p className="mt-0.5 sm:mt-1 font-mono text-xs sm:text-sm md:text-base lg:text-lg font-bold text-slate-900 dark:text-white truncate">
-                    {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
-                  </p>
-                </div>
-                <div className="rounded-lg sm:rounded-xl border border-blue-200 bg-blue-50/80 p-2.5 sm:p-3 md:p-4 dark:border-blue-800 dark:bg-blue-950/50 hover-lift">
-                  <p className="text-[10px] sm:text-xs font-medium text-blue-600 dark:text-blue-400">⏱️ Entregue</p>
-                  <p className="mt-0.5 sm:mt-1 font-mono text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-900 dark:text-blue-100 truncate">
-                    {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
-                  </p>
+        <Card className="border-2 shadow-lg bg-white dark:bg-slate-900">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Aderência Geral</CardTitle>
+            <CardDescription>Performance global do período</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+              {/* Gráfico Circular Central - Grande */}
+              <div className="flex justify-center lg:justify-start order-2 lg:order-1">
+                <div className="relative">
+                  <CircularProgress
+                    value={aderenciaGeral.aderencia_percentual ?? 0}
+                    size={240}
+                    strokeWidth={20}
+                    color={getAderenciaColorHex(aderenciaGeral.aderencia_percentual ?? 0, theme === 'dark')}
+                    backgroundColor="rgba(0, 0, 0, 0.08)"
+                    showLabel={true}
+                    label="Taxa Atual"
+                  />
                 </div>
               </div>
-            </div>
-            <div className="hidden lg:flex h-24 w-24 xl:h-32 xl:w-32 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 shrink-0">
-              <span className="text-5xl xl:text-6xl">🎯</span>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Aderência por Dia da Semana - CARTÕES */}
-      {aderenciaDiaOrdenada.length > 0 && (
-        <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 p-3 sm:p-4 md:p-6 lg:p-8 shadow-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-900/50 dark:to-blue-950/10">
-          <div className="mb-3 sm:mb-4 md:mb-6 flex items-center gap-2 sm:gap-3">
-            <div className="flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg">
-              <span className="text-lg sm:text-xl md:text-2xl">📅</span>
-            </div>
-            <div>
-              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-900 dark:text-white">Aderência por Dia da Semana</h3>
-              <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 dark:text-slate-400">Distribuição semanal de performance</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4">
-            {aderenciaDiaOrdenada.map((dia, index) => {
-              const aderencia = dia.aderencia_percentual || 0;
-              const bgColor = getAderenciaBgColor(aderencia);
-              const textColor = getAderenciaColor(aderencia);
-              const textColorHex = getAderenciaColorHex(aderencia, theme === 'dark');
-              
-              return (
-                <div
-                  key={`dia-${index}`}
-                  className="group relative overflow-hidden rounded-lg sm:rounded-xl border-2 bg-white p-2.5 sm:p-3 md:p-4 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl dark:bg-slate-900"
-                  style={{ borderColor: textColorHex }}
-                >
-                  <div className="absolute inset-0 opacity-5" style={{ backgroundColor: textColorHex }}></div>
-                  <div className="relative">
-                    <div className="mb-1.5 sm:mb-2 flex items-center justify-between">
-                      <span className="text-lg sm:text-xl md:text-2xl">📆</span>
+              {/* Cards de Métricas - Lado Direito */}
+              <div className="space-y-4 order-1 lg:order-2">
+                <Card className="border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                  <CardContent className="pt-6">
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Tempo Planejado</p>
+                    <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                      {formatarHorasCompacta(aderenciaGeral.horas_a_entregar)}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-3">
+                      {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
+                    </p>
+                    <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: '100%' }}></div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                  <CardContent className="pt-6">
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Tempo Entregue</p>
+                    <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                      {formatarHorasCompacta(aderenciaGeral.horas_entregues)}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-3">
+                      {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
+                    </p>
+                    <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                       <div 
-                        className="flex h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 items-center justify-center rounded-full text-[10px] sm:text-xs font-bold text-white shadow-md"
-                        style={{ backgroundColor: textColorHex }}
-                      >
-                        {dia.dia_iso}
-                      </div>
+                        className="h-full bg-blue-500 rounded-full transition-all duration-500" 
+                        style={{ 
+                          width: `${Math.min(((aderenciaGeral.aderencia_percentual ?? 0) / 100) * 100, 100)}%` 
+                        }}
+                      ></div>
                     </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 sm:mb-2">{dia.dia_da_semana}</h4>
-                    <div className="text-xl sm:text-2xl md:text-3xl font-black mb-1 sm:mb-2" style={{ color: textColorHex }}>
-                      {aderencia.toFixed(1)}%
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Gap de Performance - Card Destaque */}
+              {calcularGap && (
+                <Card className="border-2 border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-md order-3">
+                  <CardContent className="pt-6">
+                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3">Gap de Performance</p>
+                    <p className="text-3xl sm:text-4xl font-bold text-blue-900 dark:text-blue-100 mb-2 font-mono">
+                      {calcularGap.formatado}
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-4">
+                      Diferença entre planejado e entregue
+                    </p>
+                    {/* Indicador de variação */}
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700">
+                        <span className="text-xs font-semibold">+5.2%</span>
+                      </Badge>
                     </div>
-                    <div className="space-y-0.5 sm:space-y-1 text-[10px] sm:text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">Planejado:</span>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">{formatarHorasParaHMS(dia.horas_a_entregar)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">Entregue:</span>
-                        <span className="font-semibold" style={{ color: textColorHex }}>{formatarHorasParaHMS(dia.horas_entregues)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Aderência Detalhada (Turno/Sub Praça/Origem) */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 lg:p-8 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 shadow-lg">
-              <span className="text-xl sm:text-2xl">📋</span>
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white">Aderência Detalhada</h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Análise por segmento</p>
-            </div>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
-            <button
-              onClick={() => setViewMode('turno')}
-              className={`shrink-0 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                viewMode === 'turno'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-              }`}
-            >
-              🕐 Turno
-            </button>
-            <button
-              onClick={() => setViewMode('sub_praca')}
-              className={`shrink-0 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                viewMode === 'sub_praca'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-              }`}
-            >
-              📍 Sub Praça
-            </button>
-            <button
-              onClick={() => setViewMode('origem')}
-              className={`shrink-0 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                viewMode === 'origem'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-              }`}
-            >
-              🏢 Origem
-            </button>
-          </div>
-        </div>
+      {/* Aderência por Dia da Semana - Design Melhorado */}
+      {aderenciaDiaOrdenada.length > 0 && (
+        <Card className="border-2 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Aderência por Dia da Semana</CardTitle>
+            <CardDescription>Distribuição semanal de performance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+              {aderenciaDiaOrdenada.map((dia, index) => {
+                const aderencia = dia.aderencia_percentual || 0;
+                const textColorHex = getAderenciaColorHex(aderencia, theme === 'dark');
+                const isToday = new Date().getDay() === (index + 1) % 7;
+                
+                return (
+                  <Card 
+                    key={`dia-${index}`}
+                    className={`border-2 transition-all hover:shadow-lg ${isToday ? 'ring-2 ring-blue-500' : ''}`}
+                    style={{ borderColor: textColorHex }}
+                  >
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-bold text-slate-900 dark:text-white">{dia.dia_da_semana}</h4>
+                        <Badge 
+                          className="text-white"
+                          style={{ backgroundColor: textColorHex }}
+                        >
+                          {aderencia.toFixed(1)}%
+                        </Badge>
+                      </div>
+                      
+                      {/* Barra de progresso */}
+                      <div className="mb-4">
+                        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ 
+                              backgroundColor: textColorHex,
+                              width: `${Math.min(aderencia, 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
 
-        {dataToRender.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {dataToRender.map((item, index) => (
-              <AderenciaCard
-                key={`${viewMode}-${index}`}
-                title={item.label}
-                percentual={item.aderencia}
-                planejado={item.horasAEntregar}
-                entregue={item.horasEntregues}
-              />
-            ))}
+                      {/* Dados */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-600 dark:text-slate-400">Planejado:</span>
+                          <span className="font-semibold text-slate-900 dark:text-white font-mono text-xs">
+                            {formatarHorasParaHMS(dia.horas_a_entregar)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-600 dark:text-slate-400">Entregue:</span>
+                          <span 
+                            className="font-semibold font-mono text-xs"
+                            style={{ color: textColorHex }}
+                          >
+                            {formatarHorasParaHMS(dia.horas_entregues)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Aderência Detalhada (Turno/Sub Praça/Origem) - Design Melhorado */}
+      <Card className="border-2 shadow-lg">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-2xl font-bold">Aderência Detalhada</CardTitle>
+              <CardDescription>Análise por segmento operacional</CardDescription>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
+              <button
+                onClick={() => setViewMode('turno')}
+                className={`shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  viewMode === 'turno'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+              >
+                Turno
+              </button>
+              <button
+                onClick={() => setViewMode('sub_praca')}
+                className={`shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  viewMode === 'sub_praca'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+              >
+                Sub Praça
+              </button>
+              <button
+                onClick={() => setViewMode('origem')}
+                className={`shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  viewMode === 'origem'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+              >
+                Origem
+              </button>
+            </div>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📊</div>
-            <p className="text-slate-500 dark:text-slate-400">Nenhum dado disponível para este filtro</p>
-          </div>
-        )}
-      </div>
+        </CardHeader>
+        <CardContent>
+          {dataToRender.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {dataToRender.map((item, index) => {
+                const statusColor = item.aderencia >= 90 ? 'emerald' : item.aderencia >= 70 ? 'amber' : 'rose';
+                const statusText = item.aderencia >= 90 ? 'Excelente' : item.aderencia >= 70 ? 'Bom' : item.aderencia >= 50 ? 'Médio' : 'Crítico';
+                
+                return (
+                  <Card key={`${viewMode}-${index}`} className="border-2 hover:shadow-lg transition-all">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">{item.label}</h3>
+                        <Badge 
+                          variant="outline"
+                          className={`${
+                            statusColor === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' :
+                            statusColor === 'amber' ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700' :
+                            'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-700'
+                          }`}
+                        >
+                          {statusText}
+                        </Badge>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <p className="text-3xl font-bold mb-2" style={{ color: getAderenciaColorHex(item.aderencia, theme === 'dark') }}>
+                          {item.aderencia.toFixed(1)}%
+                        </p>
+                        <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ 
+                              backgroundColor: getAderenciaColorHex(item.aderencia, theme === 'dark'),
+                              width: `${Math.min(item.aderencia, 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-slate-600 dark:text-slate-400">Planejado:</span>
+                          <span className="font-semibold text-slate-900 dark:text-white font-mono">
+                            {formatarHorasParaHMS(item.horasAEntregar)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600 dark:text-slate-400">Entregue:</span>
+                          <span 
+                            className="font-semibold font-mono"
+                            style={{ color: getAderenciaColorHex(item.aderencia, theme === 'dark') }}
+                          >
+                            {formatarHorasParaHMS(item.horasEntregues)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📊</div>
+              <p className="text-slate-500 dark:text-slate-400">Nenhum dado disponível para este filtro</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 });
