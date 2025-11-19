@@ -34,7 +34,7 @@ const MarketingView = React.memo(function MarketingView() {
               </div>
             </div>
             
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-transparent">
+            <div className="flex gap-3 pb-2">
               <TabButton
                 label="Dashboard"
                 active={activeSubTab === 'dashboard'}
