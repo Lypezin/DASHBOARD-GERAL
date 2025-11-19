@@ -542,8 +542,8 @@ export default function DashboardPage() {
         )}
 
         {!loading && !error && (
-          <div className="space-y-6 animate-fade-in">
-            {/* Filtros e Tabs - Design Ultra Moderno */}
+          <div className="space-y-4 animate-fade-in">
+            {/* Filtros - Container Separado */}
             {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -564,19 +564,28 @@ export default function DashboardPage() {
                       currentUser={currentUser}
                     />
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tabs - Container Separado */}
+            {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-4 sm:p-6 backdrop-blur-sm overflow-hidden">
+                  <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
                   
-                  <div className="relative border-t border-slate-200/50 dark:border-slate-700/50 pt-6 mt-6">
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
-                      <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
-                      <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
-                      <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
-                      <TabButton label="Entregadores" active={activeTab === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
-                      <TabButton label="Valores" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
-                      <TabButton label="Prioridade/Promo" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
-                      <TabButton label="Evolução" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
-                      <TabButton label="Comparar" active={(activeTab as TabType) === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
-                      <TabButton label="Marketing" active={(activeTab as TabType) === 'marketing'} onClick={() => handleTabChange('marketing')} />
-                    </div>
+                  <div className="relative flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
+                    <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
+                    <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
+                    <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
+                    <TabButton label="Entregadores" active={activeTab === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
+                    <TabButton label="Valores" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
+                    <TabButton label="Prioridade/Promo" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
+                    <TabButton label="Evolução" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
+                    <TabButton label="Comparar" active={(activeTab as TabType) === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
+                    <TabButton label="Marketing" active={(activeTab as TabType) === 'marketing'} onClick={() => handleTabChange('marketing')} />
                   </div>
                 </div>
               </div>

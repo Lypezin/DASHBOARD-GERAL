@@ -175,10 +175,10 @@ const FiltroBar = React.memo(function FiltroBar({
       </div>
 
       {/* Filtros em linha horizontal */}
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-end gap-4">
         {/* Filtros de Ano/Semana ou Intervalo de Datas */}
         {isModoIntervalo ? (
-          <div className="flex flex-wrap items-end gap-3 flex-1 min-w-0">
+          <div className="flex items-end gap-4 flex-1 min-w-[300px]">
             <FiltroDateRange
               dataInicial={filters?.dataInicial ?? null}
               dataFinal={filters?.dataFinal ?? null}
@@ -188,10 +188,10 @@ const FiltroBar = React.memo(function FiltroBar({
           </div>
         ) : (
           <>
-            <div className="flex-shrink-0">
+            <div className="flex-1 min-w-[120px] max-w-[200px]">
               <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anosOptions} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-1 min-w-[150px] max-w-[250px]">
               <FiltroMultiSelect 
                 label="Semana" 
                 selected={filters.semanas ? filters.semanas.map(String) : []} 
@@ -204,16 +204,16 @@ const FiltroBar = React.memo(function FiltroBar({
         )}
 
         {/* Outros filtros (sempre visíveis) */}
-        <div className="flex-shrink-0">
+        <div className="flex-1 min-w-[150px] max-w-[250px]">
           <FiltroSelect label="Praça" value={filters.praca ?? ''} options={pracas} placeholder="Todas" onChange={(value) => handleChange('praca', value)} disabled={shouldDisablePracaFilter} />
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex-1 min-w-[150px] max-w-[250px]">
           <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, subPracas: values}))} />
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex-1 min-w-[150px] max-w-[250px]">
           <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, origens: values}))} />
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex-1 min-w-[150px] max-w-[250px]">
           <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({...prev, turnos: values}))} />
         </div>
         
