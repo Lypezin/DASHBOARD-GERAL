@@ -182,7 +182,8 @@ const EntregadoresView = React.memo(function EntregadoresView({
         params.cidade = cidadeSelecionada;
       }
       
-      const finalParams = Object.keys(params).length > 0 ? params : undefined;
+      // Sempre passar um objeto, mesmo que vazio, para evitar problemas com undefined
+      const finalParams = params;
 
       // Usar função RPC para buscar entregadores com dados agregados
       const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', finalParams, {
