@@ -101,7 +101,10 @@ export async function safeRpc<T = unknown>(
           safeLog.warn(`Validação falhou para ${functionName}:`, validationError);
         }
         // Em produção, usar parâmetros originais mas limitar arrays
-        validatedParams = sanitizeParams(validatedParams);
+        // validatedParams não pode ser undefined aqui porque já passou pela verificação acima
+        if (validatedParams) {
+          validatedParams = sanitizeParams(validatedParams);
+        }
       }
     }
 
