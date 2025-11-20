@@ -730,7 +730,7 @@ const ResultadosView = React.memo(function ResultadosView() {
 
                 {/* Custo por Liberado do Atendente */}
                 {atendenteData.custoPorLiberado !== undefined && atendenteData.custoPorLiberado > 0 ? (
-                  <div className="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+                  <div className="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 space-y-2">
                     <div className="rounded-lg bg-purple-50/80 p-2.5 dark:bg-purple-950/30">
                       <p className="text-[10px] font-medium text-purple-700 dark:text-purple-300 mb-1">Custo por Liberado</p>
                       <p className="text-lg font-bold text-purple-900 dark:text-purple-100 font-mono">
@@ -740,6 +740,36 @@ const ResultadosView = React.memo(function ResultadosView() {
                         }).format(atendenteData.custoPorLiberado)}
                       </p>
                     </div>
+                    {/* Informação de quanto falta para R$ 50 */}
+                    {(() => {
+                      const META_CUSTO = 50;
+                      const faltaParaMeta = META_CUSTO - atendenteData.custoPorLiberado;
+                      const jaAtingiuMeta = atendenteData.custoPorLiberado <= META_CUSTO;
+                      
+                      return (
+                        <div className={`rounded-lg p-2.5 ${
+                          jaAtingiuMeta 
+                            ? 'bg-emerald-50/80 dark:bg-emerald-950/30' 
+                            : 'bg-orange-50/80 dark:bg-orange-950/30'
+                        }`}>
+                          {jaAtingiuMeta ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm">✅</span>
+                              <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
+                                Meta atingida! Custo abaixo de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm">🎯</span>
+                              <p className="text-[10px] font-medium text-orange-700 dark:text-orange-300">
+                                Faltam <span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(faltaParaMeta)}</span> para atingir {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 ) : null}
               </div>
@@ -784,7 +814,7 @@ const ResultadosView = React.memo(function ResultadosView() {
                               </Badge>
                             </div>
                             {cidadeData.custoPorLiberado !== undefined && cidadeData.custoPorLiberado > 0 && (
-                              <div className="pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
+                              <div className="pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50 space-y-1.5">
                                 <Badge 
                                   variant="secondary" 
                                   className="bg-purple-50/80 text-purple-900 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-100 border-purple-200 dark:border-purple-800 px-2 py-0.5 w-full justify-start"
@@ -797,6 +827,39 @@ const ResultadosView = React.memo(function ResultadosView() {
                                     }).format(cidadeData.custoPorLiberado)}
                                   </span>
                                 </Badge>
+                                {/* Informação de quanto falta para R$ 50 */}
+                                {(() => {
+                                  const META_CUSTO = 50;
+                                  const faltaParaMeta = META_CUSTO - cidadeData.custoPorLiberado;
+                                  const jaAtingiuMeta = cidadeData.custoPorLiberado <= META_CUSTO;
+                                  
+                                  return (
+                                    <Badge 
+                                      variant="secondary" 
+                                      className={`px-2 py-0.5 w-full justify-start ${
+                                        jaAtingiuMeta
+                                          ? 'bg-emerald-50/80 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800'
+                                          : 'bg-orange-50/80 text-orange-900 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-100 border-orange-200 dark:border-orange-800'
+                                      }`}
+                                    >
+                                      {jaAtingiuMeta ? (
+                                        <>
+                                          <span className="text-[9px]">✅</span>
+                                          <span className="text-[10px] font-medium ml-1">
+                                            Meta atingida! Abaixo de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <span className="text-[9px]">🎯</span>
+                                          <span className="text-[10px] font-medium ml-1">
+                                            Faltam <span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(faltaParaMeta)}</span> para {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
+                                          </span>
+                                        </>
+                                      )}
+                                    </Badge>
+                                  );
+                                })()}
                                 {cidadeData.quantidadeLiberados !== undefined && cidadeData.quantidadeLiberados > 0 && cidadeData.valorTotal !== undefined && cidadeData.valorTotal > 0 && (
                                   <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-1">
                                     {cidadeData.quantidadeLiberados} liberado{cidadeData.quantidadeLiberados !== 1 ? 's' : ''} • {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cidadeData.valorTotal)} total

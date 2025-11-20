@@ -52,17 +52,34 @@ const EntregadoresView = React.memo(function EntregadoresView({
     try {
       // Fallback: buscar entregadores que aparecem em ambas as tabelas
       // Primeiro, buscar IDs únicos de entregadores do marketing
-      const { data: entregadoresIds, error: idsError } = await supabase
+      let entregadoresQuery = supabase
         .from('dados_marketing')
-        .select('id_entregador, nome')
+        .select('id_entregador, nome, regiao_atuacao')
         .not('id_entregador', 'is', null);
+
+      // Aplicar filtro de cidade se especificado
+      if (cidadeSelecionada) {
+        if (cidadeSelecionada === 'Santo André') {
+          entregadoresQuery = entregadoresQuery
+            .eq('regiao_atuacao', 'ABC 2.0')
+            .in('sub_praca_abc', ['Vila Aquino', 'São Caetano']);
+        } else if (cidadeSelecionada === 'São Bernardo') {
+          entregadoresQuery = entregadoresQuery
+            .eq('regiao_atuacao', 'ABC 2.0')
+            .in('sub_praca_abc', ['Diadema', 'Nova petrópolis', 'Rudge Ramos']);
+        } else {
+          entregadoresQuery = entregadoresQuery.eq('regiao_atuacao', cidadeSelecionada);
+        }
+      }
+
+      const { data: entregadoresIds, error: idsError } = await entregadoresQuery;
 
       if (idsError) throw idsError;
 
       if (!entregadoresIds || entregadoresIds.length === 0) {
         setEntregadores([]);
-      return;
-    }
+        return;
+      }
 
       // Para cada entregador, verificar se existe em dados_corridas e agregar
       const entregadoresComDados: EntregadorMarketing[] = [];
@@ -109,13 +126,15 @@ const EntregadoresView = React.memo(function EntregadoresView({
         }
 
         // Verificar se o ID existe em dados_corridas e agregar
-        const { data: corridasData, error: corridasError } = await supabase
+        let corridasQuery = supabase
           .from('dados_corridas')
-          .select('numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas')
+          .select('numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo')
           .eq('id_da_pessoa_entregadora', entregador.id_entregador);
 
+        const { data: corridasData, error: corridasError } = await corridasQuery;
+
         if (corridasError) {
-            if (IS_DEV) {
+          if (IS_DEV) {
             safeLog.warn(`Erro ao buscar corridas para entregador ${entregador.id_entregador}:`, corridasError);
           }
           continue;
@@ -132,6 +151,27 @@ const EntregadoresView = React.memo(function EntregadoresView({
         const total_completadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_completadas || 0), 0);
         const total_rejeitadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_rejeitadas || 0), 0);
 
+        // Calcular última data e dias sem rodar
+        let ultimaData: string | null = null;
+        let diasSemRodar: number | null = null;
+        
+        if (corridasData && corridasData.length > 0) {
+          const datas = corridasData
+            .map(c => c.data_do_periodo)
+            .filter(d => d != null)
+            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+          
+          if (datas.length > 0) {
+            ultimaData = datas[0];
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const ultimaDataObj = new Date(ultimaData);
+            ultimaDataObj.setHours(0, 0, 0, 0);
+            const diffTime = hoje.getTime() - ultimaDataObj.getTime();
+            diasSemRodar = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          }
+        }
+
         entregadoresComDados.push({
           id_entregador: entregador.id_entregador,
           nome: entregador.nome || 'Nome não informado',
@@ -140,9 +180,9 @@ const EntregadoresView = React.memo(function EntregadoresView({
           total_completadas,
           total_rejeitadas,
           total_segundos: 0, // Fallback não calcula horas
-          ultima_data: null, // Fallback não calcula última data
-          dias_sem_rodar: null, // Fallback não calcula dias sem rodar
-          regiao_atuacao: null, // Fallback não calcula região
+          ultima_data: ultimaData,
+          dias_sem_rodar: diasSemRodar,
+          regiao_atuacao: entregador.regiao_atuacao || null,
         });
       }
 
@@ -158,7 +198,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
       safeLog.error('Erro no fallback ao buscar entregadores:', err);
       throw err;
     }
-  }, [filtroDataInicio]);
+  }, [filtroDataInicio, cidadeSelecionada]);
 
   const fetchEntregadores = useCallback(async () => {
     try {
@@ -186,27 +226,37 @@ const EntregadoresView = React.memo(function EntregadoresView({
       const finalParams = params;
 
       // Usar função RPC para buscar entregadores com dados agregados
+      // Aumentar timeout para 60 segundos quando há múltiplos filtros (data início + cidade)
+      const hasMultipleFilters = (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) && cidadeSelecionada;
+      const timeoutDuration = hasMultipleFilters ? 60000 : 30000;
+      
       const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', finalParams, {
-        timeout: 30000,
+        timeout: timeoutDuration,
         validateParams: false
       });
 
       if (rpcError) {
-        // Se a função RPC não existir, fazer fallback para query direta
+        // Se a função RPC não existir ou der timeout, fazer fallback para query direta
         const errorCode = (rpcError as any)?.code || '';
         const errorMessage = String((rpcError as any)?.message || '');
         const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
                       errorCode === 'PGRST204' ||
                       errorMessage.includes('404') || 
                       errorMessage.includes('not found');
+        const isTimeout = errorCode === 'TIMEOUT' || errorMessage.includes('timeout') || errorMessage.includes('demorou muito');
 
-        if (is404) {
-          // Função RPC não existe, usar fallback
+        if (is404 || isTimeout) {
+          // Função RPC não existe ou deu timeout, usar fallback
           if (IS_DEV) {
-            safeLog.warn('Função RPC get_entregadores_marketing não encontrada, usando fallback');
+            safeLog.warn(`Função RPC get_entregadores_marketing ${isTimeout ? 'deu timeout' : 'não encontrada'}, usando fallback`);
           }
-          await fetchEntregadoresFallback();
-          return;
+          try {
+            await fetchEntregadoresFallback();
+            return;
+          } catch (fallbackError: any) {
+            safeLog.error('Erro no fallback ao buscar entregadores:', fallbackError);
+            throw new Error('Erro ao buscar entregadores. Tente novamente com filtros mais específicos.');
+          }
         }
         
         throw rpcError;
