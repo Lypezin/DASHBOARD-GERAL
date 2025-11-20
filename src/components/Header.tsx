@@ -108,7 +108,7 @@ export function Header() {
   const checkUser = async () => {
     try {
       setIsLoading(true);
-      
+
       // Verificar se cliente Supabase está usando mock
       try {
         // Tentar acessar a URL do cliente de forma segura
@@ -119,7 +119,7 @@ export function Header() {
             isPlaceholder: runtimeUrl?.includes('placeholder')
           });
         }
-        
+
         // Se estiver usando mock, tentar recriar
         if (runtimeUrl?.includes('placeholder.supabase.co') && typeof (supabase as any)._recreate === 'function') {
           if (IS_DEV) {
@@ -134,23 +134,12 @@ export function Header() {
           safeLog.warn('[Header] Erro ao verificar cliente Supabase:', clientErr);
         }
       }
-      
+
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError || !authUser) {
-        if (IS_DEV) {
-          safeLog.warn('[Header] Erro ao obter usuário:', authError);
-        }
-        
-        // Se é a primeira tentativa, aguardar um pouco e tentar novamente
-        if (!hasTriedAuth) {
-          setHasTriedAuth(true);
-          setTimeout(() => checkUser(), 1000);
-          return;
-        }
-        
-        // Erro de autenticação após retry - redirecionar para login
-        if (IS_DEV) safeLog.warn('[Header] Usuário não autenticado após retry, redirecionando para login');
+        // Não autenticado - apenas definir como não logado
+        setHasTriedAuth(true);
         setIsLoading(false);
         // Redirecionar para login se não estiver na página de login
         if (pathname !== '/login' && pathname !== '/registro') {
@@ -158,26 +147,26 @@ export function Header() {
         }
         return;
       }
-      
+
       setHasTriedAuth(true);
 
       // Tentar buscar perfil com retry e tratamento de erro melhorado
       let profile: UserProfile | null = null;
       let profileError: any = null;
-      
+
       try {
         const result = await safeRpc<UserProfile>('get_current_user_profile', {}, {
           timeout: 10000,
           validateParams: false
         });
-        
+
         profile = result.data;
         profileError = result.error;
       } catch (err) {
         profileError = err;
         if (IS_DEV) safeLog.warn('Erro ao buscar perfil (primeira tentativa):', err);
       }
-      
+
       // Se houver erro, tentar novamente uma vez após 1 segundo
       if (profileError && !profile) {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -197,13 +186,13 @@ export function Header() {
       if (profileError) {
         const errorCode = (profileError as any)?.code || '';
         const errorMessage = String((profileError as any)?.message || '');
-        const isTemporaryError = errorCode === 'TIMEOUT' || 
-                                errorMessage.includes('timeout') ||
-                                errorMessage.includes('network') ||
-                                errorCode === 'PGRST301' ||
-                                errorMessage.includes('placeholder.supabase.co') ||
-                                errorMessage.includes('ERR_NAME_NOT_RESOLVED');
-        
+        const isTemporaryError = errorCode === 'TIMEOUT' ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('network') ||
+          errorCode === 'PGRST301' ||
+          errorMessage.includes('placeholder.supabase.co') ||
+          errorMessage.includes('ERR_NAME_NOT_RESOLVED');
+
         if (isTemporaryError) {
           // Erro temporário - não fazer logout, apenas logar e mostrar header sem perfil
           if (IS_DEV) safeLog.warn('[Header] Erro temporário ao buscar perfil, mostrando header sem perfil:', profileError);
@@ -211,7 +200,7 @@ export function Header() {
           // Manter header visível mesmo com erro temporário
           return;
         }
-        
+
         // Erro permanente - mas ainda assim mostrar header
         if (IS_DEV) safeLog.error('[Header] Erro ao carregar perfil:', profileError);
         setIsLoading(false);
@@ -226,13 +215,13 @@ export function Header() {
         // Não fazer logout imediatamente - mostrar header primeiro
         setIsLoading(false);
         // Tentar logout em background, mas não bloquear UI
-        supabase.auth.signOut().catch(() => {});
+        supabase.auth.signOut().catch(() => { });
         return;
       }
 
       // Tudo OK - definir usuário
       setUser(profile);
-      
+
       // Buscar avatar_url da tabela de perfil se existir
       if (profile?.id) {
         try {
@@ -241,7 +230,7 @@ export function Header() {
             .select('avatar_url')
             .eq('id', profile.id)
             .single();
-          
+
           if (!profileDataError && profileData?.avatar_url) {
             setAvatarUrl(profileData.avatar_url);
             setUser(prev => prev ? { ...prev, avatar_url: profileData.avatar_url } : null);
@@ -314,7 +303,7 @@ export function Header() {
             </div>
             <span className="font-bold text-sm sm:text-base text-foreground sm:hidden truncate">Dashboard</span>
           </Link>
-          
+
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-2 flex-shrink-0 min-w-0">
             <Button
@@ -335,8 +324,8 @@ export function Header() {
               />
               <Moon className="h-4 w-4 text-muted-foreground" />
             </div>
-          
-          {user?.is_admin && (
+
+            {user?.is_admin && (
               <>
                 <Button
                   variant={pathname === '/upload' ? 'default' : 'ghost'}
@@ -395,7 +384,7 @@ export function Header() {
                   <Avatar className="h-7 w-7 border-2 border-slate-200 dark:border-slate-700">
                     <AvatarImage src={avatarUrl || user?.avatar_url || undefined} alt={user?.full_name || 'Usuário'} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs font-semibold">
-                          {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+                      {user?.full_name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden xl:inline text-sm font-medium">
@@ -416,9 +405,9 @@ export function Header() {
                     <div className="flex flex-col min-w-0 flex-1">
                       <p className="font-semibold text-sm text-foreground truncate">{user?.full_name || 'Usuário'}</p>
                       <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
-                      </div>
                     </div>
-                    {user?.is_admin && (
+                  </div>
+                  {user?.is_admin && (
                     <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">
                       Administrador
                     </Badge>
@@ -433,11 +422,11 @@ export function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                    onClick={handleLogout}
+                  onClick={handleLogout}
                   className="text-rose-600 dark:text-rose-400 focus:text-rose-600 dark:focus:text-rose-400 focus:bg-rose-50 dark:focus:bg-rose-950/20 cursor-pointer"
-                  >
+                >
                   <LogOut className="h-4 w-4 mr-2.5" />
-                    <span>Sair da Conta</span>
+                  <span>Sair da Conta</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -463,7 +452,7 @@ export function Header() {
                   <div className="flex flex-col min-w-0 flex-1">
                     <p className="font-semibold text-sm text-foreground truncate">{user?.full_name || 'Usuário'}</p>
                     <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
-        </div>
+                  </div>
                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-2">
@@ -487,9 +476,9 @@ export function Header() {
                   />
                   <Moon className="h-4 w-4 text-muted-foreground" />
                 </div>
-              
-              {user?.is_admin && (
-                <>
+
+                {user?.is_admin && (
+                  <>
                     <Button
                       variant={pathname === '/upload' ? 'default' : 'ghost'}
                       className="w-full justify-start"
@@ -510,8 +499,8 @@ export function Header() {
                     >
                       Admin
                     </Button>
-                </>
-              )}
+                  </>
+                )}
 
                 <Separator className="my-4" />
 
@@ -533,10 +522,10 @@ export function Header() {
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair da Conta
                 </Button>
-                  </div>
+              </div>
             </SheetContent>
           </Sheet>
-                  </div>
+        </div>
       </header>
     </>
   );
