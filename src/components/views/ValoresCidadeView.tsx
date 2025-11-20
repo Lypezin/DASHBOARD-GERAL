@@ -10,33 +10,11 @@ import CustoPorLiberadoCard from '@/components/CustoPorLiberadoCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
+import { buildDateFilterQuery } from '@/utils/marketingQueries';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 const SENHA_VALORES_CIDADE = 'F4S@1S';
 const STORAGE_KEY_AUTH = 'valores_cidade_authenticated';
-
-// Função auxiliar para construir query com filtro de data
-function buildDateFilterQuery(
-  query: any,
-  dateColumn: string,
-  filter: MarketingDateFilter
-) {
-  // Se não há filtro aplicado, contar apenas registros onde a data não é null
-  if (!filter.dataInicial && !filter.dataFinal) {
-    query = query.not(dateColumn, 'is', null);
-    return query;
-  }
-  
-  // Se há filtro, aplicar intervalo (não aplicar not null aqui)
-  if (filter.dataInicial) {
-    query = query.gte(dateColumn, filter.dataInicial);
-  }
-  if (filter.dataFinal) {
-    query = query.lte(dateColumn, filter.dataFinal);
-  }
-  
-  return query;
-}
 
 const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);

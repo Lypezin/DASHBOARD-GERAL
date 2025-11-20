@@ -13,7 +13,7 @@ import { registerChartJS } from '@/lib/chartConfig';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-function ComparacaoView({
+const ComparacaoView = React.memo(function ComparacaoView({
   semanas,
   pracas,
   subPracas,
@@ -1858,6 +1858,8 @@ function ComparacaoView({
       )}
     </div>
   );
-}
+});
+
+ComparacaoView.displayName = 'ComparacaoView';
 
 export default ComparacaoView;

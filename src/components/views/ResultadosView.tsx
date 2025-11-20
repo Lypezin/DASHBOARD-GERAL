@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Send, CheckCircle2 } from 'lucide-react';
 import MarketingCard from '@/components/MarketingCard';
 import { CIDADES, SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
+import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -30,45 +31,6 @@ const ATENDENTES_FOTOS: { [key: string]: string | null } = {
   'Melissa': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/MELISSA%20FOTO.png',
   'Carolini Braguini': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/CAROL%20FOTO.jpg',
 };
-
-// Função auxiliar para construir query de cidade (reutilizada de MarketingDashboardView)
-function buildCityQuery(query: any, cidade: string) {
-  if (cidade === 'Santo André') {
-    return query
-      .eq('regiao_atuacao', 'ABC 2.0')
-      .in('sub_praca_abc', SANTO_ANDRE_SUB_PRACAS);
-  } else if (cidade === 'São Bernardo') {
-    return query
-      .eq('regiao_atuacao', 'ABC 2.0')
-      .in('sub_praca_abc', SAO_BERNARDO_SUB_PRACAS);
-  } else {
-    return query.eq('regiao_atuacao', cidade);
-  }
-}
-
-// Função auxiliar para construir query com filtro de data
-function buildDateFilterQuery(
-  query: any,
-  dateColumn: string,
-  filter: MarketingDateFilter
-) {
-  // Se não há filtro aplicado, contar apenas registros onde a data não é null
-  if (!filter.dataInicial && !filter.dataFinal) {
-    query = query.not(dateColumn, 'is', null);
-    return query;
-  }
-  
-  // Se há filtro, aplicar intervalo
-  if (filter.dataInicial) {
-    query = query.gte(dateColumn, filter.dataInicial);
-  }
-  if (filter.dataFinal) {
-    // Usar lte para incluir o dia final completo
-    query = query.lte(dateColumn, filter.dataFinal);
-  }
-  
-  return query;
-}
 
 interface AtendenteData {
   nome: string;

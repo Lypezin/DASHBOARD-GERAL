@@ -21,7 +21,7 @@ import {
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-function EvolucaoView({
+const EvolucaoView = React.memo(function EvolucaoView({
   evolucaoMensal,
   evolucaoSemanal,
   loading,
@@ -1209,6 +1209,8 @@ function EvolucaoView({
       )}
     </div>
   );
-}
+});
+
+EvolucaoView.displayName = 'EvolucaoView';
 
 export default EvolucaoView;

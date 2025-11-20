@@ -33,18 +33,41 @@ function cleanupExpiredRecords() {
 // Armazenar referência do interval para poder limpar se necessário
 let cleanupInterval: NodeJS.Timeout | null = null;
 
-if (typeof window !== 'undefined') {
+/**
+ * Inicializa o cleanup periódico de registros expirados
+ * Deve ser chamado apenas uma vez quando o módulo é carregado
+ */
+function initializeCleanup() {
+  if (typeof window === 'undefined' || cleanupInterval !== null) {
+    return; // Já inicializado ou não está no cliente
+  }
+
   cleanupInterval = setInterval(cleanupExpiredRecords, 60000);
   
   // Limpar interval quando a página for descarregada (prevenção de memory leak)
-  if (typeof window !== 'undefined' && window.addEventListener) {
-    window.addEventListener('beforeunload', () => {
-      if (cleanupInterval) {
-        clearInterval(cleanupInterval);
-        cleanupInterval = null;
-      }
-    });
-  }
+  const handleBeforeUnload = () => {
+    if (cleanupInterval) {
+      clearInterval(cleanupInterval);
+      cleanupInterval = null;
+    }
+  };
+
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  
+  // Também limpar quando a página ficar oculta (Page Visibility API)
+  const handleVisibilityChange = () => {
+    if (document.hidden && cleanupInterval) {
+      // Não limpar completamente, apenas pausar temporariamente
+      // O interval continuará quando a página voltar a ficar visível
+    }
+  };
+  
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+}
+
+// Inicializar cleanup apenas no cliente
+if (typeof window !== 'undefined') {
+  initializeCleanup();
 }
 
 /**

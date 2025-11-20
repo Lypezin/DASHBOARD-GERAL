@@ -8,55 +8,10 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import MarketingCard from '@/components/MarketingCard';
 import MarketingCityCard from '@/components/MarketingCityCard';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
-import { CIDADES, SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
+import { CIDADES } from '@/constants/marketing';
+import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-
-// Função auxiliar para construir query com filtro de data
-function buildDateFilterQuery(
-  query: any,
-  dateColumn: string,
-  filter: MarketingDateFilter
-) {
-  // Se não há filtro aplicado, contar apenas registros onde a data não é null
-  if (!filter.dataInicial && !filter.dataFinal) {
-    query = query.not(dateColumn, 'is', null);
-    return query;
-  }
-  
-  // Se há filtro, aplicar intervalo (não aplicar not null aqui)
-  if (filter.dataInicial) {
-    query = query.gte(dateColumn, filter.dataInicial);
-  }
-  if (filter.dataFinal) {
-    query = query.lte(dateColumn, filter.dataFinal);
-  }
-  
-  return query;
-}
-
-// Função auxiliar para construir query de cidade
-function buildCityQuery(query: any, cidade: string) {
-  if (cidade === 'Santo André') {
-    return query
-      .eq('regiao_atuacao', 'ABC 2.0')
-      .in('sub_praca_abc', SANTO_ANDRE_SUB_PRACAS);
-  } else if (cidade === 'São Bernardo') {
-    return query
-      .eq('regiao_atuacao', 'ABC 2.0')
-      .in('sub_praca_abc', SAO_BERNARDO_SUB_PRACAS);
-  } else if (cidade === 'ABC 2.0') {
-    const excludedSubPracas = [...SANTO_ANDRE_SUB_PRACAS, ...SAO_BERNARDO_SUB_PRACAS];
-    let abcQuery = query.eq('regiao_atuacao', 'ABC 2.0');
-    excludedSubPracas.forEach(subPraca => {
-      abcQuery = abcQuery.neq('sub_praca_abc', subPraca);
-    });
-    abcQuery = abcQuery.not('sub_praca_abc', 'is', null);
-    return abcQuery;
-  } else {
-    return query.eq('regiao_atuacao', cidade);
-  }
-}
 
 const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   const [loading, setLoading] = useState(true);
