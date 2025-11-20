@@ -179,6 +179,9 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
       
       case 'valores':
         return await fetchValoresData(options);
+
+      case 'prioridade':
+        return await fetchEntregadoresData(options);
       
       default:
         return { data: null, error: new Error(`Tab desconhecida: ${tab}`) };
