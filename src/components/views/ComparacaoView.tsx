@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { FilterOption, DashboardResumoData } from '@/types';
+import { FilterOption, DashboardResumoData, UtrData } from '@/types';
 import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import FiltroSelect from '@/components/FiltroSelect';
@@ -32,7 +32,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
-  const [utrComparacao, setUtrComparacao] = useState<unknown[]>([]);
+  const [utrComparacao, setUtrComparacao] = useState<Array<{ semana: string | number; utr: UtrData | null }>>([]);
   const [todasSemanas, setTodasSemanas] = useState<(number | string)[]>([]);
   const [mostrarApresentacao, setMostrarApresentacao] = useState(false);
   
@@ -231,7 +231,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
         
         const filtro = buildFilterPayload(filters, currentUser);
         
-        const { data, error } = await safeRpc<any>('calcular_utr', filtro, {
+        const { data, error } = await safeRpc<UtrData>('calcular_utr', filtro, {
           timeout: 30000,
           validateParams: true
         });
