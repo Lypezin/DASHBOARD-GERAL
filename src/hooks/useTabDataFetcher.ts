@@ -196,6 +196,10 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
 
   try {
     switch (tab) {
+      case 'dashboard':
+        // Dashboard usa useDashboardMainData, não precisa buscar dados aqui
+        return { data: null, error: null };
+
       case 'utr':
         return await fetchUtrData(options);
 
