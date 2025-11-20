@@ -45,28 +45,50 @@ export function useTabData(
   }, [activeTab]);
 
   useEffect(() => {
-    console.log(`🎯 [useTabData] useEffect disparado para tab: "${activeTab}"`, {
+    // Atualizar ref da tab imediatamente
+    const previousTab = currentTabRef.current;
+    currentTabRef.current = activeTab;
+    
+    // Verificar se o filterPayload realmente mudou
+    const currentFilterPayloadStr = JSON.stringify(filterPayload);
+    const filterPayloadChanged = lastFilterPayloadRef.current !== currentFilterPayloadStr;
+    const tabChanged = previousTab !== activeTab;
+    
+    console.log(`🎯 [useTabData] useEffect disparado`, {
       activeTab,
-      filterPayloadStr: JSON.stringify(filterPayload).substring(0, 100)
+      previousTab,
+      tabChanged,
+      filterPayloadChanged,
+      filterPayloadStr: currentFilterPayloadStr.substring(0, 80),
+      hasPendingTimeout: !!debounceTimeoutRef.current,
+      isRequestPending: isRequestPendingRef.current
     });
 
-    // Limpar timeout anterior
+    // Se nada mudou, não fazer nada
+    if (!tabChanged && !filterPayloadChanged) {
+      console.log(`⏭️ [useTabData] Nada mudou. Ignorando.`);
+      return;
+    }
+
+    // Atualizar referência do payload
+    lastFilterPayloadRef.current = currentFilterPayloadStr;
+
+    // Limpar timeout anterior APENAS se algo realmente mudou
     if (debounceTimeoutRef.current) {
-      console.log(`⏱️ [useTabData] Limpando timeout anterior`);
+      console.log(`⏱️ [useTabData] Limpando timeout anterior (tab ou payload mudou)`);
       clearTimeout(debounceTimeoutRef.current);
       debounceTimeoutRef.current = null;
     }
 
-    // Cancelar requisição anterior
-    cancel();
-
-    // Verificar se o filterPayload realmente mudou
-    const currentFilterPayloadStr = JSON.stringify(filterPayload);
-    const filterPayloadChanged = lastFilterPayloadRef.current !== currentFilterPayloadStr;
-    lastFilterPayloadRef.current = currentFilterPayloadStr;
+    // Cancelar requisição anterior apenas se a tab mudou
+    if (tabChanged) {
+      console.log(`🚫 [useTabData] Cancelando requisição anterior (tab mudou)`);
+      cancel();
+    }
 
     console.log(`📋 [useTabData] Preparando fetch para tab: "${activeTab}"`, {
       filterPayloadChanged,
+      tabChanged,
       debounceDelay: DELAYS.DEBOUNCE
     });
 
@@ -202,14 +224,17 @@ export function useTabData(
     };
 
     // Debounce para evitar múltiplas chamadas
-    console.log(`⏳ [useTabData] Agendando fetch com debounce de ${DELAYS.DEBOUNCE}ms para tab: "${activeTab}"`);
+    // IMPORTANTE: Capturar o valor atual da tab para usar no timeout
+    const tabToFetch = activeTab;
+    console.log(`⏳ [useTabData] Agendando fetch com debounce de ${DELAYS.DEBOUNCE}ms para tab: "${tabToFetch}"`);
+    
     debounceTimeoutRef.current = setTimeout(() => {
-      console.log(`⏰ [useTabData] Debounce expirado. Verificando se tab ainda é "${activeTab}" (current: "${currentTabRef.current}")`);
-      if (currentTabRef.current === activeTab) {
+      console.log(`⏰ [useTabData] Debounce expirado. Verificando se tab ainda é "${tabToFetch}" (current: "${currentTabRef.current}")`);
+      if (currentTabRef.current === tabToFetch) {
         console.log(`✅ [useTabData] Tab ainda é a mesma. Executando fetchDataForTab`);
-        fetchDataForTab(activeTab);
+        fetchDataForTab(tabToFetch);
       } else {
-        console.log(`⚠️ [useTabData] Tab mudou durante debounce. Ignorando fetch.`);
+        console.log(`⚠️ [useTabData] Tab mudou durante debounce (era "${tabToFetch}", agora é "${currentTabRef.current}"). Ignorando fetch.`);
       }
     }, DELAYS.DEBOUNCE);
 
