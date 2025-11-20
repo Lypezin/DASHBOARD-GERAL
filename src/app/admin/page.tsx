@@ -624,7 +624,8 @@ export default function AdminPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-8">
+      <React.Fragment>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header melhorado com estatísticas */}
           <div className="mb-8">
@@ -1000,6 +1001,7 @@ export default function AdminPage() {
       )}
         </div>
       </div>
+      </React.Fragment>
     </ErrorBoundary>
   );
 }
