@@ -199,6 +199,11 @@ export default function DashboardPage() {
     }
   }, [filters, currentUser]);
 
+  // Log quando activeTab muda
+  useEffect(() => {
+    console.log(`📌 [DashboardPage] activeTab mudou para: "${activeTab}"`);
+  }, [activeTab]);
+
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
   // Log para debug - verificar dados recebidos
@@ -333,8 +338,11 @@ export default function DashboardPage() {
 
   // Memoizar handlers de tabs para evitar re-renders e adicionar proteção contra cliques rápidos
   const handleTabChange = useCallback((tab: TabType) => {
+    console.log(`🔄 [handleTabChange] Tab clicada: "${tab}", atual: "${currentTabRef.current}"`);
+    
     // Se já está mudando de tab ou é a mesma tab, ignorar
     if (/*tabChangeRef.current ||*/ currentTabRef.current === tab) {
+      console.log(`⚠️ [handleTabChange] Tab ignorada (já é a mesma ou está mudando)`);
       return;
     }
 
@@ -347,6 +355,7 @@ export default function DashboardPage() {
     tabChangeRef.current = true;
 
     // Mudar tab imediatamente para feedback visual
+    console.log(`✅ [handleTabChange] Mudando activeTab para: "${tab}"`);
     setActiveTab(tab);
 
     // Resetar flag após um delay maior para garantir que a renderização anterior terminou

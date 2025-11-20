@@ -45,8 +45,14 @@ export function useTabData(
   }, [activeTab]);
 
   useEffect(() => {
+    console.log(`🎯 [useTabData] useEffect disparado para tab: "${activeTab}"`, {
+      activeTab,
+      filterPayloadStr: JSON.stringify(filterPayload).substring(0, 100)
+    });
+
     // Limpar timeout anterior
     if (debounceTimeoutRef.current) {
+      console.log(`⏱️ [useTabData] Limpando timeout anterior`);
       clearTimeout(debounceTimeoutRef.current);
       debounceTimeoutRef.current = null;
     }
@@ -59,7 +65,13 @@ export function useTabData(
     const filterPayloadChanged = lastFilterPayloadRef.current !== currentFilterPayloadStr;
     lastFilterPayloadRef.current = currentFilterPayloadStr;
 
+    console.log(`📋 [useTabData] Preparando fetch para tab: "${activeTab}"`, {
+      filterPayloadChanged,
+      debounceDelay: DELAYS.DEBOUNCE
+    });
+
     const fetchDataForTab = async (tab: string) => {
+      console.log(`🚀 [useTabData] fetchDataForTab chamado para tab: "${tab}"`);
       // Verificar se a tab ainda é a mesma
       if (currentTabRef.current !== tab) {
         isRequestPendingRef.current = false;
@@ -190,9 +202,14 @@ export function useTabData(
     };
 
     // Debounce para evitar múltiplas chamadas
+    console.log(`⏳ [useTabData] Agendando fetch com debounce de ${DELAYS.DEBOUNCE}ms para tab: "${activeTab}"`);
     debounceTimeoutRef.current = setTimeout(() => {
+      console.log(`⏰ [useTabData] Debounce expirado. Verificando se tab ainda é "${activeTab}" (current: "${currentTabRef.current}")`);
       if (currentTabRef.current === activeTab) {
+        console.log(`✅ [useTabData] Tab ainda é a mesma. Executando fetchDataForTab`);
         fetchDataForTab(activeTab);
+      } else {
+        console.log(`⚠️ [useTabData] Tab mudou durante debounce. Ignorando fetch.`);
       }
     }, DELAYS.DEBOUNCE);
 
