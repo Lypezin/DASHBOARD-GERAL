@@ -2,6 +2,7 @@ import React from 'react';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { SLIDE_HEIGHT, SLIDE_WIDTH } from '@/components/apresentacao/constants';
 import { converterHorasParaDecimal } from '@/utils/formatters';
+import { DashboardResumoData, AderenciaDia, AderenciaSubPraca, AderenciaTurno, AderenciaOrigem } from '@/types';
 import SlideCapa from '@/components/apresentacao/slides/SlideCapa';
 import SlideAderenciaGeral from '@/components/apresentacao/slides/SlideAderenciaGeral';
 import SlideSubPracas from '@/components/apresentacao/slides/SlideSubPracas';
@@ -89,11 +90,11 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   // Buscar os dois conjuntos de dados via RPC
   const [semana1Result, semana2Result] = await Promise.all([
-    safeRpc('dashboard_resumo', filterBase(ano1, semanaNum1) as any, {
+    safeRpc<DashboardResumoData>('dashboard_resumo', filterBase(ano1, semanaNum1), {
       timeout: 30000,
       validateParams: true
     }),
-    safeRpc('dashboard_resumo', filterBase(ano2, semanaNum2) as any, {
+    safeRpc<DashboardResumoData>('dashboard_resumo', filterBase(ano2, semanaNum2), {
       timeout: 30000,
       validateParams: true
     }),
@@ -136,8 +137,8 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   const subPracasSemana1 = semana1?.sub_praca || [];
   const subPracasSemana2 = semana2?.sub_praca || [];
-  const subPracasSemana1Map = new Map(subPracasSemana1.map((i: any) => [String(i.sub_praca || '').trim(), i]));
-  const subPracasSemana2Map = new Map(subPracasSemana2.map((i: any) => [String(i.sub_praca || '').trim(), i]));
+  const subPracasSemana1Map = new Map(subPracasSemana1.map((i: AderenciaSubPraca) => [String(i.sub_praca || '').trim(), i]));
+  const subPracasSemana2Map = new Map(subPracasSemana2.map((i: AderenciaSubPraca) => [String(i.sub_praca || '').trim(), i]));
   const todasSubPracas = Array.from(new Set([...subPracasSemana1Map.keys(), ...subPracasSemana2Map.keys()])) as string[];
   todasSubPracas.sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
@@ -168,17 +169,17 @@ export default async function PrintablePage({ searchParams }: PageProps) {
   });
   const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
 
-  const diasSemana1Map = new Map((semana1?.dia || []).map((d: any) => [d.dia_da_semana, d]));
-  const diasSemana2Map = new Map((semana2?.dia || []).map((d: any) => [d.dia_da_semana, d]));
+  const diasSemana1Map = new Map((semana1?.dia || []).map((d: AderenciaDia) => [d.dia_da_semana, d]));
+  const diasSemana2Map = new Map((semana2?.dia || []).map((d: AderenciaDia) => [d.dia_da_semana, d]));
 
   const semana1Dias = diasOrdem.map((dia) => {
-    const info = diasSemana1Map.get(dia) || ({} as any);
+    const info = diasSemana1Map.get(dia) || ({} as Partial<AderenciaDia>);
     const horas = converterHorasParaDecimal(info?.horas_entregues || '0');
     return { nome: dia, sigla: siglaDia(dia), aderencia: info?.aderencia_percentual || 0, horasEntregues: formatHMS(horas.toString()) };
   });
   const semana2Dias = diasOrdem.map((dia) => {
-    const info1 = diasSemana1Map.get(dia) || ({} as any);
-    const info2 = diasSemana2Map.get(dia) || ({} as any);
+    const info1 = diasSemana1Map.get(dia) || ({} as Partial<AderenciaDia>);
+    const info2 = diasSemana2Map.get(dia) || ({} as Partial<AderenciaDia>);
     const horas1 = converterHorasParaDecimal(info1?.horas_entregues || '0');
     const horas2 = converterHorasParaDecimal(info2?.horas_entregues || '0');
     const aderencia1Dia = info1?.aderencia_percentual || 0;
@@ -197,8 +198,8 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   const turnosSemana1 = semana1?.turno || [];
   const turnosSemana2 = semana2?.turno || [];
-  const turnosSemana1Map = new Map(turnosSemana1.map((t: any) => [String(t.periodo || '').trim(), t]));
-  const turnosSemana2Map = new Map(turnosSemana2.map((t: any) => [String(t.periodo || '').trim(), t]));
+  const turnosSemana1Map = new Map(turnosSemana1.map((t: AderenciaTurno) => [String(t.periodo || '').trim(), t]));
+  const turnosSemana2Map = new Map(turnosSemana2.map((t: AderenciaTurno) => [String(t.periodo || '').trim(), t]));
   const todosTurnos = Array.from(new Set([...turnosSemana1Map.keys(), ...turnosSemana2Map.keys()])) as string[];
   todosTurnos.sort((a, b) => a.localeCompare(b, 'pt-BR'));
   const turnosComparativo = todosTurnos.map((nomeTurno) => {
@@ -223,8 +224,8 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   const origensSemana1 = semana1?.origem || [];
   const origensSemana2 = semana2?.origem || [];
-  const origensSemana1Map = new Map(origensSemana1.map((o: any) => [String(o.origem || '').trim(), o]));
-  const origensSemana2Map = new Map(origensSemana2.map((o: any) => [String(o.origem || '').trim(), o]));
+  const origensSemana1Map = new Map(origensSemana1.map((o: AderenciaOrigem) => [String(o.origem || '').trim(), o]));
+  const origensSemana2Map = new Map(origensSemana2.map((o: AderenciaOrigem) => [String(o.origem || '').trim(), o]));
   const todasOrigens = Array.from(new Set([...origensSemana1Map.keys(), ...origensSemana2Map.keys()])) as string[];
   todasOrigens.sort((a, b) => a.localeCompare(b, 'pt-BR'));
   const origensComparativo = todasOrigens.map((nome) => {
@@ -298,7 +299,7 @@ export default async function PrintablePage({ searchParams }: PageProps) {
             numeroSemana1={numeroSemana1}
             numeroSemana2={numeroSemana2}
             semana1Dias={semana1Dias}
-            semana2Dias={semana2Dias as any}
+            semana2Dias={semana2Dias}
           />
         </div>
 
