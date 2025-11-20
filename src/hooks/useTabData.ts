@@ -40,25 +40,26 @@ export function useTabData(
   // Hook de fetch com retry
   const { fetchWithRetry, cancel, loading } = useTabDataFetcher();
 
-  useEffect(() => {
-    currentTabRef.current = activeTab;
-  }, [activeTab]);
-
   // Usar useRef para armazenar o filterPayload e evitar recriações
   const filterPayloadRef = useRef<string>('');
+  const previousTabRef = useRef<string>('');
   
   // Criar uma string estável do payload para usar como dependência
   const filterPayloadStr = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
   
   useEffect(() => {
-    // Atualizar ref da tab imediatamente
-    const previousTab = currentTabRef.current;
-    currentTabRef.current = activeTab;
+    // Capturar valores anteriores ANTES de atualizar
+    const previousTab = previousTabRef.current || '';
+    const previousPayload = filterPayloadRef.current;
     
-    // Verificar se o filterPayload realmente mudou usando string comparison
+    // Verificar mudanças ANTES de atualizar as refs
     const currentFilterPayloadStr = filterPayloadStr;
-    const filterPayloadChanged = filterPayloadRef.current !== currentFilterPayloadStr;
+    const filterPayloadChanged = previousPayload !== currentFilterPayloadStr;
     const tabChanged = previousTab !== activeTab;
+    
+    // AGORA atualizar as refs
+    previousTabRef.current = activeTab;
+    currentTabRef.current = activeTab;
     
     console.log(`🎯 [useTabData] useEffect executado`, {
       activeTab,
