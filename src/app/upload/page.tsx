@@ -293,8 +293,8 @@ export default function UploadPage() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-        <div className="container mx-auto px-6 py-12">
-        <div className="mx-auto max-w-3xl">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="mx-auto max-w-7xl">
           {/* Card Principal */}
           <div className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-2xl dark:border-blue-900 dark:bg-slate-900">
             {/* Header do Card */}
@@ -477,56 +477,59 @@ export default function UploadPage() {
             </div>
           </div>
 
-          {/* Seção de Upload Marketing */}
-          <UploadSection
-            title="Upload de Dados Marketing"
-            description="Importe planilha de Marketing (sobrescreve dados anteriores)"
-            icon="📢"
-            files={marketingFiles}
-            onFileChange={handleMarketingFileChange}
-            onRemoveFile={removeMarketingFile}
-            onUpload={handleMarketingUpload}
-            uploading={marketingUpload.uploading}
-            progress={marketingUpload.progress}
-            progressLabel={marketingUpload.progressLabel}
-            message={marketingUpload.message}
-            variant="marketing"
-            dataAttribute="marketing"
-            gradientFrom="from-purple-600"
-            gradientTo="to-pink-600"
-            tips={[
-              { icon: '⚠️', text: 'Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
-              { text: 'Formato de data: DD/MM/YYYY (ex: 14/11/2025)' },
-              { text: 'Todos os campos são opcionais' },
-            ]}
-            expectedColumns={Object.keys(MARKETING_COLUMN_MAP)}
-          />
+          {/* Grid de Uploads - Marketing e Valores por Cidade lado a lado */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mt-8">
+            {/* Seção de Upload Marketing */}
+            <UploadSection
+              title="Upload de Dados Marketing"
+              description="Importe planilha de Marketing (sobrescreve dados anteriores)"
+              icon="📢"
+              files={marketingFiles}
+              onFileChange={handleMarketingFileChange}
+              onRemoveFile={removeMarketingFile}
+              onUpload={handleMarketingUpload}
+              uploading={marketingUpload.uploading}
+              progress={marketingUpload.progress}
+              progressLabel={marketingUpload.progressLabel}
+              message={marketingUpload.message}
+              variant="marketing"
+              dataAttribute="marketing"
+              gradientFrom="from-purple-600"
+              gradientTo="to-pink-600"
+              tips={[
+                { icon: '⚠️', text: 'Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
+                { text: 'Formato de data: DD/MM/YYYY (ex: 14/11/2025)' },
+                { text: 'Todos os campos são opcionais' },
+              ]}
+              expectedColumns={Object.keys(MARKETING_COLUMN_MAP)}
+            />
 
-          {/* Seção de Upload Valores por Cidade */}
-          <UploadSection
-            title="Upload de Valores por Cidade"
-            description="Importe planilha de Valores por Cidade (sobrescreve dados anteriores)"
-            icon="💰"
-            files={valoresCidadeFiles}
-            onFileChange={handleValoresCidadeFileChange}
-            onRemoveFile={removeValoresCidadeFile}
-            onUpload={handleValoresCidadeUpload}
-            uploading={valoresCidadeUpload.uploading}
-            progress={valoresCidadeUpload.progress}
-            progressLabel={valoresCidadeUpload.progressLabel}
-            message={valoresCidadeUpload.message}
-            variant="valores"
-            dataAttribute="valores-cidade"
-            gradientFrom="from-emerald-600"
-            gradientTo="to-teal-600"
-            tips={[
-              { icon: '⚠️', text: 'Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
-              { text: 'Formato de data: DD/MM/YYYY (ex: 14/11/2025)' },
-              { text: 'Colunas obrigatórias: DATA, ID, CIDADE, VALOR' },
-              { text: 'O valor deve ser numérico (aceita vírgula ou ponto como separador decimal)' },
-            ]}
-            expectedColumns={Object.keys(VALORES_CIDADE_COLUMN_MAP)}
-          />
+            {/* Seção de Upload Valores por Cidade */}
+            <UploadSection
+              title="Upload de Valores por Cidade"
+              description="Importe planilha de Valores por Cidade (sobrescreve dados anteriores)"
+              icon="💰"
+              files={valoresCidadeFiles}
+              onFileChange={handleValoresCidadeFileChange}
+              onRemoveFile={removeValoresCidadeFile}
+              onUpload={handleValoresCidadeUpload}
+              uploading={valoresCidadeUpload.uploading}
+              progress={valoresCidadeUpload.progress}
+              progressLabel={valoresCidadeUpload.progressLabel}
+              message={valoresCidadeUpload.message}
+              variant="valores"
+              dataAttribute="valores-cidade"
+              gradientFrom="from-emerald-600"
+              gradientTo="to-teal-600"
+              tips={[
+                { icon: '⚠️', text: 'Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
+                { text: 'Formato de data: DD/MM/YYYY (ex: 14/11/2025)' },
+                { text: 'Colunas obrigatórias: DATA, ID, CIDADE, VALOR' },
+                { text: 'O valor deve ser numérico (aceita vírgula ou ponto como separador decimal)' },
+              ]}
+              expectedColumns={Object.keys(VALORES_CIDADE_COLUMN_MAP)}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -304,7 +304,7 @@ export function Header() {
     <>
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="container mx-auto flex h-14 md:h-16 items-center justify-between px-4 sm:px-5 md:px-6 lg:px-8 gap-3 min-w-0">
-          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0 flex-shrink overflow-hidden" prefetch={false}>
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0 flex-shrink overflow-hidden" prefetch={true}>
             <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg p-1.5 sm:p-2 group-hover:from-blue-700 group-hover:to-indigo-700 transition-all duration-200 shadow-sm flex-shrink-0">
               <span className="text-lg sm:text-xl block text-white">📊</span>
             </div>
@@ -322,7 +322,7 @@ export function Header() {
               variant={pathname === '/' ? 'default' : 'ghost'}
               size="sm"
             >
-              <Link href="/" prefetch={false}>
+              <Link href="/" prefetch={true}>
                 Dashboard
             </Link>
             </Button>
@@ -346,7 +346,7 @@ export function Header() {
                   size="sm"
                   className="hidden xl:inline-flex"
                 >
-                  <Link href="/upload" prefetch={false}>
+                  <Link href="/upload" prefetch={true}>
                     Upload
                 </Link>
                 </Button>
@@ -356,7 +356,7 @@ export function Header() {
                   size="sm"
                   className="xl:hidden"
                 >
-                  <Link href="/upload" prefetch={false}>
+                  <Link href="/upload" prefetch={true}>
                     📤
                 </Link>
                 </Button>
@@ -366,7 +366,7 @@ export function Header() {
                   size="sm"
                   className="hidden xl:inline-flex"
                 >
-                  <Link href="/admin" prefetch={false}>
+                  <Link href="/admin" prefetch={true}>
                     Admin
                   </Link>
                 </Button>
@@ -376,7 +376,7 @@ export function Header() {
                   size="sm"
                   className="xl:hidden"
                 >
-                  <Link href="/admin" prefetch={false}>
+                  <Link href="/admin" prefetch={true}>
                     ⚙️
                   </Link>
                 </Button>
@@ -470,7 +470,7 @@ export function Header() {
                   variant={pathname === '/' ? 'default' : 'ghost'}
                   className="w-full justify-start"
                 >
-                  <Link href="/" prefetch={false}>
+                  <Link href="/" prefetch={true}>
                     Dashboard
               </Link>
                 </Button>
@@ -495,7 +495,7 @@ export function Header() {
                       variant={pathname === '/upload' ? 'default' : 'ghost'}
                       className="w-full justify-start"
                     >
-                      <Link href="/upload" prefetch={false}>
+                      <Link href="/upload" prefetch={true}>
                         Upload
                   </Link>
                     </Button>
@@ -504,7 +504,7 @@ export function Header() {
                       variant={pathname === '/admin' ? 'default' : 'ghost'}
                       className="w-full justify-start"
                     >
-                      <Link href="/admin" prefetch={false}>
+                      <Link href="/admin" prefetch={true}>
                         Admin
                   </Link>
                     </Button>
@@ -518,7 +518,7 @@ export function Header() {
                   variant={pathname === '/perfil' ? 'default' : 'ghost'}
                   className="w-full justify-start"
                 >
-                  <Link href="/perfil" prefetch={false}>
+                  <Link href="/perfil" prefetch={true}>
                     <Settings className="mr-2 h-4 w-4" />
                     Meu Perfil
                   </Link>
