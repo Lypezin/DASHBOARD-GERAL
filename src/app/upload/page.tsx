@@ -294,7 +294,7 @@ export default function UploadPage() {
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto w-full">
           {/* Card Principal */}
           <div className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-2xl dark:border-blue-900 dark:bg-slate-900">
             {/* Header do Card */}
@@ -478,7 +478,7 @@ export default function UploadPage() {
           </div>
 
           {/* Grid de Uploads - Marketing e Valores por Cidade lado a lado */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mt-8">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-8 mt-8">
             {/* Seção de Upload Marketing */}
             <UploadSection
               title="Upload de Dados Marketing"

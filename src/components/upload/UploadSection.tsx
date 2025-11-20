@@ -52,7 +52,7 @@ export function UploadSection({
   expectedColumns,
 }: UploadSectionProps) {
   return (
-    <div className="mt-8 overflow-hidden rounded-3xl border bg-white shadow-2xl dark:bg-slate-900" style={{
+    <div className="overflow-hidden rounded-3xl border bg-white shadow-2xl dark:bg-slate-900 h-full" style={{
       borderColor: variant === 'marketing' ? 'rgb(196 181 253)' : variant === 'valores' ? 'rgb(110 231 183)' : 'rgb(191 219 254)',
     }}>
       {/* Header */}

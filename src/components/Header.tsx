@@ -342,7 +342,10 @@ export function Header() {
                   variant={pathname === '/upload' ? 'default' : 'ghost'}
                   size="sm"
                   className="hidden xl:inline-flex"
-                  onClick={() => router.push('/upload')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = '/upload';
+                  }}
                 >
                   Upload
                 </Button>
@@ -350,7 +353,10 @@ export function Header() {
                   variant={pathname === '/upload' ? 'default' : 'ghost'}
                   size="sm"
                   className="xl:hidden"
-                  onClick={() => router.push('/upload')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = '/upload';
+                  }}
                 >
                   📤
                 </Button>
@@ -358,7 +364,10 @@ export function Header() {
                   variant={pathname === '/admin' ? 'default' : 'ghost'}
                   size="sm"
                   className="hidden xl:inline-flex"
-                  onClick={() => router.push('/admin')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = '/admin';
+                  }}
                 >
                   Admin
                 </Button>
@@ -366,7 +375,10 @@ export function Header() {
                   variant={pathname === '/admin' ? 'default' : 'ghost'}
                   size="sm"
                   className="xl:hidden"
-                  onClick={() => router.push('/admin')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = '/admin';
+                  }}
                 >
                   ⚙️
                 </Button>
@@ -481,14 +493,20 @@ export function Header() {
                     <Button
                       variant={pathname === '/upload' ? 'default' : 'ghost'}
                       className="w-full justify-start"
-                      onClick={() => router.push('/upload')}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = '/upload';
+                      }}
                     >
                       Upload
                     </Button>
                     <Button
                       variant={pathname === '/admin' ? 'default' : 'ghost'}
                       className="w-full justify-start"
-                      onClick={() => router.push('/admin')}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = '/admin';
+                      }}
                     >
                       Admin
                     </Button>
