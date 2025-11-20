@@ -151,8 +151,9 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
     if (Array.isArray(result.data)) {
       processedData = result.data;
     } else if (result.data && typeof result.data === 'object') {
-      if ('valores' in result.data && Array.isArray(result.data.valores)) {
-        processedData = result.data.valores;
+      const dataObj = result.data as any;
+      if ('valores' in dataObj && Array.isArray(dataObj.valores)) {
+        processedData = dataObj.valores;
       } else {
         processedData = [result.data as ValoresEntregador];
       }
