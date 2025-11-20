@@ -1789,20 +1789,11 @@ const ComparacaoView = React.memo(function ComparacaoView({
                         // A estrutura retornada é { semana, utr: { geral: { utr: ... }, por_praca: [...], ... } }
                         let utrValue = 0;
                         
-                        if (item.utr && typeof item.utr === 'object') {
-                          // Tentar acessar utr.geral.utr (estrutura correta)
-                          if (item.utr.geral && typeof item.utr.geral === 'object') {
+                        if (item.utr) {
+                          // Acessar utr.geral.utr (estrutura correta do tipo UtrData)
+                          if (item.utr.geral && typeof item.utr.geral === 'object' && 'utr' in item.utr.geral) {
                             utrValue = item.utr.geral.utr ?? 0;
                           }
-                          // Fallback para outras estruturas possíveis
-                          else if (item.utr.utr_geral !== undefined) {
-                            utrValue = item.utr.utr_geral;
-                          }
-                          else if (item.utr.utr !== undefined) {
-                            utrValue = item.utr.utr;
-                          }
-                        } else if (typeof item.utr === 'number') {
-                          utrValue = item.utr;
                         }
                         
                         safeLog.info(`📊 UTR Semana ${item.semana}:`, { utr: utrValue });
