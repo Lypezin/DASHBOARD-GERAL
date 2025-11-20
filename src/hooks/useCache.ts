@@ -10,7 +10,7 @@ import { CACHE } from '@/constants/config';
 interface UseCacheOptions<T> {
   /** TTL do cache em milissegundos (padrão: CACHE.TAB_DATA_TTL) */
   ttl?: number;
-  /** Função para gerar chave de cache */
+  /** Função para gerar chaves de cache */
   getCacheKey: (params: any) => string;
 }
 
@@ -27,11 +27,11 @@ export function useCache<T>(options: UseCacheOptions<T>) {
   const getCached = (params: any): T | null => {
     const key = getCacheKey(params);
     const cached = cacheRef.current.get(key);
-    
+
     if (cached && isCacheValid(cached, ttl)) {
       return cached.data;
     }
-    
+
     return null;
   };
 
