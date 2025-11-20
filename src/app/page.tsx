@@ -109,16 +109,16 @@ export default function DashboardPage() {
     fetchUserProfile: true,
   });
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  const [filters, setFilters] = useState<Filters>({ 
-    ano: null, 
-    semana: null, 
-    praca: null, 
-    subPraca: null, 
-    origem: null, 
-    turno: null, 
-    subPracas: [], 
-    origens: [], 
-    turnos: [], 
+  const [filters, setFilters] = useState<Filters>({
+    ano: null,
+    semana: null,
+    praca: null,
+    subPraca: null,
+    origem: null,
+    turno: null,
+    subPracas: [],
+    origens: [],
+    turnos: [],
     semanas: [],
     filtroModo: 'ano_semana',
     dataInicial: null,
@@ -198,7 +198,7 @@ export default function DashboardPage() {
       throw error;
     }
   }, [filters, currentUser]);
-  
+
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
   // Mapeia os dados do useTabData para as props dos componentes de view
@@ -206,11 +206,11 @@ export default function DashboardPage() {
   const utrData = useMemo(() => {
     return activeTab === 'utr' ? (tabData as UtrData) : null;
   }, [activeTab, tabData]);
-  
+
   const entregadoresData = useMemo(() => {
     return activeTab === 'entregadores' ? (tabData as EntregadoresData) : null;
   }, [activeTab, tabData]);
-  
+
   const valoresData = useMemo(() => {
     if (activeTab !== 'valores') return [];
     if (!tabData) return [];
@@ -221,11 +221,11 @@ export default function DashboardPage() {
     // Se não é array e não é null, não deve acontecer para valores, mas retornar array vazio por segurança
     return [];
   }, [activeTab, tabData]);
-  
+
   const prioridadeData = useMemo(() => {
     return activeTab === 'prioridade' ? (tabData as EntregadoresData) : null;
   }, [activeTab, tabData]);
-  
+
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
 
   // Ajustar automaticamente o ano da evolução para o mais recente disponível quando o atual não existir
@@ -245,7 +245,7 @@ export default function DashboardPage() {
   const tabChangeTimeoutRef2 = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (!currentUser) return; // Só registrar se houver usuário autenticado
-    
+
     // Limpar timeout anterior se existir (debounce)
     if (tabChangeTimeoutRef2.current) {
       clearTimeout(tabChangeTimeoutRef2.current);
@@ -255,7 +255,7 @@ export default function DashboardPage() {
     tabChangeTimeoutRef2.current = setTimeout(() => {
       registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
     }, DELAYS.TAB_CHANGE);
-    
+
     return () => {
       if (tabChangeTimeoutRef2.current) {
         clearTimeout(tabChangeTimeoutRef2.current);
@@ -294,7 +294,7 @@ export default function DashboardPage() {
   // Memoizar handlers de tabs para evitar re-renders e adicionar proteção contra cliques rápidos
   const handleTabChange = useCallback((tab: TabType) => {
     // Se já está mudando de tab ou é a mesma tab, ignorar
-    if (tabChangeRef.current || currentTabRef.current === tab) {
+    if (/*tabChangeRef.current ||*/ currentTabRef.current === tab) {
       return;
     }
 
@@ -367,10 +367,10 @@ export default function DashboardPage() {
             {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
               <div className="relative group" style={{ zIndex: 1 }}>
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
+
                 <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-6 sm:p-8 backdrop-blur-sm" style={{ overflow: 'visible' }}>
                   <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl pointer-events-none"></div>
-                  
+
                   <div className="relative" style={{ zIndex: 1 }}>
                     <FiltroBar
                       filters={filters}
@@ -424,7 +424,7 @@ export default function DashboardPage() {
                       />
                     )}
                     {activeTab === 'analise' && totals && (
-                      <AnaliseView 
+                      <AnaliseView
                         totals={totals}
                         aderenciaDia={aderenciaDia}
                         aderenciaTurno={aderenciaTurno}
@@ -438,28 +438,28 @@ export default function DashboardPage() {
                         loading={loadingTabData}
                       />
                     )}
-                    
+
                     {activeTab === 'entregadores' && (
                       <EntregadoresMainView
                         entregadoresData={entregadoresData}
                         loading={loadingTabData}
                       />
                     )}
-                    
+
                     {activeTab === 'valores' && (
                       <ValoresView
                         valoresData={valoresData}
                         loading={loadingTabData}
                       />
                     )}
-                    
+
                     {activeTab === 'prioridade' && (
                       <PrioridadePromoView
                         entregadoresData={prioridadeData}
                         loading={loadingTabData}
                       />
                     )}
-                    
+
                     {activeTab === 'evolucao' && (
                       <EvolucaoView
                         evolucaoMensal={evolucaoMensal}
