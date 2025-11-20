@@ -78,7 +78,7 @@ export function useTabData(
       const queueKey = `${tab}-${JSON.stringify(filterPayload)}`;
       const queueEntry = requestQueue.get(queueKey);
       const now = Date.now();
-      
+
       if (queueEntry && (now - queueEntry.timestamp) < RATE_LIMIT.MIN_REQUEST_INTERVAL) {
         if (IS_DEV) {
           safeLog.warn(`Rate limit local: requisição muito recente para ${tab}, ignorando...`);
@@ -88,7 +88,7 @@ export function useTabData(
 
       // Registrar requisição na fila
       requestQueue.set(queueKey, { timestamp: now, count: (queueEntry?.count || 0) + 1 });
-      
+
       // Limpar entradas antigas da fila
       let cleanedCount = 0;
       for (const [key, entry] of requestQueue.entries()) {
@@ -106,7 +106,7 @@ export function useTabData(
           isRequestPendingRef.current = false;
           return;
         }
-        const cachedData = tab === 'valores' 
+        const cachedData = tab === 'valores'
           ? (Array.isArray(cached) ? cached : [])
           : cached;
         setData(cachedData);
@@ -128,16 +128,16 @@ export function useTabData(
           if (currentTabRef.current !== tab) {
             return;
           }
-          
+
           // Processar dados para valores
-          const processedData = tab === 'valores' 
+          const processedData = tab === 'valores'
             ? (Array.isArray(fetchedData) ? fetchedData : [])
             : fetchedData;
-          
+
           setData(processedData);
           setCached({ tab, filterPayload }, processedData);
           isRequestPendingRef.current = false;
-          
+
           if (IS_DEV) {
             safeLog.info(`✅ Dados carregados para tab ${tab}:`, processedData);
           }
@@ -146,21 +146,24 @@ export function useTabData(
           if (currentTabRef.current !== tab) {
             return;
           }
-          
+
           // Tratar erro baseado no tipo de tab
-          if (tab === 'entregadores' || tab === 'prioridade') {
-            setData({ entregadores: [], total: 0 });
-          } else if (tab === 'valores') {
-            setData([]);
-          } else {
-            setData(null);
-          }
-          
-          isRequestPendingRef.current = false;
-          
           if (IS_DEV) {
             safeLog.error(`❌ Erro ao carregar dados para tab ${tab}:`, error);
           }
+
+          if (tab === 'entregadores' || tab === 'prioridade') {
+            if (IS_DEV) safeLog.info(`[useTabData] Definindo dados vazios para ${tab} após erro`);
+            setData({ entregadores: [], total: 0 });
+          } else if (tab === 'valores') {
+            if (IS_DEV) safeLog.info(`[useTabData] Definindo array vazio para ${tab} após erro`);
+            setData([]);
+          } else {
+            if (IS_DEV) safeLog.info(`[useTabData] Definindo null para ${tab} após erro`);
+            setData(null);
+          }
+
+          isRequestPendingRef.current = false;
         },
         () => currentTabRef.current === tab
       );
@@ -179,8 +182,14 @@ export function useTabData(
         clearTimeout(debounceTimeoutRef.current);
       }
       cancel();
+      isRequestPendingRef.current = false;
     };
   }, [activeTab, filterPayload, getCached, setCached, fetchWithRetry, cancel]);
+
+  // Resetar dados quando a tab mudar para evitar stale data
+  useEffect(() => {
+    setData(null);
+  }, [activeTab]);
 
   return {
     data,

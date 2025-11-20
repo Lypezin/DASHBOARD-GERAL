@@ -65,7 +65,7 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
   };
 
   const result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
-    timeout: RPC_TIMEOUTS.FAST,
+    timeout: RPC_TIMEOUTS.LONG,
     validateParams: false
   });
 
@@ -125,7 +125,7 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
   };
 
   const result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
-    timeout: RPC_TIMEOUTS.FAST,
+    timeout: RPC_TIMEOUTS.LONG,
     validateParams: false
   });
 
