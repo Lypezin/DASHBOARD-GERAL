@@ -44,56 +44,40 @@ export function useTabData(
     currentTabRef.current = activeTab;
   }, [activeTab]);
 
+  // Usar useRef para armazenar o filterPayload e evitar recriações
+  const filterPayloadRef = useRef<string>('');
+  
   useEffect(() => {
     // Atualizar ref da tab imediatamente
     const previousTab = currentTabRef.current;
     currentTabRef.current = activeTab;
     
-    // Verificar se o filterPayload realmente mudou
+    // Verificar se o filterPayload realmente mudou usando string comparison
     const currentFilterPayloadStr = JSON.stringify(filterPayload);
-    const filterPayloadChanged = lastFilterPayloadRef.current !== currentFilterPayloadStr;
+    const filterPayloadChanged = filterPayloadRef.current !== currentFilterPayloadStr;
     const tabChanged = previousTab !== activeTab;
     
-    console.log(`🎯 [useTabData] useEffect disparado`, {
-      activeTab,
-      previousTab,
-      tabChanged,
-      filterPayloadChanged,
-      filterPayloadStr: currentFilterPayloadStr.substring(0, 80),
-      hasPendingTimeout: !!debounceTimeoutRef.current,
-      isRequestPending: isRequestPendingRef.current
-    });
-
-    // Se nada mudou, não fazer nada
+    // Se nada mudou, não fazer nada (evitar loop infinito)
     if (!tabChanged && !filterPayloadChanged) {
-      console.log(`⏭️ [useTabData] Nada mudou. Ignorando.`);
-      return;
+      return; // Removido log para evitar spam
     }
 
-    // Atualizar referência do payload
+    // Atualizar referências
+    filterPayloadRef.current = currentFilterPayloadStr;
     lastFilterPayloadRef.current = currentFilterPayloadStr;
 
     // Limpar timeout anterior APENAS se algo realmente mudou
     if (debounceTimeoutRef.current) {
-      console.log(`⏱️ [useTabData] Limpando timeout anterior (tab ou payload mudou)`);
       clearTimeout(debounceTimeoutRef.current);
       debounceTimeoutRef.current = null;
     }
 
     // Cancelar requisição anterior apenas se a tab mudou
     if (tabChanged) {
-      console.log(`🚫 [useTabData] Cancelando requisição anterior (tab mudou)`);
       cancel();
     }
 
-    console.log(`📋 [useTabData] Preparando fetch para tab: "${activeTab}"`, {
-      filterPayloadChanged,
-      tabChanged,
-      debounceDelay: DELAYS.DEBOUNCE
-    });
-
     const fetchDataForTab = async (tab: string) => {
-      console.log(`🚀 [useTabData] fetchDataForTab chamado para tab: "${tab}"`);
       // Verificar se a tab ainda é a mesma
       if (currentTabRef.current !== tab) {
         isRequestPendingRef.current = false;
@@ -102,21 +86,15 @@ export function useTabData(
 
       // Verificar se já há uma requisição pendente
       if (isRequestPendingRef.current) {
-        if (IS_DEV) {
-          safeLog.warn(`Requisição já pendente para tab ${tab}, ignorando...`);
-        }
         return;
       }
 
       // Verificar rate limiting local
-      const queueKey = `${tab}-${JSON.stringify(filterPayload)}`;
+      const queueKey = `${tab}-${filterPayloadRef.current}`;
       const queueEntry = requestQueue.get(queueKey);
       const now = Date.now();
 
       if (queueEntry && (now - queueEntry.timestamp) < RATE_LIMIT.MIN_REQUEST_INTERVAL) {
-        if (IS_DEV) {
-          safeLog.warn(`Rate limit local: requisição muito recente para ${tab}, ignorando...`);
-        }
         return;
       }
 
@@ -133,8 +111,9 @@ export function useTabData(
         }
       }
 
-      // Verificar cache
-      const cached = getCached({ tab, filterPayload });
+      // Verificar cache usando o payload atual
+      const currentPayload = JSON.parse(filterPayloadRef.current);
+      const cached = getCached({ tab, filterPayload: currentPayload });
       if (cached !== null) {
         if (currentTabRef.current !== tab) {
           isRequestPendingRef.current = false;
@@ -144,9 +123,6 @@ export function useTabData(
           ? (Array.isArray(cached) ? cached : [])
           : cached;
         setData(cachedData);
-        if (IS_DEV && tab === 'valores') {
-          safeLog.info('📦 Dados carregados do cache (valores):', Array.isArray(cachedData) ? cachedData.length : 0);
-        }
         isRequestPendingRef.current = false;
         return;
       }
@@ -155,20 +131,11 @@ export function useTabData(
       isRequestPendingRef.current = true;
 
       // Buscar dados com retry automático
-      console.log(`🔄 [useTabData] Iniciando fetchWithRetry para tab: "${tab}"`);
       await fetchWithRetry(
         tab,
-        filterPayload,
+        currentPayload,
         (fetchedData) => {
-          console.log(`📥 [useTabData] Callback onSuccess chamado para tab: "${tab}"`, {
-            hasData: !!fetchedData,
-            dataType: typeof fetchedData,
-            isArray: Array.isArray(fetchedData),
-            dataKeys: fetchedData && typeof fetchedData === 'object' && !Array.isArray(fetchedData) ? Object.keys(fetchedData) : null
-          });
-
           if (currentTabRef.current !== tab) {
-            console.log(`⚠️ [useTabData] Tab mudou durante fetch. Ignorando dados.`);
             return;
           }
 
@@ -177,31 +144,16 @@ export function useTabData(
             ? (Array.isArray(fetchedData) ? fetchedData : [])
             : fetchedData;
 
-          console.log(`✅ [useTabData] Definindo dados para tab "${tab}":`, {
-            processedDataType: typeof processedData,
-            isArray: Array.isArray(processedData),
-            length: Array.isArray(processedData) ? processedData.length : null,
-            keys: processedData && typeof processedData === 'object' && !Array.isArray(processedData) ? Object.keys(processedData) : null
-          });
-
           setData(processedData);
-          setCached({ tab, filterPayload }, processedData);
+          setCached({ tab, filterPayload: currentPayload }, processedData);
           isRequestPendingRef.current = false;
-
-          if (IS_DEV) {
-            safeLog.info(`✅ Dados carregados para tab ${tab}:`, processedData);
-          }
         },
         (error) => {
-          console.error(`❌ [useTabData] Callback onError chamado para tab: "${tab}"`, error);
-          
           if (currentTabRef.current !== tab) {
-            console.log(`⚠️ [useTabData] Tab mudou durante erro. Ignorando.`);
             return;
           }
 
           // Tratar erro baseado no tipo de tab
-          console.error(`❌ [useTabData] Erro ao carregar dados para tab "${tab}":`, error);
           if (IS_DEV) {
             safeLog.error(`❌ Erro ao carregar dados para tab ${tab}:`, error);
           }
@@ -224,17 +176,14 @@ export function useTabData(
     };
 
     // Debounce para evitar múltiplas chamadas
-    // IMPORTANTE: Capturar o valor atual da tab para usar no timeout
+    // IMPORTANTE: Capturar o valor atual da tab e payload para usar no timeout
     const tabToFetch = activeTab;
-    console.log(`⏳ [useTabData] Agendando fetch com debounce de ${DELAYS.DEBOUNCE}ms para tab: "${tabToFetch}"`);
+    const payloadToFetch = currentFilterPayloadStr;
     
     debounceTimeoutRef.current = setTimeout(() => {
-      console.log(`⏰ [useTabData] Debounce expirado. Verificando se tab ainda é "${tabToFetch}" (current: "${currentTabRef.current}")`);
-      if (currentTabRef.current === tabToFetch) {
-        console.log(`✅ [useTabData] Tab ainda é a mesma. Executando fetchDataForTab`);
+      // Verificar se a tab e payload ainda são os mesmos
+      if (currentTabRef.current === tabToFetch && filterPayloadRef.current === payloadToFetch) {
         fetchDataForTab(tabToFetch);
-      } else {
-        console.log(`⚠️ [useTabData] Tab mudou durante debounce (era "${tabToFetch}", agora é "${currentTabRef.current}"). Ignorando fetch.`);
       }
     }, DELAYS.DEBOUNCE);
 
@@ -246,7 +195,10 @@ export function useTabData(
       cancel();
       isRequestPendingRef.current = false;
     };
-  }, [activeTab, filterPayload, getCached, setCached, fetchWithRetry, cancel]);
+    // IMPORTANTE: Usar apenas activeTab e filterPayload como dependências
+    // As funções (getCached, setCached, fetchWithRetry, cancel) são estáveis
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, JSON.stringify(filterPayload)]);
 
   // Resetar dados quando a tab mudar para evitar stale data
   useEffect(() => {
