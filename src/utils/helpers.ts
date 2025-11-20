@@ -1,5 +1,6 @@
 import { Filters, CurrentUser, hasFullCityAccess } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
+import { LIMITS, VALIDATION } from '@/constants/config';
 
 /**
  * Converte um valor para número de forma segura
@@ -91,7 +92,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     safeLog.error('[buildFilterPayload] Erro ao logar filters:', error);
   }
 
-  const MAX_ARRAY_SIZE = 50;
+  const MAX_ARRAY_SIZE = LIMITS.MAX_ARRAY_SIZE;
   
   let subPraca: string | null = null;
   if (filters.subPracas && filters.subPracas.length > 0) {
@@ -128,7 +129,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   }
 
   let ano: number | null = filters.ano;
-  if (ano !== null && (Number.isNaN(ano) || ano < 2000 || ano > 2100)) {
+  if (ano !== null && (Number.isNaN(ano) || ano < VALIDATION.MIN_YEAR || ano > VALIDATION.MAX_YEAR)) {
     ano = null;
   }
 
@@ -137,8 +138,8 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   if (praca === '' || (praca && praca.trim() === '')) {
     praca = null;
   }
-  if (praca && praca.length > 100) {
-    praca = praca.substring(0, 100);
+  if (praca && praca.length > LIMITS.MAX_PRACA_LENGTH) {
+    praca = praca.substring(0, LIMITS.MAX_PRACA_LENGTH);
   }
 
   // Aplicar permissões: se não for admin nem marketing, forçar as praças atribuídas
@@ -210,7 +211,10 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     // Se não houver ano e não estiver em modo intervalo, usar ano atual como padrão
     // Isso evita que a função seja chamada sem filtros e cause timeout
     if (ano === null && !dataInicial && !dataFinal) {
-      ano = new Date().getFullYear();
+      const currentYear = new Date().getFullYear();
+      ano = currentYear >= VALIDATION.MIN_YEAR && currentYear <= VALIDATION.MAX_YEAR 
+        ? currentYear 
+        : VALIDATION.MAX_YEAR;
     }
   }
 

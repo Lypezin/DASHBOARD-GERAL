@@ -2,12 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { is500Error, isRateLimitError } from '@/lib/rpcErrorHandler';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
 import { CacheEntry, isCacheValid, createCacheEntry } from '@/types/cache';
 
+import { CACHE, DELAYS, RPC_TIMEOUTS, RATE_LIMIT } from '@/constants/config';
+
 const IS_DEV = process.env.NODE_ENV === 'development';
-const CACHE_TTL = 180000; // 180 segundos (cache mais agressivo para melhor performance)
-const DEBOUNCE_MS = 100; // Debounce fixo de 100ms (igual ao Dashboard para consistência)
+const CACHE_TTL = CACHE.TAB_DATA_TTL;
+const DEBOUNCE_MS = DELAYS.DEBOUNCE;
 
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 
@@ -87,8 +90,8 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       const queueEntry = requestQueue.get(queueKey);
       const now = Date.now();
       
-      // Apenas bloquear se houve requisição muito recente (menos de 300ms) para a mesma tab e payload
-      if (queueEntry && (now - queueEntry.timestamp) < 300) {
+      // Apenas bloquear se houve requisição muito recente para a mesma tab e payload
+      if (queueEntry && (now - queueEntry.timestamp) < RATE_LIMIT.MIN_REQUEST_INTERVAL) {
         if (IS_DEV) {
           safeLog.warn(`Rate limit local: requisição muito recente para ${tab}, ignorando...`);
         }
@@ -98,13 +101,12 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       // Registrar requisição na fila
       requestQueue.set(queueKey, { timestamp: now, count: (queueEntry?.count || 0) + 1 });
       
-      // Limpar entradas antigas da fila (mais de 3 segundos)
+      // Limpar entradas antigas da fila
       // Otimizar: limitar iterações para evitar travamentos com filas muito grandes
       let cleanedCount = 0;
-      const maxCleanup = 50; // Limitar limpeza para evitar travamentos
       for (const [key, entry] of requestQueue.entries()) {
-        if (cleanedCount >= maxCleanup) break; // Parar após limpar muitas entradas
-        if (now - entry.timestamp > 3000) {
+        if (cleanedCount >= RATE_LIMIT.MAX_CLEANUP_ENTRIES) break; // Parar após limpar muitas entradas
+        if (now - entry.timestamp > RATE_LIMIT.QUEUE_CLEANUP_INTERVAL) {
           requestQueue.delete(key);
           cleanedCount++;
         }
@@ -169,7 +171,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         switch (tab) {
           case 'utr':
             result = await safeRpc<UtrData>('calcular_utr', filterPayload as any, {
-              timeout: 30000,
+              timeout: RPC_TIMEOUTS.DEFAULT,
               validateParams: true
             });
             
@@ -195,7 +197,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             const { p_ano, p_semana, p_praca, p_sub_praca, p_origem, p_data_inicial, p_data_final } = filterPayload as any;
             const listarEntregadoresPayload = { p_ano, p_semana, p_praca, p_sub_praca, p_origem, p_data_inicial, p_data_final };
             result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
-              timeout: 10000, // Reduzido para 10s (queries devem ser mais rápidas com otimizações)
+              timeout: RPC_TIMEOUTS.FAST,
               validateParams: false // Desabilitar validação para evitar problemas
             });
             
@@ -213,13 +215,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
               return;
             }
             
-            // Verificar se é erro 500 (erro do servidor) e tratar adequadamente
+            // Verificar se é erro 500 ou rate limit e tratar adequadamente
             if (result?.error) {
-              const errorCode = (result.error as any)?.code || '';
-              const errorMessage = String((result.error as any)?.message || '');
-              const is500 = errorCode === 'PGRST301' || 
-                           errorMessage.includes('500') || 
-                           errorMessage.includes('Internal Server Error');
+              const is500 = is500Error(result.error);
+              const isRateLimit = isRateLimitError(result.error);
               
               if (is500) {
                 // Erro 500: aguardar um pouco antes de tentar novamente
@@ -232,14 +231,9 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                   if (currentTabRef.current === tab && !abortController.signal.aborted) {
                     fetchDataForTab(tab);
                   }
-                }, 3000); // 3 segundos para dar tempo ao servidor
+                }, DELAYS.RETRY_ENTREGADORES);
                 return;
               }
-              
-              // Verificar se é rate limit
-              const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
-                                 errorMessage.includes('rate limit') ||
-                                 errorMessage.includes('429');
               
               if (isRateLimit) {
                 safeLog.warn('Rate limit ao buscar entregadores. Aguardando...');
@@ -251,7 +245,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                     isRequestPendingRef.current = false; // Garantir que não está pendente
                     fetchDataForTab(tab);
                   }
-                }, 5000);
+                }, DELAYS.RETRY_RATE_LIMIT);
                 return;
               }
               
@@ -300,7 +294,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
             // Log removido em produção para melhor performance
             
             result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
-              timeout: 10000, // Reduzido para 10s (queries devem ser mais rápidas com otimizações)
+              timeout: RPC_TIMEOUTS.FAST,
               validateParams: false // Desabilitar validação para evitar problemas
             });
             
@@ -318,13 +312,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
               return;
             }
             
-            // Verificar se é erro 500 (erro do servidor) e tratar adequadamente
+            // Verificar se é erro 500 ou rate limit e tratar adequadamente
             if (result?.error) {
-              const errorCode = (result.error as any)?.code || '';
-              const errorMessage = String((result.error as any)?.message || '');
-              const is500 = errorCode === 'PGRST301' || 
-                           errorMessage.includes('500') || 
-                           errorMessage.includes('Internal Server Error');
+              const is500 = is500Error(result.error);
+              const isRateLimit = isRateLimitError(result.error);
               
               if (is500) {
                 // Erro 500: aguardar um pouco antes de tentar novamente
@@ -338,14 +329,9 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                     isRequestPendingRef.current = false; // Garantir que não está pendente
                     fetchDataForTab(tab);
                   }
-                }, 2000); // 2 segundos para dar tempo ao servidor
+                }, DELAYS.RETRY_500);
                 return;
               }
-              
-              // Verificar se é rate limit
-              const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
-                                 errorMessage.includes('rate limit') ||
-                                 errorMessage.includes('429');
               
               if (isRateLimit) {
                 safeLog.warn('Rate limit ao buscar valores. Aguardando...');
@@ -357,7 +343,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
                     isRequestPendingRef.current = false; // Garantir que não está pendente
                     fetchDataForTab(tab);
                   }
-                }, 5000);
+                }, DELAYS.RETRY_RATE_LIMIT);
                 return;
               }
               
@@ -475,12 +461,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         }
 
         // Verificar se é erro de rate limit
-        const errorCode = (err as any)?.code;
-        const errorMessage = String((err as any)?.message || '');
-        const isRateLimit = errorCode === 'RATE_LIMIT_EXCEEDED' ||
-                           errorMessage.includes('rate limit') ||
-                           errorMessage.includes('too many requests') ||
-                           errorMessage.includes('429');
+        const isRateLimit = isRateLimitError(err);
 
         if (isRateLimit) {
           safeLog.warn(`Rate limit atingido para aba ${tab}. Aguardando...`);
@@ -490,7 +471,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
               isRequestPendingRef.current = false; // Garantir que não está pendente
               fetchDataForTab(tab);
             }
-          }, 5000); // 5 segundos
+          }, DELAYS.RETRY_RATE_LIMIT);
           return;
         }
 

@@ -7,8 +7,10 @@ import { safeLog } from './errorHandler';
 import { rpcRateLimiter } from './rateLimiter';
 import { RpcParams, RpcResult, RpcOptions, RpcError, SanitizedRpcParams } from '@/types/rpc';
 
+import { RPC_TIMEOUTS } from '@/constants/config';
+
 const IS_DEV = process.env.NODE_ENV === 'development';
-const DEFAULT_TIMEOUT = 30000; // 30 segundos
+const DEFAULT_TIMEOUT = RPC_TIMEOUTS.DEFAULT;
 
 /**
  * Executa uma chamada RPC com timeout e validação

@@ -3,14 +3,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
 import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { sanitizeText } from '@/lib/sanitize';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 import FiltroSelect from '@/components/FiltroSelect';
 import FiltroMultiSelect from '@/components/FiltroMultiSelect';
 import FiltroBar from '@/components/FiltroBar';
-import TabButton from '@/components/TabButton';
+import { TabNavigation } from '@/components/TabNavigation';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { registerChartJS } from '@/lib/chartConfig';
 import {
@@ -38,6 +37,7 @@ import {
 } from '@/types';
 import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor } from '@/utils/formatters';
 import { buildFilterPayload, safeNumber, arraysEqual } from '@/utils/helpers';
+import { DELAYS } from '@/constants/config';
 
 // Lazy load de componentes pesados para melhor performance
 // Componentes que usam Chart.js devem ser carregados apenas no cliente (ssr: false)
@@ -87,7 +87,6 @@ import { useTabData } from '@/hooks/useTabData'; // Importa o novo hook
 // Interfaces e Tipos
 // =================================================================================
 
-type TabType = 'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'prioridade' | 'comparacao' | 'marketing';
 
 
 // =================================================================================
@@ -104,8 +103,10 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const { isChecking: isCheckingAuth, isAuthenticated, currentUser: authUser } = useAuthGuard({
+    requireApproval: true,
+    fetchUserProfile: true,
+  });
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [filters, setFilters] = useState<Filters>({ 
     ano: null, 
@@ -138,173 +139,16 @@ export default function DashboardPage() {
     // Executar apenas uma vez no mount inicial para registrar atividade inicial
   }, []); // Apenas no mount inicial
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(authUser || null);
   const [chartReady, setChartReady] = useState(false);
 
-  // Verificar autenticação antes de permitir acesso
+  // Atualizar currentUser quando authUser mudar
   useEffect(() => {
-    const checkAuthentication = async () => {
-      try {
-        // PRIMEIRO: Limpar qualquer sessão inválida do localStorage antes de verificar
-        if (typeof window !== 'undefined') {
-          // Verificar se há tokens antigos que podem estar causando problemas
-          const hasOldTokens = Array.from({ length: localStorage.length }, (_, i) => {
-            const key = localStorage.key(i);
-            return key && (key.startsWith('sb-') || key.includes('supabase'));
-          }).some(Boolean);
-          
-          if (hasOldTokens) {
-            // Verificar se a sessão é válida antes de limpar
-            const { data: { session: testSession } } = await supabase.auth.getSession();
-            if (!testSession || !testSession.user) {
-              // Sessão inválida - limpar tudo
-              if (IS_DEV) {
-                safeLog.warn('[DashboardPage] Limpando sessões inválidas do localStorage');
-              }
-              const keysToRemove: string[] = [];
-              for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
-                  keysToRemove.push(key);
-                }
-              }
-              keysToRemove.forEach(key => localStorage.removeItem(key));
-            }
-          }
-        }
-        
-        // Verificar sessão atual (não apenas getUser, mas também getSession para garantir validade)
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session || !session.user) {
-          // Sem sessão válida - limpar qualquer sessão antiga e redirecionar
-          if (IS_DEV) {
-            safeLog.warn('[DashboardPage] Sem sessão válida, limpando e redirecionando para login');
-          }
-          await supabase.auth.signOut();
-          // Limpar localStorage do Supabase
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('supabase.auth.token');
-            const keysToRemove: string[] = [];
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i);
-              if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
-                keysToRemove.push(key);
-              }
-            }
-            keysToRemove.forEach(key => localStorage.removeItem(key));
-          }
-          router.push('/login');
-          return;
-        }
-        
-        // Verificar se o token da sessão ainda é válido fazendo uma chamada ao servidor
-        try {
-          const { data: { user: verifiedUser }, error: verifyError } = await supabase.auth.getUser();
-          if (verifyError || !verifiedUser) {
-            // Token inválido - limpar e redirecionar
-            if (IS_DEV) {
-              safeLog.warn('[DashboardPage] Token inválido, limpando e redirecionando para login');
-            }
-            await supabase.auth.signOut();
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('supabase.auth.token');
-              const keysToRemove: string[] = [];
-              for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
-                  keysToRemove.push(key);
-                }
-              }
-              keysToRemove.forEach(key => localStorage.removeItem(key));
-            }
-            router.push('/login');
-            return;
-          }
-        } catch (verifyErr) {
-          // Erro ao verificar token - limpar e redirecionar
-          if (IS_DEV) {
-            safeLog.warn('[DashboardPage] Erro ao verificar token, limpando e redirecionando para login:', verifyErr);
-          }
-          await supabase.auth.signOut();
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('supabase.auth.token');
-            const keysToRemove: string[] = [];
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i);
-              if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
-                keysToRemove.push(key);
-              }
-            }
-            keysToRemove.forEach(key => localStorage.removeItem(key));
-          }
-          router.push('/login');
-          return;
-        }
+    if (authUser) {
+      setCurrentUser(authUser);
+    }
+  }, [authUser]);
 
-        // Verificar se o usuário está aprovado
-        try {
-          const { data: profile, error: profileError } = await safeRpc<{ is_approved: boolean }>('get_current_user_profile', {}, {
-            timeout: 10000,
-            validateParams: false
-          });
-
-          if (profileError) {
-            // Erro ao buscar perfil - fazer logout e redirecionar
-            if (IS_DEV) {
-              safeLog.warn('[DashboardPage] Erro ao buscar perfil, fazendo logout:', profileError);
-            }
-            await supabase.auth.signOut();
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('supabase.auth.token');
-            }
-            router.push('/login');
-            return;
-          }
-
-          if (!profile?.is_approved) {
-            // Usuário não aprovado - fazer logout e redirecionar
-            if (IS_DEV) {
-              safeLog.warn('[DashboardPage] Usuário não aprovado, fazendo logout');
-            }
-            await supabase.auth.signOut();
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('supabase.auth.token');
-            }
-            router.push('/login');
-            return;
-          }
-
-          // Usuário autenticado e aprovado
-          setIsAuthenticated(true);
-        } catch (err) {
-          // Erro ao verificar perfil - fazer logout e redirecionar
-          if (IS_DEV) {
-            safeLog.error('[DashboardPage] Erro ao verificar perfil:', err);
-          }
-          await supabase.auth.signOut();
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('supabase.auth.token');
-          }
-          router.push('/login');
-        }
-      } catch (err) {
-        // Erro inesperado - fazer logout e redirecionar
-        if (IS_DEV) {
-          safeLog.error('[DashboardPage] Erro ao verificar autenticação:', err);
-        }
-        await supabase.auth.signOut();
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('supabase.auth.token');
-        }
-        router.push('/login');
-      } finally {
-        setIsCheckingAuth(false);
-      }
-    };
-
-    checkAuthentication();
-  }, [router]);
 
   // Registrar Chart.js apenas no cliente (após montagem)
   useEffect(() => {
@@ -409,7 +253,7 @@ export default function DashboardPage() {
     // Adicionar pequeno delay para evitar race conditions
     tabChangeTimeoutRef2.current = setTimeout(() => {
       registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
-    }, 100); // 100ms de debounce para evitar múltiplas chamadas
+    }, DELAYS.TAB_CHANGE);
     
     return () => {
       if (tabChangeTimeoutRef2.current) {
@@ -420,51 +264,21 @@ export default function DashboardPage() {
     // registrarAtividade é estável e não precisa estar nas dependências
   }, [activeTab, registrarAtividade, filters, currentUser]);
 
-  // Lógica para buscar dados do usuário
-  const verifyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+  // Aplicar filtro automático quando currentUser mudar
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data: profile, error } = await safeRpc<{ is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' }>('get_current_user_profile', {}, {
-          timeout: 10000,
-          validateParams: false
-        });
-      
-      if (error) {
-          if (IS_DEV) safeLog.error('Erro ao buscar perfil do usuário:', error);
-          setCurrentUser(null);
-        return;
-      }
-      
-        if (profile) {
-          setCurrentUser(profile);
-          // Aplicar filtro automático se não for admin nem marketing e tiver apenas uma praça
-          // Marketing tem acesso a todas as cidades, então não precisa aplicar filtro automático
-          if (!hasFullCityAccess(profile) && profile.assigned_pracas.length === 1) {
-            setFilters(prev => {
-              // Só atualizar se ainda não tiver a praça definida
-              if (prev.praca !== profile.assigned_pracas[0]) {
-                return {
-                  ...prev,
-                  praca: profile.assigned_pracas[0]
-                };
-              }
-              return prev;
-            });
-          }
-        } else {
-          setCurrentUser(null);
+    if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length === 1) {
+      setFilters(prev => {
+        // Só atualizar se ainda não tiver a praça definida
+        if (prev.praca !== currentUser.assigned_pracas[0]) {
+          return {
+            ...prev,
+            praca: currentUser.assigned_pracas[0]
+          };
         }
-      } catch (err) {
-        safeLog.error('Erro ao buscar usuário', err);
-        setCurrentUser(null);
-      }
-    };
-
-    fetchUser();
-    
-  }, []);
+        return prev;
+      });
+    }
+  }, [currentUser]);
 
   // Ref para controlar mudanças de tab e evitar race conditions
   const tabChangeRef = useRef(false);
@@ -495,10 +309,9 @@ export default function DashboardPage() {
     setActiveTab(tab);
 
     // Resetar flag após um delay maior para garantir que a renderização anterior terminou
-    // Aumentado para 800ms para dar mais tempo para requisições cancelarem
     tabChangeTimeoutRef.current = setTimeout(() => {
       tabChangeRef.current = false;
-    }, 800);
+    }, DELAYS.TAB_CHANGE_PROTECTION);
   }, []);
 
   // Mostrar loading enquanto verifica autenticação
@@ -575,44 +388,11 @@ export default function DashboardPage() {
             )}
 
             {/* Tabs - Container Separado */}
-            {activeTab !== 'comparacao' && activeTab !== 'marketing' && (
-              <div className="relative group z-0">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-4 sm:p-6 backdrop-blur-sm overflow-hidden">
-                  <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl pointer-events-none"></div>
-                  
-                  <div className="relative flex gap-3 pb-2">
-                    <TabButton label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
-                    <TabButton label="Análise" active={activeTab === 'analise'} onClick={() => handleTabChange('analise')} />
-                    <TabButton label="UTR" active={activeTab === 'utr'} onClick={() => handleTabChange('utr')} />
-                    <TabButton label="Entregadores" active={activeTab === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
-                    <TabButton label="Valores" active={activeTab === 'valores'} onClick={() => handleTabChange('valores')} />
-                    <TabButton label="Prioridade/Promo" active={activeTab === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
-                    <TabButton label="Evolução" active={activeTab === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
-                    <TabButton label="Comparar" active={(activeTab as TabType) === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
-                    <TabButton label="Marketing" active={(activeTab as TabType) === 'marketing'} onClick={() => handleTabChange('marketing')} />
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Tabs apenas para comparacao e marketing */}
-            {(activeTab === 'comparacao' || activeTab === 'marketing') && (
-              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                <div className="flex gap-2 pb-2">
-                  <TabButton label="Dashboard" active={(activeTab as TabType) === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
-                  <TabButton label="Análise" active={(activeTab as TabType) === 'analise'} onClick={() => handleTabChange('analise')} />
-                  <TabButton label="UTR" active={(activeTab as TabType) === 'utr'} onClick={() => handleTabChange('utr')} />
-                  <TabButton label="Entregadores" active={(activeTab as TabType) === 'entregadores'} onClick={() => handleTabChange('entregadores')} />
-                  <TabButton label="Valores" active={(activeTab as TabType) === 'valores'} onClick={() => handleTabChange('valores')} />
-                  <TabButton label="Prioridade/Promo" active={(activeTab as TabType) === 'prioridade'} onClick={() => handleTabChange('prioridade')} />
-                  <TabButton label="Evolução" active={(activeTab as TabType) === 'evolucao'} onClick={() => handleTabChange('evolucao')} />
-                  <TabButton label="Comparar" active={activeTab === 'comparacao'} onClick={() => handleTabChange('comparacao')} />
-                  <TabButton label="Marketing" active={activeTab === 'marketing'} onClick={() => handleTabChange('marketing')} />
-                </div>
-              </div>
-            )}
+            <TabNavigation
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              variant={activeTab === 'comparacao' || activeTab === 'marketing' ? 'compact' : 'default'}
+            />
 
             {/* Conteúdo */}
             <main>

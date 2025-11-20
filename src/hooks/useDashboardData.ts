@@ -10,6 +10,8 @@ import { converterHorasParaDecimal } from '@/utils/formatters';
 import { useDashboardDimensions } from './useDashboardDimensions';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { is500Error } from '@/lib/rpcErrorHandler';
+import { RPC_TIMEOUTS, CACHE, DELAYS, LIMITS } from '@/constants/config';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -97,7 +99,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       setError(null);
       try {
         const { data, error } = await safeRpc<DashboardResumoData>('dashboard_resumo', filterPayload, {
-          timeout: 30000,
+          timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: true
         });
         
@@ -166,15 +168,15 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
             try {
               const [subPracasResult, turnosResult, origensResult] = await Promise.all([
                 safeRpc<Array<{ sub_praca: string }>>('get_subpracas_by_praca', { p_pracas: currentUser.assigned_pracas }, {
-                  timeout: 10000,
+                  timeout: RPC_TIMEOUTS.FAST,
                   validateParams: false
                 }),
                 safeRpc<Array<{ turno: string }>>('get_turnos_by_praca', { p_pracas: currentUser.assigned_pracas }, {
-                  timeout: 10000,
+                  timeout: RPC_TIMEOUTS.FAST,
                   validateParams: false
                 }),
                 safeRpc<Array<{ origem: string }>>('get_origens_by_praca', { p_pracas: currentUser.assigned_pracas }, {
-                  timeout: 10000,
+                  timeout: RPC_TIMEOUTS.FAST,
                   validateParams: false
                 })
               ]);
@@ -273,7 +275,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       } finally {
         setLoading(false);
       }
-    }, 100); // Reduzido de 150ms para 100ms para melhor responsividade
+    }, DELAYS.DEBOUNCE);
 
     return () => {
       if (dashboardDebounceRef.current) clearTimeout(dashboardDebounceRef.current);
@@ -308,7 +310,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       const evolucaoCacheKey = `evolucao-${anoEvolucao}-${pracaFilter || 'all'}`;
       const cached = evolucaoCacheRef.current.get(evolucaoCacheKey);
 
-      if (cached && Date.now() - cached.timestamp < 30000) {
+      if (cached && Date.now() - cached.timestamp < CACHE.EVOLUCAO_TTL) {
         // Verificar se ainda estamos na tab de evolução antes de atualizar
         if (currentEvolucaoTabRef.current === 'evolucao' && !abortController.signal.aborted) {
           setEvolucaoMensal(cached.mensal);
@@ -328,11 +330,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       try {
         const [mensalRes, semanalRes] = await Promise.all([
           safeRpc<EvolucaoMensal[]>('listar_evolucao_mensal', { p_praca: pracaFilter, p_ano: anoEvolucao }, {
-            timeout: 20000, // Reduzido para 20s
+            timeout: RPC_TIMEOUTS.MEDIUM,
             validateParams: false // Desabilitar validação para evitar problemas
           }),
           safeRpc<EvolucaoSemanal[]>('listar_evolucao_semanal', { p_praca: pracaFilter || null, p_ano: anoEvolucao, p_limite_semanas: 60 }, {
-            timeout: 20000, // Reduzido para 20s
+            timeout: RPC_TIMEOUTS.MEDIUM,
             validateParams: false // Desabilitar validação para evitar problemas
           })
         ]);
@@ -344,9 +346,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
 
         // Tratar erros silenciosamente
         if (mensalRes.error) {
-          const errorCode = (mensalRes.error as any)?.code || '';
-          const errorMessage = String((mensalRes.error as any)?.message || '');
-          const is500 = errorCode === 'PGRST301' || errorMessage.includes('500');
+          const is500 = is500Error(mensalRes.error);
           if (is500 && IS_DEV) {
             safeLog.warn('Erro 500 ao carregar evolução mensal (ignorado):', mensalRes.error);
           } else if (!is500) {
@@ -355,9 +355,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         }
         
         if (semanalRes.error) {
-          const errorCode = (semanalRes.error as any)?.code || '';
-          const errorMessage = String((semanalRes.error as any)?.message || '');
-          const is500 = errorCode === 'PGRST301' || errorMessage.includes('500');
+          const is500 = is500Error(semanalRes.error);
           if (is500 && IS_DEV) {
             safeLog.warn('Erro 500 ao carregar evolução semanal (ignorado):', semanalRes.error);
           } else if (!is500) {
@@ -404,7 +402,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
         if (currentEvolucaoTabRef.current === 'evolucao') {
           fetchEvolucaoData();
         }
-      }, 300);
+      }, DELAYS.EVOLUCAO);
       
       return () => {
         clearTimeout(timeoutId);

@@ -16,11 +16,8 @@ import {
   BATCH_SIZE,
   MAX_FILES,
 } from '@/constants/upload';
-import {
-  convertDDMMYYYYToDate,
-} from '@/utils/uploadHelpers';
-import * as XLSX from 'xlsx';
-import { validateString } from '@/lib/validate';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { marketingTransformers, valoresCidadeTransformers } from '@/utils/uploadTransformers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -30,18 +27,36 @@ export default function UploadPage() {
   const [marketingFiles, setMarketingFiles] = useState<File[]>([]);
   const [valoresCidadeFiles, setValoresCidadeFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadingMarketing, setUploadingMarketing] = useState(false);
-  const [uploadingValoresCidade, setUploadingValoresCidade] = useState(false);
   const [message, setMessage] = useState('');
-  const [marketingMessage, setMarketingMessage] = useState('');
-  const [valoresCidadeMessage, setValoresCidadeMessage] = useState('');
   const [progress, setProgress] = useState(0);
-  const [marketingProgress, setMarketingProgress] = useState(0);
-  const [valoresCidadeProgress, setValoresCidadeProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
-  const [marketingProgressLabel, setMarketingProgressLabel] = useState('');
-  const [valoresCidadeProgressLabel, setValoresCidadeProgressLabel] = useState('');
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
+
+  // Hook genérico para upload de Marketing
+  const marketingUpload = useFileUpload({
+    tableName: 'dados_marketing',
+    excelConfig: {
+      columnMap: MARKETING_COLUMN_MAP,
+      transformers: marketingTransformers,
+      requiredFields: [],
+      filterEmptyRows: true,
+    },
+    overwrite: true,
+    deleteRpcFunction: 'delete_all_dados_marketing',
+  });
+
+  // Hook genérico para upload de Valores por Cidade
+  const valoresCidadeUpload = useFileUpload({
+    tableName: 'dados_valores_cidade',
+    excelConfig: {
+      columnMap: VALORES_CIDADE_COLUMN_MAP,
+      transformers: valoresCidadeTransformers,
+      requiredFields: ['data', 'id_atendente', 'cidade', 'valor'],
+      filterEmptyRows: true,
+    },
+    overwrite: true,
+    deleteRpcFunction: 'delete_all_dados_valores_cidade',
+  });
 
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,702 +259,20 @@ export default function UploadPage() {
   };
 
   const handleMarketingUpload = async () => {
-    if (marketingFiles.length === 0) {
-      setMarketingMessage('Por favor, selecione pelo menos um arquivo.');
-      return;
-    }
-
-    // Verificar rate limiting
-    const rateLimit = uploadRateLimiter();
-    if (!rateLimit.allowed) {
-      const waitTime = Math.ceil((rateLimit.resetTime - Date.now()) / 1000 / 60);
-      setMarketingMessage(`⚠️ Muitos uploads recentes. Aguarde ${waitTime} minuto(s) antes de tentar novamente.`);
-      return;
-    }
-
-    setUploadingMarketing(true);
-    setMarketingMessage('');
-    setMarketingProgress(0);
-    setMarketingProgressLabel('Iniciando upload...');
-
-    const totalFiles = marketingFiles.length;
-    let successCount = 0;
-    let errorCount = 0;
-    let totalInsertedRows = 0;
-    let lastError: string = '';
-
-    try {
-      // PASSO 1: Deletar todos os registros existentes (sobrescrita)
-      setMarketingProgressLabel('Removendo dados antigos...');
-      setMarketingProgress(5);
-      
-      try {
-        // Usar função RPC para deletar todos os registros de forma eficiente
-        safeLog.info('Iniciando remoção de dados antigos...');
-        
-        const { data: deletedCount, error: rpcError } = await supabase
-          .rpc('delete_all_dados_marketing');
-        
-        if (rpcError) {
-          safeLog.error('Erro ao deletar via RPC:', rpcError);
-          
-          // Fallback: tentar deletar em lotes menores se a função RPC não existir
-          if (rpcError.code === 'PGRST116' || rpcError.message?.includes('function') || rpcError.message?.includes('not found')) {
-            safeLog.info('Função RPC não encontrada, usando fallback de deleção em lotes...');
-            
-            let deletedCount = 0;
-            let hasMore = true;
-            const deleteBatchSize = 500; // Lotes menores para evitar Bad Request
-            
-            while (hasMore) {
-              const { data: batchData, error: fetchError } = await supabase
-                .from('dados_marketing')
-                .select('id')
-                .limit(deleteBatchSize);
-              
-              if (fetchError) {
-                throw new Error(`Erro ao buscar dados: ${fetchError.message}`);
-              }
-              
-              if (!batchData || batchData.length === 0) {
-                hasMore = false;
-                break;
-              }
-              
-              const idsToDelete = batchData.map(item => item.id);
-              safeLog.info(`Deletando lote de ${idsToDelete.length} registros...`);
-              
-              const { error: deleteError } = await supabase
-                .from('dados_marketing')
-                .delete()
-                .in('id', idsToDelete);
-              
-              if (deleteError) {
-                throw new Error(`Erro ao remover dados: ${deleteError.message}`);
-              }
-              
-              deletedCount += idsToDelete.length;
-              safeLog.info(`Lote deletado. Total: ${deletedCount}`);
-              
-              if (batchData.length < deleteBatchSize) {
-                hasMore = false;
-              }
-            }
-            
-            safeLog.info(`✅ Removidos ${deletedCount} registros antigos (fallback)`);
-          } else {
-            throw new Error(`Erro ao remover dados antigos: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}`);
-          }
-        } else {
-          safeLog.info(`✅ Removidos ${deletedCount || 0} registros antigos`);
-        }
-      } catch (deleteErr: any) {
-        safeLog.error('Erro na etapa de remoção:', deleteErr);
-        safeLog.error('Detalhes do erro:', {
-          message: deleteErr.message,
-          code: deleteErr.code,
-          details: deleteErr.details,
-          hint: deleteErr.hint
-        });
-        throw new Error(`Erro ao preparar banco de dados: ${deleteErr.message || deleteErr}`);
-      }
-
-      setMarketingProgress(10);
-      setMarketingProgressLabel('Dados antigos removidos. Processando novos dados...');
-
-      for (let fileIdx = 0; fileIdx < marketingFiles.length; fileIdx++) {
-        const file = marketingFiles[fileIdx];
-        setMarketingProgressLabel(`Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`);
-        safeLog.info(`Iniciando processamento do arquivo: ${file.name}`);
-
-        try {
-          safeLog.info('Lendo arquivo...');
-          const arrayBuffer = await file.arrayBuffer();
-          safeLog.info('Arquivo lido, tamanho:', { size: arrayBuffer.byteLength });
-          
-          safeLog.info('Lendo workbook Excel...');
-          const workbook = XLSX.read(arrayBuffer, { raw: true });
-          safeLog.info('Sheets disponíveis:', { sheets: workbook.SheetNames });
-          
-          if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
-            throw new Error('A planilha não contém nenhuma aba');
-          }
-          
-          const sheetName = workbook.SheetNames[0];
-          safeLog.info('Usando sheet:', { sheetName });
-          
-          const worksheet = workbook.Sheets[sheetName];
-          if (!worksheet) {
-            throw new Error(`A aba "${sheetName}" está vazia ou inválida`);
-          }
-          
-          safeLog.info('Convertendo para JSON...');
-          const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
-          safeLog.info(`Total de linhas lidas: ${rawData.length}`);
-
-          setMarketingProgressLabel('Processando e validando dados...');
-          const fileProgress = 10 + (fileIdx / totalFiles) * 80;
-          setMarketingProgress(fileProgress);
-
-          // Verificar se há dados
-          if (!rawData || rawData.length === 0) {
-            safeLog.error('Planilha vazia ou sem dados');
-            throw new Error('A planilha está vazia ou não contém dados válidos');
-          }
-          
-          if (IS_DEV) {
-            safeLog.info('Primeira linha de exemplo:', rawData[0]);
-          }
-
-          // Verificar colunas disponíveis na planilha
-          const firstRow = rawData[0] as any;
-          const availableColumns = Object.keys(firstRow || {});
-          const requiredColumns = Object.keys(MARKETING_COLUMN_MAP);
-          
-          // Criar mapeamento flexível (case-insensitive, remove espaços extras)
-          const columnMapping: { [key: string]: string } = {};
-          for (const excelCol of requiredColumns) {
-            const normalizedRequired = excelCol.toLowerCase().trim();
-            const foundCol = availableColumns.find(
-              col => col.toLowerCase().trim() === normalizedRequired
-            );
-            if (foundCol) {
-              columnMapping[excelCol] = foundCol;
-            } else {
-              columnMapping[excelCol] = excelCol; // Tentar usar o nome original mesmo assim
-            }
-          }
-          
-          const missingColumns = requiredColumns.filter(col => {
-            const mappedCol = columnMapping[col];
-            return !availableColumns.includes(mappedCol);
-          });
-          
-          if (missingColumns.length > 0) {
-            safeLog.warn('Colunas não encontradas na planilha:', missingColumns);
-            safeLog.info('Colunas disponíveis na planilha:', availableColumns);
-            safeLog.info('Colunas esperadas:', requiredColumns);
-          }
-
-          const sanitizedData = rawData
-            .map((row: any, rowIndex: number) => {
-              try {
-                const sanitized: any = {};
-                
-                for (const excelCol in MARKETING_COLUMN_MAP) {
-                  const dbCol = MARKETING_COLUMN_MAP[excelCol];
-                  // Usar mapeamento flexível para encontrar a coluna
-                  const actualColName = columnMapping[excelCol] || excelCol;
-                  let value = row[actualColName];
-
-                  // Se a coluna não existe na planilha, usar null
-                  if (value === undefined) {
-                    sanitized[dbCol] = null;
-                    continue;
-                  }
-
-                  // Sanitizar strings (exceto datas e rodando, que têm processamento especial)
-                  if (typeof value === 'string' && !dbCol.includes('data') && dbCol !== 'rodando') {
-                    try {
-                      value = validateString(value, 500, dbCol, true);
-                    } catch (e) {
-                      value = String(value).substring(0, 500).replace(/[<>'"]/g, '');
-                    }
-                  }
-
-                  // Converter datas (todas podem ser null)
-                  if (dbCol === 'data_liberacao' || dbCol === 'data_envio' || dbCol === 'rodou_dia') {
-                    const originalValue = value;
-                    value = convertDDMMYYYYToDate(value);
-                    // Se não conseguir converter, usar null (não é obrigatório)
-                    if (!value) {
-                      value = null;
-                      if (IS_DEV && originalValue) {
-                        safeLog.warn(`Não foi possível converter data para ${dbCol}:`, { originalValue, type: typeof originalValue });
-                      }
-                    } else {
-                      if (IS_DEV && rowIndex < 3) {
-                        safeLog.info(`Data convertida ${dbCol}:`, { original: originalValue, converted: value });
-                      }
-                    }
-                  }
-
-                  // Processar "Rodando" - normalizar para "Sim" ou "Não"
-                  if (dbCol === 'rodando') {
-                    if (value && typeof value === 'string') {
-                      const normalized = value.trim().toLowerCase();
-                      if (normalized === 'sim' || normalized === 's' || normalized === 'yes' || normalized === 'y' || normalized === '1' || normalized === 'true') {
-                        value = 'Sim';
-                      } else if (normalized === 'não' || normalized === 'nao' || normalized === 'n' || normalized === 'no' || normalized === '0' || normalized === 'false' || normalized === '') {
-                        value = 'Não';
-                      } else {
-                        // Se não for reconhecido, tentar manter o valor original ou usar null
-                        value = value.trim();
-                        if (value === '') {
-                          value = null;
-                        }
-                      }
-                    } else if (value) {
-                      // Se for número, converter
-                      const numValue = Number(value);
-                      if (numValue === 1 || numValue === 1.0) {
-                        value = 'Sim';
-                      } else if (numValue === 0 || numValue === 0.0) {
-                        value = 'Não';
-                      } else {
-                        value = null;
-                      }
-                    } else {
-                      value = null; // Permitir null
-                    }
-                  }
-
-                  // Processar id_entregador (não obrigatório, pode ser null)
-                  if (dbCol === 'id_entregador') {
-                    if (value && typeof value === 'string') {
-                      value = value.trim();
-                      // Se após trim ficar vazio, usar null
-                      if (value === '') {
-                        value = null;
-                      }
-                    } else if (value) {
-                      value = String(value).trim();
-                    } else {
-                      value = null; // Permitir null
-                    }
-                  }
-
-                  sanitized[dbCol] = value === null || value === undefined || value === '' ? null : value;
-                }
-
-                return sanitized;
-              } catch (rowError: any) {
-                // Capturar erro específico da linha e relançar com contexto
-                throw new Error(`Erro na linha ${rowIndex + 2}: ${rowError.message}`);
-              }
-            })
-            .filter((row: any) => {
-              // Filtrar linhas vazias
-              const hasData = Object.values(row).some((v) => v !== null && v !== undefined && v !== '');
-              return hasData;
-            });
-
-          if (sanitizedData.length === 0) {
-            safeLog.error('Nenhum dado válido após processamento');
-            throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados.');
-          }
-
-          safeLog.info(`Dados sanitizados: ${sanitizedData.length} linhas válidas`);
-          if (IS_DEV) {
-            safeLog.info('Exemplo de dado sanitizado:', sanitizedData[0]);
-          }
-
-          const totalRows = sanitizedData.length;
-          let insertedRows = 0;
-
-          // Inserir em lotes
-          safeLog.info('Iniciando inserção no banco de dados...');
-          for (let i = 0; i < totalRows; i += BATCH_SIZE) {
-            const batch = sanitizedData.slice(i, i + BATCH_SIZE);
-            safeLog.info(`Inserindo lote ${Math.floor(i / BATCH_SIZE) + 1}, ${batch.length} registros`);
-            
-            const { data: insertData, error: batchError } = await supabase
-              .from('dados_marketing')
-              .insert(batch, { count: 'exact' })
-              .select();
-
-            if (batchError) {
-              safeLog.error('Erro ao inserir lote:', batchError);
-              safeLog.error('Detalhes do erro:', {
-                code: batchError.code,
-                message: batchError.message,
-                details: batchError.details,
-                hint: batchError.hint
-              });
-              throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}${batchError.details ? ` (${batchError.details})` : ''}`);
-            }
-
-            insertedRows += batch.length;
-            totalInsertedRows += batch.length;
-            const batchProgress = (insertedRows / totalRows) * (80 / totalFiles);
-            setMarketingProgress(10 + (fileIdx / totalFiles) * 80 + batchProgress);
-            setMarketingProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${totalRows} linhas inseridas`);
-            safeLog.info(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
-          }
-
-          safeLog.info(`Arquivo ${file.name} processado com sucesso: ${insertedRows} registros inseridos`);
-          successCount++;
-        } catch (error: any) {
-          safeLog.error(`❌ ERRO no arquivo ${file.name}:`, error);
-          safeLog.error('Stack trace:', error?.stack);
-          errorCount++;
-          const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
-          lastError = errorMessage;
-          setMarketingMessage(`⚠️ Erro ao processar ${file.name}: ${errorMessage}`);
-          safeLog.error(`Erro no arquivo ${file.name}:`, error);
-        }
-      }
-
-      setMarketingProgress(100);
-      setMarketingProgressLabel('Concluído!');
-
-      if (errorCount === 0) {
-        const successMsg = `✅ Upload concluído com sucesso! ${totalInsertedRows} registro(s) importado(s) de ${successCount} arquivo(s).`;
-        safeLog.info(successMsg);
-        setMarketingMessage(successMsg);
-      } else {
-        const errorMsg = `⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Total: ${totalInsertedRows} registro(s).${lastError ? ` Último erro: ${lastError}` : ''}`;
-        safeLog.error(errorMsg);
-        setMarketingMessage(errorMsg);
-      }
-
+    await marketingUpload.uploadFiles(marketingFiles);
+    if (!marketingUpload.uploading) {
       setMarketingFiles([]);
       const marketingFileInput = document.querySelector('input[type="file"][data-marketing="true"]') as HTMLInputElement;
       if (marketingFileInput) marketingFileInput.value = '';
-    } catch (error: any) {
-      safeLog.error('❌ ERRO GERAL no upload de Marketing:', error);
-      safeLog.error('Stack trace completo:', error?.stack);
-      const errorMsg = `❌ Erro: ${error?.message || error?.toString() || 'Erro desconhecido'}`;
-      setMarketingMessage(errorMsg);
-    } finally {
-      setUploadingMarketing(false);
-      safeLog.info('Upload finalizado');
     }
   };
 
   const handleValoresCidadeUpload = async () => {
-    if (valoresCidadeFiles.length === 0) {
-      setValoresCidadeMessage('Por favor, selecione pelo menos um arquivo.');
-      return;
-    }
-
-    // Verificar rate limiting
-    const rateLimit = uploadRateLimiter();
-    if (!rateLimit.allowed) {
-      const waitTime = Math.ceil((rateLimit.resetTime - Date.now()) / 1000 / 60);
-      setValoresCidadeMessage(`⚠️ Muitos uploads recentes. Aguarde ${waitTime} minuto(s) antes de tentar novamente.`);
-      return;
-    }
-
-    setUploadingValoresCidade(true);
-    setValoresCidadeMessage('');
-    setValoresCidadeProgress(0);
-    setValoresCidadeProgressLabel('Iniciando upload...');
-
-    const totalFiles = valoresCidadeFiles.length;
-    let successCount = 0;
-    let errorCount = 0;
-    let totalInsertedRows = 0;
-    let lastError: string = '';
-
-    try {
-      // PASSO 1: Deletar todos os registros existentes (sobrescrita)
-      setValoresCidadeProgressLabel('Removendo dados antigos...');
-      setValoresCidadeProgress(5);
-      
-      try {
-        safeLog.info('Iniciando remoção de dados antigos...');
-        
-        const { data: deletedCount, error: rpcError } = await supabase
-          .rpc('delete_all_dados_valores_cidade');
-        
-        if (rpcError) {
-          safeLog.error('Erro ao deletar via RPC:', rpcError);
-          
-          // Fallback: tentar deletar em lotes menores se a função RPC não existir ou falhar
-          if (rpcError.code === 'PGRST116' || rpcError.message?.includes('function') || rpcError.message?.includes('not found') || rpcError.message?.includes('WHERE clause')) {
-            safeLog.info('Função RPC não disponível ou bloqueada, usando fallback de deleção em lotes...');
-            
-            let deletedCount = 0;
-            let hasMore = true;
-            const deleteBatchSize = 500;
-            
-            while (hasMore) {
-              const { data: batchData, error: fetchError } = await supabase
-                .from('dados_valores_cidade')
-                .select('id')
-                .limit(deleteBatchSize);
-              
-              if (fetchError) {
-                throw new Error(`Erro ao buscar dados: ${fetchError.message}`);
-              }
-              
-              if (!batchData || batchData.length === 0) {
-                hasMore = false;
-                break;
-              }
-              
-              const idsToDelete = batchData.map(item => item.id);
-              
-              // Garantir que temos IDs para deletar
-              if (idsToDelete.length === 0) {
-                hasMore = false;
-                break;
-              }
-              
-              safeLog.info(`Deletando lote de ${idsToDelete.length} registros...`);
-              
-              const { error: deleteError } = await supabase
-                .from('dados_valores_cidade')
-                .delete()
-                .in('id', idsToDelete);
-              
-              if (deleteError) {
-                throw new Error(`Erro ao remover dados: ${deleteError.message}`);
-              }
-              
-              deletedCount += idsToDelete.length;
-              safeLog.info(`Lote deletado. Total: ${deletedCount}`);
-              
-              if (batchData.length < deleteBatchSize) {
-                hasMore = false;
-              }
-            }
-            
-            safeLog.info(`✅ Removidos ${deletedCount} registros antigos (fallback)`);
-          } else {
-            throw new Error(`Erro ao remover dados antigos: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}`);
-          }
-        } else {
-          safeLog.info(`✅ Removidos ${deletedCount || 0} registros antigos`);
-        }
-      } catch (deleteErr: any) {
-        safeLog.error('Erro na etapa de remoção:', deleteErr);
-        throw new Error(`Erro ao preparar banco de dados: ${deleteErr.message || deleteErr}`);
-      }
-
-      setValoresCidadeProgress(10);
-      setValoresCidadeProgressLabel('Dados antigos removidos. Processando novos dados...');
-
-      for (let fileIdx = 0; fileIdx < valoresCidadeFiles.length; fileIdx++) {
-        const file = valoresCidadeFiles[fileIdx];
-        setValoresCidadeProgressLabel(`Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`);
-        safeLog.info(`Iniciando processamento do arquivo: ${file.name}`);
-
-        try {
-          safeLog.info('Lendo arquivo...');
-          const arrayBuffer = await file.arrayBuffer();
-          safeLog.info('Arquivo lido, tamanho:', { size: arrayBuffer.byteLength });
-          
-          safeLog.info('Lendo workbook Excel...');
-          const workbook = XLSX.read(arrayBuffer, { raw: true });
-          safeLog.info('Sheets disponíveis:', { sheets: workbook.SheetNames });
-          
-          if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
-            throw new Error('A planilha não contém nenhuma aba');
-          }
-          
-          const sheetName = workbook.SheetNames[0];
-          safeLog.info('Usando sheet:', { sheetName });
-          
-          const worksheet = workbook.Sheets[sheetName];
-          if (!worksheet) {
-            throw new Error(`A aba "${sheetName}" está vazia ou inválida`);
-          }
-          
-          safeLog.info('Convertendo para JSON...');
-          const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
-          safeLog.info(`Total de linhas lidas: ${rawData.length}`);
-
-          setValoresCidadeProgressLabel('Processando e validando dados...');
-          const fileProgress = 10 + (fileIdx / totalFiles) * 80;
-          setValoresCidadeProgress(fileProgress);
-
-          // Verificar se há dados
-          if (!rawData || rawData.length === 0) {
-            safeLog.error('Planilha vazia ou sem dados');
-            throw new Error('A planilha está vazia ou não contém dados válidos');
-          }
-          
-          if (IS_DEV) {
-            safeLog.info('Primeira linha de exemplo:', rawData[0]);
-          }
-
-          // Verificar colunas disponíveis na planilha
-          const firstRow = rawData[0] as any;
-          const availableColumns = Object.keys(firstRow || {});
-          const requiredColumns = Object.keys(VALORES_CIDADE_COLUMN_MAP);
-          
-          // Criar mapeamento flexível (case-insensitive, remove espaços extras)
-          const columnMapping: { [key: string]: string } = {};
-          for (const excelCol of requiredColumns) {
-            const normalizedRequired = excelCol.toLowerCase().trim();
-            const foundCol = availableColumns.find(
-              col => col.toLowerCase().trim() === normalizedRequired
-            );
-            if (foundCol) {
-              columnMapping[excelCol] = foundCol;
-            } else {
-              columnMapping[excelCol] = excelCol; // Tentar usar o nome original mesmo assim
-            }
-          }
-          
-          const missingColumns = requiredColumns.filter(col => {
-            const mappedCol = columnMapping[col];
-            return !availableColumns.includes(mappedCol);
-          });
-          
-          if (missingColumns.length > 0) {
-            safeLog.warn('Colunas não encontradas na planilha:', missingColumns);
-            safeLog.info('Colunas disponíveis na planilha:', availableColumns);
-            safeLog.info('Colunas esperadas:', requiredColumns);
-          }
-
-          const sanitizedData = rawData
-            .map((row: any, rowIndex: number) => {
-              try {
-                const sanitized: any = {};
-                
-                for (const excelCol in VALORES_CIDADE_COLUMN_MAP) {
-                  const dbCol = VALORES_CIDADE_COLUMN_MAP[excelCol];
-                  // Usar mapeamento flexível para encontrar a coluna
-                  const actualColName = columnMapping[excelCol] || excelCol;
-                  let value = row[actualColName];
-
-                  // Se a coluna não existe na planilha, usar null
-                  if (value === undefined) {
-                    sanitized[dbCol] = null;
-                    continue;
-                  }
-
-                  // Processar DATA
-                  if (dbCol === 'data') {
-                    const originalValue = value;
-                    value = convertDDMMYYYYToDate(value);
-                    if (!value) {
-                      throw new Error(`Data inválida na linha ${rowIndex + 2}: ${originalValue}`);
-                    }
-                  }
-
-                  // Processar ID (id_atendente)
-                  if (dbCol === 'id_atendente') {
-                    if (value && typeof value === 'string') {
-                      value = value.trim();
-                      if (value === '') {
-                        throw new Error(`ID do atendente vazio na linha ${rowIndex + 2}`);
-                      }
-                    } else if (value) {
-                      value = String(value).trim();
-                    } else {
-                      throw new Error(`ID do atendente inválido na linha ${rowIndex + 2}`);
-                    }
-                  }
-
-                  // Processar CIDADE
-                  if (dbCol === 'cidade') {
-                    if (value && typeof value === 'string') {
-                      value = validateString(value, 200, dbCol, true);
-                    } else if (value) {
-                      value = String(value).trim();
-                    } else {
-                      throw new Error(`Cidade vazia na linha ${rowIndex + 2}`);
-                    }
-                  }
-
-                  // Processar VALOR
-                  if (dbCol === 'valor') {
-                    if (value === null || value === undefined || value === '') {
-                      throw new Error(`Valor vazio na linha ${rowIndex + 2}`);
-                    }
-                    // Converter para número
-                    const numValue = typeof value === 'string' 
-                      ? parseFloat(value.replace(',', '.').replace(/[^\d.-]/g, ''))
-                      : Number(value);
-                    
-                    if (isNaN(numValue)) {
-                      throw new Error(`Valor inválido na linha ${rowIndex + 2}: ${value}`);
-                    }
-                    value = numValue;
-                  }
-
-                  sanitized[dbCol] = value;
-                }
-
-                return sanitized;
-              } catch (rowError: any) {
-                throw new Error(`Erro na linha ${rowIndex + 2}: ${rowError.message}`);
-              }
-            })
-            .filter((row: any) => {
-              // Filtrar linhas vazias
-              const hasData = Object.values(row).some((v) => v !== null && v !== undefined && v !== '');
-              return hasData;
-            });
-
-          if (sanitizedData.length === 0) {
-            safeLog.error('Nenhum dado válido após processamento');
-            throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados.');
-          }
-
-          safeLog.info(`Dados sanitizados: ${sanitizedData.length} linhas válidas`);
-          if (IS_DEV) {
-            safeLog.info('Exemplo de dado sanitizado:', sanitizedData[0]);
-          }
-
-          const totalRows = sanitizedData.length;
-          let insertedRows = 0;
-
-          // Inserir em lotes
-          safeLog.info('Iniciando inserção no banco de dados...');
-          for (let i = 0; i < totalRows; i += BATCH_SIZE) {
-            const batch = sanitizedData.slice(i, i + BATCH_SIZE);
-            safeLog.info(`Inserindo lote ${Math.floor(i / BATCH_SIZE) + 1}, ${batch.length} registros`);
-            
-            const { data: insertData, error: batchError } = await supabase
-              .from('dados_valores_cidade')
-              .insert(batch, { count: 'exact' })
-              .select();
-
-            if (batchError) {
-              safeLog.error('Erro ao inserir lote:', batchError);
-              throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}${batchError.details ? ` (${batchError.details})` : ''}`);
-            }
-
-            insertedRows += batch.length;
-            totalInsertedRows += batch.length;
-            const batchProgress = (insertedRows / totalRows) * (80 / totalFiles);
-            setValoresCidadeProgress(10 + (fileIdx / totalFiles) * 80 + batchProgress);
-            setValoresCidadeProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${totalRows} linhas inseridas`);
-            safeLog.info(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
-          }
-
-          safeLog.info(`Arquivo ${file.name} processado com sucesso: ${insertedRows} registros inseridos`);
-          successCount++;
-        } catch (error: any) {
-          safeLog.error(`❌ ERRO no arquivo ${file.name}:`, error);
-          safeLog.error('Stack trace:', error?.stack);
-          errorCount++;
-          const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
-          lastError = errorMessage;
-          setValoresCidadeMessage(`⚠️ Erro ao processar ${file.name}: ${errorMessage}`);
-          safeLog.error(`Erro no arquivo ${file.name}:`, error);
-        }
-      }
-
-      setValoresCidadeProgress(100);
-      setValoresCidadeProgressLabel('Concluído!');
-
-      if (errorCount === 0) {
-        const successMsg = `✅ Upload concluído com sucesso! ${totalInsertedRows} registro(s) importado(s) de ${successCount} arquivo(s).`;
-        safeLog.info(successMsg);
-        setValoresCidadeMessage(successMsg);
-      } else {
-        const errorMsg = `⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Total: ${totalInsertedRows} registro(s).${lastError ? ` Último erro: ${lastError}` : ''}`;
-        safeLog.error(errorMsg);
-        setValoresCidadeMessage(errorMsg);
-      }
-
+    await valoresCidadeUpload.uploadFiles(valoresCidadeFiles);
+    if (!valoresCidadeUpload.uploading) {
       setValoresCidadeFiles([]);
       const valoresCidadeFileInput = document.querySelector('input[type="file"][data-valores-cidade="true"]') as HTMLInputElement;
       if (valoresCidadeFileInput) valoresCidadeFileInput.value = '';
-    } catch (error: any) {
-      safeLog.error('❌ ERRO GERAL no upload de Valores por Cidade:', error);
-      safeLog.error('Stack trace completo:', error?.stack);
-      const errorMsg = `❌ Erro: ${error?.message || error?.toString() || 'Erro desconhecido'}`;
-      setValoresCidadeMessage(errorMsg);
-    } finally {
-      setUploadingValoresCidade(false);
-      safeLog.info('Upload finalizado');
     }
   };
 
@@ -1168,7 +501,7 @@ export default function UploadPage() {
                   accept=".xlsx, .xls"
                   multiple
                   onChange={handleMarketingFileChange}
-                  disabled={uploadingMarketing}
+                  disabled={marketingUpload.uploading}
                   className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
                 />
                 <div className="rounded-2xl border-2 border-dashed border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50 p-12 text-center transition-all duration-300 hover:border-purple-400 hover:bg-gradient-to-br hover:from-purple-100 hover:to-pink-100 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:border-purple-700 dark:from-purple-950/30 dark:to-pink-950/30 dark:hover:border-purple-600">
@@ -1203,7 +536,7 @@ export default function UploadPage() {
               </div>
 
               {/* Lista de Arquivos Marketing */}
-              {marketingFiles.length > 0 && !uploadingMarketing && (
+              {marketingFiles.length > 0 && !marketingUpload.uploading && (
                 <div className="mt-4 space-y-2">
                   {marketingFiles.map((file, index) => (
                     <div
@@ -1233,10 +566,10 @@ export default function UploadPage() {
               {/* Botão de Upload Marketing */}
               <button
                 onClick={handleMarketingUpload}
-                disabled={uploadingMarketing || marketingFiles.length === 0}
+                disabled={marketingUpload.uploading || marketingFiles.length === 0}
                 className="mt-6 w-full transform rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
               >
-                {uploadingMarketing ? (
+                {marketingUpload.uploading ? (
                   <div className="flex items-center justify-center gap-3">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                     <span>Processando...</span>
@@ -1250,35 +583,35 @@ export default function UploadPage() {
               </button>
 
               {/* Barra de Progresso Marketing */}
-              {uploadingMarketing && (
+              {marketingUpload.uploading && (
                 <div className="mt-6 space-y-3 animate-in fade-in duration-300">
                   <div className="overflow-hidden rounded-full bg-slate-200 shadow-inner dark:bg-slate-800">
                     <div
                       className="h-3 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 shadow-lg transition-all duration-500"
-                      style={{ width: `${marketingProgress}%` }}
+                      style={{ width: `${marketingUpload.progress}%` }}
                     ></div>
                   </div>
-                  {marketingProgressLabel && (
+                  {marketingUpload.progressLabel && (
                     <div className="text-center">
-                      <p className="font-semibold text-slate-700 dark:text-slate-300">{marketingProgressLabel}</p>
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{marketingProgress.toFixed(1)}% concluído</p>
+                      <p className="font-semibold text-slate-700 dark:text-slate-300">{marketingUpload.progressLabel}</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{marketingUpload.progress.toFixed(1)}% concluído</p>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Mensagem de Status Marketing */}
-              {marketingMessage && (
+              {marketingUpload.message && (
                 <div
                   className={`mt-6 animate-in fade-in slide-in-from-top-2 rounded-xl border-2 p-4 duration-300 ${
-                    marketingMessage.includes('✅')
+                    marketingUpload.message.includes('✅')
                       ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
-                      : marketingMessage.includes('❌')
+                      : marketingUpload.message.includes('❌')
                       ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200'
                       : 'border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-900 dark:bg-purple-950/30 dark:text-purple-200'
                   }`}
                 >
-                  <p className="font-medium">{marketingMessage}</p>
+                  <p className="font-medium">{marketingUpload.message}</p>
                 </div>
               )}
 
@@ -1346,7 +679,7 @@ export default function UploadPage() {
                   accept=".xlsx, .xls"
                   multiple
                   onChange={handleValoresCidadeFileChange}
-                  disabled={uploadingValoresCidade}
+                  disabled={valoresCidadeUpload.uploading}
                   className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
                 />
                 <div className="rounded-2xl border-2 border-dashed border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 p-12 text-center transition-all duration-300 hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-100 hover:to-teal-100 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:border-emerald-700 dark:from-emerald-950/30 dark:to-teal-950/30 dark:hover:border-emerald-600">
@@ -1381,7 +714,7 @@ export default function UploadPage() {
               </div>
 
               {/* Lista de Arquivos Valores por Cidade */}
-              {valoresCidadeFiles.length > 0 && !uploadingValoresCidade && (
+              {valoresCidadeFiles.length > 0 && !valoresCidadeUpload.uploading && (
                 <div className="mt-4 space-y-2">
                   {valoresCidadeFiles.map((file, index) => (
                     <div
@@ -1411,10 +744,10 @@ export default function UploadPage() {
               {/* Botão de Upload Valores por Cidade */}
               <button
                 onClick={handleValoresCidadeUpload}
-                disabled={uploadingValoresCidade || valoresCidadeFiles.length === 0}
+                disabled={valoresCidadeUpload.uploading || valoresCidadeFiles.length === 0}
                 className="mt-6 w-full transform rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
               >
-                {uploadingValoresCidade ? (
+                {valoresCidadeUpload.uploading ? (
                   <div className="flex items-center justify-center gap-3">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                     <span>Processando...</span>
@@ -1428,35 +761,35 @@ export default function UploadPage() {
               </button>
 
               {/* Barra de Progresso Valores por Cidade */}
-              {uploadingValoresCidade && (
+              {valoresCidadeUpload.uploading && (
                 <div className="mt-6 space-y-3 animate-in fade-in duration-300">
                   <div className="overflow-hidden rounded-full bg-slate-200 shadow-inner dark:bg-slate-800">
                     <div
                       className="h-3 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 shadow-lg transition-all duration-500"
-                      style={{ width: `${valoresCidadeProgress}%` }}
+                      style={{ width: `${valoresCidadeUpload.progress}%` }}
                     ></div>
                   </div>
-                  {valoresCidadeProgressLabel && (
+                  {valoresCidadeUpload.progressLabel && (
                     <div className="text-center">
-                      <p className="font-semibold text-slate-700 dark:text-slate-300">{valoresCidadeProgressLabel}</p>
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{valoresCidadeProgress.toFixed(1)}% concluído</p>
+                      <p className="font-semibold text-slate-700 dark:text-slate-300">{valoresCidadeUpload.progressLabel}</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{valoresCidadeUpload.progress.toFixed(1)}% concluído</p>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Mensagem de Status Valores por Cidade */}
-              {valoresCidadeMessage && (
+              {valoresCidadeUpload.message && (
                 <div
                   className={`mt-6 animate-in fade-in slide-in-from-top-2 rounded-xl border-2 p-4 duration-300 ${
-                    valoresCidadeMessage.includes('✅')
+                    valoresCidadeUpload.message.includes('✅')
                       ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
-                      : valoresCidadeMessage.includes('❌')
+                      : valoresCidadeUpload.message.includes('❌')
                       ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200'
                       : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
                   }`}
                 >
-                  <p className="font-medium">{valoresCidadeMessage}</p>
+                  <p className="font-medium">{valoresCidadeUpload.message}</p>
                 </div>
               )}
 
