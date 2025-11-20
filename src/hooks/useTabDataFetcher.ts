@@ -29,7 +29,7 @@ async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | nu
   // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
   console.log('[fetchUtrData] Chamando RPC calcular_utr com payload:', filterPayload);
 
-  const result = await safeRpc<UtrData>('calcular_utr', filterPayload as any, {
+  const result = await safeRpc<any>('calcular_utr', filterPayload as any, {
     timeout: RPC_TIMEOUTS.DEFAULT,
     validateParams: true
   });
@@ -52,7 +52,23 @@ async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | nu
     return { data: null, error: result.error };
   }
 
-  return { data: result.data, error: null };
+  // A função retorna um objeto JSONB diretamente
+  // Verificar se precisa extrair de alguma estrutura
+  let utrData: UtrData | null = null;
+  
+  if (result && result.data) {
+    if (typeof result.data === 'object' && !Array.isArray(result.data)) {
+      // Se já for objeto, usar diretamente
+      utrData = result.data as UtrData;
+    } else {
+      safeLog.warn('[fetchUtrData] Estrutura de dados inesperada:', result.data);
+      utrData = null;
+    }
+  }
+
+  console.log('[fetchUtrData] Dados processados:', { hasData: !!utrData, keys: utrData ? Object.keys(utrData) : [] });
+
+  return { data: utrData, error: null };
 }
 
 /**
@@ -70,7 +86,7 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
   // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
   console.log('[fetchEntregadoresData] Chamando RPC listar_entregadores com payload:', listarEntregadoresPayload);
 
-  const result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
+  const result = await safeRpc<any>('listar_entregadores', listarEntregadoresPayload, {
     timeout: RPC_TIMEOUTS.LONG,
     validateParams: false
   });
@@ -109,21 +125,27 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
     let entregadores: any[] = [];
     let total = 0;
 
-    if (Array.isArray(result.data)) {
-      entregadores = result.data;
-      total = result.data.length;
-    } else if (result.data && typeof result.data === 'object') {
+    // A função retorna um objeto JSONB com a estrutura { entregadores: [...], total: N }
+    if (typeof result.data === 'object' && !Array.isArray(result.data)) {
       if ('entregadores' in result.data && Array.isArray(result.data.entregadores)) {
         entregadores = result.data.entregadores;
-        total = result.data.total || result.data.entregadores.length;
+        total = result.data.total !== undefined ? result.data.total : result.data.entregadores.length;
       } else {
-        entregadores = [result.data];
-        total = 1;
+        // Se não tiver a estrutura esperada, tentar usar como array único
+        safeLog.warn('[fetchEntregadoresData] Estrutura de dados inesperada:', result.data);
+        entregadores = [];
+        total = 0;
       }
+    } else if (Array.isArray(result.data)) {
+      // Se já for array, usar diretamente
+      entregadores = result.data;
+      total = result.data.length;
     }
 
     processedData = { entregadores, total };
   }
+
+  console.log('[fetchEntregadoresData] Dados processados:', { entregadores: processedData.entregadores.length, total: processedData.total });
 
   return { data: processedData, error: null };
 }
@@ -143,7 +165,7 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
   // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
   console.log('[fetchValoresData] Chamando RPC listar_valores_entregadores com payload:', listarValoresPayload);
 
-  const result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
+  const result = await safeRpc<any>('listar_valores_entregadores', listarValoresPayload, {
     timeout: RPC_TIMEOUTS.LONG,
     validateParams: false
   });
@@ -170,17 +192,27 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
   let processedData: ValoresEntregador[] = [];
 
   if (result && result.data !== null && result.data !== undefined) {
-    if (Array.isArray(result.data)) {
-      processedData = result.data;
-    } else if (result.data && typeof result.data === 'object') {
+    // A função retorna um objeto JSONB com a estrutura { entregadores: [...] }
+    if (typeof result.data === 'object' && !Array.isArray(result.data)) {
       const dataObj = result.data as any;
-      if ('valores' in dataObj && Array.isArray(dataObj.valores)) {
+      // Verificar se tem a propriedade 'entregadores'
+      if ('entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
+        processedData = dataObj.entregadores;
+      } else if ('valores' in dataObj && Array.isArray(dataObj.valores)) {
+        // Fallback para estrutura alternativa
         processedData = dataObj.valores;
       } else {
-        processedData = [result.data as ValoresEntregador];
+        // Se não tiver array, tentar usar o objeto inteiro como único item
+        safeLog.warn('[fetchValoresData] Estrutura de dados inesperada:', dataObj);
+        processedData = [];
       }
+    } else if (Array.isArray(result.data)) {
+      // Se já for array, usar diretamente
+      processedData = result.data;
     }
   }
+
+  console.log('[fetchValoresData] Dados processados:', { count: processedData.length, sample: processedData[0] });
 
   return { data: processedData, error: null };
 }
