@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { safeLog } from '@/lib/errorHandler';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
