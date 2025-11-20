@@ -121,11 +121,20 @@ export function useTabData(
       isRequestPendingRef.current = true;
 
       // Buscar dados com retry automático
+      console.log(`🔄 [useTabData] Iniciando fetchWithRetry para tab: "${tab}"`);
       await fetchWithRetry(
         tab,
         filterPayload,
         (fetchedData) => {
+          console.log(`📥 [useTabData] Callback onSuccess chamado para tab: "${tab}"`, {
+            hasData: !!fetchedData,
+            dataType: typeof fetchedData,
+            isArray: Array.isArray(fetchedData),
+            dataKeys: fetchedData && typeof fetchedData === 'object' && !Array.isArray(fetchedData) ? Object.keys(fetchedData) : null
+          });
+
           if (currentTabRef.current !== tab) {
+            console.log(`⚠️ [useTabData] Tab mudou durante fetch. Ignorando dados.`);
             return;
           }
 
@@ -133,6 +142,13 @@ export function useTabData(
           const processedData = tab === 'valores'
             ? (Array.isArray(fetchedData) ? fetchedData : [])
             : fetchedData;
+
+          console.log(`✅ [useTabData] Definindo dados para tab "${tab}":`, {
+            processedDataType: typeof processedData,
+            isArray: Array.isArray(processedData),
+            length: Array.isArray(processedData) ? processedData.length : null,
+            keys: processedData && typeof processedData === 'object' && !Array.isArray(processedData) ? Object.keys(processedData) : null
+          });
 
           setData(processedData);
           setCached({ tab, filterPayload }, processedData);
@@ -143,11 +159,15 @@ export function useTabData(
           }
         },
         (error) => {
+          console.error(`❌ [useTabData] Callback onError chamado para tab: "${tab}"`, error);
+          
           if (currentTabRef.current !== tab) {
+            console.log(`⚠️ [useTabData] Tab mudou durante erro. Ignorando.`);
             return;
           }
 
           // Tratar erro baseado no tipo de tab
+          console.error(`❌ [useTabData] Erro ao carregar dados para tab "${tab}":`, error);
           if (IS_DEV) {
             safeLog.error(`❌ Erro ao carregar dados para tab ${tab}:`, error);
           }

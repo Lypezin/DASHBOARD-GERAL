@@ -201,29 +201,69 @@ export default function DashboardPage() {
 
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
+  // Log para debug - verificar dados recebidos
+  useEffect(() => {
+    if (IS_DEV) {
+      console.log('📊 [DashboardPage] Dados da tab recebidos:', {
+        activeTab,
+        hasTabData: !!tabData,
+        tabDataType: typeof tabData,
+        isArray: Array.isArray(tabData),
+        loading: loadingTabData,
+        dataKeys: tabData && typeof tabData === 'object' && !Array.isArray(tabData) ? Object.keys(tabData) : null,
+        dataLength: Array.isArray(tabData) ? tabData.length : null
+      });
+    }
+  }, [activeTab, tabData, loadingTabData]);
+
   // Mapeia os dados do useTabData para as props dos componentes de view
   // Memoizar para evitar recriação desnecessária
   const utrData = useMemo(() => {
-    return activeTab === 'utr' ? (tabData as UtrData) : null;
+    const data = activeTab === 'utr' ? (tabData as UtrData) : null;
+    if (IS_DEV && activeTab === 'utr') {
+      console.log('📊 [DashboardPage] utrData processado:', { hasData: !!data, keys: data ? Object.keys(data) : null });
+    }
+    return data;
   }, [activeTab, tabData]);
 
   const entregadoresData = useMemo(() => {
-    return activeTab === 'entregadores' ? (tabData as EntregadoresData) : null;
+    const data = activeTab === 'entregadores' ? (tabData as EntregadoresData) : null;
+    if (IS_DEV && activeTab === 'entregadores') {
+      console.log('📊 [DashboardPage] entregadoresData processado:', { 
+        hasData: !!data, 
+        entregadoresCount: data?.entregadores?.length || 0,
+        total: data?.total || 0
+      });
+    }
+    return data;
   }, [activeTab, tabData]);
 
   const valoresData = useMemo(() => {
     if (activeTab !== 'valores') return [];
-    if (!tabData) return [];
+    if (!tabData) {
+      if (IS_DEV) console.log('📊 [DashboardPage] valoresData: tabData é null');
+      return [];
+    }
     if (Array.isArray(tabData)) {
       // Verificar se é realmente um array de ValoresEntregador
+      if (IS_DEV) console.log('📊 [DashboardPage] valoresData processado (array):', tabData.length);
       return tabData as ValoresEntregador[];
     }
     // Se não é array e não é null, não deve acontecer para valores, mas retornar array vazio por segurança
+    if (IS_DEV) console.warn('📊 [DashboardPage] valoresData: tabData não é array:', typeof tabData);
     return [];
   }, [activeTab, tabData]);
 
   const prioridadeData = useMemo(() => {
-    return activeTab === 'prioridade' ? (tabData as EntregadoresData) : null;
+    const data = activeTab === 'prioridade' ? (tabData as EntregadoresData) : null;
+    if (IS_DEV && activeTab === 'prioridade') {
+      console.log('📊 [DashboardPage] prioridadeData processado:', { 
+        hasData: !!data, 
+        entregadoresCount: data?.entregadores?.length || 0,
+        total: data?.total || 0
+      });
+    }
+    return data;
   }, [activeTab, tabData]);
 
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);

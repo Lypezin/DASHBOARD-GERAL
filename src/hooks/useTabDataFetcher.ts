@@ -27,14 +27,24 @@ async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | nu
   const { tab, filterPayload } = options;
 
   // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
-  console.log('[fetchUtrData] Chamando RPC calcular_utr com payload:', filterPayload);
+  console.log('🔵 [fetchUtrData] Chamando RPC calcular_utr com payload:', JSON.stringify(filterPayload, null, 2));
 
   const result = await safeRpc<any>('calcular_utr', filterPayload as any, {
     timeout: RPC_TIMEOUTS.DEFAULT,
     validateParams: true
   });
 
+  console.log('🔵 [fetchUtrData] Resultado bruto recebido:', {
+    hasError: !!result.error,
+    hasData: !!result.data,
+    dataType: typeof result.data,
+    isArray: Array.isArray(result.data),
+    dataKeys: result.data ? Object.keys(result.data) : null,
+    error: result.error
+  });
+
   if (result.error) {
+    console.error('❌ [fetchUtrData] ERRO:', result.error);
     const is500 = is500Error(result.error);
     const isRateLimit = isRateLimitError(result.error);
 
@@ -60,13 +70,20 @@ async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | nu
     if (typeof result.data === 'object' && !Array.isArray(result.data)) {
       // Se já for objeto, usar diretamente
       utrData = result.data as UtrData;
+      console.log('✅ [fetchUtrData] Dados processados com sucesso:', {
+        hasGeral: !!utrData.geral,
+        hasPraca: Array.isArray(utrData.praca),
+        pracaCount: Array.isArray(utrData.praca) ? utrData.praca.length : 0,
+        keys: Object.keys(utrData)
+      });
     } else {
+      console.warn('⚠️ [fetchUtrData] Estrutura de dados inesperada:', result.data);
       safeLog.warn('[fetchUtrData] Estrutura de dados inesperada:', result.data);
       utrData = null;
     }
+  } else {
+    console.warn('⚠️ [fetchUtrData] Nenhum dado recebido');
   }
-
-  console.log('[fetchUtrData] Dados processados:', { hasData: !!utrData, keys: utrData ? Object.keys(utrData) : [] });
 
   return { data: utrData, error: null };
 }
@@ -84,15 +101,25 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
   };
 
   // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
-  console.log('[fetchEntregadoresData] Chamando RPC listar_entregadores com payload:', listarEntregadoresPayload);
+  console.log('🟡 [fetchEntregadoresData] Chamando RPC listar_entregadores com payload:', JSON.stringify(listarEntregadoresPayload, null, 2));
 
   const result = await safeRpc<any>('listar_entregadores', listarEntregadoresPayload, {
     timeout: RPC_TIMEOUTS.LONG,
     validateParams: false
   });
 
+  console.log('🟡 [fetchEntregadoresData] Resultado bruto recebido:', {
+    hasError: !!result.error,
+    hasData: !!result.data,
+    dataType: typeof result.data,
+    isArray: Array.isArray(result.data),
+    dataKeys: result.data ? Object.keys(result.data) : null,
+    error: result.error,
+    tab
+  });
+
   if (result.error) {
-    console.log('[fetchEntregadoresData] ERRO recebido:', result.error);
+    console.error('❌ [fetchEntregadoresData] ERRO:', result.error);
     const is500 = is500Error(result.error);
     const isRateLimit = isRateLimitError(result.error);
 
@@ -112,15 +139,6 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
 
   let processedData: EntregadoresData = { entregadores: [], total: 0 };
 
-  // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
-  console.log('[fetchEntregadoresData] Resposta recebida:', {
-    hasData: !!result.data,
-    dataType: typeof result.data,
-    isArray: Array.isArray(result.data),
-    dataKeys: result.data ? Object.keys(result.data) : 'no data',
-    tab
-  });
-
   if (result && result.data) {
     let entregadores: any[] = [];
     let total = 0;
@@ -130,8 +148,14 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
       if ('entregadores' in result.data && Array.isArray(result.data.entregadores)) {
         entregadores = result.data.entregadores;
         total = result.data.total !== undefined ? result.data.total : result.data.entregadores.length;
+        console.log('✅ [fetchEntregadoresData] Dados extraídos com sucesso:', {
+          entregadoresCount: entregadores.length,
+          total: total,
+          firstEntregador: entregadores[0] || null
+        });
       } else {
         // Se não tiver a estrutura esperada, tentar usar como array único
+        console.warn('⚠️ [fetchEntregadoresData] Estrutura de dados inesperada. Keys:', Object.keys(result.data));
         safeLog.warn('[fetchEntregadoresData] Estrutura de dados inesperada:', result.data);
         entregadores = [];
         total = 0;
@@ -140,12 +164,21 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
       // Se já for array, usar diretamente
       entregadores = result.data;
       total = result.data.length;
+      console.log('✅ [fetchEntregadoresData] Dados são array direto:', { count: entregadores.length });
+    } else {
+      console.warn('⚠️ [fetchEntregadoresData] Tipo de dados não reconhecido:', typeof result.data);
     }
 
     processedData = { entregadores, total };
+  } else {
+    console.warn('⚠️ [fetchEntregadoresData] Nenhum dado recebido');
   }
 
-  console.log('[fetchEntregadoresData] Dados processados:', { entregadores: processedData.entregadores.length, total: processedData.total });
+  console.log('✅ [fetchEntregadoresData] Dados processados FINAL:', { 
+    entregadores: processedData.entregadores.length, 
+    total: processedData.total,
+    sample: processedData.entregadores[0] || null
+  });
 
   return { data: processedData, error: null };
 }
@@ -163,15 +196,24 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
   };
 
   // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
-  console.log('[fetchValoresData] Chamando RPC listar_valores_entregadores com payload:', listarValoresPayload);
+  console.log('🟢 [fetchValoresData] Chamando RPC listar_valores_entregadores com payload:', JSON.stringify(listarValoresPayload, null, 2));
 
   const result = await safeRpc<any>('listar_valores_entregadores', listarValoresPayload, {
     timeout: RPC_TIMEOUTS.LONG,
     validateParams: false
   });
 
+  console.log('🟢 [fetchValoresData] Resultado bruto recebido:', {
+    hasError: !!result.error,
+    hasData: !!result.data,
+    dataType: typeof result.data,
+    isArray: Array.isArray(result.data),
+    dataKeys: result.data ? Object.keys(result.data) : null,
+    error: result.error
+  });
+
   if (result.error) {
-    console.log('[fetchValoresData] ERRO recebido:', result.error);
+    console.error('❌ [fetchValoresData] ERRO:', result.error);
     const is500 = is500Error(result.error);
     const isRateLimit = isRateLimitError(result.error);
 
@@ -195,24 +237,37 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
     // A função retorna um objeto JSONB com a estrutura { entregadores: [...] }
     if (typeof result.data === 'object' && !Array.isArray(result.data)) {
       const dataObj = result.data as any;
+      console.log('🟢 [fetchValoresData] Processando objeto. Keys:', Object.keys(dataObj));
+      
       // Verificar se tem a propriedade 'entregadores'
       if ('entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
         processedData = dataObj.entregadores;
+        console.log('✅ [fetchValoresData] Dados extraídos de "entregadores":', processedData.length);
       } else if ('valores' in dataObj && Array.isArray(dataObj.valores)) {
         // Fallback para estrutura alternativa
         processedData = dataObj.valores;
+        console.log('✅ [fetchValoresData] Dados extraídos de "valores":', processedData.length);
       } else {
         // Se não tiver array, tentar usar o objeto inteiro como único item
+        console.warn('⚠️ [fetchValoresData] Estrutura de dados inesperada. Keys disponíveis:', Object.keys(dataObj));
         safeLog.warn('[fetchValoresData] Estrutura de dados inesperada:', dataObj);
         processedData = [];
       }
     } else if (Array.isArray(result.data)) {
       // Se já for array, usar diretamente
       processedData = result.data;
+      console.log('✅ [fetchValoresData] Dados são array direto:', processedData.length);
+    } else {
+      console.warn('⚠️ [fetchValoresData] Tipo de dados não reconhecido:', typeof result.data);
     }
+  } else {
+    console.warn('⚠️ [fetchValoresData] Nenhum dado recebido');
   }
 
-  console.log('[fetchValoresData] Dados processados:', { count: processedData.length, sample: processedData[0] });
+  console.log('✅ [fetchValoresData] Dados processados FINAL:', { 
+    count: processedData.length, 
+    sample: processedData[0] || null 
+  });
 
   return { data: processedData, error: null };
 }
