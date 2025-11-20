@@ -102,7 +102,7 @@ function convertDDMMYYYYToDate(dateStr: string | number | null | undefined): str
     try {
       return excelSerialToISODate(dateStr);
     } catch (e) {
-      console.warn('Erro ao converter número para data:', dateStr, e);
+      safeLog.warn('Erro ao converter número para data:', { dateStr, error: e });
       return null;
     }
   }
@@ -174,7 +174,7 @@ function convertDDMMYYYYToDate(dateStr: string | number | null | undefined): str
   }
   
   if (IS_DEV) {
-    console.warn('Não foi possível converter data:', dateStr, typeof dateStr);
+    safeLog.warn('Não foi possível converter data:', { dateStr, type: typeof dateStr });
   }
   
   return null;
@@ -616,17 +616,17 @@ export default function UploadPage() {
       
       try {
         // Usar função RPC para deletar todos os registros de forma eficiente
-        console.log('Iniciando remoção de dados antigos...');
+        safeLog.info('Iniciando remoção de dados antigos...');
         
         const { data: deletedCount, error: rpcError } = await supabase
           .rpc('delete_all_dados_marketing');
         
         if (rpcError) {
-          console.error('Erro ao deletar via RPC:', rpcError);
+          safeLog.error('Erro ao deletar via RPC:', rpcError);
           
           // Fallback: tentar deletar em lotes menores se a função RPC não existir
           if (rpcError.code === 'PGRST116' || rpcError.message?.includes('function') || rpcError.message?.includes('not found')) {
-            console.log('Função RPC não encontrada, usando fallback de deleção em lotes...');
+            safeLog.info('Função RPC não encontrada, usando fallback de deleção em lotes...');
             
             let deletedCount = 0;
             let hasMore = true;
@@ -648,7 +648,7 @@ export default function UploadPage() {
               }
               
               const idsToDelete = batchData.map(item => item.id);
-              console.log(`Deletando lote de ${idsToDelete.length} registros...`);
+              safeLog.info(`Deletando lote de ${idsToDelete.length} registros...`);
               
               const { error: deleteError } = await supabase
                 .from('dados_marketing')
@@ -660,23 +660,23 @@ export default function UploadPage() {
               }
               
               deletedCount += idsToDelete.length;
-              console.log(`Lote deletado. Total: ${deletedCount}`);
+              safeLog.info(`Lote deletado. Total: ${deletedCount}`);
               
               if (batchData.length < deleteBatchSize) {
                 hasMore = false;
               }
             }
             
-            console.log(`✅ Removidos ${deletedCount} registros antigos (fallback)`);
+            safeLog.info(`✅ Removidos ${deletedCount} registros antigos (fallback)`);
           } else {
             throw new Error(`Erro ao remover dados antigos: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}`);
           }
         } else {
-          console.log(`✅ Removidos ${deletedCount || 0} registros antigos`);
+          safeLog.info(`✅ Removidos ${deletedCount || 0} registros antigos`);
         }
       } catch (deleteErr: any) {
-        console.error('Erro na etapa de remoção:', deleteErr);
-        console.error('Detalhes do erro:', {
+        safeLog.error('Erro na etapa de remoção:', deleteErr);
+        safeLog.error('Detalhes do erro:', {
           message: deleteErr.message,
           code: deleteErr.code,
           details: deleteErr.details,
@@ -691,32 +691,32 @@ export default function UploadPage() {
       for (let fileIdx = 0; fileIdx < marketingFiles.length; fileIdx++) {
         const file = marketingFiles[fileIdx];
         setMarketingProgressLabel(`Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`);
-        console.log(`Iniciando processamento do arquivo: ${file.name}`);
+        safeLog.info(`Iniciando processamento do arquivo: ${file.name}`);
 
         try {
-          console.log('Lendo arquivo...');
+          safeLog.info('Lendo arquivo...');
           const arrayBuffer = await file.arrayBuffer();
-          console.log('Arquivo lido, tamanho:', arrayBuffer.byteLength);
+          safeLog.info('Arquivo lido, tamanho:', { size: arrayBuffer.byteLength });
           
-          console.log('Lendo workbook Excel...');
+          safeLog.info('Lendo workbook Excel...');
           const workbook = XLSX.read(arrayBuffer, { raw: true });
-          console.log('Sheets disponíveis:', workbook.SheetNames);
+          safeLog.info('Sheets disponíveis:', { sheets: workbook.SheetNames });
           
           if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
             throw new Error('A planilha não contém nenhuma aba');
           }
           
           const sheetName = workbook.SheetNames[0];
-          console.log('Usando sheet:', sheetName);
+          safeLog.info('Usando sheet:', { sheetName });
           
           const worksheet = workbook.Sheets[sheetName];
           if (!worksheet) {
             throw new Error(`A aba "${sheetName}" está vazia ou inválida`);
           }
           
-          console.log('Convertendo para JSON...');
+          safeLog.info('Convertendo para JSON...');
           const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
-          console.log(`Total de linhas lidas: ${rawData.length}`);
+          safeLog.info(`Total de linhas lidas: ${rawData.length}`);
 
           setMarketingProgressLabel('Processando e validando dados...');
           const fileProgress = 10 + (fileIdx / totalFiles) * 80;
@@ -724,11 +724,13 @@ export default function UploadPage() {
 
           // Verificar se há dados
           if (!rawData || rawData.length === 0) {
-            console.error('Planilha vazia ou sem dados');
+            safeLog.error('Planilha vazia ou sem dados');
             throw new Error('A planilha está vazia ou não contém dados válidos');
           }
           
-          console.log('Primeira linha de exemplo:', rawData[0]);
+          if (IS_DEV) {
+            safeLog.info('Primeira linha de exemplo:', rawData[0]);
+          }
 
           // Verificar colunas disponíveis na planilha
           const firstRow = rawData[0] as any;
@@ -794,11 +796,11 @@ export default function UploadPage() {
                     if (!value) {
                       value = null;
                       if (IS_DEV && originalValue) {
-                        console.warn(`Não foi possível converter data para ${dbCol}:`, originalValue, typeof originalValue);
+                        safeLog.warn(`Não foi possível converter data para ${dbCol}:`, { originalValue, type: typeof originalValue });
                       }
                     } else {
                       if (IS_DEV && rowIndex < 3) {
-                        console.log(`Data convertida ${dbCol}:`, originalValue, '->', value);
+                        safeLog.info(`Data convertida ${dbCol}:`, { original: originalValue, converted: value });
                       }
                     }
                   }
@@ -864,21 +866,23 @@ export default function UploadPage() {
             });
 
           if (sanitizedData.length === 0) {
-            console.error('Nenhum dado válido após processamento');
+            safeLog.error('Nenhum dado válido após processamento');
             throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados.');
           }
 
-          console.log(`Dados sanitizados: ${sanitizedData.length} linhas válidas`);
-          console.log('Exemplo de dado sanitizado:', sanitizedData[0]);
+          safeLog.info(`Dados sanitizados: ${sanitizedData.length} linhas válidas`);
+          if (IS_DEV) {
+            safeLog.info('Exemplo de dado sanitizado:', sanitizedData[0]);
+          }
 
           const totalRows = sanitizedData.length;
           let insertedRows = 0;
 
           // Inserir em lotes
-          console.log('Iniciando inserção no banco de dados...');
+          safeLog.info('Iniciando inserção no banco de dados...');
           for (let i = 0; i < totalRows; i += BATCH_SIZE) {
             const batch = sanitizedData.slice(i, i + BATCH_SIZE);
-            console.log(`Inserindo lote ${Math.floor(i / BATCH_SIZE) + 1}, ${batch.length} registros`);
+            safeLog.info(`Inserindo lote ${Math.floor(i / BATCH_SIZE) + 1}, ${batch.length} registros`);
             
             const { data: insertData, error: batchError } = await supabase
               .from('dados_marketing')
@@ -886,8 +890,8 @@ export default function UploadPage() {
               .select();
 
             if (batchError) {
-              console.error('Erro ao inserir lote:', batchError);
-              console.error('Detalhes do erro:', {
+              safeLog.error('Erro ao inserir lote:', batchError);
+              safeLog.error('Detalhes do erro:', {
                 code: batchError.code,
                 message: batchError.message,
                 details: batchError.details,
@@ -901,14 +905,14 @@ export default function UploadPage() {
             const batchProgress = (insertedRows / totalRows) * (80 / totalFiles);
             setMarketingProgress(10 + (fileIdx / totalFiles) * 80 + batchProgress);
             setMarketingProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${totalRows} linhas inseridas`);
-            console.log(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
+            safeLog.info(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
           }
 
-          console.log(`Arquivo ${file.name} processado com sucesso: ${insertedRows} registros inseridos`);
+          safeLog.info(`Arquivo ${file.name} processado com sucesso: ${insertedRows} registros inseridos`);
           successCount++;
         } catch (error: any) {
-          console.error(`❌ ERRO no arquivo ${file.name}:`, error);
-          console.error('Stack trace:', error?.stack);
+          safeLog.error(`❌ ERRO no arquivo ${file.name}:`, error);
+          safeLog.error('Stack trace:', error?.stack);
           errorCount++;
           const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
           lastError = errorMessage;
@@ -922,11 +926,11 @@ export default function UploadPage() {
 
       if (errorCount === 0) {
         const successMsg = `✅ Upload concluído com sucesso! ${totalInsertedRows} registro(s) importado(s) de ${successCount} arquivo(s).`;
-        console.log(successMsg);
+        safeLog.info(successMsg);
         setMarketingMessage(successMsg);
       } else {
         const errorMsg = `⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Total: ${totalInsertedRows} registro(s).${lastError ? ` Último erro: ${lastError}` : ''}`;
-        console.error(errorMsg);
+        safeLog.error(errorMsg);
         setMarketingMessage(errorMsg);
       }
 
@@ -934,14 +938,13 @@ export default function UploadPage() {
       const marketingFileInput = document.querySelector('input[type="file"][data-marketing="true"]') as HTMLInputElement;
       if (marketingFileInput) marketingFileInput.value = '';
     } catch (error: any) {
-      console.error('❌ ERRO GERAL no upload de Marketing:', error);
-      console.error('Stack trace completo:', error?.stack);
-      safeLog.error('Erro no upload de Marketing:', error);
+      safeLog.error('❌ ERRO GERAL no upload de Marketing:', error);
+      safeLog.error('Stack trace completo:', error?.stack);
       const errorMsg = `❌ Erro: ${error?.message || error?.toString() || 'Erro desconhecido'}`;
       setMarketingMessage(errorMsg);
     } finally {
       setUploadingMarketing(false);
-      console.log('Upload finalizado');
+      safeLog.info('Upload finalizado');
     }
   };
 
@@ -976,17 +979,17 @@ export default function UploadPage() {
       setValoresCidadeProgress(5);
       
       try {
-        console.log('Iniciando remoção de dados antigos...');
+        safeLog.info('Iniciando remoção de dados antigos...');
         
         const { data: deletedCount, error: rpcError } = await supabase
           .rpc('delete_all_dados_valores_cidade');
         
         if (rpcError) {
-          console.error('Erro ao deletar via RPC:', rpcError);
+          safeLog.error('Erro ao deletar via RPC:', rpcError);
           
           // Fallback: tentar deletar em lotes menores se a função RPC não existir ou falhar
           if (rpcError.code === 'PGRST116' || rpcError.message?.includes('function') || rpcError.message?.includes('not found') || rpcError.message?.includes('WHERE clause')) {
-            console.log('Função RPC não disponível ou bloqueada, usando fallback de deleção em lotes...');
+            safeLog.info('Função RPC não disponível ou bloqueada, usando fallback de deleção em lotes...');
             
             let deletedCount = 0;
             let hasMore = true;
@@ -1015,7 +1018,7 @@ export default function UploadPage() {
                 break;
               }
               
-              console.log(`Deletando lote de ${idsToDelete.length} registros...`);
+              safeLog.info(`Deletando lote de ${idsToDelete.length} registros...`);
               
               const { error: deleteError } = await supabase
                 .from('dados_valores_cidade')
@@ -1027,22 +1030,22 @@ export default function UploadPage() {
               }
               
               deletedCount += idsToDelete.length;
-              console.log(`Lote deletado. Total: ${deletedCount}`);
+              safeLog.info(`Lote deletado. Total: ${deletedCount}`);
               
               if (batchData.length < deleteBatchSize) {
                 hasMore = false;
               }
             }
             
-            console.log(`✅ Removidos ${deletedCount} registros antigos (fallback)`);
+            safeLog.info(`✅ Removidos ${deletedCount} registros antigos (fallback)`);
           } else {
             throw new Error(`Erro ao remover dados antigos: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}`);
           }
         } else {
-          console.log(`✅ Removidos ${deletedCount || 0} registros antigos`);
+          safeLog.info(`✅ Removidos ${deletedCount || 0} registros antigos`);
         }
       } catch (deleteErr: any) {
-        console.error('Erro na etapa de remoção:', deleteErr);
+        safeLog.error('Erro na etapa de remoção:', deleteErr);
         throw new Error(`Erro ao preparar banco de dados: ${deleteErr.message || deleteErr}`);
       }
 
@@ -1052,32 +1055,32 @@ export default function UploadPage() {
       for (let fileIdx = 0; fileIdx < valoresCidadeFiles.length; fileIdx++) {
         const file = valoresCidadeFiles[fileIdx];
         setValoresCidadeProgressLabel(`Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`);
-        console.log(`Iniciando processamento do arquivo: ${file.name}`);
+        safeLog.info(`Iniciando processamento do arquivo: ${file.name}`);
 
         try {
-          console.log('Lendo arquivo...');
+          safeLog.info('Lendo arquivo...');
           const arrayBuffer = await file.arrayBuffer();
-          console.log('Arquivo lido, tamanho:', arrayBuffer.byteLength);
+          safeLog.info('Arquivo lido, tamanho:', { size: arrayBuffer.byteLength });
           
-          console.log('Lendo workbook Excel...');
+          safeLog.info('Lendo workbook Excel...');
           const workbook = XLSX.read(arrayBuffer, { raw: true });
-          console.log('Sheets disponíveis:', workbook.SheetNames);
+          safeLog.info('Sheets disponíveis:', { sheets: workbook.SheetNames });
           
           if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
             throw new Error('A planilha não contém nenhuma aba');
           }
           
           const sheetName = workbook.SheetNames[0];
-          console.log('Usando sheet:', sheetName);
+          safeLog.info('Usando sheet:', { sheetName });
           
           const worksheet = workbook.Sheets[sheetName];
           if (!worksheet) {
             throw new Error(`A aba "${sheetName}" está vazia ou inválida`);
           }
           
-          console.log('Convertendo para JSON...');
+          safeLog.info('Convertendo para JSON...');
           const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
-          console.log(`Total de linhas lidas: ${rawData.length}`);
+          safeLog.info(`Total de linhas lidas: ${rawData.length}`);
 
           setValoresCidadeProgressLabel('Processando e validando dados...');
           const fileProgress = 10 + (fileIdx / totalFiles) * 80;
@@ -1085,11 +1088,13 @@ export default function UploadPage() {
 
           // Verificar se há dados
           if (!rawData || rawData.length === 0) {
-            console.error('Planilha vazia ou sem dados');
+            safeLog.error('Planilha vazia ou sem dados');
             throw new Error('A planilha está vazia ou não contém dados válidos');
           }
           
-          console.log('Primeira linha de exemplo:', rawData[0]);
+          if (IS_DEV) {
+            safeLog.info('Primeira linha de exemplo:', rawData[0]);
+          }
 
           // Verificar colunas disponíveis na planilha
           const firstRow = rawData[0] as any;
@@ -1203,21 +1208,23 @@ export default function UploadPage() {
             });
 
           if (sanitizedData.length === 0) {
-            console.error('Nenhum dado válido após processamento');
+            safeLog.error('Nenhum dado válido após processamento');
             throw new Error('Nenhum dado válido encontrado após processamento. Verifique se a planilha contém dados.');
           }
 
-          console.log(`Dados sanitizados: ${sanitizedData.length} linhas válidas`);
-          console.log('Exemplo de dado sanitizado:', sanitizedData[0]);
+          safeLog.info(`Dados sanitizados: ${sanitizedData.length} linhas válidas`);
+          if (IS_DEV) {
+            safeLog.info('Exemplo de dado sanitizado:', sanitizedData[0]);
+          }
 
           const totalRows = sanitizedData.length;
           let insertedRows = 0;
 
           // Inserir em lotes
-          console.log('Iniciando inserção no banco de dados...');
+          safeLog.info('Iniciando inserção no banco de dados...');
           for (let i = 0; i < totalRows; i += BATCH_SIZE) {
             const batch = sanitizedData.slice(i, i + BATCH_SIZE);
-            console.log(`Inserindo lote ${Math.floor(i / BATCH_SIZE) + 1}, ${batch.length} registros`);
+            safeLog.info(`Inserindo lote ${Math.floor(i / BATCH_SIZE) + 1}, ${batch.length} registros`);
             
             const { data: insertData, error: batchError } = await supabase
               .from('dados_valores_cidade')
@@ -1225,7 +1232,7 @@ export default function UploadPage() {
               .select();
 
             if (batchError) {
-              console.error('Erro ao inserir lote:', batchError);
+              safeLog.error('Erro ao inserir lote:', batchError);
               throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}${batchError.details ? ` (${batchError.details})` : ''}`);
             }
 
@@ -1234,14 +1241,14 @@ export default function UploadPage() {
             const batchProgress = (insertedRows / totalRows) * (80 / totalFiles);
             setValoresCidadeProgress(10 + (fileIdx / totalFiles) * 80 + batchProgress);
             setValoresCidadeProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${totalRows} linhas inseridas`);
-            console.log(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
+            safeLog.info(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
           }
 
-          console.log(`Arquivo ${file.name} processado com sucesso: ${insertedRows} registros inseridos`);
+          safeLog.info(`Arquivo ${file.name} processado com sucesso: ${insertedRows} registros inseridos`);
           successCount++;
         } catch (error: any) {
-          console.error(`❌ ERRO no arquivo ${file.name}:`, error);
-          console.error('Stack trace:', error?.stack);
+          safeLog.error(`❌ ERRO no arquivo ${file.name}:`, error);
+          safeLog.error('Stack trace:', error?.stack);
           errorCount++;
           const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
           lastError = errorMessage;
@@ -1255,11 +1262,11 @@ export default function UploadPage() {
 
       if (errorCount === 0) {
         const successMsg = `✅ Upload concluído com sucesso! ${totalInsertedRows} registro(s) importado(s) de ${successCount} arquivo(s).`;
-        console.log(successMsg);
+        safeLog.info(successMsg);
         setValoresCidadeMessage(successMsg);
       } else {
         const errorMsg = `⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Total: ${totalInsertedRows} registro(s).${lastError ? ` Último erro: ${lastError}` : ''}`;
-        console.error(errorMsg);
+        safeLog.error(errorMsg);
         setValoresCidadeMessage(errorMsg);
       }
 
@@ -1267,14 +1274,13 @@ export default function UploadPage() {
       const valoresCidadeFileInput = document.querySelector('input[type="file"][data-valores-cidade="true"]') as HTMLInputElement;
       if (valoresCidadeFileInput) valoresCidadeFileInput.value = '';
     } catch (error: any) {
-      console.error('❌ ERRO GERAL no upload de Valores por Cidade:', error);
-      console.error('Stack trace completo:', error?.stack);
-      safeLog.error('Erro no upload de Valores por Cidade:', error);
+      safeLog.error('❌ ERRO GERAL no upload de Valores por Cidade:', error);
+      safeLog.error('Stack trace completo:', error?.stack);
       const errorMsg = `❌ Erro: ${error?.message || error?.toString() || 'Erro desconhecido'}`;
       setValoresCidadeMessage(errorMsg);
     } finally {
       setUploadingValoresCidade(false);
-      console.log('Upload finalizado');
+      safeLog.info('Upload finalizado');
     }
   };
 

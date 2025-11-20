@@ -281,7 +281,9 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     if (Object.values(filtersRef.current).some(v => v !== null && v !== undefined && (Array.isArray(v) ? v.length > 0 : true))) {
       registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current);
     }
-  }, [JSON.stringify(filters), sessionId, registrarAtividade]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-line react-hooks/exhaustive-deps
+    // registrarAtividade é estável e não precisa estar nas dependências
+  }, [JSON.stringify(filters), sessionId, registrarAtividade]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -304,7 +306,9 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [sessionId, registrarAtividade]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-line react-hooks/exhaustive-deps
+    // registrarAtividade é estável e não precisa estar nas dependências
+  }, [sessionId, registrarAtividade]);
 
   useEffect(() => {
     if (!currentUserRef.current || !sessionId) return;
@@ -325,7 +329,9 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
       clearTimeout(loginTimeout);
       clearInterval(heartbeatInterval);
     };
-  }, [currentUser, isPageVisible, sessionId, registrarAtividade]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-line react-hooks/exhaustive-deps
+    // registrarAtividade é estável e não precisa estar nas dependências
+  }, [currentUser, isPageVisible, sessionId, registrarAtividade]);
 
   return { sessionId, isPageVisible, registrarAtividade };
 }

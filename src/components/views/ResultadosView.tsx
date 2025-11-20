@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Send, CheckCircle2 } from 'lucide-react';
 import MarketingCard from '@/components/MarketingCard';
+import { CIDADES, SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -20,21 +21,6 @@ const ATENDENTES = [
   'Beatriz Angelo',
   'Melissa',
   'Carolini Braguini',
-];
-
-// Lista de cidades (mesmas do MarketingDashboardView)
-const SANTO_ANDRE_SUB_PRACAS = ['Vila Aquino', 'São Caetano'];
-const SAO_BERNARDO_SUB_PRACAS = ['Diadema', 'Nova petrópolis', 'Rudge Ramos'];
-
-const CIDADES = [
-  'São Paulo 2.0',
-  'Salvador 2.0',
-  'Guarulhos 2.0',
-  'Manaus 2.0',
-  'Sorocaba 2.0',
-  'Taboão da Serra e Embu das Artes 2.0',
-  'Santo André',
-  'São Bernardo',
 ];
 
 // Mapeamento de fotos dos atendentes
@@ -780,6 +766,7 @@ const ResultadosView = React.memo(function ResultadosView() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // fetchData usa filters completo, mas só queremos re-executar quando estes filtros específicos mudarem
   }, [filters.filtroLiberacao, filters.filtroEnviados, filters.filtroEnviadosLiberados]);
 
   const handleFilterChange = (filterName: 'filtroLiberacao' | 'filtroEnviados' | 'filtroEnviadosLiberados', filter: MarketingDateFilter) => {

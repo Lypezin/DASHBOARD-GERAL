@@ -8,24 +8,9 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import MarketingCard from '@/components/MarketingCard';
 import MarketingCityCard from '@/components/MarketingCityCard';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
+import { CIDADES, SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-
-// Constantes para separação do ABC 2.0
-const SANTO_ANDRE_SUB_PRACAS = ['Vila Aquino', 'São Caetano'];
-const SAO_BERNARDO_SUB_PRACAS = ['Diadema', 'Nova petrópolis', 'Rudge Ramos'];
-
-// Lista de cidades para os cartões
-const CIDADES = [
-  'São Paulo 2.0',
-  'Salvador 2.0',
-  'Guarulhos 2.0',
-  'Manaus 2.0',
-  'Sorocaba 2.0',
-  'Taboão da Serra e Embu das Artes 2.0',
-  'Santo André',
-  'São Bernardo',
-];
 
 // Função auxiliar para construir query com filtro de data
 function buildDateFilterQuery(
@@ -252,6 +237,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // fetchData já inclui todas as dependências necessárias internamente
   }, [filters.filtroLiberacao, filters.filtroEnviados, filters.filtroRodouDia]);
 
   const handleFilterChange = (filterName: keyof MarketingFilters, filter: MarketingDateFilter) => {

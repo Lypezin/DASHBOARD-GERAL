@@ -135,6 +135,7 @@ export default function DashboardPage() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Executar apenas uma vez no mount inicial para registrar atividade inicial
   }, []); // Apenas no mount inicial
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -391,7 +392,8 @@ export default function DashboardPage() {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [anosDisponiveis]); // anoEvolucao não precisa estar nas dependências - queremos verificar apenas quando anosDisponiveis mudar
+    // anoEvolucao não precisa estar nas dependências - queremos verificar apenas quando anosDisponiveis mudar
+  }, [anosDisponiveis]);
 
   // Lógica para registrar atividade do usuário
   // Adicionar debounce para evitar múltiplas chamadas quando há mudanças rápidas de tab
@@ -414,7 +416,9 @@ export default function DashboardPage() {
         clearTimeout(tabChangeTimeoutRef2.current);
       }
     };
-  }, [activeTab, registrarAtividade, filters, currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-line react-hooks/exhaustive-deps
+    // registrarAtividade é estável e não precisa estar nas dependências
+  }, [activeTab, registrarAtividade, filters, currentUser]);
 
   // Lógica para buscar dados do usuário
   const verifyTimeoutRef = useRef<NodeJS.Timeout | null>(null);

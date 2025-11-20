@@ -47,6 +47,7 @@ export default function AdminPage() {
     checkAuth();
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Executar apenas uma vez no mount inicial - checkAuth e fetchData não dependem de props/state
   }, []);
 
   const checkAuth = async () => {

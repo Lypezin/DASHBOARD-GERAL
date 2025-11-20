@@ -20,7 +20,8 @@ function getSupabaseClient(): SupabaseClient {
 
   // Log detalhado para debug (apenas em desenvolvimento ou quando há problemas)
   if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'development' || !runtimeUrl || runtimeUrl.includes('placeholder'))) {
-    console.log('[Supabase Client] Verificando variáveis:', {
+    const { safeLog } = require('@/lib/errorHandler');
+    safeLog.info('[Supabase Client] Verificando variáveis:', {
       hasUrl: !!runtimeUrl,
       hasKey: !!runtimeKey,
       url: runtimeUrl?.substring(0, 30) + '...',
@@ -40,7 +41,8 @@ function getSupabaseClient(): SupabaseClient {
     // Se não temos instância ou a instância atual é mock, criar nova
     if (!supabaseInstance) {
       if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-        console.log('[Supabase Client] Criando nova instância com variáveis válidas');
+        const { safeLog } = require('@/lib/errorHandler');
+        safeLog.info('[Supabase Client] Criando nova instância com variáveis válidas');
       }
       supabaseInstance = createClient(runtimeUrl, runtimeKey, {
         auth: {
@@ -60,7 +62,8 @@ function getSupabaseClient(): SupabaseClient {
     if (currentUrl === 'https://placeholder.supabase.co') {
       // Recriar com variáveis reais
       if (typeof window !== 'undefined') {
-        console.warn('[Supabase Client] ⚠️ Instância mock detectada, recriando com variáveis reais...');
+        const { safeLog } = require('@/lib/errorHandler');
+        safeLog.warn('[Supabase Client] ⚠️ Instância mock detectada, recriando com variáveis reais...');
       }
       supabaseInstance = createClient(runtimeUrl, runtimeKey, {
         auth: {
@@ -73,7 +76,8 @@ function getSupabaseClient(): SupabaseClient {
         }
       });
       if (typeof window !== 'undefined') {
-        console.log('[Supabase Client] ✅ Cliente recriado com sucesso');
+        const { safeLog } = require('@/lib/errorHandler');
+        safeLog.info('[Supabase Client] ✅ Cliente recriado com sucesso');
       }
       return supabaseInstance;
     }
@@ -104,7 +108,8 @@ function getSupabaseClient(): SupabaseClient {
   if (supabaseInstance && typeof window !== 'undefined') {
     const currentUrl = (supabaseInstance as any).supabaseUrl;
     if (currentUrl === 'https://placeholder.supabase.co') {
-      console.error(
+      const { safeLog } = require('@/lib/errorHandler');
+      safeLog.error(
         '[Supabase Client] ⚠️ Variáveis de ambiente não encontradas em runtime!\n' +
         'Verifique se NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY estão configuradas no Vercel.\n' +
         'Após configurar, faça um novo deploy (não apenas redeploy, mas um novo build).\n' +

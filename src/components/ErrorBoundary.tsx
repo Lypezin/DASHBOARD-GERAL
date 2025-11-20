@@ -32,7 +32,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary capturou um erro:', error, errorInfo);
+    const { safeLog } = require('@/lib/errorHandler');
+    safeLog.error('ErrorBoundary capturou um erro:', { error, errorInfo });
     this.setState({
       error,
       errorInfo,

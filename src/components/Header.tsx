@@ -102,6 +102,7 @@ export function Header() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // handleProfileUpdate é estável e não precisa estar nas dependências
   }, []);
 
   const checkUser = async () => {

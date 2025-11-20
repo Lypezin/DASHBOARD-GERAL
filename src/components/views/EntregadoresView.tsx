@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Download } from 'lucide-react';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import MarketingCard from '@/components/MarketingCard';
+import { CIDADES as CIDADES_MARKETING } from '@/constants/marketing';
 import * as XLSX from 'xlsx';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -35,18 +36,8 @@ const EntregadoresView = React.memo(function EntregadoresView({
   });
   const [cidadeSelecionada, setCidadeSelecionada] = useState<string>('');
 
-  // Lista de cidades disponíveis (mesmas do MarketingDashboardView)
-  const CIDADES = [
-    '',
-    'São Paulo 2.0',
-    'Salvador 2.0',
-    'Guarulhos 2.0',
-    'Manaus 2.0',
-    'Sorocaba 2.0',
-    'Taboão da Serra e Embu das Artes 2.0',
-    'Santo André',
-    'São Bernardo',
-  ];
+  // Lista de cidades disponíveis (incluindo opção vazia para "Todas")
+  const CIDADES = ['', ...CIDADES_MARKETING];
 
   const fetchEntregadoresFallback = useCallback(async () => {
     try {
@@ -287,6 +278,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
     // Este componente é usado apenas no Marketing, sempre buscar dados
     fetchEntregadores();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // fetchEntregadores já está memoizado com useCallback e suas dependências corretas
   }, [fetchEntregadores]);
 
   // Usar loading interno

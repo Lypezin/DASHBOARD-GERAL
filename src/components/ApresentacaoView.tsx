@@ -674,8 +674,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada]);
 
   const gerarPDF = async () => {
-    console.log('🔵 gerarPDF chamado');
-    console.log('📊 slidesPDFData.length:', slidesPDFData.length);
+    if (IS_DEV) {
+      safeLog.info('🔵 gerarPDF chamado');
+      safeLog.info('📊 slidesPDFData.length:', { length: slidesPDFData.length });
+    }
     
     if (slidesPDFData.length === 0) {
       alert('Não há dados suficientes para gerar o PDF.');
@@ -689,13 +691,19 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     }
 
     setIsGenerating(true);
-    console.log('⏳ Iniciando geração de PDF...');
+    if (IS_DEV) {
+      safeLog.info('⏳ Iniciando geração de PDF...');
+    }
 
     try {
       // Carregar pdfmake apenas no cliente
-      console.log('📦 Carregando pdfmake...');
+      if (IS_DEV) {
+        safeLog.info('📦 Carregando pdfmake...');
+      }
       const pdfMake = await loadPdfMake();
-      console.log('✅ pdfmake carregado:', !!pdfMake);
+      if (IS_DEV) {
+        safeLog.info('✅ pdfmake carregado:', { loaded: !!pdfMake });
+      }
 
       if (!pdfMake) {
         throw new Error('pdfmake não foi carregado corretamente');
@@ -715,7 +723,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         };
       });
 
-      console.log('📄 Total de slides no conteúdo:', content.length);
+      if (IS_DEV) {
+        safeLog.info('📄 Total de slides no conteúdo:', { length: content.length });
+      }
 
       const docDefinition = {
         pageSize: {
@@ -732,15 +742,21 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         },
       };
 
-      console.log('📝 Criando PDF...');
+      if (IS_DEV) {
+        safeLog.info('📝 Criando PDF...');
+      }
       const pdfDoc = pdfMake.createPdf(docDefinition);
-      console.log('💾 PDF criado, iniciando download...');
+      if (IS_DEV) {
+        safeLog.info('💾 PDF criado, iniciando download...');
+      }
       
       const fileName = `Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`;
       
       // Usar getBlob para garantir que o download funcione
       pdfDoc.getBlob((blob: Blob) => {
-        console.log('📦 Blob criado:', blob.size, 'bytes');
+        if (IS_DEV) {
+          safeLog.info('📦 Blob criado:', { size: blob.size });
+        }
         
         if (!blob || blob.size === 0) {
           throw new Error('PDF gerado está vazio');
@@ -748,7 +764,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         
         // Criar URL do blob
         const url = URL.createObjectURL(blob);
-        console.log('🔗 URL criada:', url);
+        if (IS_DEV) {
+          safeLog.info('🔗 URL criada:', { url });
+        }
         
         // Criar link de download
         const link = document.createElement('a');
@@ -758,23 +776,28 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         
         // Adicionar ao DOM, clicar e remover
         document.body.appendChild(link);
-        console.log('🖱️ Clicando no link de download...');
+        if (IS_DEV) {
+          safeLog.info('🖱️ Clicando no link de download...');
+        }
         link.click();
         
         // Limpar após um pequeno delay
         setTimeout(() => {
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
-          console.log('✅ Download iniciado e recursos limpos!');
+          if (IS_DEV) {
+            safeLog.info('✅ Download iniciado e recursos limpos!');
+          }
         }, 100);
       });
     } catch (error) {
-      console.error('❌ Erro ao gerar PDF:', error);
-      safeLog.error('Erro ao gerar PDF:', error);
+      safeLog.error('❌ Erro ao gerar PDF:', error);
       alert(`Erro ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setIsGenerating(false);
-      console.log('🏁 Geração de PDF finalizada');
+      if (IS_DEV) {
+        safeLog.info('🏁 Geração de PDF finalizada');
+      }
     }
   };
 

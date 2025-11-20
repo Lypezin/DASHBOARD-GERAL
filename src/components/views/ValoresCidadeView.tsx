@@ -276,6 +276,7 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // fetchData já inclui todas as dependências necessárias, apenas queremos re-executar quando estes filtros mudarem
   }, [isAuthenticated, filter.dataInicial, filter.dataFinal, filterEnviados.dataInicial, filterEnviados.dataFinal]);
 
   const handleFilterChange = (newFilter: ValoresCidadeDateFilter) => {
