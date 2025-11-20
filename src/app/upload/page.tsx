@@ -110,14 +110,12 @@ export default function UploadPage() {
       const validation = await validateFile(file, marketingFiles.length);
       if (validation.valid) {
         validFiles.push(file);
-      } else {
-        setMarketingMessage(`⚠️ ${validation.error}`);
       }
+      // Erros de validação são tratados pelo componente UploadSection
     }
 
     if (validFiles.length > 0) {
       setMarketingFiles([...marketingFiles, ...validFiles]);
-      setMarketingMessage('');
     }
   };
 
@@ -133,14 +131,12 @@ export default function UploadPage() {
       const validation = await validateFile(file, valoresCidadeFiles.length);
       if (validation.valid) {
         validFiles.push(file);
-      } else {
-        setValoresCidadeMessage(`⚠️ ${validation.error}`);
       }
+      // Erros de validação são tratados pelo componente UploadSection
     }
 
     if (validFiles.length > 0) {
       setValoresCidadeFiles([...valoresCidadeFiles, ...validFiles]);
-      setValoresCidadeMessage('');
     }
   };
 
