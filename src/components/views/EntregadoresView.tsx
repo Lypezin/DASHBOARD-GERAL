@@ -158,17 +158,19 @@ const EntregadoresView = React.memo(function EntregadoresView({
         if (corridasData && corridasData.length > 0) {
           const datas = corridasData
             .map(c => c.data_do_periodo)
-            .filter(d => d != null)
+            .filter((d): d is string => d != null)
             .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
           
           if (datas.length > 0) {
             ultimaData = datas[0];
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-            const ultimaDataObj = new Date(ultimaData);
-            ultimaDataObj.setHours(0, 0, 0, 0);
-            const diffTime = hoje.getTime() - ultimaDataObj.getTime();
-            diasSemRodar = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            if (ultimaData) {
+              const hoje = new Date();
+              hoje.setHours(0, 0, 0, 0);
+              const ultimaDataObj = new Date(ultimaData);
+              ultimaDataObj.setHours(0, 0, 0, 0);
+              const diffTime = hoje.getTime() - ultimaDataObj.getTime();
+              diasSemRodar = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            }
           }
         }
 
