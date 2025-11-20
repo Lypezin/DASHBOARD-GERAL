@@ -8,6 +8,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import Image from 'next/image';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -532,12 +533,14 @@ export default function PerfilPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      <ErrorBoundary>
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <div className="text-center">
           <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
           <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-300">Carregando perfil...</p>
         </div>
       </div>
+      </ErrorBoundary>
     );
   }
 
@@ -548,7 +551,8 @@ export default function PerfilPage() {
   const displayUrl = previewUrl || user.avatar_url;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 py-8 px-4 sm:px-6 lg:px-8">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -800,6 +804,7 @@ export default function PerfilPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
 

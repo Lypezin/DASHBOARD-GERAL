@@ -13,6 +13,32 @@ import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+/**
+ * Hook para gerenciar dados do dashboard principal
+ * 
+ * Busca e gerencia todos os dados necessários para o dashboard, incluindo:
+ * - Totais (ofertadas, aceitas, rejeitadas, completadas)
+ * - Aderência (semanal, diária, por turno, sub-praça, origem)
+ * - Evolução (mensal e semanal)
+ * - UTR semanal
+ * - Opções de filtros (praças, sub-praças, origens, turnos)
+ * 
+ * @param {Filters} initialFilters - Filtros iniciais do dashboard
+ * @param {string} activeTab - Aba ativa (usado para determinar quais dados carregar)
+ * @param {number} anoEvolucao - Ano selecionado para visualização de evolução
+ * @param {CurrentUser | null} [currentUser] - Usuário atual (para aplicar permissões)
+ * @returns {Object} Objeto contendo todos os dados do dashboard, estados de loading e erro
+ * 
+ * @example
+ * ```typescript
+ * const {
+ *   totals,
+ *   aderenciaSemanal,
+ *   loading,
+ *   error
+ * } = useDashboardData(filters, 'dashboard', 2024, currentUser);
+ * ```
+ */
 export function useDashboardData(initialFilters: Filters, activeTab: string, anoEvolucao: number, currentUser?: CurrentUser | null) {
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);

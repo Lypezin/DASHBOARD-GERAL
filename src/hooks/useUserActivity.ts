@@ -15,6 +15,31 @@ const functionAvailability = {
   checkInterval: 60000 // Verificar novamente após 1 minuto se foi marcada como indisponível
 };
 
+/**
+ * Hook para gerenciar atividade e sessão do usuário
+ * 
+ * Rastreia atividade do usuário, gerencia sessão e registra ações no sistema.
+ * Inclui detecção de visibilidade da página e limpeza automática de sessões inativas.
+ * 
+ * @param {string} activeTab - Aba ativa do dashboard
+ * @param {any} filters - Filtros atuais aplicados (pode ser Filters ou objeto genérico)
+ * @param {Object | null} currentUser - Usuário atual
+ * @param {boolean} currentUser.is_admin - Se o usuário é administrador
+ * @param {string[]} currentUser.assigned_pracas - Praças atribuídas ao usuário
+ * @param {string} [currentUser.role] - Role do usuário ('admin', 'marketing', 'user')
+ * @returns {Object} Objeto contendo sessionId, isPageVisible e função registrarAtividade
+ * 
+ * @example
+ * ```typescript
+ * const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(
+ *   'dashboard',
+ *   filters,
+ *   currentUser
+ * );
+ * 
+ * registrarAtividade('view', { view: 'dashboard' }, 'dashboard', filters);
+ * ```
+ */
 export function useUserActivity(activeTab: string, filters: any, currentUser: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null) {
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [sessionId, setSessionId] = useState<string>('');

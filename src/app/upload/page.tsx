@@ -8,6 +8,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { uploadRateLimiter } from '@/lib/rateLimiter';
 import { validateString } from '@/lib/validate';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -1295,8 +1296,9 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-      <div className="container mx-auto px-6 py-12">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
+        <div className="container mx-auto px-6 py-12">
         <div className="mx-auto max-w-3xl">
           {/* Card Principal */}
           <div className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-2xl dark:border-blue-900 dark:bg-slate-900">
@@ -1840,5 +1842,6 @@ export default function UploadPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

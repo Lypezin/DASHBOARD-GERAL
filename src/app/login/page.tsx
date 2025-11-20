@@ -149,7 +149,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-950 px-4 py-12">
+    <ErrorBoundary>
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-950 px-4 py-12">
       {/* Background Animated Elements */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Gradient Orbs */}
@@ -315,5 +316,6 @@ export default function LoginPage() {
         }
       `}</style>
     </div>
+    </ErrorBoundary>
   );
 }

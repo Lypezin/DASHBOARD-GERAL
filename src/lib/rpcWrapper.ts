@@ -11,8 +11,40 @@ const DEFAULT_TIMEOUT = 30000; // 30 segundos
 
 /**
  * Executa uma chamada RPC com timeout e validação
- * NOTA: Removido suporte a AbortSignal pois o Supabase JS client não suporta nativamente
- * O cancelamento é feito no nível do hook através de verificação de estado
+ * 
+ * Wrapper seguro para chamadas RPC do Supabase que inclui:
+ * - Rate limiting automático
+ * - Timeout configurável (padrão: 30 segundos)
+ * - Validação de parâmetros
+ * - Tratamento de erros
+ * 
+ * NOTA: Removido suporte a AbortSignal pois o Supabase JS client não suporta nativamente.
+ * O cancelamento é feito no nível do hook através de verificação de estado.
+ * 
+ * @template T - Tipo do retorno esperado da função RPC
+ * @param {string} functionName - Nome da função RPC a ser chamada
+ * @param {any} [params={}] - Parâmetros a serem passados para a função RPC
+ * @param {Object} [options={}] - Opções de configuração
+ * @param {number} [options.timeout=30000] - Timeout em milissegundos (padrão: 30000)
+ * @param {boolean} [options.validateParams=true] - Se deve validar os parâmetros antes de enviar
+ * @returns {Promise<{data: T | null, error: any}>} Objeto com dados ou erro
+ * 
+ * @example
+ * ```typescript
+ * const { data, error } = await safeRpc<MyDataType>('get_my_data', {
+ *   p_id: 123,
+ *   p_filter: 'active'
+ * }, {
+ *   timeout: 60000,
+ *   validateParams: true
+ * });
+ * 
+ * if (error) {
+ *   console.error('Erro:', error);
+ * } else {
+ *   console.log('Dados:', data);
+ * }
+ * ```
  */
 export async function safeRpc<T = any>(
   functionName: string,

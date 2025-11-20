@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { safeLog } from '@/lib/errorHandler';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -92,7 +93,8 @@ export default function RegistroPage() {
 
   if (success) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-950 px-4 py-12">
+      <ErrorBoundary>
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-950 px-4 py-12">
         {/* Background Animated Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -left-40 h-80 w-80 animate-pulse rounded-full bg-emerald-500/20 blur-3xl"></div>
@@ -131,11 +133,13 @@ export default function RegistroPage() {
           </div>
         </div>
       </div>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-950 px-4 py-12">
+    <ErrorBoundary>
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-950 px-4 py-12">
       {/* Background Animated Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -left-40 h-80 w-80 animate-pulse rounded-full bg-blue-500/20 blur-3xl"></div>
@@ -354,5 +358,6 @@ export default function RegistroPage() {
         }
       `}</style>
     </div>
+    </ErrorBoundary>
   );
 }

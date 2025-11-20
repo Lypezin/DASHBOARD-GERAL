@@ -21,6 +21,23 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 /**
  * Obtém mensagem de erro segura (não expõe detalhes em produção)
+ * 
+ * Esta função sanitiza mensagens de erro para evitar expor informações sensíveis.
+ * Em produção, retorna mensagens genéricas baseadas em códigos de erro.
+ * Em desenvolvimento, inclui mais detalhes para facilitar o debug.
+ * 
+ * @param {unknown} error - O erro a ser processado (pode ser Error, string, ou qualquer tipo)
+ * @returns {string} Mensagem de erro sanitizada e segura para exibição
+ * 
+ * @example
+ * ```typescript
+ * try {
+ *   await someOperation();
+ * } catch (err) {
+ *   const message = getSafeErrorMessage(err);
+ *   setError(message);
+ * }
+ * ```
  */
 interface ErrorWithCode {
   code?: string;
@@ -60,6 +77,18 @@ export function getSafeErrorMessage(error: unknown): string {
 
 /**
  * Sanitiza objeto de erro removendo informações sensíveis
+ * 
+ * Remove campos sensíveis e limita a profundidade de objetos de erro.
+ * Em produção, remove stack traces e detalhes que possam expor informações.
+ * 
+ * @param {unknown} error - O erro a ser sanitizado
+ * @returns {SanitizedError} Objeto de erro sanitizado com apenas informações seguras
+ * 
+ * @example
+ * ```typescript
+ * const sanitized = sanitizeError(err);
+ * console.log(sanitized.message); // Mensagem segura
+ * ```
  */
 interface SanitizedError {
   message: string;
@@ -95,13 +124,36 @@ export function sanitizeError(error: unknown): SanitizedError {
 
 /**
  * Log seguro (não expõe dados sensíveis em produção)
+ * 
+ * Sistema de logging que apenas exibe logs em desenvolvimento.
+ * Em produção, os logs são silenciados para evitar exposição de informações.
+ * Todos os dados são sanitizados antes de serem logados.
+ * 
+ * @example
+ * ```typescript
+ * safeLog.info('Operação iniciada', { userId: 123 });
+ * safeLog.error('Erro na operação', error);
+ * safeLog.warn('Aviso importante', { data });
+ * ```
  */
 export const safeLog = {
+  /**
+   * Log de informações (apenas em desenvolvimento)
+   * 
+   * @param {string} message - Mensagem a ser logada
+   * @param {unknown} [data] - Dados opcionais a serem logados (serão sanitizados)
+   */
   info: (message: string, data?: unknown) => {
     if (IS_DEV) {
       console.log(message, data ? sanitizeLogData(data) : '');
     }
   },
+  /**
+   * Log de erros (apenas em desenvolvimento)
+   * 
+   * @param {string} message - Mensagem de erro
+   * @param {unknown} [error] - Objeto de erro opcional (será sanitizado)
+   */
   error: (message: string, error?: unknown) => {
     if (IS_DEV) {
       console.error(message, error ? sanitizeError(error) : '');
@@ -110,6 +162,12 @@ export const safeLog = {
       // Por enquanto, apenas não logar
     }
   },
+  /**
+   * Log de avisos (apenas em desenvolvimento)
+   * 
+   * @param {string} message - Mensagem de aviso
+   * @param {unknown} [data] - Dados opcionais a serem logados (serão sanitizados)
+   */
   warn: (message: string, data?: unknown) => {
     if (IS_DEV) {
       console.warn(message, data ? sanitizeLogData(data) : '');

@@ -1,11 +1,46 @@
 import { Filters, CurrentUser, hasFullCityAccess } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 
+/**
+ * Converte um valor para número de forma segura
+ * 
+ * Retorna 0 se o valor não puder ser convertido para número.
+ * Útil para evitar NaN em cálculos.
+ * 
+ * @param {any} value - Valor a ser convertido
+ * @returns {number} Número convertido ou 0 se inválido
+ * 
+ * @example
+ * ```typescript
+ * safeNumber('123') // 123
+ * safeNumber('abc') // 0
+ * safeNumber(null) // 0
+ * safeNumber(undefined) // 0
+ * ```
+ */
 export const safeNumber = (value: any): number => {
   const num = Number(value);
   return isNaN(num) ? 0 : num;
 };
 
+/**
+ * Verifica se dois arrays são iguais (comparação profunda)
+ * 
+ * Compara arrays elemento por elemento usando comparação estrita (===).
+ * Retorna false se os arrays tiverem tamanhos diferentes.
+ * 
+ * @template T - Tipo dos elementos do array
+ * @param {T[]} a - Primeiro array
+ * @param {T[]} b - Segundo array
+ * @returns {boolean} True se os arrays forem iguais, false caso contrário
+ * 
+ * @example
+ * ```typescript
+ * arraysEqual([1, 2, 3], [1, 2, 3]) // true
+ * arraysEqual([1, 2], [1, 2, 3]) // false
+ * arraysEqual(['a', 'b'], ['a', 'b']) // true
+ * ```
+ */
 export const arraysEqual = <T>(a: T[], b: T[]): boolean => {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i += 1) {
@@ -14,6 +49,31 @@ export const arraysEqual = <T>(a: T[], b: T[]): boolean => {
   return true;
 };
 
+/**
+ * Constrói o payload de filtros para chamadas RPC
+ * 
+ * Processa e normaliza os filtros do dashboard, aplicando:
+ * - Limites de tamanho em arrays (máximo 50 itens)
+ * - Validação de datas (formato YYYY-MM-DD)
+ * - Aplicação de permissões do usuário (praças permitidas)
+ * - Normalização de strings vazias para null
+ * - Conversão de arrays para strings separadas por vírgula quando necessário
+ * 
+ * @param {Filters} filters - Objeto de filtros do dashboard
+ * @param {CurrentUser | null} [currentUser] - Usuário atual (para aplicar permissões)
+ * @returns {Object} Payload normalizado para RPC com chaves p_* (p_ano, p_semana, etc.)
+ * 
+ * @example
+ * ```typescript
+ * const payload = buildFilterPayload({
+ *   ano: 2024,
+ *   semana: 10,
+ *   praca: 'São Paulo',
+ *   subPracas: ['Sub1', 'Sub2']
+ * }, currentUser);
+ * // Retorna: { p_ano: 2024, p_semana: 10, p_praca: 'São Paulo', p_sub_praca: 'Sub1,Sub2', ... }
+ * ```
+ */
 export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser | null) => {
   // Log para debug
   try {

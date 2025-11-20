@@ -13,6 +13,25 @@ type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 // Sistema global de fila para evitar requisições simultâneas
 const requestQueue = new Map<string, { timestamp: number; count: number }>();
 
+/**
+ * Hook para gerenciar dados específicos de cada aba do dashboard
+ * 
+ * Busca dados específicos baseados na aba ativa (utr, entregadores, valores, prioridade).
+ * Inclui sistema de cache, debounce, e cancelamento de requisições antigas.
+ * 
+ * @param {string} activeTab - Aba ativa ('utr', 'entregadores', 'valores', 'prioridade')
+ * @param {object} filterPayload - Payload de filtros para a requisição RPC
+ * @param {Object} [currentUser] - Usuário atual (para aplicar permissões)
+ * @param {boolean} [currentUser.is_admin] - Se o usuário é administrador
+ * @param {string[]} [currentUser.assigned_pracas] - Praças atribuídas ao usuário
+ * @param {string} [currentUser.role] - Role do usuário ('admin', 'marketing', 'user')
+ * @returns {Object} Objeto contendo dados da aba, estado de loading e erro
+ * 
+ * @example
+ * ```typescript
+ * const { data, loading } = useTabData('utr', filterPayload, currentUser);
+ * ```
+ */
 export function useTabData(activeTab: string, filterPayload: object, currentUser?: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null) {
   const [data, setData] = useState<TabData>(null);
   const [loading, setLoading] = useState(false);
