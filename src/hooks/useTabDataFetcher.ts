@@ -25,7 +25,7 @@ interface FetchOptions {
  */
 async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | null; error: any }> {
   const { tab, filterPayload } = options;
-  
+
   const result = await safeRpc<UtrData>('calcular_utr', filterPayload as any, {
     timeout: RPC_TIMEOUTS.DEFAULT,
     validateParams: true
@@ -34,17 +34,17 @@ async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | nu
   if (result.error) {
     const is500 = is500Error(result.error);
     const isRateLimit = isRateLimitError(result.error);
-    
+
     if (is500) {
       safeLog.warn('Erro 500 ao buscar UTR. Aguardando antes de tentar novamente...');
       throw new Error('RETRY_500');
     }
-    
+
     if (isRateLimit) {
       safeLog.warn('Rate limit ao buscar UTR. Aguardando...');
       throw new Error('RETRY_RATE_LIMIT');
     }
-    
+
     safeLog.error('Erro ao buscar UTR:', result.error);
     return { data: null, error: result.error };
   }
@@ -57,10 +57,11 @@ async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | nu
  */
 async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: any }> {
   const { tab, filterPayload } = options;
-  
+
+  // Remover p_turno pois a função não suporta
+  const { p_turno, ...restPayload } = filterPayload;
   const listarEntregadoresPayload = {
-    ...filterPayload,
-    p_limite: 1000,
+    ...restPayload,
   };
 
   const result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
@@ -71,27 +72,27 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
   if (result.error) {
     const is500 = is500Error(result.error);
     const isRateLimit = isRateLimitError(result.error);
-    
+
     if (is500) {
       safeLog.warn('Erro 500 ao buscar entregadores. Aguardando antes de tentar novamente...');
       throw new Error('RETRY_500');
     }
-    
+
     if (isRateLimit) {
       safeLog.warn('Rate limit ao buscar entregadores. Aguardando...');
       throw new Error('RETRY_RATE_LIMIT');
     }
-    
+
     safeLog.error('Erro ao buscar entregadores:', result.error);
     return { data: { entregadores: [], total: 0 }, error: result.error };
   }
 
   let processedData: EntregadoresData = { entregadores: [], total: 0 };
-  
+
   if (result && result.data) {
     let entregadores: any[] = [];
     let total = 0;
-    
+
     if (Array.isArray(result.data)) {
       entregadores = result.data;
       total = result.data.length;
@@ -104,7 +105,7 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
         total = 1;
       }
     }
-    
+
     processedData = { entregadores, total };
   }
 
@@ -116,10 +117,11 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
  */
 async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; error: any }> {
   const { tab, filterPayload } = options;
-  
+
+  // Remover p_turno pois a função não suporta
+  const { p_turno, ...restPayload } = filterPayload;
   const listarValoresPayload = {
-    ...filterPayload,
-    p_limite: 1000,
+    ...restPayload,
   };
 
   const result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
@@ -130,23 +132,23 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
   if (result.error) {
     const is500 = is500Error(result.error);
     const isRateLimit = isRateLimitError(result.error);
-    
+
     if (is500) {
       safeLog.warn('Erro 500 ao buscar valores. Aguardando antes de tentar novamente...');
       throw new Error('RETRY_500');
     }
-    
+
     if (isRateLimit) {
       safeLog.warn('Rate limit ao buscar valores. Aguardando...');
       throw new Error('RETRY_RATE_LIMIT');
     }
-    
+
     safeLog.error('Erro ao buscar valores:', result.error);
     return { data: [], error: result.error };
   }
 
   let processedData: ValoresEntregador[] = [];
-  
+
   if (result && result.data !== null && result.data !== undefined) {
     if (Array.isArray(result.data)) {
       processedData = result.data;
@@ -168,21 +170,21 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
  */
 export async function fetchTabData(options: FetchOptions): Promise<{ data: TabData; error: any }> {
   const { tab } = options;
-  
+
   try {
     switch (tab) {
       case 'utr':
         return await fetchUtrData(options);
-      
+
       case 'entregadores':
         return await fetchEntregadoresData(options);
-      
+
       case 'valores':
         return await fetchValoresData(options);
 
       case 'prioridade':
         return await fetchEntregadoresData(options);
-      
+
       default:
         return { data: null, error: new Error(`Tab desconhecida: ${tab}`) };
     }
@@ -213,9 +215,9 @@ export function useTabDataFetcher() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
+
     abortControllerRef.current = new AbortController();
-    
+
     // Limpar timeout de retry anterior
     if (retryTimeoutRef.current) {
       clearTimeout(retryTimeoutRef.current);
@@ -225,7 +227,7 @@ export function useTabDataFetcher() {
 
     try {
       const result = await fetchTabData({ tab, filterPayload });
-      
+
       if (!shouldContinue()) {
         return;
       }
