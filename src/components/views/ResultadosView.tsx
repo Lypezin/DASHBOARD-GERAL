@@ -89,6 +89,8 @@ interface AtendenteData {
   enviado: number;
   liberado: number;
   custoPorLiberado?: number;
+  quantidadeLiberados?: number;
+  valorTotal?: number;
   fotoUrl?: string | null;
   cidades?: AtendenteCidadeData[];
 }
@@ -170,11 +172,24 @@ const AtendenteCard = React.memo(function AtendenteCard({
                   }).format(atendenteData.custoPorLiberado)}
                 </p>
               </div>
-              {/* Informação de quanto falta para R$ 50 */}
+              {/* Informação de quantos liberados faltam para R$ 50 */}
               {(() => {
                 const META_CUSTO = 50;
-                const faltaParaMeta = META_CUSTO - atendenteData.custoPorLiberado;
-                const jaAtingiuMeta = atendenteData.custoPorLiberado <= META_CUSTO;
+                const quantidadeLiberados = atendenteData.quantidadeLiberados || 0;
+                const valorTotal = atendenteData.valorTotal || 0;
+                let faltamLiberados = 0;
+                let jaAtingiuMeta = false;
+
+                if (atendenteData.custoPorLiberado && atendenteData.custoPorLiberado > META_CUSTO && quantidadeLiberados > 0) {
+                  // Se o custo atual é maior que R$ 50, calcular quantos faltam
+                  faltamLiberados = Math.ceil((valorTotal - META_CUSTO * quantidadeLiberados) / META_CUSTO);
+                  if (faltamLiberados < 0) {
+                    faltamLiberados = 0;
+                  }
+                } else if (atendenteData.custoPorLiberado && atendenteData.custoPorLiberado <= META_CUSTO && atendenteData.custoPorLiberado > 0) {
+                  // Se já está abaixo ou igual a R$ 50
+                  jaAtingiuMeta = true;
+                }
                 
                 return (
                   <div className={`rounded-lg p-2.5 ${
@@ -189,14 +204,14 @@ const AtendenteCard = React.memo(function AtendenteCard({
                           Meta atingida! Custo abaixo de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
                         </p>
                       </div>
-                    ) : (
+                    ) : faltamLiberados > 0 ? (
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm">🎯</span>
                         <p className="text-[10px] font-medium text-orange-700 dark:text-orange-300">
-                          Faltam <span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(faltaParaMeta)}</span> para atingir {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
+                          Faltam <span className="font-bold">{faltamLiberados}</span> liberado{faltamLiberados !== 1 ? 's' : ''} para chegar a {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
                         </p>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 );
               })()}
@@ -257,11 +272,24 @@ const AtendenteCard = React.memo(function AtendenteCard({
                               }).format(cidadeData.custoPorLiberado)}
                             </span>
                           </Badge>
-                          {/* Informação de quanto falta para R$ 50 */}
+                          {/* Informação de quantos liberados faltam para R$ 50 */}
                           {(() => {
                             const META_CUSTO = 50;
-                            const faltaParaMeta = META_CUSTO - cidadeData.custoPorLiberado;
-                            const jaAtingiuMeta = cidadeData.custoPorLiberado <= META_CUSTO;
+                            const quantidadeLiberados = cidadeData.quantidadeLiberados || 0;
+                            const valorTotal = cidadeData.valorTotal || 0;
+                            let faltamLiberados = 0;
+                            let jaAtingiuMeta = false;
+
+                            if (cidadeData.custoPorLiberado && cidadeData.custoPorLiberado > META_CUSTO && quantidadeLiberados > 0) {
+                              // Se o custo atual é maior que R$ 50, calcular quantos faltam
+                              faltamLiberados = Math.ceil((valorTotal - META_CUSTO * quantidadeLiberados) / META_CUSTO);
+                              if (faltamLiberados < 0) {
+                                faltamLiberados = 0;
+                              }
+                            } else if (cidadeData.custoPorLiberado && cidadeData.custoPorLiberado <= META_CUSTO && cidadeData.custoPorLiberado > 0) {
+                              // Se já está abaixo ou igual a R$ 50
+                              jaAtingiuMeta = true;
+                            }
                             
                             return (
                               <Badge 
@@ -279,14 +307,14 @@ const AtendenteCard = React.memo(function AtendenteCard({
                                       Meta atingida! Abaixo de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
                                     </span>
                                   </>
-                                ) : (
+                                ) : faltamLiberados > 0 ? (
                                   <>
                                     <span className="text-[9px]">🎯</span>
                                     <span className="text-[10px] font-medium ml-1">
-                                      Faltam <span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(faltaParaMeta)}</span> para {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
+                                      Faltam <span className="font-bold">{faltamLiberados}</span> liberado{faltamLiberados !== 1 ? 's' : ''} para chegar a {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
                                     </span>
                                   </>
-                                )}
+                                ) : null}
                               </Badge>
                             );
                           })()}
@@ -553,6 +581,8 @@ const ResultadosView = React.memo(function ResultadosView() {
           return {
             ...atendente,
             custoPorLiberado: custoPorLiberado > 0 ? custoPorLiberado : undefined,
+            quantidadeLiberados: quantidadeLiberados,
+            valorTotal: valorTotalAtendente,
             cidades: cidadesComCustoAtendente,
           };
         })
