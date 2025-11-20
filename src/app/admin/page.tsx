@@ -624,12 +624,12 @@ export default function AdminPage() {
 
   return (
     <ErrorBoundary>
-      <React.Fragment>
+      <>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header melhorado com estatísticas */}
           <div className="mb-8">
-          <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-indigo-600 to-purple-600 p-6 shadow-xl">
+            <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-indigo-600 to-purple-600 p-6 shadow-xl">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div className="text-white">
                 <h1 className="text-2xl lg:text-3xl font-bold">👑 Painel Administrativo</h1>
@@ -1001,7 +1001,7 @@ export default function AdminPage() {
       )}
         </div>
       </div>
-      </React.Fragment>
+      </>
     </ErrorBoundary>
   );
 }
