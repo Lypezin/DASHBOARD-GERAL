@@ -5,12 +5,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-
-function getSafeErrorMessage(error: any): string {
-  if (error?.message) return error.message;
-  if (typeof error === 'string') return error;
-  return 'Erro ao carregar dados do dashboard';
-}
 import { safeRpc } from '@/lib/rpcWrapper';
 import {
   Totals,
@@ -26,6 +20,12 @@ import { safeNumber } from '@/utils/helpers';
 import { RPC_TIMEOUTS, DELAYS } from '@/constants/config';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+
+function getSafeErrorMessage(error: any): string {
+  if (error?.message) return error.message;
+  if (typeof error === 'string') return error;
+  return 'Erro ao carregar dados do dashboard';
+}
 
 interface UseDashboardMainDataOptions {
   filterPayload: any;
@@ -164,11 +164,5 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     loading,
     error,
   };
-}
-
-function getSafeErrorMessage(error: any): string {
-  if (error?.message) return error.message;
-  if (typeof error === 'string') return error;
-  return 'Erro ao carregar dados do dashboard';
 }
 
