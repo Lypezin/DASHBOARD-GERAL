@@ -26,6 +26,9 @@ interface FetchOptions {
 async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | null; error: any }> {
   const { tab, filterPayload } = options;
 
+  // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
+  console.log('[fetchUtrData] Chamando RPC calcular_utr com payload:', filterPayload);
+
   const result = await safeRpc<UtrData>('calcular_utr', filterPayload as any, {
     timeout: RPC_TIMEOUTS.DEFAULT,
     validateParams: true
@@ -64,12 +67,16 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
     ...restPayload,
   };
 
+  // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
+  console.log('[fetchEntregadoresData] Chamando RPC listar_entregadores com payload:', listarEntregadoresPayload);
+
   const result = await safeRpc<EntregadoresData>('listar_entregadores', listarEntregadoresPayload, {
     timeout: RPC_TIMEOUTS.LONG,
     validateParams: false
   });
 
   if (result.error) {
+    console.log('[fetchEntregadoresData] ERRO recebido:', result.error);
     const is500 = is500Error(result.error);
     const isRateLimit = isRateLimitError(result.error);
 
@@ -88,6 +95,15 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
   }
 
   let processedData: EntregadoresData = { entregadores: [], total: 0 };
+
+  // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
+  console.log('[fetchEntregadoresData] Resposta recebida:', {
+    hasData: !!result.data,
+    dataType: typeof result.data,
+    isArray: Array.isArray(result.data),
+    dataKeys: result.data ? Object.keys(result.data) : 'no data',
+    tab
+  });
 
   if (result && result.data) {
     let entregadores: any[] = [];
@@ -124,12 +140,16 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
     ...restPayload,
   };
 
+  // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
+  console.log('[fetchValoresData] Chamando RPC listar_valores_entregadores com payload:', listarValoresPayload);
+
   const result = await safeRpc<ValoresEntregador[]>('listar_valores_entregadores', listarValoresPayload, {
     timeout: RPC_TIMEOUTS.LONG,
     validateParams: false
   });
 
   if (result.error) {
+    console.log('[fetchValoresData] ERRO recebido:', result.error);
     const is500 = is500Error(result.error);
     const isRateLimit = isRateLimitError(result.error);
 
@@ -170,6 +190,9 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
  */
 export async function fetchTabData(options: FetchOptions): Promise<{ data: TabData; error: any }> {
   const { tab } = options;
+
+  // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
+  console.log(`🟢 [fetchTabData] Iniciando fetch para tab: "${tab}"`);
 
   try {
     switch (tab) {

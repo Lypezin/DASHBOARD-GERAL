@@ -93,7 +93,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   }
 
   const MAX_ARRAY_SIZE = LIMITS.MAX_ARRAY_SIZE;
-  
+
   let subPraca: string | null = null;
   if (filters.subPracas && filters.subPracas.length > 0) {
     const limited = filters.subPracas.slice(0, MAX_ARRAY_SIZE);
@@ -101,7 +101,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   } else if (filters.subPraca) {
     subPraca = filters.subPraca.length > 100 ? filters.subPraca.substring(0, 100) : filters.subPraca;
   }
-  
+
   let origem: string | null = null;
   if (filters.origens && filters.origens.length > 0) {
     const limited = filters.origens.slice(0, MAX_ARRAY_SIZE);
@@ -148,7 +148,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     // Se tiver apenas uma praça, SEMPRE usar ela (ignorar qualquer seleção)
     if (currentUser.assigned_pracas.length === 1) {
       praca = currentUser.assigned_pracas[0];
-    } 
+    }
     // Se tiver múltiplas praças
     else {
       // Se nenhuma praça foi selecionada (null ou vazia), passar todas as praças permitidas
@@ -172,7 +172,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   // Processar intervalo de datas
   let dataInicial: string | null = null;
   let dataFinal: string | null = null;
-  
+
   // Se modo for intervalo, processar datas
   if (filters?.filtroModo === 'intervalo') {
     safeLog.info('[buildFilterPayload] Modo intervalo detectado, processando datas');
@@ -184,7 +184,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
         dataInicial = dataIni.toISOString().split('T')[0];
       }
     }
-    
+
     // Validar e normalizar data final
     if (filters.dataFinal && filters.dataFinal.trim() !== '') {
       const dataFim = new Date(filters.dataFinal);
@@ -193,13 +193,13 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
         dataFinal = dataFim.toISOString().split('T')[0];
       }
     }
-    
+
     // Validar que data final >= data inicial
     if (dataInicial && dataFinal && dataFinal < dataInicial) {
       // Se data final for menor que inicial, usar data inicial como final também
       dataFinal = dataInicial;
     }
-    
+
     // Se modo intervalo estiver ativo, anular ano e semana
     ano = null;
     semana = null;
@@ -207,13 +207,13 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     // Se modo ano_semana estiver ativo, anular datas
     dataInicial = null;
     dataFinal = null;
-    
+
     // Se não houver ano e não estiver em modo intervalo, usar ano atual como padrão
     // Isso evita que a função seja chamada sem filtros e cause timeout
     if (ano === null && !dataInicial && !dataFinal) {
       const currentYear = new Date().getFullYear();
-      ano = currentYear >= VALIDATION.MIN_YEAR && currentYear <= VALIDATION.MAX_YEAR 
-        ? currentYear 
+      ano = currentYear >= VALIDATION.MIN_YEAR && currentYear <= VALIDATION.MAX_YEAR
+        ? currentYear
         : VALIDATION.MAX_YEAR;
     }
   }
@@ -231,6 +231,9 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
 
   // Log para debug
   safeLog.info('[buildFilterPayload] Payload gerado:', payload);
+
+  // LOG FORÇADO PARA DEBUG EM PRODUÇÃO - REMOVER DEPOIS
+  console.log('🔵 [buildFilterPayload] Payload FINAL gerado:', payload);
 
   return payload;
 };
