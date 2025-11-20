@@ -6,6 +6,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { uploadRateLimiter } from '@/lib/rateLimiter';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { UploadSection } from '@/components/upload/UploadSection';
 import { useUploadAuth } from '@/hooks/useUploadAuth';
 import { validateFile } from '@/utils/fileValidation';
 import { processCorridasFile } from '@/utils/processors/corridasProcessor';
@@ -481,362 +482,55 @@ export default function UploadPage() {
           </div>
 
           {/* Seção de Upload Marketing */}
-          <div className="mt-8 overflow-hidden rounded-3xl border border-purple-200 bg-white shadow-2xl dark:border-purple-900 dark:bg-slate-900">
-            {/* Header do Card Marketing */}
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-8 text-center">
-              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                <span className="text-4xl">📢</span>
-              </div>
-              <h2 className="text-3xl font-bold text-white">Upload de Dados Marketing</h2>
-              <p className="mt-2 text-purple-100">Importe planilha de Marketing (sobrescreve dados anteriores)</p>
-            </div>
-
-            {/* Conteúdo Marketing */}
-            <div className="p-8">
-              {/* Área de Upload Marketing */}
-              <div className="relative">
-                <input
-                  type="file"
-                  data-marketing="true"
-                  accept=".xlsx, .xls"
-                  multiple
-                  onChange={handleMarketingFileChange}
-                  disabled={marketingUpload.uploading}
-                  className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
-                />
-                <div className="rounded-2xl border-2 border-dashed border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50 p-12 text-center transition-all duration-300 hover:border-purple-400 hover:bg-gradient-to-br hover:from-purple-100 hover:to-pink-100 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:border-purple-700 dark:from-purple-950/30 dark:to-pink-950/30 dark:hover:border-purple-600">
-                  {marketingFiles.length === 0 ? (
-                    <div className="space-y-4">
-                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
-                        <span className="text-3xl">📁</span>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">
-                          Clique para selecionar ou arraste os arquivos aqui
-                        </p>
-                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                          ⚠️ Atenção: Os dados anteriores serão substituídos
-                        </p>
-                        <p className="mt-1 text-xs text-slate-400">Formatos aceitos: .xlsx, .xls</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                        <span className="text-3xl">✅</span>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
-                          {marketingFiles.length} arquivo(s) selecionado(s)
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Lista de Arquivos Marketing */}
-              {marketingFiles.length > 0 && !marketingUpload.uploading && (
-                <div className="mt-4 space-y-2">
-                  {marketingFiles.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-lg border border-purple-200 bg-purple-50 p-3 dark:border-purple-800 dark:bg-purple-950/30"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">📄</span>
-                        <div>
-                          <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => removeMarketingFile(index)}
-                        className="rounded-lg bg-rose-100 p-2 text-rose-600 transition-colors hover:bg-rose-200 dark:bg-rose-950/30 dark:text-rose-400"
-                      >
-                        <span>🗑️</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Botão de Upload Marketing */}
-              <button
-                onClick={handleMarketingUpload}
-                disabled={marketingUpload.uploading || marketingFiles.length === 0}
-                className="mt-6 w-full transform rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
-              >
-                {marketingUpload.uploading ? (
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    <span>Processando...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-3">
-                    <span className="text-xl">🚀</span>
-                    <span>Enviar {marketingFiles.length} Arquivo(s) Marketing</span>
-                  </div>
-                )}
-              </button>
-
-              {/* Barra de Progresso Marketing */}
-              {marketingUpload.uploading && (
-                <div className="mt-6 space-y-3 animate-in fade-in duration-300">
-                  <div className="overflow-hidden rounded-full bg-slate-200 shadow-inner dark:bg-slate-800">
-                    <div
-                      className="h-3 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 shadow-lg transition-all duration-500"
-                      style={{ width: `${marketingUpload.progress}%` }}
-                    ></div>
-                  </div>
-                  {marketingUpload.progressLabel && (
-                    <div className="text-center">
-                      <p className="font-semibold text-slate-700 dark:text-slate-300">{marketingUpload.progressLabel}</p>
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{marketingUpload.progress.toFixed(1)}% concluído</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Mensagem de Status Marketing */}
-              {marketingUpload.message && (
-                <div
-                  className={`mt-6 animate-in fade-in slide-in-from-top-2 rounded-xl border-2 p-4 duration-300 ${
-                    marketingUpload.message.includes('✅')
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
-                      : marketingUpload.message.includes('❌')
-                      ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200'
-                      : 'border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-900 dark:bg-purple-950/30 dark:text-purple-200'
-                  }`}
-                >
-                  <p className="font-medium">{marketingUpload.message}</p>
-                </div>
-              )}
-
-              {/* Informações Marketing */}
-              <div className="mt-8 rounded-xl bg-purple-50 p-6 dark:bg-purple-950/30">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">💡</span>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-purple-900 dark:text-purple-100">Importante sobre Marketing</h3>
-                    <ul className="mt-3 space-y-2 text-sm text-purple-800 dark:text-purple-200">
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-purple-600">⚠️</span>
-                        <span><strong>Sobrescrita:</strong> Todos os dados anteriores serão removidos e substituídos pelos novos</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-purple-600">•</span>
-                        <span>Formato de data: <strong>DD/MM/YYYY</strong> (ex: 14/11/2025)</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-purple-600">•</span>
-                        <span>Todos os campos são opcionais</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* Colunas Esperadas Marketing */}
-              <details className="mt-6 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
-                <summary className="cursor-pointer font-semibold text-slate-700 dark:text-slate-300">
-                  📋 Ver colunas esperadas na planilha Marketing
-                </summary>
-                <div className="mt-4 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
-                  {Object.keys(MARKETING_COLUMN_MAP).map((col) => (
-                    <div key={col} className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 dark:bg-slate-900">
-                      <span className={col.includes('*') ? 'text-red-600' : 'text-purple-600'}>
-                        {col.includes('*') ? '⚠️' : '✓'}
-                      </span>
-                      <code className="text-xs text-slate-700 dark:text-slate-300">{col}</code>
-                    </div>
-                  ))}
-                </div>
-              </details>
-            </div>
-          </div>
+          <UploadSection
+            title="Upload de Dados Marketing"
+            description="Importe planilha de Marketing (sobrescreve dados anteriores)"
+            icon="📢"
+            files={marketingFiles}
+            onFileChange={handleMarketingFileChange}
+            onRemoveFile={removeMarketingFile}
+            onUpload={handleMarketingUpload}
+            uploading={marketingUpload.uploading}
+            progress={marketingUpload.progress}
+            progressLabel={marketingUpload.progressLabel}
+            message={marketingUpload.message}
+            variant="marketing"
+            dataAttribute="marketing"
+            gradientFrom="from-purple-600"
+            gradientTo="to-pink-600"
+            tips={[
+              { icon: '⚠️', text: 'Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
+              { text: 'Formato de data: DD/MM/YYYY (ex: 14/11/2025)' },
+              { text: 'Todos os campos são opcionais' },
+            ]}
+            expectedColumns={Object.keys(MARKETING_COLUMN_MAP)}
+          />
 
           {/* Seção de Upload Valores por Cidade */}
-          <div className="mt-8 overflow-hidden rounded-3xl border border-emerald-200 bg-white shadow-2xl dark:border-emerald-900 dark:bg-slate-900">
-            {/* Header do Card Valores por Cidade */}
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-8 text-center">
-              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                <span className="text-4xl">💰</span>
-              </div>
-              <h2 className="text-3xl font-bold text-white">Upload de Valores por Cidade</h2>
-              <p className="mt-2 text-emerald-100">Importe planilha de Valores por Cidade (sobrescreve dados anteriores)</p>
-            </div>
-
-            {/* Conteúdo Valores por Cidade */}
-            <div className="p-8">
-              {/* Área de Upload Valores por Cidade */}
-              <div className="relative">
-                <input
-                  type="file"
-                  data-valores-cidade="true"
-                  accept=".xlsx, .xls"
-                  multiple
-                  onChange={handleValoresCidadeFileChange}
-                  disabled={valoresCidadeUpload.uploading}
-                  className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
-                />
-                <div className="rounded-2xl border-2 border-dashed border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 p-12 text-center transition-all duration-300 hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-100 hover:to-teal-100 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:border-emerald-700 dark:from-emerald-950/30 dark:to-teal-950/30 dark:hover:border-emerald-600">
-                  {valoresCidadeFiles.length === 0 ? (
-                    <div className="space-y-4">
-                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                        <span className="text-3xl">📁</span>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">
-                          Clique para selecionar ou arraste os arquivos aqui
-                        </p>
-                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                          ⚠️ Atenção: Os dados anteriores serão substituídos
-                        </p>
-                        <p className="mt-1 text-xs text-slate-400">Formatos aceitos: .xlsx, .xls</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                        <span className="text-3xl">✅</span>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
-                          {valoresCidadeFiles.length} arquivo(s) selecionado(s)
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Lista de Arquivos Valores por Cidade */}
-              {valoresCidadeFiles.length > 0 && !valoresCidadeUpload.uploading && (
-                <div className="mt-4 space-y-2">
-                  {valoresCidadeFiles.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/30"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">📄</span>
-                        <div>
-                          <p className="font-medium text-slate-900 dark:text-white">{file.name}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => removeValoresCidadeFile(index)}
-                        className="rounded-lg bg-rose-100 p-2 text-rose-600 transition-colors hover:bg-rose-200 dark:bg-rose-950/30 dark:text-rose-400"
-                      >
-                        <span>🗑️</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Botão de Upload Valores por Cidade */}
-              <button
-                onClick={handleValoresCidadeUpload}
-                disabled={valoresCidadeUpload.uploading || valoresCidadeFiles.length === 0}
-                className="mt-6 w-full transform rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
-              >
-                {valoresCidadeUpload.uploading ? (
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    <span>Processando...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-3">
-                    <span className="text-xl">🚀</span>
-                    <span>Enviar {valoresCidadeFiles.length} Arquivo(s) Valores por Cidade</span>
-                  </div>
-                )}
-              </button>
-
-              {/* Barra de Progresso Valores por Cidade */}
-              {valoresCidadeUpload.uploading && (
-                <div className="mt-6 space-y-3 animate-in fade-in duration-300">
-                  <div className="overflow-hidden rounded-full bg-slate-200 shadow-inner dark:bg-slate-800">
-                    <div
-                      className="h-3 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 shadow-lg transition-all duration-500"
-                      style={{ width: `${valoresCidadeUpload.progress}%` }}
-                    ></div>
-                  </div>
-                  {valoresCidadeUpload.progressLabel && (
-                    <div className="text-center">
-                      <p className="font-semibold text-slate-700 dark:text-slate-300">{valoresCidadeUpload.progressLabel}</p>
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{valoresCidadeUpload.progress.toFixed(1)}% concluído</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Mensagem de Status Valores por Cidade */}
-              {valoresCidadeUpload.message && (
-                <div
-                  className={`mt-6 animate-in fade-in slide-in-from-top-2 rounded-xl border-2 p-4 duration-300 ${
-                    valoresCidadeUpload.message.includes('✅')
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
-                      : valoresCidadeUpload.message.includes('❌')
-                      ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200'
-                      : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
-                  }`}
-                >
-                  <p className="font-medium">{valoresCidadeUpload.message}</p>
-                </div>
-              )}
-
-              {/* Informações Valores por Cidade */}
-              <div className="mt-8 rounded-xl bg-emerald-50 p-6 dark:bg-emerald-950/30">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">💡</span>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-emerald-900 dark:text-emerald-100">Importante sobre Valores por Cidade</h3>
-                    <ul className="mt-3 space-y-2 text-sm text-emerald-800 dark:text-emerald-200">
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-emerald-600">⚠️</span>
-                        <span><strong>Sobrescrita:</strong> Todos os dados anteriores serão removidos e substituídos pelos novos</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-emerald-600">•</span>
-                        <span>Formato de data: <strong>DD/MM/YYYY</strong> (ex: 14/11/2025)</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-emerald-600">•</span>
-                        <span>Colunas obrigatórias: <strong>DATA</strong>, <strong>ID</strong>, <strong>CIDADE</strong>, <strong>VALOR</strong></span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-emerald-600">•</span>
-                        <span>O valor deve ser numérico (aceita vírgula ou ponto como separador decimal)</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* Colunas Esperadas Valores por Cidade */}
-              <details className="mt-6 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
-                <summary className="cursor-pointer font-semibold text-slate-700 dark:text-slate-300">
-                  📋 Ver colunas esperadas na planilha Valores por Cidade
-                </summary>
-                <div className="mt-4 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
-                  {Object.keys(VALORES_CIDADE_COLUMN_MAP).map((col) => (
-                    <div key={col} className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 dark:bg-slate-900">
-                      <span className="text-emerald-600">✓</span>
-                      <code className="text-xs text-slate-700 dark:text-slate-300">{col}</code>
-                    </div>
-                  ))}
-                </div>
-              </details>
-            </div>
-          </div>
+          <UploadSection
+            title="Upload de Valores por Cidade"
+            description="Importe planilha de Valores por Cidade (sobrescreve dados anteriores)"
+            icon="💰"
+            files={valoresCidadeFiles}
+            onFileChange={handleValoresCidadeFileChange}
+            onRemoveFile={removeValoresCidadeFile}
+            onUpload={handleValoresCidadeUpload}
+            uploading={valoresCidadeUpload.uploading}
+            progress={valoresCidadeUpload.progress}
+            progressLabel={valoresCidadeUpload.progressLabel}
+            message={valoresCidadeUpload.message}
+            variant="valores"
+            dataAttribute="valores-cidade"
+            gradientFrom="from-emerald-600"
+            gradientTo="to-teal-600"
+            tips={[
+              { icon: '⚠️', text: 'Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
+              { text: 'Formato de data: DD/MM/YYYY (ex: 14/11/2025)' },
+              { text: 'Colunas obrigatórias: DATA, ID, CIDADE, VALOR' },
+              { text: 'O valor deve ser numérico (aceita vírgula ou ponto como separador decimal)' },
+            ]}
+            expectedColumns={Object.keys(VALORES_CIDADE_COLUMN_MAP)}
+          />
         </div>
       </div>
     </div>
