@@ -318,13 +318,11 @@ export function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-2 flex-shrink-0 min-w-0">
             <Button
-              asChild
               variant={pathname === '/' ? 'default' : 'ghost'}
               size="sm"
+              onClick={() => router.push('/')}
             >
-              <Link href="/" prefetch={true}>
-                Dashboard
-            </Link>
+              Dashboard
             </Button>
 
             {/* Toggle de Tema com Switch */}
@@ -341,44 +339,36 @@ export function Header() {
           {user?.is_admin && (
               <>
                 <Button
-                  asChild
                   variant={pathname === '/upload' ? 'default' : 'ghost'}
                   size="sm"
                   className="hidden xl:inline-flex"
+                  onClick={() => router.push('/upload')}
                 >
-                  <Link href="/upload" prefetch={true}>
-                    Upload
-                </Link>
+                  Upload
                 </Button>
                 <Button
-                  asChild
                   variant={pathname === '/upload' ? 'default' : 'ghost'}
                   size="sm"
                   className="xl:hidden"
+                  onClick={() => router.push('/upload')}
                 >
-                  <Link href="/upload" prefetch={true}>
-                    📤
-                </Link>
+                  📤
                 </Button>
                 <Button
-                  asChild
                   variant={pathname === '/admin' ? 'default' : 'ghost'}
                   size="sm"
                   className="hidden xl:inline-flex"
+                  onClick={() => router.push('/admin')}
                 >
-                  <Link href="/admin" prefetch={true}>
-                    Admin
-                  </Link>
+                  Admin
                 </Button>
                 <Button
-                  asChild
                   variant={pathname === '/admin' ? 'default' : 'ghost'}
                   size="sm"
                   className="xl:hidden"
+                  onClick={() => router.push('/admin')}
                 >
-                  <Link href="/admin" prefetch={true}>
-                    ⚙️
-                  </Link>
+                  ⚙️
                 </Button>
               </>
             )}
@@ -466,13 +456,11 @@ export function Header() {
               </SheetHeader>
               <div className="mt-6 space-y-2">
                 <Button
-                  asChild
                   variant={pathname === '/' ? 'default' : 'ghost'}
                   className="w-full justify-start"
+                  onClick={() => router.push('/')}
                 >
-                  <Link href="/" prefetch={true}>
-                    Dashboard
-              </Link>
+                  Dashboard
                 </Button>
 
                 <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-md bg-muted/50">
@@ -491,22 +479,18 @@ export function Header() {
               {user?.is_admin && (
                 <>
                     <Button
-                      asChild
                       variant={pathname === '/upload' ? 'default' : 'ghost'}
                       className="w-full justify-start"
+                      onClick={() => router.push('/upload')}
                     >
-                      <Link href="/upload" prefetch={true}>
-                        Upload
-                  </Link>
+                      Upload
                     </Button>
                     <Button
-                      asChild
                       variant={pathname === '/admin' ? 'default' : 'ghost'}
                       className="w-full justify-start"
+                      onClick={() => router.push('/admin')}
                     >
-                      <Link href="/admin" prefetch={true}>
-                        Admin
-                  </Link>
+                      Admin
                     </Button>
                 </>
               )}
