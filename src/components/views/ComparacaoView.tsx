@@ -10,6 +10,7 @@ import MetricCard from '@/components/MetricCard';
 import { Bar, Line } from 'react-chartjs-2';
 import ApresentacaoView from '@/components/ApresentacaoView';
 import { registerChartJS } from '@/lib/chartConfig';
+import { ViewToggleButton } from './ViewToggleButton';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -31,7 +32,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
-  const [utrComparacao, setUtrComparacao] = useState<any[]>([]);
+  const [utrComparacao, setUtrComparacao] = useState<unknown[]>([]);
   const [todasSemanas, setTodasSemanas] = useState<(number | string)[]>([]);
   const [mostrarApresentacao, setMostrarApresentacao] = useState(false);
   
@@ -41,20 +42,6 @@ const ComparacaoView = React.memo(function ComparacaoView({
   const [viewModeTurno, setViewModeTurno] = useState<'table' | 'chart'>('table');
   const [viewModeSubPraca, setViewModeSubPraca] = useState<'table' | 'chart'>('table');
   const [viewModeOrigem, setViewModeOrigem] = useState<'table' | 'chart'>('table');
-
-  // Componente para alternar visualização
-  const ViewToggleButton = ({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
-    <button
-      onClick={onClick}
-      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-        active
-          ? 'bg-blue-600 text-white shadow-md'
-          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-      }`}
-    >
-      {label}
-    </button>
-  );
 
   // Registrar Chart.js quando o componente for montado (apenas no cliente)
   useEffect(() => {

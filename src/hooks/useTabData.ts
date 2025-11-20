@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
+import { CacheEntry, isCacheValid, createCacheEntry } from '@/types/cache';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 const CACHE_TTL = 180000; // 180 segundos (cache mais agressivo para melhor performance)
@@ -35,7 +36,7 @@ const requestQueue = new Map<string, { timestamp: number; count: number }>();
 export function useTabData(activeTab: string, filterPayload: object, currentUser?: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null) {
   const [data, setData] = useState<TabData>(null);
   const [loading, setLoading] = useState(false);
-  const cacheRef = useRef<Map<string, { data: any; timestamp: number }>>(new Map());
+  const cacheRef = useRef<Map<string, CacheEntry<TabData>>>(new Map());
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentTabRef = useRef<string>(activeTab);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -124,7 +125,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       const cached = cacheRef.current.get(cacheKey);
 
       // Cache imediato (igual ao Dashboard) - sem debounce quando há cache válido
-      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      if (cached && isCacheValid(cached, CACHE_TTL)) {
         // Verificar novamente se a tab ainda é a mesma
         if (currentTabRef.current !== tab || abortController.signal.aborted) {
           isRequestPendingRef.current = false;
@@ -454,7 +455,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
         // Verificar se ainda estamos na mesma tab antes de atualizar estado
         if (currentTabRef.current === tab && !abortController.signal.aborted && currentRequestId === requestIdRef.current) {
           setData(processedData);
-          cacheRef.current.set(cacheKey, { data: processedData, timestamp: Date.now() });
+          cacheRef.current.set(cacheKey, createCacheEntry(processedData, CACHE_TTL));
           
           lastSuccessfulTabRef.current = tab;
           

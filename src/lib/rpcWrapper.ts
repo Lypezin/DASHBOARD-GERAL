@@ -5,6 +5,7 @@ import { supabase } from './supabaseClient';
 import { validateFilterPayload } from './validate';
 import { safeLog } from './errorHandler';
 import { rpcRateLimiter } from './rateLimiter';
+import { RpcParams, RpcResult, RpcOptions, RpcError, SanitizedRpcParams } from '@/types/rpc';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 const DEFAULT_TIMEOUT = 30000; // 30 segundos
@@ -23,11 +24,11 @@ const DEFAULT_TIMEOUT = 30000; // 30 segundos
  * 
  * @template T - Tipo do retorno esperado da função RPC
  * @param {string} functionName - Nome da função RPC a ser chamada
- * @param {any} [params={}] - Parâmetros a serem passados para a função RPC
- * @param {Object} [options={}] - Opções de configuração
+ * @param {RpcParams} [params={}] - Parâmetros a serem passados para a função RPC
+ * @param {RpcOptions} [options={}] - Opções de configuração
  * @param {number} [options.timeout=30000] - Timeout em milissegundos (padrão: 30000)
  * @param {boolean} [options.validateParams=true] - Se deve validar os parâmetros antes de enviar
- * @returns {Promise<{data: T | null, error: any}>} Objeto com dados ou erro
+ * @returns {Promise<RpcResult<T>>} Objeto com dados ou erro
  * 
  * @example
  * ```typescript
@@ -46,14 +47,11 @@ const DEFAULT_TIMEOUT = 30000; // 30 segundos
  * }
  * ```
  */
-export async function safeRpc<T = any>(
+export async function safeRpc<T = unknown>(
   functionName: string,
-  params: any = {},
-  options: {
-    timeout?: number;
-    validateParams?: boolean;
-  } = {}
-): Promise<{ data: T | null; error: any }> {
+  params: RpcParams = {},
+  options: RpcOptions = {}
+): Promise<RpcResult<T>> {
   const { timeout = DEFAULT_TIMEOUT, validateParams = true } = options;
 
   try {
@@ -83,7 +81,7 @@ export async function safeRpc<T = any>(
     // Normalizar parâmetros: converter undefined para null e manter null como está
     // Isso garante que funções RPC que esperam null para usar DEFAULT funcionem corretamente
     if (params && typeof params === 'object' && !Array.isArray(params)) {
-      const normalizedParams: any = {};
+      const normalizedParams: RpcParams = {};
       for (const [key, value] of Object.entries(params)) {
         // Converter undefined para null, manter null como está
         normalizedParams[key] = value === undefined ? null : value;
@@ -98,7 +96,7 @@ export async function safeRpc<T = any>(
     if (validateParams && validatedParams && typeof validatedParams === 'object' && validatedParams !== undefined) {
       try {
         validatedParams = validateFilterPayload(validatedParams);
-      } catch (validationError: any) {
+      } catch (validationError: unknown) {
         if (IS_DEV) {
           safeLog.warn(`Validação falhou para ${functionName}:`, validationError);
         }
@@ -138,7 +136,7 @@ export async function safeRpc<T = any>(
     
     // Criar timeout
     let timeoutId: NodeJS.Timeout | null = null;
-    const timeoutPromise = new Promise<{ data: null; error: any }>((resolve) => {
+    const timeoutPromise = new Promise<RpcResult<null>>((resolve) => {
       timeoutId = setTimeout(() => {
         resolve({
           data: null,
@@ -161,8 +159,8 @@ export async function safeRpc<T = any>(
       // Se houver erro, sanitizar mensagem em produção
       if (result.error) {
         // Verificar se é erro 400/404 (função não encontrada ou parâmetros inválidos)
-        const errorCode = (result.error as any)?.code;
-        const errorMessage = String((result.error as any)?.message || '');
+        const errorCode = (result.error as RpcError)?.code;
+        const errorMessage = String((result.error as RpcError)?.message || '');
         const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' || 
                            errorCode === 'PGRST204' || // Bad Request
                            errorMessage.includes('400') ||
@@ -207,7 +205,7 @@ export async function safeRpc<T = any>(
 /**
  * Sanitiza parâmetros limitando tamanho de arrays
  */
-function sanitizeParams(params: any): any {
+function sanitizeParams(params: RpcParams): SanitizedRpcParams {
   const sanitized = { ...params };
   
   // Limitar arrays
