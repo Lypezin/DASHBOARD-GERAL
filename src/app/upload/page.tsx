@@ -1,192 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import * as XLSX from 'xlsx';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { uploadRateLimiter } from '@/lib/rateLimiter';
-import { validateString } from '@/lib/validate';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useUploadAuth } from '@/hooks/useUploadAuth';
+import { validateFile } from '@/utils/fileValidation';
+import { processCorridasFile } from '@/utils/processors/corridasProcessor';
+import {
+  COLUMN_MAP,
+  MARKETING_COLUMN_MAP,
+  VALORES_CIDADE_COLUMN_MAP,
+  BATCH_SIZE,
+  MAX_FILES,
+} from '@/constants/upload';
+import {
+  convertDDMMYYYYToDate,
+} from '@/utils/uploadHelpers';
+import * as XLSX from 'xlsx';
+import { validateString } from '@/lib/validate';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-const COLUMN_MAP: { [key: string]: string } = {
-  data_do_periodo: 'data_do_periodo',
-  periodo: 'periodo',
-  duracao_do_periodo: 'duracao_do_periodo',
-  numero_minimo_de_entregadores_regulares_na_escala: 'numero_minimo_de_entregadores_regulares_na_escala',
-  tag: 'tag',
-  id_da_pessoa_entregadora: 'id_da_pessoa_entregadora',
-  pessoa_entregadora: 'pessoa_entregadora',
-  praca: 'praca',
-  sub_praca: 'sub_praca',
-  origem: 'origem',
-  tempo_disponivel_escalado: 'tempo_disponivel_escalado',
-  tempo_disponivel_absoluto: 'tempo_disponivel_absoluto',
-  numero_de_corridas_ofertadas: 'numero_de_corridas_ofertadas',
-  numero_de_corridas_aceitas: 'numero_de_corridas_aceitas',
-  numero_de_corridas_rejeitadas: 'numero_de_corridas_rejeitadas',
-  numero_de_corridas_completadas: 'numero_de_corridas_completadas',
-  numero_de_corridas_canceladas_pela_pessoa_entregadora: 'numero_de_corridas_canceladas_pela_pessoa_entregadora',
-  numero_de_pedidos_aceitos_e_concluidos: 'numero_de_pedidos_aceitos_e_concluidos',
-  soma_das_taxas_das_corridas_aceitas: 'soma_das_taxas_das_corridas_aceitas',
-};
-
-const MARKETING_COLUMN_MAP: { [key: string]: string } = {
-  'Nome': 'nome',
-  'Status': 'status',
-  'Id do entregador*': 'id_entregador',
-  'Região de Atuação': 'regiao_atuacao',
-  'Data de Liberação*': 'data_liberacao',
-  'SubPraça 2.0 (ABC)': 'sub_praca_abc',
-  'Telefone de trabalho': 'telefone_trabalho',
-  'Outro número de telefone': 'outro_telefone',
-  'Data de Envio': 'data_envio',
-  'Rodando': 'rodando',
-  'Rodou dia': 'rodou_dia',
-  'Responsável': 'responsavel',
-};
-
-const VALORES_CIDADE_COLUMN_MAP: { [key: string]: string } = {
-  'DATA': 'data',
-  'ID': 'id_atendente',
-  'CIDADE': 'cidade',
-  'VALOR': 'valor',
-};
-
-const BATCH_SIZE = 500;
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-const MAX_FILES = 10; // Máximo de arquivos por upload
-const ALLOWED_MIME_TYPES = [
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-  'application/vnd.ms-excel', // .xls
-  'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
-];
-const ALLOWED_EXTENSIONS = ['xlsx', 'xls', 'xlsm'];
-
-// Assinaturas de arquivo (magic bytes)
-const EXCEL_SIGNATURES = {
-  XLSX: '504b0304', // ZIP signature (XLSX é um arquivo ZIP)
-  XLS: 'd0cf11e0a1b11ae1', // OLE2 signature (XLS antigo)
-};
-
-function excelSerialToISODate(serial: number): string {
-  const utc_days = Math.floor(serial - 25569);
-  const date_info = new Date(utc_days * 86400 * 1000);
-  const year = date_info.getUTCFullYear();
-  const month = String(date_info.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date_info.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function convertSecondsToHHMMSS(totalSeconds: number): string {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = Math.floor(totalSeconds % 60);
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
-
-function convertFractionToHHMMSS(fraction: number): string {
-  const totalSeconds = Math.round(fraction * 86400);
-  return convertSecondsToHHMMSS(totalSeconds);
-}
-
-// Converter data DD/MM/YYYY para YYYY-MM-DD (formato PostgreSQL)
-function convertDDMMYYYYToDate(dateStr: string | number | null | undefined): string | null {
-  if (dateStr === null || dateStr === undefined || dateStr === '') return null;
-  
-  // Se for número (serial do Excel), converter primeiro
-  if (typeof dateStr === 'number') {
-    try {
-      return excelSerialToISODate(dateStr);
-    } catch (e) {
-      safeLog.warn('Erro ao converter número para data:', { dateStr, error: e });
-      return null;
-    }
-  }
-  
-  if (typeof dateStr !== 'string') return null;
-  
-  // Remover espaços e tentar diferentes formatos
-  const cleaned = dateStr.trim();
-  if (cleaned === '' || cleaned === 'null' || cleaned === 'NULL') return null;
-  
-  // Formato DD/MM/YYYY
-  const ddmmyyyyMatch = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (ddmmyyyyMatch) {
-    const [, day, month, year] = ddmmyyyyMatch;
-    const dayNum = parseInt(day, 10);
-    const monthNum = parseInt(month, 10);
-    const yearNum = parseInt(year, 10);
-    
-    // Validar data
-    if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12 && yearNum >= 1900 && yearNum <= 2100) {
-      return `${yearNum}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    }
-  }
-  
-  // Formato DD-MM-YYYY
-  const ddmmyyyyMatch2 = cleaned.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-  if (ddmmyyyyMatch2) {
-    const [, day, month, year] = ddmmyyyyMatch2;
-    const dayNum = parseInt(day, 10);
-    const monthNum = parseInt(month, 10);
-    const yearNum = parseInt(year, 10);
-    
-    if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12 && yearNum >= 1900 && yearNum <= 2100) {
-      return `${yearNum}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    }
-  }
-  
-  // Se já estiver no formato YYYY-MM-DD, retornar como está
-  const yyyymmddMatch = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (yyyymmddMatch) {
-    return cleaned.split('T')[0]; // Remove hora se houver
-  }
-  
-  // Tentar parsear como Date se for um formato conhecido
-  try {
-    // Tentar formato brasileiro primeiro (DD/MM/YYYY)
-    const brDateMatch = cleaned.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (brDateMatch) {
-      const [, day, month, year] = brDateMatch;
-      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      if (!isNaN(date.getTime())) {
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-      }
-    }
-    
-    // Tentar parse direto
-    const date = new Date(cleaned);
-    if (!isNaN(date.getTime())) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-  } catch (e) {
-    // Ignorar erro
-  }
-  
-  if (IS_DEV) {
-    safeLog.warn('Não foi possível converter data:', { dateStr, type: typeof dateStr });
-  }
-  
-  return null;
-}
-
-interface UserProfile {
-  is_admin: boolean;
-  is_approved: boolean;
-}
-
 export default function UploadPage() {
-  const router = useRouter();
+  const { loading, isAuthorized } = useUploadAuth();
   const [files, setFiles] = useState<File[]>([]);
   const [marketingFiles, setMarketingFiles] = useState<File[]>([]);
   const [valoresCidadeFiles, setValoresCidadeFiles] = useState<File[]>([]);
@@ -203,123 +42,7 @@ export default function UploadPage() {
   const [marketingProgressLabel, setMarketingProgressLabel] = useState('');
   const [valoresCidadeProgressLabel, setValoresCidadeProgressLabel] = useState('');
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(false);
 
-  // Verificar autenticação e permissões de admin
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Verificar se o usuário está autenticado
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          router.push('/login');
-          return;
-        }
-
-        // Verificar se é admin
-        const { data: profile, error } = await supabase
-          .rpc('get_current_user_profile') as { data: UserProfile | null; error: any };
-
-        if (error) {
-          safeLog.error('Erro ao verificar perfil do usuário:', error);
-          router.push('/');
-          return;
-        }
-
-        if (!profile?.is_admin) {
-          // Usuário não é admin - redirecionar para página principal
-          router.push('/');
-          return;
-        }
-
-        // Verificar se está aprovado
-        if (!profile?.is_approved) {
-          router.push('/login');
-          return;
-        }
-
-        // Usuário autorizado
-        setIsAuthorized(true);
-      } catch (err) {
-        safeLog.error('Erro ao verificar autenticação:', err);
-        router.push('/');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
-  const validateFile = async (file: File): Promise<{ valid: boolean; error?: string }> => {
-    // Validar quantidade de arquivos
-    if (files.length >= MAX_FILES) {
-      return { valid: false, error: `Máximo de ${MAX_FILES} arquivos permitidos por upload.` };
-    }
-
-    // Validar tamanho
-    if (file.size > MAX_FILE_SIZE) {
-      return { valid: false, error: `Arquivo "${file.name}" excede o tamanho máximo de ${MAX_FILE_SIZE / 1024 / 1024}MB.` };
-    }
-
-    if (file.size === 0) {
-      return { valid: false, error: `Arquivo "${file.name}" está vazio.` };
-    }
-
-    // Validar extensão
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
-      return { valid: false, error: `Extensão "${extension}" não permitida. Use apenas .xlsx, .xls ou .xlsm.` };
-    }
-
-    // Validar tipo MIME (se disponível)
-    if (file.type && !ALLOWED_MIME_TYPES.includes(file.type)) {
-      return { valid: false, error: `Tipo de arquivo "${file.type}" não permitido.` };
-    }
-
-    // Validar magic bytes (assinatura do arquivo)
-    // Nota: Esta validação é uma verificação básica. A validação real será feita pela biblioteca XLSX ao tentar ler o arquivo.
-    // Tornamos a validação mais flexível: se a extensão estiver correta, permitimos e deixamos a XLSX validar
-    try {
-      const arrayBuffer = await file.slice(0, 8).arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      const signature = Array.from(uint8Array)
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('')
-        .toUpperCase();
-
-      // Verificar assinaturas conhecidas
-      const isZipSignature = signature.startsWith(EXCEL_SIGNATURES.XLSX); // ZIP (XLSX)
-      const isOle2Signature = signature.startsWith(EXCEL_SIGNATURES.XLS.substring(0, 8)); // OLE2 (XLS antigo)
-      
-      // Se não for uma assinatura conhecida, mas a extensão está correta, permitir
-      // A biblioteca XLSX fará a validação real ao tentar ler o arquivo
-      if (!isZipSignature && !isOle2Signature) {
-        // Log para debug em desenvolvimento
-        if (IS_DEV) {
-          safeLog.warn(`⚠️ Assinatura não reconhecida para "${file.name}": ${signature.substring(0, 16)}`);
-          safeLog.info(`   Mas a extensão está correta (${extension}), permitindo. A biblioteca XLSX validará ao ler.`);
-        }
-        // Não bloquear - a extensão já foi validada e a XLSX fará a validação real
-      } else {
-        if (IS_DEV) {
-          safeLog.info(`✓ Assinatura válida para "${file.name}": ${isZipSignature ? 'XLSX (ZIP)' : 'XLS (OLE2)'}`);
-        }
-      }
-    } catch (err) {
-      // Se houver erro ao ler os bytes, não bloquear - deixar a biblioteca XLSX validar
-      // Isso pode acontecer com alguns arquivos ou em certos navegadores
-      if (IS_DEV) {
-        safeLog.warn(`⚠️ Erro ao validar assinatura do arquivo "${file.name}":`, err);
-        safeLog.info(`   Mas a extensão está correta (${extension}), permitindo. A biblioteca XLSX validará ao ler.`);
-      }
-      // Não bloquear - a extensão já foi validada
-    }
-
-    return { valid: true };
-  };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
@@ -338,7 +61,7 @@ export default function UploadPage() {
     const errors: string[] = [];
 
     for (const file of Array.from(selectedFiles)) {
-      const validation = await validateFile(file);
+      const validation = await validateFile(file, files.length);
       if (validation.valid) {
         validFiles.push(file);
       } else {
@@ -368,7 +91,7 @@ export default function UploadPage() {
     const validFiles: File[] = [];
 
     for (const file of selectedFiles) {
-      const validation = await validateFile(file);
+      const validation = await validateFile(file, marketingFiles.length);
       if (validation.valid) {
         validFiles.push(file);
       } else {
@@ -391,7 +114,7 @@ export default function UploadPage() {
     const validFiles: File[] = [];
 
     for (const file of selectedFiles) {
-      const validation = await validateFile(file);
+      const validation = await validateFile(file, valoresCidadeFiles.length);
       if (validation.valid) {
         validFiles.push(file);
       } else {
@@ -438,74 +161,10 @@ export default function UploadPage() {
       setProgressLabel(`Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`);
 
       try {
-        const arrayBuffer = await file.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { raw: true });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+        setProgressLabel('Processando dados...');
+        setProgress(10);
 
-      setProgressLabel('Processando dados...');
-      setProgress(10);
-
-      const sanitizedData = rawData
-        .map((row: any) => {
-          const sanitized: any = {};
-          for (const excelCol in COLUMN_MAP) {
-            const dbCol = COLUMN_MAP[excelCol];
-            let value = row[excelCol];
-
-            // Sanitizar strings para prevenir SQL injection e XSS
-            if (typeof value === 'string' && dbCol !== 'data_do_periodo' && dbCol !== 'duracao_do_periodo' && dbCol !== 'tempo_disponivel_escalado' && dbCol !== 'tempo_disponivel_absoluto') {
-              try {
-                // Validar e limitar tamanho de strings
-                value = validateString(value, 500, dbCol, true);
-              } catch (e) {
-                // Se validação falhar, truncar e sanitizar
-                value = String(value).substring(0, 500).replace(/[<>'"]/g, '');
-              }
-            }
-
-            if (dbCol === 'data_do_periodo') {
-              if (typeof value === 'number') {
-                value = excelSerialToISODate(value);
-              } else if (value instanceof Date) {
-                const yyyy = value.getFullYear();
-                const mm = String(value.getMonth() + 1).padStart(2, '0');
-                const dd = String(value.getDate()).padStart(2, '0');
-                value = `${yyyy}-${mm}-${dd}`;
-              }
-            }
-
-            if (dbCol === 'tempo_disponivel_escalado') {
-              if (typeof value === 'number') {
-                value = convertSecondsToHHMMSS(value);
-              }
-            }
-
-            if (dbCol === 'duracao_do_periodo' || dbCol === 'tempo_disponivel_absoluto') {
-              if (typeof value === 'number') {
-                value = convertFractionToHHMMSS(value);
-              } else if (value instanceof Date) {
-                const h = value.getHours();
-                const m = value.getMinutes();
-                const s = value.getSeconds();
-                value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-              } else if (typeof value === 'string' && value.includes('T')) {
-                const timeMatch = value.match(/T(\d{2}):(\d{2}):(\d{2})/);
-                if (timeMatch) {
-                  value = `${timeMatch[1]}:${timeMatch[2]}:${timeMatch[3]}`;
-                }
-              }
-            }
-
-            sanitized[dbCol] = value === null || value === undefined || value === '' ? null : value;
-          }
-          return sanitized;
-        })
-        .filter((row: any) => {
-          const hasData = Object.values(row).some((v) => v !== null && v !== undefined && v !== '');
-          return hasData;
-        });
+        const sanitizedData = await processCorridasFile(file);
 
         const totalRows = sanitizedData.length;
         let insertedRows = 0;
