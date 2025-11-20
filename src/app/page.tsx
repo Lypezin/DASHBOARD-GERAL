@@ -33,7 +33,8 @@ import {
   EvolucaoMensal,
   EvolucaoSemanal,
   UtrSemanal,
-  Entregador
+  Entregador,
+  TabType
 } from '@/types';
 import { formatarHorasParaHMS, getAderenciaColor, getAderenciaBgColor } from '@/utils/formatters';
 import { buildFilterPayload, safeNumber, arraysEqual } from '@/utils/helpers';
