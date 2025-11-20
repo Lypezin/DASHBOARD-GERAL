@@ -70,7 +70,7 @@ export async function safeRpc<T = unknown>(
     }
 
     // Validar parâmetros se solicitado
-    let validatedParams = params;
+    let validatedParams: RpcParams | undefined = params;
     // IMPORTANTE: Para funções sem parâmetros, o Supabase JS client aceita:
     // - Não passar o segundo parâmetro: supabase.rpc('function_name')
     // - Passar undefined: supabase.rpc('function_name', undefined)
