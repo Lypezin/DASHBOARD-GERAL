@@ -1,6 +1,9 @@
 import { EvolucaoMensal, EvolucaoSemanal } from '@/types';
 import { translateMonth, generateMonthlyLabels, generateWeeklyLabels } from '@/utils/charts';
 import { CHART_CONSTANTS, alignDatasetData, padDatasetToMatchLabels, normalizeDatasetValues, adjustColorOpacity } from '@/utils/charts';
+import { safeLog } from '@/lib/errorHandler';
+
+const IS_DEV = process.env.NODE_ENV === 'development';
 
 export const processEvolucaoData = (
   viewMode: 'mensal' | 'semanal',
@@ -11,6 +14,7 @@ export const processEvolucaoData = (
   const mensalArray = Array.isArray(evolucaoMensal) ? evolucaoMensal : [];
   const semanalArray = Array.isArray(evolucaoSemanal) ? evolucaoSemanal : [];
   
+  // ⚠️ CORREÇÃO: Filtrar dados do ano selecionado
   const dadosAtivos = viewMode === 'mensal' 
     ? [...mensalArray].filter(d => d && d.ano === anoSelecionado).sort((a, b) => {
         if (a.ano !== b.ano) return a.ano - b.ano;
@@ -21,9 +25,11 @@ export const processEvolucaoData = (
         return a.semana - b.semana;
       });
 
+  // ⚠️ OTIMIZAÇÃO: Sempre gerar todos os labels (12 meses ou 53 semanas)
+  // Não importa quantos dados existem, sempre gerar todos os períodos
   const baseLabels = viewMode === 'mensal'
-    ? generateMonthlyLabels(dadosAtivos as EvolucaoMensal[])
-    : generateWeeklyLabels(dadosAtivos as EvolucaoSemanal[]);
+    ? generateMonthlyLabels([]) // Passar array vazio pois vamos gerar todos os meses
+    : generateWeeklyLabels([]); // Passar array vazio pois vamos gerar todas as semanas
 
   // ⚠️ OTIMIZAÇÃO: Criar mapa com todos os labels (meses 1-12 ou semanas 1-53)
   // Preencher com dados quando disponíveis, deixar null quando não houver dados
@@ -36,17 +42,20 @@ export const processEvolucaoData = (
       .filter(d => d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
       .forEach(d => {
         const mes = (d as EvolucaoMensal).mes;
-        dadosPorMes.set(mes, d as EvolucaoMensal);
+        if (mes != null && mes >= 1 && mes <= 12) {
+          dadosPorMes.set(mes, d as EvolucaoMensal);
+        }
       });
     
-    // Preencher todos os 12 meses
+    // ⚠️ CORREÇÃO: Preencher todos os 12 meses, garantindo que cada label tenha dados ou null
     const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     mesesNomes.forEach((mesNome, index) => {
       const mesNumero = index + 1;
       const label = translateMonth(mesNome);
       const dados = dadosPorMes.get(mesNumero);
-      dadosPorLabel.set(label, dados || null);
+      // ⚠️ IMPORTANTE: Sempre definir no mapa, mesmo que seja null (não undefined)
+      dadosPorLabel.set(label, dados ?? null);
     });
   } else {
     // Mapear dados existentes por semana
@@ -55,17 +64,30 @@ export const processEvolucaoData = (
       .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
       .forEach(d => {
         const semana = (d as EvolucaoSemanal).semana;
-        if (semana != null && semana !== undefined) {
+        if (semana != null && semana >= 1 && semana <= 53) {
           dadosPorSemana.set(semana, d as EvolucaoSemanal);
         }
       });
     
-    // Preencher todas as 53 semanas
+    // ⚠️ CORREÇÃO: Preencher todas as 53 semanas, garantindo que cada label tenha dados ou null
     for (let semana = 1; semana <= 53; semana++) {
       const label = `S${semana.toString().padStart(2, '0')}`;
       const dados = dadosPorSemana.get(semana);
-      dadosPorLabel.set(label, dados || null);
+      // ⚠️ IMPORTANTE: Sempre definir no mapa, mesmo que seja null (não undefined)
+      // Usar ?? em vez de || para garantir que 0 não seja convertido para null
+      dadosPorLabel.set(label, dados ?? null);
     }
+    
+    // ⚠️ DEBUG: Verificar se todos os labels foram criados
+    if (IS_DEV && dadosPorLabel.size !== 53) {
+      safeLog.warn(`[processEvolucaoData] Esperado 53 semanas, mas dadosPorLabel tem ${dadosPorLabel.size} entradas`);
+    }
+  }
+
+  // ⚠️ DEBUG: Verificar se baseLabels e dadosPorLabel têm o mesmo tamanho
+  if (IS_DEV) {
+    const labelsComDados = Array.from(dadosPorLabel.values()).filter(d => d !== null).length;
+    safeLog.info(`[processEvolucaoData] ${viewMode}: ${baseLabels.length} labels, ${labelsComDados} com dados, ${dadosPorLabel.size} no mapa`);
   }
 
   return { dadosAtivos, baseLabels, dadosPorLabel };
@@ -91,10 +113,14 @@ export const getMetricConfig = (
 } | null => {
   switch (metric) {
     case 'horas':
+      // ⚠️ CORREÇÃO: Garantir que todos os labels tenham um valor (número ou null)
       const horasData = baseLabels.map(label => {
         const d = dadosPorLabel.get(label);
-        if (!d) return null;
+        // ⚠️ IMPORTANTE: Verificar explicitamente se é null ou undefined
+        // Map.get() retorna undefined se a chave não existe, mas nós sempre definimos (null ou dados)
+        if (d === null || d === undefined) return null;
         const segundos = Number(d.total_segundos) || 0;
+        // Se segundos é 0, ainda retornar 0 (não null) para mostrar que há dados
         const horas = segundosParaHoras(segundos);
         return horas;
       });
@@ -120,9 +146,11 @@ export const getMetricConfig = (
         useUtrData: false,
       };
     case 'ofertadas':
+      // ⚠️ CORREÇÃO: Garantir que todos os labels tenham um valor (número ou null)
       const ofertadasData = baseLabels.map(label => {
         const d = dadosPorLabel.get(label);
-        if (!d) return null;
+        // ⚠️ IMPORTANTE: Verificar explicitamente se é null ou undefined
+        if (d === null || d === undefined) return null;
         const value = (d as any).corridas_ofertadas;
         if (value == null || value === undefined) return null;
         const numValue = Number(value);
@@ -149,9 +177,11 @@ export const getMetricConfig = (
         useUtrData: false,
       };
     case 'aceitas':
+      // ⚠️ CORREÇÃO: Garantir que todos os labels tenham um valor (número ou null)
       const aceitasData = baseLabels.map(label => {
         const d = dadosPorLabel.get(label);
-        if (!d) return null;
+        // ⚠️ IMPORTANTE: Verificar explicitamente se é null ou undefined
+        if (d === null || d === undefined) return null;
         const value = (d as any).corridas_aceitas;
         if (value == null || value === undefined) return null;
         const numValue = Number(value);
@@ -179,9 +209,11 @@ export const getMetricConfig = (
       };
     case 'completadas':
     default:
+      // ⚠️ CORREÇÃO: Garantir que todos os labels tenham um valor (número ou null)
       const completadasData = baseLabels.map(label => {
         const d = dadosPorLabel.get(label);
-        if (!d) return null;
+        // ⚠️ IMPORTANTE: Verificar explicitamente se é null ou undefined
+        if (d === null || d === undefined) return null;
         const value = (d as any).corridas_completadas ?? (d as any).total_corridas;
         if (value == null || value === undefined) return null;
         const numValue = Number(value);
@@ -275,10 +307,19 @@ export const createChartData = (
   }
 
   const datasets = metricConfigs.map((config, index) => {
-    let data: (number | null)[] = [];
+    // ⚠️ CORREÇÃO: Os dados já vêm mapeados corretamente de getMetricConfig
+    // Não precisamos realinhar se os labels já estão corretos
+    let data: (number | null)[] = config.data as (number | null)[];
     
-    data = alignDatasetData(config.data as (number | null)[], config.labels, baseLabels);
+    // ⚠️ IMPORTANTE: Garantir que o tamanho está correto (deve ser igual a baseLabels.length)
+    if (data.length !== baseLabels.length) {
+      // Se os tamanhos não batem, usar alignDatasetData
+      data = alignDatasetData(config.data as (number | null)[], config.labels, baseLabels);
+    }
+    
+    // Garantir que tem o tamanho correto
     data = padDatasetToMatchLabels(data, baseLabels.length);
+    // Normalizar valores (garantir que null/undefined são null)
     data = normalizeDatasetValues(data);
     
     if (data.length > 0 && data.some(v => v != null) && config.yAxisID === 'y' && globalMaxValue > 0 && !config.label.includes('Horas')) {
