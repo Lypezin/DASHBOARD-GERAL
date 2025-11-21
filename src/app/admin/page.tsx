@@ -36,13 +36,12 @@ export default function AdminPage() {
     editingUser,
     setSelectedPracas,
     setSelectedRole,
-    setShowModal,
-    setShowEditModal,
-    setEditingUser,
     handleApproveUser,
     handleSaveApproval,
+    handleCancelApproval,
     handleEditPracas,
     handleSaveEditPracas,
+    handleCancelEdit,
     handleRevokeAccess,
     handleToggleAdmin,
   } = useAdminActions(currentUser, fetchData);
@@ -118,11 +117,7 @@ export default function AdminPage() {
             onPracasChange={setSelectedPracas}
             onRoleChange={setSelectedRole}
             onSave={handleSaveEditPracas}
-            onCancel={() => {
-              setShowEditModal(false);
-              setEditingUser(null);
-              setSelectedPracas([]);
-            }}
+            onCancel={handleCancelEdit}
           />
         )}
 
@@ -135,11 +130,7 @@ export default function AdminPage() {
             onPracasChange={setSelectedPracas}
             onRoleChange={setSelectedRole}
             onApprove={handleSaveApproval}
-            onCancel={() => {
-              setShowModal(false);
-              setSelectedUser(null);
-              setSelectedPracas([]);
-            }}
+            onCancel={handleCancelApproval}
           />
         )}
       </div>

@@ -290,6 +290,20 @@ export function useAdminActions(
     }
   };
 
+  const handleCancelApproval = () => {
+    setShowModal(false);
+    setSelectedUser(null);
+    setSelectedPracas([]);
+    setSelectedRole('user');
+  };
+
+  const handleCancelEdit = () => {
+    setShowEditModal(false);
+    setEditingUser(null);
+    setSelectedPracas([]);
+    setSelectedRole('user');
+  };
+
   return {
     selectedUser,
     selectedPracas,
@@ -299,13 +313,12 @@ export function useAdminActions(
     editingUser,
     setSelectedPracas,
     setSelectedRole,
-    setShowModal,
-    setShowEditModal,
-    setEditingUser,
     handleApproveUser,
     handleSaveApproval,
+    handleCancelApproval,
     handleEditPracas,
     handleSaveEditPracas,
+    handleCancelEdit,
     handleRevokeAccess,
     handleToggleAdmin,
   };
