@@ -120,23 +120,7 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
                   </div>
                 ) : chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
                   <Line 
-                    data={{
-                      // ⚠️ CRÍTICO: Garantir que labels e datasets estão na ordem correta
-                      labels: chartData.labels, // Array de labels: ['S01', 'S02', ..., 'S53']
-                      datasets: chartData.datasets.map(dataset => ({
-                        ...dataset,
-                        // ⚠️ CRÍTICO: Garantir que data tem o mesmo tamanho de labels
-                        data: dataset.data.length === chartData.labels.length 
-                          ? dataset.data 
-                          : (() => {
-                              const corrected = [...dataset.data];
-                              while (corrected.length < chartData.labels.length) {
-                                corrected.push(null);
-                              }
-                              return corrected.slice(0, chartData.labels.length);
-                            })()
-                      }))
-                    }} 
+                    data={chartData}
                     options={chartOptions}
                     redraw={true}
                     updateMode="default"
