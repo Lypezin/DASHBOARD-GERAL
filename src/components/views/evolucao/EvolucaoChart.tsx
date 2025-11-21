@@ -120,10 +120,14 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
                   </div>
                 ) : chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
                   <Line 
-                    data={chartData} 
+                    data={{
+                      ...chartData,
+                      // ⚠️ CRÍTICO: Garantir que todos os labels estão presentes
+                      labels: chartData.labels || []
+                    }} 
                     options={chartOptions}
                     redraw={true}
-                    updateMode="resize"
+                    updateMode="default"
                   />
                 ) : (
                   <div className="relative z-10 flex h-[500px] items-center justify-center">

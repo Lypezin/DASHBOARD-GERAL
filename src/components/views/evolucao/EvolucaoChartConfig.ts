@@ -18,7 +18,7 @@ export const createEvolucaoChartOptions = (
     padding: {
       top: 12,
       right: 16,
-      bottom: 8,
+      bottom: isSemanal ? 40 : 20, // ⚠️ CRÍTICO: Mais espaço para labels rotacionados
       left: 12,
     },
   },
@@ -188,6 +188,7 @@ export const createEvolucaoChartOptions = (
       },
     },
     x: {
+      type: 'category' as const, // ⚠️ CRÍTICO: category para mostrar todos os labels como strings
       grid: {
         display: false,
       },
@@ -195,22 +196,21 @@ export const createEvolucaoChartOptions = (
         display: false,
       },
       ticks: {
-        // ⚠️ OTIMIZAÇÃO: Mostrar todos os meses (12) e todas as semanas (até 53)
-        maxTicksLimit: isSemanal ? 53 : 12,
-        autoSkip: false, // ⚠️ IMPORTANTE: false para mostrar todos os labels
-        maxRotation: isSemanal ? 45 : 0,
-        minRotation: isSemanal ? 45 : 0,
-        // ⚠️ OTIMIZAÇÃO: Permitir que todos os pontos sejam exibidos
-        stepSize: undefined, // Sem step size para mostrar todos
-        // ⚠️ IMPORTANTE: Garantir que todos os labels sejam exibidos mesmo com muitos nulls
-        sampleSize: isSemanal ? 53 : 12, // Forçar exibição de todos os labels
+        // ⚠️ CRÍTICO: Configurações para forçar exibição de TODOS os labels
+        maxTicksLimit: undefined, // Remover limite completamente
+        autoSkip: false, // ⚠️ CRÍTICO: false para mostrar todos os labels
+        includeBounds: true, // Incluir labels nas bordas
+        maxRotation: isSemanal ? 60 : 0, // Aumentar rotação para semanas
+        minRotation: isSemanal ? 60 : 0, // Aumentar rotação para semanas
         font: {
-          size: isSemanal ? 10 : 12,
+          size: isSemanal ? 7 : 10, // Reduzir ainda mais o tamanho para semanas
           weight: '700' as any,
           family: "'Inter', 'system-ui', sans-serif",
         },
         color: isDarkMode ? 'rgb(203, 213, 225)' : 'rgb(71, 85, 105)',
-        padding: 10,
+        padding: isSemanal ? 2 : 8, // Reduzir padding para semanas
+        // ⚠️ CRÍTICO: Forçar exibição de todos os ticks
+        stepSize: 1, // Mostrar um label a cada 1 unidade
       },
     },
   },
