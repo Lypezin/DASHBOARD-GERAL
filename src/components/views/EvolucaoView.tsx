@@ -76,6 +76,9 @@ const EvolucaoView = React.memo(function EvolucaoView({
     [viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado]
   );
 
+  // ⚠️ CORREÇÃO: Usar baseLabels.length para mostrar todos os períodos (12 meses ou 53 semanas)
+  const totalPeriodos = baseLabels.length;
+
   const chartData = useMemo(
     () => createChartData(selectedMetrics, baseLabels, dadosPorLabel, isSemanal),
     [selectedMetrics, baseLabels, dadosPorLabel, isSemanal]
@@ -175,7 +178,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
         anoSelecionado={anoSelecionado}
         selectedMetrics={selectedMetrics}
         viewMode={viewMode}
-        dadosAtivosLength={dadosAtivos.length}
+        dadosAtivosLength={totalPeriodos}
       />
 
       <EvolucaoStatsCards

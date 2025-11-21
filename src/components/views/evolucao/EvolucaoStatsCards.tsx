@@ -97,7 +97,7 @@ export const EvolucaoStatsCards: React.FC<EvolucaoStatsCardsProps> = ({
               {anoSelecionado}
             </p>
             <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
-              {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} registradas
+              {viewMode === 'mensal' ? '12 meses' : '53 semanas'} disponíveis
             </p>
           </div>
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">

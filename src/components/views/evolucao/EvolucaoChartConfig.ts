@@ -202,6 +202,8 @@ export const createEvolucaoChartOptions = (
         minRotation: isSemanal ? 45 : 0,
         // ⚠️ OTIMIZAÇÃO: Permitir que todos os pontos sejam exibidos
         stepSize: undefined, // Sem step size para mostrar todos
+        // ⚠️ IMPORTANTE: Garantir que todos os labels sejam exibidos mesmo com muitos nulls
+        sampleSize: isSemanal ? 53 : 12, // Forçar exibição de todos os labels
         font: {
           size: isSemanal ? 10 : 12,
           weight: '700' as any,

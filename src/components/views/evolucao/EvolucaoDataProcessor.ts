@@ -314,7 +314,8 @@ export const createChartData = (
       type: 'line' as const,
       tension: 0.4,
       cubicInterpolationMode: 'monotone' as const,
-      pointRadius: pointRadius,
+      // ⚠️ OTIMIZAÇÃO: Ocultar pontos quando valor é null, mas manter a linha visível
+      pointRadius: data.map((v: number | null) => v != null ? pointRadius : 0),
       pointHoverRadius: isSemanal ? 12 : 14,
       pointHitRadius: 35,
       pointBackgroundColor: pointColorWithOpacity,
