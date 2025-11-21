@@ -44,6 +44,7 @@ export default function UploadPage() {
     },
     overwrite: true,
     deleteRpcFunction: 'delete_all_dados_marketing',
+    refreshRpcFunction: 'refresh_mv_entregadores_marketing', // Atualiza mv_entregadores_marketing após upload
   });
 
   // Hook genérico para upload de Valores por Cidade
@@ -211,53 +212,98 @@ export default function UploadPage() {
     if (errorCount === 0) {
       setMessage(`✅ Todos os ${successCount} arquivo(s) foram importados com sucesso! 
         
-⏳ Aguarde alguns minutos para os dados agregados serem processados, depois atualize a página.
+⏳ Atualizando dados agregados... Isso pode levar 2-4 minutos para as visualizações principais.
 
-💡 Dica: Com grandes volumes de dados, o processamento pode levar até 10 minutos. Você pode fechar esta página e voltar mais tarde.`);
+💡 Dica: As visualizações secundárias serão atualizadas em background. Você pode fechar esta página e voltar mais tarde.`);
     } else {
       setMessage(`⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Verifique os logs.`);
     }
     
-    // ⚠️ OTIMIZAÇÃO: Refresh CONCURRENTLY otimizado (reduz Disk IO em 70-90%)
-    // Usa REFRESH MATERIALIZED VIEW CONCURRENTLY que permite leitura durante refresh
-    try {
-      // Usar setTimeout para não bloquear a UI
-      setTimeout(async () => {
-        try {
-          // Usar função RPC otimizada com CONCURRENTLY
-          const { data, error } = await safeRpc<{
-            success: boolean;
-            view?: string;
-            duration_seconds?: number;
-            message?: string;
-            error?: string;
-          }>('refresh_mv_aderencia_async', {}, {
-            timeout: 120000, // 120 segundos para refresh CONCURRENTLY (mais rápido que normal)
-            validateParams: false
-          });
-          
-          if (error) {
-            // Ignorar erros 404 silenciosamente (função pode não existir)
-            const errorCode = (error as any)?.code;
-            const is404 = errorCode === 'PGRST116' || errorCode === '42883' || (error as any)?.message?.includes('404');
-            if (!is404 && IS_DEV) {
-              safeLog.warn('Refresh CONCURRENTLY não disponível, será processado automaticamente');
+    // ⚠️ OTIMIZAÇÃO: Refresh prioritário e assíncrono
+    // 1. Atualiza MVs críticas imediatamente (2-4 minutos)
+    // 2. Marca outras MVs para refresh em background
+    if (errorCount === 0) {
+      try {
+        // Delay antes de iniciar refresh (permite que inserções terminem)
+        setTimeout(async () => {
+          try {
+            // Passo 1: Marcar todas as MVs relacionadas como precisando refresh
+            await safeRpc('refresh_mvs_after_bulk_insert', { delay_seconds: 5 }, {
+              timeout: 30000,
+              validateParams: false
+            });
+
+            // Passo 2: Atualizar apenas MVs críticas imediatamente (prioridade 1)
+            const { data, error } = await safeRpc<{
+              success: boolean;
+              total_duration_seconds?: number;
+              views_refreshed?: number;
+              results?: Array<{
+                view: string;
+                success: boolean;
+                duration_seconds?: number;
+                method?: string;
+              }>;
+            }>('refresh_mvs_prioritized', { refresh_critical_only: true }, {
+              timeout: 300000, // 5 minutos para MVs críticas
+              validateParams: false
+            });
+            
+            if (error) {
+              const errorCode = (error as any)?.code;
+              const is404 = errorCode === 'PGRST116' || errorCode === '42883' || (error as any)?.message?.includes('404');
+              if (!is404 && IS_DEV) {
+                safeLog.warn('Refresh prioritário não disponível, será processado automaticamente');
+              }
+            } else if (data?.success && IS_DEV) {
+              const duration = data.total_duration_seconds ? `${(data.total_duration_seconds / 60).toFixed(1)} min` : 'N/A';
+              const viewsCount = data.views_refreshed || 0;
+              safeLog.info(`✅ Refresh de MVs críticas concluído: ${viewsCount} MVs em ${duration}`);
+              
+              // Log detalhado de cada MV
+              if (data.results) {
+                data.results.forEach((result) => {
+                  if (result.success) {
+                    const mvDuration = result.duration_seconds ? `${result.duration_seconds.toFixed(1)}s` : 'N/A';
+                    safeLog.info(`  - ${result.view}: ${result.method || 'NORMAL'} em ${mvDuration}`);
+                  } else {
+                    safeLog.warn(`  - ${result.view}: FALHOU`);
+                  }
+                });
+              }
             }
-          } else if (data?.success && IS_DEV) {
-            const duration = data.duration_seconds ? `${data.duration_seconds.toFixed(2)}s` : 'N/A';
-            safeLog.info(`✅ Refresh CONCURRENTLY concluído: ${data.view} em ${duration}`);
-          } else if (IS_DEV) {
-            safeLog.info('Refresh da materialized view iniciado em segundo plano (CONCURRENTLY)');
+
+            // Passo 3: Iniciar refresh assíncrono das MVs secundárias em background
+            // Isso será processado automaticamente pelo worker
+            setTimeout(async () => {
+              try {
+                await safeRpc('refresh_pending_mvs', {}, {
+                  timeout: 600000, // 10 minutos para todas as MVs secundárias
+                  validateParams: false
+                });
+                if (IS_DEV) {
+                  safeLog.info('Refresh de MVs secundárias iniciado em background');
+                }
+              } catch (e) {
+                if (IS_DEV) {
+                  safeLog.warn('Refresh de MVs secundárias não disponível, será processado automaticamente');
+                }
+              }
+            }, 5000); // Delay de 5 segundos antes de iniciar MVs secundárias
+            
+          } catch (e) {
+            // Silenciar erros - o refresh será feito automaticamente
+            if (IS_DEV) {
+              safeLog.warn('Refresh prioritário não disponível, será processado automaticamente');
+            }
           }
-        } catch (e) {
-          // Silenciar erros - o refresh será feito automaticamente
-          if (IS_DEV) {
-            safeLog.warn('Refresh CONCURRENTLY não disponível, será processado automaticamente');
-          }
+        }, 2000); // Delay de 2 segundos após upload
+      } catch (e) {
+        // Silenciar erros - o refresh será feito automaticamente
+        if (IS_DEV) {
+          safeLog.warn('Erro ao iniciar refresh de MVs');
         }
-      }, 1000);
-    } catch (e) {
-      // Silenciar erros - o refresh será feito automaticamente
+      }
     }
 
     setFiles([]);

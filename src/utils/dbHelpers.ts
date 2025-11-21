@@ -40,37 +40,68 @@ export async function insertInBatches<T = any>(
   safeLog.info(`Iniciando inserção em lotes na tabela ${table}...`);
   safeLog.info(`Total de registros: ${totalRows}, Tamanho do lote: ${batchSize}`);
 
+  // Verificar se precisa usar função RPC para bypassar RLS
+  const useRpcFunction = table === 'dados_marketing';
+  const rpcFunctionName = useRpcFunction ? 'insert_dados_marketing_batch' : null;
+
   for (let i = 0; i < totalRows; i += batchSize) {
     const batch = data.slice(i, i + batchSize);
     const batchNumber = Math.floor(i / batchSize) + 1;
     
-    safeLog.info(`Inserindo lote ${batchNumber}, ${batch.length} registros`);
+    safeLog.info(`Inserindo lote ${batchNumber}, ${batch.length} registros${useRpcFunction ? ' (via RPC)' : ''}`);
     
     try {
-      const insertOptions: any = { count: 'exact' };
-      if (returnData) {
-        insertOptions.select = '*';
+      if (useRpcFunction && rpcFunctionName) {
+        // Usar função RPC para bypassar RLS
+        // Converter array de objetos para array JSONB
+        const dadosJsonb = batch.map(item => JSON.parse(JSON.stringify(item)));
+        
+        const { data: rpcResult, error: rpcError } = await supabase
+          .rpc(rpcFunctionName, { dados: dadosJsonb });
+
+        if (rpcError) {
+          const errorMsg = `Erro no lote ${batchNumber}: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}`;
+          safeLog.error('Erro ao inserir lote via RPC:', rpcError);
+          errors.push(errorMsg);
+          throw new Error(errorMsg);
+        }
+
+        const inserted = (rpcResult as any)?.inserted || 0;
+        const rpcErrors = (rpcResult as any)?.errors || 0;
+        
+        if (rpcErrors > 0) {
+          const errorMessages = (rpcResult as any)?.error_messages || [];
+          errorMessages.forEach((msg: string) => errors.push(`Lote ${batchNumber}: ${msg}`));
+        }
+
+        insertedRows += inserted;
+      } else {
+        // Inserção direta (para tabelas sem RLS restritivo)
+        const insertOptions: any = { count: 'exact' };
+        if (returnData) {
+          insertOptions.select = '*';
+        }
+
+        const { data: insertData, error: batchError } = await supabase
+          .from(table)
+          .insert(batch, insertOptions)
+          .select(returnData ? '*' : undefined);
+
+        if (batchError) {
+          const errorMsg = `Erro no lote ${batchNumber}: ${batchError.message}${batchError.details ? ` (${batchError.details})` : ''}`;
+          safeLog.error('Erro ao inserir lote:', batchError);
+          safeLog.error('Detalhes do erro:', {
+            code: batchError.code,
+            message: batchError.message,
+            details: batchError.details,
+            hint: batchError.hint
+          });
+          errors.push(errorMsg);
+          throw new Error(errorMsg);
+        }
+
+        insertedRows += batch.length;
       }
-
-      const { data: insertData, error: batchError } = await supabase
-        .from(table)
-        .insert(batch, insertOptions)
-        .select(returnData ? '*' : undefined);
-
-      if (batchError) {
-        const errorMsg = `Erro no lote ${batchNumber}: ${batchError.message}${batchError.details ? ` (${batchError.details})` : ''}`;
-        safeLog.error('Erro ao inserir lote:', batchError);
-        safeLog.error('Detalhes do erro:', {
-          code: batchError.code,
-          message: batchError.message,
-          details: batchError.details,
-          hint: batchError.hint
-        });
-        errors.push(errorMsg);
-        throw new Error(errorMsg);
-      }
-
-      insertedRows += batch.length;
       
       if (onProgress) {
         onProgress(insertedRows, totalRows);
