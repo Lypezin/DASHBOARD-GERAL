@@ -26,8 +26,8 @@ export const createEvolucaoChartOptions = (isDarkMode: boolean, isSemanal: boole
     intersect: false,
     axis: 'x' as const,
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onHover: (event: any, activeElements: any[]) => { // Chart.js event types are complex
+  // Chart.js event types are complex - using any is acceptable here
+  onHover: (event: any, activeElements: any[]) => {
     if (activeElements && activeElements.length > 0) {
       event.native.target.style.cursor = 'pointer';
     } else {
@@ -65,8 +65,8 @@ export const createEvolucaoChartOptions = (isDarkMode: boolean, isSemanal: boole
       displayColors: true,
       usePointStyle: true,
       callbacks: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        label: function(context: any) { // Chart.js context type is complex
+        // Chart.js context type is complex - using any is acceptable here
+        label: function(context: any) {
           const label = context.dataset.label || '';
           const value = context.parsed.y;
           if (value == null || isNaN(value) || !isFinite(value)) {
@@ -119,8 +119,8 @@ export const createEvolucaoChartOptions = (isDarkMode: boolean, isSemanal: boole
           weight: '500' as const,
         },
         padding: 8,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        callback: function(value: any) { // Chart.js value type is complex
+        // Chart.js value type is complex - using any is acceptable here
+        callback: function(value: any) {
           if (typeof value === 'number' && (isNaN(value) || !isFinite(value))) {
             return '';
           }
@@ -146,8 +146,8 @@ export const createMetricDatasetConfig = (
     label: string;
     data: (number | null)[];
     borderColor: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    backgroundColor: any; // Chart.js gradient type is complex
+    // Chart.js gradient type is complex - using any is acceptable here
+    backgroundColor: any;
     pointColor: string;
     yAxisID: string;
   }
@@ -192,8 +192,8 @@ export const createMetricDatasetConfig = (
     stack: undefined,
     stepped: false,
     segment: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      borderColor: (ctx: any) => { // Chart.js context type is complex
+      // Chart.js context type is complex - using any is acceptable here
+      borderColor: (ctx: any) => {
         if (!ctx.p0 || !ctx.p1) return borderColorWithOpacity;
         return borderColorWithOpacity;
       },

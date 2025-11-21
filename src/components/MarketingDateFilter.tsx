@@ -41,7 +41,7 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
 
   const handleAplicar = () => {
     // Validar datas antes de aplicar
-    let dataInicial = tempDataInicial || null;
+    const dataInicial = tempDataInicial || null;
     let dataFinal = tempDataFinal || null;
     
     // Validar que data final >= data inicial

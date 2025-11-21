@@ -19,9 +19,9 @@ import { SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/mar
  * const query = supabase.from('dados_marketing').select('*');
  * const filteredQuery = buildDateFilterQuery(query, 'data_envio', { dataInicial: '2024-01-01', dataFinal: '2024-01-31' });
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Supabase query builder type is complex - using any is acceptable here
 export function buildDateFilterQuery(
-  query: any, // Supabase query builder type is complex, using any for now
+  query: any,
   dateColumn: string,
   filter: MarketingDateFilter
 ): typeof query {
@@ -54,8 +54,8 @@ export function buildDateFilterQuery(
  * const query = supabase.from('dados_marketing').select('*');
  * const filteredQuery = buildCityQuery(query, 'Santo André');
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function buildCityQuery(query: any, cidade: string): typeof query { // Supabase query builder type is complex, using any for now
+// Supabase query builder type is complex - using any is acceptable here
+export function buildCityQuery(query: any, cidade: string): typeof query {
   if (cidade === 'Santo André') {
     return query
       .eq('regiao_atuacao', 'ABC 2.0')

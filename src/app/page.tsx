@@ -253,7 +253,7 @@ export default function DashboardPage() {
 
     // Adicionar pequeno delay para evitar race conditions
     tabChangeTimeoutRef2.current = setTimeout(() => {
-      registrarAtividade('tab_change', `Navegou para a aba ${activeTab}`, activeTab, filters);
+      registrarAtividade('tab_change', { message: `Navegou para a aba ${activeTab}`, tab: activeTab }, activeTab, filters);
     }, DELAYS.TAB_CHANGE);
 
     return () => {

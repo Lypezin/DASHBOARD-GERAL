@@ -47,7 +47,7 @@ export interface DashboardFilters {
   origens: string[];
   turnos: string[];
   semanas: number[];
-  filtroModo: 'ano_semana' | 'data_range';
+  filtroModo: 'ano_semana' | 'intervalo';
   dataInicial: string | null;
   dataFinal: string | null;
 }

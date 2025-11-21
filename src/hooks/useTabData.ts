@@ -121,9 +121,9 @@ export function useTabData(
             if (currentTabRef.current !== tab) {
               return;
             }
-            const processedData = tab === 'valores'
-              ? (Array.isArray(fetchedData) ? fetchedData : [])
-              : fetchedData;
+            const processedData: TabData = tab === 'valores'
+              ? (Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : [])
+              : (fetchedData as TabData);
             setData(processedData);
             setCached({ tab, filterPayload: currentPayload }, processedData);
             isRequestPendingRef.current = false;
@@ -171,9 +171,9 @@ export function useTabData(
           isRequestPendingRef.current = false;
           return;
         }
-        const cachedData = tab === 'valores'
-          ? (Array.isArray(cached) ? cached : [])
-          : cached;
+        const cachedData: TabData = tab === 'valores'
+          ? (Array.isArray(cached) ? cached as ValoresEntregador[] : [])
+          : (cached as TabData);
         setData(cachedData);
         isRequestPendingRef.current = false;
         return;
@@ -194,9 +194,9 @@ export function useTabData(
             }
 
             // Processar dados para valores
-            const processedData = tab === 'valores'
-              ? (Array.isArray(fetchedData) ? fetchedData : [])
-              : fetchedData;
+            const processedData: TabData = tab === 'valores'
+              ? (Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : [])
+              : (fetchedData as TabData);
 
             setData(processedData);
             setCached({ tab, filterPayload: currentPayload }, processedData);

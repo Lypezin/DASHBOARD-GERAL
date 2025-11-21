@@ -57,7 +57,7 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = ({
 
   const handleAplicar = useCallback(() => {
     // Validar datas antes de aplicar
-    let dataIni = tempDataInicial || null;
+    const dataIni = tempDataInicial || null;
     let dataFim = tempDataFinal || null;
     
     // Validar que data final >= data inicial

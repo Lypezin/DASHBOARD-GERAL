@@ -2,8 +2,8 @@
  * Funções utilitárias para criar gradientes em gráficos Chart.js
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createGradientBlue = (context: any): CanvasGradient | string => { // Chart.js context type is complex
+// Chart.js context type is complex - using any is acceptable here
+export const createGradientBlue = (context: any): CanvasGradient | string => {
   const chart = context.chart;
   const { ctx, chartArea } = chart;
   if (!chartArea) return 'rgba(59, 130, 246, 0.2)';
@@ -14,8 +14,8 @@ export const createGradientBlue = (context: any): CanvasGradient | string => { /
   return gradient;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createGradientGreen = (context: any): CanvasGradient | string => { // Chart.js context type is complex
+// Chart.js context type is complex - using any is acceptable here
+export const createGradientGreen = (context: any): CanvasGradient | string => {
   const chart = context.chart;
   const { ctx, chartArea } = chart;
   if (!chartArea) return 'rgba(16, 185, 129, 0.2)';
@@ -26,8 +26,8 @@ export const createGradientGreen = (context: any): CanvasGradient | string => { 
   return gradient;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createGradientPurple = (context: any): CanvasGradient | string => { // Chart.js context type is complex
+// Chart.js context type is complex - using any is acceptable here
+export const createGradientPurple = (context: any): CanvasGradient | string => {
   const chart = context.chart;
   const { ctx, chartArea } = chart;
   if (!chartArea) return 'rgba(139, 92, 246, 0.2)';
@@ -38,8 +38,8 @@ export const createGradientPurple = (context: any): CanvasGradient | string => {
   return gradient;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createGradientAmber = (context: any): CanvasGradient | string => { // Chart.js context type is complex
+// Chart.js context type is complex - using any is acceptable here
+export const createGradientAmber = (context: any): CanvasGradient | string => {
   const chart = context.chart;
   const { ctx, chartArea } = chart;
   if (!chartArea) return 'rgba(245, 158, 11, 0.2)';

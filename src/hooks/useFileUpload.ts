@@ -103,7 +103,10 @@ export function useFileUpload(options: FileUploadOptions) {
           await deleteAllRecords(tableName, deleteRpcFunction);
         } catch (deleteErr) {
           safeLog.error('Erro na etapa de remoção:', deleteErr);
-          throw new Error(`Erro ao preparar banco de dados: ${deleteErr.message || deleteErr}`);
+          const errorMessage = deleteErr && typeof deleteErr === 'object' && 'message' in deleteErr && typeof deleteErr.message === 'string'
+            ? deleteErr.message
+            : String(deleteErr);
+          throw new Error(`Erro ao preparar banco de dados: ${errorMessage}`);
         }
 
         setState(prev => ({
@@ -168,9 +171,16 @@ export function useFileUpload(options: FileUploadOptions) {
           successCount++;
         } catch (error) {
           safeLog.error(`❌ ERRO no arquivo ${file.name}:`, error);
-          safeLog.error('Stack trace:', error?.stack);
+          const errorStack = error && typeof error === 'object' && 'stack' in error && typeof error.stack === 'string'
+            ? error.stack
+            : undefined;
+          if (errorStack) {
+            safeLog.error('Stack trace:', errorStack);
+          }
           errorCount++;
-          const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
+          const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+            ? error.message
+            : (error && typeof error.toString === 'function' ? error.toString() : 'Erro desconhecido');
           lastError = errorMessage;
           setState(prev => ({
             ...prev,

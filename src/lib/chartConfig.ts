@@ -4,11 +4,6 @@
  * Funciona tanto no cliente quanto no servidor (SSR-safe)
  */
 
-// Flag global para garantir registro único
-let registrationPromise: Promise<void> | null = null;
-let isRegistered = false;
-
-// Adicionar outros imports aqui
 import { safeLog } from './errorHandler';
 
 /**

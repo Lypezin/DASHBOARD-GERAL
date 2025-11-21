@@ -22,7 +22,9 @@ import { RPC_TIMEOUTS, DELAYS } from '@/constants/config';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 function getSafeErrorMessage(error: unknown): string {
-  if (error?.message) return error.message;
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
   if (typeof error === 'string') return error;
   return 'Erro ao carregar dados do dashboard';
 }

@@ -145,6 +145,7 @@ export const safeLog = {
    */
   info: (message: string, data?: unknown) => {
     if (IS_DEV) {
+      // eslint-disable-next-line no-console
       console.log(message, data ? sanitizeLogData(data) : '');
     }
   },

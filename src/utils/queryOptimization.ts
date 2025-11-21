@@ -83,9 +83,9 @@ export function validateDateFilter(payload: FilterPayload, context: string = 'qu
  * @param dateColumn - Nome da coluna de data (padrão: 'data_do_periodo')
  * @returns Query com filtro de data aplicado
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Supabase query builder type is complex - using any is acceptable here
 export function applySafeDateFilter(
-  query: any, // Supabase query builder type is complex, using any for now
+  query: any,
   payload: FilterPayload,
   dateColumn: string = 'data_do_periodo'
 ): typeof query {

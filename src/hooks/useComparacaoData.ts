@@ -57,10 +57,11 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           if (Array.isArray(semanasArray) && semanasArray.length > 0) {
             // Se o primeiro item é um objeto, extrair a propriedade de semana
             if (typeof semanasArray[0] === 'object' && semanasArray[0] !== null) {
-              semanasProcessadas = semanasArray.map((item: Record<string, unknown>) => {
+              semanasProcessadas = (semanasArray as Record<string, unknown>[]).map((item) => {
                 // Tentar diferentes propriedades comuns
-                return item.semana || item.semana_numero || item.numero_semana || item.ano_semana || String(item);
-              }).filter(Boolean);
+                const semana = item.semana || item.semana_numero || item.numero_semana || item.ano_semana || String(item);
+                return typeof semana === 'number' ? semana : String(semana);
+              }).filter((s): s is string | number => Boolean(s));
             } else {
               // Já é array de strings/números
               semanasProcessadas = semanasArray.map((s: unknown) => String(s));

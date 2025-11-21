@@ -42,13 +42,13 @@ async function fetchUtrFallback(payload: FilterPayload): Promise<UtrData | null>
 
     // Aplicar filtros (usando payload seguro)
     if (safePayload.p_semana && safePayload.p_ano) {
-      const dataInicio = new Date(payload.p_ano, 0, 1);
+      const dataInicio = new Date(safePayload.p_ano, 0, 1);
       const diaSemana = dataInicio.getDay();
       const diasParaSegunda = (diaSemana === 0 ? -6 : 1) - diaSemana;
       const primeiraSegunda = new Date(dataInicio);
       primeiraSegunda.setDate(primeiraSegunda.getDate() + diasParaSegunda);
       const semanaInicio = new Date(primeiraSegunda);
-      semanaInicio.setDate(semanaInicio.getDate() + (payload.p_semana - 1) * 7);
+      semanaInicio.setDate(semanaInicio.getDate() + (safePayload.p_semana - 1) * 7);
       const semanaFim = new Date(semanaInicio);
       semanaFim.setDate(semanaFim.getDate() + 6);
       
@@ -69,7 +69,9 @@ async function fetchUtrFallback(payload: FilterPayload): Promise<UtrData | null>
     }
 
     if (payload.p_praca) {
-      const pracas = payload.p_praca.split(',').map((p: string) => p.trim());
+      const pracas = Array.isArray(payload.p_praca)
+        ? payload.p_praca.map((p) => String(p).trim())
+        : payload.p_praca.split(',').map((p: string) => p.trim());
       if (pracas.length === 1) {
         query = query.eq('praca', pracas[0]);
       } else {
@@ -78,7 +80,9 @@ async function fetchUtrFallback(payload: FilterPayload): Promise<UtrData | null>
     }
 
     if (payload.p_sub_praca) {
-      const subPracas = payload.p_sub_praca.split(',').map((p: string) => p.trim());
+      const subPracas = Array.isArray(payload.p_sub_praca)
+        ? payload.p_sub_praca.map((p) => String(p).trim())
+        : payload.p_sub_praca.split(',').map((p: string) => p.trim());
       if (subPracas.length === 1) {
         query = query.eq('sub_praca', subPracas[0]);
       } else {
@@ -87,7 +91,9 @@ async function fetchUtrFallback(payload: FilterPayload): Promise<UtrData | null>
     }
 
     if (payload.p_origem) {
-      const origens = payload.p_origem.split(',').map((o: string) => o.trim());
+      const origens = Array.isArray(payload.p_origem)
+        ? payload.p_origem.map((o) => String(o).trim())
+        : payload.p_origem.split(',').map((o: string) => o.trim());
       if (origens.length === 1) {
         query = query.eq('origem', origens[0]);
       } else {
@@ -185,13 +191,13 @@ async function fetchEntregadoresFallback(payload: FilterPayload): Promise<Entreg
 
     // Aplicar filtros (usando payload seguro)
     if (safePayload.p_semana && safePayload.p_ano) {
-      const dataInicio = new Date(payload.p_ano, 0, 1);
+      const dataInicio = new Date(safePayload.p_ano, 0, 1);
       const diaSemana = dataInicio.getDay();
       const diasParaSegunda = (diaSemana === 0 ? -6 : 1) - diaSemana;
       const primeiraSegunda = new Date(dataInicio);
       primeiraSegunda.setDate(primeiraSegunda.getDate() + diasParaSegunda);
       const semanaInicio = new Date(primeiraSegunda);
-      semanaInicio.setDate(semanaInicio.getDate() + (payload.p_semana - 1) * 7);
+      semanaInicio.setDate(semanaInicio.getDate() + (safePayload.p_semana - 1) * 7);
       const semanaFim = new Date(semanaInicio);
       semanaFim.setDate(semanaFim.getDate() + 6);
       
@@ -212,7 +218,9 @@ async function fetchEntregadoresFallback(payload: FilterPayload): Promise<Entreg
     }
 
     if (safePayload.p_praca) {
-      const pracas = safePayload.p_praca.split(',').map((p: string) => p.trim());
+      const pracas = typeof safePayload.p_praca === 'string'
+        ? safePayload.p_praca.split(',').map((p: string) => p.trim())
+        : [String(safePayload.p_praca).trim()];
       if (pracas.length === 1) {
         query = query.eq('praca', pracas[0]);
       } else {
@@ -221,7 +229,9 @@ async function fetchEntregadoresFallback(payload: FilterPayload): Promise<Entreg
     }
 
     if (safePayload.p_sub_praca) {
-      const subPracas = safePayload.p_sub_praca.split(',').map((p: string) => p.trim());
+      const subPracas = typeof safePayload.p_sub_praca === 'string'
+        ? safePayload.p_sub_praca.split(',').map((p: string) => p.trim())
+        : [String(safePayload.p_sub_praca).trim()];
       if (subPracas.length === 1) {
         query = query.eq('sub_praca', subPracas[0]);
       } else {
@@ -230,7 +240,9 @@ async function fetchEntregadoresFallback(payload: FilterPayload): Promise<Entreg
     }
 
     if (safePayload.p_origem) {
-      const origens = safePayload.p_origem.split(',').map((o: string) => o.trim());
+      const origens = typeof safePayload.p_origem === 'string'
+        ? safePayload.p_origem.split(',').map((o: string) => o.trim())
+        : [String(safePayload.p_origem).trim()];
       if (origens.length === 1) {
         query = query.eq('origem', origens[0]);
       } else {
@@ -341,13 +353,13 @@ async function fetchValoresFallback(payload: FilterPayload): Promise<ValoresEntr
 
     // Aplicar filtros (usando payload seguro)
     if (safePayload.p_semana && safePayload.p_ano) {
-      const dataInicio = new Date(payload.p_ano, 0, 1);
+      const dataInicio = new Date(safePayload.p_ano, 0, 1);
       const diaSemana = dataInicio.getDay();
       const diasParaSegunda = (diaSemana === 0 ? -6 : 1) - diaSemana;
       const primeiraSegunda = new Date(dataInicio);
       primeiraSegunda.setDate(primeiraSegunda.getDate() + diasParaSegunda);
       const semanaInicio = new Date(primeiraSegunda);
-      semanaInicio.setDate(semanaInicio.getDate() + (payload.p_semana - 1) * 7);
+      semanaInicio.setDate(semanaInicio.getDate() + (safePayload.p_semana - 1) * 7);
       const semanaFim = new Date(semanaInicio);
       semanaFim.setDate(semanaFim.getDate() + 6);
       
@@ -368,7 +380,9 @@ async function fetchValoresFallback(payload: FilterPayload): Promise<ValoresEntr
     }
 
     if (safePayload.p_praca) {
-      const pracas = safePayload.p_praca.split(',').map((p: string) => p.trim());
+      const pracas = typeof safePayload.p_praca === 'string'
+        ? safePayload.p_praca.split(',').map((p: string) => p.trim())
+        : [String(safePayload.p_praca).trim()];
       if (pracas.length === 1) {
         query = query.eq('praca', pracas[0]);
       } else {
@@ -377,7 +391,9 @@ async function fetchValoresFallback(payload: FilterPayload): Promise<ValoresEntr
     }
 
     if (safePayload.p_sub_praca) {
-      const subPracas = safePayload.p_sub_praca.split(',').map((p: string) => p.trim());
+      const subPracas = typeof safePayload.p_sub_praca === 'string'
+        ? safePayload.p_sub_praca.split(',').map((p: string) => p.trim())
+        : [String(safePayload.p_sub_praca).trim()];
       if (subPracas.length === 1) {
         query = query.eq('sub_praca', subPracas[0]);
       } else {
@@ -386,7 +402,9 @@ async function fetchValoresFallback(payload: FilterPayload): Promise<ValoresEntr
     }
 
     if (safePayload.p_origem) {
-      const origens = safePayload.p_origem.split(',').map((o: string) => o.trim());
+      const origens = typeof safePayload.p_origem === 'string'
+        ? safePayload.p_origem.split(',').map((o: string) => o.trim())
+        : [String(safePayload.p_origem).trim()];
       if (origens.length === 1) {
         query = query.eq('origem', origens[0]);
       } else {
@@ -597,7 +615,7 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
       total = result.data.length;
     }
 
-    processedData = { entregadores, total };
+    processedData = { entregadores: entregadores as unknown as Entregador[], total };
   }
 
   return { data: processedData, error: null };
@@ -678,7 +696,7 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
     if (typeof result.data === 'object' && !Array.isArray(result.data)) {
       const dataObj = result.data as { entregadores?: ValoresEntregador[]; valores?: ValoresEntregador[] } | null;
       
-      if ('entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
+      if (dataObj && 'entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
         processedData = dataObj.entregadores;
       } else if ('valores' in dataObj && Array.isArray(dataObj.valores)) {
         processedData = dataObj.valores;
