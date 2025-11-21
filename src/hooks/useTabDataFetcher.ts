@@ -30,7 +30,7 @@ async function fetchUtrFallback(payload: any): Promise<UtrData | null> {
     // Otimização: selecionar apenas colunas necessárias
     let query = supabase
       .from('dados_corridas')
-      .select('tempo_disponivel_escalado, numero_de_corridas_aceitas, praca');
+      .select('tempo_disponivel_escalado, numero_de_corridas_aceitas, praca, sub_praca, origem, periodo');
 
     // Aplicar filtros
     if (payload.p_semana && payload.p_ano) {
@@ -169,7 +169,7 @@ async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData
   try {
     let query = supabase
       .from('dados_corridas')
-      .select('id_da_pessoa_entregadora, pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_rejeitadas, numero_de_corridas_completadas, data_do_periodo');
+      .select('id_da_pessoa_entregadora, pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_rejeitadas, numero_de_corridas_completadas, tempo_disponivel_escalado, data_do_periodo');
 
     // Aplicar filtros (mesma lógica do fetchValoresFallback)
     if (payload.p_semana && payload.p_ano) {

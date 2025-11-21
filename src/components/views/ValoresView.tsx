@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { FixedSizeList as List } from 'react-window';
 import { supabase } from '@/lib/supabaseClient';
 import { ValoresEntregador, Entregador, EntregadoresData } from '@/types';
 import MetricCard from '../MetricCard';
@@ -379,18 +378,11 @@ const ValoresView = React.memo(function ValoresView({
                 </div>
               </div>
               
-              {/* Lista virtualizada */}
-              <div className="max-h-[500px] sm:max-h-[600px]">
+              {/* Lista otimizada com scroll nativo (limites nas queries já reduzem o número de itens) */}
+              <div className="max-h-[500px] sm:max-h-[600px] overflow-x-auto overflow-y-auto">
                 {sortedValores.length > 0 ? (
-                  <List
-                    height={Math.min(600, sortedValores.length * 60)}
-                    itemCount={sortedValores.length}
-                    itemSize={60}
-                    width="100%"
-                    className="overflow-x-auto"
-                  >
-                    {({ index, style }) => {
-                      const entregador = sortedValores[index];
+                  <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {sortedValores.map((entregador, index) => {
                       if (!entregador) return null;
                       
                       const ranking = index + 1;
@@ -398,12 +390,11 @@ const ValoresView = React.memo(function ValoresView({
                       const numeroCorridas = Number(entregador.numero_corridas_aceitas) || 0;
                       const taxaMedia = Number(entregador.taxa_media) || 0;
                       const nomeEntregador = String(entregador.nome_entregador || entregador.id_entregador || 'N/A');
-                      const idEntregador = String(entregador.id_entregador || `entregador-${index}`);
                       
                       return (
                         <div
-                          style={style}
-                          className="grid grid-cols-4 gap-4 px-4 items-center border-b border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors min-w-[600px]"
+                          key={`${entregador.id_entregador}-${index}`}
+                          className="grid grid-cols-4 gap-4 px-4 py-3 items-center hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors min-w-[600px]"
                         >
                           <div className="flex items-center gap-3 text-sm">
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-sm font-bold text-white shadow-sm">
@@ -428,8 +419,8 @@ const ValoresView = React.memo(function ValoresView({
                           </div>
                         </div>
                       );
-                    }}
-                  </List>
+                    })}
+                  </div>
                 ) : (
                   <div className="p-8 text-center text-slate-500 dark:text-slate-400">
                     Nenhum dado para exibir
