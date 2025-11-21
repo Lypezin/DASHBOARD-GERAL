@@ -55,17 +55,82 @@ export async function insertInBatches<T = any>(
     try {
       if (useRpcFunction && rpcFunctionName) {
         // Usar função RPC para bypassar RLS
-        // Converter array de objetos para array JSONB
-        const dadosJsonb = batch.map(item => JSON.parse(JSON.stringify(item)));
+        // PostgREST aceita arrays JSONB diretamente quando passados como parâmetro
+        // Precisamos garantir que os dados estão no formato correto
+        const dadosJsonb = batch.map(item => {
+          // Garantir que todos os valores estão no formato correto
+          const cleanItem: any = {};
+          for (const [key, value] of Object.entries(item)) {
+            // Converter undefined/null para null explícito
+            // Manter tipos originais (number, string, etc)
+            if (value === undefined || value === null) {
+              cleanItem[key] = null;
+            } else {
+              cleanItem[key] = value;
+            }
+          }
+          return cleanItem;
+        });
         
+        safeLog.info(`Chamando RPC ${rpcFunctionName} com ${dadosJsonb.length} registros`);
+        
+        // PostgREST aceita arrays JSONB quando passados diretamente
+        // O Supabase client converte automaticamente para o formato correto
         const { data: rpcResult, error: rpcError } = await supabase
-          .rpc(rpcFunctionName, { dados: dadosJsonb });
+          .rpc(rpcFunctionName, { 
+            dados: dadosJsonb 
+          } as any);
 
         if (rpcError) {
-          const errorMsg = `Erro no lote ${batchNumber}: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}`;
-          safeLog.error('Erro ao inserir lote via RPC:', rpcError);
-          errors.push(errorMsg);
-          throw new Error(errorMsg);
+          const errorMsg = `Erro no lote ${batchNumber}: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}${rpcError.code ? ` [${rpcError.code}]` : ''}`;
+          safeLog.error('Erro ao inserir lote via RPC:', {
+            error: rpcError,
+            function: rpcFunctionName,
+            batchSize: dadosJsonb.length,
+            code: rpcError.code,
+            message: rpcError.message,
+            details: rpcError.details,
+            hint: rpcError.hint
+          });
+          
+          // Se for erro 403 ou função não encontrada, tentar inserção direta como fallback
+          const is403 = rpcError.code === 'PGRST301' || 
+                       rpcError.message?.includes('403') || 
+                       rpcError.message?.includes('Forbidden') ||
+                       rpcError.code === 'PGRST116'; // Função não encontrada
+          
+          if (is403) {
+            safeLog.warn('Erro 403 ou função não encontrada - Tentando inserção direta como fallback (pode falhar por RLS)');
+            
+            // Tentar inserção direta (pode falhar se RLS bloquear)
+            try {
+              const { error: directError } = await supabase
+                .from(table)
+                .insert(batch, { count: 'exact' });
+              
+              if (directError) {
+                // Se inserção direta também falhar, lançar erro original
+                errors.push(errorMsg);
+                throw new Error(errorMsg);
+              } else {
+                // Inserção direta funcionou (RLS pode ter sido contornado de outra forma)
+                safeLog.info('Inserção direta funcionou como fallback');
+                insertedRows += batch.length;
+                // Continuar para próximo lote
+                if (onProgress) {
+                  onProgress(insertedRows, totalRows);
+                }
+                continue; // Pular para próximo lote
+              }
+            } catch (fallbackError: any) {
+              // Fallback também falhou
+              errors.push(errorMsg);
+              throw new Error(errorMsg);
+            }
+          } else {
+            errors.push(errorMsg);
+            throw new Error(errorMsg);
+          }
         }
 
         const inserted = (rpcResult as any)?.inserted || 0;
