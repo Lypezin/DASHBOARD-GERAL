@@ -59,12 +59,14 @@ export function useDashboardEvolucao(options: UseDashboardEvolucaoOptions) {
       setLoading(true);
       
       try {
+        // ⚠️ CORREÇÃO: Passar parâmetros na ordem correta (p_ano primeiro, depois p_praca)
+        // A função exige p_ano obrigatório para evitar timeout
         const [mensalRes, semanalRes] = await Promise.all([
-          safeRpc<EvolucaoMensal[]>('listar_evolucao_mensal', { p_praca: pracaFilter, p_ano: anoEvolucao }, {
+          safeRpc<EvolucaoMensal[]>('listar_evolucao_mensal', { p_ano: anoEvolucao, p_praca: pracaFilter || null }, {
             timeout: RPC_TIMEOUTS.MEDIUM,
             validateParams: false
           }),
-          safeRpc<EvolucaoSemanal[]>('listar_evolucao_semanal', { p_praca: pracaFilter || null, p_ano: anoEvolucao, p_limite_semanas: 60 }, {
+          safeRpc<EvolucaoSemanal[]>('listar_evolucao_semanal', { p_ano: anoEvolucao, p_praca: pracaFilter || null, p_limite_semanas: 60 }, {
             timeout: RPC_TIMEOUTS.MEDIUM,
             validateParams: false
           })

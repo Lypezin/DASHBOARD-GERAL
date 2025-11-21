@@ -51,6 +51,13 @@ export function useTabData(
   const filterPayloadStr = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
   
   useEffect(() => {
+    // ⚠️ CORREÇÃO: Tabs que não usam useTabData (têm hooks próprios)
+    // 'evolucao' usa useDashboardEvolucao, 'dashboard' e 'analise' não precisam de dados aqui
+    if (activeTab === 'evolucao' || activeTab === 'dashboard' || activeTab === 'analise' || activeTab === 'comparacao' || activeTab === 'marketing') {
+      setData(null);
+      return;
+    }
+
     // Capturar valores anteriores ANTES de atualizar
     const previousTab = previousTabRef.current || '';
     const previousPayload = filterPayloadRef.current;
