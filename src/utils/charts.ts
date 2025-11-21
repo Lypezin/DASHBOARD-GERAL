@@ -8,7 +8,8 @@
 // =================================================================================
 
 export const CHART_CONSTANTS = {
-  MAX_WEEKS: 60,
+  // ⚠️ OTIMIZAÇÃO: Máximo de semanas em um ano (53 é o máximo possível)
+  MAX_WEEKS: 53,
   MIN_Y_PADDING_PERCENT: 0.08,
   MAX_Y_PADDING_PERCENT: 0.05,
   MIN_Y_RANGE_FOR_PADDING: 0.01,

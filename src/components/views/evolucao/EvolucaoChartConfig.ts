@@ -195,7 +195,8 @@ export const createEvolucaoChartOptions = (
         display: false,
       },
       ticks: {
-        maxTicksLimit: isSemanal ? 60 : 12,
+        // ⚠️ OTIMIZAÇÃO: Mostrar todos os meses (12) e todas as semanas (até 53)
+        maxTicksLimit: isSemanal ? 53 : 12,
         autoSkip: false,
         maxRotation: isSemanal ? 45 : 0,
         minRotation: isSemanal ? 45 : 0,

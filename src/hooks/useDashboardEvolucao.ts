@@ -66,7 +66,8 @@ export function useDashboardEvolucao(options: UseDashboardEvolucaoOptions) {
             timeout: RPC_TIMEOUTS.MEDIUM,
             validateParams: false
           }),
-          safeRpc<EvolucaoSemanal[]>('listar_evolucao_semanal', { p_ano: anoEvolucao, p_praca: pracaFilter || null, p_limite_semanas: 60 }, {
+          // ⚠️ OTIMIZAÇÃO: Solicitar todas as semanas (53 é o máximo em um ano)
+          safeRpc<EvolucaoSemanal[]>('listar_evolucao_semanal', { p_ano: anoEvolucao, p_praca: pracaFilter || null, p_limite_semanas: 53 }, {
             timeout: RPC_TIMEOUTS.MEDIUM,
             validateParams: false
           })
