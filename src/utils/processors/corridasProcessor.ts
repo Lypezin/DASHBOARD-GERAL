@@ -24,11 +24,12 @@ export async function processCorridasFile(file: File): Promise<Record<string, un
   const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
 
   const sanitizedData = rawData
-    .map((row: Record<string, unknown>) => {
+    .map((row: unknown) => {
+      const rowObj = row as Record<string, unknown>;
       const sanitized: Record<string, unknown> = {};
       for (const excelCol in COLUMN_MAP) {
         const dbCol = COLUMN_MAP[excelCol];
-        let value = row[excelCol];
+        let value = rowObj[excelCol];
 
         // Sanitizar strings para prevenir SQL injection e XSS
         if (typeof value === 'string' && dbCol !== 'data_do_periodo' && dbCol !== 'duracao_do_periodo' && dbCol !== 'tempo_disponivel_escalado' && dbCol !== 'tempo_disponivel_absoluto') {

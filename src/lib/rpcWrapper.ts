@@ -97,7 +97,7 @@ export async function safeRpc<T = unknown>(
     // Aplicar validação se solicitado e se ainda temos parâmetros
     if (validateParams && validatedParams && typeof validatedParams === 'object' && validatedParams !== undefined) {
       try {
-        validatedParams = validateFilterPayload(validatedParams);
+        validatedParams = validateFilterPayload(validatedParams) as RpcParams;
       } catch (validationError: unknown) {
         if (IS_DEV) {
           safeLog.warn(`Validação falhou para ${functionName}:`, validationError);

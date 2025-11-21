@@ -147,7 +147,7 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
         insertedRows += inserted;
       } else {
         // Inserção direta (para tabelas sem RLS restritivo)
-        const insertOptions: { count: 'exact' } = { count: 'exact' };
+        const insertOptions: { count: 'exact'; select?: string } = { count: 'exact' };
         if (returnData) {
           insertOptions.select = '*';
         }
@@ -179,12 +179,17 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
       
       safeLog.info(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
     } catch (error) {
-      const errorMsg = error?.message || `Erro desconhecido no lote ${batchNumber}`;
+      const errorMsg = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+        ? error.message
+        : `Erro desconhecido no lote ${batchNumber}`;
       errors.push(errorMsg);
       safeLog.error(`Erro no lote ${batchNumber}:`, error);
       
       // Se for erro crítico, parar processamento
-      if (error?.code === '23505' || error?.code === '23503') {
+      const errorCode = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string'
+        ? error.code
+        : undefined;
+      if (errorCode === '23505' || errorCode === '23503') {
         throw error; // Erros de constraint devem parar o processo
       }
       

@@ -4,7 +4,7 @@
  */
 
 import { safeLog } from './errorHandler';
-import { RpcError } from '@/types/rpc';
+import type { RpcError } from '@/types/rpc';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -31,11 +31,11 @@ export interface RpcRetryOptions {
 /**
  * Verifica se um erro é um erro 500 (Internal Server Error)
  */
-import type { RpcError } from '@/types/rpc';
 
 export function is500Error(error: unknown): boolean {
-  const errorCode = error?.code || '';
-  const errorMessage = String(error?.message || '');
+  const errorObj = error && typeof error === 'object' ? error as { code?: string; message?: string } : null;
+  const errorCode = errorObj?.code || '';
+  const errorMessage = String(errorObj?.message || '');
   return errorCode === 'PGRST301' || 
          errorMessage.includes('500') || 
          errorMessage.includes('Internal Server Error');
@@ -45,8 +45,9 @@ export function is500Error(error: unknown): boolean {
  * Verifica se um erro é rate limit
  */
 export function isRateLimitError(error: unknown): boolean {
-  const errorCode = error?.code || '';
-  const errorMessage = String(error?.message || '');
+  const errorObj = error && typeof error === 'object' ? error as { code?: string; message?: string } : null;
+  const errorCode = errorObj?.code || '';
+  const errorMessage = String(errorObj?.message || '');
   return errorCode === 'RATE_LIMIT_EXCEEDED' ||
          errorMessage.includes('rate limit') ||
          errorMessage.includes('too many requests') ||
@@ -193,7 +194,9 @@ export async function executeWithRpcRetry<T>(
       // Aguardar antes de tentar novamente
       await new Promise(resolve => setTimeout(resolve, delay));
     } catch (error) {
-      lastError = error;
+      lastError = error && typeof error === 'object' && 'code' in error && 'message' in error
+        ? error as RpcError
+        : { code: 'UNKNOWN', message: String(error) };
       
       // Se é a última tentativa, lançar erro
       if (attempt >= maxRetries) {
@@ -212,7 +215,10 @@ export async function executeWithRpcRetry<T>(
       delay = Math.min(initialDelay * Math.pow(backoffMultiplier, attempt), maxDelay);
 
       if (onRetry) {
-        onRetry(attempt + 1, error);
+        const rpcError: RpcError = error && typeof error === 'object' && 'code' in error && 'message' in error
+          ? error as RpcError
+          : { code: 'UNKNOWN', message: String(error) };
+        onRetry(attempt + 1, rpcError);
       }
 
       await new Promise(resolve => setTimeout(resolve, delay));

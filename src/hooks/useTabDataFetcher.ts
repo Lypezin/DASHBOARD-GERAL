@@ -698,7 +698,7 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
       
       if (dataObj && 'entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
         processedData = dataObj.entregadores;
-      } else if ('valores' in dataObj && Array.isArray(dataObj.valores)) {
+      } else if (dataObj && 'valores' in dataObj && Array.isArray(dataObj.valores)) {
         processedData = dataObj.valores;
       } else {
         safeLog.warn('[fetchValoresData] Estrutura de dados inesperada:', dataObj);
@@ -739,10 +739,13 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
         return { data: null, error: new Error(`Tab desconhecida: ${tab}`) };
     }
   } catch (error) {
-    if (error.message === 'RETRY_500' || error.message === 'RETRY_RATE_LIMIT') {
+    const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+      ? error.message
+      : '';
+    if (errorMessage === 'RETRY_500' || errorMessage === 'RETRY_RATE_LIMIT') {
       throw error;
     }
-    return { data: null, error };
+    return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
   }
 }
 
@@ -792,8 +795,12 @@ export function useTabDataFetcher() {
       if (!shouldContinue()) {
         return;
       }
+      safeLog.error('Erro ao buscar dados:', error);
 
-      if (error.message === 'RETRY_500') {
+      const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+        ? error.message
+        : '';
+      if (errorMessage === 'RETRY_500') {
         retryTimeoutRef.current = setTimeout(() => {
           if (shouldContinue()) {
             fetchWithRetry(tab, filterPayload, onSuccess, onError, shouldContinue);
@@ -802,7 +809,7 @@ export function useTabDataFetcher() {
         return;
       }
 
-      if (error.message === 'RETRY_RATE_LIMIT') {
+      if (errorMessage === 'RETRY_RATE_LIMIT') {
         retryTimeoutRef.current = setTimeout(() => {
           if (shouldContinue()) {
             fetchWithRetry(tab, filterPayload, onSuccess, onError, shouldContinue);
@@ -811,7 +818,7 @@ export function useTabDataFetcher() {
         return;
       }
 
-      onError(error);
+      onError(error instanceof Error ? error : new Error(String(error)));
       setLoading(false);
     }
   };

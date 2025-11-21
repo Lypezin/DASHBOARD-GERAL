@@ -131,8 +131,8 @@ export async function processExcelData(
   }
 
   // Processar e sanitizar dados
-  const sanitizedData = rawData
-    .map((row: Record<string, unknown>, rowIndex: number) => {
+      const sanitizedData = (rawData as Record<string, unknown>[])
+        .map((row: Record<string, unknown>, rowIndex: number) => {
       try {
         const sanitized: Record<string, unknown> = {};
         
@@ -152,7 +152,10 @@ export async function processExcelData(
             try {
               value = transformers[dbCol]!(value, rowIndex);
             } catch (transformError) {
-              throw new Error(`Erro ao transformar ${dbCol} na linha ${rowIndex + 2}: ${transformError.message}`);
+              const errorMsg = transformError && typeof transformError === 'object' && 'message' in transformError && typeof transformError.message === 'string'
+                ? transformError.message
+                : String(transformError);
+              throw new Error(`Erro ao transformar ${dbCol} na linha ${rowIndex + 2}: ${errorMsg}`);
             }
           }
 
@@ -168,7 +171,10 @@ export async function processExcelData(
 
         return sanitized;
       } catch (rowError) {
-        throw new Error(`Erro na linha ${rowIndex + 2}: ${rowError.message}`);
+        const errorMsg = rowError && typeof rowError === 'object' && 'message' in rowError && typeof rowError.message === 'string'
+          ? rowError.message
+          : String(rowError);
+        throw new Error(`Erro na linha ${rowIndex + 2}: ${errorMsg}`);
       }
     })
     .filter((row: Record<string, unknown>) => {
@@ -199,7 +205,11 @@ export const commonTransformers = {
    */
   date: (value: unknown, rowIndex: number): string | null => {
     const originalValue = value;
-    const converted = convertDDMMYYYYToDate(value);
+    const converted = convertDDMMYYYYToDate(
+      typeof value === 'string' || typeof value === 'number' || value === null || value === undefined
+        ? value
+        : String(value)
+    );
     if (!converted) {
       return null; // Permitir null para campos opcionais
     }
@@ -211,7 +221,11 @@ export const commonTransformers = {
    */
   requiredDate: (value: unknown, rowIndex: number): string => {
     const originalValue = value;
-    const converted = convertDDMMYYYYToDate(value);
+    const converted = convertDDMMYYYYToDate(
+      typeof value === 'string' || typeof value === 'number' || value === null || value === undefined
+        ? value
+        : String(value)
+    );
     if (!converted) {
       throw new Error(`Data inválida: ${originalValue}`);
     }

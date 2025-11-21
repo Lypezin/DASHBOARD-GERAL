@@ -166,11 +166,12 @@ export function useUserActivity(
       switch (action_type) {
         case 'filter_change':
           const filtros: string[] = [];
-          if (filters_applied.semana) filtros.push(`Semana ${filters_applied.semana}`);
-          if (filters_applied.praca) filtros.push(`Praça: ${filters_applied.praca}`);
-          if (filters_applied.sub_praca) filtros.push(`Sub-Praça: ${filters_applied.sub_praca}`);
-          if (filters_applied.origem) filtros.push(`Origem: ${filters_applied.origem}`);
-          if (filters_applied.turno) filtros.push(`Turno: ${filters_applied.turno}`);
+          const filtersObj = filters_applied as Record<string, unknown>;
+          if (filtersObj.semana) filtros.push(`Semana ${filtersObj.semana}`);
+          if (filtersObj.praca) filtros.push(`Praça: ${filtersObj.praca}`);
+          if (filtersObj.sub_praca || filtersObj.subPraca) filtros.push(`Sub-Praça: ${filtersObj.sub_praca || filtersObj.subPraca}`);
+          if (filtersObj.origem) filtros.push(`Origem: ${filtersObj.origem}`);
+          if (filtersObj.turno) filtros.push(`Turno: ${filtersObj.turno}`);
           
           if (filtros.length > 0) {
             descricaoDetalhada = `Filtrou: ${filtros.join(', ')} na aba ${nomeAba}`;
