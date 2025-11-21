@@ -59,8 +59,10 @@ export async function insertInBatches<T = any>(
         // Precisamos garantir que os dados estão no formato correto
         const dadosJsonb = batch.map(item => {
           // Garantir que todos os valores estão no formato correto
-          const cleanItem: any = {};
-          for (const [key, value] of Object.entries(item)) {
+          // Converter para objeto simples para garantir compatibilidade
+          const itemObj = item as Record<string, any>;
+          const cleanItem: Record<string, any> = {};
+          for (const [key, value] of Object.entries(itemObj)) {
             // Converter undefined/null para null explícito
             // Manter tipos originais (number, string, etc)
             if (value === undefined || value === null) {
