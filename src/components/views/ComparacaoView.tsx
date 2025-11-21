@@ -11,6 +11,11 @@ import { Bar, Line } from 'react-chartjs-2';
 import ApresentacaoView from '@/components/ApresentacaoView';
 import { registerChartJS } from '@/lib/chartConfig';
 import { ViewToggleButton } from './ViewToggleButton';
+import { VariacaoBadge } from '@/components/VariacaoBadge';
+import { calcularVariacaoPercentual } from '@/utils/comparacaoCalculations';
+import { METRICAS_ORIGEM, DIAS_DA_SEMANA } from '@/constants/comparacao';
+import { ComparacaoTabelaDetalhada } from './comparacao/ComparacaoTabelaDetalhada';
+import { useComparacaoData } from '@/hooks/useComparacaoData';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -29,11 +34,6 @@ const ComparacaoView = React.memo(function ComparacaoView({
 }) {
   const [semanasSelecionadas, setSemanasSelecionadas] = useState<string[]>([]);
   const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
-  const [utrComparacao, setUtrComparacao] = useState<Array<{ semana: string | number; utr: UtrData | null }>>([]);
-  const [todasSemanas, setTodasSemanas] = useState<(number | string)[]>([]);
   const [mostrarApresentacao, setMostrarApresentacao] = useState(false);
   
   // Estados para controlar visualização (tabela/gráfico)
@@ -43,6 +43,21 @@ const ComparacaoView = React.memo(function ComparacaoView({
   const [viewModeSubPraca, setViewModeSubPraca] = useState<'table' | 'chart'>('table');
   const [viewModeOrigem, setViewModeOrigem] = useState<'table' | 'chart'>('table');
 
+  // Usar hook para gerenciar dados de comparação
+  const {
+    loading,
+    error,
+    dadosComparacao,
+    utrComparacao,
+    todasSemanas,
+    compararSemanas,
+  } = useComparacaoData({
+    semanas,
+    semanasSelecionadas,
+    pracaSelecionada,
+    currentUser,
+  });
+
   // Registrar Chart.js quando o componente for montado (apenas no cliente)
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -51,80 +66,6 @@ const ComparacaoView = React.memo(function ComparacaoView({
       });
     }
   }, []);
-
-  // Buscar TODAS as semanas disponíveis (sem filtro)
-  useEffect(() => {
-    async function fetchTodasSemanas() {
-      try {
-        const { data, error } = await safeRpc<any[]>('listar_todas_semanas', {}, {
-          timeout: 30000,
-          validateParams: false
-        });
-        
-        if (error) {
-          safeLog.error('Erro ao buscar semanas:', error);
-          // Fallback: usar semanas do prop se disponível
-          if (semanas && semanas.length > 0) {
-            setTodasSemanas(semanas);
-          }
-          return;
-        }
-        
-        if (data) {
-          // A função retorna um objeto com propriedade listar_todas_semanas contendo o array
-          let semanasArray: any[] = [];
-          
-          if (Array.isArray(data)) {
-            semanasArray = data;
-          } else if (data && typeof data === 'object') {
-            // Se for objeto, tentar extrair o array da propriedade listar_todas_semanas
-            semanasArray = (data as any).listar_todas_semanas || (data as any).semanas || [];
-          }
-          
-          // Processar o array de semanas
-          let semanasProcessadas: (number | string)[] = [];
-          
-          if (Array.isArray(semanasArray) && semanasArray.length > 0) {
-            // Se o primeiro item é um objeto, extrair a propriedade de semana
-            if (typeof semanasArray[0] === 'object' && semanasArray[0] !== null) {
-              semanasProcessadas = semanasArray.map((item: any) => {
-                // Tentar diferentes propriedades comuns
-                return item.semana || item.semana_numero || item.numero_semana || item.ano_semana || String(item);
-              }).filter(Boolean);
-            } else {
-              // Já é array de strings/números
-              semanasProcessadas = semanasArray.map((s: any) => String(s));
-            }
-          }
-          
-          if (IS_DEV) {
-            safeLog.info('Semanas carregadas:', { 
-              total: semanasProcessadas.length, 
-              semanas: semanasProcessadas.slice(0, 5),
-              formatoOriginal: Array.isArray(data) ? 'array' : 'objeto'
-            });
-          }
-          
-          if (semanasProcessadas.length > 0) {
-            setTodasSemanas(semanasProcessadas);
-          } else if (semanas && semanas.length > 0) {
-            // Fallback: usar semanas do prop
-            setTodasSemanas(semanas);
-          }
-        } else if (semanas && semanas.length > 0) {
-          // Fallback: usar semanas do prop se data for null
-          setTodasSemanas(semanas);
-        }
-      } catch (err) {
-        safeLog.error('Erro ao buscar semanas:', err);
-        // Fallback: usar semanas do prop
-        if (semanas && semanas.length > 0) {
-          setTodasSemanas(semanas);
-        }
-      }
-    }
-    fetchTodasSemanas();
-  }, [semanas]);
 
   // Se não for admin nem marketing e tiver apenas 1 praça, setar automaticamente
   // Marketing tem acesso a todas as cidades, então não precisa aplicar filtro automático
@@ -157,150 +98,6 @@ const ComparacaoView = React.memo(function ComparacaoView({
         });
       }
     });
-  };
-
-  const compararSemanas = async () => {
-    if (semanasSelecionadas.length < 2) return;
-
-    setLoading(true);
-    setError(null);
-    try {
-      // Buscar dados para cada semana selecionada
-      const promessasDados = semanasSelecionadas.map(async (semana) => {
-        // Converter string para número
-        const semanaNumero = typeof semana === 'string' 
-          ? (semana.includes('W') 
-              ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
-              : parseInt(semana, 10))
-          : semana;
-        
-        // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
-        const filters = {
-          ano: null,
-          semana: semanaNumero,
-          semanas: [semanaNumero],
-          praca: pracaSelecionada,
-          subPraca: null,
-          origem: null,
-          turno: null,
-          subPracas: [],
-          origens: [],
-          turnos: [],
-          filtroModo: 'ano_semana' as const,
-          dataInicial: null,
-          dataFinal: null,
-        };
-        
-        const filtro = buildFilterPayload(filters, currentUser);
-        
-        // Buscar dados do dashboard
-        const { data, error } = await safeRpc<DashboardResumoData>('dashboard_resumo', filtro, {
-          timeout: 30000,
-          validateParams: true
-        });
-        if (error) throw error;
-        
-        return { semana, dados: data as DashboardResumoData };
-      });
-
-      // Buscar UTR para cada semana
-      const promessasUtr = semanasSelecionadas.map(async (semana) => {
-        // Converter string para número
-        const semanaNumero = typeof semana === 'string' 
-          ? (semana.includes('W') 
-              ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
-              : parseInt(semana, 10))
-          : semana;
-        
-        // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
-        const filters = {
-          ano: null,
-          semana: semanaNumero,
-          semanas: [semanaNumero],
-          praca: pracaSelecionada,
-          subPraca: null,
-          origem: null,
-          turno: null,
-          subPracas: [],
-          origens: [],
-          turnos: [],
-          filtroModo: 'ano_semana' as const,
-          dataInicial: null,
-          dataFinal: null,
-        };
-        
-        const filtro = buildFilterPayload(filters, currentUser);
-        
-        const { data, error } = await safeRpc<UtrData>('calcular_utr', filtro, {
-          timeout: 30000,
-          validateParams: true
-        });
-        if (error) throw error;
-        
-        return { semana, utr: data };
-      });
-
-      const resultadosDados = await Promise.all(promessasDados);
-      const resultadosUtr = await Promise.all(promessasUtr);
-      
-      safeLog.info('📊 Dados Comparação:', { semanas: resultadosDados.length });
-      safeLog.info('🎯 UTR Comparação:', { semanas: resultadosUtr.length });
-      
-      setDadosComparacao(resultadosDados.map(r => r.dados));
-      setUtrComparacao(resultadosUtr);
-      
-    } catch (error) {
-      safeLog.error('Erro ao comparar semanas:', error);
-      setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calcularVariacao = (valor1: number | null | undefined, valor2: number | null | undefined): string => {
-    const v1 = valor1 ?? 0;
-    const v2 = valor2 ?? 0;
-    if (v1 === 0) return '0.0';
-    const variacao = ((v2 - v1) / v1) * 100;
-    return variacao.toFixed(1);
-  };
-
-  const VariacaoBadge = ({
-    variacao,
-    className = '',
-    invertColors = false,
-  }: {
-    variacao: number;
-    className?: string;
-    invertColors?: boolean;
-  }) => {
-    if (!Number.isFinite(variacao)) {
-      return null;
-    }
-
-    const isPositive = variacao > 0;
-    const isNegative = variacao < 0;
-
-    const positiveClasses = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400';
-    const negativeClasses = 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400';
-    const neutralClasses = 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
-
-    const toneClasses = isPositive
-      ? invertColors ? negativeClasses : positiveClasses
-      : isNegative
-      ? invertColors ? positiveClasses : negativeClasses
-      : neutralClasses;
-
-    const symbol = isPositive ? '+' : isNegative ? '−' : '±';
-    const formatted = Math.abs(variacao).toFixed(1);
-
-    return (
-      <span
-        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${toneClasses} ${className}`.trim()}
-      >
-        {`${symbol} ${formatted}%`}
-      </span>
-    );
   };
 
   const origensDisponiveis = useMemo(() => {
@@ -409,22 +206,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
     },
   }), []);
 
-  const metricasOrigem = useMemo(
-    () => [
-      { key: 'aderencia_percentual', label: 'Aderência (%)', tipo: 'percent' as const, icon: '📈' },
-      { key: 'corridas_ofertadas', label: 'Corridas Ofertadas', tipo: 'number' as const, icon: '📢' },
-      { key: 'corridas_aceitas', label: 'Corridas Aceitas', tipo: 'number' as const, icon: '✅' },
-      {
-        key: 'corridas_rejeitadas',
-        label: 'Corridas Rejeitadas',
-        tipo: 'number' as const,
-        icon: '❌',
-        invertColors: true,
-      },
-      { key: 'corridas_completadas', label: 'Corridas Completadas', tipo: 'number' as const, icon: '🏁' },
-    ],
-    []
-  );
+  const metricasOrigem = useMemo(() => METRICAS_ORIGEM, []);
 
   const totalColunasOrigem = useMemo(
     () => semanasSelecionadas.reduce((acc, _, idx) => acc + (idx === 0 ? 1 : 2), 0),
@@ -617,244 +399,10 @@ const ComparacaoView = React.memo(function ComparacaoView({
               </div>
             </div>
             {viewModeDetalhada === 'table' ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50 dark:bg-slate-800/50">
-                  <tr className="border-b border-slate-200 dark:border-slate-700">
-                    <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Métrica</th>
-                    {semanasSelecionadas.map((semana, idx) => (
-                      <React.Fragment key={semana}>
-                        <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
-                          Semana {semana}
-                        </th>
-                        {idx > 0 && (
-                          <th className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">
-                            Δ% vs S{semanasSelecionadas[idx - 1]}
-                          </th>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {/* Aderência */}
-                  <tr className="bg-blue-50/50 dark:bg-blue-950/20">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">📈</span>
-                        Aderência Geral
-                      </div>
-                    </td>
-                    {dadosComparacao.map((dados, idx) => {
-                      const aderencia = dados.semanal[0]?.aderencia_percentual ?? 0;
-                      let variacao = null;
-                      if (idx > 0) {
-                        const aderenciaAnterior = dadosComparacao[idx - 1].semanal[0]?.aderencia_percentual ?? 0;
-                        variacao = aderenciaAnterior > 0 ? ((aderencia - aderenciaAnterior) / aderenciaAnterior) * 100 : 0;
-                      }
-                      
-                      return (
-                        <React.Fragment key={idx}>
-                          <td className="px-6 py-4 text-center border-l-2 border-slate-300 dark:border-slate-600">
-                            <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-lg font-bold text-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
-                              {aderencia.toFixed(1)}%
-                            </span>
-                          </td>
-                          {idx > 0 && variacao !== null && (
-                            <td className="px-4 py-4 text-center bg-blue-50/30 dark:bg-blue-950/20">
-                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
-                            </td>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tr>
-                  
-                  {/* Corridas Ofertadas */}
-                  <tr className="bg-white dark:bg-slate-900">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">📢</span>
-                        Corridas Ofertadas
-                      </div>
-                    </td>
-                    {dadosComparacao.map((dados, idx) => {
-                      const ofertadas = dados.totais?.corridas_ofertadas ?? 0;
-                      let variacao = null;
-                      if (idx > 0) {
-                        const ofertadasAnterior = dadosComparacao[idx - 1].totais?.corridas_ofertadas ?? 0;
-                        variacao = ofertadasAnterior > 0 ? ((ofertadas - ofertadasAnterior) / ofertadasAnterior) * 100 : 0;
-                      }
-                      
-                      return (
-                        <React.Fragment key={idx}>
-                          <td className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
-                            {ofertadas.toLocaleString('pt-BR')}
-                          </td>
-                          {idx > 0 && variacao !== null && (
-                            <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
-                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
-                            </td>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tr>
-                  
-                  {/* Corridas Aceitas */}
-                  <tr className="bg-emerald-50/50 dark:bg-emerald-950/20">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">✅</span>
-                        Corridas Aceitas
-                      </div>
-                    </td>
-                    {dadosComparacao.map((dados, idx) => {
-                      const aceitas = dados.totais?.corridas_aceitas ?? 0;
-                      let variacao = null;
-                      if (idx > 0) {
-                        const aceitasAnterior = dadosComparacao[idx - 1].totais?.corridas_aceitas ?? 0;
-                        variacao = aceitasAnterior > 0 ? ((aceitas - aceitasAnterior) / aceitasAnterior) * 100 : 0;
-                      }
-                      
-                      return (
-                        <React.Fragment key={idx}>
-                          <td className="px-6 py-4 text-center text-base font-semibold text-emerald-700 dark:text-emerald-400 border-l-2 border-slate-300 dark:border-slate-600">
-                            {aceitas.toLocaleString('pt-BR')}
-                          </td>
-                          {idx > 0 && variacao !== null && (
-                            <td className="px-4 py-4 text-center bg-emerald-50/30 dark:bg-emerald-950/20">
-                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
-                            </td>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tr>
-                  
-                  {/* Corridas Rejeitadas */}
-                  <tr className="bg-white dark:bg-slate-900">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">❌</span>
-                        Corridas Rejeitadas
-                      </div>
-                    </td>
-                    {dadosComparacao.map((dados, idx) => {
-                      const rejeitadas = dados.totais?.corridas_rejeitadas ?? 0;
-                      let variacao = null;
-                      if (idx > 0) {
-                        const rejeitadasAnterior = dadosComparacao[idx - 1].totais?.corridas_rejeitadas ?? 0;
-                        variacao = rejeitadasAnterior > 0 ? ((rejeitadas - rejeitadasAnterior) / rejeitadasAnterior) * 100 : 0;
-                      }
-                      
-                      return (
-                        <React.Fragment key={idx}>
-                          <td className="px-6 py-4 text-center text-base font-semibold text-rose-700 dark:text-rose-400 border-l-2 border-slate-300 dark:border-slate-600">
-                            {rejeitadas.toLocaleString('pt-BR')}
-                          </td>
-                          {idx > 0 && variacao !== null && (
-                            <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
-                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" invertColors />
-                            </td>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tr>
-                  
-                  {/* Corridas Completadas */}
-                  <tr className="bg-purple-50/50 dark:bg-purple-950/20">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🎯</span>
-                        Corridas Completadas
-                      </div>
-                    </td>
-                    {dadosComparacao.map((dados, idx) => {
-                      const completadas = dados.totais?.corridas_completadas ?? 0;
-                      let variacao = null;
-                      if (idx > 0) {
-                        const completadasAnterior = dadosComparacao[idx - 1].totais?.corridas_completadas ?? 0;
-                        variacao = completadasAnterior > 0 ? ((completadas - completadasAnterior) / completadasAnterior) * 100 : 0;
-                      }
-                      
-                      return (
-                        <React.Fragment key={idx}>
-                          <td className="px-6 py-4 text-center text-base font-semibold text-purple-700 dark:text-purple-400 border-l-2 border-slate-300 dark:border-slate-600">
-                            {completadas.toLocaleString('pt-BR')}
-                          </td>
-                          {idx > 0 && variacao !== null && (
-                            <td className="px-4 py-4 text-center bg-purple-50/30 dark:bg-purple-950/20">
-                              <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
-                            </td>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tr>
-                  
-                  {/* Taxa de Aceitação */}
-                  <tr className="bg-white dark:bg-slate-900">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">💯</span>
-                        Taxa de Aceitação
-                      </div>
-                    </td>
-                    {dadosComparacao.map((dados, idx) => {
-                      const taxaAceitacao = dados.totais?.corridas_ofertadas 
-                        ? ((dados.totais?.corridas_aceitas ?? 0) / dados.totais.corridas_ofertadas) * 100 
-                        : 0;
-                      return (
-                        <React.Fragment key={idx}>
-                          <td className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
-                            {taxaAceitacao.toFixed(1)}%
-                          </td>
-                          {idx > 0 && <td className="px-4 py-4 bg-slate-50/30 dark:bg-slate-900/50"></td>}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tr>
-                  
-                  {/* Horas Planejadas */}
-                  <tr className="bg-amber-50/50 dark:bg-amber-950/20">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">📅</span>
-                        Horas Planejadas
-                      </div>
-                    </td>
-                    {dadosComparacao.map((dados, idx) => (
-                      <React.Fragment key={idx}>
-                        <td className="px-6 py-4 text-center font-mono text-base font-semibold text-amber-700 dark:text-amber-400 border-l-2 border-slate-300 dark:border-slate-600">
-                          {formatarHorasParaHMS(dados.semanal[0]?.horas_a_entregar ?? '0')}
-                        </td>
-                        {idx > 0 && <td className="px-4 py-4 bg-amber-50/30 dark:bg-amber-950/20"></td>}
-                      </React.Fragment>
-                    ))}
-                  </tr>
-                  
-                  {/* Horas Entregues */}
-                  <tr className="bg-white dark:bg-slate-900">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">⏱️</span>
-                        Horas Entregues
-                      </div>
-                    </td>
-                    {dadosComparacao.map((dados, idx) => (
-                      <React.Fragment key={idx}>
-                        <td className="px-6 py-4 text-center font-mono text-base font-semibold text-blue-700 dark:text-blue-400 border-l-2 border-slate-300 dark:border-slate-600">
-                          {formatarHorasParaHMS(dados.semanal[0]?.horas_entregues ?? '0')}
-                        </td>
-                        {idx > 0 && <td className="px-4 py-4 bg-slate-50/30 dark:bg-slate-900/50"></td>}
-                      </React.Fragment>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+              <ComparacaoTabelaDetalhada
+                dadosComparacao={dadosComparacao}
+                semanasSelecionadas={semanasSelecionadas}
+              />
             ) : (
               <div className="p-6">
                 <Bar data={{
@@ -1051,7 +599,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-blue-100 dark:divide-blue-900">
-                  {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, diaIdx) => {
+                  {DIAS_DA_SEMANA.map((dia, diaIdx) => {
                     const metricas = [
                       { label: 'Ofertadas', key: 'corridas_ofertadas', color: 'text-slate-700 dark:text-slate-300' },
                       { label: 'Aceitas', key: 'corridas_aceitas', color: 'text-emerald-700 dark:text-emerald-400' },
@@ -1166,7 +714,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia, diaIdx) => (
+                  {DIAS_DA_SEMANA.map((dia, diaIdx) => (
                     <tr key={dia} className={diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}>
                       <td className="px-6 py-4 text-center font-semibold text-slate-900 dark:text-white">{dia}</td>
                       {dadosComparacao.map((dados, idx) => {
@@ -1179,7 +727,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
                           const dadosAnterior = dadosComparacao[idx - 1];
                           const diaDataAnterior = dadosAnterior.dia?.find(d => d.dia_da_semana === dia);
                           const aderenciaAnterior = diaDataAnterior?.aderencia_percentual ?? 0;
-                          variacao = aderenciaAnterior > 0 ? ((aderencia - aderenciaAnterior) / aderenciaAnterior) * 100 : 0;
+                          variacao = calcularVariacaoPercentual(aderenciaAnterior, aderencia);
                         }
                         
                         return (
@@ -1704,7 +1252,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
                                   const valorAnterior = Number(
                                     origemAnterior?.[metrica.key as keyof typeof origemAnterior] ?? 0
                                   );
-                                  variacao = parseFloat(calcularVariacao(valorAnterior, valorAtual));
+                                  variacao = calcularVariacaoPercentual(valorAnterior, valorAtual);
                                 }
                                 const valorFormatado =
                                   metrica.tipo === 'percent'

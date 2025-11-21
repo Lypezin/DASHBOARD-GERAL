@@ -18,6 +18,7 @@ import {
   normalizeDatasetValues,
   adjustColorOpacity,
 } from '@/utils/charts';
+import { createGradientBlue, createGradientGreen, createGradientPurple } from '@/utils/chartGradients';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -91,52 +92,19 @@ const EvolucaoView = React.memo(function EvolucaoView({
   }, []);
 
   // IMPORTANTE: Todos os hooks devem ser chamados ANTES de qualquer early return
-  // Gradientes vibrantes e modernos com múltiplas paradas de cor (otimizado com useCallback)
-  const gradientBlue = useCallback((context: any) => {
-    const chart = context.chart;
-    const { ctx, chartArea } = chart;
-    if (!chartArea) return 'rgba(59, 130, 246, 0.2)';
-    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, 'rgba(96, 165, 250, 0.5)');    // Azul vibrante mais intenso
-    gradient.addColorStop(0.3, 'rgba(59, 130, 246, 0.35)'); // Azul médio
-    gradient.addColorStop(0.7, 'rgba(37, 99, 235, 0.15)');  // Azul escuro suave
-    gradient.addColorStop(1, 'rgba(30, 64, 175, 0.00)');    // Transparente
-    return gradient;
-  }, []);
-
-  const gradientGreen = useCallback((context: any) => {
-    const chart = context.chart;
-    const { ctx, chartArea } = chart;
-    if (!chartArea) return 'rgba(34, 197, 94, 0.2)';
-    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, 'rgba(74, 222, 128, 0.5)');    // Verde vibrante mais intenso
-    gradient.addColorStop(0.3, 'rgba(34, 197, 94, 0.35)');  // Verde médio
-    gradient.addColorStop(0.7, 'rgba(22, 163, 74, 0.15)');   // Verde escuro suave
-    gradient.addColorStop(1, 'rgba(20, 83, 45, 0.00)');     // Transparente
-    return gradient;
-  }, []);
-
-  const gradientPurple = useCallback((context: any) => {
-    const chart = context.chart;
-    const { ctx, chartArea } = chart;
-    if (!chartArea) return 'rgba(168, 85, 247, 0.2)';
-    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, 'rgba(196, 181, 253, 0.5)');    // Roxo vibrante mais intenso
-    gradient.addColorStop(0.3, 'rgba(168, 85, 247, 0.35)');  // Roxo médio
-    gradient.addColorStop(0.7, 'rgba(139, 92, 246, 0.15)');   // Roxo escuro suave
-    gradient.addColorStop(1, 'rgba(124, 58, 237, 0.00)');     // Transparente
-    return gradient;
-  }, []);
-
+  // Importar funções de gradiente
+  const gradientBlue = useCallback(createGradientBlue, []);
+  const gradientGreen = useCallback(createGradientGreen, []);
+  const gradientPurple = useCallback(createGradientPurple, []);
   const gradientRed = useCallback((context: any) => {
     const chart = context.chart;
     const { ctx, chartArea } = chart;
     if (!chartArea) return 'rgba(239, 68, 68, 0.2)';
     const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, 'rgba(248, 113, 113, 0.5)');    // Vermelho vibrante mais intenso
-    gradient.addColorStop(0.3, 'rgba(239, 68, 68, 0.35)');  // Vermelho médio
-    gradient.addColorStop(0.7, 'rgba(220, 38, 38, 0.15)');   // Vermelho escuro suave
-    gradient.addColorStop(1, 'rgba(185, 28, 28, 0.00)');     // Transparente
+    gradient.addColorStop(0, 'rgba(248, 113, 113, 0.5)');
+    gradient.addColorStop(0.3, 'rgba(239, 68, 68, 0.35)');
+    gradient.addColorStop(0.7, 'rgba(220, 38, 38, 0.15)');
+    gradient.addColorStop(1, 'rgba(185, 28, 28, 0.00)');
     return gradient;
   }, []);
 
