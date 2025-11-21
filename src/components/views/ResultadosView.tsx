@@ -1,16 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
-import { MarketingFilters, MarketingDateFilter, AtendenteCidadeData } from '@/types';
+import { MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Send, CheckCircle2 } from 'lucide-react';
-import MarketingCard from '@/components/MarketingCard';
+import { ResultadosFilters } from './resultados/ResultadosFilters';
+import { ResultadosCards } from './resultados/ResultadosCards';
+import { AtendenteData } from './resultados/AtendenteCard';
 import { CIDADES, SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 
@@ -32,259 +29,10 @@ const ATENDENTES_FOTOS: { [key: string]: string | null } = {
   'Carolini Braguini': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/CAROL%20FOTO.jpg',
 };
 
-interface AtendenteData {
-  nome: string;
-  enviado: number;
-  liberado: number;
-  custoPorLiberado?: number;
-  quantidadeLiberados?: number;
-  valorTotal?: number;
-  fotoUrl?: string | null;
-  cidades?: AtendenteCidadeData[];
-}
-
-interface CidadeCustoData {
-  cidade: string;
-  custoPorLiberado: number;
-  quantidadeLiberados: number;
-  valorTotal: number;
-}
-
 interface TotaisData {
   totalEnviado: number;
   totalLiberado: number;
 }
-
-// Componente interno para o card do atendente (permite usar hooks)
-const AtendenteCard = React.memo(function AtendenteCard({ 
-  atendenteData 
-}: { 
-  atendenteData: AtendenteData;
-}) {
-  const [imageError, setImageError] = useState(false);
-  const iniciais = atendenteData.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-
-  return (
-    <Card 
-      className="group border-slate-200/50 bg-white/90 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 dark:border-slate-700/50 dark:bg-slate-800/90 flex flex-col h-full"
-    >
-      <div className="p-4 space-y-4 flex flex-col flex-1 min-h-0 overflow-hidden">
-        {/* Card do Atendente - Compacto */}
-        <div className="space-y-3 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            {atendenteData.fotoUrl && !imageError ? (
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full ring-2 ring-purple-200 dark:ring-purple-800">
-                <Image
-                  src={atendenteData.fotoUrl}
-                  alt={atendenteData.nome}
-                  width={56}
-                  height={56}
-                  className="h-full w-full object-cover"
-                  unoptimized
-                  onError={() => setImageError(true)}
-                />
-              </div>
-            ) : (
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm ring-2 ring-purple-200 dark:ring-purple-800">
-                {iniciais}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate" title={atendenteData.nome}>
-                {atendenteData.nome}
-              </h3>
-            </div>
-          </div>
-          
-          {/* Métricas do Atendente */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg bg-emerald-50/80 p-2.5 dark:bg-emerald-950/30">
-              <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300 mb-1">Enviado</p>
-              <p className="text-lg font-bold text-emerald-900 dark:text-emerald-100 font-mono">{atendenteData.enviado.toLocaleString('pt-BR')}</p>
-            </div>
-            <div className="rounded-lg bg-blue-50/80 p-2.5 dark:bg-blue-950/30">
-              <p className="text-[10px] font-medium text-blue-700 dark:text-blue-300 mb-1">Liberado</p>
-              <p className="text-lg font-bold text-blue-900 dark:text-blue-100 font-mono">{atendenteData.liberado.toLocaleString('pt-BR')}</p>
-            </div>
-          </div>
-
-          {/* Custo por Liberado do Atendente */}
-          {atendenteData.custoPorLiberado !== undefined && atendenteData.custoPorLiberado > 0 ? (
-            <div className="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 space-y-2">
-              <div className="rounded-lg bg-purple-50/80 p-2.5 dark:bg-purple-950/30">
-                <p className="text-[10px] font-medium text-purple-700 dark:text-purple-300 mb-1">Custo por Liberado</p>
-                <p className="text-lg font-bold text-purple-900 dark:text-purple-100 font-mono">
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(atendenteData.custoPorLiberado)}
-                </p>
-              </div>
-              {/* Informação de quantos liberados faltam para R$ 50 */}
-              {(() => {
-                const META_CUSTO = 50;
-                const quantidadeLiberados = atendenteData.quantidadeLiberados || 0;
-                const valorTotal = atendenteData.valorTotal || 0;
-                let faltamLiberados = 0;
-                let jaAtingiuMeta = false;
-
-                if (atendenteData.custoPorLiberado && atendenteData.custoPorLiberado > META_CUSTO && quantidadeLiberados > 0) {
-                  // Se o custo atual é maior que R$ 50, calcular quantos faltam
-                  faltamLiberados = Math.ceil((valorTotal - META_CUSTO * quantidadeLiberados) / META_CUSTO);
-                  if (faltamLiberados < 0) {
-                    faltamLiberados = 0;
-                  }
-                } else if (atendenteData.custoPorLiberado && atendenteData.custoPorLiberado <= META_CUSTO && atendenteData.custoPorLiberado > 0) {
-                  // Se já está abaixo ou igual a R$ 50
-                  jaAtingiuMeta = true;
-                }
-                
-                return (
-                  <div className={`rounded-lg p-2.5 ${
-                    jaAtingiuMeta 
-                      ? 'bg-emerald-50/80 dark:bg-emerald-950/30' 
-                      : 'bg-orange-50/80 dark:bg-orange-950/30'
-                  }`}>
-                    {jaAtingiuMeta ? (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm">✅</span>
-                        <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
-                          Meta atingida! Custo abaixo de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
-                        </p>
-                      </div>
-                    ) : faltamLiberados > 0 ? (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm">🎯</span>
-                        <p className="text-[10px] font-medium text-orange-700 dark:text-orange-300">
-                          Faltam <span className="font-bold">{faltamLiberados}</span> liberado{faltamLiberados !== 1 ? 's' : ''} para chegar a {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
-                        </p>
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })()}
-            </div>
-          ) : null}
-        </div>
-        
-        {/* Métricas por Cidade - Integradas */}
-        {atendenteData.cidades && atendenteData.cidades.filter(c => c.enviado > 0 || c.liberado > 0).length > 0 && (
-          <div className="space-y-2 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div className="flex items-center gap-1.5 mb-2 flex-shrink-0">
-              <MapPin className="h-3.5 w-3.5 text-purple-500" />
-              <h4 className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                Por Cidade ({atendenteData.cidades.filter(c => c.enviado > 0 || c.liberado > 0).length})
-              </h4>
-            </div>
-            <div className="space-y-1.5 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-transparent flex-1 min-h-0">
-              {atendenteData.cidades
-                .filter(c => c.enviado > 0 || c.liberado > 0)
-                .map((cidadeData) => (
-                  <div
-                    key={`${atendenteData.nome}-${cidadeData.cidade}`}
-                    className="group/city rounded-lg border border-slate-200/50 bg-gradient-to-br from-slate-50 to-white p-2.5 shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-300/50 dark:border-slate-700/50 dark:from-slate-800/50 dark:to-slate-900/50 dark:hover:border-purple-500/50"
-                  >
-                    <p className="text-[11px] font-semibold text-slate-900 dark:text-white mb-2 truncate" title={cidadeData.cidade}>
-                      {cidadeData.cidade}
-                    </p>
-                    <div className="space-y-1.5">
-                      <div className="flex flex-wrap gap-1.5">
-                        <Badge 
-                          variant="secondary" 
-                          className="bg-emerald-50/80 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800 px-2 py-0.5"
-                        >
-                          <Send className="h-3 w-3 mr-1" />
-                          <span className="text-[10px] font-medium">Enviado:</span>
-                          <span className="text-[11px] font-bold font-mono ml-1">{cidadeData.enviado.toLocaleString('pt-BR')}</span>
-                        </Badge>
-                        <Badge 
-                          variant="secondary" 
-                          className="bg-blue-50/80 text-blue-900 hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-100 border-blue-200 dark:border-blue-800 px-2 py-0.5"
-                        >
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          <span className="text-[10px] font-medium">Liberado:</span>
-                          <span className="text-[11px] font-bold font-mono ml-1">{cidadeData.liberado.toLocaleString('pt-BR')}</span>
-                        </Badge>
-                      </div>
-                      {cidadeData.custoPorLiberado !== undefined && cidadeData.custoPorLiberado > 0 && (
-                        <div className="pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50 space-y-1.5">
-                          <Badge 
-                            variant="secondary" 
-                            className="bg-purple-50/80 text-purple-900 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-100 border-purple-200 dark:border-purple-800 px-2 py-0.5 w-full justify-start"
-                          >
-                            <span className="text-[10px] font-medium">Custo por Liberado:</span>
-                            <span className="text-[11px] font-bold font-mono ml-1">
-                              {new Intl.NumberFormat('pt-BR', {
-                                style: 'currency',
-                                currency: 'BRL',
-                              }).format(cidadeData.custoPorLiberado)}
-                            </span>
-                          </Badge>
-                          {/* Informação de quantos liberados faltam para R$ 50 */}
-                          {(() => {
-                            const META_CUSTO = 50;
-                            const quantidadeLiberados = cidadeData.quantidadeLiberados || 0;
-                            const valorTotal = cidadeData.valorTotal || 0;
-                            let faltamLiberados = 0;
-                            let jaAtingiuMeta = false;
-
-                            if (cidadeData.custoPorLiberado && cidadeData.custoPorLiberado > META_CUSTO && quantidadeLiberados > 0) {
-                              // Se o custo atual é maior que R$ 50, calcular quantos faltam
-                              faltamLiberados = Math.ceil((valorTotal - META_CUSTO * quantidadeLiberados) / META_CUSTO);
-                              if (faltamLiberados < 0) {
-                                faltamLiberados = 0;
-                              }
-                            } else if (cidadeData.custoPorLiberado && cidadeData.custoPorLiberado <= META_CUSTO && cidadeData.custoPorLiberado > 0) {
-                              // Se já está abaixo ou igual a R$ 50
-                              jaAtingiuMeta = true;
-                            }
-                            
-                            return (
-                              <Badge 
-                                variant="secondary" 
-                                className={`px-2 py-0.5 w-full justify-start ${
-                                  jaAtingiuMeta
-                                    ? 'bg-emerald-50/80 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800'
-                                    : 'bg-orange-50/80 text-orange-900 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-100 border-orange-200 dark:border-orange-800'
-                                }`}
-                              >
-                                {jaAtingiuMeta ? (
-                                  <>
-                                    <span className="text-[9px]">✅</span>
-                                    <span className="text-[10px] font-medium ml-1">
-                                      Meta atingida! Abaixo de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
-                                    </span>
-                                  </>
-                                ) : faltamLiberados > 0 ? (
-                                  <>
-                                    <span className="text-[9px]">🎯</span>
-                                    <span className="text-[10px] font-medium ml-1">
-                                      Faltam <span className="font-bold">{faltamLiberados}</span> liberado{faltamLiberados !== 1 ? 's' : ''} para chegar a {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(META_CUSTO)}
-                                    </span>
-                                  </>
-                                ) : null}
-                              </Badge>
-                            );
-                          })()}
-                          {cidadeData.quantidadeLiberados !== undefined && cidadeData.quantidadeLiberados > 0 && cidadeData.valorTotal !== undefined && cidadeData.valorTotal > 0 && (
-                            <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-1">
-                              {cidadeData.quantidadeLiberados} liberado{cidadeData.quantidadeLiberados !== 1 ? 's' : ''} • {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cidadeData.valorTotal)} total
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </Card>
-  );
-});
-
-AtendenteCard.displayName = 'AtendenteCard';
 
 const ResultadosView = React.memo(function ResultadosView() {
   const [loading, setLoading] = useState(true);
@@ -297,7 +45,7 @@ const ResultadosView = React.memo(function ResultadosView() {
   const [filters, setFilters] = useState<{
     filtroLiberacao: MarketingDateFilter;
     filtroEnviados: MarketingDateFilter;
-    filtroEnviadosLiberados: MarketingDateFilter; // Novo filtro para Enviados com status Liberado
+    filtroEnviadosLiberados: MarketingDateFilter;
   }>({
     filtroLiberacao: { dataInicial: null, dataFinal: null },
     filtroEnviados: { dataInicial: null, dataFinal: null },
@@ -771,102 +519,21 @@ const ResultadosView = React.memo(function ResultadosView() {
     <div className="space-y-4">
       {/* Header com Totais e Filtros */}
       <div className="space-y-4">
-        {/* Cards de Totais - Destaque */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Card className="border-emerald-200/50 bg-gradient-to-br from-emerald-50 to-green-50 shadow-md hover:shadow-lg transition-shadow dark:border-emerald-800/50 dark:from-emerald-950/30 dark:to-green-950/30">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide mb-1">
-                    Total Enviado
-                  </p>
-                  <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">
-                    {totais.totalEnviado.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 dark:bg-emerald-500/30">
-                  <Send className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                </div>
-              </div>
-            </div>
-          </Card>
-          <Card className="border-blue-200/50 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-md hover:shadow-lg transition-shadow dark:border-blue-800/50 dark:from-blue-950/30 dark:to-indigo-950/30">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-1">
-                    Total Liberado
-                  </p>
-                  <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-                    {totais.totalLiberado.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/20 dark:bg-blue-500/30">
-                  <CheckCircle2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Filtros com design premium */}
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-300/20 via-pink-300/20 to-purple-300/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
-          <Card className="relative border-0 bg-gradient-to-br from-white via-purple-50/20 to-pink-50/20 shadow-lg dark:from-slate-800 dark:via-purple-950/20 dark:to-pink-950/20 overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-0 right-0 h-64 w-64 bg-purple-500/5 rounded-full blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 h-48 w-48 bg-pink-500/5 rounded-full blur-3xl"></div>
-            </div>
-            
-            <div className="relative p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md">
-                  <span className="text-sm">🔍</span>
-                </div>
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
-                  Filtros de Data
-                </p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <MarketingDateFilterComponent
-                  label="Filtro de Liberação"
-                  filter={filters.filtroLiberacao}
-                  onFilterChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
-                />
-                <MarketingDateFilterComponent
-                  label="Filtro de Enviados"
-                  filter={filters.filtroEnviados}
-                  onFilterChange={(filter) => handleFilterChange('filtroEnviados', filter)}
-                />
-                <MarketingDateFilterComponent
-                  label="Filtro de Enviados (Liberados)"
-                  filter={filters.filtroEnviadosLiberados}
-                  onFilterChange={(filter) => handleFilterChange('filtroEnviadosLiberados', filter)}
-                />
-              </div>
-            </div>
-          </Card>
-        </div>
+        <ResultadosCards
+          totalEnviado={totais.totalEnviado}
+          totalLiberado={totais.totalLiberado}
+          atendentesData={atendentesData}
+        />
       </div>
 
-      {/* Separador Visual */}
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-          Resultados por Responsável
-          <div className="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-        </h3>
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300 to-transparent dark:via-purple-600"></div>
-      </div>
-
-      {/* Grid de Atendentes - Layout Melhorado */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {atendentesData.map((atendenteData) => (
-          <AtendenteCard key={atendenteData.nome} atendenteData={atendenteData} />
-        ))}
-      </div>
+      <ResultadosFilters
+        filtroLiberacao={filters.filtroLiberacao}
+        filtroEnviados={filters.filtroEnviados}
+        filtroEnviadosLiberados={filters.filtroEnviadosLiberados}
+        onFiltroLiberacaoChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
+        onFiltroEnviadosChange={(filter) => handleFilterChange('filtroEnviados', filter)}
+        onFiltroEnviadosLiberadosChange={(filter) => handleFilterChange('filtroEnviadosLiberados', filter)}
+      />
     </div>
   );
 });
