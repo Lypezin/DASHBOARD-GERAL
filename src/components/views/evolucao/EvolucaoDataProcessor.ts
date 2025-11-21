@@ -400,7 +400,7 @@ export const createChartData = (
       borderWidth: borderWidth,
       borderDash: dashPattern,
       fill: false,
-      spanGaps: false,
+      spanGaps: true, // ⚠️ CORREÇÃO: true para conectar linhas mesmo com valores null (gaps)
       showLine: true,
       hidden: false,
       order: order,
