@@ -53,15 +53,29 @@ export const processEvolucaoData = (
       }
     });
     
-    // Preencher todos os 12 meses na ordem correta
-    const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    mesesNomes.forEach((mesNome, index) => {
-      const mesNumero = index + 1;
-      const label = translateMonth(mesNome);
-      const dados = dadosPorMes.get(mesNumero);
-      dadosPorLabel.set(label, dados ?? null);
+    // ⚠️ CRÍTICO: Preencher usando baseLabels para garantir correspondência exata
+    // Garantir que os labels gerados correspondam exatamente aos dados
+    baseLabels.forEach((label) => {
+      // Encontrar o número do mês correspondente ao label
+      const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      const mesIndex = mesesNomes.findIndex(mesNome => translateMonth(mesNome) === label);
+      if (mesIndex >= 0) {
+        const mesNumero = mesIndex + 1;
+        const dados = dadosPorMes.get(mesNumero);
+        dadosPorLabel.set(label, dados ?? null);
+      } else {
+        // Fallback: se não encontrar, usar null
+        dadosPorLabel.set(label, null);
+      }
     });
+    
+    // ⚠️ DEBUG: Verificar mapeamento
+    if (IS_DEV) {
+      safeLog.info(`[processEvolucaoData] Mensal - Total de labels: ${baseLabels.length}`);
+      safeLog.info(`[processEvolucaoData] Mensal - Labels: ${baseLabels.join(', ')}`);
+      safeLog.info(`[processEvolucaoData] Mensal - Dados mapeados: ${Array.from(dadosPorLabel.values()).filter(d => d !== null).length}`);
+    }
   } else {
     // ⚠️ CRÍTICO: Mapear por número da semana (1-53)
     const dadosPorSemana = new Map<number, EvolucaoSemanal>();
@@ -73,12 +87,19 @@ export const processEvolucaoData = (
     });
     
     // ⚠️ CRÍTICO: Preencher todas as 53 semanas na ordem correta
-    // S01 = índice 0, S02 = índice 1, ..., S22 = índice 21, etc.
-    for (let semana = 1; semana <= 53; semana++) {
-      const label = `S${semana.toString().padStart(2, '0')}`;
-      const dados = dadosPorSemana.get(semana);
-      dadosPorLabel.set(label, dados ?? null);
-    }
+    // Garantir que os labels gerados correspondam exatamente aos dados
+    baseLabels.forEach((label, index) => {
+      // Extrair número da semana do label (S01 -> 1, S02 -> 2, etc.)
+      const semanaMatch = label.match(/^S(\d+)$/);
+      if (semanaMatch) {
+        const semana = Number(semanaMatch[1]);
+        const dados = dadosPorSemana.get(semana);
+        dadosPorLabel.set(label, dados ?? null);
+      } else {
+        // Fallback: se o label não seguir o padrão, usar null
+        dadosPorLabel.set(label, null);
+      }
+    });
     
     // ⚠️ DEBUG: Verificar mapeamento crítico
     if (IS_DEV) {
@@ -88,6 +109,11 @@ export const processEvolucaoData = (
       if (s22Dados) {
         safeLog.info(`[processEvolucaoData] S22 dados: semana=${(s22Dados as EvolucaoSemanal).semana}, completadas=${(s22Dados as EvolucaoSemanal).corridas_completadas}`);
       }
+      // Verificar primeiras e últimas semanas
+      safeLog.info(`[processEvolucaoData] Primeiros labels: ${baseLabels.slice(0, 5).join(', ')}`);
+      safeLog.info(`[processEvolucaoData] Últimos labels: ${baseLabels.slice(-5).join(', ')}`);
+      safeLog.info(`[processEvolucaoData] Total de labels: ${baseLabels.length}`);
+      safeLog.info(`[processEvolucaoData] Total de dados mapeados: ${Array.from(dadosPorLabel.values()).filter(d => d !== null).length}`);
     }
   }
 

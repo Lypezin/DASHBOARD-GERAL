@@ -18,7 +18,7 @@ export const createEvolucaoChartOptions = (
     padding: {
       top: 12,
       right: 16,
-      bottom: isSemanal ? 60 : 20, // ⚠️ CRÍTICO: Aumentar espaço para labels rotacionados (53 semanas)
+      bottom: isSemanal ? 80 : 20, // ⚠️ CRÍTICO: Aumentar espaço para labels rotacionados (53 semanas)
       left: 12,
     },
   },
@@ -197,20 +197,20 @@ export const createEvolucaoChartOptions = (
       },
       ticks: {
         // ⚠️ CRÍTICO: Configurações para forçar exibição de TODOS os labels
-        // Chart.js usa os labels diretamente do data.labels, não precisa de callback
         autoSkip: false, // ⚠️ CRÍTICO: false para mostrar todos os labels
+        maxTicksLimit: isSemanal ? 53 : 12, // Limite máximo de ticks (todas as semanas/meses)
         includeBounds: true, // Incluir labels nas bordas
-        maxRotation: isSemanal ? 60 : 0, // Aumentar rotação para semanas
-        minRotation: isSemanal ? 60 : 0, // Aumentar rotação para semanas
+        maxRotation: isSemanal ? 45 : 0, // Rotação para semanas (reduzido para melhor legibilidade)
+        minRotation: isSemanal ? 45 : 0, // Rotação para semanas
         font: {
-          size: isSemanal ? 7 : 10, // Reduzir ainda mais o tamanho para semanas
-          weight: '700' as any,
+          size: isSemanal ? 8 : 11, // Tamanho de fonte ajustado para semanas
+          weight: '600' as any,
           family: "'Inter', 'system-ui', sans-serif",
         },
         color: isDarkMode ? 'rgb(203, 213, 225)' : 'rgb(71, 85, 105)',
-        padding: isSemanal ? 2 : 8, // Reduzir padding para semanas
-        // ⚠️ CRÍTICO: Não usar callback - Chart.js deve usar labels diretamente
-        // O Chart.js mapeia automaticamente: data[0] -> labels[0], data[1] -> labels[1], etc.
+        padding: isSemanal ? 3 : 10, // Padding ajustado
+        // ⚠️ CRÍTICO: Chart.js usa os labels diretamente do data.labels
+        // Não precisa de callback - os labels já estão no formato correto
       },
     },
   },
