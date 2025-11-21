@@ -1,18 +1,5 @@
 import React from 'react';
-
-interface User {
-  id: string;
-  full_name: string;
-  email: string;
-  is_admin: boolean;
-  is_approved: boolean;
-  assigned_pracas: string[];
-  role?: 'admin' | 'marketing' | 'user';
-}
-
-interface UserProfile {
-  id: string;
-}
+import { User, UserProfile } from '@/hooks/useAdminData';
 
 interface AdminUsersTableProps {
   users: User[];
