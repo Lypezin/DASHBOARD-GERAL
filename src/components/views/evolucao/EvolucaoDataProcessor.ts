@@ -88,9 +88,16 @@ export const processEvolucaoData = (
     // ⚠️ CRÍTICO: Mapear por número da semana (1-53)
     const dadosPorSemana = new Map<number, EvolucaoSemanal>();
     dadosAtivos.forEach(d => {
-      const semana = Number((d as EvolucaoSemanal).semana);
+      // ⚠️ CORREÇÃO: Garantir conversão correta do número da semana
+      const semanaRaw = (d as EvolucaoSemanal).semana;
+      const semana = typeof semanaRaw === 'string' ? parseInt(semanaRaw, 10) : Number(semanaRaw);
       if (!isNaN(semana) && semana >= 1 && semana <= 53) {
         dadosPorSemana.set(semana, d as EvolucaoSemanal);
+        if (IS_DEV) {
+          safeLog.info(`[processEvolucaoData] Mapeando semana ${semana}: completadas=${(d as EvolucaoSemanal).corridas_completadas}, aceitas=${(d as EvolucaoSemanal).corridas_aceitas}, ofertadas=${(d as EvolucaoSemanal).corridas_ofertadas}`);
+        }
+      } else if (IS_DEV) {
+        safeLog.warn(`[processEvolucaoData] Semana inválida ignorada: ${semanaRaw} (tipo: ${typeof semanaRaw})`);
       }
     });
     
@@ -168,7 +175,8 @@ export const getMetricConfig = (
         }
         return null;
       }
-      const numValue = Number(value);
+      // ⚠️ CORREÇÃO: Converter para número de forma mais robusta (suporta string e number)
+      const numValue = typeof value === 'string' ? parseFloat(value) : Number(value);
       if (isNaN(numValue) || !isFinite(numValue)) {
         if (IS_DEV && index < 3) {
           safeLog.info(`[getMetricConfig] Label ${label} (índice ${index}): valor inválido (${value})`);
@@ -194,7 +202,9 @@ export const getMetricConfig = (
       return {
         labels: baseLabels,
         data: mapData(d => {
-          const segundos = Number((d as any).total_segundos) || 0;
+          // ⚠️ CORREÇÃO: Converter total_segundos de forma mais robusta (pode vir como string do Supabase)
+          const segundosRaw = (d as any).total_segundos;
+          const segundos = typeof segundosRaw === 'string' ? parseFloat(segundosRaw) : Number(segundosRaw) || 0;
           return segundosParaHoras(segundos);
         }),
         label: '⏱️ Horas Trabalhadas',
@@ -217,7 +227,11 @@ export const getMetricConfig = (
     case 'ofertadas':
       return {
         labels: baseLabels,
-        data: mapData(d => (d as any).corridas_ofertadas),
+        data: mapData(d => {
+          // ⚠️ CORREÇÃO: Garantir conversão correta (pode vir como string ou number)
+          const value = (d as any).corridas_ofertadas;
+          return typeof value === 'string' ? parseFloat(value) : value;
+        }),
         label: '📢 Corridas Ofertadas',
         borderColor: 'rgba(139, 92, 246, 1)',
         backgroundColor: (context: any) => {
@@ -238,7 +252,11 @@ export const getMetricConfig = (
     case 'aceitas':
       return {
         labels: baseLabels,
-        data: mapData(d => (d as any).corridas_aceitas),
+        data: mapData(d => {
+          // ⚠️ CORREÇÃO: Garantir conversão correta (pode vir como string ou number)
+          const value = (d as any).corridas_aceitas;
+          return typeof value === 'string' ? parseFloat(value) : value;
+        }),
         label: '✅ Corridas Aceitas',
         borderColor: 'rgba(16, 185, 129, 1)',
         backgroundColor: (context: any) => {
@@ -260,7 +278,11 @@ export const getMetricConfig = (
     default:
       return {
         labels: baseLabels,
-        data: mapData(d => (d as any).corridas_completadas ?? (d as any).total_corridas),
+        data: mapData(d => {
+          // ⚠️ CORREÇÃO: Garantir conversão correta (pode vir como string ou number)
+          const value = (d as any).corridas_completadas ?? (d as any).total_corridas;
+          return typeof value === 'string' ? parseFloat(value) : value;
+        }),
         label: '🚗 Corridas Completadas',
         borderColor: 'rgba(37, 99, 235, 1)',
         backgroundColor: (context: any) => {
