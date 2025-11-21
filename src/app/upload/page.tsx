@@ -33,6 +33,8 @@ export default function UploadPage() {
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState('');
 
   // Hook genérico para upload de Marketing
   const marketingUpload = useFileUpload({
@@ -329,6 +331,81 @@ export default function UploadPage() {
     }
   };
 
+  const handleRefreshMVs = async () => {
+    setRefreshing(true);
+    setRefreshMessage('🔄 Atualizando Materialized Views...');
+    
+    try {
+      const { data, error } = await safeRpc<{
+        success: boolean;
+        total_duration_seconds?: number;
+        views_refreshed?: number;
+        results?: Array<{
+          view: string;
+          success: boolean;
+          duration_seconds?: number;
+          error?: string;
+        }>;
+      }>('refresh_all_mvs_button', {}, {
+        timeout: 600000, // 10 minutos
+        validateParams: false
+      });
+
+      if (error) {
+        const errorCode = (error as any)?.code;
+        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || (error as any)?.message?.includes('404');
+        
+        if (is404) {
+          setRefreshMessage('❌ Função de refresh não encontrada. Verifique se as migrações foram aplicadas.');
+        } else {
+          setRefreshMessage(`❌ Erro ao atualizar: ${(error as any)?.message || 'Erro desconhecido'}`);
+        }
+        safeLog.error('Erro ao atualizar MVs:', error);
+        return;
+      }
+
+      if (data?.success) {
+        const duration = data.total_duration_seconds 
+          ? `${(data.total_duration_seconds / 60).toFixed(1)} minutos` 
+          : 'N/A';
+        const viewsCount = data.views_refreshed || 0;
+        
+        let successCount = 0;
+        let failCount = 0;
+        const failedViews: string[] = [];
+        
+        if (data.results) {
+          data.results.forEach((result) => {
+            if (result.success) {
+              successCount++;
+            } else {
+              failCount++;
+              failedViews.push(result.view);
+            }
+          });
+        }
+
+        if (failCount === 0) {
+          setRefreshMessage(`✅ Todas as ${viewsCount} Materialized Views foram atualizadas com sucesso em ${duration}!`);
+        } else {
+          setRefreshMessage(
+            `⚠️ Atualização parcial: ${successCount} sucesso, ${failCount} falhas. ` +
+            `Falhas: ${failedViews.join(', ')}. Tempo total: ${duration}`
+          );
+        }
+        
+        safeLog.info(`✅ Refresh de MVs concluído: ${viewsCount} MVs em ${duration}`);
+      } else {
+        setRefreshMessage('⚠️ Atualização concluída, mas alguns erros podem ter ocorrido.');
+      }
+    } catch (error: any) {
+      setRefreshMessage(`❌ Erro ao atualizar: ${error?.message || 'Erro desconhecido'}`);
+      safeLog.error('Erro ao atualizar MVs:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Mostrar loading enquanto verifica autenticação
   if (loading) {
     return (
@@ -487,6 +564,48 @@ export default function UploadPage() {
                   <p className="font-medium">{message}</p>
                 </div>
               )}
+
+              {/* Botão de Atualizar MVs */}
+              <div className="mt-8 rounded-xl border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-6 dark:border-amber-800 dark:from-amber-950/30 dark:to-yellow-950/30">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-amber-900 dark:text-amber-100 mb-2">
+                      🔄 Atualizar Materialized Views
+                    </h3>
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      Após fazer upload de novos dados, clique aqui para atualizar todas as Materialized Views e garantir que os dados estejam atualizados no dashboard.
+                    </p>
+                    {refreshMessage && (
+                      <div className={`mt-3 rounded-lg p-3 text-sm ${
+                        refreshMessage.includes('✅')
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200'
+                          : refreshMessage.includes('❌')
+                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-200'
+                          : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
+                      }`}>
+                        {refreshMessage}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleRefreshMVs}
+                    disabled={refreshing}
+                    className="flex-shrink-0 transform rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 px-6 py-3 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
+                  >
+                    {refreshing ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        <span>Atualizando...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🔄</span>
+                        <span>Atualizar</span>
+                      </div>
+                    )}
+                  </button>
+                </div>
+              </div>
 
               {/* Informações e Dicas */}
               <div className="mt-8 rounded-xl bg-blue-50 p-6 dark:bg-blue-950/30">
