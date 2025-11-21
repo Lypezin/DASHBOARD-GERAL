@@ -8,6 +8,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { ResultadosFilters } from './resultados/ResultadosFilters';
 import { ResultadosCards } from './resultados/ResultadosCards';
 import { AtendenteData } from './resultados/AtendenteCard';
+import { AtendenteCidadeData } from '@/types';
 import { CIDADES, SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 
