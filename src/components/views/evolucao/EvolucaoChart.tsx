@@ -54,11 +54,11 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
                     for (let j = i + 1; j < datasets.length; j++) {
                       const d1 = datasets[i];
                       const d2 = datasets[j];
-                      const values1 = d1.data.filter(v => v != null);
-                      const values2 = d2.data.filter(v => v != null);
+                      const values1 = d1.data.filter((v: number | null) => v != null);
+                      const values2 = d2.data.filter((v: number | null) => v != null);
                       
                       if (values1.length === values2.length && values1.length > 0) {
-                        const allEqual = values1.every((v, idx) => v === values2[idx]);
+                        const allEqual = values1.every((v: number, idx: number) => v === values2[idx]);
                         if (allEqual && !identicalMetrics.includes(d1.label) && !identicalMetrics.includes(d2.label)) {
                           identicalMetrics.push(d1.label, d2.label);
                         }
