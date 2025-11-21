@@ -11,6 +11,7 @@ import { is500Error, isRateLimitError } from '@/lib/rpcErrorHandler';
 import { UtrData, EntregadoresData, ValoresEntregador, UtrGeral, UtrPorPraca, UtrPorSubPraca, UtrPorOrigem, UtrPorTurno, Entregador } from '@/types';
 import { RPC_TIMEOUTS, DELAYS, QUERY_LIMITS } from '@/constants/config';
 import { supabase } from '@/lib/supabaseClient';
+import { ensureDateFilter, validateDateFilter } from '@/utils/queryOptimization';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -27,13 +28,17 @@ interface FetchOptions {
  */
 async function fetchUtrFallback(payload: any): Promise<UtrData | null> {
   try {
+    // ⚠️ OTIMIZAÇÃO DISK IO: Garantir filtro de data para evitar scan completo
+    validateDateFilter(payload, 'fetchUtrFallback');
+    const safePayload = ensureDateFilter(payload);
+
     // Otimização: selecionar apenas colunas necessárias
     let query = supabase
       .from('dados_corridas')
       .select('tempo_disponivel_escalado, numero_de_corridas_aceitas, praca, sub_praca, origem, periodo');
 
-    // Aplicar filtros
-    if (payload.p_semana && payload.p_ano) {
+    // Aplicar filtros (usando payload seguro)
+    if (safePayload.p_semana && safePayload.p_ano) {
       const dataInicio = new Date(payload.p_ano, 0, 1);
       const diaSemana = dataInicio.getDay();
       const diasParaSegunda = (diaSemana === 0 ? -6 : 1) - diaSemana;
@@ -167,12 +172,16 @@ async function fetchUtrFallback(payload: any): Promise<UtrData | null> {
  */
 async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData> {
   try {
+    // ⚠️ OTIMIZAÇÃO DISK IO: Garantir filtro de data para evitar scan completo
+    validateDateFilter(payload, 'fetchEntregadoresFallback');
+    const safePayload = ensureDateFilter(payload);
+
     let query = supabase
       .from('dados_corridas')
       .select('id_da_pessoa_entregadora, pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_rejeitadas, numero_de_corridas_completadas, tempo_disponivel_escalado, data_do_periodo');
 
-    // Aplicar filtros (mesma lógica do fetchValoresFallback)
-    if (payload.p_semana && payload.p_ano) {
+    // Aplicar filtros (usando payload seguro)
+    if (safePayload.p_semana && safePayload.p_ano) {
       const dataInicio = new Date(payload.p_ano, 0, 1);
       const diaSemana = dataInicio.getDay();
       const diasParaSegunda = (diaSemana === 0 ? -6 : 1) - diaSemana;
@@ -185,22 +194,22 @@ async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData
       
       query = query.gte('data_do_periodo', semanaInicio.toISOString().split('T')[0])
                    .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
-    } else if (payload.p_ano) {
-      const anoInicio = `${payload.p_ano}-01-01`;
-      const anoFim = `${payload.p_ano}-12-31`;
+    } else if (safePayload.p_ano) {
+      const anoInicio = `${safePayload.p_ano}-01-01`;
+      const anoFim = `${safePayload.p_ano}-12-31`;
       query = query.gte('data_do_periodo', anoInicio).lte('data_do_periodo', anoFim);
     }
 
-    if (payload.p_data_inicial) {
-      query = query.gte('data_do_periodo', payload.p_data_inicial);
+    if (safePayload.p_data_inicial) {
+      query = query.gte('data_do_periodo', safePayload.p_data_inicial);
     }
 
-    if (payload.p_data_final) {
-      query = query.lte('data_do_periodo', payload.p_data_final);
+    if (safePayload.p_data_final) {
+      query = query.lte('data_do_periodo', safePayload.p_data_final);
     }
 
-    if (payload.p_praca) {
-      const pracas = payload.p_praca.split(',').map((p: string) => p.trim());
+    if (safePayload.p_praca) {
+      const pracas = safePayload.p_praca.split(',').map((p: string) => p.trim());
       if (pracas.length === 1) {
         query = query.eq('praca', pracas[0]);
       } else {
@@ -208,8 +217,8 @@ async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData
       }
     }
 
-    if (payload.p_sub_praca) {
-      const subPracas = payload.p_sub_praca.split(',').map((p: string) => p.trim());
+    if (safePayload.p_sub_praca) {
+      const subPracas = safePayload.p_sub_praca.split(',').map((p: string) => p.trim());
       if (subPracas.length === 1) {
         query = query.eq('sub_praca', subPracas[0]);
       } else {
@@ -217,8 +226,8 @@ async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData
       }
     }
 
-    if (payload.p_origem) {
-      const origens = payload.p_origem.split(',').map((o: string) => o.trim());
+    if (safePayload.p_origem) {
+      const origens = safePayload.p_origem.split(',').map((o: string) => o.trim());
       if (origens.length === 1) {
         query = query.eq('origem', origens[0]);
       } else {
@@ -319,12 +328,16 @@ async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData
  */
 async function fetchValoresFallback(payload: any): Promise<ValoresEntregador[]> {
   try {
+    // ⚠️ OTIMIZAÇÃO DISK IO: Garantir filtro de data para evitar scan completo
+    validateDateFilter(payload, 'fetchValoresFallback');
+    const safePayload = ensureDateFilter(payload);
+
     let query = supabase
       .from('dados_corridas')
       .select('id_da_pessoa_entregadora, pessoa_entregadora, soma_das_taxas_das_corridas_aceitas, numero_de_corridas_aceitas, data_do_periodo, praca, sub_praca, origem');
 
-    // Aplicar filtros
-    if (payload.p_semana && payload.p_ano) {
+    // Aplicar filtros (usando payload seguro)
+    if (safePayload.p_semana && safePayload.p_ano) {
       const dataInicio = new Date(payload.p_ano, 0, 1);
       const diaSemana = dataInicio.getDay();
       const diasParaSegunda = (diaSemana === 0 ? -6 : 1) - diaSemana;
@@ -337,22 +350,22 @@ async function fetchValoresFallback(payload: any): Promise<ValoresEntregador[]> 
       
       query = query.gte('data_do_periodo', semanaInicio.toISOString().split('T')[0])
                    .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
-    } else if (payload.p_ano) {
-      const anoInicio = `${payload.p_ano}-01-01`;
-      const anoFim = `${payload.p_ano}-12-31`;
+    } else if (safePayload.p_ano) {
+      const anoInicio = `${safePayload.p_ano}-01-01`;
+      const anoFim = `${safePayload.p_ano}-12-31`;
       query = query.gte('data_do_periodo', anoInicio).lte('data_do_periodo', anoFim);
     }
 
-    if (payload.p_data_inicial) {
-      query = query.gte('data_do_periodo', payload.p_data_inicial);
+    if (safePayload.p_data_inicial) {
+      query = query.gte('data_do_periodo', safePayload.p_data_inicial);
     }
 
-    if (payload.p_data_final) {
-      query = query.lte('data_do_periodo', payload.p_data_final);
+    if (safePayload.p_data_final) {
+      query = query.lte('data_do_periodo', safePayload.p_data_final);
     }
 
-    if (payload.p_praca) {
-      const pracas = payload.p_praca.split(',').map((p: string) => p.trim());
+    if (safePayload.p_praca) {
+      const pracas = safePayload.p_praca.split(',').map((p: string) => p.trim());
       if (pracas.length === 1) {
         query = query.eq('praca', pracas[0]);
       } else {
@@ -360,8 +373,8 @@ async function fetchValoresFallback(payload: any): Promise<ValoresEntregador[]> 
       }
     }
 
-    if (payload.p_sub_praca) {
-      const subPracas = payload.p_sub_praca.split(',').map((p: string) => p.trim());
+    if (safePayload.p_sub_praca) {
+      const subPracas = safePayload.p_sub_praca.split(',').map((p: string) => p.trim());
       if (subPracas.length === 1) {
         query = query.eq('sub_praca', subPracas[0]);
       } else {
@@ -369,8 +382,8 @@ async function fetchValoresFallback(payload: any): Promise<ValoresEntregador[]> 
       }
     }
 
-    if (payload.p_origem) {
-      const origens = payload.p_origem.split(',').map((o: string) => o.trim());
+    if (safePayload.p_origem) {
+      const origens = safePayload.p_origem.split(',').map((o: string) => o.trim());
       if (origens.length === 1) {
         query = query.eq('origem', origens[0]);
       } else {

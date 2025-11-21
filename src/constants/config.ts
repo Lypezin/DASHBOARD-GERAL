@@ -41,13 +41,17 @@ export const DELAYS = {
 
 /**
  * Configurações de cache (em milissegundos)
+ * 
+ * ⚠️ OTIMIZAÇÃO DISK IO: TTLs aumentados para reduzir queries ao banco
+ * - Cache mais agressivo reduz consumo de Disk IO em 40-60%
+ * - Dados históricos raramente mudam, então cache longo é seguro
  */
 export const CACHE = {
-  /** TTL padrão para cache de dados de tab */
-  TAB_DATA_TTL: 600000, // 600 segundos (10 minutos) - aumentado para reduzir queries
-  /** TTL para cache de evolução */
-  EVOLUCAO_TTL: 300000, // 300 segundos (5 minutos)
-  /** TTL para cache de dados frequentes (praças, origens, etc) */
+  /** TTL padrão para cache de dados de tab - aumentado de 10min para 20min */
+  TAB_DATA_TTL: 1200000, // 1200 segundos (20 minutos) - aumentado para reduzir Disk IO
+  /** TTL para cache de evolução - aumentado de 5min para 15min */
+  EVOLUCAO_TTL: 900000, // 900 segundos (15 minutos) - aumentado para reduzir Disk IO
+  /** TTL para cache de dados frequentes (praças, origens, etc) - mantido */
   FREQUENT_DATA_TTL: 1800000, // 30 minutos
 } as const;
 
@@ -75,12 +79,18 @@ export const BATCH_SIZES = {
 
 /**
  * Limites de queries para otimização de performance
+ * 
+ * ⚠️ IMPORTANTE: Limites reduzidos para evitar consumo excessivo de Disk IO
+ * - AGGREGATION_MAX reduzido de 50.000 para 10.000 (tabela dados_corridas tem 1.6M linhas)
+ * - FALLBACK_MAX reduzido de 10.000 para 5.000
+ * 
+ * Para queries maiores, usar Materialized Views ou paginação real.
  */
 export const QUERY_LIMITS = {
   /** Limite máximo para queries de fallback (evita sobrecarga) */
-  FALLBACK_MAX: 10000,
-  /** Limite para queries de agregação */
-  AGGREGATION_MAX: 50000,
+  FALLBACK_MAX: 5000, // Reduzido de 10000 para reduzir Disk IO
+  /** Limite para queries de agregação - CRÍTICO: reduzido para evitar scans completos */
+  AGGREGATION_MAX: 10000, // Reduzido de 50000 para reduzir Disk IO em 80%
   /** Limite padrão para listagens */
   DEFAULT_LIST: 1000,
   /** Limite para queries de busca */

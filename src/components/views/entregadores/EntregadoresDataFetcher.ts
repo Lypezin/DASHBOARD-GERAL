@@ -3,6 +3,7 @@ import { EntregadorMarketing, MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { QUERY_LIMITS } from '@/constants/config';
+import { ensureDateFilter, validateDateFilter } from '@/utils/queryOptimization';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -50,18 +51,27 @@ export async function fetchEntregadoresFallback(
       return [];
     }
 
+    // ⚠️ OTIMIZAÇÃO DISK IO: Garantir filtro de data para evitar scan completo
+    // Converter filtro para formato de payload
+    const payload = {
+      p_data_inicial: filtroDataInicio.dataInicial,
+      p_data_final: filtroDataInicio.dataFinal,
+    };
+    validateDateFilter(payload, 'fetchEntregadoresFallback (Marketing)');
+    const safePayload = ensureDateFilter(payload);
+
     // Buscar todas as corridas de uma vez para todos os entregadores
     let corridasQuery = supabase
       .from('dados_corridas')
       .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo')
       .in('id_da_pessoa_entregadora', idsEntregadores);
 
-    // Aplicar filtro de data início se especificado
-    if (filtroDataInicio.dataInicial) {
-      corridasQuery = corridasQuery.gte('data_do_periodo', filtroDataInicio.dataInicial);
+    // Aplicar filtro de data (usando payload seguro)
+    if (safePayload.p_data_inicial) {
+      corridasQuery = corridasQuery.gte('data_do_periodo', safePayload.p_data_inicial);
     }
-    if (filtroDataInicio.dataFinal) {
-      corridasQuery = corridasQuery.lte('data_do_periodo', filtroDataInicio.dataFinal);
+    if (safePayload.p_data_final) {
+      corridasQuery = corridasQuery.lte('data_do_periodo', safePayload.p_data_final);
     }
 
     // Limitar query para evitar sobrecarga
