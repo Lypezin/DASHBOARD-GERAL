@@ -2,6 +2,8 @@ import { Filters, CurrentUser, hasFullCityAccess } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { LIMITS, VALIDATION } from '@/constants/config';
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 /**
  * Converte um valor para número de forma segura
  * 
