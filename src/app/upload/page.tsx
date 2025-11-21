@@ -341,6 +341,7 @@ export default function UploadPage() {
     setRefreshProgress(0);
     setRefreshCompleted(0);
     setRefreshTotal(0);
+    setRefreshProgressLabel('');
     
     try {
       // Passo 1: Obter lista de MVs pendentes
@@ -357,11 +358,13 @@ export default function UploadPage() {
       if (pendingError) {
         setRefreshMessage(`❌ Erro ao obter lista de MVs: ${(pendingError as any)?.message || 'Erro desconhecido'}`);
         safeLog.error('Erro ao obter MVs pendentes:', pendingError);
+        setRefreshing(false);
         return;
       }
 
       if (!pendingData || pendingData.length === 0) {
         setRefreshMessage('✅ Nenhuma Materialized View precisa ser atualizada!');
+        setRefreshing(false);
         return;
       }
 
@@ -391,6 +394,7 @@ export default function UploadPage() {
             duration_seconds?: number;
             method?: string;
             error?: string;
+            warning?: string;
           }>('refresh_single_mv_with_progress', { mv_name_param: mv.mv_name }, {
             timeout: 300000, // 5 minutos por MV (mais que suficiente)
             validateParams: false
@@ -400,20 +404,62 @@ export default function UploadPage() {
           setRefreshProgress((currentIndex / totalMVs) * 100);
           setRefreshCompleted(currentIndex);
 
+          // Verificar se houve erro na chamada RPC
           if (refreshError) {
-            failCount++;
-            failedViews.push(mv.mv_name);
-            safeLog.error(`Erro ao atualizar ${mv.mv_name}:`, refreshError);
-          } else if (refreshData?.success) {
-            successCount++;
-            const duration = refreshData.duration_seconds 
-              ? `${refreshData.duration_seconds.toFixed(1)}s` 
-              : 'N/A';
-            safeLog.info(`✅ ${mv.mv_name} atualizada em ${duration} (${refreshData.method || 'NORMAL'})`);
+            // Verificar se é erro de timeout ou erro real
+            const errorCode = (refreshError as any)?.code;
+            const errorMessage = String((refreshError as any)?.message || '');
+            const isTimeout = errorCode === 'TIMEOUT' || errorMessage.includes('timeout') || errorMessage.includes('demorou muito');
+            
+            if (isTimeout) {
+              // Timeout - verificar se a MV foi atualizada mesmo assim (pode ter sido atualizada antes do timeout)
+              // Não contar como falha imediatamente, mas verificar depois
+              safeLog.warn(`Timeout ao atualizar ${mv.mv_name} (verificando se foi atualizada mesmo assim)`);
+              // Continuar e verificar depois se needs_refresh foi atualizado
+            } else {
+              // Erro real
+              failCount++;
+              failedViews.push(mv.mv_name);
+              safeLog.error(`Erro ao atualizar ${mv.mv_name}:`, refreshError);
+            }
+          } else if (refreshData) {
+            // A função RPC retorna o resultado dentro de uma propriedade com o nome da função
+            const result = (refreshData as any).refresh_single_mv_with_progress || refreshData;
+            
+            // Verificar se a função retornou sucesso
+            const success = result?.success === true;
+            const viewName = result?.view || mv.mv_name;
+            const duration = result?.duration_seconds;
+            const method = result?.method;
+            const warning = result?.warning;
+            const error = result?.error;
+            
+            if (success) {
+              successCount++;
+              const durationStr = duration 
+                ? `${duration.toFixed(1)}s` 
+                : 'N/A';
+              const methodStr = method || (warning ? 'FALLBACK' : 'NORMAL');
+              safeLog.info(`✅ ${viewName} atualizada em ${durationStr} (${methodStr})`);
+            } else if (warning && (warning.includes('fallback') || warning.includes('CONCURRENTLY falhou'))) {
+              // Fallback funcionou - considerar sucesso
+              successCount++;
+              const durationStr = duration 
+                ? `${duration.toFixed(1)}s` 
+                : 'N/A';
+              safeLog.info(`✅ ${viewName} atualizada em ${durationStr} (fallback - ${method || 'NORMAL'})`);
+            } else {
+              // Falha real
+              failCount++;
+              failedViews.push(mv.mv_name);
+              const errorMsg = error || 'Erro desconhecido';
+              safeLog.warn(`Falha ao atualizar ${mv.mv_name}: ${errorMsg}`);
+            }
           } else {
+            // Sem dados e sem erro - situação estranha, considerar falha
             failCount++;
             failedViews.push(mv.mv_name);
-            safeLog.warn(`Falha ao atualizar ${mv.mv_name}: ${refreshData?.error || 'Erro desconhecido'}`);
+            safeLog.warn(`Resposta vazia ao atualizar ${mv.mv_name}`);
           }
         } catch (error: any) {
           failCount++;
@@ -630,22 +676,33 @@ export default function UploadPage() {
                     </p>
                     
                     {/* Barra de Progresso */}
-                    {refreshing && refreshTotal > 0 && (
+                    {refreshing && (
                       <div className="mt-4 space-y-2">
-                        <div className="overflow-hidden rounded-full bg-amber-200 shadow-inner dark:bg-amber-900">
-                          <div
-                            className="h-3 rounded-full bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 shadow-lg transition-all duration-500"
-                            style={{ width: `${refreshProgress}%` }}
-                          ></div>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold text-amber-900 dark:text-amber-100">
-                            {refreshProgressLabel || `${refreshCompleted}/${refreshTotal} atualizadas`}
-                          </p>
-                          <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-                            {refreshProgress.toFixed(1)}% concluído
-                          </p>
-                        </div>
+                        {refreshTotal > 0 ? (
+                          <>
+                            <div className="overflow-hidden rounded-full bg-amber-200 shadow-inner dark:bg-amber-900">
+                              <div
+                                className="h-3 rounded-full bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 shadow-lg transition-all duration-500"
+                                style={{ width: `${Math.max(0, Math.min(100, refreshProgress))}%` }}
+                              ></div>
+                            </div>
+                            <div className="text-center">
+                              <p className="font-semibold text-amber-900 dark:text-amber-100">
+                                {refreshProgressLabel || `${refreshCompleted}/${refreshTotal} atualizadas`}
+                              </p>
+                              <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                                {Math.max(0, Math.min(100, refreshProgress)).toFixed(1)}% concluído
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center">
+                            <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-amber-600 border-t-transparent"></div>
+                            <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">
+                              Preparando atualização...
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                     
