@@ -199,76 +199,31 @@ export default function DashboardPage() {
     }
   }, [filters, currentUser]);
 
-  // Log quando activeTab muda
-  useEffect(() => {
-    console.log(`📌 [DashboardPage] activeTab mudou para: "${activeTab}"`);
-  }, [activeTab]);
 
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
-  // Log para debug - verificar dados recebidos
-  useEffect(() => {
-    if (IS_DEV) {
-      console.log('📊 [DashboardPage] Dados da tab recebidos:', {
-        activeTab,
-        hasTabData: !!tabData,
-        tabDataType: typeof tabData,
-        isArray: Array.isArray(tabData),
-        loading: loadingTabData,
-        dataKeys: tabData && typeof tabData === 'object' && !Array.isArray(tabData) ? Object.keys(tabData) : null,
-        dataLength: Array.isArray(tabData) ? tabData.length : null
-      });
-    }
-  }, [activeTab, tabData, loadingTabData]);
 
   // Mapeia os dados do useTabData para as props dos componentes de view
   // Memoizar para evitar recriação desnecessária
   const utrData = useMemo(() => {
-    const data = activeTab === 'utr' ? (tabData as UtrData) : null;
-    if (IS_DEV && activeTab === 'utr') {
-      console.log('📊 [DashboardPage] utrData processado:', { hasData: !!data, keys: data ? Object.keys(data) : null });
-    }
-    return data;
+    return activeTab === 'utr' ? (tabData as UtrData) : null;
   }, [activeTab, tabData]);
 
   const entregadoresData = useMemo(() => {
-    const data = activeTab === 'entregadores' ? (tabData as EntregadoresData) : null;
-    if (IS_DEV && activeTab === 'entregadores') {
-      console.log('📊 [DashboardPage] entregadoresData processado:', { 
-        hasData: !!data, 
-        entregadoresCount: data?.entregadores?.length || 0,
-        total: data?.total || 0
-      });
-    }
-    return data;
+    return activeTab === 'entregadores' ? (tabData as EntregadoresData) : null;
   }, [activeTab, tabData]);
 
   const valoresData = useMemo(() => {
     if (activeTab !== 'valores') return [];
-    if (!tabData) {
-      if (IS_DEV) console.log('📊 [DashboardPage] valoresData: tabData é null');
-      return [];
-    }
+    if (!tabData) return [];
     if (Array.isArray(tabData)) {
-      // Verificar se é realmente um array de ValoresEntregador
-      if (IS_DEV) console.log('📊 [DashboardPage] valoresData processado (array):', tabData.length);
       return tabData as ValoresEntregador[];
     }
-    // Se não é array e não é null, não deve acontecer para valores, mas retornar array vazio por segurança
-    if (IS_DEV) console.warn('📊 [DashboardPage] valoresData: tabData não é array:', typeof tabData);
     return [];
   }, [activeTab, tabData]);
 
   const prioridadeData = useMemo(() => {
-    const data = activeTab === 'prioridade' ? (tabData as EntregadoresData) : null;
-    if (IS_DEV && activeTab === 'prioridade') {
-      console.log('📊 [DashboardPage] prioridadeData processado:', { 
-        hasData: !!data, 
-        entregadoresCount: data?.entregadores?.length || 0,
-        total: data?.total || 0
-      });
-    }
-    return data;
+    return activeTab === 'prioridade' ? (tabData as EntregadoresData) : null;
   }, [activeTab, tabData]);
 
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
@@ -338,11 +293,8 @@ export default function DashboardPage() {
 
   // Memoizar handlers de tabs para evitar re-renders e adicionar proteção contra cliques rápidos
   const handleTabChange = useCallback((tab: TabType) => {
-    console.log(`🔄 [handleTabChange] Tab clicada: "${tab}", atual: "${currentTabRef.current}"`);
-    
     // Se já está mudando de tab ou é a mesma tab, ignorar
-    if (/*tabChangeRef.current ||*/ currentTabRef.current === tab) {
-      console.log(`⚠️ [handleTabChange] Tab ignorada (já é a mesma ou está mudando)`);
+    if (currentTabRef.current === tab) {
       return;
     }
 
@@ -355,7 +307,6 @@ export default function DashboardPage() {
     tabChangeRef.current = true;
 
     // Mudar tab imediatamente para feedback visual
-    console.log(`✅ [handleTabChange] Mudando activeTab para: "${tab}"`);
     setActiveTab(tab);
 
     // Resetar flag após um delay maior para garantir que a renderização anterior terminou

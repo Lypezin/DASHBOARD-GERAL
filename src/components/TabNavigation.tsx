@@ -75,7 +75,6 @@ export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: T
               label={tab.label}
               active={activeTab === tab.value}
               onClick={() => {
-                console.log(`🔴 [TabNavigation] Clicou na tab: "${tab.value}"`);
                 onTabChange(tab.value);
               }}
             />

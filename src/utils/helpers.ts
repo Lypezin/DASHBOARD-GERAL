@@ -229,11 +229,9 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     p_data_final: dataFinal,
   } as const;
 
-  // Log para debug
-  safeLog.info('[buildFilterPayload] Payload gerado:', payload);
-
-  // LOG FORÇADO PARA DEBUG EM PRODUÇÃO - REMOVER DEPOIS
-  console.log('🔵 [buildFilterPayload] Payload FINAL gerado:', payload);
+  if (IS_DEV) {
+    safeLog.info('[buildFilterPayload] Payload gerado:', payload);
+  }
 
   return payload;
 };
