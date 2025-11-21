@@ -25,35 +25,47 @@ export const processEvolucaoData = (
     ? generateMonthlyLabels(dadosAtivos as EvolucaoMensal[])
     : generateWeeklyLabels(dadosAtivos as EvolucaoSemanal[]);
 
+  // ⚠️ OTIMIZAÇÃO: Criar mapa com todos os labels (meses 1-12 ou semanas 1-53)
+  // Preencher com dados quando disponíveis, deixar null quando não houver dados
   const dadosPorLabel = new Map<string, any>();
+  
   if (viewMode === 'mensal') {
+    // Mapear dados existentes por mês
+    const dadosPorMes = new Map<number, EvolucaoMensal>();
     dadosAtivos
       .filter(d => d && (d as EvolucaoMensal).mes != null && (d as EvolucaoMensal).mes_nome)
-      .sort((a, b) => {
-        if ((a as EvolucaoMensal).ano !== (b as EvolucaoMensal).ano) {
-          return (a as EvolucaoMensal).ano - (b as EvolucaoMensal).ano;
-        }
-        return (a as EvolucaoMensal).mes - (b as EvolucaoMensal).mes;
-      })
       .forEach(d => {
-        const label = translateMonth((d as EvolucaoMensal).mes_nome);
-        dadosPorLabel.set(label, d);
+        const mes = (d as EvolucaoMensal).mes;
+        dadosPorMes.set(mes, d as EvolucaoMensal);
       });
+    
+    // Preencher todos os 12 meses
+    const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    mesesNomes.forEach((mesNome, index) => {
+      const mesNumero = index + 1;
+      const label = translateMonth(mesNome);
+      const dados = dadosPorMes.get(mesNumero);
+      dadosPorLabel.set(label, dados || null);
+    });
   } else {
+    // Mapear dados existentes por semana
+    const dadosPorSemana = new Map<number, EvolucaoSemanal>();
     dadosAtivos
       .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
-      .sort((a, b) => {
-        if ((a as EvolucaoSemanal).ano !== (b as EvolucaoSemanal).ano) {
-          return (a as EvolucaoSemanal).ano - (b as EvolucaoSemanal).ano;
-        }
-        return (a as EvolucaoSemanal).semana - (b as EvolucaoSemanal).semana;
-      })
       .forEach(d => {
         const semana = (d as EvolucaoSemanal).semana;
         if (semana != null && semana !== undefined) {
-          dadosPorLabel.set(`S${semana}`, d);
+          dadosPorSemana.set(semana, d as EvolucaoSemanal);
         }
       });
+    
+    // Preencher todas as 53 semanas
+    for (let semana = 1; semana <= 53; semana++) {
+      const label = `S${semana.toString().padStart(2, '0')}`;
+      const dados = dadosPorSemana.get(semana);
+      dadosPorLabel.set(label, dados || null);
+    }
   }
 
   return { dadosAtivos, baseLabels, dadosPorLabel };

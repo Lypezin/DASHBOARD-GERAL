@@ -218,32 +218,34 @@ export function translateMonth(mesNome: string): string {
 
 /**
  * Gera labels para visualização mensal
+ * ⚠️ OTIMIZAÇÃO: Gera todos os 12 meses do ano, mesmo que não tenham dados
  */
 export function generateMonthlyLabels(
   dados: Array<{ mes: number; mes_nome?: string; ano: number }>
 ): string[] {
-  return dados
-    .filter(d => d && d.mes != null && d.mes_nome)
-    .sort((a, b) => {
-      if (a.ano !== b.ano) return a.ano - b.ano;
-      return a.mes - b.mes;
-    })
-    .map(d => translateMonth(d.mes_nome || ''));
+  // Gerar todos os 12 meses do ano
+  const mesesCompletos = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  
+  return mesesCompletos.map(mes => translateMonth(mes));
 }
 
 /**
  * Gera labels para visualização semanal
+ * ⚠️ OTIMIZAÇÃO: Gera todas as 53 semanas possíveis, mesmo que não tenham dados
  */
 export function generateWeeklyLabels(
   dados: Array<{ semana: number; ano: number }>
 ): string[] {
-  const semanas = dados
-    .filter(d => d && d.semana != null && d.semana !== undefined)
-    .map(d => d.semana)
-    .filter((s): s is number => s != null && s !== undefined)
-    .sort((a, b) => a - b);
-
-  return semanas.map(s => `S${s}`);
+  // Gerar todas as 53 semanas possíveis
+  const semanasCompletas: string[] = [];
+  for (let i = 1; i <= 53; i++) {
+    semanasCompletas.push(`S${i.toString().padStart(2, '0')}`);
+  }
+  
+  return semanasCompletas;
 }
 
 // =================================================================================

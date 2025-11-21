@@ -197,9 +197,11 @@ export const createEvolucaoChartOptions = (
       ticks: {
         // ⚠️ OTIMIZAÇÃO: Mostrar todos os meses (12) e todas as semanas (até 53)
         maxTicksLimit: isSemanal ? 53 : 12,
-        autoSkip: false,
+        autoSkip: false, // ⚠️ IMPORTANTE: false para mostrar todos os labels
         maxRotation: isSemanal ? 45 : 0,
         minRotation: isSemanal ? 45 : 0,
+        // ⚠️ OTIMIZAÇÃO: Permitir que todos os pontos sejam exibidos
+        stepSize: undefined, // Sem step size para mostrar todos
         font: {
           size: isSemanal ? 10 : 12,
           weight: '700' as any,
