@@ -35,6 +35,10 @@ export default function UploadPage() {
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState('');
+  const [refreshProgress, setRefreshProgress] = useState(0);
+  const [refreshProgressLabel, setRefreshProgressLabel] = useState('');
+  const [refreshTotal, setRefreshTotal] = useState(0);
+  const [refreshCompleted, setRefreshCompleted] = useState(0);
 
   // Hook genérico para upload de Marketing
   const marketingUpload = useFileUpload({
@@ -333,76 +337,125 @@ export default function UploadPage() {
 
   const handleRefreshMVs = async () => {
     setRefreshing(true);
-    setRefreshMessage('🔄 Atualizando Materialized Views...');
+    setRefreshMessage('🔄 Preparando atualização...');
+    setRefreshProgress(0);
+    setRefreshCompleted(0);
+    setRefreshTotal(0);
     
     try {
-      const { data, error } = await safeRpc<{
-        success: boolean;
-        total_duration_seconds?: number;
-        views_refreshed?: number;
-        results?: Array<{
-          view: string;
-          success: boolean;
-          duration_seconds?: number;
-          error?: string;
-        }>;
-      }>('refresh_all_mvs_button', {}, {
-        timeout: 600000, // 10 minutos
+      // Passo 1: Obter lista de MVs pendentes
+      const { data: pendingData, error: pendingError } = await safeRpc<Array<{
+        mv_name: string;
+        priority: number;
+        needs_refresh: boolean;
+        last_refresh: string | null;
+      }>>('get_pending_mvs', {}, {
+        timeout: 30000,
         validateParams: false
       });
 
-      if (error) {
-        const errorCode = (error as any)?.code;
-        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || (error as any)?.message?.includes('404');
-        
-        if (is404) {
-          setRefreshMessage('❌ Função de refresh não encontrada. Verifique se as migrações foram aplicadas.');
-        } else {
-          setRefreshMessage(`❌ Erro ao atualizar: ${(error as any)?.message || 'Erro desconhecido'}`);
-        }
-        safeLog.error('Erro ao atualizar MVs:', error);
+      if (pendingError) {
+        setRefreshMessage(`❌ Erro ao obter lista de MVs: ${(pendingError as any)?.message || 'Erro desconhecido'}`);
+        safeLog.error('Erro ao obter MVs pendentes:', pendingError);
         return;
       }
 
-      if (data?.success) {
-        const duration = data.total_duration_seconds 
-          ? `${(data.total_duration_seconds / 60).toFixed(1)} minutos` 
-          : 'N/A';
-        const viewsCount = data.views_refreshed || 0;
+      if (!pendingData || pendingData.length === 0) {
+        setRefreshMessage('✅ Nenhuma Materialized View precisa ser atualizada!');
+        return;
+      }
+
+      const totalMVs = pendingData.length;
+      setRefreshTotal(totalMVs);
+      setRefreshMessage(`🔄 Atualizando ${totalMVs} Materialized Views...`);
+      setRefreshProgressLabel(`0/${totalMVs} atualizadas`);
+
+      let successCount = 0;
+      let failCount = 0;
+      const failedViews: string[] = [];
+      const startTime = Date.now();
+
+      // Passo 2: Processar cada MV individualmente
+      for (let i = 0; i < pendingData.length; i++) {
+        const mv = pendingData[i];
+        const currentIndex = i + 1;
         
-        let successCount = 0;
-        let failCount = 0;
-        const failedViews: string[] = [];
-        
-        if (data.results) {
-          data.results.forEach((result) => {
-            if (result.success) {
-              successCount++;
-            } else {
-              failCount++;
-              failedViews.push(result.view);
-            }
+        setRefreshProgressLabel(`Atualizando ${currentIndex}/${totalMVs}: ${mv.mv_name}`);
+        // Atualizar progresso antes de iniciar (mostra que está processando)
+        setRefreshProgress(((currentIndex - 1) / totalMVs) * 100);
+
+        try {
+          const { data: refreshData, error: refreshError } = await safeRpc<{
+            success: boolean;
+            view: string;
+            duration_seconds?: number;
+            method?: string;
+            error?: string;
+          }>('refresh_single_mv_with_progress', { mv_name_param: mv.mv_name }, {
+            timeout: 300000, // 5 minutos por MV (mais que suficiente)
+            validateParams: false
           });
+
+          // Atualizar progresso após processar
+          setRefreshProgress((currentIndex / totalMVs) * 100);
+          setRefreshCompleted(currentIndex);
+
+          if (refreshError) {
+            failCount++;
+            failedViews.push(mv.mv_name);
+            safeLog.error(`Erro ao atualizar ${mv.mv_name}:`, refreshError);
+          } else if (refreshData?.success) {
+            successCount++;
+            const duration = refreshData.duration_seconds 
+              ? `${refreshData.duration_seconds.toFixed(1)}s` 
+              : 'N/A';
+            safeLog.info(`✅ ${mv.mv_name} atualizada em ${duration} (${refreshData.method || 'NORMAL'})`);
+          } else {
+            failCount++;
+            failedViews.push(mv.mv_name);
+            safeLog.warn(`Falha ao atualizar ${mv.mv_name}: ${refreshData?.error || 'Erro desconhecido'}`);
+          }
+        } catch (error: any) {
+          failCount++;
+          failedViews.push(mv.mv_name);
+          setRefreshProgress((currentIndex / totalMVs) * 100);
+          setRefreshCompleted(currentIndex);
+          safeLog.error(`Erro ao atualizar ${mv.mv_name}:`, error);
         }
 
-        if (failCount === 0) {
-          setRefreshMessage(`✅ Todas as ${viewsCount} Materialized Views foram atualizadas com sucesso em ${duration}!`);
-        } else {
-          setRefreshMessage(
-            `⚠️ Atualização parcial: ${successCount} sucesso, ${failCount} falhas. ` +
-            `Falhas: ${failedViews.join(', ')}. Tempo total: ${duration}`
-          );
+        // Pequeno delay entre MVs para não sobrecarregar
+        if (i < pendingData.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
-        
-        safeLog.info(`✅ Refresh de MVs concluído: ${viewsCount} MVs em ${duration}`);
-      } else {
-        setRefreshMessage('⚠️ Atualização concluída, mas alguns erros podem ter ocorrido.');
       }
+
+      // Passo 3: Resumo final
+      const totalDuration = ((Date.now() - startTime) / 1000 / 60).toFixed(1);
+      setRefreshProgress(100);
+      setRefreshCompleted(totalMVs);
+
+      if (failCount === 0) {
+        setRefreshMessage(`✅ Todas as ${totalMVs} Materialized Views foram atualizadas com sucesso em ${totalDuration} minutos!`);
+      } else {
+        setRefreshMessage(
+          `✅ ${successCount} de ${totalMVs} Materialized Views atualizadas com sucesso em ${totalDuration} minutos. ` +
+          `${failCount} falharam${failedViews.length > 0 ? `: ${failedViews.slice(0, 3).join(', ')}${failedViews.length > 3 ? '...' : ''}` : ''}.`
+        );
+      }
+      
+      safeLog.info(`✅ Refresh concluído: ${successCount}/${totalMVs} MVs atualizadas em ${totalDuration} minutos`);
     } catch (error: any) {
       setRefreshMessage(`❌ Erro ao atualizar: ${error?.message || 'Erro desconhecido'}`);
       safeLog.error('Erro ao atualizar MVs:', error);
     } finally {
       setRefreshing(false);
+      // Manter progresso por alguns segundos antes de resetar
+      setTimeout(() => {
+        setRefreshProgress(0);
+        setRefreshProgressLabel('');
+        setRefreshTotal(0);
+        setRefreshCompleted(0);
+      }, 5000);
     }
   };
 
@@ -575,6 +628,27 @@ export default function UploadPage() {
                     <p className="text-sm text-amber-800 dark:text-amber-200">
                       Após fazer upload de novos dados, clique aqui para atualizar todas as Materialized Views e garantir que os dados estejam atualizados no dashboard.
                     </p>
+                    
+                    {/* Barra de Progresso */}
+                    {refreshing && refreshTotal > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <div className="overflow-hidden rounded-full bg-amber-200 shadow-inner dark:bg-amber-900">
+                          <div
+                            className="h-3 rounded-full bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 shadow-lg transition-all duration-500"
+                            style={{ width: `${refreshProgress}%` }}
+                          ></div>
+                        </div>
+                        <div className="text-center">
+                          <p className="font-semibold text-amber-900 dark:text-amber-100">
+                            {refreshProgressLabel || `${refreshCompleted}/${refreshTotal} atualizadas`}
+                          </p>
+                          <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                            {refreshProgress.toFixed(1)}% concluído
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
                     {refreshMessage && (
                       <div className={`mt-3 rounded-lg p-3 text-sm ${
                         refreshMessage.includes('✅')
