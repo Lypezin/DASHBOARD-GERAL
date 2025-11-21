@@ -444,9 +444,43 @@ export const createChartData = (
     };
   });
 
+  // ⚠️ CRÍTICO: Garantir que os labels e datasets estão alinhados corretamente
+  // Validar que cada dataset tem o mesmo número de elementos que baseLabels
+  const validatedDatasets = datasets.map(dataset => {
+    if (dataset.data.length !== baseLabels.length) {
+      if (IS_DEV) {
+        safeLog.error(`[createChartData] Dataset "${dataset.label}" tem ${dataset.data.length} elementos, mas esperado ${baseLabels.length}. Corrigindo...`);
+      }
+      // Preencher ou truncar para corresponder ao tamanho dos labels
+      const correctedData = [...dataset.data];
+      while (correctedData.length < baseLabels.length) {
+        correctedData.push(null);
+      }
+      if (correctedData.length > baseLabels.length) {
+        correctedData.splice(baseLabels.length);
+      }
+      return {
+        ...dataset,
+        data: correctedData
+      };
+    }
+    return dataset;
+  });
+
+  // ⚠️ DEBUG: Verificar alinhamento final
+  if (IS_DEV) {
+    safeLog.info(`[createChartData] Labels: ${baseLabels.length}, Datasets: ${validatedDatasets.length}`);
+    if (validatedDatasets.length > 0) {
+      const firstDataset = validatedDatasets[0];
+      safeLog.info(`[createChartData] Primeiro dataset tem ${firstDataset.data.length} elementos`);
+      safeLog.info(`[createChartData] Primeiros 5 labels: ${baseLabels.slice(0, 5).join(', ')}`);
+      safeLog.info(`[createChartData] Primeiros 5 dados: ${firstDataset.data.slice(0, 5).join(', ')}`);
+    }
+  }
+
   return {
-    labels: baseLabels,
-    datasets,
+    labels: baseLabels, // ⚠️ CRÍTICO: Sempre retornar todos os labels (S01-S53 ou Janeiro-Dezembro)
+    datasets: validatedDatasets,
   };
 };
 

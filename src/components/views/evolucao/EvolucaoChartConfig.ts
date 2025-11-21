@@ -18,7 +18,7 @@ export const createEvolucaoChartOptions = (
     padding: {
       top: 12,
       right: 16,
-      bottom: isSemanal ? 40 : 20, // ⚠️ CRÍTICO: Mais espaço para labels rotacionados
+      bottom: isSemanal ? 60 : 20, // ⚠️ CRÍTICO: Aumentar espaço para labels rotacionados (53 semanas)
       left: 12,
     },
   },
@@ -197,7 +197,7 @@ export const createEvolucaoChartOptions = (
       },
       ticks: {
         // ⚠️ CRÍTICO: Configurações para forçar exibição de TODOS os labels
-        maxTicksLimit: undefined, // Remover limite completamente
+        // Remover maxTicksLimit para não limitar quantidade
         autoSkip: false, // ⚠️ CRÍTICO: false para mostrar todos os labels
         includeBounds: true, // Incluir labels nas bordas
         maxRotation: isSemanal ? 60 : 0, // Aumentar rotação para semanas
@@ -209,8 +209,17 @@ export const createEvolucaoChartOptions = (
         },
         color: isDarkMode ? 'rgb(203, 213, 225)' : 'rgb(71, 85, 105)',
         padding: isSemanal ? 2 : 8, // Reduzir padding para semanas
-        // ⚠️ CRÍTICO: Forçar exibição de todos os ticks
-        stepSize: 1, // Mostrar um label a cada 1 unidade
+        // ⚠️ CRÍTICO: Callback para garantir que todos os labels sejam exibidos
+        // Chart.js passa o índice do tick, não o valor
+        callback: function(this: any, tickValue: any, index: number, ticks: any[]) {
+          // Retornar o label correspondente ao índice do array de labels
+          const labels = this.chart.data.labels;
+          if (labels && Array.isArray(labels) && labels[index] !== undefined) {
+            return labels[index];
+          }
+          // Fallback: retornar string vazia se não houver label
+          return '';
+        },
       },
     },
   },
