@@ -19,6 +19,7 @@ import {
 } from '@/constants/upload';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { marketingTransformers, valoresCidadeTransformers } from '@/utils/uploadTransformers';
+import { insertInBatches } from '@/utils/dbHelpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -180,23 +181,21 @@ export default function UploadPage() {
         const sanitizedData = await processCorridasFile(file);
 
         const totalRows = sanitizedData.length;
-        let insertedRows = 0;
-
         const fileProgress = (fileIdx / totalFiles) * 100;
         setProgress(fileProgress);
 
-        for (let i = 0; i < totalRows; i += BATCH_SIZE) {
-          const batch = sanitizedData.slice(i, i + BATCH_SIZE);
-          const { error: batchError } = await supabase.from('dados_corridas').insert(batch, { count: 'exact' });
-
-          if (batchError) {
-            throw new Error(`Erro no lote ${Math.floor(i / BATCH_SIZE) + 1}: ${batchError.message}`);
+        // Usar função insertInBatches que detecta automaticamente se precisa usar RPC
+        const { inserted, errors: insertErrors } = await insertInBatches('dados_corridas', sanitizedData, {
+          batchSize: BATCH_SIZE,
+          onProgress: (insertedRows, total) => {
+            const batchProgress = (insertedRows / total) * (100 / totalFiles);
+            setProgress(fileProgress + batchProgress);
+            setProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${total} linhas`);
           }
+        });
 
-          insertedRows += batch.length;
-          const batchProgress = (insertedRows / totalRows) * (100 / totalFiles);
-          setProgress(fileProgress + batchProgress);
-          setProgressLabel(`Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${totalRows} linhas`);
+        if (insertErrors.length > 0) {
+          throw new Error(`Erros durante inserção: ${insertErrors.join('; ')}`);
         }
 
         successCount++;

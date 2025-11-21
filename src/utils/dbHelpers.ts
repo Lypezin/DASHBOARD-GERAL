@@ -41,8 +41,10 @@ export async function insertInBatches<T = any>(
   safeLog.info(`Total de registros: ${totalRows}, Tamanho do lote: ${batchSize}`);
 
   // Verificar se precisa usar função RPC para bypassar RLS
-  const useRpcFunction = table === 'dados_marketing';
-  const rpcFunctionName = useRpcFunction ? 'insert_dados_marketing_batch' : null;
+  const useRpcFunction = table === 'dados_marketing' || table === 'dados_corridas';
+  const rpcFunctionName = useRpcFunction 
+    ? (table === 'dados_marketing' ? 'insert_dados_marketing_batch' : 'insert_dados_corridas_batch')
+    : null;
 
   for (let i = 0; i < totalRows; i += batchSize) {
     const batch = data.slice(i, i + batchSize);
