@@ -39,6 +39,7 @@ export default function UploadPage() {
   const [refreshProgressLabel, setRefreshProgressLabel] = useState('');
   const [refreshTotal, setRefreshTotal] = useState(0);
   const [refreshCompleted, setRefreshCompleted] = useState(0);
+  const [failedMVs, setFailedMVs] = useState<string[]>([]);
 
   // Hook genérico para upload de Marketing
   const marketingUpload = useFileUpload({
@@ -342,6 +343,7 @@ export default function UploadPage() {
     setRefreshCompleted(0);
     setRefreshTotal(0);
     setRefreshProgressLabel('');
+    setFailedMVs([]);
     
     try {
       // Passo 1: Obter lista de MVs pendentes
@@ -434,22 +436,18 @@ export default function UploadPage() {
             const warning = result?.warning;
             const error = result?.error;
             
-            if (success) {
+            // Se success = true OU se tem warning de fallback (que significa que funcionou), considerar sucesso
+            const isSuccess = success || (warning && (warning.includes('fallback') || warning.includes('CONCURRENTLY falhou')));
+            
+            if (isSuccess) {
               successCount++;
               const durationStr = duration 
                 ? `${duration.toFixed(1)}s` 
                 : 'N/A';
               const methodStr = method || (warning ? 'FALLBACK' : 'NORMAL');
               safeLog.info(`✅ ${viewName} atualizada em ${durationStr} (${methodStr})`);
-            } else if (warning && (warning.includes('fallback') || warning.includes('CONCURRENTLY falhou'))) {
-              // Fallback funcionou - considerar sucesso
-              successCount++;
-              const durationStr = duration 
-                ? `${duration.toFixed(1)}s` 
-                : 'N/A';
-              safeLog.info(`✅ ${viewName} atualizada em ${durationStr} (fallback - ${method || 'NORMAL'})`);
             } else {
-              // Falha real
+              // Falha real - apenas se não tem success E não tem warning de fallback
               failCount++;
               failedViews.push(mv.mv_name);
               const errorMsg = error || 'Erro desconhecido';
@@ -480,6 +478,9 @@ export default function UploadPage() {
       setRefreshProgress(100);
       setRefreshCompleted(totalMVs);
 
+      // Salvar lista de MVs que falharam para permitir retry
+      setFailedMVs(failedViews);
+      
       if (failCount === 0) {
         setRefreshMessage(`✅ Todas as ${totalMVs} Materialized Views foram atualizadas com sucesso em ${totalDuration} minutos!`);
       } else {
@@ -496,6 +497,93 @@ export default function UploadPage() {
     } finally {
       setRefreshing(false);
       // Manter progresso por alguns segundos antes de resetar
+      setTimeout(() => {
+        setRefreshProgress(0);
+        setRefreshProgressLabel('');
+        setRefreshTotal(0);
+        setRefreshCompleted(0);
+      }, 5000);
+    }
+  };
+
+  const handleRetryFailedMVs = async () => {
+    if (failedMVs.length === 0) {
+      setRefreshMessage('ℹ️ Nenhuma MV falhou para tentar novamente.');
+      return;
+    }
+
+    setRefreshing(true);
+    setRefreshMessage(`🔄 Tentando atualizar novamente ${failedMVs.length} Materialized Views que falharam...`);
+    setRefreshProgress(0);
+    setRefreshCompleted(0);
+    setRefreshTotal(failedMVs.length);
+    setRefreshProgressLabel(`0/${failedMVs.length} atualizadas`);
+
+    try {
+      const { data, error } = await safeRpc<{
+        success: boolean;
+        total_duration_seconds?: number;
+        views_processed?: number;
+        success_count?: number;
+        fail_count?: number;
+        results?: Array<{
+          success: boolean;
+          view: string;
+          duration_seconds?: number;
+          method?: string;
+          error?: string;
+          warning?: string;
+        }>;
+      }>('retry_failed_mvs', { mv_names: failedMVs }, {
+        timeout: 600000, // 10 minutos
+        validateParams: false
+      });
+
+      if (error) {
+        setRefreshMessage(`❌ Erro ao tentar atualizar novamente: ${(error as any)?.message || 'Erro desconhecido'}`);
+        safeLog.error('Erro ao retry MVs:', error);
+        setRefreshing(false);
+        return;
+      }
+
+      const result = (data as any)?.retry_failed_mvs || data;
+      const successCount = result?.success_count || 0;
+      const failCount = result?.fail_count || 0;
+      const totalDuration = result?.total_duration_seconds 
+        ? `${(result.total_duration_seconds / 60).toFixed(1)} minutos` 
+        : 'N/A';
+
+      setRefreshProgress(100);
+      setRefreshCompleted(failedMVs.length);
+
+      if (failCount === 0) {
+        setRefreshMessage(`✅ Todas as ${failedMVs.length} Materialized Views foram atualizadas com sucesso em ${totalDuration}!`);
+        setFailedMVs([]); // Limpar lista de falhas
+      } else {
+        // Atualizar lista de falhas com as que ainda falharam
+        const stillFailed: string[] = [];
+        if (result?.results) {
+          result.results.forEach((r: any) => {
+            const res = r.retry_failed_mvs || r;
+            if (!res.success) {
+              stillFailed.push(res.view || '');
+            }
+          });
+        }
+        setFailedMVs(stillFailed);
+        
+        setRefreshMessage(
+          `✅ ${successCount} de ${failedMVs.length} Materialized Views atualizadas com sucesso em ${totalDuration}. ` +
+          `${failCount} ainda falharam.`
+        );
+      }
+
+      safeLog.info(`✅ Retry concluído: ${successCount}/${failedMVs.length} MVs atualizadas`);
+    } catch (error: any) {
+      setRefreshMessage(`❌ Erro ao tentar atualizar novamente: ${error?.message || 'Erro desconhecido'}`);
+      safeLog.error('Erro ao retry MVs:', error);
+    } finally {
+      setRefreshing(false);
       setTimeout(() => {
         setRefreshProgress(0);
         setRefreshProgressLabel('');
@@ -712,9 +800,23 @@ export default function UploadPage() {
                           ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200'
                           : refreshMessage.includes('❌')
                           ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-200'
+                          : refreshMessage.includes('ℹ️')
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-200'
                           : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
                       }`}>
                         {refreshMessage}
+                      </div>
+                    )}
+                    
+                    {/* Botão para tentar novamente as que falharam */}
+                    {failedMVs.length > 0 && !refreshing && (
+                      <div className="mt-3">
+                        <button
+                          onClick={handleRetryFailedMVs}
+                          className="w-full transform rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                        >
+                          🔄 Tentar Novamente ({failedMVs.length} que falharam)
+                        </button>
                       </div>
                     )}
                   </div>
