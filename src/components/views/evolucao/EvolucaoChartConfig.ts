@@ -197,7 +197,7 @@ export const createEvolucaoChartOptions = (
       },
       ticks: {
         // ⚠️ CRÍTICO: Configurações para forçar exibição de TODOS os labels
-        // Remover maxTicksLimit para não limitar quantidade
+        // Chart.js usa os labels diretamente do data.labels, não precisa de callback
         autoSkip: false, // ⚠️ CRÍTICO: false para mostrar todos os labels
         includeBounds: true, // Incluir labels nas bordas
         maxRotation: isSemanal ? 60 : 0, // Aumentar rotação para semanas
@@ -209,17 +209,8 @@ export const createEvolucaoChartOptions = (
         },
         color: isDarkMode ? 'rgb(203, 213, 225)' : 'rgb(71, 85, 105)',
         padding: isSemanal ? 2 : 8, // Reduzir padding para semanas
-        // ⚠️ CRÍTICO: Callback para garantir que todos os labels sejam exibidos
-        // Chart.js passa o índice do tick, não o valor
-        callback: function(this: any, tickValue: any, index: number, ticks: any[]) {
-          // Retornar o label correspondente ao índice do array de labels
-          const labels = this.chart.data.labels;
-          if (labels && Array.isArray(labels) && labels[index] !== undefined) {
-            return labels[index];
-          }
-          // Fallback: retornar string vazia se não houver label
-          return '';
-        },
+        // ⚠️ CRÍTICO: Não usar callback - Chart.js deve usar labels diretamente
+        // O Chart.js mapeia automaticamente: data[0] -> labels[0], data[1] -> labels[1], etc.
       },
     },
   },

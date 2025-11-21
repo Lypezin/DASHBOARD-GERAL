@@ -246,22 +246,23 @@ export const getMetricConfig = (
     case 'completadas':
     default:
       // ⚠️ CRÍTICO: Garantir que todos os labels tenham um valor (número ou null) na ordem correta
+      // O Chart.js mapeia por índice: data[0] -> labels[0], data[1] -> labels[1], etc.
       const completadasData = baseLabels.map((label, index) => {
         const d = dadosPorLabel.get(label);
         // ⚠️ IMPORTANTE: Verificar explicitamente se é null ou undefined
         if (d === null || d === undefined) {
-          if (IS_DEV && index < 3) {
-            safeLog.info(`[getMetricConfig completadas] Label ${label} (índice ${index}) não tem dados`);
-          }
           return null;
         }
         const value = (d as any).corridas_completadas ?? (d as any).total_corridas;
         if (value == null || value === undefined) return null;
         const numValue = Number(value);
         const result = isNaN(numValue) || !isFinite(numValue) ? null : numValue;
-        if (IS_DEV && index < 3 && result !== null) {
-          safeLog.info(`[getMetricConfig completadas] Label ${label} (índice ${index}) tem valor: ${result}`);
+        
+        // ⚠️ DEBUG: Verificar mapeamento crítico (S22, S23, S24 que têm dados)
+        if (IS_DEV && (label === 'S22' || label === 'S23' || label === 'S24')) {
+          safeLog.info(`[getMetricConfig completadas] ${label} (índice ${index}) -> valor: ${result}, semana do dado: ${(d as any).semana}`);
         }
+        
         return result;
       });
       return {
@@ -467,14 +468,30 @@ export const createChartData = (
     return dataset;
   });
 
-  // ⚠️ DEBUG: Verificar alinhamento final
+  // ⚠️ DEBUG: Verificar alinhamento final e mapeamento crítico
   if (IS_DEV) {
     safeLog.info(`[createChartData] Labels: ${baseLabels.length}, Datasets: ${validatedDatasets.length}`);
     if (validatedDatasets.length > 0) {
       const firstDataset = validatedDatasets[0];
       safeLog.info(`[createChartData] Primeiro dataset tem ${firstDataset.data.length} elementos`);
-      safeLog.info(`[createChartData] Primeiros 5 labels: ${baseLabels.slice(0, 5).join(', ')}`);
-      safeLog.info(`[createChartData] Primeiros 5 dados: ${firstDataset.data.slice(0, 5).join(', ')}`);
+      
+      // Verificar mapeamento crítico: S22, S23, S24 (que têm dados)
+      const s22Index = baseLabels.indexOf('S22');
+      const s23Index = baseLabels.indexOf('S23');
+      const s24Index = baseLabels.indexOf('S24');
+      
+      if (s22Index >= 0) {
+        safeLog.info(`[createChartData] S22 está no índice ${s22Index}, valor: ${firstDataset.data[s22Index]}`);
+      }
+      if (s23Index >= 0) {
+        safeLog.info(`[createChartData] S23 está no índice ${s23Index}, valor: ${firstDataset.data[s23Index]}`);
+      }
+      if (s24Index >= 0) {
+        safeLog.info(`[createChartData] S24 está no índice ${s24Index}, valor: ${firstDataset.data[s24Index]}`);
+      }
+      
+      // Verificar se há dados nas primeiras semanas (devem ser null)
+      safeLog.info(`[createChartData] S01 (índice 0): ${firstDataset.data[0]}, S02 (índice 1): ${firstDataset.data[1]}`);
     }
   }
 
