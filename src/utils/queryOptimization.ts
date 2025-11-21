@@ -6,11 +6,12 @@
  */
 
 import { safeLog } from '@/lib/errorHandler';
+import type { FilterPayload } from '@/types/filters';
 
 /**
  * Verifica se há filtro de data no payload
  */
-export function hasDateFilter(payload: any): boolean {
+export function hasDateFilter(payload: FilterPayload): boolean {
   return !!(
     payload.p_data_inicial ||
     payload.p_data_final ||
@@ -27,7 +28,7 @@ export function hasDateFilter(payload: any): boolean {
  * ⚠️ Esta função NÃO bloqueia queries, apenas adiciona um filtro seguro
  * para evitar scans completos na tabela de 1.6M linhas
  */
-export function ensureDateFilter(payload: any): any {
+export function ensureDateFilter(payload: FilterPayload): FilterPayload & { _dateFilterAutoAdded?: boolean } {
   // Se já tem filtro de data, retorna sem modificar
   if (hasDateFilter(payload)) {
     return payload;
@@ -61,7 +62,7 @@ export function ensureDateFilter(payload: any): any {
  * 
  * Esta função NÃO bloqueia queries, apenas registra warning
  */
-export function validateDateFilter(payload: any, context: string = 'query'): void {
+export function validateDateFilter(payload: FilterPayload, context: string = 'query'): void {
   if (!hasDateFilter(payload)) {
     safeLog.warn(
       `⚠️ [DISK IO] ${context} executada sem filtro de data explícito - pode causar scan completo na tabela`,
@@ -82,11 +83,12 @@ export function validateDateFilter(payload: any, context: string = 'query'): voi
  * @param dateColumn - Nome da coluna de data (padrão: 'data_do_periodo')
  * @returns Query com filtro de data aplicado
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function applySafeDateFilter(
-  query: any,
-  payload: any,
+  query: any, // Supabase query builder type is complex, using any for now
+  payload: FilterPayload,
   dateColumn: string = 'data_do_periodo'
-): any {
+): typeof query {
   const payloadComFiltro = ensureDateFilter(payload);
 
   // Aplica filtros de data se existirem

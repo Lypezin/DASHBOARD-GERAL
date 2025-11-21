@@ -3,11 +3,13 @@
  * e garantir integridade dos dados
  */
 
+import type { FilterPayload, ValidatedFilterPayload } from '@/types/filters';
+
 /**
  * Valida e sanitiza payload de filtros para funções RPC
  */
-export function validateFilterPayload(payload: any): any {
-  const validated: any = {};
+export function validateFilterPayload(payload: FilterPayload): ValidatedFilterPayload {
+  const validated: ValidatedFilterPayload = {};
 
   // Validar ano
   if (payload.p_ano !== undefined && payload.p_ano !== null) {
@@ -258,7 +260,7 @@ export function validateFilterPayload(payload: any): any {
  * Valida se um valor é um número inteiro válido dentro de um range
  */
 export function validateInteger(
-  value: any,
+  value: unknown,
   min: number,
   max: number,
   fieldName: string = 'Valor'
@@ -277,7 +279,7 @@ export function validateInteger(
  * Valida e sanitiza string
  */
 export function validateString(
-  value: any,
+  value: unknown,
   maxLength: number = 1000,
   fieldName: string = 'Campo',
   allowEmpty: boolean = false

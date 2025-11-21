@@ -31,7 +31,9 @@ export interface RpcRetryOptions {
 /**
  * Verifica se um erro é um erro 500 (Internal Server Error)
  */
-export function is500Error(error: any): boolean {
+import type { RpcError } from '@/types/rpc';
+
+export function is500Error(error: unknown): boolean {
   const errorCode = error?.code || '';
   const errorMessage = String(error?.message || '');
   return errorCode === 'PGRST301' || 
@@ -42,7 +44,7 @@ export function is500Error(error: any): boolean {
 /**
  * Verifica se um erro é rate limit
  */
-export function isRateLimitError(error: any): boolean {
+export function isRateLimitError(error: unknown): boolean {
   const errorCode = error?.code || '';
   const errorMessage = String(error?.message || '');
   return errorCode === 'RATE_LIMIT_EXCEEDED' ||
@@ -122,9 +124,9 @@ export async function handleRpcErrorWithRetry(
  * Executa uma função com retry automático para erros 500 e rate limit
  */
 export async function executeWithRpcRetry<T>(
-  fn: () => Promise<{ data: T | null; error: any }>,
+  fn: () => Promise<{ data: T | null; error: RpcError | null }>,
   options: RpcRetryOptions = {}
-): Promise<{ data: T | null; error: any }> {
+): Promise<{ data: T | null; error: RpcError | null }> {
   const {
     maxRetries = 3,
     initialDelay = 2000,
@@ -135,7 +137,7 @@ export async function executeWithRpcRetry<T>(
     onRetry
   } = options;
 
-  let lastError: any = null;
+  let lastError: RpcError | null = null;
   let delay = initialDelay;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -190,7 +192,7 @@ export async function executeWithRpcRetry<T>(
 
       // Aguardar antes de tentar novamente
       await new Promise(resolve => setTimeout(resolve, delay));
-    } catch (error: any) {
+    } catch (error) {
       lastError = error;
       
       // Se é a última tentativa, lançar erro

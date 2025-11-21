@@ -137,7 +137,7 @@ export function calculateYAxisRange(
   const allValues: number[] = [];
   datasets.forEach(dataset => {
     if (dataset.data && Array.isArray(dataset.data)) {
-      dataset.data.forEach((value: any) => {
+      dataset.data.forEach((value: unknown) => {
         if (value != null && typeof value === 'number' && !isNaN(value) && isFinite(value)) {
           allValues.push(value);
         }
@@ -297,7 +297,7 @@ export function padDatasetToMatchLabels(
  * Normaliza valores do dataset (garante que são números válidos ou null)
  */
 export function normalizeDatasetValues(data: (number | null)[]): (number | null)[] {
-  return data.map((value: any) => {
+  return data.map((value: unknown) => {
     if (value == null || value === undefined) {
       return null;
     }

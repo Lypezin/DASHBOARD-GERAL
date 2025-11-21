@@ -42,7 +42,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         
         if (data) {
           // A função retorna um objeto com propriedade listar_todas_semanas contendo o array
-          let semanasArray: any[] = [];
+          let semanasArray: unknown[] = [];
           
           if (Array.isArray(data)) {
             semanasArray = data;
@@ -57,13 +57,13 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           if (Array.isArray(semanasArray) && semanasArray.length > 0) {
             // Se o primeiro item é um objeto, extrair a propriedade de semana
             if (typeof semanasArray[0] === 'object' && semanasArray[0] !== null) {
-              semanasProcessadas = semanasArray.map((item: any) => {
+              semanasProcessadas = semanasArray.map((item: Record<string, unknown>) => {
                 // Tentar diferentes propriedades comuns
                 return item.semana || item.semana_numero || item.numero_semana || item.ano_semana || String(item);
               }).filter(Boolean);
             } else {
               // Já é array de strings/números
-              semanasProcessadas = semanasArray.map((s: any) => String(s));
+              semanasProcessadas = semanasArray.map((s: unknown) => String(s));
             }
           }
           

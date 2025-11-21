@@ -17,3 +17,9 @@ export * from './rpc';
 
 // Tipos de Cache (já existe em cache.ts)
 export * from './cache';
+
+// Tipos de Upload
+export * from './upload';
+
+// Tipos de Filtros
+export * from './filters';

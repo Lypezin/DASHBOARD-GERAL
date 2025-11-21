@@ -44,7 +44,7 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [filters]);
   const handleChange = useCallback((key: keyof Filters, rawValue: string | null) => {
     setFilters((prev) => {
-      let processedValue: any = null;
+      let processedValue: string | number | null = null;
       if (rawValue && rawValue !== '') {
         if (key === 'ano' || key === 'semana') {
           processedValue = Number(rawValue);

@@ -21,15 +21,18 @@ import { RPC_TIMEOUTS, DELAYS } from '@/constants/config';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-function getSafeErrorMessage(error: any): string {
+function getSafeErrorMessage(error: unknown): string {
   if (error?.message) return error.message;
   if (typeof error === 'string') return error;
   return 'Erro ao carregar dados do dashboard';
 }
 
+import type { FilterPayload } from '@/types/filters';
+import type { RpcError } from '@/types/rpc';
+
 interface UseDashboardMainDataOptions {
-  filterPayload: any;
-  onError?: (error: any) => void;
+  filterPayload: FilterPayload;
+  onError?: (error: Error | RpcError) => void;
 }
 
 /**
@@ -85,8 +88,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         });
         
         if (rpcError) {
-          const errorCode = (rpcError as any)?.code || '';
-          const errorMessage = String((rpcError as any)?.message || '');
+          const errorCode = rpcError?.code || '';
+          const errorMessage = String(rpcError?.message || '');
           
           // Verificar se é erro de cliente mock
           if (errorMessage.includes('placeholder.supabase.co') || 
@@ -136,11 +139,12 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         }
         
         setError(null);
-      } catch (err: any) {
+      } catch (err) {
         const errorMsg = getSafeErrorMessage(err);
+        const error = err instanceof Error ? err : new Error(errorMsg);
         safeLog.error('Erro ao carregar dados principais do dashboard:', err);
         setError(errorMsg);
-        if (onError) onError(err);
+        if (onError) onError(error);
       } finally {
         setLoading(false);
       }

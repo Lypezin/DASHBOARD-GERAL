@@ -9,13 +9,75 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { is500Error } from '@/lib/rpcErrorHandler';
 import { EvolucaoMensal, EvolucaoSemanal, UtrSemanal } from '@/types';
 import { RPC_TIMEOUTS, CACHE, DELAYS } from '@/constants/config';
+import type { FilterPayload } from '@/types/filters';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 interface UseDashboardEvolucaoOptions {
-  filterPayload: any;
+  filterPayload: FilterPayload;
   anoEvolucao: number;
   activeTab: string;
+}
+
+/**
+ * Normaliza o filtro de praça para criar chave de cache única
+ * Converte arrays em string ordenada e normalizada
+ */
+function normalizePracaFilter(p_praca: string | string[] | null | undefined): string {
+  if (!p_praca) {
+    return 'all';
+  }
+  
+  if (Array.isArray(p_praca)) {
+    // Ordenar e normalizar array para garantir chave única
+    const normalized = p_praca
+      .map(p => String(p).trim())
+      .filter(p => p.length > 0)
+      .sort()
+      .join(',');
+    return normalized || 'all';
+  }
+  
+  // Se for string, normalizar (pode conter vírgulas)
+  const trimmed = String(p_praca).trim();
+  if (!trimmed) {
+    return 'all';
+  }
+  
+  // Se contém vírgulas, normalizar como array
+  if (trimmed.includes(',')) {
+    const pracas = trimmed
+      .split(',')
+      .map(p => p.trim())
+      .filter(p => p.length > 0)
+      .sort()
+      .join(',');
+    return pracas || 'all';
+  }
+  
+  return trimmed;
+}
+
+/**
+ * Prepara o valor de p_praca para passar para as funções RPC
+ * Mantém o formato original (string ou array) conforme esperado pela função
+ */
+function preparePracaForRpc(p_praca: string | string[] | null | undefined): string | string[] | null {
+  if (!p_praca) {
+    return null;
+  }
+  
+  if (Array.isArray(p_praca)) {
+    // Retornar array normalizado
+    const normalized = p_praca
+      .map(p => String(p).trim())
+      .filter(p => p.length > 0);
+    return normalized.length > 0 ? normalized : null;
+  }
+  
+  // Se for string, retornar como está (a função RPC pode processar string com vírgulas)
+  const trimmed = String(p_praca).trim();
+  return trimmed || null;
 }
 
 /**
@@ -43,9 +105,13 @@ export function useDashboardEvolucao(options: UseDashboardEvolucaoOptions) {
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    const pracaFilter = (filterPayload as any)?.p_praca || null;
-    const cacheKey = `evolucao-${anoEvolucao}-${pracaFilter || 'all'}`;
+    // Normalizar filtro de praça para criar chave de cache única
+    const pracaCacheKey = normalizePracaFilter(filterPayload.p_praca);
+    const cacheKey = `evolucao-${anoEvolucao}-${pracaCacheKey}`;
     const cached = evolucaoCacheRef.current.get(cacheKey);
+    
+    // Preparar valor de praça para passar para RPC (mantém formato original)
+    const pracaForRpc = preparePracaForRpc(filterPayload.p_praca);
 
     // Verificar cache
     if (cached && Date.now() - cached.timestamp < CACHE.EVOLUCAO_TTL) {
@@ -61,13 +127,14 @@ export function useDashboardEvolucao(options: UseDashboardEvolucaoOptions) {
       try {
         // ⚠️ CORREÇÃO: Passar parâmetros na ordem correta (p_ano primeiro, depois p_praca)
         // A função exige p_ano obrigatório para evitar timeout
+        // Usar pracaForRpc que mantém o formato correto (string ou array)
         const [mensalRes, semanalRes] = await Promise.all([
-          safeRpc<EvolucaoMensal[]>('listar_evolucao_mensal', { p_ano: anoEvolucao, p_praca: pracaFilter || null }, {
+          safeRpc<EvolucaoMensal[]>('listar_evolucao_mensal', { p_ano: anoEvolucao, p_praca: pracaForRpc }, {
             timeout: RPC_TIMEOUTS.MEDIUM,
             validateParams: false
           }),
           // ⚠️ OTIMIZAÇÃO: Solicitar todas as semanas (53 é o máximo em um ano)
-          safeRpc<EvolucaoSemanal[]>('listar_evolucao_semanal', { p_ano: anoEvolucao, p_praca: pracaFilter || null, p_limite_semanas: 53 }, {
+          safeRpc<EvolucaoSemanal[]>('listar_evolucao_semanal', { p_ano: anoEvolucao, p_praca: pracaForRpc, p_limite_semanas: 53 }, {
             timeout: RPC_TIMEOUTS.MEDIUM,
             validateParams: false
           })
@@ -99,7 +166,11 @@ export function useDashboardEvolucao(options: UseDashboardEvolucaoOptions) {
         if (IS_DEV) {
           safeLog.info(`[useDashboardEvolucao] ========== DADOS RECEBIDOS DO SUPABASE ==========`);
           safeLog.info(`[useDashboardEvolucao] Ano selecionado: ${anoEvolucao}`);
-          safeLog.info(`[useDashboardEvolucao] Praça filtro: ${pracaFilter || 'TODAS'}`);
+          const pracaDisplay = Array.isArray(pracaForRpc) 
+            ? `[${pracaForRpc.join(', ')}]` 
+            : (pracaForRpc || 'TODAS');
+          safeLog.info(`[useDashboardEvolucao] Praça filtro: ${pracaDisplay}`);
+          safeLog.info(`[useDashboardEvolucao] Cache key: ${cacheKey}`);
           safeLog.info(`[useDashboardEvolucao] Dados mensais recebidos: ${mensal.length} registros`);
           if (mensal.length > 0) {
             safeLog.info(`[useDashboardEvolucao] Primeiros 3 meses:`, mensal.slice(0, 3).map(d => ({

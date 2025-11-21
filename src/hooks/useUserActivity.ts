@@ -22,7 +22,7 @@ const functionAvailability = {
  * Inclui detecção de visibilidade da página e limpeza automática de sessões inativas.
  * 
  * @param {string} activeTab - Aba ativa do dashboard
- * @param {any} filters - Filtros atuais aplicados (pode ser Filters ou objeto genérico)
+ * @param {DashboardFilters | Record<string, unknown>} filters - Filtros atuais aplicados
  * @param {Object | null} currentUser - Usuário atual
  * @param {boolean} currentUser.is_admin - Se o usuário é administrador
  * @param {string[]} currentUser.assigned_pracas - Praças atribuídas ao usuário
@@ -40,13 +40,20 @@ const functionAvailability = {
  * registrarAtividade('view', { view: 'dashboard' }, 'dashboard', filters);
  * ```
  */
-export function useUserActivity(activeTab: string, filters: any, currentUser: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null) {
+import type { DashboardFilters } from '@/types/filters';
+
+export function useUserActivity(
+  activeTab: string,
+  filters: DashboardFilters | Record<string, unknown>,
+  currentUser: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null
+) {
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [sessionId, setSessionId] = useState<string>('');
 
   // Obter sessionId do Supabase com retry e listener
   useEffect(() => {
     let mounted = true;
+    let retryTimeout: NodeJS.Timeout | null = null;
     
     const getSession = async () => {
       try {
@@ -58,7 +65,7 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
           }
         } else if (mounted) {
           // Tentar novamente após 1 segundo se não conseguir na primeira tentativa
-          setTimeout(async () => {
+          retryTimeout = setTimeout(async () => {
             if (!mounted) return;
             try {
               const { data: { session: retrySession } } = await supabase.auth.getSession();
@@ -99,6 +106,9 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
 
     return () => {
       mounted = false;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
       subscription.unsubscribe();
     };
   }, []);
@@ -117,9 +127,9 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
   // Função para registrar atividade
   const registrarAtividade = useCallback(async (
     action_type: string,
-    action_details: any = {},
+    action_details: Record<string, unknown> = {},
     tab_name: string | null = null,
-    filters_applied: any = {}
+    filters_applied: DashboardFilters | Record<string, unknown> = {}
   ) => {
     // Verificar se há usuário autenticado e sessionId
     if (!currentUserRef.current || !sessionId) {
@@ -208,8 +218,8 @@ export function useUserActivity(activeTab: string, filters: any, currentUser: { 
 
       if (error) {
         // Ignorar erros 404 (função não encontrada) e heartbeat silenciosamente
-        const errorCode = (error as any)?.code;
-        const errorMessage = String((error as any)?.message || '');
+        const errorCode = error?.code;
+        const errorMessage = String(error?.message || '');
         const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
                       errorCode === 'PGRST204' ||
                       errorMessage.includes('404') || 

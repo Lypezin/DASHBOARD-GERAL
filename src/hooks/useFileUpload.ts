@@ -101,7 +101,7 @@ export function useFileUpload(options: FileUploadOptions) {
         
         try {
           await deleteAllRecords(tableName, deleteRpcFunction);
-        } catch (deleteErr: any) {
+        } catch (deleteErr) {
           safeLog.error('Erro na etapa de remoção:', deleteErr);
           throw new Error(`Erro ao preparar banco de dados: ${deleteErr.message || deleteErr}`);
         }
@@ -166,7 +166,7 @@ export function useFileUpload(options: FileUploadOptions) {
           totalInsertedRows += inserted;
           safeLog.info(`Arquivo ${file.name} processado com sucesso: ${inserted} registros inseridos`);
           successCount++;
-        } catch (error: any) {
+        } catch (error) {
           safeLog.error(`❌ ERRO no arquivo ${file.name}:`, error);
           safeLog.error('Stack trace:', error?.stack);
           errorCount++;

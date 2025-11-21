@@ -17,7 +17,7 @@ export interface ColumnTransformer {
   /** Nome da coluna no banco de dados */
   dbColumn: string;
   /** Função de transformação opcional */
-  transform?: (value: any, rowIndex: number) => any;
+  transform?: (value: unknown, rowIndex: number) => unknown;
   /** Se o campo é obrigatório */
   required?: boolean;
   /** Mensagem de erro customizada */
@@ -70,7 +70,7 @@ export function createFlexibleColumnMapping(
 export async function processExcelData(
   file: File,
   config: ExcelProcessConfig
-): Promise<any[]> {
+): Promise<Record<string, unknown>[]> {
   const {
     columnMap,
     transformers = {},
@@ -112,7 +112,7 @@ export async function processExcelData(
   }
 
   // Verificar colunas disponíveis na planilha
-  const firstRow = rawData[0] as any;
+  const firstRow = rawData[0] as Record<string, unknown>;
   const availableColumns = Object.keys(firstRow || {});
   const requiredColumns = Object.keys(columnMap);
   
@@ -132,9 +132,9 @@ export async function processExcelData(
 
   // Processar e sanitizar dados
   const sanitizedData = rawData
-    .map((row: any, rowIndex: number) => {
+    .map((row: Record<string, unknown>, rowIndex: number) => {
       try {
-        const sanitized: any = {};
+        const sanitized: Record<string, unknown> = {};
         
         for (const excelCol in columnMap) {
           const dbCol = columnMap[excelCol];
@@ -151,7 +151,7 @@ export async function processExcelData(
           if (transformers[dbCol]) {
             try {
               value = transformers[dbCol]!(value, rowIndex);
-            } catch (transformError: any) {
+            } catch (transformError) {
               throw new Error(`Erro ao transformar ${dbCol} na linha ${rowIndex + 2}: ${transformError.message}`);
             }
           }
@@ -167,11 +167,11 @@ export async function processExcelData(
         }
 
         return sanitized;
-      } catch (rowError: any) {
+      } catch (rowError) {
         throw new Error(`Erro na linha ${rowIndex + 2}: ${rowError.message}`);
       }
     })
-    .filter((row: any) => {
+    .filter((row: Record<string, unknown>) => {
       if (!filterEmptyRows) return true;
       // Filtrar linhas vazias
       const hasData = Object.values(row).some((v) => v !== null && v !== undefined && v !== '');
@@ -197,7 +197,7 @@ export const commonTransformers = {
   /**
    * Transforma data DD/MM/YYYY para YYYY-MM-DD
    */
-  date: (value: any, rowIndex: number): string | null => {
+  date: (value: unknown, rowIndex: number): string | null => {
     const originalValue = value;
     const converted = convertDDMMYYYYToDate(value);
     if (!converted) {
@@ -209,7 +209,7 @@ export const commonTransformers = {
   /**
    * Transforma data obrigatória (lança erro se inválida)
    */
-  requiredDate: (value: any, rowIndex: number): string => {
+  requiredDate: (value: unknown, rowIndex: number): string => {
     const originalValue = value;
     const converted = convertDDMMYYYYToDate(value);
     if (!converted) {
@@ -221,7 +221,7 @@ export const commonTransformers = {
   /**
    * Sanitiza string
    */
-  string: (maxLength: number = 500) => (value: any, rowIndex: number): string | null => {
+  string: (maxLength: number = 500) => (value: unknown, rowIndex: number): string | null => {
     if (value === null || value === undefined || value === '') {
       return null;
     }
@@ -238,7 +238,7 @@ export const commonTransformers = {
   /**
    * Transforma valor numérico
    */
-  number: (value: any, rowIndex: number): number => {
+  number: (value: unknown, rowIndex: number): number => {
     if (value === null || value === undefined || value === '') {
       throw new Error('Valor numérico não pode ser vazio');
     }
@@ -255,7 +255,7 @@ export const commonTransformers = {
   /**
    * Normaliza "Rodando" para "Sim" ou "Não"
    */
-  rodando: (value: any, rowIndex: number): string | null => {
+  rodando: (value: unknown, rowIndex: number): string | null => {
     if (value && typeof value === 'string') {
       const normalized = value.trim().toLowerCase();
       if (normalized === 'sim' || normalized === 's' || normalized === 'yes' || normalized === 'y' || normalized === '1' || normalized === 'true') {

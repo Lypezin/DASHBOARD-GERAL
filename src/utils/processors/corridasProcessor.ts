@@ -16,7 +16,7 @@ import {
  * @param file Arquivo Excel a ser processado
  * @returns Array de objetos sanitizados prontos para inserção no banco
  */
-export async function processCorridasFile(file: File): Promise<any[]> {
+export async function processCorridasFile(file: File): Promise<Record<string, unknown>[]> {
   const arrayBuffer = await file.arrayBuffer();
   const workbook = XLSX.read(arrayBuffer, { raw: true });
   const sheetName = workbook.SheetNames[0];
@@ -24,8 +24,8 @@ export async function processCorridasFile(file: File): Promise<any[]> {
   const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
 
   const sanitizedData = rawData
-    .map((row: any) => {
-      const sanitized: any = {};
+    .map((row: Record<string, unknown>) => {
+      const sanitized: Record<string, unknown> = {};
       for (const excelCol in COLUMN_MAP) {
         const dbCol = COLUMN_MAP[excelCol];
         let value = row[excelCol];
@@ -78,7 +78,7 @@ export async function processCorridasFile(file: File): Promise<any[]> {
       }
       return sanitized;
     })
-    .filter((row: any) => {
+    .filter((row: Record<string, unknown>) => {
       const hasData = Object.values(row).some((v) => v !== null && v !== undefined && v !== '');
       return hasData;
     });

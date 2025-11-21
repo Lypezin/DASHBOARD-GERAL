@@ -38,7 +38,7 @@ export function useDashboardFilters(options: UseDashboardFiltersOptions) {
 
     // Processar praças
     let pracasDisponiveis: FilterOption[] = Array.isArray(dimensoes.pracas)
-      ? dimensoes.pracas.map((p: any) => ({ value: String(p), label: String(p) }))
+      ? dimensoes.pracas.map((p: string | number) => ({ value: String(p), label: String(p) }))
       : [];
 
     // Filtrar praças baseado nas permissões do usuário
@@ -80,7 +80,7 @@ export function useDashboardFilters(options: UseDashboardFiltersOptions) {
               safeLog.warn('Erro ao buscar sub-praças do banco, usando fallback:', subPracasResult.error);
             }
             const subPracasDoDashboard = Array.isArray(dimensoes.sub_pracas)
-              ? dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) }))
+              ? dimensoes.sub_pracas.map((p: string | number) => ({ value: String(p), label: String(p) }))
               : [];
             subPracasDisponiveis = subPracasDoDashboard.filter((sp) => {
               const subPracaValue = sp.value.toUpperCase();
@@ -104,8 +104,8 @@ export function useDashboardFilters(options: UseDashboardFiltersOptions) {
             if (IS_DEV) {
               safeLog.warn('Erro ao buscar turnos do banco, usando fallback:', turnosResult.error);
             }
-            turnosDisponiveis = Array.isArray((dimensoes as any).turnos)
-              ? (dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) }))
+            turnosDisponiveis = Array.isArray((dimensoes as { turnos?: (string | number)[] }).turnos)
+              ? (dimensoes as { turnos: (string | number)[] }).turnos.map((t: string | number) => ({ value: String(t), label: String(t) }))
               : [];
           }
           setTurnos(turnosDisponiveis);
@@ -123,7 +123,7 @@ export function useDashboardFilters(options: UseDashboardFiltersOptions) {
               safeLog.warn('Erro ao buscar origens do banco, usando fallback:', origensResult.error);
             }
             origensDisponiveis = Array.isArray(dimensoes.origens)
-              ? dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) }))
+              ? dimensoes.origens.map((p: string | number) => ({ value: String(p), label: String(p) }))
               : [];
           }
           setOrigens(origensDisponiveis);
@@ -144,8 +144,8 @@ export function useDashboardFilters(options: UseDashboardFiltersOptions) {
             });
           });
           setSubPracas(subPracasFiltradas);
-          setTurnos(Array.isArray((dimensoes as any).turnos)
-            ? (dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) }))
+          setTurnos(Array.isArray((dimensoes as { turnos?: (string | number)[] }).turnos)
+            ? (dimensoes as { turnos: (string | number)[] }).turnos.map((t: string | number) => ({ value: String(t), label: String(t) }))
             : []);
           setOrigens(Array.isArray(dimensoes.origens)
             ? dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) }))
@@ -156,8 +156,8 @@ export function useDashboardFilters(options: UseDashboardFiltersOptions) {
       setSubPracas(Array.isArray(dimensoes.sub_pracas)
         ? dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) }))
         : []);
-      setTurnos(Array.isArray((dimensoes as any).turnos)
-        ? (dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) }))
+      setTurnos(Array.isArray((dimensoes as { turnos?: (string | number)[] }).turnos)
+        ? (dimensoes as { turnos: (string | number)[] }).turnos.map((t: string | number) => ({ value: String(t), label: String(t) }))
         : []);
       setOrigens(Array.isArray(dimensoes.origens)
         ? dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) }))

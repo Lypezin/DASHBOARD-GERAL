@@ -32,6 +32,8 @@ function cleanupExpiredRecords() {
 // Limpar registros expirados a cada minuto
 // Armazenar referência do interval para poder limpar se necessário
 let cleanupInterval: NodeJS.Timeout | null = null;
+let beforeUnloadHandler: (() => void) | null = null;
+let visibilityChangeHandler: (() => void) | null = null;
 
 /**
  * Inicializa o cleanup periódico de registros expirados
@@ -45,24 +47,42 @@ function initializeCleanup() {
   cleanupInterval = setInterval(cleanupExpiredRecords, 60000);
   
   // Limpar interval quando a página for descarregada (prevenção de memory leak)
-  const handleBeforeUnload = () => {
+  beforeUnloadHandler = () => {
     if (cleanupInterval) {
       clearInterval(cleanupInterval);
       cleanupInterval = null;
     }
   };
 
-  window.addEventListener('beforeunload', handleBeforeUnload);
+  window.addEventListener('beforeunload', beforeUnloadHandler);
   
   // Também limpar quando a página ficar oculta (Page Visibility API)
-  const handleVisibilityChange = () => {
+  visibilityChangeHandler = () => {
     if (document.hidden && cleanupInterval) {
       // Não limpar completamente, apenas pausar temporariamente
       // O interval continuará quando a página voltar a ficar visível
     }
   };
   
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+  document.addEventListener('visibilitychange', visibilityChangeHandler);
+}
+
+/**
+ * Limpa todos os listeners e intervals (para testes ou cleanup manual)
+ */
+export function cleanupRateLimiter() {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+  }
+  if (beforeUnloadHandler && typeof window !== 'undefined') {
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+    beforeUnloadHandler = null;
+  }
+  if (visibilityChangeHandler && typeof document !== 'undefined') {
+    document.removeEventListener('visibilitychange', visibilityChangeHandler);
+    visibilityChangeHandler = null;
+  }
 }
 
 // Inicializar cleanup apenas no cliente

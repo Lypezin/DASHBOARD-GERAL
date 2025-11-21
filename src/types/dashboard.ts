@@ -233,7 +233,7 @@ export interface UsuarioOnline {
   pracas: string[];
   ultima_acao: string;
   aba_atual: string | null;
-  filtros: any;
+  filtros: Record<string, unknown>;
   ultima_atividade: string;
   segundos_inativo: number;
   acoes_ultima_hora: number;

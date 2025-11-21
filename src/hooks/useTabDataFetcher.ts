@@ -17,16 +17,19 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 
+import type { FilterPayload } from '@/types/filters';
+import type { RpcError } from '@/types/rpc';
+
 interface FetchOptions {
   tab: string;
-  filterPayload: any;
+  filterPayload: FilterPayload;
   onRetry?: (attempt: number) => void;
 }
 
 /**
  * Fallback: Busca dados de UTR diretamente da tabela dados_corridas
  */
-async function fetchUtrFallback(payload: any): Promise<UtrData | null> {
+async function fetchUtrFallback(payload: FilterPayload): Promise<UtrData | null> {
   try {
     // ⚠️ OTIMIZAÇÃO DISK IO: Garantir filtro de data para evitar scan completo
     validateDateFilter(payload, 'fetchUtrFallback');
@@ -161,7 +164,7 @@ async function fetchUtrFallback(payload: any): Promise<UtrData | null> {
       origem: [],
       turno: []
     };
-  } catch (error: any) {
+  } catch (error) {
     safeLog.error('Erro no fallback fetchUtrFallback:', error);
     throw error;
   }
@@ -170,7 +173,7 @@ async function fetchUtrFallback(payload: any): Promise<UtrData | null> {
 /**
  * Fallback: Busca dados de entregadores diretamente da tabela dados_corridas
  */
-async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData> {
+async function fetchEntregadoresFallback(payload: FilterPayload): Promise<EntregadoresData> {
   try {
     // ⚠️ OTIMIZAÇÃO DISK IO: Garantir filtro de data para evitar scan completo
     validateDateFilter(payload, 'fetchEntregadoresFallback');
@@ -317,7 +320,7 @@ async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData
       entregadores,
       total: entregadores.length
     };
-  } catch (error: any) {
+  } catch (error) {
     safeLog.error('Erro no fallback fetchEntregadoresFallback:', error);
     throw error;
   }
@@ -326,7 +329,7 @@ async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData
 /**
  * Fallback: Busca dados de valores diretamente da tabela dados_corridas
  */
-async function fetchValoresFallback(payload: any): Promise<ValoresEntregador[]> {
+async function fetchValoresFallback(payload: FilterPayload): Promise<ValoresEntregador[]> {
   try {
     // ⚠️ OTIMIZAÇÃO DISK IO: Garantir filtro de data para evitar scan completo
     validateDateFilter(payload, 'fetchValoresFallback');
@@ -446,7 +449,7 @@ async function fetchValoresFallback(payload: any): Promise<ValoresEntregador[]> 
     }));
 
     return valores;
-  } catch (error: any) {
+  } catch (error) {
     safeLog.error('Erro no fallback fetchValoresFallback:', error);
     throw error;
   }
@@ -455,7 +458,7 @@ async function fetchValoresFallback(payload: any): Promise<ValoresEntregador[]> 
 /**
  * Busca dados de UTR
  */
-async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | null; error: any }> {
+async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | null; error: RpcError | null }> {
   const { filterPayload } = options;
 
   const result = await safeRpc<any>('calcular_utr', filterPayload as any, {
@@ -474,7 +477,7 @@ async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | nu
         if (fallbackData) {
           return { data: fallbackData, error: null };
         }
-      } catch (fallbackError: any) {
+      } catch (fallbackError) {
         safeLog.error('Erro no fallback ao buscar UTR:', fallbackError);
       }
       throw new Error('RETRY_500');
@@ -494,7 +497,7 @@ async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | nu
         if (fallbackData) {
           return { data: fallbackData, error: null };
         }
-      } catch (fallbackError: any) {
+      } catch (fallbackError) {
         safeLog.error('Erro no fallback ao buscar UTR:', fallbackError);
       }
     }
@@ -520,7 +523,7 @@ async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | nu
 /**
  * Busca dados de Entregadores
  */
-async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: any }> {
+async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
   const { filterPayload } = options;
 
   // Remover p_turno pois a função não suporta
@@ -545,7 +548,7 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
         if (fallbackData && fallbackData.entregadores.length > 0) {
           return { data: fallbackData, error: null };
         }
-      } catch (fallbackError: any) {
+      } catch (fallbackError) {
         safeLog.error('Erro no fallback ao buscar entregadores:', fallbackError);
       }
       throw new Error('RETRY_500');
@@ -565,7 +568,7 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
         if (fallbackData) {
           return { data: fallbackData, error: null };
         }
-      } catch (fallbackError: any) {
+      } catch (fallbackError) {
         safeLog.error('Erro no fallback ao buscar entregadores:', fallbackError);
       }
     }
@@ -577,7 +580,7 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
   let processedData: EntregadoresData = { entregadores: [], total: 0 };
 
   if (result && result.data) {
-    let entregadores: any[] = [];
+    let entregadores: Record<string, unknown>[] = [];
     let total = 0;
 
     if (typeof result.data === 'object' && !Array.isArray(result.data)) {
@@ -603,12 +606,12 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
 /**
  * Busca dados de Valores
  */
-async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; error: any }> {
+async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; error: RpcError | null }> {
   const { filterPayload } = options;
 
   // Filtrar apenas os parâmetros que a função RPC aceita
   const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final'];
-  const listarValoresPayload: any = {};
+  const listarValoresPayload: FilterPayload = {};
   
   for (const key of allowedParams) {
     if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
@@ -632,7 +635,7 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
         if (fallbackData && fallbackData.length > 0) {
           return { data: fallbackData, error: null };
         }
-      } catch (fallbackError: any) {
+      } catch (fallbackError) {
         safeLog.error('Erro no fallback ao buscar valores:', fallbackError);
       }
       throw new Error('RETRY_500');
@@ -652,7 +655,7 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
         if (fallbackData && fallbackData.length > 0) {
           return { data: fallbackData, error: null };
         }
-      } catch (fallbackError: any) {
+      } catch (fallbackError) {
         safeLog.error('Erro no fallback ao buscar valores:', fallbackError);
       }
       
@@ -673,7 +676,7 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
 
   if (result && result.data !== null && result.data !== undefined) {
     if (typeof result.data === 'object' && !Array.isArray(result.data)) {
-      const dataObj = result.data as any;
+      const dataObj = result.data as { entregadores?: ValoresEntregador[]; valores?: ValoresEntregador[] } | null;
       
       if ('entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
         processedData = dataObj.entregadores;
@@ -694,7 +697,7 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
 /**
  * Busca dados baseado no tipo de tab
  */
-export async function fetchTabData(options: FetchOptions): Promise<{ data: TabData; error: any }> {
+export async function fetchTabData(options: FetchOptions): Promise<{ data: TabData; error: RpcError | null }> {
   const { tab } = options;
 
   try {
@@ -717,7 +720,7 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
       default:
         return { data: null, error: new Error(`Tab desconhecida: ${tab}`) };
     }
-  } catch (error: any) {
+  } catch (error) {
     if (error.message === 'RETRY_500' || error.message === 'RETRY_RATE_LIMIT') {
       throw error;
     }
@@ -735,9 +738,9 @@ export function useTabDataFetcher() {
 
   const fetchWithRetry = async (
     tab: string,
-    filterPayload: any,
+    filterPayload: FilterPayload,
     onSuccess: (data: TabData) => void,
-    onError: (error: any) => void,
+    onError: (error: Error | RpcError) => void,
     shouldContinue: () => boolean
   ): Promise<void> => {
     if (abortControllerRef.current) {
@@ -767,7 +770,7 @@ export function useTabDataFetcher() {
 
       onSuccess(result.data);
       setLoading(false);
-    } catch (error: any) {
+    } catch (error) {
       if (!shouldContinue()) {
         return;
       }

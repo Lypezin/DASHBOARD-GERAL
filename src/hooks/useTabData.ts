@@ -18,7 +18,7 @@ type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 const requestQueue = new Map<string, { timestamp: number; count: number }>();
 
 // Sistema de deduplicação de requisições - armazena promises em andamento
-const pendingRequests = new Map<string, Promise<any>>();
+const pendingRequests = new Map<string, Promise<unknown>>();
 
 /**
  * Hook para gerenciar dados específicos de cada aba do dashboard

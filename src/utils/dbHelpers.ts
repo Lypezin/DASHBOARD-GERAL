@@ -22,7 +22,7 @@ export interface BatchInsertOptions {
 /**
  * Insere dados em lotes no banco de dados
  */
-export async function insertInBatches<T = any>(
+export async function insertInBatches<T extends Record<string, unknown> = Record<string, unknown>>(
   table: string,
   data: T[],
   options: BatchInsertOptions = {}
@@ -60,8 +60,8 @@ export async function insertInBatches<T = any>(
         const dadosJsonb = batch.map(item => {
           // Garantir que todos os valores estão no formato correto
           // Converter para objeto simples para garantir compatibilidade
-          const itemObj = item as Record<string, any>;
-          const cleanItem: Record<string, any> = {};
+          const itemObj = item as Record<string, unknown>;
+          const cleanItem: Record<string, unknown> = {};
           for (const [key, value] of Object.entries(itemObj)) {
             // Converter undefined/null para null explícito
             // Manter tipos originais (number, string, etc)
@@ -81,7 +81,7 @@ export async function insertInBatches<T = any>(
         const { data: rpcResult, error: rpcError } = await supabase
           .rpc(rpcFunctionName, { 
             dados: dadosJsonb 
-          } as any);
+          } as { dados: unknown[] });
 
         if (rpcError) {
           const errorMsg = `Erro no lote ${batchNumber}: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}${rpcError.code ? ` [${rpcError.code}]` : ''}`;
@@ -124,7 +124,7 @@ export async function insertInBatches<T = any>(
                 }
                 continue; // Pular para próximo lote
               }
-            } catch (fallbackError: any) {
+            } catch (fallbackError) {
               // Fallback também falhou
               errors.push(errorMsg);
               throw new Error(errorMsg);
@@ -135,18 +135,19 @@ export async function insertInBatches<T = any>(
           }
         }
 
-        const inserted = (rpcResult as any)?.inserted || 0;
-        const rpcErrors = (rpcResult as any)?.errors || 0;
+        const result = rpcResult as { inserted?: number; errors?: number; error_messages?: string[] } | null;
+        const inserted = result?.inserted || 0;
+        const rpcErrors = result?.errors || 0;
         
         if (rpcErrors > 0) {
-          const errorMessages = (rpcResult as any)?.error_messages || [];
+          const errorMessages = result?.error_messages || [];
           errorMessages.forEach((msg: string) => errors.push(`Lote ${batchNumber}: ${msg}`));
         }
 
         insertedRows += inserted;
       } else {
         // Inserção direta (para tabelas sem RLS restritivo)
-        const insertOptions: any = { count: 'exact' };
+        const insertOptions: { count: 'exact' } = { count: 'exact' };
         if (returnData) {
           insertOptions.select = '*';
         }
@@ -177,7 +178,7 @@ export async function insertInBatches<T = any>(
       }
       
       safeLog.info(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
-    } catch (error: any) {
+    } catch (error) {
       const errorMsg = error?.message || `Erro desconhecido no lote ${batchNumber}`;
       errors.push(errorMsg);
       safeLog.error(`Erro no lote ${batchNumber}:`, error);
@@ -228,8 +229,9 @@ export async function deleteAllRecords(
       } else {
         throw new Error(`Erro ao deletar via RPC: ${rpcError.message}${rpcError.details ? ` (${rpcError.details})` : ''}`);
       }
-    } catch (rpcErr: any) {
-      if (rpcErr.code !== 'PGRST116') {
+    } catch (rpcErr) {
+      const error = rpcErr as { code?: string; message?: string };
+      if (error.code !== 'PGRST116') {
         throw rpcErr;
       }
       safeLog.info('Função RPC não disponível, usando fallback...');

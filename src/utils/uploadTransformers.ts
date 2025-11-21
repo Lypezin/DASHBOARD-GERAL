@@ -28,7 +28,7 @@ export const marketingTransformers = {
   responsavel: commonTransformers.string(500),
 
   // id_entregador - opcional, pode ser null
-  id_entregador: (value: any, rowIndex: number): string | null => {
+  id_entregador: (value: unknown, rowIndex: number): string | null => {
     if (value && typeof value === 'string') {
       const trimmed = value.trim();
       return trimmed === '' ? null : trimmed;
@@ -47,7 +47,7 @@ export const valoresCidadeTransformers = {
   data: commonTransformers.requiredDate,
 
   // ID obrigatório
-  id_atendente: (value: any, rowIndex: number): string => {
+  id_atendente: (value: unknown, rowIndex: number): string => {
     if (value && typeof value === 'string') {
       const trimmed = value.trim();
       if (trimmed === '') {
@@ -61,7 +61,7 @@ export const valoresCidadeTransformers = {
   },
 
   // Cidade obrigatória
-  cidade: (value: any, rowIndex: number): string => {
+  cidade: (value: unknown, rowIndex: number): string => {
     if (value && typeof value === 'string') {
       try {
         return validateString(value, 200, 'cidade', false);

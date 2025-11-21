@@ -26,7 +26,8 @@ export const createEvolucaoChartOptions = (isDarkMode: boolean, isSemanal: boole
     intersect: false,
     axis: 'x' as const,
   },
-  onHover: (event: any, activeElements: any[]) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onHover: (event: any, activeElements: any[]) => { // Chart.js event types are complex
     if (activeElements && activeElements.length > 0) {
       event.native.target.style.cursor = 'pointer';
     } else {
@@ -64,7 +65,8 @@ export const createEvolucaoChartOptions = (isDarkMode: boolean, isSemanal: boole
       displayColors: true,
       usePointStyle: true,
       callbacks: {
-        label: function(context: any) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        label: function(context: any) { // Chart.js context type is complex
           const label = context.dataset.label || '';
           const value = context.parsed.y;
           if (value == null || isNaN(value) || !isFinite(value)) {
@@ -117,7 +119,8 @@ export const createEvolucaoChartOptions = (isDarkMode: boolean, isSemanal: boole
           weight: '500' as const,
         },
         padding: 8,
-        callback: function(value: any) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        callback: function(value: any) { // Chart.js value type is complex
           if (typeof value === 'number' && (isNaN(value) || !isFinite(value))) {
             return '';
           }
@@ -143,7 +146,8 @@ export const createMetricDatasetConfig = (
     label: string;
     data: (number | null)[];
     borderColor: string;
-    backgroundColor: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    backgroundColor: any; // Chart.js gradient type is complex
     pointColor: string;
     yAxisID: string;
   }
@@ -188,7 +192,8 @@ export const createMetricDatasetConfig = (
     stack: undefined,
     stepped: false,
     segment: {
-      borderColor: (ctx: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      borderColor: (ctx: any) => { // Chart.js context type is complex
         if (!ctx.p0 || !ctx.p1) return borderColorWithOpacity;
         return borderColorWithOpacity;
       },

@@ -188,7 +188,7 @@ export async function safeRpc<T = unknown>(
       }
 
       return result;
-    } catch (error: any) {
+    } catch (error) {
       // Limpar timeout em caso de erro
       if (timeoutId) {
         clearTimeout(timeoutId);
@@ -274,10 +274,16 @@ function sanitizeParams(params: RpcParams): SanitizedRpcParams {
 /**
  * Sanitiza mensagens de erro para não expor informações sensíveis em produção
  */
-function sanitizeError(error: any): any {
-  if (!error) return error;
+function sanitizeError(error: unknown): RpcError {
+  if (!error) {
+    return {
+      message: 'Erro desconhecido',
+      code: 'UNKNOWN',
+    };
+  }
 
   const IS_PROD = process.env.NODE_ENV === 'production';
+  const errorObj = error as { code?: string; error_code?: string; message?: string; details?: string; hint?: string };
 
   // Mapeamento de códigos de erro para mensagens genéricas
   const ERROR_MESSAGES: Record<string, string> = {
@@ -290,23 +296,24 @@ function sanitizeError(error: any): any {
     '23502': 'Campo obrigatório não preenchido.',
   };
 
-  const errorCode = error.code || error.error_code;
-  const genericMessage = ERROR_MESSAGES[errorCode] || 'Ocorreu um erro. Tente novamente mais tarde.';
+  const errorCode = errorObj.code || errorObj.error_code;
+  const genericMessage = errorCode && ERROR_MESSAGES[errorCode] 
+    ? ERROR_MESSAGES[errorCode] 
+    : 'Ocorreu um erro. Tente novamente mais tarde.';
 
   if (IS_PROD) {
     // Em produção, retornar mensagem genérica
     return {
       message: genericMessage,
       code: errorCode || 'UNKNOWN_ERROR',
-      // Não incluir detalhes sensíveis
     };
   } else {
     // Em desenvolvimento, incluir mais detalhes
     return {
-      message: error.message || genericMessage,
+      message: errorObj.message || genericMessage,
       code: errorCode,
-      details: error.details,
-      hint: error.hint,
+      details: errorObj.details,
+      hint: errorObj.hint,
     };
   }
 }
