@@ -14,16 +14,31 @@ export const processEvolucaoData = (
   const mensalArray = Array.isArray(evolucaoMensal) ? evolucaoMensal : [];
   const semanalArray = Array.isArray(evolucaoSemanal) ? evolucaoSemanal : [];
   
-  // ⚠️ CORREÇÃO: Filtrar dados do ano selecionado
+  // ⚠️ CRÍTICO: Filtrar dados do ano selecionado e ordenar corretamente
   const dadosAtivos = viewMode === 'mensal' 
     ? [...mensalArray].filter(d => d && d.ano === anoSelecionado).sort((a, b) => {
         if (a.ano !== b.ano) return a.ano - b.ano;
         return a.mes - b.mes;
       })
-    : [...semanalArray].filter(d => d && d.ano === anoSelecionado).sort((a, b) => {
-        if (a.ano !== b.ano) return a.ano - b.ano;
-        return a.semana - b.semana;
-      });
+    : [...semanalArray]
+        .filter(d => d && d.ano === anoSelecionado)
+        .sort((a, b) => {
+          if (a.ano !== b.ano) return a.ano - b.ano;
+          // ⚠️ CRÍTICO: Ordenar por semana numérica (1, 2, 3, ..., 53)
+          const semanaA = Number(a.semana);
+          const semanaB = Number(b.semana);
+          if (isNaN(semanaA) || isNaN(semanaB)) {
+            return 0;
+          }
+          return semanaA - semanaB;
+        });
+  
+  // ⚠️ DEBUG: Verificar ordenação dos dados
+  if (IS_DEV && viewMode === 'semanal' && dadosAtivos.length > 0) {
+    const primeiraSemana = (dadosAtivos[0] as EvolucaoSemanal).semana;
+    const ultimaSemana = (dadosAtivos[dadosAtivos.length - 1] as EvolucaoSemanal).semana;
+    safeLog.info(`[processEvolucaoData] Dados ordenados: primeira semana ${primeiraSemana}, última semana ${ultimaSemana}`);
+  }
 
   // ⚠️ OTIMIZAÇÃO: Sempre gerar todos os labels (12 meses ou 53 semanas)
   // Não importa quantos dados existem, sempre gerar todos os períodos
@@ -58,18 +73,34 @@ export const processEvolucaoData = (
       dadosPorLabel.set(label, dados ?? null);
     });
   } else {
-    // Mapear dados existentes por semana
+    // ⚠️ CRÍTICO: Mapear dados existentes por semana, garantindo ordenação correta
     const dadosPorSemana = new Map<number, EvolucaoSemanal>();
     dadosAtivos
       .filter(d => d && (d as EvolucaoSemanal).semana != null && (d as EvolucaoSemanal).semana !== undefined)
       .forEach(d => {
-        const semana = (d as EvolucaoSemanal).semana;
-        if (semana != null && semana >= 1 && semana <= 53) {
-          dadosPorSemana.set(semana, d as EvolucaoSemanal);
+        const semana = Number((d as EvolucaoSemanal).semana);
+        // ⚠️ CRÍTICO: Validar que semana está entre 1 e 53
+        if (!isNaN(semana) && semana >= 1 && semana <= 53) {
+          // ⚠️ CRÍTICO: Se já existe, manter o primeiro (ou sobrescrever se necessário)
+          if (!dadosPorSemana.has(semana)) {
+            dadosPorSemana.set(semana, d as EvolucaoSemanal);
+          }
+        } else if (IS_DEV) {
+          safeLog.warn(`[processEvolucaoData] Semana inválida encontrada: ${semana}`, d);
         }
       });
     
-    // ⚠️ CORREÇÃO: Preencher todas as 53 semanas, garantindo que cada label tenha dados ou null
+    // ⚠️ DEBUG: Log das semanas encontradas
+    if (IS_DEV) {
+      const semanasEncontradas = Array.from(dadosPorSemana.keys()).sort((a, b) => a - b);
+      safeLog.info(`[processEvolucaoData] Semanas encontradas: ${semanasEncontradas.join(', ')} (total: ${semanasEncontradas.length})`);
+      if (semanasEncontradas.length > 0) {
+        safeLog.info(`[processEvolucaoData] Primeira semana: ${semanasEncontradas[0]}, Última semana: ${semanasEncontradas[semanasEncontradas.length - 1]}`);
+      }
+    }
+    
+    // ⚠️ CRÍTICO: Preencher todas as 53 semanas na ordem correta (1 a 53)
+    // Garantir que S01 corresponde à semana 1, S02 à semana 2, etc.
     for (let semana = 1; semana <= 53; semana++) {
       const label = `S${semana.toString().padStart(2, '0')}`;
       const dados = dadosPorSemana.get(semana);
@@ -79,8 +110,13 @@ export const processEvolucaoData = (
     }
     
     // ⚠️ DEBUG: Verificar se todos os labels foram criados
-    if (IS_DEV && dadosPorLabel.size !== 53) {
-      safeLog.warn(`[processEvolucaoData] Esperado 53 semanas, mas dadosPorLabel tem ${dadosPorLabel.size} entradas`);
+    if (IS_DEV) {
+      if (dadosPorLabel.size !== 53) {
+        safeLog.warn(`[processEvolucaoData] Esperado 53 semanas, mas dadosPorLabel tem ${dadosPorLabel.size} entradas`);
+      }
+      // Verificar se S01 tem dados ou null
+      const primeiraSemana = dadosPorLabel.get('S01');
+      safeLog.info(`[processEvolucaoData] S01 tem dados: ${primeiraSemana !== null && primeiraSemana !== undefined}`);
     }
   }
 
@@ -209,15 +245,24 @@ export const getMetricConfig = (
       };
     case 'completadas':
     default:
-      // ⚠️ CORREÇÃO: Garantir que todos os labels tenham um valor (número ou null)
-      const completadasData = baseLabels.map(label => {
+      // ⚠️ CRÍTICO: Garantir que todos os labels tenham um valor (número ou null) na ordem correta
+      const completadasData = baseLabels.map((label, index) => {
         const d = dadosPorLabel.get(label);
         // ⚠️ IMPORTANTE: Verificar explicitamente se é null ou undefined
-        if (d === null || d === undefined) return null;
+        if (d === null || d === undefined) {
+          if (IS_DEV && index < 3) {
+            safeLog.info(`[getMetricConfig completadas] Label ${label} (índice ${index}) não tem dados`);
+          }
+          return null;
+        }
         const value = (d as any).corridas_completadas ?? (d as any).total_corridas;
         if (value == null || value === undefined) return null;
         const numValue = Number(value);
-        return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
+        const result = isNaN(numValue) || !isFinite(numValue) ? null : numValue;
+        if (IS_DEV && index < 3 && result !== null) {
+          safeLog.info(`[getMetricConfig completadas] Label ${label} (índice ${index}) tem valor: ${result}`);
+        }
+        return result;
       });
       return {
         labels: baseLabels,
@@ -307,20 +352,35 @@ export const createChartData = (
   }
 
   const datasets = metricConfigs.map((config, index) => {
-    // ⚠️ CORREÇÃO: Os dados já vêm mapeados corretamente de getMetricConfig
+    // ⚠️ CRÍTICO: Os dados já vêm mapeados corretamente de getMetricConfig
     // Não precisamos realinhar se os labels já estão corretos
     let data: (number | null)[] = config.data as (number | null)[];
     
-    // ⚠️ IMPORTANTE: Garantir que o tamanho está correto (deve ser igual a baseLabels.length)
+    // ⚠️ CRÍTICO: Garantir que o tamanho está correto (deve ser igual a baseLabels.length)
     if (data.length !== baseLabels.length) {
+      if (IS_DEV) {
+        safeLog.warn(`[createChartData] Dataset ${index} tem tamanho ${data.length}, esperado ${baseLabels.length}. Realinhando...`);
+      }
       // Se os tamanhos não batem, usar alignDatasetData
       data = alignDatasetData(config.data as (number | null)[], config.labels, baseLabels);
     }
     
-    // Garantir que tem o tamanho correto
+    // ⚠️ CRÍTICO: Garantir que tem o tamanho correto
     data = padDatasetToMatchLabels(data, baseLabels.length);
     // Normalizar valores (garantir que null/undefined são null)
     data = normalizeDatasetValues(data);
+    
+    // ⚠️ DEBUG: Verificar se os primeiros elementos estão corretos
+    if (IS_DEV && index === 0) {
+      const firstLabel = baseLabels[0];
+      const firstData = data[0];
+      safeLog.info(`[createChartData] Primeiro label: ${firstLabel}, Primeiro dado: ${firstData}`);
+      if (baseLabels.length > 0) {
+        const lastLabel = baseLabels[baseLabels.length - 1];
+        const lastData = data[data.length - 1];
+        safeLog.info(`[createChartData] Último label: ${lastLabel}, Último dado: ${lastData}`);
+      }
+    }
     
     if (data.length > 0 && data.some(v => v != null) && config.yAxisID === 'y' && globalMaxValue > 0 && !config.label.includes('Horas')) {
       const baseOffset = globalMaxValue * CHART_CONSTANTS.VISUAL_OFFSET_BASE_PERCENT;
