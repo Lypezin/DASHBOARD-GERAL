@@ -112,6 +112,14 @@ const ComparacaoView = React.memo(function ComparacaoView({
     [semanasSelecionadas]
   );
 
+  // Normalizar utrComparacao para garantir que semana seja sempre string
+  const utrComparacaoNormalizada = useMemo(() => {
+    return utrComparacao.map(item => ({
+      semana: String(item.semana),
+      utr: item.utr,
+    }));
+  }, [utrComparacao]);
+
   // Verificar se deve desabilitar o filtro de praça
   // Marketing tem acesso a todas as cidades, então não precisa desabilitar o filtro
   const isMarketing = currentUser?.role === 'marketing';
@@ -207,7 +215,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
           />
 
           <ComparacaoUtrSection
-            utrComparacao={utrComparacao}
+            utrComparacao={utrComparacaoNormalizada}
             semanasSelecionadas={semanasSelecionadas}
           />
         </div>

@@ -1,13 +1,22 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import React, { useState, useMemo } from 'react';
 import { Entregador, EntregadoresData } from '@/types';
-import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import MetricCard from '../MetricCard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-
-const IS_DEV = process.env.NODE_ENV === 'development';
+import { PrioridadeFilters } from './prioridade/PrioridadeFilters';
+import { PrioridadeSearch } from './prioridade/PrioridadeSearch';
+import { PrioridadeTable } from './prioridade/PrioridadeTable';
+import { usePrioridadeSearch } from './prioridade/usePrioridadeSearch';
+import {
+  calcularPercentualAceitas,
+  calcularPercentualCompletadas,
+  getAderenciaColor,
+  getAderenciaBg,
+  getRejeicaoColor,
+  getRejeicaoBg,
+  getAceitasColor,
+  getAceitasBg,
+  getCompletadasColor,
+  getCompletadasBg,
+} from './prioridade/PrioridadeUtils';
 
 const PrioridadePromoView = React.memo(function PrioridadePromoView({
   entregadoresData,
@@ -19,100 +28,13 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   const [sortField, setSortField] = useState<keyof Entregador | 'percentual_aceitas' | 'percentual_completadas'>('aderencia_percentual');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<Entregador[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [filtroAderencia, setFiltroAderencia] = useState<string>('');
   const [filtroRejeicao, setFiltroRejeicao] = useState<string>('');
   const [filtroCompletadas, setFiltroCompletadas] = useState<string>('');
   const [filtroAceitas, setFiltroAceitas] = useState<string>('');
 
-  // Funções para calcular percentuais
-  const calcularPercentualAceitas = (entregador: Entregador): number => {
-    const ofertadas = entregador.corridas_ofertadas || 0;
-    if (ofertadas === 0) return 0;
-    return (entregador.corridas_aceitas / ofertadas) * 100;
-  };
-
-  const calcularPercentualCompletadas = (entregador: Entregador): number => {
-    const aceitas = entregador.corridas_aceitas || 0;
-    if (aceitas === 0) return 0;
-    return (entregador.corridas_completadas / aceitas) * 100;
-  };
-
-  // Pesquisa com debounce
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (!searchTerm.trim()) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-
-    setIsSearching(true);
-    searchTimeoutRef.current = setTimeout(async () => {
-      try {
-        const { data, error } = await safeRpc<Entregador[] | { entregadores: Entregador[] }>('pesquisar_entregadores', {
-          termo_busca: searchTerm.trim()
-        }, {
-          timeout: 30000,
-          validateParams: false // Desabilitar validação para evitar problemas
-        });
-
-        if (error) {
-          // Se for erro 500 ou similar, usar fallback local sem lançar erro
-          const errorCode = (error as any)?.code || '';
-          const errorMessage = String((error as any)?.message || '');
-          const is500 = errorCode === 'PGRST301' || 
-                       errorMessage.includes('500') || 
-                       errorMessage.includes('Internal Server Error');
-          
-          if (is500) {
-            // Erro 500: usar fallback local sem mostrar erro
-            if (IS_DEV) {
-              safeLog.warn('Erro 500 ao pesquisar entregadores, usando fallback local');
-            }
-            const filtered = (entregadoresData?.entregadores || []).filter(e => 
-              e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              e.id_entregador.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            setSearchResults(filtered);
-            setIsSearching(false);
-            return;
-          }
-          
-          throw error;
-        }
-        // A função pode retornar array direto ou objeto com propriedade entregadores
-        if (Array.isArray(data)) {
-          setSearchResults(data);
-        } else if (data && typeof data === 'object' && 'entregadores' in data) {
-          setSearchResults((data as { entregadores: Entregador[] }).entregadores || []);
-        } else {
-          setSearchResults([]);
-        }
-      } catch (err) {
-        if (IS_DEV) safeLog.error('Erro ao pesquisar entregadores:', err);
-        // Fallback para pesquisa local
-        const filtered = (entregadoresData?.entregadores || []).filter(e => 
-          e.nome_entregador.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          e.id_entregador.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setSearchResults(filtered);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 400);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [searchTerm, entregadoresData]);
+  // Hook para pesquisa
+  const { searchResults, isSearching } = usePrioridadeSearch(searchTerm, entregadoresData);
 
   // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
   // Usar useMemo para evitar recriação desnecessária
@@ -246,6 +168,13 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
     }
   };
 
+  const handleClearFilters = () => {
+    setFiltroAderencia('');
+    setFiltroRejeicao('');
+    setFiltroCompletadas('');
+    setFiltroAceitas('');
+  };
+
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -275,61 +204,6 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
     );
   }
 
-  const SortIcon = ({ field }: { field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas' }) => {
-    if (sortField !== field) {
-      return <span className="ml-1 text-slate-400">⇅</span>;
-    }
-    return <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
-  };
-
-  const getAderenciaColor = (aderencia: number) => {
-    if (aderencia >= 90) return 'text-emerald-700 dark:text-emerald-400';
-    if (aderencia >= 70) return 'text-amber-700 dark:text-amber-400';
-    return 'text-rose-700 dark:text-rose-400';
-  };
-
-  const getAderenciaBg = (aderencia: number) => {
-    if (aderencia >= 90) return 'bg-emerald-50 dark:bg-emerald-950/30';
-    if (aderencia >= 70) return 'bg-amber-50 dark:bg-amber-950/30';
-    return 'bg-rose-50 dark:bg-rose-950/30';
-  };
-
-  const getRejeicaoColor = (rejeicao: number) => {
-    if (rejeicao <= 10) return 'text-emerald-700 dark:text-emerald-400';
-    if (rejeicao <= 30) return 'text-amber-700 dark:text-amber-400';
-    return 'text-rose-700 dark:text-rose-400';
-  };
-
-  const getRejeicaoBg = (rejeicao: number) => {
-    if (rejeicao <= 10) return 'bg-emerald-50 dark:bg-emerald-950/30';
-    if (rejeicao <= 30) return 'bg-amber-50 dark:bg-amber-950/30';
-    return 'bg-rose-50 dark:bg-rose-950/30';
-  };
-
-  // Funções para colorir percentuais de aceitas e completadas
-  const getAceitasColor = (percentual: number) => {
-    if (percentual >= 90) return 'text-emerald-700 dark:text-emerald-400';
-    if (percentual >= 70) return 'text-amber-700 dark:text-amber-400';
-    return 'text-rose-700 dark:text-rose-400';
-  };
-
-  const getAceitasBg = (percentual: number) => {
-    if (percentual >= 90) return 'bg-emerald-50 dark:bg-emerald-950/30';
-    if (percentual >= 70) return 'bg-amber-50 dark:bg-amber-950/30';
-    return 'bg-rose-50 dark:bg-rose-950/30';
-  };
-
-  const getCompletadasColor = (percentual: number) => {
-    if (percentual >= 95) return 'text-emerald-700 dark:text-emerald-400';
-    if (percentual >= 80) return 'text-amber-700 dark:text-amber-400';
-    return 'text-rose-700 dark:text-rose-400';
-  };
-
-  const getCompletadasBg = (percentual: number) => {
-    if (percentual >= 95) return 'bg-emerald-50 dark:bg-emerald-950/30';
-    if (percentual >= 80) return 'bg-amber-50 dark:bg-amber-950/30';
-    return 'bg-rose-50 dark:bg-rose-950/30';
-  };
 
   // Calcular estatísticas gerais com base nos dados filtrados
   const totalOfertadas = dataFiltrada.reduce((sum, e) => sum + e.corridas_ofertadas, 0);
@@ -342,143 +216,25 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
-      {/* Filtros de % de Aderência, Rejeição, Completadas e Aceitas */}
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        
-        <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-          
-          <CardContent className="relative p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  % Aderência Mínima
-                </label>
-                <input
-                  type="number"
-                  placeholder="Ex: 90"
-                  value={filtroAderencia}
-                  onChange={(e) => setFiltroAderencia(e.target.value)}
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  className="w-full rounded-xl border-2 border-blue-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-blue-800 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
-                />
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Este % ou acima</p>
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  % Rejeição Máxima
-                </label>
-                <input
-                  type="number"
-                  placeholder="Ex: 10"
-                  value={filtroRejeicao}
-                  onChange={(e) => setFiltroRejeicao(e.target.value)}
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  className="w-full rounded-xl border-2 border-blue-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-blue-800 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
-                />
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Este % ou abaixo</p>
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  % Completadas Mínima
-                </label>
-                <input
-                  type="number"
-                  placeholder="Ex: 80"
-                  value={filtroCompletadas}
-                  onChange={(e) => setFiltroCompletadas(e.target.value)}
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  className="w-full rounded-xl border-2 border-blue-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-blue-800 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
-                />
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Este % ou acima</p>
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  % Aceitas Mínima
-                </label>
-                <input
-                  type="number"
-                  placeholder="Ex: 85"
-                  value={filtroAceitas}
-                  onChange={(e) => setFiltroAceitas(e.target.value)}
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  className="w-full rounded-xl border-2 border-blue-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-blue-800 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
-                />
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Este % ou acima</p>
-              </div>
-            </div>
-            {(filtroAderencia || filtroRejeicao || filtroCompletadas || filtroAceitas) && (
-              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                <button
-                  onClick={() => {
-                    setFiltroAderencia('');
-                    setFiltroRejeicao('');
-                    setFiltroCompletadas('');
-                    setFiltroAceitas('');
-                  }}
-                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                >
-                  ✕ Limpar todos os filtros
-                </button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <PrioridadeFilters
+        filtroAderencia={filtroAderencia}
+        filtroRejeicao={filtroRejeicao}
+        filtroCompletadas={filtroCompletadas}
+        filtroAceitas={filtroAceitas}
+        onAderenciaChange={setFiltroAderencia}
+        onRejeicaoChange={setFiltroRejeicao}
+        onCompletadasChange={setFiltroCompletadas}
+        onAceitasChange={setFiltroAceitas}
+        onClearFilters={handleClearFilters}
+      />
 
-      {/* Barra de Pesquisa */}
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        
-        <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-          
-          <CardContent className="relative p-6">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="🔍 Pesquisar entregador por nome ou ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-xl border-2 border-blue-200 bg-white px-4 py-3 pl-12 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-blue-800 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
-              />
-              <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
-                {isSearching ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600"></div>
-                ) : (
-                  <span className="text-lg">🔍</span>
-                )}
-              </div>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
-                >
-                  <span className="text-lg">✕</span>
-                </button>
-              )}
-            </div>
-            {searchTerm && (
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
-                {isSearching ? (
-                  'Pesquisando...'
-                ) : (
-                  `Encontrado${totalEntregadores === 1 ? '' : 's'} ${totalEntregadores} resultado${totalEntregadores === 1 ? '' : 's'}`
-                )}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <PrioridadeSearch
+        searchTerm={searchTerm}
+        isSearching={isSearching}
+        totalResults={dataFiltrada.length}
+        onSearchChange={setSearchTerm}
+        onClearSearch={() => setSearchTerm('')}
+      />
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-6">
@@ -521,138 +277,22 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
           color="blue"
         />
       </div>
-      {/* Tabela de Entregadores */}
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        
-        <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-          
-          <CardHeader className="relative pb-6">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                <span className="text-2xl">⭐</span>
-              </div>
-              <div>
-                <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
-                  Prioridade/Promo
-                </CardTitle>
-                <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">
-                  Análise detalhada de entregadores para priorização e promoções
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="relative">
-            <div className="max-h-[600px] overflow-auto">
-              <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/50 shadow-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="sticky top-0 z-10">
-                    <tr className="bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-slate-800 dark:to-slate-700 border-b-2 border-blue-200 dark:border-slate-600">
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20"
-                        onClick={() => handleSort('nome_entregador')}
-                      >
-                        Entregador <SortIcon field="nome_entregador" />
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20"
-                        onClick={() => handleSort('corridas_ofertadas')}
-                      >
-                        Ofertadas <SortIcon field="corridas_ofertadas" />
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20"
-                        onClick={() => handleSort('corridas_aceitas')}
-                      >
-                        Aceitas <SortIcon field="corridas_aceitas" />
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20"
-                        onClick={() => handleSort('corridas_rejeitadas')}
-                      >
-                        Rejeitadas <SortIcon field="corridas_rejeitadas" />
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20"
-                        onClick={() => handleSort('percentual_aceitas')}
-                      >
-                        % Aceitas <SortIcon field="percentual_aceitas" />
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20"
-                        onClick={() => handleSort('corridas_completadas')}
-                      >
-                        Completadas <SortIcon field="corridas_completadas" />
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20"
-                        onClick={() => handleSort('percentual_completadas')}
-                      >
-                        % Completadas <SortIcon field="percentual_completadas" />
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20"
-                        onClick={() => handleSort('aderencia_percentual')}
-                      >
-                        Aderência <SortIcon field="aderencia_percentual" />
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20"
-                        onClick={() => handleSort('rejeicao_percentual')}
-                      >
-                        % Rejeição <SortIcon field="rejeicao_percentual" />
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {sortedEntregadores.map((entregador, index) => {
-                      // Garantir que o número seja sempre sequencial (ranking)
-                      const ranking = index + 1;
-                      const percentualAceitas = calcularPercentualAceitas(entregador);
-                      const percentualCompletadas = calcularPercentualCompletadas(entregador);
-                      
-                      return (
-                      <tr
-                        key={`${entregador.id_entregador}-${sortField}-${sortDirection}-${ranking}`}
-                        className="transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/20"
-                      >
-                        <td className="px-4 py-4 font-semibold text-slate-900 dark:text-white">{entregador.nome_entregador}</td>
-                        <td className="px-4 py-4 text-center text-slate-700 dark:text-slate-300 whitespace-nowrap">{entregador.corridas_ofertadas.toLocaleString('pt-BR')}</td>
-                        <td className="px-4 py-4 text-center text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{entregador.corridas_aceitas.toLocaleString('pt-BR')}</td>
-                        <td className="px-4 py-4 text-center text-red-700 dark:text-red-400 whitespace-nowrap">{entregador.corridas_rejeitadas.toLocaleString('pt-BR')}</td>
-                        <td className="px-4 py-4">
-                          <Badge className={`text-xs font-semibold ${getAceitasBg(percentualAceitas)} ${getAceitasColor(percentualAceitas)} whitespace-nowrap`}>
-                            {percentualAceitas.toFixed(2)}%
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-4 text-center text-blue-700 dark:text-blue-400 whitespace-nowrap">{entregador.corridas_completadas.toLocaleString('pt-BR')}</td>
-                        <td className="px-4 py-4">
-                          <Badge className={`text-xs font-semibold ${getCompletadasBg(percentualCompletadas)} ${getCompletadasColor(percentualCompletadas)} whitespace-nowrap`}>
-                            {percentualCompletadas.toFixed(2)}%
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-4">
-                          <Badge className={`text-xs font-semibold ${getAderenciaBg(entregador.aderencia_percentual ?? 0)} ${getAderenciaColor(entregador.aderencia_percentual ?? 0)} whitespace-nowrap`}>
-                            {(entregador.aderencia_percentual ?? 0).toFixed(2)}%
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-4">
-                          <Badge className={`text-xs font-semibold ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)} ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)} whitespace-nowrap`}>
-                            {(entregador.rejeicao_percentual ?? 0).toFixed(2)}%
-                          </Badge>
-                        </td>
-                      </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <PrioridadeTable
+        sortedEntregadores={sortedEntregadores}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        calcularPercentualAceitas={calcularPercentualAceitas}
+        calcularPercentualCompletadas={calcularPercentualCompletadas}
+        getAderenciaColor={getAderenciaColor}
+        getAderenciaBg={getAderenciaBg}
+        getRejeicaoColor={getRejeicaoColor}
+        getRejeicaoBg={getRejeicaoBg}
+        getAceitasColor={getAceitasColor}
+        getAceitasBg={getAceitasBg}
+        getCompletadasColor={getCompletadasColor}
+        getCompletadasBg={getCompletadasBg}
+      />
     </div>
   );
 });

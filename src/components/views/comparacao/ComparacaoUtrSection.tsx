@@ -1,13 +1,10 @@
 import React from 'react';
 import { safeLog } from '@/lib/errorHandler';
+import { UtrData } from '@/types';
 
 interface UtrComparacaoItem {
   semana: string;
-  utr: {
-    geral: {
-      utr: number;
-    };
-  };
+  utr: UtrData | null;
 }
 
 interface ComparacaoUtrSectionProps {
