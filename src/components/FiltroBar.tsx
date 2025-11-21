@@ -184,8 +184,38 @@ const FiltroBar = React.memo(function FiltroBar({
             <FiltroDateRange
               dataInicial={filters?.dataInicial ?? null}
               dataFinal={filters?.dataFinal ?? null}
-              onDataInicialChange={(data) => setFilters(prev => ({ ...prev, dataInicial: data }))}
-              onDataFinalChange={(data) => setFilters(prev => ({ ...prev, dataFinal: data }))}
+              onDataInicialChange={(data) => {
+                setFilters(prev => {
+                  if (!prev) return prev;
+                  // Garantir que o modo está como 'intervalo' quando há data
+                  const newFilters = { ...prev, dataInicial: data };
+                  if (data && prev.filtroModo !== 'intervalo') {
+                    newFilters.filtroModo = 'intervalo';
+                  }
+                  return newFilters;
+                });
+              }}
+              onDataFinalChange={(data) => {
+                setFilters(prev => {
+                  if (!prev) return prev;
+                  // Garantir que o modo está como 'intervalo' quando há data
+                  const newFilters = { ...prev, dataFinal: data };
+                  if (data && prev.filtroModo !== 'intervalo') {
+                    newFilters.filtroModo = 'intervalo';
+                  }
+                  return newFilters;
+                });
+              }}
+              onApply={() => {
+                // Garantir que o modo está como 'intervalo' quando filtro é aplicado
+                setFilters(prev => {
+                  if (!prev) return prev;
+                  if (prev.filtroModo !== 'intervalo' && (prev.dataInicial || prev.dataFinal)) {
+                    return { ...prev, filtroModo: 'intervalo' };
+                  }
+                  return prev;
+                });
+              }}
             />
           </div>
         ) : (

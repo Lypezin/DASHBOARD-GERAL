@@ -6,6 +6,7 @@ interface FiltroDateRangeProps {
   dataFinal: string | null;
   onDataInicialChange: (data: string | null) => void;
   onDataFinalChange: (data: string | null) => void;
+  onApply?: () => void; // Callback opcional quando filtro é aplicado
 }
 
 const FiltroDateRange: React.FC<FiltroDateRangeProps> = ({
@@ -13,6 +14,7 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = ({
   dataFinal,
   onDataInicialChange,
   onDataFinalChange,
+  onApply,
 }) => {
   // Estado temporário para valores não aplicados ainda
   const [tempDataInicial, setTempDataInicial] = useState<string>(dataInicial || '');
@@ -68,7 +70,12 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = ({
     onDataFinalChange(dataFim);
     
     safeLog.info('[FiltroDateRange] Filtro aplicado:', { dataIni, dataFim });
-  }, [tempDataInicial, tempDataFinal, onDataInicialChange, onDataFinalChange]);
+    
+    // Chamar callback se fornecido
+    if (onApply) {
+      onApply();
+    }
+  }, [tempDataInicial, tempDataFinal, onDataInicialChange, onDataFinalChange, onApply]);
 
   const handleLimpar = useCallback(() => {
     setTempDataInicial('');

@@ -201,6 +201,14 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
       // Se data final for menor que inicial, usar data inicial como final também
       dataFinal = dataInicial;
     }
+    
+    // Se apenas uma data foi fornecida, usar a mesma para ambas
+    if (dataInicial && !dataFinal) {
+      dataFinal = dataInicial;
+    }
+    if (dataFinal && !dataInicial) {
+      dataInicial = dataFinal;
+    }
 
     // Se modo intervalo estiver ativo, anular ano e semana
     ano = null;
