@@ -6,7 +6,7 @@ import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatt
 
 interface ComparacaoTabelaDetalhadaProps {
   dadosComparacao: DashboardResumoData[];
-  semanasSelecionadas: number[];
+  semanasSelecionadas: (number | string)[];
 }
 
 export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps> = ({
