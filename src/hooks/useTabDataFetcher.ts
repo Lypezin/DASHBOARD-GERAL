@@ -189,11 +189,17 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
 async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; error: any }> {
   const { tab, filterPayload } = options;
 
-  // Remover p_turno pois a função não suporta
-  const { p_turno, ...restPayload } = filterPayload;
-  const listarValoresPayload = {
-    ...restPayload,
-  };
+  // Filtrar apenas os parâmetros que a função RPC aceita
+  // Similar a listar_entregadores, mas removendo p_turno que não é suportado
+  const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final'];
+  const listarValoresPayload: any = {};
+  
+  // Incluir apenas parâmetros permitidos e que não sejam null/undefined
+  for (const key of allowedParams) {
+    if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
+      listarValoresPayload[key] = filterPayload[key];
+    }
+  }
 
   // LOG FORÇADO PARA DEBUG - REMOVER DEPOIS
   console.log('🟢 [fetchValoresData] Chamando RPC listar_valores_entregadores com payload:', JSON.stringify(listarValoresPayload, null, 2));
@@ -218,13 +224,31 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
     const isRateLimit = isRateLimitError(result.error);
 
     if (is500) {
-      safeLog.warn('Erro 500 ao buscar valores. Aguardando antes de tentar novamente...');
+      safeLog.warn('Erro 500 ao buscar valores. Aguardando antes de tentar novamente...', {
+        error: result.error,
+        payload: listarValoresPayload
+      });
       throw new Error('RETRY_500');
     }
 
     if (isRateLimit) {
       safeLog.warn('Rate limit ao buscar valores. Aguardando...');
       throw new Error('RETRY_RATE_LIMIT');
+    }
+
+    // Para outros erros, verificar se é erro de função não encontrada ou parâmetros inválidos
+    const errorCode = result.error?.code || '';
+    const errorMessage = result.error?.message || '';
+    
+    if (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist')) {
+      safeLog.error('Função listar_valores_entregadores não encontrada no banco de dados');
+      return { 
+        data: [], 
+        error: {
+          message: 'A função de listar valores não está disponível. Entre em contato com o administrador.',
+          code: 'FUNCTION_NOT_FOUND'
+        }
+      };
     }
 
     safeLog.error('Erro ao buscar valores:', result.error);
