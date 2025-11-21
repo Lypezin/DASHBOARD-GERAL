@@ -54,27 +54,35 @@ export const processEvolucaoData = (
     });
     
     // ⚠️ CRÍTICO: Preencher usando baseLabels para garantir correspondência exata
-    // Garantir que os labels gerados correspondam exatamente aos dados
-    baseLabels.forEach((label) => {
-      // Encontrar o número do mês correspondente ao label
-      const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-      const mesIndex = mesesNomes.findIndex(mesNome => translateMonth(mesNome) === label);
-      if (mesIndex >= 0) {
-        const mesNumero = mesIndex + 1;
-        const dados = dadosPorMes.get(mesNumero);
-        dadosPorLabel.set(label, dados ?? null);
-      } else {
-        // Fallback: se não encontrar, usar null
-        dadosPorLabel.set(label, null);
-      }
+    // baseLabels já contém os meses em português na ordem correta (Janeiro, Fevereiro, ..., Dezembro)
+    // Cada label corresponde ao índice + 1 (Janeiro = índice 0 = mês 1, Fevereiro = índice 1 = mês 2, etc.)
+    baseLabels.forEach((label, index) => {
+      const mesNumero = index + 1; // Janeiro = 1, Fevereiro = 2, ..., Dezembro = 12
+      const dados = dadosPorMes.get(mesNumero);
+      dadosPorLabel.set(label, dados ?? null);
     });
     
     // ⚠️ DEBUG: Verificar mapeamento
     if (IS_DEV) {
+      safeLog.info(`[processEvolucaoData] Mensal - Ano selecionado: ${anoSelecionado}`);
+      safeLog.info(`[processEvolucaoData] Mensal - Total de dados recebidos: ${dadosAtivos.length}`);
+      safeLog.info(`[processEvolucaoData] Mensal - Dados por mês:`, Array.from(dadosPorMes.entries()).map(([mes, d]) => ({
+        mes,
+        mes_nome: d.mes_nome,
+        completadas: d.corridas_completadas
+      })));
       safeLog.info(`[processEvolucaoData] Mensal - Total de labels: ${baseLabels.length}`);
       safeLog.info(`[processEvolucaoData] Mensal - Labels: ${baseLabels.join(', ')}`);
       safeLog.info(`[processEvolucaoData] Mensal - Dados mapeados: ${Array.from(dadosPorLabel.values()).filter(d => d !== null).length}`);
+      // Verificar mapeamento detalhado
+      baseLabels.forEach((label, index) => {
+        const dados = dadosPorLabel.get(label);
+        if (dados) {
+          safeLog.info(`[processEvolucaoData] ${label} (índice ${index}, mês ${index + 1}): completadas=${dados.corridas_completadas}`);
+        } else {
+          safeLog.info(`[processEvolucaoData] ${label} (índice ${index}, mês ${index + 1}): SEM DADOS`);
+        }
+      });
     }
   } else {
     // ⚠️ CRÍTICO: Mapear por número da semana (1-53)
@@ -145,14 +153,40 @@ export const getMetricConfig = (
   // ⚠️ CRÍTICO: Mapear dados na mesma ordem dos labels
   // baseLabels[0] -> data[0], baseLabels[1] -> data[1], etc.
   const mapData = (getValue: (d: any) => number | null): (number | null)[] => {
-    return baseLabels.map((label, index) => {
+    const mappedData = baseLabels.map((label, index) => {
       const d = dadosPorLabel.get(label);
-      if (d === null || d === undefined) return null;
+      if (d === null || d === undefined) {
+        if (IS_DEV && index < 3) {
+          safeLog.info(`[getMetricConfig] Label ${label} (índice ${index}): SEM DADOS`);
+        }
+        return null;
+      }
       const value = getValue(d);
-      if (value == null || value === undefined) return null;
+      if (value == null || value === undefined) {
+        if (IS_DEV && index < 3) {
+          safeLog.info(`[getMetricConfig] Label ${label} (índice ${index}): valor é null/undefined`);
+        }
+        return null;
+      }
       const numValue = Number(value);
-      return isNaN(numValue) || !isFinite(numValue) ? null : numValue;
+      if (isNaN(numValue) || !isFinite(numValue)) {
+        if (IS_DEV && index < 3) {
+          safeLog.info(`[getMetricConfig] Label ${label} (índice ${index}): valor inválido (${value})`);
+        }
+        return null;
+      }
+      if (IS_DEV && index < 3) {
+        safeLog.info(`[getMetricConfig] Label ${label} (índice ${index}): valor=${numValue}`);
+      }
+      return numValue;
     });
+    
+    if (IS_DEV) {
+      const nonNullCount = mappedData.filter(d => d !== null).length;
+      safeLog.info(`[getMetricConfig] Total de valores não-nulos: ${nonNullCount} de ${mappedData.length}`);
+    }
+    
+    return mappedData;
   };
 
   switch (metric) {
@@ -383,18 +417,27 @@ export const createChartData = (
 
   // ⚠️ DEBUG: Validação final
   if (IS_DEV) {
+    safeLog.info(`[createChartData] ========== INÍCIO VALIDAÇÃO ==========`);
     safeLog.info(`[createChartData] Labels: ${baseLabels.length}, Datasets: ${datasets.length}`);
+    safeLog.info(`[createChartData] Primeiros 5 labels: ${baseLabels.slice(0, 5).join(', ')}`);
+    safeLog.info(`[createChartData] Últimos 5 labels: ${baseLabels.slice(-5).join(', ')}`);
+    
     if (datasets.length > 0) {
-      const firstDataset = datasets[0];
-      safeLog.info(`[createChartData] Primeiro dataset tem ${firstDataset.data.length} elementos`);
-      
-      // Verificar mapeamento crítico
-      const s22Index = baseLabels.indexOf('S22');
-      if (s22Index >= 0 && s22Index < firstDataset.data.length) {
-        safeLog.info(`[createChartData] S22 (índice ${s22Index}) = ${firstDataset.data[s22Index]}`);
-      }
-      safeLog.info(`[createChartData] Primeiros 3: S01=${firstDataset.data[0]}, S02=${firstDataset.data[1]}, S03=${firstDataset.data[2]}`);
+      datasets.forEach((dataset, datasetIndex) => {
+        safeLog.info(`[createChartData] Dataset ${datasetIndex} (${dataset.label}): ${dataset.data.length} elementos`);
+        
+        // Verificar primeiros e últimos valores
+        const primeirosValores = dataset.data.slice(0, 5).map((v, i) => `${baseLabels[i]}=${v}`).join(', ');
+        const ultimosValores = dataset.data.slice(-5).map((v, i) => `${baseLabels[baseLabels.length - 5 + i]}=${v}`).join(', ');
+        safeLog.info(`[createChartData] Dataset ${datasetIndex} - Primeiros 5: ${primeirosValores}`);
+        safeLog.info(`[createChartData] Dataset ${datasetIndex} - Últimos 5: ${ultimosValores}`);
+        
+        // Contar valores não-nulos
+        const nonNullCount = dataset.data.filter(v => v !== null && v !== undefined).length;
+        safeLog.info(`[createChartData] Dataset ${datasetIndex} - Valores não-nulos: ${nonNullCount} de ${dataset.data.length}`);
+      });
     }
+    safeLog.info(`[createChartData] ========== FIM VALIDAÇÃO ==========`);
   }
 
   return {

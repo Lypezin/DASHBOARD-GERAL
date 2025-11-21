@@ -95,6 +95,34 @@ export function useDashboardEvolucao(options: UseDashboardEvolucaoOptions) {
         const mensal = mensalRes.data || [];
         const semanal = semanalRes.data || [];
 
+        // ⚠️ DEBUG: Logar dados recebidos do Supabase
+        if (IS_DEV) {
+          safeLog.info(`[useDashboardEvolucao] ========== DADOS RECEBIDOS DO SUPABASE ==========`);
+          safeLog.info(`[useDashboardEvolucao] Ano selecionado: ${anoEvolucao}`);
+          safeLog.info(`[useDashboardEvolucao] Praça filtro: ${pracaFilter || 'TODAS'}`);
+          safeLog.info(`[useDashboardEvolucao] Dados mensais recebidos: ${mensal.length} registros`);
+          if (mensal.length > 0) {
+            safeLog.info(`[useDashboardEvolucao] Primeiros 3 meses:`, mensal.slice(0, 3).map(d => ({
+              ano: d.ano,
+              mes: d.mes,
+              mes_nome: d.mes_nome,
+              completadas: d.corridas_completadas,
+              aceitas: d.corridas_aceitas,
+              ofertadas: d.corridas_ofertadas
+            })));
+          }
+          safeLog.info(`[useDashboardEvolucao] Dados semanais recebidos: ${semanal.length} registros`);
+          if (semanal.length > 0) {
+            safeLog.info(`[useDashboardEvolucao] Primeiras 3 semanas:`, semanal.slice(0, 3).map(d => ({
+              ano: d.ano,
+              semana: d.semana,
+              semana_label: d.semana_label,
+              completadas: d.corridas_completadas
+            })));
+          }
+          safeLog.info(`[useDashboardEvolucao] ================================================`);
+        }
+
         // Calcular UTR semanal
         const utrSemanalData: UtrSemanal[] = semanal.map(item => ({
           ano: item.ano,
