@@ -9,6 +9,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { is500Error, isRateLimitError } from '@/lib/rpcErrorHandler';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
 import { RPC_TIMEOUTS, DELAYS } from '@/constants/config';
+import { supabase } from '@/lib/supabaseClient';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -184,6 +185,132 @@ async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: Ent
 }
 
 /**
+ * Fallback: Busca dados de valores diretamente da tabela dados_corridas
+ */
+async function fetchValoresFallback(payload: any): Promise<ValoresEntregador[]> {
+  try {
+    let query = supabase
+      .from('dados_corridas')
+      .select('id_da_pessoa_entregadora, pessoa_entregadora, soma_das_taxas_das_corridas_aceitas, numero_de_corridas_aceitas, data_do_periodo, praca, sub_praca, origem');
+
+    // Aplicar filtros
+    // Se houver semana, usar apenas o filtro de semana (que já inclui o ano)
+    // Caso contrário, usar o filtro de ano se disponível
+    if (payload.p_semana && payload.p_ano) {
+      // Calcular datas da semana (aproximado)
+      const dataInicio = new Date(payload.p_ano, 0, 1);
+      const diaSemana = dataInicio.getDay();
+      const diasParaSegunda = (diaSemana === 0 ? -6 : 1) - diaSemana;
+      const primeiraSegunda = new Date(dataInicio);
+      primeiraSegunda.setDate(primeiraSegunda.getDate() + diasParaSegunda);
+      const semanaInicio = new Date(primeiraSegunda);
+      semanaInicio.setDate(semanaInicio.getDate() + (payload.p_semana - 1) * 7);
+      const semanaFim = new Date(semanaInicio);
+      semanaFim.setDate(semanaFim.getDate() + 6);
+      
+      query = query.gte('data_do_periodo', semanaInicio.toISOString().split('T')[0])
+                   .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
+    } else if (payload.p_ano) {
+      // Filtrar por ano usando data_do_periodo
+      const anoInicio = `${payload.p_ano}-01-01`;
+      const anoFim = `${payload.p_ano}-12-31`;
+      query = query.gte('data_do_periodo', anoInicio).lte('data_do_periodo', anoFim);
+    }
+
+    if (payload.p_data_inicial) {
+      query = query.gte('data_do_periodo', payload.p_data_inicial);
+    }
+
+    if (payload.p_data_final) {
+      query = query.lte('data_do_periodo', payload.p_data_final);
+    }
+
+    if (payload.p_praca) {
+      const pracas = payload.p_praca.split(',').map((p: string) => p.trim());
+      if (pracas.length === 1) {
+        query = query.eq('praca', pracas[0]);
+      } else {
+        query = query.in('praca', pracas);
+      }
+    }
+
+    if (payload.p_sub_praca) {
+      const subPracas = payload.p_sub_praca.split(',').map((p: string) => p.trim());
+      if (subPracas.length === 1) {
+        query = query.eq('sub_praca', subPracas[0]);
+      } else {
+        query = query.in('sub_praca', subPracas);
+      }
+    }
+
+    if (payload.p_origem) {
+      const origens = payload.p_origem.split(',').map((o: string) => o.trim());
+      if (origens.length === 1) {
+        query = query.eq('origem', origens[0]);
+      } else {
+        query = query.in('origem', origens);
+      }
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Agregar dados por entregador
+    const valoresMap = new Map<string, {
+      id_entregador: string;
+      nome_entregador: string;
+      total_taxas: number;
+      numero_corridas_aceitas: number;
+    }>();
+
+    for (const row of data) {
+      const id = row.id_da_pessoa_entregadora;
+      if (!id) continue;
+
+      const nome = row.pessoa_entregadora || id;
+      const taxas = Number(row.soma_das_taxas_das_corridas_aceitas) || 0;
+      const corridas = Number(row.numero_de_corridas_aceitas) || 0;
+
+      if (valoresMap.has(id)) {
+        const existing = valoresMap.get(id)!;
+        existing.total_taxas += taxas;
+        existing.numero_corridas_aceitas += corridas;
+      } else {
+        valoresMap.set(id, {
+          id_entregador: id,
+          nome_entregador: nome,
+          total_taxas: taxas,
+          numero_corridas_aceitas: corridas,
+        });
+      }
+    }
+
+    // Converter para array e calcular taxa média
+    const valores: ValoresEntregador[] = Array.from(valoresMap.values()).map(item => ({
+      id_entregador: item.id_entregador,
+      nome_entregador: item.nome_entregador,
+      total_taxas: item.total_taxas,
+      numero_corridas_aceitas: item.numero_corridas_aceitas,
+      taxa_media: item.numero_corridas_aceitas > 0 
+        ? item.total_taxas / item.numero_corridas_aceitas 
+        : 0,
+    }));
+
+    return valores;
+  } catch (error: any) {
+    safeLog.error('Erro no fallback fetchValoresFallback:', error);
+    throw error;
+  }
+}
+
+/**
  * Busca dados de Valores
  */
 async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; error: any }> {
@@ -224,10 +351,25 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
     const isRateLimit = isRateLimitError(result.error);
 
     if (is500) {
-      safeLog.warn('Erro 500 ao buscar valores. Aguardando antes de tentar novamente...', {
+      // Tentar fallback: buscar dados diretamente da tabela
+      safeLog.warn('Erro 500 ao buscar valores. Tentando fallback direto da tabela...', {
         error: result.error,
         payload: listarValoresPayload
       });
+      
+      try {
+        const fallbackData = await fetchValoresFallback(listarValoresPayload);
+        if (fallbackData && fallbackData.length > 0) {
+          console.log('✅ [fetchValoresData] Fallback retornou dados:', fallbackData.length);
+          return { data: fallbackData, error: null };
+        }
+      } catch (fallbackError: any) {
+        safeLog.error('Erro no fallback ao buscar valores:', fallbackError);
+        // Se o fallback também falhar, tentar retry
+        throw new Error('RETRY_500');
+      }
+      
+      // Se fallback não retornou dados, tentar retry
       throw new Error('RETRY_500');
     }
 
@@ -241,7 +383,18 @@ async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresE
     const errorMessage = result.error?.message || '';
     
     if (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist')) {
-      safeLog.error('Função listar_valores_entregadores não encontrada no banco de dados');
+      // Tentar fallback antes de retornar erro
+      safeLog.warn('Função listar_valores_entregadores não encontrada. Tentando fallback...');
+      try {
+        const fallbackData = await fetchValoresFallback(listarValoresPayload);
+        if (fallbackData && fallbackData.length > 0) {
+          console.log('✅ [fetchValoresData] Fallback retornou dados:', fallbackData.length);
+          return { data: fallbackData, error: null };
+        }
+      } catch (fallbackError: any) {
+        safeLog.error('Erro no fallback ao buscar valores:', fallbackError);
+      }
+      
       return { 
         data: [], 
         error: {
