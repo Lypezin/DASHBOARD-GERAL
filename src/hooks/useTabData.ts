@@ -17,6 +17,9 @@ type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 // Sistema global de fila para evitar requisições simultâneas
 const requestQueue = new Map<string, { timestamp: number; count: number }>();
 
+// Sistema de deduplicação de requisições - armazena promises em andamento
+const pendingRequests = new Map<string, Promise<any>>();
+
 /**
  * Hook para gerenciar dados específicos de cada aba do dashboard
  */
@@ -102,6 +105,44 @@ export function useTabData(
         return;
       }
 
+      // Verificar se já existe uma requisição pendente para esta chave (deduplicação)
+      const pendingRequest = pendingRequests.get(queueKey);
+      if (pendingRequest) {
+        // Reutilizar a promise existente
+        pendingRequest
+          .then((fetchedData) => {
+            if (currentTabRef.current !== tab) {
+              return;
+            }
+            const processedData = tab === 'valores'
+              ? (Array.isArray(fetchedData) ? fetchedData : [])
+              : fetchedData;
+            setData(processedData);
+            setCached({ tab, filterPayload: currentPayload }, processedData);
+            isRequestPendingRef.current = false;
+          })
+          .catch((error) => {
+            if (currentTabRef.current !== tab) {
+              return;
+            }
+            if (IS_DEV) {
+              safeLog.error(`❌ Erro ao carregar dados para tab ${tab}:`, error);
+            }
+            if (tab === 'entregadores' || tab === 'prioridade') {
+              setData({ entregadores: [], total: 0 });
+            } else if (tab === 'valores') {
+              setData([]);
+            } else {
+              setData(null);
+            }
+            isRequestPendingRef.current = false;
+          })
+          .finally(() => {
+            pendingRequests.delete(queueKey);
+          });
+        return;
+      }
+
       // Registrar requisição na fila
       requestQueue.set(queueKey, { timestamp: now, count: (queueEntry?.count || 0) + 1 });
 
@@ -134,49 +175,64 @@ export function useTabData(
       // Marcar como pendente
       isRequestPendingRef.current = true;
 
-      // Buscar dados com retry automático
-      await fetchWithRetry(
+      // Criar promise para deduplicação
+      const fetchPromise = new Promise((resolve, reject) => {
+        fetchWithRetry(
         tab,
         currentPayload,
-        (fetchedData) => {
-          if (currentTabRef.current !== tab) {
-            return;
-          }
+          (fetchedData) => {
+            if (currentTabRef.current !== tab) {
+              resolve(null);
+              return;
+            }
 
-          // Processar dados para valores
-          const processedData = tab === 'valores'
-            ? (Array.isArray(fetchedData) ? fetchedData : [])
-            : fetchedData;
+            // Processar dados para valores
+            const processedData = tab === 'valores'
+              ? (Array.isArray(fetchedData) ? fetchedData : [])
+              : fetchedData;
 
-          setData(processedData);
-          setCached({ tab, filterPayload: currentPayload }, processedData);
-          isRequestPendingRef.current = false;
-        },
-        (error) => {
-          if (currentTabRef.current !== tab) {
-            return;
-          }
+            setData(processedData);
+            setCached({ tab, filterPayload: currentPayload }, processedData);
+            isRequestPendingRef.current = false;
+            resolve(processedData);
+          },
+          (error) => {
+            if (currentTabRef.current !== tab) {
+              reject(error);
+              return;
+            }
 
-          // Tratar erro baseado no tipo de tab
-          if (IS_DEV) {
-            safeLog.error(`❌ Erro ao carregar dados para tab ${tab}:`, error);
-          }
+            // Tratar erro baseado no tipo de tab
+            if (IS_DEV) {
+              safeLog.error(`❌ Erro ao carregar dados para tab ${tab}:`, error);
+            }
 
-          if (tab === 'entregadores' || tab === 'prioridade') {
-            if (IS_DEV) safeLog.info(`[useTabData] Definindo dados vazios para ${tab} após erro`);
-            setData({ entregadores: [], total: 0 });
-          } else if (tab === 'valores') {
-            if (IS_DEV) safeLog.info(`[useTabData] Definindo array vazio para ${tab} após erro`);
-            setData([]);
-          } else {
-            if (IS_DEV) safeLog.info(`[useTabData] Definindo null para ${tab} após erro`);
-            setData(null);
-          }
+            if (tab === 'entregadores' || tab === 'prioridade') {
+              if (IS_DEV) safeLog.info(`[useTabData] Definindo dados vazios para ${tab} após erro`);
+              setData({ entregadores: [], total: 0 });
+            } else if (tab === 'valores') {
+              if (IS_DEV) safeLog.info(`[useTabData] Definindo array vazio para ${tab} após erro`);
+              setData([]);
+            } else {
+              if (IS_DEV) safeLog.info(`[useTabData] Definindo null para ${tab} após erro`);
+              setData(null);
+            }
 
-          isRequestPendingRef.current = false;
-        },
-        () => currentTabRef.current === tab
-      );
+            isRequestPendingRef.current = false;
+            reject(error);
+          },
+          () => currentTabRef.current === tab
+        );
+      });
+
+      // Armazenar promise para deduplicação
+      pendingRequests.set(queueKey, fetchPromise);
+
+      // Limpar promise quando completar
+      fetchPromise
+        .finally(() => {
+          pendingRequests.delete(queueKey);
+        });
     };
 
     // Debounce para evitar múltiplas chamadas

@@ -12,6 +12,7 @@ import { Search, Download } from 'lucide-react';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import MarketingCard from '@/components/MarketingCard';
 import { CIDADES as CIDADES_MARKETING } from '@/constants/marketing';
+import { QUERY_LIMITS } from '@/constants/config';
 import * as XLSX from 'xlsx';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -72,68 +73,90 @@ const EntregadoresView = React.memo(function EntregadoresView({
         return;
       }
 
-      // Para cada entregador, verificar se existe em dados_corridas e agregar
+      // OTIMIZAÇÃO: Buscar todos os dados de uma vez ao invés de loop N+1
+      const idsEntregadores = entregadoresIds
+        .map(e => e.id_entregador)
+        .filter((id): id is string => !!id);
+
+      if (idsEntregadores.length === 0) {
+        setEntregadores([]);
+        return;
+      }
+
+      // Buscar todas as corridas de uma vez para todos os entregadores
+      let corridasQuery = supabase
+        .from('dados_corridas')
+        .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo')
+        .in('id_da_pessoa_entregadora', idsEntregadores);
+
+      // Aplicar filtro de data início se especificado
+      if (filtroDataInicio.dataInicial) {
+        corridasQuery = corridasQuery.gte('data_do_periodo', filtroDataInicio.dataInicial);
+      }
+      if (filtroDataInicio.dataFinal) {
+        corridasQuery = corridasQuery.lte('data_do_periodo', filtroDataInicio.dataFinal);
+      }
+
+      // Limitar query para evitar sobrecarga
+      corridasQuery = corridasQuery.limit(QUERY_LIMITS.AGGREGATION_MAX);
+
+      const { data: todasCorridas, error: corridasError } = await corridasQuery;
+
+      if (corridasError) {
+        throw corridasError;
+      }
+
+      // Criar mapa de entregadores para lookup rápido
+      const entregadoresMap = new Map(entregadoresIds.map(e => [e.id_entregador, e]));
+
+      // Agregar dados por entregador em memória
+      const corridasPorEntregador = new Map<string, typeof todasCorridas>();
+      
+      if (todasCorridas) {
+        for (const corrida of todasCorridas) {
+          const id = corrida.id_da_pessoa_entregadora;
+          if (!id) continue;
+
+          if (!corridasPorEntregador.has(id)) {
+            corridasPorEntregador.set(id, []);
+          }
+          corridasPorEntregador.get(id)!.push(corrida);
+        }
+      }
+
+      // Processar cada entregador
       const entregadoresComDados: EntregadorMarketing[] = [];
 
       for (const entregador of entregadoresIds) {
         if (!entregador.id_entregador) continue;
 
-        // Buscar primeira data do entregador em dados_corridas
-        const { data: primeiraDataResult, error: primeiraDataError } = await supabase
-          .from('dados_corridas')
-          .select('data_do_periodo')
-          .eq('id_da_pessoa_entregadora', entregador.id_entregador)
-          .not('data_do_periodo', 'is', null)
-          .order('data_do_periodo', { ascending: true })
-          .limit(1);
+        const corridasData = corridasPorEntregador.get(entregador.id_entregador) || [];
 
-        if (primeiraDataError) {
-          if (IS_DEV) {
-            safeLog.warn(`Erro ao buscar primeira data para entregador ${entregador.id_entregador}:`, primeiraDataError);
-          }
+        // Se não há corridas, pular este entregador
+        if (corridasData.length === 0) {
+          continue;
         }
 
-        // Aplicar filtro de data início se especificado
+        // Aplicar filtro de data início se especificado - verificar primeira data
         if (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) {
-          if (!primeiraDataResult || primeiraDataResult.length === 0) {
-            continue; // Se não tem primeira data, pular
-          }
-          
-          const primeiraData = primeiraDataResult[0].data_do_periodo;
+          const primeiraData = corridasData
+            .map(c => c.data_do_periodo)
+            .filter((d): d is string => d != null)
+            .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
+
           if (!primeiraData) {
             continue;
           }
 
-          // Verificar se a primeira data está dentro do intervalo
           const dataInicio = filtroDataInicio.dataInicial;
           const dataFim = filtroDataInicio.dataFinal;
           
           if (dataInicio && primeiraData < dataInicio) {
-            continue; // Primeira data é anterior ao início do intervalo
+            continue;
           }
           if (dataFim && primeiraData > dataFim) {
-            continue; // Primeira data é posterior ao fim do intervalo
+            continue;
           }
-        }
-
-        // Verificar se o ID existe em dados_corridas e agregar
-        let corridasQuery = supabase
-          .from('dados_corridas')
-          .select('numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo')
-          .eq('id_da_pessoa_entregadora', entregador.id_entregador);
-
-        const { data: corridasData, error: corridasError } = await corridasQuery;
-
-        if (corridasError) {
-          if (IS_DEV) {
-            safeLog.warn(`Erro ao buscar corridas para entregador ${entregador.id_entregador}:`, corridasError);
-          }
-          continue;
-        }
-
-        // Se não há corridas, pular este entregador
-        if (!corridasData || corridasData.length === 0) {
-          continue;
         }
 
         // Agregar dados
@@ -146,7 +169,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
         let ultimaData: string | null = null;
         let diasSemRodar: number | null = null;
         
-        if (corridasData && corridasData.length > 0) {
+        if (corridasData.length > 0) {
           const datas = corridasData
             .map(c => c.data_do_periodo)
             .filter((d): d is string => d != null)

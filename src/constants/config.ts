@@ -22,7 +22,7 @@ export const RPC_TIMEOUTS = {
  */
 export const DELAYS = {
   /** Debounce padrão para inputs e filtros */
-  DEBOUNCE: 100, // 100ms
+  DEBOUNCE: 500, // 500ms - aumentado para reduzir queries
   /** Debounce para mudanças de tab */
   TAB_CHANGE: 100, // 100ms
   /** Delay para retry de erros 500 */
@@ -44,9 +44,11 @@ export const DELAYS = {
  */
 export const CACHE = {
   /** TTL padrão para cache de dados de tab */
-  TAB_DATA_TTL: 180000, // 180 segundos (3 minutos)
+  TAB_DATA_TTL: 600000, // 600 segundos (10 minutos) - aumentado para reduzir queries
   /** TTL para cache de evolução */
-  EVOLUCAO_TTL: 30000, // 30 segundos
+  EVOLUCAO_TTL: 300000, // 300 segundos (5 minutos)
+  /** TTL para cache de dados frequentes (praças, origens, etc) */
+  FREQUENT_DATA_TTL: 1800000, // 30 minutos
 } as const;
 
 /**
@@ -69,6 +71,20 @@ export const BATCH_SIZES = {
   INSERT: 500,
   /** Tamanho de lote para deleção */
   DELETE: 500,
+} as const;
+
+/**
+ * Limites de queries para otimização de performance
+ */
+export const QUERY_LIMITS = {
+  /** Limite máximo para queries de fallback (evita sobrecarga) */
+  FALLBACK_MAX: 10000,
+  /** Limite para queries de agregação */
+  AGGREGATION_MAX: 50000,
+  /** Limite padrão para listagens */
+  DEFAULT_LIST: 1000,
+  /** Limite para queries de busca */
+  SEARCH_MAX: 500,
 } as const;
 
 /**

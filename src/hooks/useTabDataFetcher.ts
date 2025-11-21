@@ -9,7 +9,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { is500Error, isRateLimitError } from '@/lib/rpcErrorHandler';
 import { UtrData, EntregadoresData, ValoresEntregador, UtrGeral, UtrPorPraca, UtrPorSubPraca, UtrPorOrigem, UtrPorTurno, Entregador } from '@/types';
-import { RPC_TIMEOUTS, DELAYS } from '@/constants/config';
+import { RPC_TIMEOUTS, DELAYS, QUERY_LIMITS } from '@/constants/config';
 import { supabase } from '@/lib/supabaseClient';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -27,9 +27,10 @@ interface FetchOptions {
  */
 async function fetchUtrFallback(payload: any): Promise<UtrData | null> {
   try {
+    // Otimização: selecionar apenas colunas necessárias
     let query = supabase
       .from('dados_corridas')
-      .select('tempo_disponivel_escalado, numero_de_corridas_aceitas, numero_de_corridas_completadas, praca, sub_praca, origem, periodo');
+      .select('tempo_disponivel_escalado, numero_de_corridas_aceitas, praca');
 
     // Aplicar filtros
     if (payload.p_semana && payload.p_ano) {
@@ -85,6 +86,9 @@ async function fetchUtrFallback(payload: any): Promise<UtrData | null> {
         query = query.in('origem', origens);
       }
     }
+
+    // Limitar query para evitar sobrecarga - usar limite máximo para agregações UTR
+    query = query.limit(QUERY_LIMITS.AGGREGATION_MAX);
 
     const { data, error } = await query;
 
@@ -165,7 +169,7 @@ async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData
   try {
     let query = supabase
       .from('dados_corridas')
-      .select('id_da_pessoa_entregadora, pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_rejeitadas, numero_de_corridas_completadas, tempo_disponivel_escalado, data_do_periodo, praca, sub_praca, origem');
+      .select('id_da_pessoa_entregadora, pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_rejeitadas, numero_de_corridas_completadas, data_do_periodo');
 
     // Aplicar filtros (mesma lógica do fetchValoresFallback)
     if (payload.p_semana && payload.p_ano) {
@@ -221,6 +225,9 @@ async function fetchEntregadoresFallback(payload: any): Promise<EntregadoresData
         query = query.in('origem', origens);
       }
     }
+
+    // Limitar query para evitar sobrecarga - usar limite máximo para agregações de entregadores
+    query = query.limit(QUERY_LIMITS.AGGREGATION_MAX);
 
     const { data, error } = await query;
 
@@ -370,6 +377,9 @@ async function fetchValoresFallback(payload: any): Promise<ValoresEntregador[]> 
         query = query.in('origem', origens);
       }
     }
+
+    // Limitar query para evitar sobrecarga - usar limite máximo para agregações de valores
+    query = query.limit(QUERY_LIMITS.AGGREGATION_MAX);
 
     const { data, error } = await query;
 

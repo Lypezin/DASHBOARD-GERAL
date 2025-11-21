@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { FixedSizeList as List } from 'react-window';
 import { supabase } from '@/lib/supabaseClient';
 import { ValoresEntregador, Entregador, EntregadoresData } from '@/types';
 import MetricCard from '../MetricCard';
@@ -331,63 +332,68 @@ const ValoresView = React.memo(function ValoresView({
           </CardHeader>
           
           <CardContent className="relative">
-            <div className="max-h-[500px] sm:max-h-[600px] overflow-x-auto overflow-y-auto">
-              <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/50 shadow-lg overflow-hidden">
-                <table className="w-full min-w-[600px]">
-                  <thead className="sticky top-0 z-10">
-                    <tr className="bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-slate-800 dark:to-slate-700 border-b-2 border-blue-200 dark:border-slate-600">
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
-                        onClick={() => handleSort('nome_entregador')}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">👤</span>
-                          <span className="truncate">Entregador</span>
-                          <SortIcon field="nome_entregador" />
-                        </div>
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
-                        onClick={() => handleSort('total_taxas')}
-                      >
-                        <div className="flex items-center justify-end gap-2">
-                          <span className="text-base">💵</span>
-                          <span className="truncate">Total</span>
-                          <SortIcon field="total_taxas" />
-                        </div>
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
-                        onClick={() => handleSort('numero_corridas_aceitas')}
-                      >
-                        <div className="flex items-center justify-end gap-2">
-                          <span className="text-base">🚗</span>
-                          <span className="truncate">Corridas</span>
-                          <SortIcon field="numero_corridas_aceitas" />
-                        </div>
-                      </th>
-                      <th 
-                        className="cursor-pointer px-4 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
-                        onClick={() => handleSort('taxa_media')}
-                      >
-                        <div className="flex items-center justify-end gap-2">
-                          <span className="text-base">📊</span>
-                          <span className="truncate">Média</span>
-                          <SortIcon field="taxa_media" />
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {sortedValores.map((entregador, index) => {
-                      // Validação de segurança: garantir que entregador existe
+            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/50 shadow-lg overflow-hidden">
+              {/* Cabeçalho fixo */}
+              <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-slate-800 dark:to-slate-700 border-b-2 border-blue-200 dark:border-slate-600">
+                <div className="grid grid-cols-4 gap-4 px-4 py-4 min-w-[600px]">
+                  <div 
+                    className="cursor-pointer text-left text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
+                    onClick={() => handleSort('nome_entregador')}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">👤</span>
+                      <span className="truncate">Entregador</span>
+                      <SortIcon field="nome_entregador" />
+                    </div>
+                  </div>
+                  <div 
+                    className="cursor-pointer text-right text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
+                    onClick={() => handleSort('total_taxas')}
+                  >
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-base">💵</span>
+                      <span className="truncate">Total</span>
+                      <SortIcon field="total_taxas" />
+                    </div>
+                  </div>
+                  <div 
+                    className="cursor-pointer text-right text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
+                    onClick={() => handleSort('numero_corridas_aceitas')}
+                  >
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-base">🚗</span>
+                      <span className="truncate">Corridas</span>
+                      <SortIcon field="numero_corridas_aceitas" />
+                    </div>
+                  </div>
+                  <div 
+                    className="cursor-pointer text-right text-xs font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-blue-100 dark:text-slate-300 dark:hover:bg-blue-950/20 whitespace-nowrap"
+                    onClick={() => handleSort('taxa_media')}
+                  >
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-base">📊</span>
+                      <span className="truncate">Média</span>
+                      <SortIcon field="taxa_media" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Lista virtualizada */}
+              <div className="max-h-[500px] sm:max-h-[600px]">
+                {sortedValores.length > 0 ? (
+                  <List
+                    height={Math.min(600, sortedValores.length * 60)}
+                    itemCount={sortedValores.length}
+                    itemSize={60}
+                    width="100%"
+                    className="overflow-x-auto"
+                  >
+                    {({ index, style }) => {
+                      const entregador = sortedValores[index];
                       if (!entregador) return null;
                       
-                      // Garantir que o número seja sempre sequencial (ranking)
                       const ranking = index + 1;
-                      
-                      // Garantir que todos os valores numéricos existam antes de usar
-                      // Converter para número para garantir que seja numérico
                       const totalTaxas = Number(entregador.total_taxas) || 0;
                       const numeroCorridas = Number(entregador.numero_corridas_aceitas) || 0;
                       const taxaMedia = Number(entregador.taxa_media) || 0;
@@ -395,38 +401,40 @@ const ValoresView = React.memo(function ValoresView({
                       const idEntregador = String(entregador.id_entregador || `entregador-${index}`);
                       
                       return (
-                      <tr 
-                        key={`${idEntregador}-${sortField}-${sortDirection}-${ranking}`}
-                        className="group transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/20"
-                      >
-                        <td className="px-4 py-4 text-sm">
-                          <div className="flex items-center gap-3">
+                        <div
+                          style={style}
+                          className="grid grid-cols-4 gap-4 px-4 items-center border-b border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors min-w-[600px]"
+                        >
+                          <div className="flex items-center gap-3 text-sm">
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-sm font-bold text-white shadow-sm">
                               {ranking}
                             </div>
                             <span className="font-semibold text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-none">{nomeEntregador}</span>
                           </div>
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <Badge className="bg-emerald-100 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100 font-bold whitespace-nowrap">
-                            {formatarReal(totalTaxas)}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm whitespace-nowrap">
-                            {numeroCorridas.toLocaleString('pt-BR')}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <Badge className="bg-blue-100 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 font-semibold whitespace-nowrap">
-                            {formatarReal(taxaMedia)}
-                          </Badge>
-                        </td>
-                      </tr>
+                          <div className="text-right">
+                            <Badge className="bg-emerald-100 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100 font-bold whitespace-nowrap">
+                              {formatarReal(totalTaxas)}
+                            </Badge>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm whitespace-nowrap">
+                              {numeroCorridas.toLocaleString('pt-BR')}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <Badge className="bg-blue-100 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100 font-semibold whitespace-nowrap">
+                              {formatarReal(taxaMedia)}
+                            </Badge>
+                          </div>
+                        </div>
                       );
-                    }).filter(Boolean)}
-                  </tbody>
-                </table>
+                    }}
+                  </List>
+                ) : (
+                  <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+                    Nenhum dado para exibir
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
