@@ -9,7 +9,7 @@ import { MarketingDateFilter } from '@/types';
 import { AtendenteData } from '@/components/views/resultados/AtendenteCard';
 import { ATENDENTE_TO_ID, findCidadeValue } from '@/utils/atendenteMappers';
 import { SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
-import { buildDateFilterQuery } from '@/utils/marketingQueries';
+import { buildDateFilterQuery, ensureMarketingDateFilter } from '@/utils/marketingQueries';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -19,16 +19,19 @@ export function useCustoPorLiberado() {
     filtroEnviadosLiberados: MarketingDateFilter
   ): Promise<AtendenteData[]> => {
     try {
+      // Garantir filtro de data obrigatório
+      const safeFilter = ensureMarketingDateFilter(filtroEnviadosLiberados);
+
       // Buscar valores por cidade e por atendente usando o filtro de Enviados Liberados
       let valoresQuery = supabase
         .from('dados_valores_cidade')
         .select('id_atendente, cidade, valor');
 
-      if (filtroEnviadosLiberados.dataInicial) {
-        valoresQuery = valoresQuery.gte('data', filtroEnviadosLiberados.dataInicial);
+      if (safeFilter.dataInicial) {
+        valoresQuery = valoresQuery.gte('data', safeFilter.dataInicial);
       }
-      if (filtroEnviadosLiberados.dataFinal) {
-        valoresQuery = valoresQuery.lte('data', filtroEnviadosLiberados.dataFinal);
+      if (safeFilter.dataFinal) {
+        valoresQuery = valoresQuery.lte('data', safeFilter.dataFinal);
       }
 
       const { data: valoresData, error: valoresError } = await valoresQuery;

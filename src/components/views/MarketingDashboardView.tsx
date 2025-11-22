@@ -63,9 +63,12 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
         safeLog.warn('RPC get_marketing_totals não disponível, usando fallback');
       }
 
+      // Garantir que pelo menos um filtro de data está aplicado
+      // Para queries de marketing, sempre aplicar filtro de data_envio se disponível
       const { count: criadoCount } = await supabase
         .from('dados_marketing')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .not('data_envio', 'is', null); // Garantir que há data para evitar scan completo
 
       let enviadoQuery = supabase
         .from('dados_marketing')

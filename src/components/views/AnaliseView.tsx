@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
 import MetricCard from '../MetricCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-function AnaliseView({ 
+const AnaliseView = React.memo(function AnaliseView({ 
   totals,
   aderenciaDia,
   aderenciaTurno,
@@ -18,9 +18,15 @@ function AnaliseView({
 }) {
   const [activeTable, setActiveTable] = useState<'dia' | 'turno' | 'sub_praca' | 'origem'>('dia');
   
-  const taxaAceitacao = totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0;
-  const taxaCompletude = totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0;
-  const taxaRejeicao = totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0;
+  // Memoizar cálculos de taxas
+  const taxaAceitacao = useMemo(() => totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0, [totals.ofertadas, totals.aceitas]);
+  const taxaCompletude = useMemo(() => totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0, [totals.aceitas, totals.completadas]);
+  const taxaRejeicao = useMemo(() => totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0, [totals.ofertadas, totals.rejeitadas]);
+
+  // Memoizar handlers
+  const handleTableChange = useCallback((table: 'dia' | 'turno' | 'sub_praca' | 'origem') => {
+    setActiveTable(table);
+  }, []);
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
@@ -54,7 +60,7 @@ function AnaliseView({
               </div>
               <div className="flex gap-3 flex-wrap">
                 <button
-                  onClick={() => setActiveTable('dia')}
+                  onClick={() => handleTableChange('dia')}
                   className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                     activeTable === 'dia'
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
@@ -64,7 +70,7 @@ function AnaliseView({
                   📅 Por Dia
                 </button>
                 <button
-                  onClick={() => setActiveTable('turno')}
+                  onClick={() => handleTableChange('turno')}
                   className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                     activeTable === 'turno'
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
@@ -74,7 +80,7 @@ function AnaliseView({
                   🕐 Por Turno
                 </button>
                 <button
-                  onClick={() => setActiveTable('sub_praca')}
+                  onClick={() => handleTableChange('sub_praca')}
                   className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                     activeTable === 'sub_praca'
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
@@ -84,7 +90,7 @@ function AnaliseView({
                   📍 Por Sub Praça
                 </button>
                 <button
-                  onClick={() => setActiveTable('origem')}
+                  onClick={() => handleTableChange('origem')}
                   className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                     activeTable === 'origem'
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
@@ -342,6 +348,8 @@ function AnaliseView({
       </div>
     </div>
   );
-}
+});
+
+AnaliseView.displayName = 'AnaliseView';
 
 export default AnaliseView;

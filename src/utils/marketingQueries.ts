@@ -5,6 +5,33 @@
 
 import { MarketingDateFilter } from '@/types';
 import { SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
+import { safeLog } from '@/lib/errorHandler';
+
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+/**
+ * Garante que um filtro de data de marketing tenha pelo menos um filtro aplicado
+ * Se não houver filtro, aplica um filtro padrão dos últimos 30 dias
+ */
+export function ensureMarketingDateFilter(filter: MarketingDateFilter): MarketingDateFilter {
+  if (filter.dataInicial || filter.dataFinal) {
+    return filter;
+  }
+
+  // Se não há filtro, aplicar filtro padrão dos últimos 30 dias
+  const hoje = new Date();
+  const trintaDiasAtras = new Date(hoje);
+  trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+
+  if (IS_DEV) {
+    safeLog.warn('[ensureMarketingDateFilter] Nenhum filtro de data fornecido, aplicando filtro padrão de 30 dias');
+  }
+
+  return {
+    dataInicial: trintaDiasAtras.toISOString().split('T')[0],
+    dataFinal: hoje.toISOString().split('T')[0],
+  };
+}
 
 /**
  * Constrói uma query com filtro de data para queries do Supabase.
@@ -25,19 +52,16 @@ export function buildDateFilterQuery(
   dateColumn: string,
   filter: MarketingDateFilter
 ): typeof query {
-  // Se não há filtro aplicado, contar apenas registros onde a data não é null
-  if (!filter.dataInicial && !filter.dataFinal) {
-    query = query.not(dateColumn, 'is', null);
-    return query;
-  }
+  // Garantir que sempre há um filtro de data (aplica padrão de 30 dias se não houver)
+  const safeFilter = ensureMarketingDateFilter(filter);
   
-  // Se há filtro, aplicar intervalo (não aplicar not null aqui)
-  if (filter.dataInicial) {
-    query = query.gte(dateColumn, filter.dataInicial);
+  // Aplicar filtros de data
+  if (safeFilter.dataInicial) {
+    query = query.gte(dateColumn, safeFilter.dataInicial);
   }
-  if (filter.dataFinal) {
+  if (safeFilter.dataFinal) {
     // Usar lte para incluir o dia final completo
-    query = query.lte(dateColumn, filter.dataFinal);
+    query = query.lte(dateColumn, safeFilter.dataFinal);
   }
   
   return query;

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { ValoresCidadeDateFilter, ValoresCidadePorCidade, MarketingDateFilter } from '@/types';
-import { buildDateFilterQuery } from '@/utils/marketingQueries';
+import { buildDateFilterQuery, ensureMarketingDateFilter } from '@/utils/marketingQueries';
 
 const cidadeToRegiao: { [key: string]: string } = {
   'SÃO PAULO': 'São Paulo 2.0',
@@ -31,15 +31,18 @@ export const useValoresCidadeData = (
       setLoading(true);
       setError(null);
 
+      // Garantir filtro de data obrigatório
+      const safeFilter = ensureMarketingDateFilter(filter);
+
       let query = supabase
         .from('dados_valores_cidade')
         .select('cidade, valor');
 
-      if (filter.dataInicial) {
-        query = query.gte('data', filter.dataInicial);
+      if (safeFilter.dataInicial) {
+        query = query.gte('data', safeFilter.dataInicial);
       }
-      if (filter.dataFinal) {
-        query = query.lte('data', filter.dataFinal);
+      if (safeFilter.dataFinal) {
+        query = query.lte('data', safeFilter.dataFinal);
       }
 
       const { data, error: queryError } = await query;
@@ -73,15 +76,18 @@ export const useValoresCidadeData = (
       const total = cidadesArray.reduce((sum, item) => sum + item.valor_total, 0);
       setTotalGeral(total);
 
+      // Garantir filtro de data obrigatório para valores enviados
+      const safeFilterEnviados = ensureMarketingDateFilter(filterEnviados);
+
       let valoresEnviadosQuery = supabase
         .from('dados_valores_cidade')
         .select('cidade, valor');
 
-      if (filterEnviados.dataInicial) {
-        valoresEnviadosQuery = valoresEnviadosQuery.gte('data', filterEnviados.dataInicial);
+      if (safeFilterEnviados.dataInicial) {
+        valoresEnviadosQuery = valoresEnviadosQuery.gte('data', safeFilterEnviados.dataInicial);
       }
-      if (filterEnviados.dataFinal) {
-        valoresEnviadosQuery = valoresEnviadosQuery.lte('data', filterEnviados.dataFinal);
+      if (safeFilterEnviados.dataFinal) {
+        valoresEnviadosQuery = valoresEnviadosQuery.lte('data', safeFilterEnviados.dataFinal);
       }
 
       const { data: valoresEnviadosData, error: valoresEnviadosError } = await valoresEnviadosQuery;
