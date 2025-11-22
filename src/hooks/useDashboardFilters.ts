@@ -28,7 +28,15 @@ export function useDashboardFilters(options: UseDashboardFiltersOptions) {
   const [turnos, setTurnos] = useState<FilterOption[]>([]);
 
   useEffect(() => {
+    console.log('🔵 [useDashboardFilters] useEffect acionado:', {
+      hasDimensoes: !!dimensoes,
+      dimensoesPracas: dimensoes?.pracas,
+      dimensoesPracasLength: Array.isArray(dimensoes?.pracas) ? dimensoes.pracas.length : 0,
+      currentUser: currentUser ? { is_admin: currentUser.is_admin, assigned_pracas: currentUser.assigned_pracas } : null,
+    });
+    
     if (!dimensoes) {
+      console.warn('⚠️ [useDashboardFilters] Dimensões não disponíveis ainda');
       setPracas([]);
       setSubPracas([]);
       setOrigens([]);
@@ -41,12 +49,27 @@ export function useDashboardFilters(options: UseDashboardFiltersOptions) {
       ? dimensoes.pracas.map((p: string | number) => ({ value: String(p), label: String(p) }))
       : [];
 
+    console.log('📊 [useDashboardFilters] Praças antes de filtrar:', {
+      total: pracasDisponiveis.length,
+      pracas: pracasDisponiveis.map(p => p.value),
+    });
+
     // Filtrar praças baseado nas permissões do usuário
     if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
       const pracasPermitidas = new Set(currentUser.assigned_pracas);
       pracasDisponiveis = pracasDisponiveis.filter((p) => pracasPermitidas.has(p.value));
+      console.log('🔒 [useDashboardFilters] Praças após filtrar por permissões:', {
+        total: pracasDisponiveis.length,
+        pracas: pracasDisponiveis.map(p => p.value),
+        assigned_pracas: currentUser.assigned_pracas,
+      });
     }
 
+    console.log('✅ [useDashboardFilters] Definindo praças:', {
+      total: pracasDisponiveis.length,
+      pracas: pracasDisponiveis.map(p => p.value),
+    });
+    
     setPracas(pracasDisponiveis);
 
     // Filtrar dimensões (sub-praças, turnos, origens) baseado nas praças permitidas do usuário

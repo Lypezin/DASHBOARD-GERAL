@@ -189,43 +189,62 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       return;
     }
 
+    // Capturar o payload atual para usar dentro do timeout
+    const currentPayload = filterPayload;
+    const currentPayloadKey = payloadKey;
+    
     debounceRef.current = setTimeout(async () => {
+      // Verificar se o payload ainda é o mesmo (pode ter mudado durante o debounce)
+      const currentPayloadKeyCheck = JSON.stringify(currentPayload);
+      if (currentPayloadKeyCheck !== currentPayloadKey) {
+        console.log('⚠️ [useDashboardMainData] Payload mudou durante debounce, cancelando fetch');
+        return;
+      }
+      
       // Verificar se o payload tem valores válidos antes de fazer fetch
-      const hasValidFilters = filterPayload.p_ano !== null && filterPayload.p_ano !== undefined &&
-                              (filterPayload.p_semana !== null && filterPayload.p_semana !== undefined ||
-                               filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+      const hasValidFilters = currentPayload.p_ano !== null && currentPayload.p_ano !== undefined &&
+                              (currentPayload.p_semana !== null && currentPayload.p_semana !== undefined ||
+                               currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
+      
+      console.log('🔍 [useDashboardMainData] Verificando se deve fazer fetch:', {
+        hasValidFilters,
+        p_ano: currentPayload.p_ano,
+        p_semana: currentPayload.p_semana,
+        p_data_inicial: currentPayload.p_data_inicial,
+        debounceDelay: DELAYS.DEBOUNCE,
+      });
       
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Verificando se deve fazer fetch:', {
           hasValidFilters,
-          payload: filterPayload,
+          payload: currentPayload,
           debounceDelay: DELAYS.DEBOUNCE,
         });
       }
       
       if (!hasValidFilters) {
         console.warn('⚠️ [useDashboardMainData] Payload INVÁLIDO - não fazendo fetch:', {
-          payload: filterPayload,
-          p_ano: filterPayload.p_ano,
-          p_semana: filterPayload.p_semana,
-          p_data_inicial: filterPayload.p_data_inicial,
+          payload: currentPayload,
+          p_ano: currentPayload.p_ano,
+          p_semana: currentPayload.p_semana,
+          p_data_inicial: currentPayload.p_data_inicial,
         });
         if (IS_DEV) {
           safeLog.warn('[useDashboardMainData] Payload inválido, aguardando filtros válidos:', {
-            payload: filterPayload,
-            p_ano: filterPayload.p_ano,
-            p_semana: filterPayload.p_semana,
-            p_data_inicial: filterPayload.p_data_inicial,
+            payload: currentPayload,
+            p_ano: currentPayload.p_ano,
+            p_semana: currentPayload.p_semana,
+            p_data_inicial: currentPayload.p_data_inicial,
           });
         }
         setLoading(false);
         return;
       }
       
-      console.log('✅ [useDashboardMainData] Iniciando FETCH com payload válido:', filterPayload);
+      console.log('✅ [useDashboardMainData] Iniciando FETCH com payload válido:', currentPayload);
       
       if (IS_DEV) {
-        safeLog.info('[useDashboardMainData] Iniciando fetch com payload válido:', filterPayload);
+        safeLog.info('[useDashboardMainData] Iniciando fetch com payload válido:', currentPayload);
       }
       
       setLoading(true);
@@ -235,14 +254,14 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         if (IS_DEV) {
           safeLog.info('[useDashboardMainData] Chamando safeRpc dashboard_resumo com:', {
             functionName: 'dashboard_resumo',
-            payload: filterPayload,
+            payload: currentPayload,
             timeout: RPC_TIMEOUTS.DEFAULT,
           });
         }
         
         console.log('🔄 [useDashboardMainData] Chamando safeRpc...');
         
-        const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', filterPayload, {
+        const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', currentPayload, {
           timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: true
         });
@@ -318,7 +337,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
 
         // Atualizar cache
         cachedDataRef.current = data;
-        cacheKeyRef.current = payloadKey;
+        cacheKeyRef.current = currentPayloadKey;
 
         // Atualizar estados
         const newTotals = {
@@ -401,7 +420,17 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         
         // Armazenar dimensões para uso em filtros
         if (data.dimensoes) {
+          console.log('✅ [useDashboardMainData] Armazenando dimensões:', {
+            hasPracas: !!data.dimensoes.pracas,
+            pracasLength: Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.length : 0,
+            pracas: data.dimensoes.pracas,
+            hasSubPracas: !!data.dimensoes.sub_pracas,
+            hasOrigens: !!data.dimensoes.origens,
+            hasTurnos: !!data.dimensoes.turnos,
+          });
           setDimensoes(data.dimensoes);
+        } else {
+          console.warn('⚠️ [useDashboardMainData] Dados não contêm dimensões');
         }
         
         setError(null);

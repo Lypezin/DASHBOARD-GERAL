@@ -42,6 +42,21 @@ export function useDashboardPage() {
     dataInicial: null,
     dataFinal: null,
   });
+  
+  // Log quando o hook é montado
+  useEffect(() => {
+    console.log('🔄 [DashboardPage] Hook montado/remontado');
+  }, []);
+  
+  // Log quando os filtros mudam
+  useEffect(() => {
+    console.log('📊 [DashboardPage] FILTROS MUDARAM:', {
+      ano: filters.ano,
+      semana: filters.semana,
+      praca: filters.praca,
+      timestamp: new Date().toISOString(),
+    });
+  }, [filters.ano, filters.semana, filters.praca]);
 
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(authUser || null);
@@ -190,7 +205,14 @@ export function useDashboardPage() {
 
   // Inicializar automaticamente os filtros quando os dados de dimensões são carregados
   const filtersInitializedRef = useRef(false);
+  const hasTriedInitializeRef = useRef(false);
+  
   useEffect(() => {
+    // Se já tentou inicializar e os filtros ainda estão null, não tentar novamente
+    if (hasTriedInitializeRef.current && filters.ano === null && filters.semana === null) {
+      return;
+    }
+    
     // Só inicializar se os filtros ainda estão vazios e os dados estão disponíveis
     if (
       !filtersInitializedRef.current &&
@@ -201,6 +223,7 @@ export function useDashboardPage() {
       Array.isArray(semanasDisponiveis) &&
       semanasDisponiveis.length > 0
     ) {
+      hasTriedInitializeRef.current = true;
       console.log('🔵 [DashboardPage] Verificando inicialização de filtros:', {
         filtersInitialized: filtersInitializedRef.current,
         filtersAno: filters.ano,
@@ -249,25 +272,17 @@ export function useDashboardPage() {
         filtersInitializedRef.current = true;
         
         // Usar função de atualização para garantir que os filtros sejam atualizados
-        setFilters({
-          ano: ultimoAno,
-          semana: semanaNumero,
-          praca: filters.praca,
-          subPraca: filters.subPraca,
-          origem: filters.origem,
-          turno: filters.turno,
-          subPracas: filters.subPracas,
-          origens: filters.origens,
-          turnos: filters.turnos,
-          semanas: filters.semanas,
-          filtroModo: filters.filtroModo,
-          dataInicial: filters.dataInicial,
-          dataFinal: filters.dataFinal,
-        });
-        
-        console.log('✅ [DashboardPage] setFilters executado - novos filtros devem ser:', {
-          ano: ultimoAno,
-          semana: semanaNumero,
+        setFilters((prev) => {
+          const newFilters = {
+            ...prev,
+            ano: ultimoAno,
+            semana: semanaNumero,
+          };
+          console.log('✅ [DashboardPage] setFilters executado - novos filtros:', {
+            previous: { ano: prev.ano, semana: prev.semana },
+            new: { ano: newFilters.ano, semana: newFilters.semana },
+          });
+          return newFilters;
         });
       } else {
         console.warn('⚠️ [DashboardPage] Não foi possível inicializar semana automaticamente:', {
@@ -286,7 +301,9 @@ export function useDashboardPage() {
         }
       }
     }
-  }, [anosDisponiveis, semanasDisponiveis, filters.ano, filters.semana]);
+    // Remover filters.ano e filters.semana das dependências para evitar loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anosDisponiveis, semanasDisponiveis]);
 
   // Registrar atividade do usuário com debounce
   const tabChangeTimeoutRef2 = useRef<NodeJS.Timeout | null>(null);
