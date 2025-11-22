@@ -65,17 +65,56 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     // Verificar cache
     if (cacheKeyRef.current === payloadKey && cachedDataRef.current) {
       const cached = cachedDataRef.current;
+      
+      // Função auxiliar para converter horas
+      const convertHorasToString = (value: number | string | undefined): string => {
+        if (value === undefined || value === null) return '0';
+        if (typeof value === 'string') return value;
+        return String(value);
+      };
+      
       setTotals({
         ofertadas: safeNumber(cached.totais?.corridas_ofertadas ?? 0),
         aceitas: safeNumber(cached.totais?.corridas_aceitas ?? 0),
         rejeitadas: safeNumber(cached.totais?.corridas_rejeitadas ?? 0),
         completadas: safeNumber(cached.totais?.corridas_completadas ?? 0),
       });
-      setAderenciaSemanal(Array.isArray(cached.semanal) ? cached.semanal : []);
-      setAderenciaDia(Array.isArray(cached.dia) ? cached.dia : []);
-      setAderenciaTurno(Array.isArray(cached.turno) ? cached.turno : []);
-      setAderenciaSubPraca(Array.isArray(cached.sub_praca) ? cached.sub_praca : []);
-      setAderenciaOrigem(Array.isArray(cached.origem) ? cached.origem : []);
+      
+      setAderenciaSemanal(Array.isArray(cached.semanal) 
+        ? cached.semanal.map(item => ({
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
+        : []);
+      setAderenciaDia(Array.isArray(cached.dia)
+        ? cached.dia.map(item => ({
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
+        : []);
+      setAderenciaTurno(Array.isArray(cached.turno)
+        ? cached.turno.map(item => ({
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
+        : []);
+      setAderenciaSubPraca(Array.isArray(cached.sub_praca)
+        ? cached.sub_praca.map(item => ({
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
+        : []);
+      setAderenciaOrigem(Array.isArray(cached.origem)
+        ? cached.origem.map(item => ({
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
+        : []);
       return;
     }
 
@@ -129,11 +168,49 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           rejeitadas: safeNumber(data.totais?.corridas_rejeitadas ?? 0),
           completadas: safeNumber(data.totais?.corridas_completadas ?? 0),
         });
-        setAderenciaSemanal(Array.isArray(data.semanal) ? data.semanal : []);
-        setAderenciaDia(Array.isArray(data.dia) ? data.dia : []);
-        setAderenciaTurno(Array.isArray(data.turno) ? data.turno : []);
-        setAderenciaSubPraca(Array.isArray(data.sub_praca) ? data.sub_praca : []);
-        setAderenciaOrigem(Array.isArray(data.origem) ? data.origem : []);
+        
+        // Converter números para strings (horas_a_entregar e horas_entregues)
+        const convertHorasToString = (value: number | string | undefined): string => {
+          if (value === undefined || value === null) return '0';
+          if (typeof value === 'string') return value;
+          return String(value);
+        };
+        
+        setAderenciaSemanal(Array.isArray(data.semanal) 
+          ? data.semanal.map(item => ({
+              ...item,
+              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+              horas_entregues: convertHorasToString(item.horas_entregues)
+            }))
+          : []);
+        setAderenciaDia(Array.isArray(data.dia)
+          ? data.dia.map(item => ({
+              ...item,
+              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+              horas_entregues: convertHorasToString(item.horas_entregues)
+            }))
+          : []);
+        setAderenciaTurno(Array.isArray(data.turno)
+          ? data.turno.map(item => ({
+              ...item,
+              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+              horas_entregues: convertHorasToString(item.horas_entregues)
+            }))
+          : []);
+        setAderenciaSubPraca(Array.isArray(data.sub_praca)
+          ? data.sub_praca.map(item => ({
+              ...item,
+              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+              horas_entregues: convertHorasToString(item.horas_entregues)
+            }))
+          : []);
+        setAderenciaOrigem(Array.isArray(data.origem)
+          ? data.origem.map(item => ({
+              ...item,
+              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+              horas_entregues: convertHorasToString(item.horas_entregues)
+            }))
+          : []);
         
         // Armazenar dimensões para uso em filtros
         if (data.dimensoes) {
