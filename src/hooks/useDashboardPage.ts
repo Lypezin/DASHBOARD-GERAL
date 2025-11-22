@@ -212,9 +212,13 @@ export function useDashboardPage() {
   const setFiltersProtected = useCallback((newFilters: Filters | ((prev: Filters) => Filters)) => {
     const stackTrace = new Error().stack;
     
-    if (typeof newFilters === 'function') {
+    // Type guard para verificar se é função
+    const isFunction = typeof newFilters === 'function';
+    
+    if (isFunction) {
+      const updater = newFilters as (prev: Filters) => Filters;
       setFilters((prev) => {
-        const updated = newFilters(prev);
+        const updated = updater(prev);
         
         // Proteger ano e semana se já foram inicializados
         if (filtersProtectedRef.current) {
@@ -248,35 +252,43 @@ export function useDashboardPage() {
       });
     } else {
       // Proteger ano e semana se já foram inicializados
+      const filtersObj = newFilters as Filters;
       if (filtersProtectedRef.current) {
         const currentAno = filters.ano;
         const currentSemana = filters.semana;
-        const wouldResetAno = currentAno !== null && newFilters.ano === null;
-        const wouldResetSemana = currentSemana !== null && newFilters.semana === null;
+        const wouldResetAno = currentAno !== null && filtersObj.ano === null;
+        const wouldResetSemana = currentSemana !== null && filtersObj.semana === null;
         
         if (wouldResetAno || wouldResetSemana) {
           console.warn('🛡️ [DashboardPage] BLOQUEANDO reset de filtros protegidos:', {
             wouldResetAno,
             wouldResetSemana,
             current: { ano: currentAno, semana: currentSemana },
-            attempted: { ano: newFilters.ano, semana: newFilters.semana },
+            attempted: { ano: filtersObj.ano, semana: filtersObj.semana },
             stackTrace: stackTrace?.split('\n').slice(0, 5).join('\n'),
           });
           
           // Manter valores anteriores de ano e semana
-          newFilters = {
-            ...newFilters,
-            ano: wouldResetAno ? currentAno : newFilters.ano,
-            semana: wouldResetSemana ? currentSemana : newFilters.semana,
+          const protectedFilters: Filters = {
+            ...filtersObj,
+            ano: wouldResetAno ? currentAno : filtersObj.ano,
+            semana: wouldResetSemana ? currentSemana : filtersObj.semana,
           };
+          
+          console.log('📝 [DashboardPage] setFilters (objeto) chamado com proteção:', {
+            newFilters: { ano: protectedFilters.ano, semana: protectedFilters.semana },
+          });
+          
+          setFilters(protectedFilters);
+          return;
         }
       }
       
       console.log('📝 [DashboardPage] setFilters (objeto) chamado:', {
-        newFilters: { ano: newFilters.ano, semana: newFilters.semana },
+        newFilters: { ano: filtersObj.ano, semana: filtersObj.semana },
       });
       
-      setFilters(newFilters);
+      setFilters(filtersObj);
     }
   }, [filters.ano, filters.semana]);
   
