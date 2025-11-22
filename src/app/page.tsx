@@ -41,48 +41,23 @@ import { buildFilterPayload, safeNumber, arraysEqual } from '@/utils/helpers';
 import { DELAYS } from '@/constants/config';
 
 // Lazy load de componentes pesados para melhor performance
-// Componentes que usam Chart.js devem ser carregados apenas no cliente (ssr: false)
-const DashboardView = dynamic(() => import('@/components/views/DashboardView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
-  ssr: false
-});
-const MarketingView = dynamic(() => import('@/components/views/MarketingView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div></div>,
-  ssr: false
-});
-const AnaliseView = dynamic(() => import('@/components/views/AnaliseView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
-  ssr: false
-});
-const UtrView = dynamic(() => import('@/components/views/UtrView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
-  ssr: false
-});
-const EvolucaoView = dynamic(() => import('@/components/views/EvolucaoView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
-  ssr: false
-});
-const ValoresView = dynamic(() => import('@/components/views/ValoresView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
-  ssr: false
-});
-const EntregadoresMainView = dynamic(() => import('@/components/views/EntregadoresMainView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
-  ssr: false
-});
-const PrioridadePromoView = dynamic(() => import('@/components/views/PrioridadePromoView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
-  ssr: false
-});
-const ComparacaoView = dynamic(() => import('@/components/views/ComparacaoView').then(mod => ({ default: mod.default })), {
-  loading: () => <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div></div>,
-  ssr: false
-});
+import {
+  DashboardView,
+  MarketingView,
+  AnaliseView,
+  UtrView,
+  EvolucaoView,
+  ValoresView,
+  EntregadoresMainView,
+  PrioridadePromoView,
+  ComparacaoView,
+} from '@/config/dynamicImports';
 
 // Hook Imports
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useUserActivity } from '@/hooks/useUserActivity';
-import { useTabData } from '@/hooks/useTabData'; // Importa o novo hook
+import { useTabData } from '@/hooks/useTabData';
+import { useTabDataMapper } from '@/hooks/useTabDataMapper';
 
 // =================================================================================
 // Interfaces e Tipos
@@ -202,29 +177,11 @@ export default function DashboardPage() {
 
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
-
   // Mapeia os dados do useTabData para as props dos componentes de view
-  // Memoizar para evitar recriação desnecessária
-  const utrData = useMemo(() => {
-    return activeTab === 'utr' ? (tabData as UtrData) : null;
-  }, [activeTab, tabData]);
-
-  const entregadoresData = useMemo(() => {
-    return activeTab === 'entregadores' ? (tabData as EntregadoresData) : null;
-  }, [activeTab, tabData]);
-
-  const valoresData = useMemo(() => {
-    if (activeTab !== 'valores') return [];
-    if (!tabData) return [];
-    if (Array.isArray(tabData)) {
-      return tabData as ValoresEntregador[];
-    }
-    return [];
-  }, [activeTab, tabData]);
-
-  const prioridadeData = useMemo(() => {
-    return activeTab === 'prioridade' ? (tabData as EntregadoresData) : null;
-  }, [activeTab, tabData]);
+  const { utrData, entregadoresData, valoresData, prioridadeData } = useTabDataMapper({
+    activeTab,
+    tabData,
+  });
 
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
 
