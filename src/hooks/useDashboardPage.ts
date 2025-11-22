@@ -136,6 +136,59 @@ export function useDashboardPage() {
     }
   }, [anosDisponiveis, anoEvolucao]);
 
+  // Inicializar automaticamente os filtros quando os dados de dimensões são carregados
+  const filtersInitializedRef = useRef(false);
+  useEffect(() => {
+    // Só inicializar se os filtros ainda estão vazios e os dados estão disponíveis
+    if (
+      !filtersInitializedRef.current &&
+      filters.ano === null &&
+      filters.semana === null &&
+      Array.isArray(anosDisponiveis) &&
+      anosDisponiveis.length > 0 &&
+      Array.isArray(semanasDisponiveis) &&
+      semanasDisponiveis.length > 0
+    ) {
+      const ultimoAno = anosDisponiveis[anosDisponiveis.length - 1];
+      const ultimaSemana = semanasDisponiveis[semanasDisponiveis.length - 1];
+      
+      // Converter semana de string para número se necessário
+      // Suporta formatos: "10", "W10", ou número direto
+      let semanaNumero: number;
+      if (typeof ultimaSemana === 'string') {
+        if (ultimaSemana.includes('W')) {
+          const match = ultimaSemana.match(/W(\d+)/);
+          semanaNumero = match ? parseInt(match[1], 10) : parseInt(ultimaSemana, 10);
+        } else {
+          semanaNumero = parseInt(ultimaSemana, 10);
+        }
+      } else {
+        semanaNumero = Number(ultimaSemana);
+      }
+
+      if (!isNaN(semanaNumero) && semanaNumero > 0 && semanaNumero <= 53) {
+        setFilters(prev => ({
+          ...prev,
+          ano: ultimoAno,
+          semana: semanaNumero,
+        }));
+        filtersInitializedRef.current = true;
+        
+        if (IS_DEV) {
+          safeLog.info('[DashboardPage] Filtros inicializados automaticamente:', {
+            ano: ultimoAno,
+            semana: semanaNumero,
+          });
+        }
+      } else if (IS_DEV) {
+        safeLog.warn('[DashboardPage] Não foi possível inicializar semana automaticamente:', {
+          ultimaSemana,
+          semanaNumero,
+        });
+      }
+    }
+  }, [anosDisponiveis, semanasDisponiveis, filters.ano, filters.semana]);
+
   // Registrar atividade do usuário com debounce
   const tabChangeTimeoutRef2 = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {

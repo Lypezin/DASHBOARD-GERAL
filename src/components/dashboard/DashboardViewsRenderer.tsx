@@ -125,14 +125,18 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
           />
         )}
         
-        {activeTab === 'analise' && totals && (
-          <AnaliseView
-            totals={totals}
-            aderenciaDia={aderenciaDia}
-            aderenciaTurno={aderenciaTurno}
-            aderenciaSubPraca={aderenciaSubPraca}
-            aderenciaOrigem={aderenciaOrigem}
-          />
+        {activeTab === 'analise' && (
+          totals ? (
+            <AnaliseView
+              totals={totals}
+              aderenciaDia={aderenciaDia}
+              aderenciaTurno={aderenciaTurno}
+              aderenciaSubPraca={aderenciaSubPraca}
+              aderenciaOrigem={aderenciaOrigem}
+            />
+          ) : (
+            <LoadingFallback />
+          )
         )}
         
         {activeTab === 'utr' && (
