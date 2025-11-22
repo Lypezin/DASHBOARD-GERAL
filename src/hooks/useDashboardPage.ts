@@ -101,13 +101,21 @@ export function useDashboardPage() {
     if (IS_DEV) {
       safeLog.info('[DashboardPage] Gerando filterPayload com:', {
         filters,
+        filtersAno: filters.ano,
+        filtersSemana: filters.semana,
         currentUser: currentUser ? { is_admin: currentUser.is_admin, hasAssignedPracas: currentUser.assigned_pracas.length > 0 } : null,
       });
     }
     try {
       const payload = buildFilterPayload(filters, currentUser);
       if (IS_DEV) {
-        safeLog.info('[DashboardPage] filterPayload gerado com sucesso:', payload);
+        safeLog.info('[DashboardPage] filterPayload gerado com sucesso:', {
+          payload,
+          p_ano: payload.p_ano,
+          p_semana: payload.p_semana,
+          p_data_inicial: payload.p_data_inicial,
+          p_data_final: payload.p_data_final,
+        });
       }
       return payload;
     } catch (error) {
@@ -185,7 +193,11 @@ export function useDashboardPage() {
           };
           
           if (IS_DEV) {
-            safeLog.info('[DashboardPage] Novos filtros definidos:', newFilters);
+            safeLog.info('[DashboardPage] Novos filtros definidos via setFilters:', {
+              previous: prev,
+              new: newFilters,
+              changed: prev.ano !== newFilters.ano || prev.semana !== newFilters.semana,
+            });
           }
           
           return newFilters;

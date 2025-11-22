@@ -9,10 +9,13 @@ import {
 } from '@/types';
 import { buildFilterPayload } from '@/utils/helpers';
 import { converterHorasParaDecimal } from '@/utils/formatters';
+import { safeLog } from '@/lib/errorHandler';
 import { useDashboardDimensions } from './useDashboardDimensions';
 import { useDashboardMainData } from './useDashboardMainData';
 import { useDashboardEvolucao } from './useDashboardEvolucao';
 import { useDashboardFilters } from './useDashboardFilters';
+
+const IS_DEV = process.env.NODE_ENV === 'development';
 
 /**
  * Hook para gerenciar dados do dashboard principal
@@ -44,7 +47,23 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const { anosDisponiveis, semanasDisponiveis } = useDashboardDimensions();
 
   const filterPayload = useMemo(() => {
-    return buildFilterPayload(initialFilters, currentUser);
+    if (IS_DEV) {
+      safeLog.info('[useDashboardData] Gerando filterPayload:', {
+        initialFilters,
+        initialFiltersAno: initialFilters.ano,
+        initialFiltersSemana: initialFilters.semana,
+        currentUser: currentUser ? { is_admin: currentUser.is_admin } : null,
+      });
+    }
+    const payload = buildFilterPayload(initialFilters, currentUser);
+    if (IS_DEV) {
+      safeLog.info('[useDashboardData] filterPayload gerado:', {
+        payload,
+        p_ano: payload.p_ano,
+        p_semana: payload.p_semana,
+      });
+    }
+    return payload;
   }, [initialFilters, currentUser]);
 
   // Hook para dados principais

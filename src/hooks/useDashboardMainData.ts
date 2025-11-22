@@ -63,11 +63,30 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
 
     const payloadKey = JSON.stringify(filterPayload);
     
+    if (IS_DEV) {
+      safeLog.info('[useDashboardMainData] useEffect acionado com payload:', {
+        payload: filterPayload,
+        payloadKey,
+        previousPayload: previousPayloadRef.current,
+        cacheKey: cacheKeyRef.current,
+        hasCachedData: !!cachedDataRef.current,
+      });
+    }
+    
     // Verificar se o payload tem valores válidos antes de usar cache
     // Se p_ano ou p_semana forem null, não usar cache e forçar fetch
     const hasValidFilters = filterPayload.p_ano !== null && filterPayload.p_ano !== undefined &&
                             (filterPayload.p_semana !== null && filterPayload.p_semana !== undefined ||
                              filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+    
+    if (IS_DEV) {
+      safeLog.info('[useDashboardMainData] Validação de filtros:', {
+        hasValidFilters,
+        p_ano: filterPayload.p_ano,
+        p_semana: filterPayload.p_semana,
+        p_data_inicial: filterPayload.p_data_inicial,
+      });
+    }
     
     // Se o payload anterior era inválido e agora é válido, limpar cache
     const previousPayloadWasInvalid = previousPayloadRef.current && 
@@ -86,6 +105,9 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     
     // Verificar cache apenas se tiver filtros válidos
     if (hasValidFilters && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
+      if (IS_DEV) {
+        safeLog.info('[useDashboardMainData] Usando dados do cache');
+      }
       const cached = cachedDataRef.current;
       
       // Função auxiliar para converter horas
@@ -146,12 +168,29 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
                               (filterPayload.p_semana !== null && filterPayload.p_semana !== undefined ||
                                filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
       
+      if (IS_DEV) {
+        safeLog.info('[useDashboardMainData] Verificando se deve fazer fetch:', {
+          hasValidFilters,
+          payload: filterPayload,
+          debounceDelay: DELAYS.DEBOUNCE,
+        });
+      }
+      
       if (!hasValidFilters) {
         if (IS_DEV) {
-          safeLog.warn('[useDashboardMainData] Payload inválido, aguardando filtros válidos:', filterPayload);
+          safeLog.warn('[useDashboardMainData] Payload inválido, aguardando filtros válidos:', {
+            payload: filterPayload,
+            p_ano: filterPayload.p_ano,
+            p_semana: filterPayload.p_semana,
+            p_data_inicial: filterPayload.p_data_inicial,
+          });
         }
         setLoading(false);
         return;
+      }
+      
+      if (IS_DEV) {
+        safeLog.info('[useDashboardMainData] Iniciando fetch com payload válido:', filterPayload);
       }
       
       setLoading(true);
@@ -159,13 +198,26 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       
       try {
         if (IS_DEV) {
-          safeLog.info('[useDashboardMainData] Fazendo fetch com payload:', filterPayload);
+          safeLog.info('[useDashboardMainData] Chamando safeRpc dashboard_resumo com:', {
+            functionName: 'dashboard_resumo',
+            payload: filterPayload,
+            timeout: RPC_TIMEOUTS.DEFAULT,
+          });
         }
         
         const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', filterPayload, {
           timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: true
         });
+        
+        if (IS_DEV) {
+          safeLog.info('[useDashboardMainData] Resposta do safeRpc:', {
+            hasData: !!data,
+            hasError: !!rpcError,
+            dataKeys: data ? Object.keys(data) : null,
+            errorMessage: rpcError ? String(rpcError.message || rpcError) : null,
+          });
+        }
         
         if (rpcError) {
           const errorCode = rpcError?.code || '';
@@ -189,11 +241,24 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         }
         
         if (!data) {
-          safeLog.warn('dashboard_resumo retornou null');
+          if (IS_DEV) {
+            safeLog.warn('[useDashboardMainData] dashboard_resumo retornou null ou undefined');
+          }
           const errorMsg = 'Não foi possível carregar os dados do dashboard.';
           setError(errorMsg);
           if (onError) onError(new Error(errorMsg));
           return;
+        }
+
+        if (IS_DEV) {
+          safeLog.info('[useDashboardMainData] Dados recebidos com sucesso:', {
+            hasTotais: !!data.totais,
+            hasSemanal: Array.isArray(data.semanal),
+            semanalLength: Array.isArray(data.semanal) ? data.semanal.length : 0,
+            hasDia: Array.isArray(data.dia),
+            diaLength: Array.isArray(data.dia) ? data.dia.length : 0,
+            hasDimensoes: !!data.dimensoes,
+          });
         }
 
         // Atualizar cache
@@ -201,12 +266,18 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         cacheKeyRef.current = payloadKey;
 
         // Atualizar estados
-        setTotals({
+        const newTotals = {
           ofertadas: safeNumber(data.totais?.corridas_ofertadas ?? 0),
           aceitas: safeNumber(data.totais?.corridas_aceitas ?? 0),
           rejeitadas: safeNumber(data.totais?.corridas_rejeitadas ?? 0),
           completadas: safeNumber(data.totais?.corridas_completadas ?? 0),
-        });
+        };
+        
+        if (IS_DEV) {
+          safeLog.info('[useDashboardMainData] Definindo novos totals:', newTotals);
+        }
+        
+        setTotals(newTotals);
         
         // Converter números para strings (horas_a_entregar e horas_entregues)
         const convertHorasToString = (value: number | string | undefined): string => {
@@ -243,13 +314,26 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
               horas_entregues: convertHorasToString(item.horas_entregues)
             }))
           : []);
-        setAderenciaOrigem(Array.isArray(data.origem)
+        const newAderenciaOrigem = Array.isArray(data.origem)
           ? data.origem.map(item => ({
               ...item,
               horas_a_entregar: convertHorasToString(item.horas_a_entregar),
               horas_entregues: convertHorasToString(item.horas_entregues)
             }))
-          : []);
+          : [];
+        
+        setAderenciaOrigem(newAderenciaOrigem);
+        
+        if (IS_DEV) {
+          safeLog.info('[useDashboardMainData] Dados processados e estados atualizados:', {
+            totals: newTotals,
+            aderenciaSemanalLength: Array.isArray(data.semanal) ? data.semanal.length : 0,
+            aderenciaDiaLength: Array.isArray(data.dia) ? data.dia.length : 0,
+            aderenciaTurnoLength: Array.isArray(data.turno) ? data.turno.length : 0,
+            aderenciaSubPracaLength: Array.isArray(data.sub_praca) ? data.sub_praca.length : 0,
+            aderenciaOrigemLength: newAderenciaOrigem.length,
+          });
+        }
         
         // Armazenar dimensões para uso em filtros
         if (data.dimensoes) {
