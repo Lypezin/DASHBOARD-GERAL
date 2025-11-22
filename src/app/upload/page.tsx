@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { UploadSection } from '@/components/upload/UploadSection';
 import { UploadRefreshMVs } from '@/components/upload/UploadRefreshMVs';
@@ -24,6 +24,20 @@ export default function UploadPage() {
   const { loading, isAuthorized } = useUploadAuth();
   const [marketingFiles, setMarketingFiles] = useState<File[]>([]);
   const [valoresCidadeFiles, setValoresCidadeFiles] = useState<File[]>([]);
+  const [showRetry, setShowRetry] = useState(false);
+
+  // Mostrar botão de retry se o loading demorar muito
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setShowRetry(true);
+      }, 8000); // Mostrar retry após 8 segundos
+
+      return () => clearTimeout(timer);
+    } else {
+      setShowRetry(false);
+    }
+  }, [loading]);
 
   // Hook para upload de corridas
   const corridasUpload = useCorridasUpload();
@@ -124,6 +138,19 @@ export default function UploadPage() {
         <div className="text-center">
           <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
           <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-300">Verificando permissões...</p>
+          {showRetry && (
+            <div className="mt-6">
+              <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
+                A verificação está demorando mais que o esperado.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="rounded-lg bg-blue-600 px-6 py-2 font-semibold text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              >
+                Tentar Novamente
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
