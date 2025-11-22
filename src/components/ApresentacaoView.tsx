@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DashboardResumoData } from '@/types';
 import { useApresentacaoData } from '@/hooks/apresentacao/useApresentacaoData';
-import { useApresentacaoSlides } from '@/hooks/apresentacao/useApresentacaoSlides.tsx';
+import { useApresentacaoSlides } from '@/hooks/apresentacao/useApresentacaoSlides';
 import { prepararSlidesPDF, gerarPDF } from '@/utils/apresentacao/pdfGenerator';
 import { ApresentacaoPreview } from './apresentacao/ApresentacaoPreview';
 
