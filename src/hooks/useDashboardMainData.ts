@@ -140,6 +140,10 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       cachedDataRef.current = null;
     }
     
+    // Atualizar referência do payload anterior ANTES de verificar cache
+    // Isso evita loop infinito quando o payload não muda
+    previousPayloadRef.current = payloadKey;
+    
     // Verificar cache apenas se tiver filtros válidos
     if (hasValidFilters && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
       console.log('✅ [useDashboardMainData] Usando dados do cache para payload:', payloadKey);
@@ -197,6 +201,16 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
             horas_entregues: convertHorasToString(item.horas_entregues)
           }))
         : []);
+      
+      // Atualizar dimensões se disponíveis no cache
+      if (cached.dimensoes) {
+        setDimensoes(cached.dimensoes);
+      }
+      
+      setError(null);
+      setLoading(false);
+      
+      // IMPORTANTE: previousPayloadRef já foi atualizado antes, então não precisa atualizar novamente
       return;
     }
 

@@ -148,6 +148,8 @@ export function useDashboardPage() {
     console.log('🔵 [DashboardPage] Gerando filterPayload:', {
       filtersAno: filters.ano,
       filtersSemana: filters.semana,
+      filtersKey,
+      currentUserKey,
     });
     
     if (IS_DEV) {
@@ -181,7 +183,9 @@ export function useDashboardPage() {
       safeLog.error('[DashboardPage] Erro ao gerar filterPayload:', error);
       throw error;
     }
-  }, [filtersKey, currentUserKey, filters, currentUser]);
+    // Usar apenas as chaves estáveis, não os objetos completos
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersKey, currentUserKey]);
 
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 

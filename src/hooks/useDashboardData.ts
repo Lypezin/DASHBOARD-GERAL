@@ -82,6 +82,8 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     console.log('🔵 [useDashboardData] Gerando filterPayload:', {
       initialFiltersAno: initialFilters.ano,
       initialFiltersSemana: initialFilters.semana,
+      filtersKey,
+      currentUserKey,
     });
     
     if (IS_DEV) {
@@ -106,7 +108,9 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       });
     }
     return payload;
-  }, [filtersKey, currentUserKey, initialFilters, currentUser]);
+    // Usar apenas as chaves estáveis, não os objetos completos
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersKey, currentUserKey]);
 
   // Hook para dados principais
   const {
