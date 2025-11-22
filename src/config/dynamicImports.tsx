@@ -2,6 +2,7 @@
  * Configuração centralizada de dynamic imports
  */
 
+import React from 'react';
 import dynamic from 'next/dynamic';
 
 const loadingComponent = (
