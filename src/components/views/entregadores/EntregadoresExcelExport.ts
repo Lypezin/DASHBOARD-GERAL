@@ -1,15 +1,18 @@
 import { EntregadorMarketing } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { formatarHorasParaHMS } from '@/utils/formatters';
-import * as XLSX from 'xlsx';
+import { loadXLSX } from '@/lib/xlsxClient';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export function exportarEntregadoresParaExcel(
+export async function exportarEntregadoresParaExcel(
   entregadores: EntregadorMarketing[],
   formatarSegundosParaHoras: (segundos: number) => string
-): void {
+): Promise<void> {
   try {
+    // Carregar xlsx dinamicamente
+    const XLSX = await loadXLSX();
+    
     // Preparar dados para exportação
     const dadosExportacao = entregadores.map((entregador) => ({
       'ID Entregador': entregador.id_entregador,

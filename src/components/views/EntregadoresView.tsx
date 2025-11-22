@@ -95,10 +95,11 @@ const EntregadoresView = React.memo(function EntregadoresView({
   }, [entregadoresFiltrados]);
 
   // Função para exportar dados para Excel
-  const exportarParaExcel = useCallback(() => {
+  const exportarParaExcel = useCallback(async () => {
     try {
-      exportarEntregadoresParaExcel(entregadoresFiltrados, formatarSegundosParaHoras);
+      await exportarEntregadoresParaExcel(entregadoresFiltrados, formatarSegundosParaHoras);
     } catch (err: any) {
+      safeLog.error('Erro ao exportar para Excel:', err);
       alert('Erro ao exportar dados para Excel. Por favor, tente novamente.');
     }
   }, [entregadoresFiltrados, formatarSegundosParaHoras]);
