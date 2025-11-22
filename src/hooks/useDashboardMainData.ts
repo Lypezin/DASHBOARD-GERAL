@@ -3,7 +3,7 @@
  * Separa lógica de busca de dados principais (totais, aderências)
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import {
@@ -58,14 +58,25 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const previousPayloadRef = useRef<string>('');
 
+  // Criar uma string estável do payload para usar como dependência
+  const payloadKey = useMemo(() => JSON.stringify(filterPayload), [
+    filterPayload.p_ano,
+    filterPayload.p_semana,
+    filterPayload.p_praca,
+    filterPayload.p_sub_praca,
+    filterPayload.p_origem,
+    filterPayload.p_turno,
+    filterPayload.p_data_inicial,
+    filterPayload.p_data_final,
+  ]);
+
   useEffect(() => {
-    const payloadKey = JSON.stringify(filterPayload);
-    
     // Evitar processamento se o payload não mudou realmente
     if (previousPayloadRef.current === payloadKey) {
       console.log('⏭️ [useDashboardMainData] Payload não mudou, ignorando:', {
-        payloadKey,
-        previousPayload: previousPayloadRef.current,
+        payloadKey: payloadKey.substring(0, 100),
+        previousPayload: previousPayloadRef.current.substring(0, 100),
+        areEqual: previousPayloadRef.current === payloadKey,
       });
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Payload não mudou, ignorando');
@@ -73,9 +84,16 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       return;
     }
     
+    console.log('🔄 [useDashboardMainData] Payload MUDOU:', {
+      previous: previousPayloadRef.current.substring(0, 100),
+      current: payloadKey.substring(0, 100),
+      hasPendingTimeout: !!debounceRef.current,
+    });
+    
     // Limpar timeout anterior apenas se o payload mudou
-    if (debounceRef.current) {
-      console.log('🧹 [useDashboardMainData] Limpando timeout anterior');
+    // Mas só limpar se realmente mudou (não limpar se for a primeira vez)
+    if (debounceRef.current && previousPayloadRef.current !== '') {
+      console.log('🧹 [useDashboardMainData] Limpando timeout anterior - payload mudou');
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
     }
@@ -524,7 +542,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         debounceRef.current = null;
       }
     };
-  }, [filterPayload, onError]);
+  }, [payloadKey, onError]);
 
   return {
     totals,
