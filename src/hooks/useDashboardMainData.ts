@@ -91,10 +91,10 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     }
     
     // Verificar se o payload tem valores válidos antes de usar cache
-    // Se p_ano ou p_semana forem null, não usar cache e forçar fetch
-    const hasValidFilters = filterPayload.p_ano !== null && filterPayload.p_ano !== undefined &&
-                            (filterPayload.p_semana !== null && filterPayload.p_semana !== undefined ||
-                             filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+    // A função RPC aceita apenas p_ano, então aceitamos se p_ano estiver presente
+    // ou se p_data_inicial estiver presente (modo intervalo)
+    const hasValidFilters = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
+                            (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
     
     // Log sempre visível para debug
     console.log('🟢 [useDashboardMainData] Validação de filtros:', {
@@ -102,6 +102,9 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       p_ano: filterPayload.p_ano,
       p_semana: filterPayload.p_semana,
       p_data_inicial: filterPayload.p_data_inicial,
+      reason: hasValidFilters 
+        ? (filterPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente')
+        : 'nenhum filtro válido',
     });
     
     if (IS_DEV) {
@@ -114,9 +117,10 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     }
     
     // Se o payload anterior era inválido e agora é válido, limpar cache
+    // Payload é inválido se não tiver p_ano nem p_data_inicial
     const previousPayloadWasInvalid = previousPayloadRef.current && 
-      (previousPayloadRef.current.includes('"p_semana":null') || 
-       (!previousPayloadRef.current.includes('"p_semana":') && !previousPayloadRef.current.includes('"p_data_inicial":')));
+      (!previousPayloadRef.current.includes('"p_ano":') || previousPayloadRef.current.includes('"p_ano":null')) &&
+      (!previousPayloadRef.current.includes('"p_data_inicial":') || previousPayloadRef.current.includes('"p_data_inicial":null'));
     
     if (previousPayloadWasInvalid && hasValidFilters) {
       console.log('🔄 [useDashboardMainData] Limpando cache - payload mudou de inválido para válido');
@@ -202,9 +206,10 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       }
       
       // Verificar se o payload tem valores válidos antes de fazer fetch
-      const hasValidFilters = currentPayload.p_ano !== null && currentPayload.p_ano !== undefined &&
-                              (currentPayload.p_semana !== null && currentPayload.p_semana !== undefined ||
-                               currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
+      // A função RPC aceita apenas p_ano, então aceitamos se p_ano estiver presente
+      // ou se p_data_inicial estiver presente (modo intervalo)
+      const hasValidFilters = (currentPayload.p_ano !== null && currentPayload.p_ano !== undefined) ||
+                              (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
       
       console.log('🔍 [useDashboardMainData] Verificando se deve fazer fetch:', {
         hasValidFilters,
@@ -212,6 +217,9 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         p_semana: currentPayload.p_semana,
         p_data_inicial: currentPayload.p_data_inicial,
         debounceDelay: DELAYS.DEBOUNCE,
+        reason: hasValidFilters 
+          ? (currentPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente')
+          : 'nenhum filtro válido',
       });
       
       if (IS_DEV) {
@@ -241,7 +249,12 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         return;
       }
       
-      console.log('✅ [useDashboardMainData] Iniciando FETCH com payload válido:', currentPayload);
+      console.log('🚀 [useDashboardMainData] FETCH ACIONADO com payload válido:', {
+        p_ano: currentPayload.p_ano,
+        p_semana: currentPayload.p_semana,
+        p_data_inicial: currentPayload.p_data_inicial,
+        timestamp: new Date().toISOString(),
+      });
       
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Iniciando fetch com payload válido:', currentPayload);

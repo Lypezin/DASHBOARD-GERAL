@@ -239,6 +239,14 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     p_data_final: dataFinal,
   } as const;
 
+  // Log sempre visível para debug
+  console.log('✅ [buildFilterPayload] Payload gerado:', {
+    p_ano: payload.p_ano,
+    p_semana: payload.p_semana,
+    p_data_inicial: payload.p_data_inicial,
+    isValid: payload.p_ano !== null || payload.p_data_inicial !== null,
+  });
+
   if (IS_DEV) {
     safeLog.info('[buildFilterPayload] Payload gerado:', payload);
   }
