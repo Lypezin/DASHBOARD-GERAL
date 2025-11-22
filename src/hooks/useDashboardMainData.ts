@@ -59,16 +59,25 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const previousPayloadRef = useRef<string>('');
 
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-
     const payloadKey = JSON.stringify(filterPayload);
     
     // Evitar processamento se o payload não mudou realmente
     if (previousPayloadRef.current === payloadKey) {
+      console.log('⏭️ [useDashboardMainData] Payload não mudou, ignorando:', {
+        payloadKey,
+        previousPayload: previousPayloadRef.current,
+      });
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Payload não mudou, ignorando');
       }
       return;
+    }
+    
+    // Limpar timeout anterior apenas se o payload mudou
+    if (debounceRef.current) {
+      console.log('🧹 [useDashboardMainData] Limpando timeout anterior');
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
     }
     
     // Log sempre visível para debug
@@ -131,11 +140,9 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       cachedDataRef.current = null;
     }
     
-    // Atualizar referência do payload anterior ANTES de processar
-    previousPayloadRef.current = payloadKey;
-    
     // Verificar cache apenas se tiver filtros válidos
     if (hasValidFilters && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
+      console.log('✅ [useDashboardMainData] Usando dados do cache para payload:', payloadKey);
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Usando dados do cache');
       }
@@ -197,7 +204,39 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     const currentPayload = filterPayload;
     const currentPayloadKey = payloadKey;
     
-    debounceRef.current = setTimeout(async () => {
+    // Só criar setTimeout se tiver filtros válidos
+    if (!hasValidFilters) {
+      console.warn('⚠️ [useDashboardMainData] Não criando setTimeout - filtros inválidos');
+      setLoading(false);
+      return;
+    }
+    
+    console.log('⏳ [useDashboardMainData] Criando setTimeout para fetch:', {
+      payloadKey: currentPayloadKey,
+      debounceDelay: DELAYS.DEBOUNCE,
+      hasValidFilters,
+      p_ano: currentPayload.p_ano,
+      p_semana: currentPayload.p_semana,
+      timestamp: new Date().toISOString(),
+    });
+    
+    const timeoutId = setTimeout(async () => {
+      console.log('⏰ [useDashboardMainData] setTimeout EXECUTADO:', {
+        payloadKey: currentPayloadKey,
+        p_ano: currentPayload.p_ano,
+        p_semana: currentPayload.p_semana,
+        timestamp: new Date().toISOString(),
+        timeoutId,
+        debounceRefCurrent: debounceRef.current,
+        isCurrentTimeout: debounceRef.current === timeoutId,
+      });
+      
+      // Verificar se este timeout ainda é o atual (pode ter sido cancelado)
+      if (debounceRef.current !== timeoutId) {
+        console.log('⚠️ [useDashboardMainData] Timeout foi cancelado, ignorando execução');
+        return;
+      }
+      
       // Verificar se o payload ainda é o mesmo (pode ter mudado durante o debounce)
       const currentPayloadKeyCheck = JSON.stringify(currentPayload);
       if (currentPayloadKeyCheck !== currentPayloadKey) {
@@ -455,12 +494,20 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         if (onError) onError(error);
       } finally {
         setLoading(false);
+        // Limpar referência do timeout após execução
+        if (debounceRef.current === timeoutId) {
+          debounceRef.current = null;
+        }
       }
     }, DELAYS.DEBOUNCE);
+    
+    debounceRef.current = timeoutId;
 
     return () => {
       if (debounceRef.current) {
+        console.log('🧹 [useDashboardMainData] Cleanup: cancelando timeout pendente');
         clearTimeout(debounceRef.current);
+        debounceRef.current = null;
       }
     };
   }, [filterPayload, onError]);
