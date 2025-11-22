@@ -120,8 +120,11 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     // Verificar se o payload tem valores válidos antes de usar cache
     // A função RPC aceita apenas p_ano, então aceitamos se p_ano estiver presente
     // ou se p_data_inicial estiver presente (modo intervalo)
+    // IMPORTANTE: Permitir fetch mesmo sem filtros na primeira execução para carregar dimensões
+    const isFirstExecutionCheck = previousPayloadRef.current === '';
     const hasValidFilters = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
-                            (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+                            (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined) ||
+                            isFirstExecutionCheck; // Primeira execução - carregar dimensões
     
     // Log sempre visível para debug
     console.log('🟢 [useDashboardMainData] Validação de filtros:', {
@@ -236,11 +239,16 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     const currentPayload = filterPayload;
     const currentPayloadKey = payloadKey;
     
-    // Só criar setTimeout se tiver filtros válidos
-    if (!hasValidFilters) {
+    // Só criar setTimeout se tiver filtros válidos OU for primeira execução (para carregar dimensões)
+    if (!hasValidFilters && !isFirstExecutionCheck) {
       console.warn('⚠️ [useDashboardMainData] Não criando setTimeout - filtros inválidos');
       setLoading(false);
       return;
+    }
+    
+    // Se for primeira execução, permitir fetch mesmo sem filtros para carregar dimensões
+    if (isFirstExecutionCheck && !hasValidFilters) {
+      console.log('🔄 [useDashboardMainData] Primeira execução - carregando dimensões sem filtros');
     }
     
     console.log('⏳ [useDashboardMainData] Criando setTimeout para fetch:', {
@@ -279,29 +287,32 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       // Verificar se o payload tem valores válidos antes de fazer fetch
       // A função RPC aceita apenas p_ano, então aceitamos se p_ano estiver presente
       // ou se p_data_inicial estiver presente (modo intervalo)
-      const hasValidFilters = (currentPayload.p_ano !== null && currentPayload.p_ano !== undefined) ||
-                              (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
+      // IMPORTANTE: Permitir fetch sem filtros na primeira vez para carregar dimensões
+      const isFirstExecutionInTimeout = previousPayloadRef.current === '';
+      const hasValidFiltersInTimeout = (currentPayload.p_ano !== null && currentPayload.p_ano !== undefined) ||
+                              (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined) ||
+                              isFirstExecutionInTimeout; // Primeira execução
       
       console.log('🔍 [useDashboardMainData] Verificando se deve fazer fetch:', {
-        hasValidFilters,
+        hasValidFilters: hasValidFiltersInTimeout,
         p_ano: currentPayload.p_ano,
         p_semana: currentPayload.p_semana,
         p_data_inicial: currentPayload.p_data_inicial,
         debounceDelay: DELAYS.DEBOUNCE,
-        reason: hasValidFilters 
-          ? (currentPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente')
+        reason: hasValidFiltersInTimeout 
+          ? (currentPayload.p_ano ? 'p_ano presente' : currentPayload.p_data_inicial ? 'p_data_inicial presente' : 'primeira execução')
           : 'nenhum filtro válido',
       });
       
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Verificando se deve fazer fetch:', {
-          hasValidFilters,
+          hasValidFilters: hasValidFiltersInTimeout,
           payload: currentPayload,
           debounceDelay: DELAYS.DEBOUNCE,
         });
       }
       
-      if (!hasValidFilters) {
+      if (!hasValidFiltersInTimeout) {
         console.warn('⚠️ [useDashboardMainData] Payload INVÁLIDO - não fazendo fetch:', {
           payload: currentPayload,
           p_ano: currentPayload.p_ano,

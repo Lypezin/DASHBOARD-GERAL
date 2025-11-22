@@ -136,8 +136,9 @@ export function recreateSupabaseClient() {
 }
 
 // Função auxiliar para criar um stub seguro do método rpc
+// IMPORTANTE: Esta função deve ser serializável para não quebrar o prefetch do Next.js
 function createSafeRpcStub() {
-  return function safeRpcStub(functionName: string, params?: any) {
+  const stub = function safeRpcStub(functionName: string, params?: any) {
     return Promise.resolve({ 
       data: null, 
       error: { 
@@ -146,6 +147,9 @@ function createSafeRpcStub() {
       } 
     });
   };
+  // Garantir que a função tenha propriedades que o Next.js espera
+  stub.call = stub.bind(stub);
+  return stub;
 }
 
 // Exportar uma função getter que cria o cliente sob demanda

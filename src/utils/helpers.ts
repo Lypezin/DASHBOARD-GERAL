@@ -217,15 +217,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     // Se modo ano_semana estiver ativo, anular datas
     dataInicial = null;
     dataFinal = null;
-
-    // Se não houver ano e não estiver em modo intervalo, usar ano atual como padrão
-    // Isso evita que a função seja chamada sem filtros e cause timeout
-    if (ano === null && !dataInicial && !dataFinal) {
-      const currentYear = new Date().getFullYear();
-      ano = currentYear >= VALIDATION.MIN_YEAR && currentYear <= VALIDATION.MAX_YEAR
-        ? currentYear
-        : VALIDATION.MAX_YEAR;
-    }
+    // Não forçar ano - deixar null se não foi especificado
   }
 
   const payload = {
