@@ -167,23 +167,37 @@ export function useDashboardPage() {
       }
 
       if (!isNaN(semanaNumero) && semanaNumero > 0 && semanaNumero <= 53) {
-        setFilters(prev => ({
-          ...prev,
-          ano: ultimoAno,
-          semana: semanaNumero,
-        }));
-        filtersInitializedRef.current = true;
-        
         if (IS_DEV) {
-          safeLog.info('[DashboardPage] Filtros inicializados automaticamente:', {
+          safeLog.info('[DashboardPage] Inicializando filtros automaticamente:', {
             ano: ultimoAno,
             semana: semanaNumero,
+            ultimaSemana,
+            anosDisponiveis: anosDisponiveis.length,
+            semanasDisponiveis: semanasDisponiveis.length,
           });
         }
+        
+        setFilters(prev => {
+          const newFilters = {
+            ...prev,
+            ano: ultimoAno,
+            semana: semanaNumero,
+          };
+          
+          if (IS_DEV) {
+            safeLog.info('[DashboardPage] Novos filtros definidos:', newFilters);
+          }
+          
+          return newFilters;
+        });
+        
+        filtersInitializedRef.current = true;
       } else if (IS_DEV) {
         safeLog.warn('[DashboardPage] Não foi possível inicializar semana automaticamente:', {
           ultimaSemana,
           semanaNumero,
+          anosDisponiveis: anosDisponiveis.length,
+          semanasDisponiveis: semanasDisponiveis.length,
         });
       }
     }

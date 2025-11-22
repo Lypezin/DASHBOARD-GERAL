@@ -56,14 +56,36 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const cacheKeyRef = useRef<string>('');
   const cachedDataRef = useRef<DashboardResumoData | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const previousPayloadRef = useRef<string>('');
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     const payloadKey = JSON.stringify(filterPayload);
     
-    // Verificar cache
-    if (cacheKeyRef.current === payloadKey && cachedDataRef.current) {
+    // Verificar se o payload tem valores válidos antes de usar cache
+    // Se p_ano ou p_semana forem null, não usar cache e forçar fetch
+    const hasValidFilters = filterPayload.p_ano !== null && filterPayload.p_ano !== undefined &&
+                            (filterPayload.p_semana !== null && filterPayload.p_semana !== undefined ||
+                             filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+    
+    // Se o payload anterior era inválido e agora é válido, limpar cache
+    const previousPayloadWasInvalid = previousPayloadRef.current && 
+      (previousPayloadRef.current.includes('"p_semana":null') || 
+       (!previousPayloadRef.current.includes('"p_semana":') && !previousPayloadRef.current.includes('"p_data_inicial":')));
+    
+    if (previousPayloadWasInvalid && hasValidFilters) {
+      if (IS_DEV) {
+        safeLog.info('[useDashboardMainData] Limpando cache - payload mudou de inválido para válido');
+      }
+      cacheKeyRef.current = '';
+      cachedDataRef.current = null;
+    }
+    
+    previousPayloadRef.current = payloadKey;
+    
+    // Verificar cache apenas se tiver filtros válidos
+    if (hasValidFilters && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
       const cached = cachedDataRef.current;
       
       // Função auxiliar para converter horas
@@ -119,10 +141,27 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     }
 
     debounceRef.current = setTimeout(async () => {
+      // Verificar se o payload tem valores válidos antes de fazer fetch
+      const hasValidFilters = filterPayload.p_ano !== null && filterPayload.p_ano !== undefined &&
+                              (filterPayload.p_semana !== null && filterPayload.p_semana !== undefined ||
+                               filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+      
+      if (!hasValidFilters) {
+        if (IS_DEV) {
+          safeLog.warn('[useDashboardMainData] Payload inválido, aguardando filtros válidos:', filterPayload);
+        }
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
       setError(null);
       
       try {
+        if (IS_DEV) {
+          safeLog.info('[useDashboardMainData] Fazendo fetch com payload:', filterPayload);
+        }
+        
         const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', filterPayload, {
           timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: true
