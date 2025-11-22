@@ -1,10 +1,17 @@
 /**
  * Hook para gerenciar refresh de Materialized Views após upload
+ * 
+ * Otimizações implementadas:
+ * - Refresh sequencial (não simultâneo) para evitar sobrecarga
+ * - Verificação de horário de baixo uso para refresh automático
+ * - Uso de REFRESH CONCURRENTLY quando disponível
+ * - Delays entre MVs para evitar sobrecarga do banco
  */
 
 import { useState, useCallback } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { isLowUsageTime, getTimeContextMessage, shouldRefreshMVsNow } from '@/utils/timeHelpers';
 import type {
   RefreshMVState,
   RefreshMVResult,
@@ -31,9 +38,22 @@ export function useUploadRefresh() {
 
   /**
    * Inicia refresh automático após upload bem-sucedido
+   * 
+   * ⚠️ OTIMIZAÇÃO: Verifica horário de baixo uso antes de iniciar refresh automático
+   * Se não for horário de baixo uso, apenas marca as MVs como pendentes
+   * para refresh posterior (via agendamento ou refresh manual)
    */
   const startAutoRefresh = useCallback(async () => {
     try {
+      // Verificar se é horário de baixo uso para refresh automático
+      const isLowUsage = isLowUsageTime();
+      const timeContext = getTimeContextMessage();
+      
+      if (!isLowUsage && IS_DEV) {
+        safeLog.info(`⏰ ${timeContext} - Refresh automático será adiado para horário de baixo uso`);
+        safeLog.info('💡 Dica: Use o botão "Atualizar Materialized Views" para forçar refresh imediato');
+      }
+      
       // Delay antes de iniciar refresh (permite que inserções terminem)
       setTimeout(async () => {
         try {
@@ -42,6 +62,18 @@ export function useUploadRefresh() {
             timeout: 30000,
             validateParams: false
           });
+          
+          // Se não for horário de baixo uso, apenas marcar como pendente e retornar
+          if (!isLowUsage) {
+            if (IS_DEV) {
+              safeLog.info('✅ MVs marcadas como pendentes. Refresh será feito em horário de baixo uso ou manualmente.');
+            }
+            return;
+          }
+          
+          if (IS_DEV) {
+            safeLog.info(`✅ ${timeContext} - Iniciando refresh automático de MVs`);
+          }
 
           // Passo 2: Atualizar apenas MVs críticas imediatamente (prioridade 1)
           const { data, error } = await safeRpc<RefreshPrioritizedResult>(
@@ -115,6 +147,11 @@ export function useUploadRefresh() {
 
   /**
    * Atualiza todas as Materialized Views manualmente
+   * 
+   * ⚠️ OTIMIZAÇÃO: Refresh sequencial com delays entre MVs
+   * - Processa uma MV por vez para evitar sobrecarga
+   * - Delay de 500ms entre cada MV
+   * - Usa REFRESH CONCURRENTLY quando disponível (via RPC)
    */
   const refreshAllMVs = useCallback(async () => {
     setState(prev => ({
@@ -262,7 +299,8 @@ export function useUploadRefresh() {
           safeLog.error(`Erro ao atualizar ${mv.mv_name}:`, error);
         }
 
-        // Pequeno delay entre MVs para não sobrecarregar
+        // ⚠️ OTIMIZAÇÃO: Delay entre MVs para evitar sobrecarga do banco
+        // Refresh sequencial é mais eficiente que simultâneo
         if (i < pendingData.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
