@@ -135,6 +135,19 @@ export function recreateSupabaseClient() {
   return getSupabaseClient();
 }
 
+// Função auxiliar para criar um stub seguro do método rpc
+function createSafeRpcStub() {
+  return function safeRpcStub(functionName: string, params?: any) {
+    return Promise.resolve({ 
+      data: null, 
+      error: { 
+        message: 'Cliente Supabase não está disponível. Aguarde o carregamento completo da página.', 
+        code: 'CLIENT_NOT_READY' 
+      } 
+    });
+  };
+}
+
 // Exportar uma função getter que cria o cliente sob demanda
 // Isso evita erros durante o build
 export const supabase = new Proxy({} as SupabaseClient, {
@@ -144,14 +157,65 @@ export const supabase = new Proxy({} as SupabaseClient, {
       return () => recreateSupabaseClient();
     }
     
-    const client = getSupabaseClient();
-    const value = (client as any)[prop];
-    
-    // Se for uma função, garantir que o contexto 'this' seja correto
-    if (typeof value === 'function') {
-      return value.bind(client);
+    // Durante SSR/prefetch do Next.js, algumas propriedades podem não estar disponíveis
+    // Retornar um objeto seguro que não quebra o prefetch
+    try {
+      const client = getSupabaseClient();
+      
+      // Se o cliente não foi criado corretamente, retornar um stub seguro
+      if (!client) {
+        // Retornar um stub que não quebra durante prefetch
+        if (prop === 'rpc') {
+          return createSafeRpcStub();
+        }
+        // Retornar um objeto vazio para outras propriedades durante prefetch
+        if (prop === 'auth') {
+          return {}; // Stub vazio para auth
+        }
+        return undefined;
+      }
+      
+      const value = (client as any)[prop];
+      
+      // Se a propriedade não existe, retornar undefined em vez de quebrar
+      if (value === undefined) {
+        // Para rpc, retornar um stub seguro em vez de undefined
+        if (prop === 'rpc') {
+          return createSafeRpcStub();
+        }
+        return undefined;
+      }
+      
+      // Se for uma função, garantir que o contexto 'this' seja correto
+      if (typeof value === 'function') {
+        // Verificar se é o método rpc e garantir que está disponível
+        if (prop === 'rpc') {
+          try {
+            // Testar se o método rpc está realmente disponível
+            const testCall = value.bind(client);
+            if (typeof testCall === 'function') {
+              return testCall;
+            }
+          } catch (e) {
+            // Se falhar, retornar stub seguro
+            return createSafeRpcStub();
+          }
+        }
+        return value.bind(client);
+      }
+      
+      return value;
+    } catch (error) {
+      // Durante prefetch/SSR, pode haver erros ao criar o cliente
+      // Retornar stubs seguros que não quebram o prefetch
+      if (prop === 'rpc') {
+        return createSafeRpcStub();
+      }
+      if (prop === 'auth') {
+        return {}; // Stub vazio para auth
+      }
+      // Para outras propriedades, retornar undefined
+      return undefined;
     }
-    
-    return value;
   }
 });

@@ -131,13 +131,51 @@ export async function safeRpc<T = unknown>(
       // Ignorar erro ao verificar URL do cliente
     }
 
+    // Verificar se supabase.rpc está disponível
+    // Isso pode falhar durante SSR/prefetch do Next.js
+    if (!supabase.rpc || typeof supabase.rpc !== 'function') {
+      return {
+        data: null,
+        error: {
+          message: 'Cliente Supabase não está disponível. Aguarde o carregamento completo da página.',
+          code: 'CLIENT_NOT_READY',
+        },
+      };
+    }
+
     // Criar promise com timeout
     // IMPORTANTE: Para funções sem parâmetros, passar undefined é a forma correta
     // O Supabase JS client aceita undefined e não envia parâmetros no body da requisição
     // Isso evita erro 400 do PostgREST quando a função não espera parâmetros
-    const rpcPromise = validatedParams === undefined
-      ? (supabase.rpc as any)(functionName) // Chamar sem segundo parâmetro
-      : supabase.rpc(functionName, validatedParams);
+    let rpcPromise: Promise<any>;
+    try {
+      rpcPromise = validatedParams === undefined
+        ? (supabase.rpc as any)(functionName) // Chamar sem segundo parâmetro
+        : supabase.rpc(functionName, validatedParams);
+      
+      // Verificar se a promise foi criada corretamente
+      if (!rpcPromise || typeof rpcPromise.then !== 'function') {
+        return {
+          data: null,
+          error: {
+            message: 'Erro ao criar requisição RPC. Tente novamente.',
+            code: 'RPC_CREATION_ERROR',
+          },
+        };
+      }
+    } catch (rpcError: any) {
+      // Capturar erros durante a criação da promise (pode acontecer durante prefetch)
+      return {
+        data: null,
+        error: {
+          message: typeof window === 'undefined' 
+            ? 'Requisição RPC não disponível no servidor. Aguarde o carregamento no cliente.'
+            : 'Erro ao criar requisição RPC. Tente novamente.',
+          code: 'RPC_INIT_ERROR',
+          details: IS_DEV ? String(rpcError?.message || rpcError) : undefined,
+        },
+      };
+    }
     
     // Criar timeout
     let timeoutId: NodeJS.Timeout | null = null;
