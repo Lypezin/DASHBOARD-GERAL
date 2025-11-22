@@ -59,6 +59,15 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const previousPayloadRef = useRef<string>('');
 
   useEffect(() => {
+    // Log sempre visível para debug
+    console.log('🔵 [useDashboardMainData] useEffect ACIONADO', {
+      payload: filterPayload,
+      p_ano: filterPayload.p_ano,
+      p_semana: filterPayload.p_semana,
+      p_data_inicial: filterPayload.p_data_inicial,
+      timestamp: new Date().toISOString(),
+    });
+    
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     const payloadKey = JSON.stringify(filterPayload);
@@ -78,6 +87,14 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     const hasValidFilters = filterPayload.p_ano !== null && filterPayload.p_ano !== undefined &&
                             (filterPayload.p_semana !== null && filterPayload.p_semana !== undefined ||
                              filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+    
+    // Log sempre visível para debug
+    console.log('🟢 [useDashboardMainData] Validação de filtros:', {
+      hasValidFilters,
+      p_ano: filterPayload.p_ano,
+      p_semana: filterPayload.p_semana,
+      p_data_inicial: filterPayload.p_data_inicial,
+    });
     
     if (IS_DEV) {
       safeLog.info('[useDashboardMainData] Validação de filtros:', {
@@ -177,6 +194,12 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       }
       
       if (!hasValidFilters) {
+        console.warn('⚠️ [useDashboardMainData] Payload INVÁLIDO - não fazendo fetch:', {
+          payload: filterPayload,
+          p_ano: filterPayload.p_ano,
+          p_semana: filterPayload.p_semana,
+          p_data_inicial: filterPayload.p_data_inicial,
+        });
         if (IS_DEV) {
           safeLog.warn('[useDashboardMainData] Payload inválido, aguardando filtros válidos:', {
             payload: filterPayload,
@@ -188,6 +211,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         setLoading(false);
         return;
       }
+      
+      console.log('✅ [useDashboardMainData] Iniciando FETCH com payload válido:', filterPayload);
       
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Iniciando fetch com payload válido:', filterPayload);
@@ -205,9 +230,18 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           });
         }
         
+        console.log('🔄 [useDashboardMainData] Chamando safeRpc...');
+        
         const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', filterPayload, {
           timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: true
+        });
+        
+        console.log('📥 [useDashboardMainData] Resposta do safeRpc:', {
+          hasData: !!data,
+          hasError: !!rpcError,
+          dataKeys: data ? Object.keys(data) : null,
+          errorMessage: rpcError ? String(rpcError.message || rpcError) : null,
         });
         
         if (IS_DEV) {
@@ -220,6 +254,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         }
         
         if (rpcError) {
+          console.error('❌ [useDashboardMainData] Erro do RPC:', rpcError);
           const errorCode = rpcError?.code || '';
           const errorMessage = String(rpcError?.message || '');
           
@@ -250,6 +285,16 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           return;
         }
 
+        console.log('✅ [useDashboardMainData] DADOS RECEBIDOS:', {
+          hasTotais: !!data.totais,
+          totais: data.totais,
+          hasSemanal: Array.isArray(data.semanal),
+          semanalLength: Array.isArray(data.semanal) ? data.semanal.length : 0,
+          hasDia: Array.isArray(data.dia),
+          diaLength: Array.isArray(data.dia) ? data.dia.length : 0,
+          hasDimensoes: !!data.dimensoes,
+        });
+        
         if (IS_DEV) {
           safeLog.info('[useDashboardMainData] Dados recebidos com sucesso:', {
             hasTotais: !!data.totais,
@@ -323,6 +368,15 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           : [];
         
         setAderenciaOrigem(newAderenciaOrigem);
+        
+        console.log('✅ [useDashboardMainData] ESTADOS ATUALIZADOS:', {
+          totals: newTotals,
+          aderenciaSemanalLength: Array.isArray(data.semanal) ? data.semanal.length : 0,
+          aderenciaDiaLength: Array.isArray(data.dia) ? data.dia.length : 0,
+          aderenciaTurnoLength: Array.isArray(data.turno) ? data.turno.length : 0,
+          aderenciaSubPracaLength: Array.isArray(data.sub_praca) ? data.sub_praca.length : 0,
+          aderenciaOrigemLength: newAderenciaOrigem.length,
+        });
         
         if (IS_DEV) {
           safeLog.info('[useDashboardMainData] Dados processados e estados atualizados:', {

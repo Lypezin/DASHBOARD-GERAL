@@ -98,6 +98,11 @@ export function useDashboardPage() {
 
   // Memoizar filterPayload
   const filterPayload = useMemo(() => {
+    console.log('🔵 [DashboardPage] Gerando filterPayload:', {
+      filtersAno: filters.ano,
+      filtersSemana: filters.semana,
+    });
+    
     if (IS_DEV) {
       safeLog.info('[DashboardPage] Gerando filterPayload com:', {
         filters,
@@ -108,6 +113,12 @@ export function useDashboardPage() {
     }
     try {
       const payload = buildFilterPayload(filters, currentUser);
+      console.log('✅ [DashboardPage] filterPayload gerado:', {
+        p_ano: payload.p_ano,
+        p_semana: payload.p_semana,
+        p_data_inicial: payload.p_data_inicial,
+      });
+      
       if (IS_DEV) {
         safeLog.info('[DashboardPage] filterPayload gerado com sucesso:', {
           payload,
@@ -119,6 +130,7 @@ export function useDashboardPage() {
       }
       return payload;
     } catch (error) {
+      console.error('❌ [DashboardPage] Erro ao gerar filterPayload:', error);
       safeLog.error('[DashboardPage] Erro ao gerar filterPayload:', error);
       throw error;
     }
@@ -147,6 +159,16 @@ export function useDashboardPage() {
   // Inicializar automaticamente os filtros quando os dados de dimensões são carregados
   const filtersInitializedRef = useRef(false);
   useEffect(() => {
+    console.log('🔵 [DashboardPage] Verificando inicialização de filtros:', {
+      filtersInitialized: filtersInitializedRef.current,
+      filtersAno: filters.ano,
+      filtersSemana: filters.semana,
+      anosDisponiveisLength: Array.isArray(anosDisponiveis) ? anosDisponiveis.length : 0,
+      semanasDisponiveisLength: Array.isArray(semanasDisponiveis) ? semanasDisponiveis.length : 0,
+      anosDisponiveis: anosDisponiveis,
+      semanasDisponiveis: semanasDisponiveis,
+    });
+    
     // Só inicializar se os filtros ainda estão vazios e os dados estão disponíveis
     if (
       !filtersInitializedRef.current &&
@@ -175,6 +197,12 @@ export function useDashboardPage() {
       }
 
       if (!isNaN(semanaNumero) && semanaNumero > 0 && semanaNumero <= 53) {
+        console.log('✅ [DashboardPage] INICIALIZANDO FILTROS:', {
+          ano: ultimoAno,
+          semana: semanaNumero,
+          ultimaSemana,
+        });
+        
         if (IS_DEV) {
           safeLog.info('[DashboardPage] Inicializando filtros automaticamente:', {
             ano: ultimoAno,
