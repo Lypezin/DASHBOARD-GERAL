@@ -59,18 +59,26 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const previousPayloadRef = useRef<string>('');
 
   useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    const payloadKey = JSON.stringify(filterPayload);
+    
+    // Evitar processamento se o payload não mudou realmente
+    if (previousPayloadRef.current === payloadKey) {
+      if (IS_DEV) {
+        safeLog.info('[useDashboardMainData] Payload não mudou, ignorando');
+      }
+      return;
+    }
+    
     // Log sempre visível para debug
-    console.log('🔵 [useDashboardMainData] useEffect ACIONADO', {
+    console.log('🔵 [useDashboardMainData] useEffect ACIONADO (payload mudou)', {
       payload: filterPayload,
       p_ano: filterPayload.p_ano,
       p_semana: filterPayload.p_semana,
       p_data_inicial: filterPayload.p_data_inicial,
       timestamp: new Date().toISOString(),
     });
-    
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-
-    const payloadKey = JSON.stringify(filterPayload);
     
     if (IS_DEV) {
       safeLog.info('[useDashboardMainData] useEffect acionado com payload:', {
@@ -111,6 +119,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
        (!previousPayloadRef.current.includes('"p_semana":') && !previousPayloadRef.current.includes('"p_data_inicial":')));
     
     if (previousPayloadWasInvalid && hasValidFilters) {
+      console.log('🔄 [useDashboardMainData] Limpando cache - payload mudou de inválido para válido');
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Limpando cache - payload mudou de inválido para válido');
       }
@@ -118,6 +127,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       cachedDataRef.current = null;
     }
     
+    // Atualizar referência do payload anterior ANTES de processar
     previousPayloadRef.current = payloadKey;
     
     // Verificar cache apenas se tiver filtros válidos

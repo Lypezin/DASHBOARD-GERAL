@@ -96,6 +96,38 @@ export function useDashboardPage() {
     aderenciaGeral,
   } = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
 
+  // Criar uma string estável dos filtros para usar como dependência
+  const filtersKey = useMemo(() => {
+    return JSON.stringify({
+      ano: filters.ano,
+      semana: filters.semana,
+      praca: filters.praca,
+      subPraca: filters.subPraca,
+      origem: filters.origem,
+      turno: filters.turno,
+      filtroModo: filters.filtroModo,
+      dataInicial: filters.dataInicial,
+      dataFinal: filters.dataFinal,
+    });
+  }, [
+    filters.ano,
+    filters.semana,
+    filters.praca,
+    filters.subPraca,
+    filters.origem,
+    filters.turno,
+    filters.filtroModo,
+    filters.dataInicial,
+    filters.dataFinal,
+  ]);
+  
+  const currentUserKey = useMemo(() => {
+    return currentUser ? JSON.stringify({
+      is_admin: currentUser.is_admin,
+      assigned_pracas: currentUser.assigned_pracas,
+    }) : 'null';
+  }, [currentUser?.is_admin, currentUser?.assigned_pracas?.join(',')]);
+  
   // Memoizar filterPayload
   const filterPayload = useMemo(() => {
     console.log('🔵 [DashboardPage] Gerando filterPayload:', {
@@ -134,7 +166,7 @@ export function useDashboardPage() {
       safeLog.error('[DashboardPage] Erro ao gerar filterPayload:', error);
       throw error;
     }
-  }, [filters, currentUser]);
+  }, [filtersKey, currentUserKey, filters, currentUser]);
 
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
@@ -159,16 +191,6 @@ export function useDashboardPage() {
   // Inicializar automaticamente os filtros quando os dados de dimensões são carregados
   const filtersInitializedRef = useRef(false);
   useEffect(() => {
-    console.log('🔵 [DashboardPage] Verificando inicialização de filtros:', {
-      filtersInitialized: filtersInitializedRef.current,
-      filtersAno: filters.ano,
-      filtersSemana: filters.semana,
-      anosDisponiveisLength: Array.isArray(anosDisponiveis) ? anosDisponiveis.length : 0,
-      semanasDisponiveisLength: Array.isArray(semanasDisponiveis) ? semanasDisponiveis.length : 0,
-      anosDisponiveis: anosDisponiveis,
-      semanasDisponiveis: semanasDisponiveis,
-    });
-    
     // Só inicializar se os filtros ainda estão vazios e os dados estão disponíveis
     if (
       !filtersInitializedRef.current &&
@@ -179,6 +201,15 @@ export function useDashboardPage() {
       Array.isArray(semanasDisponiveis) &&
       semanasDisponiveis.length > 0
     ) {
+      console.log('🔵 [DashboardPage] Verificando inicialização de filtros:', {
+        filtersInitialized: filtersInitializedRef.current,
+        filtersAno: filters.ano,
+        filtersSemana: filters.semana,
+        anosDisponiveisLength: Array.isArray(anosDisponiveis) ? anosDisponiveis.length : 0,
+        semanasDisponiveisLength: Array.isArray(semanasDisponiveis) ? semanasDisponiveis.length : 0,
+        anosDisponiveis: anosDisponiveis,
+        semanasDisponiveis: semanasDisponiveis,
+      });
       const ultimoAno = anosDisponiveis[anosDisponiveis.length - 1];
       const ultimaSemana = semanasDisponiveis[semanasDisponiveis.length - 1];
       
@@ -201,6 +232,7 @@ export function useDashboardPage() {
           ano: ultimoAno,
           semana: semanaNumero,
           ultimaSemana,
+          filtersAtuais: { ano: filters.ano, semana: filters.semana },
         });
         
         if (IS_DEV) {
@@ -213,32 +245,45 @@ export function useDashboardPage() {
           });
         }
         
-        setFilters(prev => {
-          const newFilters = {
-            ...prev,
-            ano: ultimoAno,
-            semana: semanaNumero,
-          };
-          
-          if (IS_DEV) {
-            safeLog.info('[DashboardPage] Novos filtros definidos via setFilters:', {
-              previous: prev,
-              new: newFilters,
-              changed: prev.ano !== newFilters.ano || prev.semana !== newFilters.semana,
-            });
-          }
-          
-          return newFilters;
+        // Marcar como inicializado ANTES de atualizar os filtros para evitar múltiplas inicializações
+        filtersInitializedRef.current = true;
+        
+        // Usar função de atualização para garantir que os filtros sejam atualizados
+        setFilters({
+          ano: ultimoAno,
+          semana: semanaNumero,
+          praca: filters.praca,
+          subPraca: filters.subPraca,
+          origem: filters.origem,
+          turno: filters.turno,
+          subPracas: filters.subPracas,
+          origens: filters.origens,
+          turnos: filters.turnos,
+          semanas: filters.semanas,
+          filtroModo: filters.filtroModo,
+          dataInicial: filters.dataInicial,
+          dataFinal: filters.dataFinal,
         });
         
-        filtersInitializedRef.current = true;
-      } else if (IS_DEV) {
-        safeLog.warn('[DashboardPage] Não foi possível inicializar semana automaticamente:', {
+        console.log('✅ [DashboardPage] setFilters executado - novos filtros devem ser:', {
+          ano: ultimoAno,
+          semana: semanaNumero,
+        });
+      } else {
+        console.warn('⚠️ [DashboardPage] Não foi possível inicializar semana automaticamente:', {
           ultimaSemana,
           semanaNumero,
           anosDisponiveis: anosDisponiveis.length,
           semanasDisponiveis: semanasDisponiveis.length,
         });
+        if (IS_DEV) {
+          safeLog.warn('[DashboardPage] Não foi possível inicializar semana automaticamente:', {
+            ultimaSemana,
+            semanaNumero,
+            anosDisponiveis: anosDisponiveis.length,
+            semanasDisponiveis: semanasDisponiveis.length,
+          });
+        }
       }
     }
   }, [anosDisponiveis, semanasDisponiveis, filters.ano, filters.semana]);

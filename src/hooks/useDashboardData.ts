@@ -46,7 +46,44 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 export function useDashboardData(initialFilters: Filters, activeTab: string, anoEvolucao: number, currentUser?: CurrentUser | null) {
   const { anosDisponiveis, semanasDisponiveis } = useDashboardDimensions();
 
+  // Criar uma string estável dos filtros para usar como dependência
+  const filtersKey = useMemo(() => {
+    return JSON.stringify({
+      ano: initialFilters.ano,
+      semana: initialFilters.semana,
+      praca: initialFilters.praca,
+      subPraca: initialFilters.subPraca,
+      origem: initialFilters.origem,
+      turno: initialFilters.turno,
+      filtroModo: initialFilters.filtroModo,
+      dataInicial: initialFilters.dataInicial,
+      dataFinal: initialFilters.dataFinal,
+    });
+  }, [
+    initialFilters.ano,
+    initialFilters.semana,
+    initialFilters.praca,
+    initialFilters.subPraca,
+    initialFilters.origem,
+    initialFilters.turno,
+    initialFilters.filtroModo,
+    initialFilters.dataInicial,
+    initialFilters.dataFinal,
+  ]);
+  
+  const currentUserKey = useMemo(() => {
+    return currentUser ? JSON.stringify({
+      is_admin: currentUser.is_admin,
+      assigned_pracas: currentUser.assigned_pracas,
+    }) : 'null';
+  }, [currentUser?.is_admin, currentUser?.assigned_pracas?.join(',')]);
+  
   const filterPayload = useMemo(() => {
+    console.log('🔵 [useDashboardData] Gerando filterPayload:', {
+      initialFiltersAno: initialFilters.ano,
+      initialFiltersSemana: initialFilters.semana,
+    });
+    
     if (IS_DEV) {
       safeLog.info('[useDashboardData] Gerando filterPayload:', {
         initialFilters,
@@ -56,6 +93,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       });
     }
     const payload = buildFilterPayload(initialFilters, currentUser);
+    console.log('✅ [useDashboardData] filterPayload gerado:', {
+      p_ano: payload.p_ano,
+      p_semana: payload.p_semana,
+    });
+    
     if (IS_DEV) {
       safeLog.info('[useDashboardData] filterPayload gerado:', {
         payload,
@@ -64,7 +106,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       });
     }
     return payload;
-  }, [initialFilters, currentUser]);
+  }, [filtersKey, currentUserKey, initialFilters, currentUser]);
 
   // Hook para dados principais
   const {
