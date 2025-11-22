@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 interface UserProfile {
   is_admin: boolean;
@@ -71,18 +72,10 @@ export function useUploadAuth() {
 
         setUser(authUser);
 
-        // Verificar se é admin com timeout
-        const profilePromise = supabase
-          .rpc('get_current_user_profile') as Promise<{ data: UserProfile | null; error: any }>;
-        
-        const profileResult = await Promise.race([
-          profilePromise,
-          new Promise<{ data: null; error: { message: string } }>((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout na verificação de perfil')), 8000)
-          )
-        ]).catch((err) => {
-          safeLog.error('Erro ou timeout na verificação de perfil:', err);
-          return { data: null, error: { message: err.message || 'Timeout' } };
+        // Verificar se é admin com timeout usando safeRpc
+        const profileResult = await safeRpc<UserProfile>('get_current_user_profile', {}, {
+          timeout: 8000,
+          validateParams: false
         });
 
         if (!isMountedRef.current) return;
