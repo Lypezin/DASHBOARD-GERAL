@@ -297,11 +297,16 @@ export function useDashboardPage() {
   }, [filters.ano, filters.semana]);
   
   useEffect(() => {
+    // DESABILITADO: Auto-inicialização de filtros
+    // O usuário deve selecionar manualmente os filtros
     // Se já tentou inicializar e os filtros ainda estão null, não tentar novamente
     if (hasTriedInitializeRef.current && filters.ano === null && filters.semana === null) {
       return;
     }
     
+    // DESABILITADO: Não inicializar automaticamente os filtros
+    // Comentado para permitir que o usuário selecione manualmente
+    /*
     // Só inicializar se os filtros ainda estão vazios e os dados estão disponíveis
     if (
       !filtersInitializedRef.current &&
@@ -392,6 +397,7 @@ export function useDashboardPage() {
         }
       }
     }
+    */
     // Remover filters.ano e filters.semana das dependências para evitar loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anosDisponiveis, semanasDisponiveis]);

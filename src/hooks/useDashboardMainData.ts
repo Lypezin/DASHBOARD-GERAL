@@ -136,22 +136,25 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     }
     
     // Verificar se o payload tem valores válidos antes de usar cache
-    // A função RPC aceita apenas p_ano, então aceitamos se p_ano estiver presente
-    // ou se p_data_inicial estiver presente (modo intervalo)
-    // IMPORTANTE: Permitir fetch mesmo sem filtros na primeira execução para carregar dimensões
+    // IMPORTANTE: Na primeira execução, fazer fetch SEM filtros para carregar dimensões
+    // Depois, só fazer fetch quando houver filtros válidos (p_ano ou p_data_inicial)
     const isFirstExecutionCheck = isFirstExecutionRef.current;
     const hasValidFilters = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
-                            (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined) ||
-                            isFirstExecutionCheck; // Primeira execução - carregar dimensões
+                            (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+    
+    // Na primeira execução, permitir fetch mesmo sem filtros para carregar dimensões
+    const shouldFetch = hasValidFilters || isFirstExecutionCheck;
     
     // Log sempre visível para debug
     console.log('🟢 [useDashboardMainData] Validação de filtros:', {
       hasValidFilters,
+      shouldFetch,
+      isFirstExecution: isFirstExecutionCheck,
       p_ano: filterPayload.p_ano,
       p_semana: filterPayload.p_semana,
       p_data_inicial: filterPayload.p_data_inicial,
-      reason: hasValidFilters 
-        ? (filterPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente')
+      reason: shouldFetch 
+        ? (isFirstExecutionCheck ? 'primeira execução - carregar dimensões' : (filterPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente'))
         : 'nenhum filtro válido',
     });
     
@@ -184,8 +187,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     // Armazenar o payloadKey pendente para verificação posterior
     pendingPayloadKeyRef.current = payloadKey;
     
-    // Verificar cache apenas se tiver filtros válidos
-    if (hasValidFilters && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
+    // Verificar cache apenas se tiver filtros válidos ou for primeira execução
+    if (shouldFetch && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
       console.log('✅ [useDashboardMainData] Usando dados do cache para payload:', payloadKey);
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Usando dados do cache');
@@ -260,13 +263,15 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     const currentPayload = filterPayload;
     const currentPayloadKey = payloadKey;
     
-    // Só criar setTimeout se tiver filtros válidos OU for primeira execução (para carregar dimensões)
-    if (!hasValidFilters && !isFirstExecutionCheck) {
-      console.warn('⚠️ [useDashboardMainData] Não criando setTimeout - filtros inválidos', {
+    // Só criar setTimeout se deve fazer fetch (filtros válidos OU primeira execução)
+    if (!shouldFetch) {
+      console.warn('⚠️ [useDashboardMainData] Não criando setTimeout - não deve fazer fetch', {
         p_ano: filterPayload.p_ano,
         p_semana: filterPayload.p_semana,
         p_data_inicial: filterPayload.p_data_inicial,
         isFirstExecution: isFirstExecutionCheck,
+        hasValidFilters,
+        shouldFetch,
       });
       setLoading(false);
       return;
@@ -280,16 +285,20 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     // Log adicional para garantir que vamos criar o setTimeout
     console.log('✅ [useDashboardMainData] Condições atendidas para criar setTimeout:', {
       hasValidFilters,
+      shouldFetch,
       isFirstExecution: isFirstExecutionCheck,
-      willCreateTimeout: hasValidFilters || isFirstExecutionCheck,
+      willCreateTimeout: shouldFetch,
     });
     
     console.log('⏳ [useDashboardMainData] Criando setTimeout para fetch:', {
-      payloadKey: currentPayloadKey,
+      payloadKey: currentPayloadKey.substring(0, 100),
       debounceDelay: DELAYS.DEBOUNCE,
       hasValidFilters,
+      shouldFetch,
+      isFirstExecution: isFirstExecutionCheck,
       p_ano: currentPayload.p_ano,
       p_semana: currentPayload.p_semana,
+      p_data_inicial: currentPayload.p_data_inicial,
       timestamp: new Date().toISOString(),
     });
     
@@ -331,22 +340,23 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       }
       
       // Verificar se o payload tem valores válidos antes de fazer fetch
-      // A função RPC aceita apenas p_ano, então aceitamos se p_ano estiver presente
-      // ou se p_data_inicial estiver presente (modo intervalo)
-      // IMPORTANTE: Permitir fetch sem filtros na primeira vez para carregar dimensões
+      // IMPORTANTE: Na primeira execução, fazer fetch SEM filtros para carregar dimensões
+      // Depois, só fazer fetch quando houver filtros válidos (p_ano ou p_data_inicial)
       const isFirstExecutionInTimeout = isFirstExecutionRef.current;
       const hasValidFiltersInTimeout = (currentPayload.p_ano !== null && currentPayload.p_ano !== undefined) ||
-                              (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined) ||
-                              isFirstExecutionInTimeout; // Primeira execução
+                              (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
+      const shouldFetchInTimeout = hasValidFiltersInTimeout || isFirstExecutionInTimeout;
       
       console.log('🔍 [useDashboardMainData] Verificando se deve fazer fetch:', {
         hasValidFilters: hasValidFiltersInTimeout,
+        shouldFetch: shouldFetchInTimeout,
+        isFirstExecution: isFirstExecutionInTimeout,
         p_ano: currentPayload.p_ano,
         p_semana: currentPayload.p_semana,
         p_data_inicial: currentPayload.p_data_inicial,
         debounceDelay: DELAYS.DEBOUNCE,
-        reason: hasValidFiltersInTimeout 
-          ? (currentPayload.p_ano ? 'p_ano presente' : currentPayload.p_data_inicial ? 'p_data_inicial presente' : 'primeira execução')
+        reason: shouldFetchInTimeout 
+          ? (isFirstExecutionInTimeout ? 'primeira execução - carregar dimensões' : (currentPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente'))
           : 'nenhum filtro válido',
       });
       
@@ -358,7 +368,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         });
       }
       
-      if (!hasValidFiltersInTimeout) {
+      if (!shouldFetchInTimeout) {
         console.warn('⚠️ [useDashboardMainData] Payload INVÁLIDO - não fazendo fetch:', {
           payload: currentPayload,
           p_ano: currentPayload.p_ano,
@@ -433,9 +443,22 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           return;
         }
         
-        const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', currentPayload, {
+        // IMPORTANTE: Na primeira execução, chamar sem filtros para carregar dimensões
+        // Criar payload limpo para primeira execução - passar undefined para chamar sem parâmetros
+        const payloadForRpc = isFirstExecutionInTimeout && !hasValidFiltersInTimeout
+          ? undefined // Chamar sem parâmetros para retornar dimensões
+          : currentPayload;
+        
+        console.log('📤 [useDashboardMainData] Payload para RPC:', {
+          isFirstExecution: isFirstExecutionInTimeout,
+          hasValidFilters: hasValidFiltersInTimeout,
+          payloadForRpc: payloadForRpc === undefined ? 'undefined (sem parâmetros)' : payloadForRpc,
+          originalPayload: currentPayload,
+        });
+        
+        const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', payloadForRpc, {
           timeout: RPC_TIMEOUTS.DEFAULT,
-          validateParams: true
+          validateParams: !isFirstExecutionInTimeout || hasValidFiltersInTimeout // Não validar na primeira execução sem filtros
         });
         
         console.log('📥 [useDashboardMainData] Resposta do safeRpc:', {
@@ -522,8 +545,18 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         }
 
         // Atualizar cache
+        // IMPORTANTE: Na primeira execução sem filtros, usar uma chave especial para cache
+        const cacheKeyToUse = isFirstExecutionInTimeout && !hasValidFiltersInTimeout
+          ? '__first_execution_dimensions__'
+          : currentPayloadKey;
         cachedDataRef.current = data;
-        cacheKeyRef.current = currentPayloadKey;
+        cacheKeyRef.current = cacheKeyToUse;
+        
+        console.log('💾 [useDashboardMainData] Cache atualizado:', {
+          cacheKey: cacheKeyToUse.substring(0, 100),
+          isFirstExecution: isFirstExecutionInTimeout,
+          hasValidFilters: hasValidFiltersInTimeout,
+        });
 
         // Atualizar estados
         const newTotals = {
