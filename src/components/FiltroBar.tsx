@@ -232,7 +232,18 @@ const FiltroBar = React.memo(function FiltroBar({
                 selected={filters.semanas ? filters.semanas.map(String) : []}
                 options={semanasOptions}
                 placeholder="Todas"
-                onSelectionChange={(values) => setFilters(prev => ({ ...prev, semanas: values.map(v => parseInt(v)) }))}
+                onSelectionChange={(values) => {
+                  setFilters(prev => {
+                    const newSemanas = values.map(v => parseInt(v));
+                    // Sincronizar 'semana' com o primeiro valor selecionado ou null se vazio
+                    const newSemana = newSemanas.length > 0 ? newSemanas[0] : null;
+                    return {
+                      ...prev,
+                      semanas: newSemanas,
+                      semana: newSemana
+                    };
+                  });
+                }}
               />
             </div>
           </>
