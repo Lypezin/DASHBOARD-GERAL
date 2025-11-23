@@ -196,7 +196,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       const cached = cachedDataRef.current;
       
       // Função auxiliar para converter horas
-      const convertHorasToString = (value: number | string | undefined): string => {
+      const convertHorasToString = (value: number | string | undefined | null): string => {
         if (value === undefined || value === null) return '0';
         if (typeof value === 'string') return value;
         return String(value);
@@ -562,7 +562,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         setTotals(newTotals);
         
         // Converter números para strings (horas_a_entregar e horas_entregues)
-        const convertHorasToString = (value: number | string | undefined): string => {
+        const convertHorasToString = (value: number | string | undefined | null): string => {
           if (value === undefined || value === null) return '0';
           if (typeof value === 'string') return value;
           return String(value);
@@ -705,4 +705,3 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     error,
   };
 }
-
