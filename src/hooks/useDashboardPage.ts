@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useTabData } from '@/hooks/useTabData';
@@ -20,7 +20,7 @@ import type { Filters, CurrentUser, TabType } from '@/types';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useDashboardPage() {
-  const router = useRouter();
+
   const { isChecking: isCheckingAuth, isAuthenticated, currentUser: authUser } = useAuthGuard({
     requireApproval: true,
     fetchUserProfile: true,
@@ -45,17 +45,17 @@ export function useDashboardPage() {
 
   // Log quando o hook é montado
   useEffect(() => {
-    console.log('🔄 [DashboardPage] Hook montado/remontado');
+    // console.log('🔄 [DashboardPage] Hook montado/remontado');
   }, []);
 
   // Log quando os filtros mudam
   useEffect(() => {
-    console.log('📊 [DashboardPage] FILTROS MUDARAM:', {
-      ano: filters.ano,
-      semana: filters.semana,
-      praca: filters.praca,
-      timestamp: new Date().toISOString(),
-    });
+    // console.log('📊 [DashboardPage] FILTROS MUDARAM:', {
+    //   ano: filters.ano,
+    //   semana: filters.semana,
+    //   praca: filters.praca,
+    //   timestamp: new Date().toISOString(),
+    // });
   }, [filters.ano, filters.semana, filters.praca]);
 
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
@@ -145,13 +145,6 @@ export function useDashboardPage() {
 
   // Memoizar filterPayload
   const filterPayload = useMemo(() => {
-    console.log('🔵 [DashboardPage] Gerando filterPayload:', {
-      filtersAno: filters.ano,
-      filtersSemana: filters.semana,
-      filtersKey,
-      currentUserKey,
-    });
-
     if (IS_DEV) {
       safeLog.info('[DashboardPage] Gerando filterPayload com:', {
         filters,
@@ -162,11 +155,6 @@ export function useDashboardPage() {
     }
     try {
       const payload = buildFilterPayload(filters, currentUser);
-      console.log('✅ [DashboardPage] filterPayload gerado:', {
-        p_ano: payload.p_ano,
-        p_semana: payload.p_semana,
-        p_data_inicial: payload.p_data_inicial,
-      });
 
       if (IS_DEV) {
         safeLog.info('[DashboardPage] filterPayload gerado com sucesso:', {
@@ -179,7 +167,6 @@ export function useDashboardPage() {
       }
       return payload;
     } catch (error) {
-      console.error('❌ [DashboardPage] Erro ao gerar filterPayload:', error);
       safeLog.error('[DashboardPage] Erro ao gerar filterPayload:', error);
       throw error;
     }
@@ -247,11 +234,6 @@ export function useDashboardPage() {
           }
         }
 
-        console.log('📝 [DashboardPage] setFilters (função) chamado:', {
-          previous: { ano: prev.ano, semana: prev.semana },
-          updated: { ano: updated.ano, semana: updated.semana },
-        });
-
         return updated;
       });
     } else {
@@ -279,18 +261,10 @@ export function useDashboardPage() {
             semana: wouldResetSemana ? currentSemana : filtersObj.semana,
           };
 
-          console.log('📝 [DashboardPage] setFilters (objeto) chamado com proteção:', {
-            newFilters: { ano: protectedFilters.ano, semana: protectedFilters.semana },
-          });
-
           setFilters(protectedFilters);
           return;
         }
       }
-
-      console.log('📝 [DashboardPage] setFilters (objeto) chamado:', {
-        newFilters: { ano: filtersObj.ano, semana: filtersObj.semana },
-      });
 
       setFilters(filtersObj);
     }
@@ -332,10 +306,10 @@ export function useDashboardPage() {
       }
 
       if (!isNaN(semanaNumero) && semanaNumero > 0 && semanaNumero <= 53) {
-        console.log('✅ [DashboardPage] INICIALIZANDO FILTROS:', {
-          ano: ultimoAno,
-          semana: semanaNumero,
-        });
+        // console.log('✅ [DashboardPage] INICIALIZANDO FILTROS:', {
+        //   ano: ultimoAno,
+        //   semana: semanaNumero,
+        // });
 
         filtersInitializedRef.current = true;
         filtersProtectedRef.current = true;
