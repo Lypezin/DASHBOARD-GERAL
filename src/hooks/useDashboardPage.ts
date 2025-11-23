@@ -42,12 +42,12 @@ export function useDashboardPage() {
     dataInicial: null,
     dataFinal: null,
   });
-  
+
   // Log quando o hook é montado
   useEffect(() => {
     console.log('🔄 [DashboardPage] Hook montado/remontado');
   }, []);
-  
+
   // Log quando os filtros mudam
   useEffect(() => {
     console.log('📊 [DashboardPage] FILTROS MUDARAM:', {
@@ -135,14 +135,14 @@ export function useDashboardPage() {
     filters.dataInicial,
     filters.dataFinal,
   ]);
-  
+
   const currentUserKey = useMemo(() => {
     return currentUser ? JSON.stringify({
       is_admin: currentUser.is_admin,
       assigned_pracas: currentUser.assigned_pracas,
     }) : 'null';
   }, [currentUser?.is_admin, currentUser?.assigned_pracas?.join(',')]);
-  
+
   // Memoizar filterPayload
   const filterPayload = useMemo(() => {
     console.log('🔵 [DashboardPage] Gerando filterPayload:', {
@@ -151,7 +151,7 @@ export function useDashboardPage() {
       filtersKey,
       currentUserKey,
     });
-    
+
     if (IS_DEV) {
       safeLog.info('[DashboardPage] Gerando filterPayload com:', {
         filters,
@@ -167,7 +167,7 @@ export function useDashboardPage() {
         p_semana: payload.p_semana,
         p_data_inicial: payload.p_data_inicial,
       });
-      
+
       if (IS_DEV) {
         safeLog.info('[DashboardPage] filterPayload gerado com sucesso:', {
           payload,
@@ -211,24 +211,24 @@ export function useDashboardPage() {
   const filtersInitializedRef = useRef(false);
   const hasTriedInitializeRef = useRef(false);
   const filtersProtectedRef = useRef(false);
-  
+
   // Wrapper para setFilters que protege ano e semana após inicialização
   const setFiltersProtected = useCallback((newFilters: Filters | ((prev: Filters) => Filters)) => {
     const stackTrace = new Error().stack;
-    
+
     // Type guard para verificar se é função
     const isFunction = typeof newFilters === 'function';
-    
+
     if (isFunction) {
       const updater = newFilters as (prev: Filters) => Filters;
       setFilters((prev) => {
         const updated = updater(prev);
-        
+
         // Proteger ano e semana se já foram inicializados
         if (filtersProtectedRef.current) {
           const wouldResetAno = prev.ano !== null && updated.ano === null;
           const wouldResetSemana = prev.semana !== null && updated.semana === null;
-          
+
           if (wouldResetAno || wouldResetSemana) {
             console.warn('🛡️ [DashboardPage] BLOQUEANDO reset de filtros protegidos:', {
               wouldResetAno,
@@ -237,7 +237,7 @@ export function useDashboardPage() {
               attempted: { ano: updated.ano, semana: updated.semana },
               stackTrace: stackTrace?.split('\n').slice(0, 5).join('\n'),
             });
-            
+
             // Manter valores anteriores de ano e semana
             return {
               ...updated,
@@ -246,12 +246,12 @@ export function useDashboardPage() {
             };
           }
         }
-        
+
         console.log('📝 [DashboardPage] setFilters (função) chamado:', {
           previous: { ano: prev.ano, semana: prev.semana },
           updated: { ano: updated.ano, semana: updated.semana },
         });
-        
+
         return updated;
       });
     } else {
@@ -262,7 +262,7 @@ export function useDashboardPage() {
         const currentSemana = filters.semana;
         const wouldResetAno = currentAno !== null && filtersObj.ano === null;
         const wouldResetSemana = currentSemana !== null && filtersObj.semana === null;
-        
+
         if (wouldResetAno || wouldResetSemana) {
           console.warn('🛡️ [DashboardPage] BLOQUEANDO reset de filtros protegidos:', {
             wouldResetAno,
@@ -271,42 +271,38 @@ export function useDashboardPage() {
             attempted: { ano: filtersObj.ano, semana: filtersObj.semana },
             stackTrace: stackTrace?.split('\n').slice(0, 5).join('\n'),
           });
-          
+
           // Manter valores anteriores de ano e semana
           const protectedFilters: Filters = {
             ...filtersObj,
             ano: wouldResetAno ? currentAno : filtersObj.ano,
             semana: wouldResetSemana ? currentSemana : filtersObj.semana,
           };
-          
+
           console.log('📝 [DashboardPage] setFilters (objeto) chamado com proteção:', {
             newFilters: { ano: protectedFilters.ano, semana: protectedFilters.semana },
           });
-          
+
           setFilters(protectedFilters);
           return;
         }
       }
-      
+
       console.log('📝 [DashboardPage] setFilters (objeto) chamado:', {
         newFilters: { ano: filtersObj.ano, semana: filtersObj.semana },
       });
-      
+
       setFilters(filtersObj);
     }
   }, [filters.ano, filters.semana]);
-  
+
+  // Auto-inicialização de filtros
   useEffect(() => {
-    // DESABILITADO: Auto-inicialização de filtros
-    // O usuário deve selecionar manualmente os filtros
     // Se já tentou inicializar e os filtros ainda estão null, não tentar novamente
     if (hasTriedInitializeRef.current && filters.ano === null && filters.semana === null) {
       return;
     }
-    
-    // DESABILITADO: Não inicializar automaticamente os filtros
-    // Comentado para permitir que o usuário selecione manualmente
-    /*
+
     // Só inicializar se os filtros ainda estão vazios e os dados estão disponíveis
     if (
       !filtersInitializedRef.current &&
@@ -318,20 +314,11 @@ export function useDashboardPage() {
       semanasDisponiveis.length > 0
     ) {
       hasTriedInitializeRef.current = true;
-      console.log('🔵 [DashboardPage] Verificando inicialização de filtros:', {
-        filtersInitialized: filtersInitializedRef.current,
-        filtersAno: filters.ano,
-        filtersSemana: filters.semana,
-        anosDisponiveisLength: Array.isArray(anosDisponiveis) ? anosDisponiveis.length : 0,
-        semanasDisponiveisLength: Array.isArray(semanasDisponiveis) ? semanasDisponiveis.length : 0,
-        anosDisponiveis: anosDisponiveis,
-        semanasDisponiveis: semanasDisponiveis,
-      });
+
       const ultimoAno = anosDisponiveis[anosDisponiveis.length - 1];
       const ultimaSemana = semanasDisponiveis[semanasDisponiveis.length - 1];
-      
+
       // Converter semana de string para número se necessário
-      // Suporta formatos: "10", "W10", ou número direto
       let semanaNumero: number;
       if (typeof ultimaSemana === 'string') {
         if (ultimaSemana.includes('W')) {
@@ -348,58 +335,18 @@ export function useDashboardPage() {
         console.log('✅ [DashboardPage] INICIALIZANDO FILTROS:', {
           ano: ultimoAno,
           semana: semanaNumero,
-          ultimaSemana,
-          filtersAtuais: { ano: filters.ano, semana: filters.semana },
         });
-        
-        if (IS_DEV) {
-          safeLog.info('[DashboardPage] Inicializando filtros automaticamente:', {
-            ano: ultimoAno,
-            semana: semanaNumero,
-            ultimaSemana,
-            anosDisponiveis: anosDisponiveis.length,
-            semanasDisponiveis: semanasDisponiveis.length,
-          });
-        }
-        
-        // Marcar como inicializado ANTES de atualizar os filtros para evitar múltiplas inicializações
+
         filtersInitializedRef.current = true;
-        filtersProtectedRef.current = true; // Proteger filtros após inicialização
-        
-        // Usar setFilters diretamente (não o wrapper) na inicialização
-        setFilters((prev) => {
-          const newFilters = {
-            ...prev,
-            ano: ultimoAno,
-            semana: semanaNumero,
-          };
-          console.log('✅ [DashboardPage] FILTROS INICIALIZADOS COM SUCESSO:', {
-            previous: { ano: prev.ano, semana: prev.semana },
-            new: { ano: newFilters.ano, semana: newFilters.semana },
-            protected: true,
-          });
-          return newFilters;
-        });
-      } else {
-        console.warn('⚠️ [DashboardPage] Não foi possível inicializar semana automaticamente:', {
-          ultimaSemana,
-          semanaNumero,
-          anosDisponiveis: anosDisponiveis.length,
-          semanasDisponiveis: semanasDisponiveis.length,
-        });
-        if (IS_DEV) {
-          safeLog.warn('[DashboardPage] Não foi possível inicializar semana automaticamente:', {
-            ultimaSemana,
-            semanaNumero,
-            anosDisponiveis: anosDisponiveis.length,
-            semanasDisponiveis: semanasDisponiveis.length,
-          });
-        }
+        filtersProtectedRef.current = true;
+
+        setFilters((prev) => ({
+          ...prev,
+          ano: ultimoAno,
+          semana: semanaNumero,
+        }));
       }
     }
-    */
-    // Remover filters.ano e filters.semana das dependências para evitar loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anosDisponiveis, semanasDisponiveis]);
 
   // Registrar atividade do usuário com debounce
@@ -469,13 +416,13 @@ export function useDashboardPage() {
     isCheckingAuth,
     isAuthenticated,
     currentUser,
-    
+
     // Tabs e Filtros
     activeTab,
     filters,
     setFilters: setFiltersProtected, // Exportar wrapper protegido
     handleTabChange,
-    
+
     // Dados do Dashboard
     totals,
     aderenciaSemanal,
@@ -492,7 +439,7 @@ export function useDashboardPage() {
     turnos,
     loading,
     error,
-    
+
     // Dados de Evolução
     evolucaoMensal,
     evolucaoSemanal,
@@ -501,14 +448,14 @@ export function useDashboardPage() {
     anoEvolucao,
     setAnoEvolucao,
     anoSelecionado: anoEvolucao,
-    
+
     // Dados de Tabs
     utrData,
     entregadoresData,
     valoresData,
     prioridadeData,
     loadingTabData,
-    
+
     // UI State
     chartReady,
   };
