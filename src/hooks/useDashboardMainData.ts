@@ -135,15 +135,15 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       });
     }
     
-    // Verificar se o payload tem valores válidos antes de usar cache
-    // IMPORTANTE: Na primeira execução, fazer fetch SEM filtros para carregar dimensões
-    // Depois, só fazer fetch quando houver filtros válidos (p_ano ou p_data_inicial)
+    // IMPORTANTE: A função dashboard_resumo sempre retorna dimensões, mesmo sem filtros
+    // Ela usa valores padrão (últimos 30 dias) quando não há filtros
+    // Sempre fazer fetch para carregar dimensões e dados
     const isFirstExecutionCheck = isFirstExecutionRef.current;
     const hasValidFilters = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
                             (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
     
-    // Na primeira execução, permitir fetch mesmo sem filtros para carregar dimensões
-    const shouldFetch = hasValidFilters || isFirstExecutionCheck;
+    // Sempre fazer fetch - a função RPC retorna dimensões mesmo sem filtros válidos
+    const shouldFetch = true;
     
     // Log sempre visível para debug
     console.log('🟢 [useDashboardMainData] Validação de filtros:', {
@@ -153,9 +153,9 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       p_ano: filterPayload.p_ano,
       p_semana: filterPayload.p_semana,
       p_data_inicial: filterPayload.p_data_inicial,
-      reason: shouldFetch 
-        ? (isFirstExecutionCheck ? 'primeira execução - carregar dimensões' : (filterPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente'))
-        : 'nenhum filtro válido',
+      reason: hasValidFilters 
+        ? (filterPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente')
+        : 'sem filtros - função RPC usará valores padrão (últimos 30 dias)',
     });
     
     if (IS_DEV) {
@@ -263,31 +263,18 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     const currentPayload = filterPayload;
     const currentPayloadKey = payloadKey;
     
-    // Só criar setTimeout se deve fazer fetch (filtros válidos OU primeira execução)
-    if (!shouldFetch) {
-      console.warn('⚠️ [useDashboardMainData] Não criando setTimeout - não deve fazer fetch', {
-        p_ano: filterPayload.p_ano,
-        p_semana: filterPayload.p_semana,
-        p_data_inicial: filterPayload.p_data_inicial,
-        isFirstExecution: isFirstExecutionCheck,
-        hasValidFilters,
-        shouldFetch,
-      });
-      setLoading(false);
-      return;
-    }
-    
-    // Se for primeira execução, permitir fetch mesmo sem filtros para carregar dimensões
+    // Sempre criar setTimeout - a função RPC sempre retorna dimensões
+    // Log para debug
     if (isFirstExecutionCheck && !hasValidFilters) {
-      console.log('🔄 [useDashboardMainData] Primeira execução - carregando dimensões sem filtros');
+      console.log('🔄 [useDashboardMainData] Primeira execução - carregando dimensões (função RPC usará valores padrão)');
     }
     
-    // Log adicional para garantir que vamos criar o setTimeout
-    console.log('✅ [useDashboardMainData] Condições atendidas para criar setTimeout:', {
+    console.log('✅ [useDashboardMainData] Criando setTimeout para fetch:', {
       hasValidFilters,
       shouldFetch,
       isFirstExecution: isFirstExecutionCheck,
       willCreateTimeout: shouldFetch,
+      note: hasValidFilters ? 'Com filtros válidos' : 'Sem filtros - função RPC usará valores padrão',
     });
     
     console.log('⏳ [useDashboardMainData] Criando setTimeout para fetch:', {
@@ -339,13 +326,13 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         return;
       }
       
-      // Verificar se o payload tem valores válidos antes de fazer fetch
-      // IMPORTANTE: Na primeira execução, fazer fetch SEM filtros para carregar dimensões
-      // Depois, só fazer fetch quando houver filtros válidos (p_ano ou p_data_inicial)
+      // IMPORTANTE: A função dashboard_resumo sempre retorna dimensões, mesmo sem filtros
+      // Ela usa valores padrão (últimos 30 dias) quando não há filtros
+      // Sempre fazer fetch
       const isFirstExecutionInTimeout = isFirstExecutionRef.current;
       const hasValidFiltersInTimeout = (currentPayload.p_ano !== null && currentPayload.p_ano !== undefined) ||
                               (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
-      const shouldFetchInTimeout = hasValidFiltersInTimeout || isFirstExecutionInTimeout;
+      const shouldFetchInTimeout = true; // Sempre fazer fetch
       
       console.log('🔍 [useDashboardMainData] Verificando se deve fazer fetch:', {
         hasValidFilters: hasValidFiltersInTimeout,
@@ -355,9 +342,9 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         p_semana: currentPayload.p_semana,
         p_data_inicial: currentPayload.p_data_inicial,
         debounceDelay: DELAYS.DEBOUNCE,
-        reason: shouldFetchInTimeout 
-          ? (isFirstExecutionInTimeout ? 'primeira execução - carregar dimensões' : (currentPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente'))
-          : 'nenhum filtro válido',
+        reason: hasValidFiltersInTimeout 
+          ? (currentPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente')
+          : 'sem filtros - função RPC usará valores padrão (últimos 30 dias)',
       });
       
       if (IS_DEV) {
@@ -443,22 +430,24 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           return;
         }
         
-        // IMPORTANTE: Na primeira execução, chamar sem filtros para carregar dimensões
-        // Criar payload limpo para primeira execução - passar undefined para chamar sem parâmetros
-        const payloadForRpc = isFirstExecutionInTimeout && !hasValidFiltersInTimeout
-          ? undefined // Chamar sem parâmetros para retornar dimensões
-          : currentPayload;
+        // IMPORTANTE: A função dashboard_resumo sempre retorna dimensões
+        // Ela usa valores padrão (últimos 2 semanas) quando não há filtros válidos
+        // Sempre passar o payload atual - a função RPC trata null como "usar padrão"
+        // O safeRpc normaliza undefined para null, então podemos passar o payload diretamente
+        const payloadForRpc = currentPayload;
         
         console.log('📤 [useDashboardMainData] Payload para RPC:', {
           isFirstExecution: isFirstExecutionInTimeout,
           hasValidFilters: hasValidFiltersInTimeout,
-          payloadForRpc: payloadForRpc === undefined ? 'undefined (sem parâmetros)' : payloadForRpc,
-          originalPayload: currentPayload,
+          payloadForRpc,
+          note: hasValidFiltersInTimeout 
+            ? 'Usando filtros fornecidos' 
+            : 'Sem filtros válidos - função RPC usará valores padrão (últimos 2 semanas) e retornará dimensões',
         });
         
         const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', payloadForRpc, {
           timeout: RPC_TIMEOUTS.DEFAULT,
-          validateParams: !isFirstExecutionInTimeout || hasValidFiltersInTimeout // Não validar na primeira execução sem filtros
+          validateParams: false // Não validar para permitir null (função RPC usa valores padrão)
         });
         
         console.log('📥 [useDashboardMainData] Resposta do safeRpc:', {
@@ -643,13 +632,21 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
             hasPracas: !!data.dimensoes.pracas,
             pracasLength: Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.length : 0,
             pracas: data.dimensoes.pracas,
+            pracasSample: Array.isArray(data.dimensoes.pracas) && data.dimensoes.pracas.length > 0 ? data.dimensoes.pracas.slice(0, 5) : [],
             hasSubPracas: !!data.dimensoes.sub_pracas,
+            subPracasLength: Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.length : 0,
             hasOrigens: !!data.dimensoes.origens,
+            origensLength: Array.isArray(data.dimensoes.origens) ? data.dimensoes.origens.length : 0,
             hasTurnos: !!data.dimensoes.turnos,
+            turnosLength: Array.isArray(data.dimensoes.turnos) ? data.dimensoes.turnos.length : 0,
+            dimensoesCompleto: data.dimensoes,
           });
           setDimensoes(data.dimensoes);
         } else {
-          console.warn('⚠️ [useDashboardMainData] Dados não contêm dimensões');
+          console.warn('⚠️ [useDashboardMainData] Dados não contêm dimensões', {
+            dataKeys: data ? Object.keys(data) : null,
+            hasDimensoes: !!data?.dimensoes,
+          });
         }
         
         // IMPORTANTE: Atualizar previousPayloadRef APENAS após fetch bem-sucedido
