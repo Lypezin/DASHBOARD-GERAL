@@ -222,31 +222,59 @@ const FiltroBar = React.memo(function FiltroBar({
             />
           </div>
         ) : (
-        </div>
-      <div className="flex-1 min-w-[150px] max-w-[250px]">
-        <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPracas: values }))} />
-      </div>
-      <div className="flex-1 min-w-[150px] max-w-[250px]">
-        <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({ ...prev, origens: values }))} />
-      </div>
-      <div className="flex-1 min-w-[150px] max-w-[250px]">
-        <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({ ...prev, turnos: values }))} />
-      </div>
+          <>
+            <div className="flex-1 min-w-[120px] max-w-[200px]">
+              <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anosOptions} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
+            </div>
+            <div className="flex-1 min-w-[150px] max-w-[250px]">
+              <FiltroSelect
+                label="Semana"
+                value={filters.semana !== null ? String(filters.semana) : ''}
+                options={semanasOptions}
+                placeholder="Todas"
+                onChange={(value) => {
+                  setFilters(prev => {
+                    const newSemana = value ? parseInt(value, 10) : null;
+                    return {
+                      ...prev,
+                      semana: newSemana,
+                      semanas: newSemana ? [newSemana] : []
+                    };
+                  });
+                }}
+              />
+            </div>
+          </>
+        )}
 
-      {/* Botão Limpar Filtros */}
-      {hasActiveFilters && (
-        <div className="flex-shrink-0">
-          <button
-            onClick={handleClearFilters}
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors h-[42px]"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-            <span>Limpar</span>
-          </button>
+        {/* Outros filtros (sempre visíveis) */}
+        <div className="flex-1 min-w-[150px] max-w-[250px]">
+          <FiltroSelect label="Praça" value={filters.praca ?? ''} options={pracas} placeholder="Todas" onChange={(value) => handleChange('praca', value)} disabled={shouldDisablePracaFilter} />
         </div>
-      )}
+        <div className="flex-1 min-w-[150px] max-w-[250px]">
+          <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPracas: values }))} />
+        </div>
+        <div className="flex-1 min-w-[150px] max-w-[250px]">
+          <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({ ...prev, origens: values }))} />
+        </div>
+        <div className="flex-1 min-w-[150px] max-w-[250px]">
+          <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({ ...prev, turnos: values }))} />
+        </div>
+
+        {/* Botão Limpar Filtros */}
+        {hasActiveFilters && (
+          <div className="flex-shrink-0">
+            <button
+              onClick={handleClearFilters}
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors h-[42px]"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              <span>Limpar</span>
+            </button>
+          </div>
+        )}
+      </div>
     </div>
-    </div >
   );
 });
 

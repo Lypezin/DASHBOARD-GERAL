@@ -42,7 +42,7 @@ interface UseDashboardMainDataOptions {
  */
 export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const { filterPayload, onError } = options;
-  
+
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
   const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
@@ -76,55 +76,24 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     // Evitar processamento se o payload não mudou realmente
     // IMPORTANTE: Também verificar se há um fetch pendente com o mesmo payload
     if (previousPayloadRef.current === payloadKey) {
-      console.log('⏭️ [useDashboardMainData] Payload não mudou, ignorando:', {
-        payloadKey: payloadKey.substring(0, 100),
-        previousPayload: previousPayloadRef.current.substring(0, 100),
-        areEqual: previousPayloadRef.current === payloadKey,
-        hasPendingTimeout: !!debounceRef.current,
-      });
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Payload não mudou, ignorando');
       }
       return;
     }
-    
+
     // Se o payload pendente é o mesmo, não criar novo timeout
     if (pendingPayloadKeyRef.current === payloadKey && debounceRef.current) {
-      console.log('⏭️ [useDashboardMainData] Payload pendente já existe, ignorando:', {
-        payloadKey: payloadKey.substring(0, 100),
-        pendingPayloadKey: pendingPayloadKeyRef.current.substring(0, 100),
-        hasPendingTimeout: !!debounceRef.current,
-      });
       return;
     }
-    
-    console.log('🔄 [useDashboardMainData] Payload MUDOU:', {
-      previous: previousPayloadRef.current.substring(0, 100),
-      current: payloadKey.substring(0, 100),
-      hasPendingTimeout: !!debounceRef.current,
-    });
-    
+
     // Limpar timeout anterior apenas se o payload mudou E não for o mesmo payload pendente
     // Mas só limpar se realmente mudou (não limpar se for a primeira vez)
     if (debounceRef.current && previousPayloadRef.current !== '' && pendingPayloadKeyRef.current !== payloadKey) {
-      console.log('🧹 [useDashboardMainData] Limpando timeout anterior - payload mudou', {
-        previousPayload: previousPayloadRef.current.substring(0, 100),
-        newPayload: payloadKey.substring(0, 100),
-        pendingPayload: pendingPayloadKeyRef.current.substring(0, 100),
-      });
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
     }
-    
-    // Log sempre visível para debug
-    console.log('🔵 [useDashboardMainData] useEffect ACIONADO (payload mudou)', {
-      payload: filterPayload,
-      p_ano: filterPayload.p_ano,
-      p_semana: filterPayload.p_semana,
-      p_data_inicial: filterPayload.p_data_inicial,
-      timestamp: new Date().toISOString(),
-    });
-    
+
     if (IS_DEV) {
       safeLog.info('[useDashboardMainData] useEffect acionado com payload:', {
         payload: filterPayload,
@@ -134,30 +103,17 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         hasCachedData: !!cachedDataRef.current,
       });
     }
-    
+
     // IMPORTANTE: A função dashboard_resumo sempre retorna dimensões, mesmo sem filtros
     // Ela usa valores padrão (últimos 30 dias) quando não há filtros
     // Sempre fazer fetch para carregar dimensões e dados
     const isFirstExecutionCheck = isFirstExecutionRef.current;
     const hasValidFilters = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
-                            (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
-    
+      (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+
     // Sempre fazer fetch - a função RPC retorna dimensões mesmo sem filtros válidos
     const shouldFetch = true;
-    
-    // Log sempre visível para debug
-    console.log('🟢 [useDashboardMainData] Validação de filtros:', {
-      hasValidFilters,
-      shouldFetch,
-      isFirstExecution: isFirstExecutionCheck,
-      p_ano: filterPayload.p_ano,
-      p_semana: filterPayload.p_semana,
-      p_data_inicial: filterPayload.p_data_inicial,
-      reason: hasValidFilters 
-        ? (filterPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente')
-        : 'sem filtros - função RPC usará valores padrão (últimos 30 dias)',
-    });
-    
+
     if (IS_DEV) {
       safeLog.info('[useDashboardMainData] Validação de filtros:', {
         hasValidFilters,
@@ -166,93 +122,91 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         p_data_inicial: filterPayload.p_data_inicial,
       });
     }
-    
+
     // Se o payload anterior era inválido e agora é válido, limpar cache
     // Payload é inválido se não tiver p_ano nem p_data_inicial
-    const previousPayloadWasInvalid = previousPayloadRef.current && 
+    const previousPayloadWasInvalid = previousPayloadRef.current &&
       (!previousPayloadRef.current.includes('"p_ano":') || previousPayloadRef.current.includes('"p_ano":null')) &&
       (!previousPayloadRef.current.includes('"p_data_inicial":') || previousPayloadRef.current.includes('"p_data_inicial":null'));
-    
+
     if (previousPayloadWasInvalid && hasValidFilters) {
-      console.log('🔄 [useDashboardMainData] Limpando cache - payload mudou de inválido para válido');
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Limpando cache - payload mudou de inválido para válido');
       }
       cacheKeyRef.current = '';
       cachedDataRef.current = null;
     }
-    
+
     // NÃO atualizar previousPayloadRef aqui - será atualizado DEPOIS do fetch executar
     // Isso garante que o fetch seja executado mesmo na primeira vez
     // Armazenar o payloadKey pendente para verificação posterior
     pendingPayloadKeyRef.current = payloadKey;
-    
+
     // Verificar cache apenas se tiver filtros válidos ou for primeira execução
     if (shouldFetch && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
-      console.log('✅ [useDashboardMainData] Usando dados do cache para payload:', payloadKey);
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Usando dados do cache');
       }
       const cached = cachedDataRef.current;
-      
+
       // Função auxiliar para converter horas
       const convertHorasToString = (value: number | string | undefined | null): string => {
         if (value === undefined || value === null) return '0';
         if (typeof value === 'string') return value;
         return String(value);
       };
-      
+
       setTotals({
         ofertadas: safeNumber(cached.totais?.corridas_ofertadas ?? 0),
         aceitas: safeNumber(cached.totais?.corridas_aceitas ?? 0),
         rejeitadas: safeNumber(cached.totais?.corridas_rejeitadas ?? 0),
         completadas: safeNumber(cached.totais?.corridas_completadas ?? 0),
       });
-      
-      setAderenciaSemanal(Array.isArray(cached.semanal) 
+
+      setAderenciaSemanal(Array.isArray(cached.semanal)
         ? cached.semanal.map(item => ({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
-          }))
+          ...item,
+          horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+          horas_entregues: convertHorasToString(item.horas_entregues)
+        }))
         : []);
       setAderenciaDia(Array.isArray(cached.dia)
         ? cached.dia.map(item => ({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
-          }))
+          ...item,
+          horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+          horas_entregues: convertHorasToString(item.horas_entregues)
+        }))
         : []);
       setAderenciaTurno(Array.isArray(cached.turno)
         ? cached.turno.map(item => ({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
-          }))
+          ...item,
+          horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+          horas_entregues: convertHorasToString(item.horas_entregues)
+        }))
         : []);
       setAderenciaSubPraca(Array.isArray(cached.sub_praca)
         ? cached.sub_praca.map(item => ({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
-          }))
+          ...item,
+          horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+          horas_entregues: convertHorasToString(item.horas_entregues)
+        }))
         : []);
       setAderenciaOrigem(Array.isArray(cached.origem)
         ? cached.origem.map(item => ({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
-          }))
+          ...item,
+          horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+          horas_entregues: convertHorasToString(item.horas_entregues)
+        }))
         : []);
-      
+
       // Atualizar dimensões se disponíveis no cache
       if (cached.dimensoes) {
         setDimensoes(cached.dimensoes);
       }
-      
+
       setError(null);
       setLoading(false);
-      
+
       // Atualizar previousPayloadRef após usar cache com sucesso
       previousPayloadRef.current = payloadKey;
       isFirstExecutionRef.current = false;
@@ -262,91 +216,32 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     // Capturar o payload atual para usar dentro do timeout
     const currentPayload = filterPayload;
     const currentPayloadKey = payloadKey;
-    
-    // Sempre criar setTimeout - a função RPC sempre retorna dimensões
-    // Log para debug
-    if (isFirstExecutionCheck && !hasValidFilters) {
-      console.log('🔄 [useDashboardMainData] Primeira execução - carregando dimensões (função RPC usará valores padrão)');
-    }
-    
-    console.log('✅ [useDashboardMainData] Criando setTimeout para fetch:', {
-      hasValidFilters,
-      shouldFetch,
-      isFirstExecution: isFirstExecutionCheck,
-      willCreateTimeout: shouldFetch,
-      note: hasValidFilters ? 'Com filtros válidos' : 'Sem filtros - função RPC usará valores padrão',
-    });
-    
-    console.log('⏳ [useDashboardMainData] Criando setTimeout para fetch:', {
-      payloadKey: currentPayloadKey.substring(0, 100),
-      debounceDelay: DELAYS.DEBOUNCE,
-      hasValidFilters,
-      shouldFetch,
-      isFirstExecution: isFirstExecutionCheck,
-      p_ano: currentPayload.p_ano,
-      p_semana: currentPayload.p_semana,
-      p_data_inicial: currentPayload.p_data_inicial,
-      timestamp: new Date().toISOString(),
-    });
-    
+
     const timeoutId = setTimeout(async () => {
-      console.log('⏰ [useDashboardMainData] setTimeout EXECUTADO:', {
-        payloadKey: currentPayloadKey.substring(0, 100),
-        p_ano: currentPayload.p_ano,
-        p_semana: currentPayload.p_semana,
-        p_data_inicial: currentPayload.p_data_inicial,
-        timestamp: new Date().toISOString(),
-        timeoutId: String(timeoutId),
-        debounceRefCurrent: debounceRef.current ? String(debounceRef.current) : null,
-        isCurrentTimeout: debounceRef.current === timeoutId,
-        previousPayloadRef: previousPayloadRef.current.substring(0, 100),
-        isFirstExecution: isFirstExecutionRef.current,
-      });
-      
       // Verificar se este timeout ainda é o atual (pode ter sido cancelado)
       if (debounceRef.current !== timeoutId) {
-        console.log('⚠️ [useDashboardMainData] Timeout foi cancelado, ignorando execução', {
-          expectedTimeoutId: String(timeoutId),
-          currentDebounceRef: debounceRef.current ? String(debounceRef.current) : null,
-          reason: 'Timeout foi substituído por um novo',
-        });
         return;
       }
-      
+
       // Verificar se o payload ainda é o mesmo (pode ter mudado durante o debounce)
       const currentPayloadKeyCheck = JSON.stringify(currentPayload);
       if (currentPayloadKeyCheck !== currentPayloadKey) {
-        console.log('⚠️ [useDashboardMainData] Payload mudou durante debounce, cancelando fetch');
         return;
       }
-      
+
       // Verificar se o payload pendente ainda é o mesmo (pode ter mudado durante o debounce)
       if (pendingPayloadKeyRef.current !== currentPayloadKey) {
-        console.log('⚠️ [useDashboardMainData] Payload pendente mudou durante debounce, cancelando fetch');
         return;
       }
-      
+
       // IMPORTANTE: A função dashboard_resumo sempre retorna dimensões, mesmo sem filtros
       // Ela usa valores padrão (últimos 30 dias) quando não há filtros
       // Sempre fazer fetch
       const isFirstExecutionInTimeout = isFirstExecutionRef.current;
       const hasValidFiltersInTimeout = (currentPayload.p_ano !== null && currentPayload.p_ano !== undefined) ||
-                              (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
+        (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
       const shouldFetchInTimeout = true; // Sempre fazer fetch
-      
-      console.log('🔍 [useDashboardMainData] Verificando se deve fazer fetch:', {
-        hasValidFilters: hasValidFiltersInTimeout,
-        shouldFetch: shouldFetchInTimeout,
-        isFirstExecution: isFirstExecutionInTimeout,
-        p_ano: currentPayload.p_ano,
-        p_semana: currentPayload.p_semana,
-        p_data_inicial: currentPayload.p_data_inicial,
-        debounceDelay: DELAYS.DEBOUNCE,
-        reason: hasValidFiltersInTimeout 
-          ? (currentPayload.p_ano ? 'p_ano presente' : 'p_data_inicial presente')
-          : 'sem filtros - função RPC usará valores padrão (últimos 30 dias)',
-      });
-      
+
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Verificando se deve fazer fetch:', {
           hasValidFilters: hasValidFiltersInTimeout,
@@ -354,16 +249,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           debounceDelay: DELAYS.DEBOUNCE,
         });
       }
-      
+
       if (!shouldFetchInTimeout) {
-        console.warn('⚠️ [useDashboardMainData] Payload INVÁLIDO - não fazendo fetch:', {
-          payload: currentPayload,
-          p_ano: currentPayload.p_ano,
-          p_semana: currentPayload.p_semana,
-          p_data_inicial: currentPayload.p_data_inicial,
-          isFirstExecution: isFirstExecutionInTimeout,
-          reason: 'Nenhum filtro válido encontrado',
-        });
         if (IS_DEV) {
           safeLog.warn('[useDashboardMainData] Payload inválido, aguardando filtros válidos:', {
             payload: currentPayload,
@@ -379,26 +266,14 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         isFirstExecutionRef.current = false;
         return;
       }
-      
-      console.log('🚀 [useDashboardMainData] FETCH ACIONADO com payload válido:', {
-        p_ano: currentPayload.p_ano,
-        p_semana: currentPayload.p_semana,
-        p_data_inicial: currentPayload.p_data_inicial,
-        p_praca: currentPayload.p_praca,
-        p_sub_praca: currentPayload.p_sub_praca,
-        p_origem: currentPayload.p_origem,
-        p_turno: currentPayload.p_turno,
-        timestamp: new Date().toISOString(),
-        payloadKey: currentPayloadKey.substring(0, 100),
-      });
-      
+
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Iniciando fetch com payload válido:', currentPayload);
       }
-      
+
       setLoading(true);
       setError(null);
-      
+
       try {
         if (IS_DEV) {
           safeLog.info('[useDashboardMainData] Chamando safeRpc dashboard_resumo com:', {
@@ -407,20 +282,13 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
             timeout: RPC_TIMEOUTS.DEFAULT,
           });
         }
-        
-        console.log('🔄 [useDashboardMainData] Chamando safeRpc...', {
-          functionName: 'dashboard_resumo',
-          payload: currentPayload,
-          timeout: RPC_TIMEOUTS.DEFAULT,
-        });
-        
+
         // Verificar se o Supabase está disponível antes de fazer a chamada
         try {
           const { supabase } = await import('@/lib/supabaseClient');
           if (!supabase || !supabase.rpc) {
             throw new Error('Cliente Supabase não está disponível');
           }
-          console.log('✅ [useDashboardMainData] Cliente Supabase verificado e disponível');
         } catch (supabaseError) {
           console.error('❌ [useDashboardMainData] Erro ao verificar cliente Supabase:', supabaseError);
           const errorMsg = 'Cliente Supabase não está disponível. Aguarde o carregamento completo da página.';
@@ -429,34 +297,18 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           setLoading(false);
           return;
         }
-        
+
         // IMPORTANTE: A função dashboard_resumo sempre retorna dimensões
         // Ela usa valores padrão (últimos 2 semanas) quando não há filtros válidos
         // Sempre passar o payload atual - a função RPC trata null como "usar padrão"
         // O safeRpc normaliza undefined para null, então podemos passar o payload diretamente
         const payloadForRpc = currentPayload;
-        
-        console.log('📤 [useDashboardMainData] Payload para RPC:', {
-          isFirstExecution: isFirstExecutionInTimeout,
-          hasValidFilters: hasValidFiltersInTimeout,
-          payloadForRpc,
-          note: hasValidFiltersInTimeout 
-            ? 'Usando filtros fornecidos' 
-            : 'Sem filtros válidos - função RPC usará valores padrão (últimos 2 semanas) e retornará dimensões',
-        });
-        
+
         const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', payloadForRpc, {
           timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: false // Não validar para permitir null (função RPC usa valores padrão)
         });
-        
-        console.log('📥 [useDashboardMainData] Resposta do safeRpc:', {
-          hasData: !!data,
-          hasError: !!rpcError,
-          dataKeys: data ? Object.keys(data) : null,
-          errorMessage: rpcError ? String(rpcError.message || rpcError) : null,
-        });
-        
+
         if (IS_DEV) {
           safeLog.info('[useDashboardMainData] Resposta do safeRpc:', {
             hasData: !!data,
@@ -465,29 +317,28 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
             errorMessage: rpcError ? String(rpcError.message || rpcError) : null,
           });
         }
-        
+
         if (rpcError) {
-          console.error('❌ [useDashboardMainData] Erro do RPC:', rpcError);
           const errorCode = rpcError?.code || '';
           const errorMessage = String(rpcError?.message || '');
-          
+
           // Verificar se é erro de cliente mock
-          if (errorMessage.includes('placeholder.supabase.co') || 
-              errorMessage.includes('ERR_NAME_NOT_RESOLVED') ||
-              errorCode === 'ENOTFOUND') {
+          if (errorMessage.includes('placeholder.supabase.co') ||
+            errorMessage.includes('ERR_NAME_NOT_RESOLVED') ||
+            errorCode === 'ENOTFOUND') {
             const errorMsg = 'Variáveis de ambiente do Supabase não estão configuradas. Após configurar no Vercel, faça um novo build.';
             safeLog.error('[useDashboardMainData] ⚠️ Cliente Supabase está usando mock!');
             setError(errorMsg);
             if (onError) onError(new Error(errorMsg));
             return;
           }
-          
+
           safeLog.error('Erro ao carregar dashboard_resumo:', rpcError);
           setError(getSafeErrorMessage(rpcError));
           if (onError) onError(rpcError);
           return;
         }
-        
+
         if (!data) {
           if (IS_DEV) {
             safeLog.warn('[useDashboardMainData] dashboard_resumo retornou null ou undefined');
@@ -498,30 +349,6 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           return;
         }
 
-        console.log('✅ [useDashboardMainData] DADOS RECEBIDOS:', {
-          hasTotais: !!data.totais,
-          totais: data.totais,
-          totaisDetalhado: data.totais ? {
-            corridas_ofertadas: data.totais.corridas_ofertadas,
-            corridas_aceitas: data.totais.corridas_aceitas,
-            corridas_rejeitadas: data.totais.corridas_rejeitadas,
-            corridas_completadas: data.totais.corridas_completadas,
-          } : null,
-          hasSemanal: Array.isArray(data.semanal),
-          semanalLength: Array.isArray(data.semanal) ? data.semanal.length : 0,
-          semanalSample: Array.isArray(data.semanal) && data.semanal.length > 0 ? data.semanal[0] : null,
-          hasDia: Array.isArray(data.dia),
-          diaLength: Array.isArray(data.dia) ? data.dia.length : 0,
-          diaSample: Array.isArray(data.dia) && data.dia.length > 0 ? data.dia[0] : null,
-          hasDimensoes: !!data.dimensoes,
-          dimensoesDetalhado: data.dimensoes ? {
-            pracasLength: Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.length : 0,
-            subPracasLength: Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.length : 0,
-            origensLength: Array.isArray(data.dimensoes.origens) ? data.dimensoes.origens.length : 0,
-            turnosLength: Array.isArray(data.dimensoes.turnos) ? data.dimensoes.turnos.length : 0,
-          } : null,
-        });
-        
         if (IS_DEV) {
           safeLog.info('[useDashboardMainData] Dados recebidos com sucesso:', {
             hasTotais: !!data.totais,
@@ -540,12 +367,6 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           : currentPayloadKey;
         cachedDataRef.current = data;
         cacheKeyRef.current = cacheKeyToUse;
-        
-        console.log('💾 [useDashboardMainData] Cache atualizado:', {
-          cacheKey: cacheKeyToUse.substring(0, 100),
-          isFirstExecution: isFirstExecutionInTimeout,
-          hasValidFilters: hasValidFiltersInTimeout,
-        });
 
         // Atualizar estados
         const newTotals = {
@@ -554,67 +375,58 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           rejeitadas: safeNumber(data.totais?.corridas_rejeitadas ?? 0),
           completadas: safeNumber(data.totais?.corridas_completadas ?? 0),
         };
-        
+
         if (IS_DEV) {
           safeLog.info('[useDashboardMainData] Definindo novos totals:', newTotals);
         }
-        
+
         setTotals(newTotals);
-        
+
         // Converter números para strings (horas_a_entregar e horas_entregues)
         const convertHorasToString = (value: number | string | undefined | null): string => {
           if (value === undefined || value === null) return '0';
           if (typeof value === 'string') return value;
           return String(value);
         };
-        
-        setAderenciaSemanal(Array.isArray(data.semanal) 
+
+        setAderenciaSemanal(Array.isArray(data.semanal)
           ? data.semanal.map(item => ({
-              ...item,
-              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-              horas_entregues: convertHorasToString(item.horas_entregues)
-            }))
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
           : []);
         setAderenciaDia(Array.isArray(data.dia)
           ? data.dia.map(item => ({
-              ...item,
-              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-              horas_entregues: convertHorasToString(item.horas_entregues)
-            }))
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
           : []);
         setAderenciaTurno(Array.isArray(data.turno)
           ? data.turno.map(item => ({
-              ...item,
-              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-              horas_entregues: convertHorasToString(item.horas_entregues)
-            }))
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
           : []);
         setAderenciaSubPraca(Array.isArray(data.sub_praca)
           ? data.sub_praca.map(item => ({
-              ...item,
-              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-              horas_entregues: convertHorasToString(item.horas_entregues)
-            }))
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
           : []);
         const newAderenciaOrigem = Array.isArray(data.origem)
           ? data.origem.map(item => ({
-              ...item,
-              horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-              horas_entregues: convertHorasToString(item.horas_entregues)
-            }))
+            ...item,
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
+            horas_entregues: convertHorasToString(item.horas_entregues)
+          }))
           : [];
-        
+
         setAderenciaOrigem(newAderenciaOrigem);
-        
-        console.log('✅ [useDashboardMainData] ESTADOS ATUALIZADOS:', {
-          totals: newTotals,
-          aderenciaSemanalLength: Array.isArray(data.semanal) ? data.semanal.length : 0,
-          aderenciaDiaLength: Array.isArray(data.dia) ? data.dia.length : 0,
-          aderenciaTurnoLength: Array.isArray(data.turno) ? data.turno.length : 0,
-          aderenciaSubPracaLength: Array.isArray(data.sub_praca) ? data.sub_praca.length : 0,
-          aderenciaOrigemLength: newAderenciaOrigem.length,
-        });
-        
+
         if (IS_DEV) {
           safeLog.info('[useDashboardMainData] Dados processados e estados atualizados:', {
             totals: newTotals,
@@ -625,36 +437,18 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
             aderenciaOrigemLength: newAderenciaOrigem.length,
           });
         }
-        
+
         // Armazenar dimensões para uso em filtros
         if (data.dimensoes) {
-          console.log('✅ [useDashboardMainData] Armazenando dimensões:', {
-            hasPracas: !!data.dimensoes.pracas,
-            pracasLength: Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.length : 0,
-            pracas: data.dimensoes.pracas,
-            pracasSample: Array.isArray(data.dimensoes.pracas) && data.dimensoes.pracas.length > 0 ? data.dimensoes.pracas.slice(0, 5) : [],
-            hasSubPracas: !!data.dimensoes.sub_pracas,
-            subPracasLength: Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.length : 0,
-            hasOrigens: !!data.dimensoes.origens,
-            origensLength: Array.isArray(data.dimensoes.origens) ? data.dimensoes.origens.length : 0,
-            hasTurnos: !!data.dimensoes.turnos,
-            turnosLength: Array.isArray(data.dimensoes.turnos) ? data.dimensoes.turnos.length : 0,
-            dimensoesCompleto: data.dimensoes,
-          });
           setDimensoes(data.dimensoes);
-        } else {
-          console.warn('⚠️ [useDashboardMainData] Dados não contêm dimensões', {
-            dataKeys: data ? Object.keys(data) : null,
-            hasDimensoes: !!data?.dimensoes,
-          });
         }
-        
+
         // IMPORTANTE: Atualizar previousPayloadRef APENAS após fetch bem-sucedido
         // Isso garante que o fetch seja executado na primeira vez e quando o payload muda
         previousPayloadRef.current = currentPayloadKey;
         isFirstExecutionRef.current = false;
         pendingPayloadKeyRef.current = '';
-        
+
         setError(null);
       } catch (err) {
         const errorMsg = getSafeErrorMessage(err);
@@ -670,25 +464,15 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         }
       }
     }, DELAYS.DEBOUNCE);
-    
+
     debounceRef.current = timeoutId;
 
     return () => {
       // Só cancelar o timeout se ele ainda for o atual
       // Isso evita cancelar um timeout que já foi executado ou substituído
       if (debounceRef.current && debounceRef.current === timeoutId) {
-        console.log('🧹 [useDashboardMainData] Cleanup: cancelando timeout pendente', {
-          timeoutId: String(timeoutId),
-          currentDebounceRef: String(debounceRef.current),
-          payloadKey: currentPayloadKey.substring(0, 100),
-        });
         clearTimeout(debounceRef.current);
         debounceRef.current = null;
-      } else if (debounceRef.current) {
-        console.log('⚠️ [useDashboardMainData] Cleanup: timeout já foi substituído, não cancelando', {
-          timeoutId: String(timeoutId),
-          currentDebounceRef: String(debounceRef.current),
-        });
       }
     };
   }, [payloadKey, onError]);
