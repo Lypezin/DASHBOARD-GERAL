@@ -74,15 +74,27 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
 
   useEffect(() => {
     // Evitar processamento se o payload não mudou realmente
+    // IMPORTANTE: Também verificar se há um fetch pendente com o mesmo payload
     if (previousPayloadRef.current === payloadKey) {
       console.log('⏭️ [useDashboardMainData] Payload não mudou, ignorando:', {
         payloadKey: payloadKey.substring(0, 100),
         previousPayload: previousPayloadRef.current.substring(0, 100),
         areEqual: previousPayloadRef.current === payloadKey,
+        hasPendingTimeout: !!debounceRef.current,
       });
       if (IS_DEV) {
         safeLog.info('[useDashboardMainData] Payload não mudou, ignorando');
       }
+      return;
+    }
+    
+    // Se o payload pendente é o mesmo, não criar novo timeout
+    if (pendingPayloadKeyRef.current === payloadKey && debounceRef.current) {
+      console.log('⏭️ [useDashboardMainData] Payload pendente já existe, ignorando:', {
+        payloadKey: payloadKey.substring(0, 100),
+        pendingPayloadKey: pendingPayloadKeyRef.current.substring(0, 100),
+        hasPendingTimeout: !!debounceRef.current,
+      });
       return;
     }
     
@@ -92,10 +104,14 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       hasPendingTimeout: !!debounceRef.current,
     });
     
-    // Limpar timeout anterior apenas se o payload mudou
+    // Limpar timeout anterior apenas se o payload mudou E não for o mesmo payload pendente
     // Mas só limpar se realmente mudou (não limpar se for a primeira vez)
-    if (debounceRef.current && previousPayloadRef.current !== '') {
-      console.log('🧹 [useDashboardMainData] Limpando timeout anterior - payload mudou');
+    if (debounceRef.current && previousPayloadRef.current !== '' && pendingPayloadKeyRef.current !== payloadKey) {
+      console.log('🧹 [useDashboardMainData] Limpando timeout anterior - payload mudou', {
+        previousPayload: previousPayloadRef.current.substring(0, 100),
+        newPayload: payloadKey.substring(0, 100),
+        pendingPayload: pendingPayloadKeyRef.current.substring(0, 100),
+      });
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
     }
@@ -473,11 +489,25 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         console.log('✅ [useDashboardMainData] DADOS RECEBIDOS:', {
           hasTotais: !!data.totais,
           totais: data.totais,
+          totaisDetalhado: data.totais ? {
+            corridas_ofertadas: data.totais.corridas_ofertadas,
+            corridas_aceitas: data.totais.corridas_aceitas,
+            corridas_rejeitadas: data.totais.corridas_rejeitadas,
+            corridas_completadas: data.totais.corridas_completadas,
+          } : null,
           hasSemanal: Array.isArray(data.semanal),
           semanalLength: Array.isArray(data.semanal) ? data.semanal.length : 0,
+          semanalSample: Array.isArray(data.semanal) && data.semanal.length > 0 ? data.semanal[0] : null,
           hasDia: Array.isArray(data.dia),
           diaLength: Array.isArray(data.dia) ? data.dia.length : 0,
+          diaSample: Array.isArray(data.dia) && data.dia.length > 0 ? data.dia[0] : null,
           hasDimensoes: !!data.dimensoes,
+          dimensoesDetalhado: data.dimensoes ? {
+            pracasLength: Array.isArray(data.dimensoes.pracas) ? data.dimensoes.pracas.length : 0,
+            subPracasLength: Array.isArray(data.dimensoes.sub_pracas) ? data.dimensoes.sub_pracas.length : 0,
+            origensLength: Array.isArray(data.dimensoes.origens) ? data.dimensoes.origens.length : 0,
+            turnosLength: Array.isArray(data.dimensoes.turnos) ? data.dimensoes.turnos.length : 0,
+          } : null,
         });
         
         if (IS_DEV) {
