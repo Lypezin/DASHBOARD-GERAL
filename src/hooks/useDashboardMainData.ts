@@ -57,6 +57,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const cachedDataRef = useRef<DashboardResumoData | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const previousPayloadRef = useRef<string>('');
+  const isFirstExecutionRef = useRef<boolean>(true);
+  const pendingPayloadKeyRef = useRef<string>('');
 
   // Criar uma string estável do payload para usar como dependência
   const payloadKey = useMemo(() => JSON.stringify(filterPayload), [
@@ -121,7 +123,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     // A função RPC aceita apenas p_ano, então aceitamos se p_ano estiver presente
     // ou se p_data_inicial estiver presente (modo intervalo)
     // IMPORTANTE: Permitir fetch mesmo sem filtros na primeira execução para carregar dimensões
-    const isFirstExecutionCheck = previousPayloadRef.current === '';
+    const isFirstExecutionCheck = isFirstExecutionRef.current;
     const hasValidFilters = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
                             (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined) ||
                             isFirstExecutionCheck; // Primeira execução - carregar dimensões
@@ -161,9 +163,10 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       cachedDataRef.current = null;
     }
     
-    // Atualizar referência do payload anterior ANTES de verificar cache
-    // Isso evita loop infinito quando o payload não muda
-    previousPayloadRef.current = payloadKey;
+    // NÃO atualizar previousPayloadRef aqui - será atualizado DEPOIS do fetch executar
+    // Isso garante que o fetch seja executado mesmo na primeira vez
+    // Armazenar o payloadKey pendente para verificação posterior
+    pendingPayloadKeyRef.current = payloadKey;
     
     // Verificar cache apenas se tiver filtros válidos
     if (hasValidFilters && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
@@ -231,7 +234,9 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       setError(null);
       setLoading(false);
       
-      // IMPORTANTE: previousPayloadRef já foi atualizado antes, então não precisa atualizar novamente
+      // Atualizar previousPayloadRef após usar cache com sucesso
+      previousPayloadRef.current = payloadKey;
+      isFirstExecutionRef.current = false;
       return;
     }
 
@@ -241,7 +246,12 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     
     // Só criar setTimeout se tiver filtros válidos OU for primeira execução (para carregar dimensões)
     if (!hasValidFilters && !isFirstExecutionCheck) {
-      console.warn('⚠️ [useDashboardMainData] Não criando setTimeout - filtros inválidos');
+      console.warn('⚠️ [useDashboardMainData] Não criando setTimeout - filtros inválidos', {
+        p_ano: filterPayload.p_ano,
+        p_semana: filterPayload.p_semana,
+        p_data_inicial: filterPayload.p_data_inicial,
+        isFirstExecution: isFirstExecutionCheck,
+      });
       setLoading(false);
       return;
     }
@@ -250,6 +260,13 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     if (isFirstExecutionCheck && !hasValidFilters) {
       console.log('🔄 [useDashboardMainData] Primeira execução - carregando dimensões sem filtros');
     }
+    
+    // Log adicional para garantir que vamos criar o setTimeout
+    console.log('✅ [useDashboardMainData] Condições atendidas para criar setTimeout:', {
+      hasValidFilters,
+      isFirstExecution: isFirstExecutionCheck,
+      willCreateTimeout: hasValidFilters || isFirstExecutionCheck,
+    });
     
     console.log('⏳ [useDashboardMainData] Criando setTimeout para fetch:', {
       payloadKey: currentPayloadKey,
@@ -262,18 +279,25 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     
     const timeoutId = setTimeout(async () => {
       console.log('⏰ [useDashboardMainData] setTimeout EXECUTADO:', {
-        payloadKey: currentPayloadKey,
+        payloadKey: currentPayloadKey.substring(0, 100),
         p_ano: currentPayload.p_ano,
         p_semana: currentPayload.p_semana,
+        p_data_inicial: currentPayload.p_data_inicial,
         timestamp: new Date().toISOString(),
-        timeoutId,
-        debounceRefCurrent: debounceRef.current,
+        timeoutId: String(timeoutId),
+        debounceRefCurrent: debounceRef.current ? String(debounceRef.current) : null,
         isCurrentTimeout: debounceRef.current === timeoutId,
+        previousPayloadRef: previousPayloadRef.current.substring(0, 100),
+        isFirstExecution: isFirstExecutionRef.current,
       });
       
       // Verificar se este timeout ainda é o atual (pode ter sido cancelado)
       if (debounceRef.current !== timeoutId) {
-        console.log('⚠️ [useDashboardMainData] Timeout foi cancelado, ignorando execução');
+        console.log('⚠️ [useDashboardMainData] Timeout foi cancelado, ignorando execução', {
+          expectedTimeoutId: String(timeoutId),
+          currentDebounceRef: debounceRef.current ? String(debounceRef.current) : null,
+          reason: 'Timeout foi substituído por um novo',
+        });
         return;
       }
       
@@ -284,11 +308,17 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         return;
       }
       
+      // Verificar se o payload pendente ainda é o mesmo (pode ter mudado durante o debounce)
+      if (pendingPayloadKeyRef.current !== currentPayloadKey) {
+        console.log('⚠️ [useDashboardMainData] Payload pendente mudou durante debounce, cancelando fetch');
+        return;
+      }
+      
       // Verificar se o payload tem valores válidos antes de fazer fetch
       // A função RPC aceita apenas p_ano, então aceitamos se p_ano estiver presente
       // ou se p_data_inicial estiver presente (modo intervalo)
       // IMPORTANTE: Permitir fetch sem filtros na primeira vez para carregar dimensões
-      const isFirstExecutionInTimeout = previousPayloadRef.current === '';
+      const isFirstExecutionInTimeout = isFirstExecutionRef.current;
       const hasValidFiltersInTimeout = (currentPayload.p_ano !== null && currentPayload.p_ano !== undefined) ||
                               (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined) ||
                               isFirstExecutionInTimeout; // Primeira execução
@@ -318,6 +348,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           p_ano: currentPayload.p_ano,
           p_semana: currentPayload.p_semana,
           p_data_inicial: currentPayload.p_data_inicial,
+          isFirstExecution: isFirstExecutionInTimeout,
+          reason: 'Nenhum filtro válido encontrado',
         });
         if (IS_DEV) {
           safeLog.warn('[useDashboardMainData] Payload inválido, aguardando filtros válidos:', {
@@ -325,9 +357,13 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
             p_ano: currentPayload.p_ano,
             p_semana: currentPayload.p_semana,
             p_data_inicial: currentPayload.p_data_inicial,
+            isFirstExecution: isFirstExecutionInTimeout,
           });
         }
         setLoading(false);
+        // Atualizar previousPayloadRef mesmo quando inválido para evitar loop
+        previousPayloadRef.current = currentPayloadKey;
+        isFirstExecutionRef.current = false;
         return;
       }
       
@@ -335,7 +371,12 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         p_ano: currentPayload.p_ano,
         p_semana: currentPayload.p_semana,
         p_data_inicial: currentPayload.p_data_inicial,
+        p_praca: currentPayload.p_praca,
+        p_sub_praca: currentPayload.p_sub_praca,
+        p_origem: currentPayload.p_origem,
+        p_turno: currentPayload.p_turno,
         timestamp: new Date().toISOString(),
+        payloadKey: currentPayloadKey.substring(0, 100),
       });
       
       if (IS_DEV) {
@@ -354,7 +395,27 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           });
         }
         
-        console.log('🔄 [useDashboardMainData] Chamando safeRpc...');
+        console.log('🔄 [useDashboardMainData] Chamando safeRpc...', {
+          functionName: 'dashboard_resumo',
+          payload: currentPayload,
+          timeout: RPC_TIMEOUTS.DEFAULT,
+        });
+        
+        // Verificar se o Supabase está disponível antes de fazer a chamada
+        try {
+          const { supabase } = await import('@/lib/supabaseClient');
+          if (!supabase || !supabase.rpc) {
+            throw new Error('Cliente Supabase não está disponível');
+          }
+          console.log('✅ [useDashboardMainData] Cliente Supabase verificado e disponível');
+        } catch (supabaseError) {
+          console.error('❌ [useDashboardMainData] Erro ao verificar cliente Supabase:', supabaseError);
+          const errorMsg = 'Cliente Supabase não está disponível. Aguarde o carregamento completo da página.';
+          setError(errorMsg);
+          if (onError) onError(new Error(errorMsg));
+          setLoading(false);
+          return;
+        }
         
         const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', currentPayload, {
           timeout: RPC_TIMEOUTS.DEFAULT,
@@ -528,6 +589,12 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           console.warn('⚠️ [useDashboardMainData] Dados não contêm dimensões');
         }
         
+        // IMPORTANTE: Atualizar previousPayloadRef APENAS após fetch bem-sucedido
+        // Isso garante que o fetch seja executado na primeira vez e quando o payload muda
+        previousPayloadRef.current = currentPayloadKey;
+        isFirstExecutionRef.current = false;
+        pendingPayloadKeyRef.current = '';
+        
         setError(null);
       } catch (err) {
         const errorMsg = getSafeErrorMessage(err);
@@ -547,10 +614,21 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     debounceRef.current = timeoutId;
 
     return () => {
-      if (debounceRef.current) {
-        console.log('🧹 [useDashboardMainData] Cleanup: cancelando timeout pendente');
+      // Só cancelar o timeout se ele ainda for o atual
+      // Isso evita cancelar um timeout que já foi executado ou substituído
+      if (debounceRef.current && debounceRef.current === timeoutId) {
+        console.log('🧹 [useDashboardMainData] Cleanup: cancelando timeout pendente', {
+          timeoutId: String(timeoutId),
+          currentDebounceRef: String(debounceRef.current),
+          payloadKey: currentPayloadKey.substring(0, 100),
+        });
         clearTimeout(debounceRef.current);
         debounceRef.current = null;
+      } else if (debounceRef.current) {
+        console.log('⚠️ [useDashboardMainData] Cleanup: timeout já foi substituído, não cancelando', {
+          timeoutId: String(timeoutId),
+          currentDebounceRef: String(debounceRef.current),
+        });
       }
     };
   }, [payloadKey, onError]);
