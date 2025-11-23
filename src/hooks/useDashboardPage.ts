@@ -344,6 +344,7 @@ export function useDashboardPage() {
           ...prev,
           ano: ultimoAno,
           semana: semanaNumero,
+          semanas: [semanaNumero],
         }));
       }
     }

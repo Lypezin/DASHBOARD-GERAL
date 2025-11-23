@@ -130,8 +130,13 @@ const FiltroBar = React.memo(function FiltroBar({
 
   const semanasOptions = useMemo(() => {
     return semanas.map((sem) => {
-      const weekNumber = sem.includes('-W') ? sem.split('-W')[1] : sem;
-      return { value: weekNumber, label: `Semana ${weekNumber}` };
+      let weekNumber = sem;
+      if (sem.includes('-W')) {
+        weekNumber = sem.split('-W')[1];
+      }
+      // Remover zeros à esquerda para garantir match com o filtro (que é number)
+      const normalizedWeek = String(parseInt(weekNumber, 10));
+      return { value: normalizedWeek, label: `Semana ${normalizedWeek}` };
     });
   }, [semanas]);
 
@@ -159,16 +164,14 @@ const FiltroBar = React.memo(function FiltroBar({
         <button
           type="button"
           onClick={handleToggleModo}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-            isModoIntervalo ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
-          }`}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isModoIntervalo ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
+            }`}
           role="switch"
           aria-checked={isModoIntervalo}
         >
           <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              isModoIntervalo ? 'translate-x-6' : 'translate-x-1'
-            }`}
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isModoIntervalo ? 'translate-x-6' : 'translate-x-1'
+              }`}
           />
         </button>
         <span className={`text-sm font-medium ${isModoIntervalo ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>
@@ -224,12 +227,12 @@ const FiltroBar = React.memo(function FiltroBar({
               <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anosOptions} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
             </div>
             <div className="flex-1 min-w-[150px] max-w-[250px]">
-              <FiltroMultiSelect 
-                label="Semana" 
-                selected={filters.semanas ? filters.semanas.map(String) : []} 
-                options={semanasOptions} 
-                placeholder="Todas" 
-                onSelectionChange={(values) => setFilters(prev => ({...prev, semanas: values.map(v => parseInt(v))}))} 
+              <FiltroMultiSelect
+                label="Semana"
+                selected={filters.semanas ? filters.semanas.map(String) : []}
+                options={semanasOptions}
+                placeholder="Todas"
+                onSelectionChange={(values) => setFilters(prev => ({ ...prev, semanas: values.map(v => parseInt(v)) }))}
               />
             </div>
           </>
@@ -240,20 +243,20 @@ const FiltroBar = React.memo(function FiltroBar({
           <FiltroSelect label="Praça" value={filters.praca ?? ''} options={pracas} placeholder="Todas" onChange={(value) => handleChange('praca', value)} disabled={shouldDisablePracaFilter} />
         </div>
         <div className="flex-1 min-w-[150px] max-w-[250px]">
-          <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, subPracas: values}))} />
+          <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPracas: values }))} />
         </div>
         <div className="flex-1 min-w-[150px] max-w-[250px]">
-          <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({...prev, origens: values}))} />
+          <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({ ...prev, origens: values }))} />
         </div>
         <div className="flex-1 min-w-[150px] max-w-[250px]">
-          <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({...prev, turnos: values}))} />
+          <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({ ...prev, turnos: values }))} />
         </div>
-        
+
         {/* Botão Limpar Filtros */}
         {hasActiveFilters && (
           <div className="flex-shrink-0">
-            <button 
-              onClick={handleClearFilters} 
+            <button
+              onClick={handleClearFilters}
               className="inline-flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors h-[42px]"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
