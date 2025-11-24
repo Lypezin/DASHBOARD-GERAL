@@ -113,11 +113,11 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           : semana;
 
         // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
+        // IMPORTANTE: Não incluir semanas array para evitar duplicação de agregação
         const filters = {
           ano: null,
           semana: semanaNumero,
-          semanas: [semanaNumero],
-          // semanas array removed to avoid duplicate week aggregation
+          semanas: [], // Array vazio para evitar duplicação
           praca: pracaSelecionada,
           subPraca: null,
           origem: null,
@@ -132,12 +132,28 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
         const filtro = buildFilterPayload(filters, currentUser);
 
+        if (IS_DEV) {
+          safeLog.info(`[Comparacao] Buscando dados para semana ${semana} (número: ${semanaNumero})`, {
+            filtro: {
+              p_semana: filtro.p_semana,
+              p_praca: filtro.p_praca,
+            }
+          });
+        }
+
         // Buscar dados do dashboard
         const { data, error } = await safeRpc<DashboardResumoData>('dashboard_resumo', filtro, {
           timeout: 30000,
           validateParams: true
         });
         if (error) throw error;
+
+        if (IS_DEV && data) {
+          safeLog.info(`[Comparacao] Dados recebidos para semana ${semana}`, {
+            corridasOfertadas: data.totais?.corridas_ofertadas,
+            corridasAceitas: data.totais?.corridas_aceitas,
+          });
+        }
 
         return { semana, dados: data as DashboardResumoData };
       });
@@ -152,10 +168,11 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           : semana;
 
         // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
+        // IMPORTANTE: Não incluir semanas array para evitar duplicação de agregação
         const filters = {
           ano: null,
           semana: semanaNumero,
-          semanas: [semanaNumero],
+          semanas: [], // Array vazio para evitar duplicação
           praca: pracaSelecionada,
           subPraca: null,
           origem: null,
@@ -182,10 +199,37 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       const resultadosDados = await Promise.all(promessasDados);
       const resultadosUtr = await Promise.all(promessasUtr);
 
-      safeLog.info('📊 Dados Comparação:', { semanas: resultadosDados.length });
-      safeLog.info('🎯 UTR Comparação:', { semanas: resultadosUtr.length });
+      if (IS_DEV) {
+        safeLog.info('📊 Dados Comparação:', { 
+          semanas: resultadosDados.length,
+          semanasSelecionadas: semanasSelecionadas,
+          resultados: resultadosDados.map(r => ({
+            semana: r.semana,
+            hasData: !!r.dados,
+            corridasOfertadas: r.dados?.totais?.corridas_ofertadas
+          }))
+        });
+        safeLog.info('🎯 UTR Comparação:', { semanas: resultadosUtr.length });
+      }
 
-      setDadosComparacao(resultadosDados.map(r => r.dados));
+      // Garantir que os dados estão na ordem correta das semanas selecionadas
+      const dadosOrdenados = semanasSelecionadas.map(semana => {
+        const resultado = resultadosDados.find(r => {
+          const semanaStr = String(semana);
+          const resultadoSemana = String(r.semana);
+          // Normalizar comparação (remover W se existir)
+          const semanaNormalizada = semanaStr.includes('W') 
+            ? semanaStr.match(/W(\d+)/)?.[1] || semanaStr 
+            : semanaStr;
+          const resultadoNormalizado = resultadoSemana.includes('W')
+            ? resultadoSemana.match(/W(\d+)/)?.[1] || resultadoSemana
+            : resultadoSemana;
+          return semanaNormalizada === resultadoNormalizado;
+        });
+        return resultado?.dados;
+      }).filter((dados): dados is DashboardResumoData => dados !== undefined);
+
+      setDadosComparacao(dadosOrdenados);
       setUtrComparacao(resultadosUtr);
 
     } catch (error) {
