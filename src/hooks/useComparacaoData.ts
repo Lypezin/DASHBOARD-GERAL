@@ -105,17 +105,32 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     try {
       // Buscar dados para cada semana selecionada
       const promessasDados = semanasSelecionadas.map(async (semana) => {
-        // Converter string para número
-        const semanaNumero = typeof semana === 'string'
-          ? (semana.includes('W')
-            ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
-            : parseInt(semana, 10))
-          : semana;
+        // Converter string para número e extrair ano se disponível
+        let semanaNumero: number;
+        let anoNumero: number | null = null;
+        
+        if (typeof semana === 'string') {
+          if (semana.includes('W')) {
+            // Formato: "2025-W45" ou "S2025-W45"
+            const anoMatch = semana.match(/(\d{4})/);
+            const semanaMatch = semana.match(/W(\d+)/);
+            anoNumero = anoMatch ? parseInt(anoMatch[1], 10) : new Date().getFullYear();
+            semanaNumero = semanaMatch ? parseInt(semanaMatch[1], 10) : parseInt(semana, 10);
+          } else {
+            // Apenas número da semana, usar ano atual
+            semanaNumero = parseInt(semana, 10);
+            anoNumero = new Date().getFullYear();
+          }
+        } else {
+          semanaNumero = semana;
+          anoNumero = new Date().getFullYear();
+        }
 
         // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
         // IMPORTANTE: Não incluir semanas array para evitar duplicação de agregação
+        // IMPORTANTE: Sempre passar ano junto com semana para a função RPC funcionar corretamente
         const filters = {
-          ano: null,
+          ano: anoNumero,
           semana: semanaNumero,
           semanas: [], // Array vazio para evitar duplicação
           praca: pracaSelecionada,
@@ -133,8 +148,9 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         const filtro = buildFilterPayload(filters, currentUser);
 
         if (IS_DEV) {
-          safeLog.info(`[Comparacao] Buscando dados para semana ${semana} (número: ${semanaNumero})`, {
+          safeLog.info(`[Comparacao] Buscando dados para semana ${semana} (ano: ${anoNumero}, número: ${semanaNumero})`, {
             filtro: {
+              p_ano: filtro.p_ano,
               p_semana: filtro.p_semana,
               p_praca: filtro.p_praca,
             }
@@ -160,17 +176,32 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
       // Buscar UTR para cada semana
       const promessasUtr = semanasSelecionadas.map(async (semana) => {
-        // Converter string para número
-        const semanaNumero = typeof semana === 'string'
-          ? (semana.includes('W')
-            ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
-            : parseInt(semana, 10))
-          : semana;
+        // Converter string para número e extrair ano se disponível
+        let semanaNumero: number;
+        let anoNumero: number | null = null;
+        
+        if (typeof semana === 'string') {
+          if (semana.includes('W')) {
+            // Formato: "2025-W45" ou "S2025-W45"
+            const anoMatch = semana.match(/(\d{4})/);
+            const semanaMatch = semana.match(/W(\d+)/);
+            anoNumero = anoMatch ? parseInt(anoMatch[1], 10) : new Date().getFullYear();
+            semanaNumero = semanaMatch ? parseInt(semanaMatch[1], 10) : parseInt(semana, 10);
+          } else {
+            // Apenas número da semana, usar ano atual
+            semanaNumero = parseInt(semana, 10);
+            anoNumero = new Date().getFullYear();
+          }
+        } else {
+          semanaNumero = semana;
+          anoNumero = new Date().getFullYear();
+        }
 
         // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
         // IMPORTANTE: Não incluir semanas array para evitar duplicação de agregação
+        // IMPORTANTE: Sempre passar ano junto com semana para a função RPC funcionar corretamente
         const filters = {
-          ano: null,
+          ano: anoNumero,
           semana: semanaNumero,
           semanas: [], // Array vazio para evitar duplicação
           praca: pracaSelecionada,
