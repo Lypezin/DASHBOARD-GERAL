@@ -15,6 +15,7 @@ export interface User {
   role?: 'admin' | 'marketing' | 'user';
   created_at: string;
   approved_at: string | null;
+  organization_id?: string | null;
 }
 
 export interface UserProfile {
