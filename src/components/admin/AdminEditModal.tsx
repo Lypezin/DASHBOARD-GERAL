@@ -1,13 +1,17 @@
 import React from 'react';
 import { User } from '@/hooks/useAdminData';
+import { Organization } from '@/hooks/useOrganizations';
 
 interface AdminEditModalProps {
   user: User;
   pracasDisponiveis: string[];
+  organizations: Organization[];
   selectedPracas: string[];
   selectedRole: 'admin' | 'marketing' | 'user';
+  selectedOrganizationId: string | null;
   onPracasChange: (pracas: string[]) => void;
   onRoleChange: (role: 'admin' | 'marketing' | 'user') => void;
+  onOrganizationChange: (orgId: string | null) => void;
   onSave: () => void;
   onCancel: () => void;
   loading?: boolean;
@@ -16,10 +20,13 @@ interface AdminEditModalProps {
 export const AdminEditModal: React.FC<AdminEditModalProps> = ({
   user,
   pracasDisponiveis,
+  organizations,
   selectedPracas,
   selectedRole,
+  selectedOrganizationId,
   onPracasChange,
   onRoleChange,
+  onOrganizationChange,
   onSave,
   onCancel,
   loading = false,
@@ -49,6 +56,30 @@ export const AdminEditModal: React.FC<AdminEditModalProps> = ({
 
         <div className="p-6">
           <div className="mb-6">
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                Organização *:
+              </label>
+              <select
+                value={selectedOrganizationId || ''}
+                onChange={(e) => onOrganizationChange(e.target.value || null)}
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
+                required
+              >
+                <option value="">Selecione uma organização</option>
+                {organizations
+                  .filter(org => org.is_active)
+                  .map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name} ({org.user_count || 0}/{org.max_users} usuários)
+                    </option>
+                  ))}
+              </select>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Organização à qual o usuário pertence
+              </p>
+            </div>
+
             <div className="mb-4">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                 Cargo:
@@ -114,7 +145,7 @@ export const AdminEditModal: React.FC<AdminEditModalProps> = ({
             </button>
             <button
               onClick={onSave}
-              disabled={loading || (selectedRole !== 'marketing' && selectedPracas.length === 0)}
+              disabled={loading || !selectedOrganizationId || (selectedRole !== 'marketing' && selectedPracas.length === 0)}
               className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700 py-3 font-semibold text-white transition-all hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:from-slate-300 disabled:to-slate-400 shadow-lg"
             >
               {loading ? 'Salvando...' : '💾 Salvar Alterações'}

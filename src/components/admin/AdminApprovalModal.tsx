@@ -1,13 +1,17 @@
 import React from 'react';
 import { User } from '@/hooks/useAdminData';
+import { Organization } from '@/hooks/useOrganizations';
 
 interface AdminApprovalModalProps {
   user: User;
   pracasDisponiveis: string[];
+  organizations: Organization[];
   selectedPracas: string[];
   selectedRole: 'admin' | 'marketing' | 'user';
+  selectedOrganizationId: string | null;
   onPracasChange: (pracas: string[]) => void;
   onRoleChange: (role: 'admin' | 'marketing' | 'user') => void;
+  onOrganizationChange: (orgId: string | null) => void;
   onApprove: () => void;
   onCancel: () => void;
   loading?: boolean;
@@ -16,10 +20,13 @@ interface AdminApprovalModalProps {
 export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
   user,
   pracasDisponiveis,
+  organizations,
   selectedPracas,
   selectedRole,
+  selectedOrganizationId,
   onPracasChange,
   onRoleChange,
+  onOrganizationChange,
   onApprove,
   onCancel,
   loading = false,
@@ -41,6 +48,30 @@ export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
 
         <div className="p-6">
           <div className="mb-6">
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                Organização *:
+              </label>
+              <select
+                value={selectedOrganizationId || ''}
+                onChange={(e) => onOrganizationChange(e.target.value || null)}
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:border-emerald-500 dark:focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-900"
+                required
+              >
+                <option value="">Selecione uma organização</option>
+                {organizations
+                  .filter(org => org.is_active)
+                  .map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name} ({org.user_count || 0}/{org.max_users} usuários)
+                    </option>
+                  ))}
+              </select>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Organização à qual o usuário pertence
+              </p>
+            </div>
+
             <div className="mb-4">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                 Cargo:
@@ -112,7 +143,7 @@ export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
             </button>
             <button
               onClick={onApprove}
-              disabled={loading || (selectedRole !== 'marketing' && selectedPracas.length === 0)}
+              disabled={loading || !selectedOrganizationId || (selectedRole !== 'marketing' && selectedPracas.length === 0)}
               className="flex-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-700 dark:to-teal-700 py-3 font-semibold text-white transition-all hover:from-emerald-700 hover:to-teal-700 dark:hover:from-emerald-600 dark:hover:to-teal-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:from-slate-300 disabled:to-slate-400 shadow-lg"
             >
               {loading ? 'Aprovando...' : '✅ Aprovar Acesso'}

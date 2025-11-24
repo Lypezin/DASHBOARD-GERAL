@@ -13,6 +13,7 @@ export function useAdminActions(
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedPracas, setSelectedPracas] = useState<string[]>([]);
   const [selectedRole, setSelectedRole] = useState<'admin' | 'marketing' | 'user'>('user');
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -21,6 +22,7 @@ export function useAdminActions(
     setSelectedUser(user);
     setSelectedPracas(user.assigned_pracas || []);
     setSelectedRole(user.role || 'user');
+    setSelectedOrganizationId(user.organization_id || null);
     setShowModal(true);
   };
 
@@ -36,6 +38,7 @@ export function useAdminActions(
           user_id: selectedUser.id,
           pracas: selectedPracas,
           p_role: selectedRole,
+          p_organization_id: selectedOrganizationId,
         });
         result = directResult.data;
         error = directResult.error;
@@ -44,6 +47,7 @@ export function useAdminActions(
           user_id: selectedUser.id,
           pracas: selectedPracas,
           p_role: selectedRole,
+          p_organization_id: selectedOrganizationId,
         }, {
           timeout: 30000,
           validateParams: false
@@ -69,7 +73,8 @@ export function useAdminActions(
             is_approved: true,
             assigned_pracas: selectedRole === 'marketing' ? [] : selectedPracas,
             approved_at: new Date().toISOString(),
-            approved_by: currentUser?.id || null
+            approved_by: currentUser?.id || null,
+            organization_id: selectedOrganizationId || '00000000-0000-0000-0000-000000000001'
           };
           
           if (selectedRole) {
@@ -92,6 +97,7 @@ export function useAdminActions(
       setSelectedUser(null);
       setSelectedPracas([]);
       setSelectedRole('user');
+      setSelectedOrganizationId(null);
       fetchData();
     } catch (err: any) {
       const errorMessage = err?.message || err?.toString() || 'Ocorreu um erro. Tente novamente mais tarde.';
@@ -112,6 +118,7 @@ export function useAdminActions(
     setEditingUser(user);
     setSelectedPracas(user.assigned_pracas || []);
     setSelectedRole(user.role || 'user');
+    setSelectedOrganizationId(user.organization_id || null);
     setShowEditModal(true);
   };
 
@@ -127,6 +134,7 @@ export function useAdminActions(
           user_id: editingUser.id,
           pracas: selectedPracas,
           p_role: selectedRole,
+          p_organization_id: selectedOrganizationId,
         });
         result = directResult.data;
         error = directResult.error;
@@ -135,6 +143,7 @@ export function useAdminActions(
           user_id: editingUser.id,
           pracas: selectedPracas,
           p_role: selectedRole,
+          p_organization_id: selectedOrganizationId,
         }, {
           timeout: 30000,
           validateParams: false
@@ -150,12 +159,16 @@ export function useAdminActions(
           }
           
           const updateData: any = {
-            assigned_pracas: selectedPracas
+            assigned_pracas: selectedRole === 'marketing' ? [] : selectedPracas
           };
           
           if (selectedRole) {
             updateData.role = selectedRole;
             updateData.is_admin = (selectedRole === 'admin');
+          }
+          
+          if (selectedOrganizationId) {
+            updateData.organization_id = selectedOrganizationId;
           }
           
           const { error: updateError } = await supabase
@@ -173,6 +186,7 @@ export function useAdminActions(
       setEditingUser(null);
       setSelectedPracas([]);
       setSelectedRole('user');
+      setSelectedOrganizationId(null);
       fetchData();
     } catch (err: any) {
       const errorMessage = err?.message || err?.toString() || 'Ocorreu um erro. Tente novamente mais tarde.';
@@ -295,6 +309,7 @@ export function useAdminActions(
     setSelectedUser(null);
     setSelectedPracas([]);
     setSelectedRole('user');
+    setSelectedOrganizationId(null);
   };
 
   const handleCancelEdit = () => {
@@ -302,17 +317,20 @@ export function useAdminActions(
     setEditingUser(null);
     setSelectedPracas([]);
     setSelectedRole('user');
+    setSelectedOrganizationId(null);
   };
 
   return {
     selectedUser,
     selectedPracas,
     selectedRole,
+    selectedOrganizationId,
     showModal,
     showEditModal,
     editingUser,
     setSelectedPracas,
     setSelectedRole,
+    setSelectedOrganizationId,
     handleApproveUser,
     handleSaveApproval,
     handleCancelApproval,

@@ -1,8 +1,10 @@
 import React from 'react';
 import { User, UserProfile } from '@/hooks/useAdminData';
+import { Organization } from '@/hooks/useOrganizations';
 
 interface AdminUsersTableProps {
   users: User[];
+  organizations: Organization[];
   currentUser: UserProfile | null;
   onApprove: (user: User) => void;
   onEditPracas: (user: User) => void;
@@ -12,12 +14,18 @@ interface AdminUsersTableProps {
 
 export const AdminUsersTable: React.FC<AdminUsersTableProps> = ({
   users,
+  organizations,
   currentUser,
   onApprove,
   onEditPracas,
   onRevokeAccess,
   onToggleAdmin,
 }) => {
+  const getOrganizationName = (orgId: string | null | undefined): string => {
+    if (!orgId) return 'Sem organização';
+    const org = organizations.find(o => o.id === orgId);
+    return org?.name || 'Organização não encontrada';
+  };
   return (
     <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-white dark:bg-slate-900 p-6 shadow-md">
       <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -30,6 +38,7 @@ export const AdminUsersTable: React.FC<AdminUsersTableProps> = ({
             <tr className="border-b border-slate-200 dark:border-slate-700">
               <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Nome</th>
               <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Email</th>
+              <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Organização</th>
               <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Status</th>
               <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Praças</th>
               <th className="pb-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">Ações</th>
@@ -56,6 +65,11 @@ export const AdminUsersTable: React.FC<AdminUsersTableProps> = ({
                   </div>
                 </td>
                 <td className="py-3 text-sm text-slate-600 dark:text-slate-400">{user.email}</td>
+                <td className="py-3 text-sm">
+                  <span className="inline-block rounded bg-indigo-100 dark:bg-indigo-900/50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                    {getOrganizationName(user.organization_id)}
+                  </span>
+                </td>
                 <td className="py-3">
                   {user.is_approved ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-2 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
