@@ -160,7 +160,7 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
 export async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; error: RpcError | null }> {
   const { filterPayload } = options;
 
-  const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final'];
+  const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
   const listarValoresPayload: FilterPayload = {};
   
   for (const key of allowedParams) {
