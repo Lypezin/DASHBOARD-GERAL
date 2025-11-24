@@ -26,10 +26,10 @@ interface AdminEditModalProps {
   pracasDisponiveis: string[];
   organizations: Organization[];
   selectedPracas: string[];
-  selectedRole: 'admin' | 'marketing' | 'user';
+  selectedRole: 'admin' | 'marketing' | 'user' | 'master';
   selectedOrganizationId: string | null;
   onPracasChange: (pracas: string[]) => void;
-  onRoleChange: (role: 'admin' | 'marketing' | 'user') => void;
+  onRoleChange: (role: 'admin' | 'marketing' | 'user' | 'master') => void;
   onOrganizationChange: (orgId: string | null) => void;
   onSave: () => void;
   onCancel: () => void;

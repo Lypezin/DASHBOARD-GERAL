@@ -12,7 +12,7 @@ export interface User {
   is_admin: boolean;
   is_approved: boolean;
   assigned_pracas: string[];
-  role?: 'admin' | 'marketing' | 'user';
+  role?: 'admin' | 'marketing' | 'user' | 'master';
   created_at: string;
   approved_at: string | null;
   organization_id?: string | null;

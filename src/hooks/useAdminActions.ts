@@ -12,7 +12,7 @@ export function useAdminActions(
 ) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedPracas, setSelectedPracas] = useState<string[]>([]);
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'marketing' | 'user'>('user');
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'marketing' | 'user' | 'master'>('user');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -79,7 +79,7 @@ export function useAdminActions(
 
           if (selectedRole) {
             updateData.role = selectedRole;
-            updateData.is_admin = (selectedRole === 'admin');
+            updateData.is_admin = (selectedRole === 'admin' || selectedRole === 'master');
           }
 
           const { error: updateError } = await supabase
@@ -164,7 +164,7 @@ export function useAdminActions(
 
           if (selectedRole) {
             updateData.role = selectedRole;
-            updateData.is_admin = (selectedRole === 'admin');
+            updateData.is_admin = (selectedRole === 'admin' || selectedRole === 'master');
           }
 
           if (selectedOrganizationId) {

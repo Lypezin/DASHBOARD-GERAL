@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
+import { UtrData, EntregadoresData, ValoresEntregador, CurrentUser } from '@/types';
 import { useCache } from './useCache';
 import { useTabDataFetcher } from './useTabDataFetcher';
 import { CACHE, DELAYS, RATE_LIMIT } from '@/constants/config';
@@ -26,7 +26,7 @@ const pendingRequests = new Map<string, Promise<unknown>>();
 export function useTabData(
   activeTab: string,
   filterPayload: object,
-  currentUser?: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null
+  currentUser?: CurrentUser | null
 ) {
   const [data, setData] = useState<TabData>(null);
   const currentTabRef = useRef<string>(activeTab);

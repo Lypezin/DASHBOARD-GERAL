@@ -23,10 +23,7 @@ const functionAvailability = {
  * 
  * @param {string} activeTab - Aba ativa do dashboard
  * @param {DashboardFilters | Record<string, unknown>} filters - Filtros atuais aplicados
- * @param {Object | null} currentUser - Usuário atual
- * @param {boolean} currentUser.is_admin - Se o usuário é administrador
- * @param {string[]} currentUser.assigned_pracas - Praças atribuídas ao usuário
- * @param {string} [currentUser.role] - Role do usuário ('admin', 'marketing', 'user')
+ * @param {CurrentUser | null} currentUser - Usuário atual
  * @returns {Object} Objeto contendo sessionId, isPageVisible e função registrarAtividade
  * 
  * @example
@@ -41,11 +38,12 @@ const functionAvailability = {
  * ```
  */
 import type { DashboardFilters } from '@/types/filters';
+import type { CurrentUser } from '@/types';
 
 export function useUserActivity(
   activeTab: string,
   filters: DashboardFilters | Record<string, unknown>,
-  currentUser: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null
+  currentUser: CurrentUser | null
 ) {
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [sessionId, setSessionId] = useState<string>('');

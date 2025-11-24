@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FilterOption, DashboardResumoData } from '@/types';
+import { FilterOption, DashboardResumoData, CurrentUser } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import ApresentacaoView from '@/components/ApresentacaoView';
 import { registerChartJS } from '@/lib/chartConfig';
@@ -26,7 +26,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
-  currentUser: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null;
+  currentUser: CurrentUser | null;
 }) {
   const [semanasSelecionadas, setSemanasSelecionadas] = useState<string[]>([]);
   const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(null);

@@ -127,7 +127,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
               is_approved: boolean;
               is_admin: boolean;
               assigned_pracas: string[];
-              role?: 'admin' | 'marketing' | 'user';
+              role?: 'admin' | 'marketing' | 'user' | 'master';
               organization_id?: string | null;
             }>('get_current_user_profile', {}, {
               timeout: RPC_TIMEOUTS.FAST,

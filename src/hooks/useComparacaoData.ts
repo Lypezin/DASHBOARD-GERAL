@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { DashboardResumoData, UtrData } from '@/types';
+import { DashboardResumoData, UtrData, CurrentUser } from '@/types';
 import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { buildFilterPayload } from '@/utils/helpers';
@@ -10,7 +10,7 @@ interface UseComparacaoDataOptions {
   semanas: string[];
   semanasSelecionadas: string[];
   pracaSelecionada: string | null;
-  currentUser: { is_admin: boolean; assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' } | null;
+  currentUser: CurrentUser | null;
 }
 
 export function useComparacaoData(options: UseComparacaoDataOptions) {
