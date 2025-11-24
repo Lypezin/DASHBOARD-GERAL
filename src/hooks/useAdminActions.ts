@@ -32,7 +32,7 @@ export function useAdminActions(
     try {
       let result: any;
       let error: any;
-      
+
       try {
         const directResult = await supabase.rpc('approve_user', {
           user_id: selectedUser.id,
@@ -59,12 +59,12 @@ export function useAdminActions(
       if (error) {
         const errorCode = (error as any)?.code;
         const errorMessage = String((error as any)?.message || '');
-        const is404 = errorCode === 'PGRST116' || 
-                     errorCode === '42883' ||
-                     errorMessage.includes('404') || 
-                     errorMessage.includes('not found') ||
-                     (errorMessage.includes('function') && errorMessage.includes('does not exist'));
-        
+        const is404 = errorCode === 'PGRST116' ||
+          errorCode === '42883' ||
+          errorMessage.includes('404') ||
+          errorMessage.includes('not found') ||
+          (errorMessage.includes('function') && errorMessage.includes('does not exist'));
+
         if (is404) {
           if (IS_DEV) {
             safeLog.warn('Função RPC não encontrada, tentando atualização direta via Supabase');
@@ -76,17 +76,17 @@ export function useAdminActions(
             approved_by: currentUser?.id || null,
             organization_id: selectedOrganizationId || '00000000-0000-0000-0000-000000000001'
           };
-          
+
           if (selectedRole) {
             updateData.role = selectedRole;
             updateData.is_admin = (selectedRole === 'admin');
           }
-          
+
           const { error: updateError } = await supabase
             .from('user_profiles')
             .update(updateData)
             .eq('id', selectedUser.id);
-          
+
           if (updateError) throw updateError;
         } else {
           throw error;
@@ -128,7 +128,7 @@ export function useAdminActions(
     try {
       let result: any;
       let error: any;
-      
+
       try {
         const directResult = await supabase.rpc('update_user_pracas', {
           user_id: editingUser.id,
@@ -157,25 +157,25 @@ export function useAdminActions(
           if (IS_DEV) {
             safeLog.warn('Função RPC não encontrada, tentando atualização direta via Supabase');
           }
-          
+
           const updateData: any = {
             assigned_pracas: selectedRole === 'marketing' ? [] : selectedPracas
           };
-          
+
           if (selectedRole) {
             updateData.role = selectedRole;
             updateData.is_admin = (selectedRole === 'admin');
           }
-          
+
           if (selectedOrganizationId) {
             updateData.organization_id = selectedOrganizationId;
           }
-          
+
           const { error: updateError } = await supabase
             .from('user_profiles')
             .update(updateData)
             .eq('id', editingUser.id);
-          
+
           if (updateError) throw updateError;
         } else {
           throw error;
@@ -214,7 +214,36 @@ export function useAdminActions(
         validateParams: true
       });
 
-      if (error) throw error;
+      if (error) {
+        // Se der erro no RPC, tentar atualizar diretamente
+        const errorCode = (error as any)?.code;
+        const errorMessage = String((error as any)?.message || '');
+        const is404 = errorCode === 'PGRST116' ||
+          errorCode === '42883' ||
+          errorMessage.includes('404') ||
+          errorMessage.includes('not found') ||
+          (errorMessage.includes('function') && errorMessage.includes('does not exist'));
+
+        if (is404) {
+          if (IS_DEV) {
+            safeLog.warn('Função revoke_user_access não encontrada, tentando atualização direta');
+          }
+
+          const { error: updateError } = await supabase
+            .from('user_profiles')
+            .update({
+              is_approved: false,
+              status: 'pending',
+              role: 'user',
+              assigned_pracas: []
+            })
+            .eq('id', userId);
+
+          if (updateError) throw updateError;
+        } else {
+          throw error;
+        }
+      }
       fetchData();
     } catch (err: any) {
       alert('Erro ao revogar acesso: ' + err.message);
@@ -228,7 +257,7 @@ export function useAdminActions(
     try {
       let data: any = null;
       let error: any = null;
-      
+
       try {
         const result = await supabase.rpc('set_user_admin', {
           user_id: userId,
@@ -260,22 +289,22 @@ export function useAdminActions(
             errorHint: (error as any)?.hint
           });
         }
-        
+
         const errorObj = error as any;
         const errorMessage = String(errorObj?.message || errorObj?.details || errorObj?.hint || '');
         const errorCode = errorObj?.code || '';
-        
-        const is404 = errorCode === 'PGRST116' || 
-                     errorCode === '42883' ||
-                     errorMessage.includes('404') ||
-                     errorMessage.includes('not found') ||
-                     errorMessage.includes('function') && errorMessage.includes('does not exist');
-        
+
+        const is404 = errorCode === 'PGRST116' ||
+          errorCode === '42883' ||
+          errorMessage.includes('404') ||
+          errorMessage.includes('not found') ||
+          errorMessage.includes('function') && errorMessage.includes('does not exist');
+
         if (is404) {
           alert('Função não encontrada. Isso pode ser um problema temporário de cache. Aguarde alguns segundos e tente novamente. Se o problema persistir, recarregue a página.');
           return;
         }
-        
+
         let userMessage = 'Erro ao alterar status de admin: ';
         if (errorCode === '42501' || errorMessage.includes('permission denied')) {
           userMessage += 'Você não tem permissão para realizar esta ação.';
@@ -286,11 +315,11 @@ export function useAdminActions(
         } else {
           userMessage += 'Ocorreu um erro. Tente novamente mais tarde.';
         }
-        
+
         alert(userMessage);
         return;
       }
-      
+
       if (IS_DEV) {
         safeLog.info('Status de admin alterado com sucesso:', { userId, make_admin: !currentIsAdmin, data });
       }

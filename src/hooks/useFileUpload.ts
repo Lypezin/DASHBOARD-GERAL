@@ -29,6 +29,8 @@ export interface FileUploadOptions {
   insertOptions?: BatchInsertOptions;
   /** Função RPC para refresh após upload (opcional) */
   refreshRpcFunction?: string;
+  /** ID da organização para vincular os dados (opcional) */
+  organizationId?: string;
 }
 
 /**
@@ -98,7 +100,7 @@ export function useFileUpload(options: FileUploadOptions) {
       // PASSO 1: Deletar dados antigos se necessário
       if (overwrite) {
         setState(prev => ({ ...prev, progressLabel: 'Removendo dados antigos...', progress: 5 }));
-        
+
         try {
           await deleteAllRecords(tableName, deleteRpcFunction);
         } catch (deleteErr) {
@@ -124,7 +126,7 @@ export function useFileUpload(options: FileUploadOptions) {
           currentFileIndex: fileIdx + 1,
           progressLabel: `Processando arquivo ${fileIdx + 1}/${totalFiles}: ${file.name}`
         }));
-        
+
         safeLog.info(`Iniciando processamento do arquivo: ${file.name}`);
 
         try {
@@ -148,9 +150,10 @@ export function useFileUpload(options: FileUploadOptions) {
           // Inserir em lotes
           safeLog.info('Iniciando inserção no banco de dados...');
           const fileProgress = (overwrite ? 10 : 0) + (fileIdx / totalFiles) * (overwrite ? 80 : 90);
-          
+
           const { inserted, errors } = await insertInBatches(tableName, sanitizedData, {
             ...insertOptions,
+            organizationId: options.organizationId,
             onProgress: (inserted, total) => {
               insertedRows = inserted;
               const batchProgress = (inserted / total) * ((overwrite ? 80 : 90) / totalFiles);
@@ -223,7 +226,7 @@ export function useFileUpload(options: FileUploadOptions) {
                 timeout: RPC_TIMEOUTS.LONG * 2, // Timeout aumentado para CONCURRENTLY (mais rápido que normal)
                 validateParams: false
               });
-              
+
               if (error) {
                 const errorCode = (error as any)?.code;
                 const is404 = errorCode === 'PGRST116' || errorCode === '42883' || (error as any)?.message?.includes('404');

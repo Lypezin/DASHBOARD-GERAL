@@ -17,6 +17,8 @@ export interface BatchInsertOptions {
   onProgress?: (inserted: number, total: number) => void;
   /** Se deve retornar dados inseridos */
   returnData?: boolean;
+  /** ID da organização para forçar nos dados (opcional) */
+  organizationId?: string;
 }
 
 /**
@@ -30,7 +32,8 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
   const {
     batchSize = BATCH_SIZE,
     onProgress,
-    returnData = false
+    returnData = false,
+    organizationId
   } = options;
 
   const totalRows = data.length;
@@ -42,16 +45,25 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
 
   // Verificar se precisa usar função RPC para bypassar RLS
   const useRpcFunction = table === 'dados_marketing' || table === 'dados_corridas';
-  const rpcFunctionName = useRpcFunction 
+  const rpcFunctionName = useRpcFunction
     ? (table === 'dados_marketing' ? 'insert_dados_marketing_batch' : 'insert_dados_corridas_batch')
     : null;
 
   for (let i = 0; i < totalRows; i += batchSize) {
-    const batch = data.slice(i, i + batchSize);
+    let batch = data.slice(i, i + batchSize);
+
+    // Injetar organization_id se fornecido
+    if (organizationId) {
+      batch = batch.map(item => ({
+        ...item,
+        organization_id: organizationId
+      }));
+    }
+
     const batchNumber = Math.floor(i / batchSize) + 1;
-    
+
     safeLog.info(`Inserindo lote ${batchNumber}, ${batch.length} registros${useRpcFunction ? ' (via RPC)' : ''}`);
-    
+
     try {
       if (useRpcFunction && rpcFunctionName) {
         // Usar função RPC para bypassar RLS
@@ -73,14 +85,14 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
           }
           return cleanItem;
         });
-        
+
         safeLog.info(`Chamando RPC ${rpcFunctionName} com ${dadosJsonb.length} registros`);
-        
+
         // PostgREST aceita arrays JSONB quando passados diretamente
         // O Supabase client converte automaticamente para o formato correto
         const { data: rpcResult, error: rpcError } = await supabase
-          .rpc(rpcFunctionName, { 
-            dados: dadosJsonb 
+          .rpc(rpcFunctionName, {
+            dados: dadosJsonb
           } as { dados: unknown[] });
 
         if (rpcError) {
@@ -94,22 +106,22 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
             details: rpcError.details,
             hint: rpcError.hint
           });
-          
+
           // Se for erro 403 ou função não encontrada, tentar inserção direta como fallback
-          const is403 = rpcError.code === 'PGRST301' || 
-                       rpcError.message?.includes('403') || 
-                       rpcError.message?.includes('Forbidden') ||
-                       rpcError.code === 'PGRST116'; // Função não encontrada
-          
+          const is403 = rpcError.code === 'PGRST301' ||
+            rpcError.message?.includes('403') ||
+            rpcError.message?.includes('Forbidden') ||
+            rpcError.code === 'PGRST116'; // Função não encontrada
+
           if (is403) {
             safeLog.warn('Erro 403 ou função não encontrada - Tentando inserção direta como fallback (pode falhar por RLS)');
-            
+
             // Tentar inserção direta (pode falhar se RLS bloquear)
             try {
               const { error: directError } = await supabase
                 .from(table)
                 .insert(batch, { count: 'exact' });
-              
+
               if (directError) {
                 // Se inserção direta também falhar, lançar erro original
                 errors.push(errorMsg);
@@ -138,7 +150,7 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
         const result = rpcResult as { inserted?: number; errors?: number; error_messages?: string[] } | null;
         const inserted = result?.inserted || 0;
         const rpcErrors = result?.errors || 0;
-        
+
         if (rpcErrors > 0) {
           const errorMessages = result?.error_messages || [];
           errorMessages.forEach((msg: string) => errors.push(`Lote ${batchNumber}: ${msg}`));
@@ -172,11 +184,11 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
 
         insertedRows += batch.length;
       }
-      
+
       if (onProgress) {
         onProgress(insertedRows, totalRows);
       }
-      
+
       safeLog.info(`Lote inserido com sucesso: ${insertedRows}/${totalRows}`);
     } catch (error) {
       const errorMsg = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
@@ -184,7 +196,7 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
         : `Erro desconhecido no lote ${batchNumber}`;
       errors.push(errorMsg);
       safeLog.error(`Erro no lote ${batchNumber}:`, error);
-      
+
       // Se for erro crítico, parar processamento
       const errorCode = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string'
         ? error.code
@@ -192,7 +204,7 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
       if (errorCode === '23505' || errorCode === '23503') {
         throw error; // Erros de constraint devem parar o processo
       }
-      
+
       // Para outros erros, continuar com próximo lote
     }
   }
@@ -216,18 +228,18 @@ export async function deleteAllRecords(
   rpcFunctionName?: string
 ): Promise<number> {
   safeLog.info(`Iniciando remoção de dados antigos da tabela ${table}...`);
-  
+
   // Tentar usar função RPC se fornecida
   if (rpcFunctionName) {
     try {
       const { data: deletedCount, error: rpcError } = await supabase
         .rpc(rpcFunctionName);
-      
+
       if (!rpcError) {
         safeLog.info(`✅ Removidos ${deletedCount || 0} registros antigos via RPC`);
         return deletedCount || 0;
       }
-      
+
       // Se função não existe, usar fallback
       if (rpcError.code === 'PGRST116' || rpcError.message?.includes('function') || rpcError.message?.includes('not found')) {
         safeLog.info('Função RPC não encontrada, usando fallback de deleção em lotes...');
@@ -242,53 +254,53 @@ export async function deleteAllRecords(
       safeLog.info('Função RPC não disponível, usando fallback...');
     }
   }
-  
+
   // Fallback: deletar em lotes
   let deletedCount = 0;
   let hasMore = true;
   const deleteBatchSize = 500;
-  
+
   while (hasMore) {
     const { data: batchData, error: fetchError } = await supabase
       .from(table)
       .select('id')
       .limit(deleteBatchSize);
-    
+
     if (fetchError) {
       throw new Error(`Erro ao buscar dados: ${fetchError.message}`);
     }
-    
+
     if (!batchData || batchData.length === 0) {
       hasMore = false;
       break;
     }
-    
+
     const idsToDelete = batchData.map(item => item.id);
-    
+
     if (idsToDelete.length === 0) {
       hasMore = false;
       break;
     }
-    
+
     safeLog.info(`Deletando lote de ${idsToDelete.length} registros...`);
-    
+
     const { error: deleteError } = await supabase
       .from(table)
       .delete()
       .in('id', idsToDelete);
-    
+
     if (deleteError) {
       throw new Error(`Erro ao remover dados: ${deleteError.message}`);
     }
-    
+
     deletedCount += idsToDelete.length;
     safeLog.info(`Lote deletado. Total: ${deletedCount}`);
-    
+
     if (batchData.length < deleteBatchSize) {
       hasMore = false;
     }
   }
-  
+
   safeLog.info(`✅ Removidos ${deletedCount} registros antigos (fallback)`);
   return deletedCount;
 }

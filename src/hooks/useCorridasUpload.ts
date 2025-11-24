@@ -22,7 +22,11 @@ interface UploadState {
 /**
  * Hook para gerenciar upload de arquivos de corridas
  */
-export function useCorridasUpload() {
+interface UseCorridasUploadProps {
+  organizationId?: string;
+}
+
+export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {}) {
   const [files, setFiles] = useState<File[]>([]);
   const [state, setState] = useState<UploadState>({
     uploading: false,
@@ -145,6 +149,7 @@ export function useCorridasUpload() {
           sanitizedData,
           {
             batchSize: BATCH_SIZE,
+            organizationId,
             onProgress: (insertedRows, total) => {
               const batchProgress = (insertedRows / total) * (100 / totalFiles);
               setState(prev => ({
