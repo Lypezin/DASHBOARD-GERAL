@@ -15,6 +15,7 @@ export interface FilterPayload {
   p_origem?: string | string[] | null;
   p_turno?: string | string[] | null;
   p_limite_semanas?: number | null;
+  p_organization_id?: string | null;
   [key: string]: unknown;
 }
 

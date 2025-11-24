@@ -220,6 +220,9 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     // Não forçar ano - deixar null se não foi especificado
   }
 
+  // Obter organization_id do usuário atual
+  const organizationId = currentUser?.organization_id || null;
+
   const payload = {
     p_ano: ano,
     p_semana: semana,
@@ -229,6 +232,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     p_turno: turno,
     p_data_inicial: dataInicial,
     p_data_final: dataFinal,
+    p_organization_id: organizationId,
   } as const;
 
   // Log sempre visível para debug

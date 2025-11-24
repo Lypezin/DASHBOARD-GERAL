@@ -128,6 +128,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
               is_admin: boolean;
               assigned_pracas: string[];
               role?: 'admin' | 'marketing' | 'user';
+              organization_id?: string | null;
             }>('get_current_user_profile', {}, {
               timeout: RPC_TIMEOUTS.FAST,
               validateParams: false
@@ -180,6 +181,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
                 is_admin: profile.is_admin || false,
                 assigned_pracas: profile.assigned_pracas || [],
                 role: profile.role || 'user',
+                organization_id: profile.organization_id || null,
               });
             }
 
