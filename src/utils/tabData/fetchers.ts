@@ -17,7 +17,7 @@ interface FetchOptions {
 export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | null; error: RpcError | null }> {
   const { filterPayload } = options;
 
-  const result = await safeRpc<any>('calcular_utr', filterPayload as any, {
+  const result = await safeRpc<any>('calcular_utr_completo', filterPayload as any, {
     timeout: RPC_TIMEOUTS.DEFAULT,
     validateParams: true
   });
@@ -44,7 +44,7 @@ export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrDa
 
     const errorCode = result.error?.code || '';
     const errorMessage = result.error?.message || '';
-    
+
     if (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist')) {
       try {
         const fallbackData = await fetchUtrFallback(filterPayload);
@@ -61,7 +61,7 @@ export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrDa
   }
 
   let utrData: UtrData | null = null;
-  
+
   if (result && result.data) {
     if (typeof result.data === 'object' && !Array.isArray(result.data)) {
       utrData = result.data as UtrData;
@@ -112,7 +112,7 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
 
     const errorCode = result.error?.code || '';
     const errorMessage = result.error?.message || '';
-    
+
     if (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist')) {
       try {
         const fallbackData = await fetchEntregadoresFallback(listarEntregadoresPayload);
@@ -162,7 +162,7 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
 
   const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
   const listarValoresPayload: FilterPayload = {};
-  
+
   for (const key of allowedParams) {
     if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
       listarValoresPayload[key] = filterPayload[key];
@@ -196,7 +196,7 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
 
     const errorCode = result.error?.code || '';
     const errorMessage = result.error?.message || '';
-    
+
     if (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist')) {
       try {
         const fallbackData = await fetchValoresFallback(listarValoresPayload);
@@ -206,9 +206,9 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
       } catch (fallbackError) {
         safeLog.error('Erro no fallback ao buscar valores:', fallbackError);
       }
-      
-      return { 
-        data: [], 
+
+      return {
+        data: [],
         error: {
           message: 'A função de listar valores não está disponível. Entre em contato com o administrador.',
           code: 'FUNCTION_NOT_FOUND'
@@ -225,7 +225,7 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
   if (result && result.data !== null && result.data !== undefined) {
     if (typeof result.data === 'object' && !Array.isArray(result.data)) {
       const dataObj = result.data as { entregadores?: ValoresEntregador[]; valores?: ValoresEntregador[] } | null;
-      
+
       if (dataObj && 'entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
         processedData = dataObj.entregadores;
       } else if (dataObj && 'valores' in dataObj && Array.isArray(dataObj.valores)) {
