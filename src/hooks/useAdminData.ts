@@ -16,6 +16,7 @@ export interface User {
   created_at: string;
   approved_at: string | null;
   organization_id?: string | null;
+  avatar_url?: string;
 }
 
 export interface UserProfile {
@@ -34,7 +35,7 @@ export function useAdminData() {
   const fetchPracasWithFallback = async (): Promise<string[]> => {
     const cachedPracas = sessionStorage.getItem('admin_pracas_cache');
     const cacheTime = sessionStorage.getItem('admin_pracas_cache_time');
-    
+
     if (cachedPracas && cacheTime) {
       const now = Date.now();
       const cached = parseInt(cacheTime);
@@ -48,7 +49,7 @@ export function useAdminData() {
         timeout: 30000,
         validateParams: false
       });
-      
+
       if (!pracasError && pracasData && pracasData.length > 0) {
         const pracas = pracasData.map((p: any) => p.praca).filter(Boolean);
         sessionStorage.setItem('admin_pracas_cache', JSON.stringify(pracas));
@@ -65,7 +66,7 @@ export function useAdminData() {
         .select('praca')
         .not('praca', 'is', null)
         .order('praca');
-      
+
       if (!mvError && mvPracas && mvPracas.length > 0) {
         const uniquePracas = [...new Set(mvPracas.map(p => p.praca))].filter(Boolean);
         sessionStorage.setItem('admin_pracas_cache', JSON.stringify(uniquePracas));
@@ -83,7 +84,7 @@ export function useAdminData() {
         .not('praca', 'is', null)
         .order('praca')
         .limit(500);
-      
+
       if (!fallbackError && fallbackPracas) {
         const uniquePracas = [...new Set(fallbackPracas.map(p => p.praca))].filter(Boolean);
         sessionStorage.setItem('admin_pracas_cache', JSON.stringify(uniquePracas));
@@ -112,10 +113,10 @@ export function useAdminData() {
         setUsers(usersPromise.value.data || []);
       } else {
         if (IS_DEV) {
-          const errorMsg = usersPromise.status === 'fulfilled' 
-            ? usersPromise.value.error 
-            : usersPromise.status === 'rejected' 
-              ? usersPromise.reason 
+          const errorMsg = usersPromise.status === 'fulfilled'
+            ? usersPromise.value.error
+            : usersPromise.status === 'rejected'
+              ? usersPromise.reason
               : 'Erro desconhecido';
           safeLog.warn('Erro ao buscar usuários:', errorMsg);
         }
@@ -126,10 +127,10 @@ export function useAdminData() {
         setPendingUsers(pendingPromise.value.data || []);
       } else {
         if (IS_DEV) {
-          const errorMsg = pendingPromise.status === 'fulfilled' 
-            ? pendingPromise.value.error 
-            : pendingPromise.status === 'rejected' 
-              ? pendingPromise.reason 
+          const errorMsg = pendingPromise.status === 'fulfilled'
+            ? pendingPromise.value.error
+            : pendingPromise.status === 'rejected'
+              ? pendingPromise.reason
               : 'Erro desconhecido';
           safeLog.warn('Erro ao buscar usuários pendentes:', errorMsg);
         }
@@ -140,8 +141,8 @@ export function useAdminData() {
         setPracasDisponiveis(pracasPromise.value);
       } else {
         if (IS_DEV) {
-          const errorMsg = pracasPromise.status === 'rejected' 
-            ? pracasPromise.reason 
+          const errorMsg = pracasPromise.status === 'rejected'
+            ? pracasPromise.reason
             : 'Erro desconhecido';
           safeLog.warn('Erro ao buscar praças:', errorMsg);
         }

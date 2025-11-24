@@ -103,6 +103,7 @@ export const ModernAdminUsersTable: React.FC<AdminUsersTableProps> = ({
                                     <td className="p-4 align-middle">
                                         <div className="flex items-center gap-3">
                                             <Avatar>
+                                                <AvatarImage src={user.avatar_url} />
                                                 <AvatarFallback>{getInitials(user.full_name)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex flex-col">

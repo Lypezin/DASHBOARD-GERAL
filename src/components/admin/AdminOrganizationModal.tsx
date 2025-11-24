@@ -5,6 +5,14 @@ import { Organization, OrganizationFormData } from '@/hooks/useOrganizations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Building2, Plus, AlertCircle } from 'lucide-react';
 
 interface AdminOrganizationModalProps {
   organization: Organization | null;
@@ -48,8 +56,8 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
     setError(null);
   }, [organization, isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError(null);
     setSaving(true);
 
@@ -106,106 +114,86 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
     }));
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800">
-        {/* Header do Modal */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <span>{isEditing ? '✏️' : '➕'}</span>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            {isEditing ? <Building2 className="h-5 w-5 text-primary" /> : <Plus className="h-5 w-5 text-primary" />}
             {isEditing ? 'Editar Organização' : 'Nova Organização'}
-          </h3>
-          <p className="mt-2 text-sm text-indigo-100">
+          </DialogTitle>
+          <div className="text-sm text-muted-foreground">
             {isEditing
               ? 'Atualize as informações da organização'
               : 'Crie uma nova organização para um cliente'}
-          </p>
+          </div>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Nome da Organização *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, name: e.target.value }));
+                handleSlugChange(e.target.value);
+              }}
+              placeholder="Ex: Empresa XYZ"
+              disabled={saving || isLoading}
+              required
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="slug">Slug *</Label>
+            <Input
+              id="slug"
+              value={formData.slug}
+              onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value.toLowerCase() }))}
+              placeholder="empresa-xyz"
+              disabled={saving || isLoading}
+              required
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Identificador único (apenas letras minúsculas, números e hífens)
+            </p>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="max_users">Limite de Usuários *</Label>
+            <Input
+              id="max_users"
+              type="number"
+              min="1"
+              max="1000"
+              value={formData.max_users}
+              onChange={(e) => setFormData(prev => ({ ...prev, max_users: parseInt(e.target.value) || 10 }))}
+              disabled={saving || isLoading}
+              required
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Número máximo de colaboradores permitidos
+            </p>
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </div>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="p-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome da Organização *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => {
-                  setFormData(prev => ({ ...prev, name: e.target.value }));
-                  // Sempre gerar slug quando o nome mudar (tanto criando quanto editando)
-                  handleSlugChange(e.target.value);
-                }}
-                placeholder="Ex: Empresa XYZ"
-                disabled={saving || isLoading}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug *</Label>
-              <Input
-                id="slug"
-                value={formData.slug}
-                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value.toLowerCase() }))}
-                placeholder="empresa-xyz"
-                disabled={saving || isLoading}
-                required
-                pattern="[a-z0-9-]+"
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Identificador único (apenas letras minúsculas, números e hífens)
-                {isEditing && (
-                  <span className="block mt-1 text-amber-500 dark:text-amber-400">
-                    💡 O slug é atualizado automaticamente quando você muda o nome. Você pode editá-lo manualmente se necessário.
-                  </span>
-                )}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="max_users">Limite de Usuários *</Label>
-              <Input
-                id="max_users"
-                type="number"
-                min="1"
-                max="1000"
-                value={formData.max_users}
-                onChange={(e) => setFormData(prev => ({ ...prev, max_users: parseInt(e.target.value) || 10 }))}
-                disabled={saving || isLoading}
-                required
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Número máximo de colaboradores permitidos nesta organização
-              </p>
-            </div>
-
-            {error && (
-              <div className="rounded-lg border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/30 p-3">
-                <p className="text-sm text-rose-800 dark:text-rose-200">{error}</p>
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-3 p-6 border-t border-slate-200 dark:border-slate-800">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={saving || isLoading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={saving || isLoading}
-            >
-              {saving ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar'}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving || isLoading}>
+            Cancelar
+          </Button>
+          <Button onClick={() => handleSubmit()} disabled={saving || isLoading}>
+            {saving ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
-

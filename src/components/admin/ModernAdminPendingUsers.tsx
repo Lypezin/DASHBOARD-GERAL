@@ -2,7 +2,7 @@ import React from 'react';
 import { User } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CheckCircle, Clock } from 'lucide-react';
 
 interface AdminPendingUsersProps {
@@ -42,6 +42,7 @@ export const ModernAdminPendingUsers: React.FC<AdminPendingUsersProps> = ({
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
                                     <Avatar>
+                                        <AvatarImage src={user.avatar_url} />
                                         <AvatarFallback>{getInitials(user.full_name)}</AvatarFallback>
                                     </Avatar>
                                     <div>
