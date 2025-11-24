@@ -92,7 +92,7 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
   };
 
   const handleSlugChange = (value: string) => {
-    // Auto-gerar slug a partir do nome se estiver criando novo
+    // Auto-gerar slug a partir do nome
     const slug = value
       .toLowerCase()
       .normalize('NFD')
@@ -102,7 +102,7 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
 
     setFormData(prev => ({
       ...prev,
-      slug: isEditing ? value : slug,
+      slug: slug, // Sempre usar o slug gerado
     }));
   };
 
@@ -133,9 +133,8 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
                 value={formData.name}
                 onChange={(e) => {
                   setFormData(prev => ({ ...prev, name: e.target.value }));
-                  if (!isEditing) {
-                    handleSlugChange(e.target.value);
-                  }
+                  // Sempre gerar slug quando o nome mudar (tanto criando quanto editando)
+                  handleSlugChange(e.target.value);
                 }}
                 placeholder="Ex: Empresa XYZ"
                 disabled={saving || isLoading}
@@ -156,6 +155,11 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
               />
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Identificador único (apenas letras minúsculas, números e hífens)
+                {isEditing && (
+                  <span className="block mt-1 text-amber-500 dark:text-amber-400">
+                    💡 O slug é atualizado automaticamente quando você muda o nome. Você pode editá-lo manualmente se necessário.
+                  </span>
+                )}
               </p>
             </div>
 
