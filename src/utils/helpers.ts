@@ -201,7 +201,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
       // Se data final for menor que inicial, usar data inicial como final também
       dataFinal = dataInicial;
     }
-    
+
     // Se apenas uma data foi fornecida, usar a mesma para ambas
     if (dataInicial && !dataFinal) {
       dataFinal = dataInicial;
@@ -222,15 +222,15 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
 
   // Obter organization_id do usuário atual
   let organizationId = currentUser?.organization_id || null;
-  
-  const isAdminOrMaster = currentUser ? (currentUser.is_admin || currentUser.role === 'master') : false;
-  
+
+  const isAdminOrMaster = currentUser?.is_admin === true;
+
   // Se for admin ou master, permitir ver tudo (enviar null)
   // Isso permite que a função RPC decida (geralmente mostra tudo para admin)
   if (isAdminOrMaster) {
     organizationId = null;
   }
-  
+
   // Se organizationId ainda for null após fallback, pode causar retorno vazio das funções RPC
   // Isso é esperado para isolamento de dados, mas pode ser um problema se o usuário deveria ter acesso
   if (!organizationId && IS_DEV) {
