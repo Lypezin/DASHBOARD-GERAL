@@ -1,71 +1,66 @@
 import React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 export const AdminLoadingSkeleton: React.FC = () => {
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-8">
-        <div className="mx-auto max-w-7xl px-4">
-          {/* Skeleton Header */}
-          <div className="mb-8 animate-pulse">
-            <div className="h-8 w-64 bg-slate-200 rounded-lg mb-2"></div>
-            <div className="h-4 w-96 bg-slate-200 rounded"></div>
+      <div className="min-h-screen bg-background p-8">
+        <div className="mx-auto max-w-7xl space-y-8">
+          {/* Header Skeleton */}
+          <div className="flex flex-col gap-4">
+            <div className="h-8 w-64 bg-muted rounded-lg animate-pulse"></div>
+            <div className="h-4 w-96 bg-muted rounded animate-pulse"></div>
           </div>
-          
-          {/* Skeleton Cards */}
-          <div className="space-y-6">
-            <div className="rounded-xl bg-white dark:bg-slate-900 p-6 shadow-md border border-slate-200 dark:border-slate-800">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-6 w-6 bg-amber-200 dark:bg-amber-900 rounded animate-pulse"></div>
-                <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-              </div>
-              <div className="space-y-4">
-                {[1, 2].map((i) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/30 p-4">
-                    <div className="space-y-2 flex-1">
-                      <div className="h-5 w-48 bg-amber-200 dark:bg-amber-900 rounded animate-pulse"></div>
-                      <div className="h-4 w-64 bg-amber-200 dark:bg-amber-900 rounded animate-pulse"></div>
+
+          {/* Stats Skeleton */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
+                  <div className="h-4 w-4 bg-muted rounded animate-pulse"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 w-12 bg-muted rounded animate-pulse mb-2"></div>
+                  <div className="h-3 w-32 bg-muted rounded animate-pulse"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Main Content Skeleton */}
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <div className="h-10 w-24 bg-muted rounded animate-pulse"></div>
+              <div className="h-10 w-32 bg-muted rounded animate-pulse"></div>
+            </div>
+            <Card>
+              <CardHeader>
+                <div className="h-6 w-48 bg-muted rounded animate-pulse"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-muted animate-pulse"></div>
+                        <div className="space-y-2">
+                          <div className="h-4 w-32 bg-muted rounded animate-pulse"></div>
+                          <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+                        </div>
+                      </div>
+                      <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+                      <div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
+                      <div className="h-8 w-8 bg-muted rounded animate-pulse"></div>
                     </div>
-                    <div className="h-8 w-20 bg-emerald-200 dark:bg-emerald-900 rounded animate-pulse"></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="rounded-xl bg-white dark:bg-slate-900 p-6 shadow-md border border-slate-200 dark:border-slate-800">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-6 w-6 bg-blue-200 dark:bg-blue-900 rounded animate-pulse"></div>
-                <div className="h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <th key={i} className="pb-3">
-                          <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[1, 2, 3, 4].map((i) => (
-                      <tr key={i} className="border-b border-slate-100 dark:border-slate-800">
-                        {[1, 2, 3, 4, 5].map((j) => (
-                          <td key={j} className="py-3">
-                            <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
     </ErrorBoundary>
   );
 };
-
