@@ -181,18 +181,30 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
 
             // Se fetchUserProfile, armazenar perfil
             if (fetchUserProfile && profile) {
+              // Se for admin ou master sem organization_id, usar organização padrão como fallback
+              let organizationId = profile.organization_id || null;
+              const isAdminOrMaster = profile.is_admin || profile.role === 'master';
+              if (!organizationId && isAdminOrMaster) {
+                organizationId = '00000000-0000-0000-0000-000000000001';
+                if (IS_DEV) {
+                  safeLog.warn('[useAuthGuard] Admin/Master sem organization_id, usando organização padrão como fallback');
+                }
+              }
+              
               if (IS_DEV) {
                 safeLog.info('[useAuthGuard] Perfil obtido:', {
                   is_admin: profile.is_admin,
+                  role: profile.role,
                   has_organization_id: !!profile.organization_id,
                   organization_id: profile.organization_id,
+                  final_organization_id: organizationId,
                 });
               }
               setCurrentUser({
                 is_admin: profile.is_admin || false,
                 assigned_pracas: profile.assigned_pracas || [],
                 role: profile.role || 'user',
-                organization_id: profile.organization_id || null,
+                organization_id: organizationId,
               });
             }
 

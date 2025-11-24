@@ -227,12 +227,23 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   
   // Fallback: se organization_id for null e o usuário for admin ou master, usar organização padrão
   // UUID da organização padrão: 00000000-0000-0000-0000-000000000001
-  const isAdminOrMaster = currentUser?.is_admin || currentUser?.role === 'master';
+  // IMPORTANTE: Se currentUser for null, não aplicar fallback (pode ser carregamento inicial)
+  const isAdminOrMaster = currentUser ? (currentUser.is_admin || currentUser.role === 'master') : false;
   if (!organizationId && isAdminOrMaster) {
     organizationId = '00000000-0000-0000-0000-000000000001';
     if (IS_DEV) {
       safeLog.warn('[buildFilterPayload] Admin/Master sem organization_id, usando organização padrão como fallback');
     }
+  }
+  
+  // Se organizationId ainda for null após fallback, pode causar retorno vazio das funções RPC
+  // Isso é esperado para isolamento de dados, mas pode ser um problema se o usuário deveria ter acesso
+  if (!organizationId && IS_DEV) {
+    safeLog.warn('[buildFilterPayload] organization_id é NULL - funções RPC retornarão dados vazios', {
+      hasCurrentUser: !!currentUser,
+      isAdmin: currentUser?.is_admin,
+      role: currentUser?.role,
+    });
   }
 
   const payload = {
