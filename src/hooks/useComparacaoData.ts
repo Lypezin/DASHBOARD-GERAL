@@ -15,7 +15,7 @@ interface UseComparacaoDataOptions {
 
 export function useComparacaoData(options: UseComparacaoDataOptions) {
   const { semanasSelecionadas, pracaSelecionada, currentUser } = options;
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
@@ -30,7 +30,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           timeout: 30000,
           validateParams: false
         });
-        
+
         if (error) {
           safeLog.error('Erro ao buscar semanas:', error);
           // Fallback: usar semanas do prop se disponível
@@ -39,21 +39,21 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           }
           return;
         }
-        
+
         if (data) {
           // A função retorna um objeto com propriedade listar_todas_semanas contendo o array
           let semanasArray: unknown[] = [];
-          
+
           if (Array.isArray(data)) {
             semanasArray = data;
           } else if (data && typeof data === 'object') {
             // Se for objeto, tentar extrair o array da propriedade listar_todas_semanas
             semanasArray = (data as any).listar_todas_semanas || (data as any).semanas || [];
           }
-          
+
           // Processar o array de semanas
           let semanasProcessadas: (number | string)[] = [];
-          
+
           if (Array.isArray(semanasArray) && semanasArray.length > 0) {
             // Se o primeiro item é um objeto, extrair a propriedade de semana
             if (typeof semanasArray[0] === 'object' && semanasArray[0] !== null) {
@@ -67,15 +67,15 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
               semanasProcessadas = semanasArray.map((s: unknown) => String(s));
             }
           }
-          
+
           if (IS_DEV) {
-            safeLog.info('Semanas carregadas:', { 
-              total: semanasProcessadas.length, 
+            safeLog.info('Semanas carregadas:', {
+              total: semanasProcessadas.length,
               semanas: semanasProcessadas.slice(0, 5),
               formatoOriginal: Array.isArray(data) ? 'array' : 'objeto'
             });
           }
-          
+
           if (semanasProcessadas.length > 0) {
             setTodasSemanas(semanasProcessadas);
           } else if (options.semanas && options.semanas.length > 0) {
@@ -106,17 +106,17 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       // Buscar dados para cada semana selecionada
       const promessasDados = semanasSelecionadas.map(async (semana) => {
         // Converter string para número
-        const semanaNumero = typeof semana === 'string' 
-          ? (semana.includes('W') 
-              ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
-              : parseInt(semana, 10))
+        const semanaNumero = typeof semana === 'string'
+          ? (semana.includes('W')
+            ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
+            : parseInt(semana, 10))
           : semana;
-        
+
         // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
         const filters = {
           ano: null,
-          semana: semanaNumero,
           semanas: [semanaNumero],
+          // semanas array removed to avoid duplicate week aggregation
           praca: pracaSelecionada,
           subPraca: null,
           origem: null,
@@ -128,32 +128,31 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           dataInicial: null,
           dataFinal: null,
         };
-        
+
         const filtro = buildFilterPayload(filters, currentUser);
-        
+
         // Buscar dados do dashboard
         const { data, error } = await safeRpc<DashboardResumoData>('dashboard_resumo', filtro, {
           timeout: 30000,
           validateParams: true
         });
         if (error) throw error;
-        
+
         return { semana, dados: data as DashboardResumoData };
       });
 
       // Buscar UTR para cada semana
       const promessasUtr = semanasSelecionadas.map(async (semana) => {
         // Converter string para número
-        const semanaNumero = typeof semana === 'string' 
-          ? (semana.includes('W') 
-              ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
-              : parseInt(semana, 10))
+        const semanaNumero = typeof semana === 'string'
+          ? (semana.includes('W')
+            ? parseInt(semana.match(/W(\d+)/)?.[1] || '0', 10)
+            : parseInt(semana, 10))
           : semana;
-        
+
         // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
         const filters = {
           ano: null,
-          semana: semanaNumero,
           semanas: [semanaNumero],
           praca: pracaSelecionada,
           subPraca: null,
@@ -166,27 +165,27 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           dataInicial: null,
           dataFinal: null,
         };
-        
+
         const filtro = buildFilterPayload(filters, currentUser);
-        
+
         const { data, error } = await safeRpc<UtrData>('calcular_utr', filtro, {
           timeout: 30000,
           validateParams: true
         });
         if (error) throw error;
-        
+
         return { semana, utr: data };
       });
 
       const resultadosDados = await Promise.all(promessasDados);
       const resultadosUtr = await Promise.all(promessasUtr);
-      
+
       safeLog.info('📊 Dados Comparação:', { semanas: resultadosDados.length });
       safeLog.info('🎯 UTR Comparação:', { semanas: resultadosUtr.length });
-      
+
       setDadosComparacao(resultadosDados.map(r => r.dados));
       setUtrComparacao(resultadosUtr);
-      
+
     } catch (error) {
       safeLog.error('Erro ao comparar semanas:', error);
       setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
