@@ -115,6 +115,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
         const filters = {
           ano: null,
+          semana: semanaNumero,
           semanas: [semanaNumero],
           // semanas array removed to avoid duplicate week aggregation
           praca: pracaSelecionada,
@@ -153,6 +154,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
         const filters = {
           ano: null,
+          semana: semanaNumero,
           semanas: [semanaNumero],
           praca: pracaSelecionada,
           subPraca: null,
