@@ -221,7 +221,18 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   }
 
   // Obter organization_id do usuário atual
-  const organizationId = currentUser?.organization_id || null;
+  // Se for null mas o usuário for admin, usar organização padrão como fallback
+  // Isso garante que admins sempre vejam dados mesmo se organization_id não estiver definido
+  let organizationId = currentUser?.organization_id || null;
+  
+  // Fallback: se organization_id for null e o usuário for admin, usar organização padrão
+  // UUID da organização padrão: 00000000-0000-0000-0000-000000000001
+  if (!organizationId && currentUser?.is_admin) {
+    organizationId = '00000000-0000-0000-0000-000000000001';
+    if (IS_DEV) {
+      safeLog.warn('[buildFilterPayload] Admin sem organization_id, usando organização padrão como fallback');
+    }
+  }
 
   const payload = {
     p_ano: ano,
@@ -240,6 +251,9 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     p_ano: payload.p_ano,
     p_semana: payload.p_semana,
     p_data_inicial: payload.p_data_inicial,
+    p_organization_id: payload.p_organization_id,
+    hasCurrentUser: !!currentUser,
+    currentUserOrgId: currentUser?.organization_id,
     isValid: payload.p_ano !== null || payload.p_data_inicial !== null,
   });
 

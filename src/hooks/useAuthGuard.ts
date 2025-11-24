@@ -177,6 +177,13 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
 
             // Se fetchUserProfile, armazenar perfil
             if (fetchUserProfile && profile) {
+              if (IS_DEV) {
+                safeLog.info('[useAuthGuard] Perfil obtido:', {
+                  is_admin: profile.is_admin,
+                  has_organization_id: !!profile.organization_id,
+                  organization_id: profile.organization_id,
+                });
+              }
               setCurrentUser({
                 is_admin: profile.is_admin || false,
                 assigned_pracas: profile.assigned_pracas || [],
