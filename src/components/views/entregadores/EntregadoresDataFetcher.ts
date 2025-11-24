@@ -217,8 +217,15 @@ export async function fetchEntregadores(
       params.cidade = cidadeSelecionada;
     }
     
+    // Obter organization_id do usuário atual
+    const { getCurrentUserOrganizationId } = await import('@/utils/organizationHelpers');
+    const organizationId = await getCurrentUserOrganizationId();
+    
     // Sempre passar um objeto, mesmo que vazio, para evitar problemas com undefined
-    const finalParams = params;
+    const finalParams = {
+      ...params,
+      p_organization_id: organizationId,
+    };
 
     // Usar função RPC para buscar entregadores com dados agregados
     // Aumentar timeout para 60 segundos quando há múltiplos filtros (data início + cidade)

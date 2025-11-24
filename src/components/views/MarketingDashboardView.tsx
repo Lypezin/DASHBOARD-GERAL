@@ -10,6 +10,7 @@ import MarketingCityCard from '@/components/MarketingCityCard';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
+import { getCurrentUserOrganizationId } from '@/utils/organizationHelpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -31,6 +32,9 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
 
   const fetchTotals = async () => {
     try {
+      // Obter organization_id do usuário atual
+      const organizationId = await getCurrentUserOrganizationId();
+      
       // Tentar usar RPC primeiro
       // Sempre passar todos os parâmetros (null quando não há filtro)
       const { data: rpcData, error: rpcError } = await safeRpc<Array<{
@@ -45,6 +49,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
         data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
         rodou_dia_inicial: filters.filtroRodouDia.dataInicial || null,
         rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
+        p_organization_id: organizationId,
       }, { validateParams: false });
 
       if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
@@ -102,6 +107,9 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
 
   const fetchCitiesData = async () => {
     try {
+      // Obter organization_id do usuário atual
+      const organizationId = await getCurrentUserOrganizationId();
+      
       // Tentar usar RPC primeiro
       // Sempre passar todos os parâmetros (null quando não há filtro)
       const { data: rpcData, error: rpcError } = await safeRpc<Array<{
@@ -116,6 +124,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
         data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
         rodou_dia_inicial: filters.filtroRodouDia.dataInicial || null,
         rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
+        p_organization_id: organizationId,
       }, { validateParams: false });
 
       if (!rpcError && rpcData && Array.isArray(rpcData)) {

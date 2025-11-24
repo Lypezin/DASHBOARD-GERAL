@@ -11,6 +11,7 @@ import { AtendenteData } from '@/components/views/resultados/AtendenteCard';
 import { CIDADES } from '@/constants/marketing';
 import { ATENDENTES, ATENDENTES_FOTOS } from '@/utils/atendenteMappers';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
+import { getCurrentUserOrganizationId } from '@/utils/organizationHelpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -33,6 +34,9 @@ export function useAtendentesData() {
     setError(null);
 
     try {
+      // Obter organization_id do usuário atual
+      const organizationId = await getCurrentUserOrganizationId();
+      
       // Tentar usar RPC primeiro
       const { data: rpcData, error: rpcError } = await safeRpc<Array<{
         responsavel: string;
@@ -46,6 +50,7 @@ export function useAtendentesData() {
         data_envio_final: filters.filtroEnviados.dataFinal || null,
         data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
         data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
+        p_organization_id: organizationId,
       }, { validateParams: false });
 
       if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {

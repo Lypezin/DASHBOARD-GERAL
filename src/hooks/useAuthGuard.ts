@@ -160,12 +160,16 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
                 'user': 1,
                 'marketing': 2,
                 'admin': 3,
+                'master': 4, // Master tem o nível mais alto
               };
               
               const userRoleLevel = roleHierarchy[profile.role] || 0;
               const requiredRoleLevel = roleHierarchy[requiredRole] || 0;
               
-              if (userRoleLevel < requiredRoleLevel) {
+              // Master e admin sempre têm acesso total
+              const isMasterOrAdmin = profile.role === 'master' || profile.is_admin;
+              
+              if (!isMasterOrAdmin && userRoleLevel < requiredRoleLevel) {
                 if (IS_DEV) {
                   safeLog.warn(`[useAuthGuard] Usuário não tem role suficiente. Requerido: ${requiredRole}, Atual: ${profile.role}`);
                 }
