@@ -7,6 +7,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { syncOrganizationIdToMetadata } from '@/utils/organizationHelpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -17,6 +18,7 @@ export interface UserProfile {
   is_admin: boolean;
   is_approved: boolean;
   avatar_url?: string | null;
+  organization_id?: string | null;
 }
 
 export function useHeaderAuth() {
@@ -130,6 +132,16 @@ export function useHeaderAuth() {
 
       // Tudo OK - definir usuário
       setUser(profile);
+
+      // Sincronizar organization_id para user_metadata (não bloqueante)
+      try {
+        await syncOrganizationIdToMetadata();
+      } catch (err) {
+        // Não bloquear se sincronização falhar
+        if (IS_DEV) {
+          safeLog.warn('[Header] Erro ao sincronizar organization_id (não bloqueante):', err);
+        }
+      }
     } catch (err) {
       if (IS_DEV) safeLog.error('[Header] Erro inesperado ao verificar usuário:', err);
       setIsLoading(false);

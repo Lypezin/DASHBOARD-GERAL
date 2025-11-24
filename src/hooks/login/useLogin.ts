@@ -7,6 +7,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { syncOrganizationIdToMetadata } from '@/utils/organizationHelpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -78,6 +79,16 @@ export function useLogin() {
         setError('Sua conta ainda não foi aprovada. Aguarde a aprovação de um administrador.');
         setLoading(false);
         return;
+      }
+
+      // Sincronizar organization_id para user_metadata
+      try {
+        await syncOrganizationIdToMetadata();
+      } catch (err) {
+        // Não bloquear login se sincronização falhar
+        if (IS_DEV) {
+          safeLog.warn('Erro ao sincronizar organization_id (não bloqueante):', err);
+        }
       }
 
       // Registrar atividade de login (tentar, mas não bloquear se falhar)

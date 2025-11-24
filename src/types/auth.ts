@@ -7,6 +7,7 @@ export interface CurrentUser {
   is_admin: boolean;
   assigned_pracas: string[];
   role?: 'admin' | 'marketing' | 'user';
+  organization_id?: string | null;
 }
 
 // Helper para verificar se usuário tem acesso a todas as cidades
