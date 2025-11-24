@@ -6,12 +6,12 @@
 export interface CurrentUser {
   is_admin: boolean;
   assigned_pracas: string[];
-  role?: 'admin' | 'marketing' | 'user';
+  role?: 'admin' | 'marketing' | 'user' | 'master';
   organization_id?: string | null;
 }
 
 // Helper para verificar se usuário tem acesso a todas as cidades
-// Admin e marketing têm acesso total
+// Admin, marketing e master têm acesso total
 export const hasFullCityAccess = (user: CurrentUser | null | undefined): boolean => {
-  return user?.is_admin === true || user?.role === 'marketing';
+  return user?.is_admin === true || user?.role === 'marketing' || user?.role === 'master';
 };
