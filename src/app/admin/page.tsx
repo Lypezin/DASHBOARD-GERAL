@@ -19,6 +19,7 @@ import { ModernAdminOrganizationsTable } from '@/components/admin/ModernAdminOrg
 import { ModernAdminPendingUsers } from '@/components/admin/ModernAdminPendingUsers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Plus } from 'lucide-react';
+import { LoadingOverlay } from '@/components/ui/loading';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'users' | 'organizations'>('users');
   const [showOrgModal, setShowOrgModal] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const {
     users,

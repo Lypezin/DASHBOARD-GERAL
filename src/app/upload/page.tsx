@@ -4,11 +4,6 @@ import { useState, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { UploadSection } from '@/components/upload/UploadSection';
 import { UploadRefreshMVs } from '@/components/upload/UploadRefreshMVs';
-import { CorridasUploadArea } from '@/components/upload/CorridasUploadArea';
-import { CorridasFileList } from '@/components/upload/CorridasFileList';
-import { CorridasUploadButton } from '@/components/upload/CorridasUploadButton';
-import { CorridasUploadProgress } from '@/components/upload/CorridasUploadProgress';
-import { CorridasUploadMessage } from '@/components/upload/CorridasUploadMessage';
 import { useUploadAuth } from '@/hooks/useUploadAuth';
 import { useCorridasUpload } from '@/hooks/useCorridasUpload';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -19,6 +14,8 @@ import {
   VALORES_CIDADE_COLUMN_MAP,
 } from '@/constants/upload';
 import { marketingTransformers, valoresCidadeTransformers } from '@/utils/uploadTransformers';
+import { Button } from '@/components/ui/button';
+import { Loader2, RefreshCw } from 'lucide-react';
 
 export default function UploadPage() {
   const { loading, isAuthorized } = useUploadAuth();
@@ -31,7 +28,7 @@ export default function UploadPage() {
     if (loading) {
       const timer = setTimeout(() => {
         setShowRetry(true);
-      }, 8000); // Mostrar retry após 8 segundos
+      }, 8000);
 
       return () => clearTimeout(timer);
     } else {
@@ -134,21 +131,19 @@ export default function UploadPage() {
   // Mostrar loading enquanto verifica autenticação
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-300">Verificando permissões...</p>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+          <p className="text-lg font-semibold">Verificando permissões...</p>
           {showRetry && (
-            <div className="mt-6">
-              <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
+            <div className="mt-6 space-y-2">
+              <p className="text-sm text-muted-foreground">
                 A verificação está demorando mais que o esperado.
               </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="rounded-lg bg-blue-600 px-6 py-2 font-semibold text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-              >
+              <Button onClick={() => window.location.reload()} variant="outline">
+                <RefreshCw className="mr-2 h-4 w-4" />
                 Tentar Novamente
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -163,130 +158,90 @@ export default function UploadPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-        <div className="mx-auto max-w-[1600px] px-6 py-8">
+      <div className="min-h-screen bg-background p-8">
+        <div className="mx-auto max-w-[1600px] space-y-8">
           {/* Título da Página */}
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Upload de Dados</h1>
-            <p className="mt-1 text-slate-600 dark:text-slate-400">Importe suas planilhas Excel para o sistema</p>
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Upload de Dados</h1>
+            <p className="text-muted-foreground">
+              Importe suas planilhas Excel para o sistema
+            </p>
           </div>
 
           {/* Grid de Uploads - Três seções lado a lado */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Seção de Upload Corridas */}
-              <div className="overflow-hidden rounded-xl border border-blue-200 bg-white shadow-lg dark:border-blue-900 dark:bg-slate-900 flex flex-col h-full">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-5 text-center">
-                  <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                    <span className="text-2xl">📊</span>
-                  </div>
-                  <h2 className="text-lg font-bold text-white">Corridas</h2>
-                </div>
-                <div className="p-5 space-y-3 flex-1 flex flex-col overflow-auto">
-                  <CorridasUploadArea
-                    files={corridasUpload.files}
-                    onFileChange={corridasUpload.handleFileChange}
-                    uploading={corridasUpload.uploading}
-                  />
-                  <CorridasFileList
-                    files={corridasUpload.files}
-                    onRemoveFile={corridasUpload.removeFile}
-                    uploading={corridasUpload.uploading}
-                  />
-                  <CorridasUploadButton
-                    filesCount={corridasUpload.files.length}
-                    uploading={corridasUpload.uploading}
-                    currentFileIndex={corridasUpload.currentFileIndex}
-                    onClick={corridasUpload.handleUpload}
-                  />
-                  <CorridasUploadProgress
-                    uploading={corridasUpload.uploading}
-                    progress={corridasUpload.progress}
-                    progressLabel={corridasUpload.progressLabel}
-                  />
-                  <CorridasUploadMessage message={corridasUpload.message} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Seção de Upload Corridas */}
+            <UploadSection
+              title="Corridas"
+              description="Upload de dados de corridas"
+              icon="📊"
+              files={corridasUpload.files}
+              onFileChange={corridasUpload.handleFileChange}
+              onRemoveFile={corridasUpload.removeFile}
+              onUpload={corridasUpload.handleUpload}
+              uploading={corridasUpload.uploading}
+              progress={corridasUpload.progress}
+              progressLabel={corridasUpload.progressLabel}
+              message={corridasUpload.message}
+              variant="default"
+              dataAttribute="corridas"
+              tips={[
+                { text: 'Certifique-se de que a planilha contém todas as colunas necessárias' },
+                { text: 'O sistema processa automaticamente grandes volumes de dados' },
+                { text: 'Aguarde a conclusão do upload antes de navegar' },
+              ]}
+              expectedColumns={Object.keys(COLUMN_MAP)}
+            />
 
-                  {/* Informações e Dicas */}
-                  <div className="rounded-lg p-3 bg-blue-50 dark:bg-blue-950/30">
-                    <div className="flex items-start gap-2">
-                      <span className="text-base">💡</span>
-                      <ul className="flex-1 space-y-1 text-xs text-blue-800 dark:text-blue-200">
-                        <li>• Certifique-se de que a planilha contém todas as colunas necessárias</li>
-                        <li>• O sistema processa automaticamente grandes volumes de dados</li>
-                        <li>• Aguarde a conclusão do upload antes de navegar</li>
-                      </ul>
-                    </div>
-                  </div>
+            {/* Seção de Upload Marketing */}
+            <UploadSection
+              title="Marketing"
+              description="Upload de dados de Marketing"
+              icon="📢"
+              files={marketingFiles}
+              onFileChange={handleMarketingFileChange}
+              onRemoveFile={removeMarketingFile}
+              onUpload={handleMarketingUpload}
+              uploading={marketingUpload.uploading}
+              progress={marketingUpload.progress}
+              progressLabel={marketingUpload.progressLabel}
+              message={marketingUpload.message}
+              variant="marketing"
+              dataAttribute="marketing"
+              tips={[
+                { text: '⚠️ Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
+                { text: 'Formato de data: DD/MM/YYYY' },
+                { text: 'Todos os campos são opcionais' },
+              ]}
+              expectedColumns={Object.keys(MARKETING_COLUMN_MAP)}
+            />
 
-                  {/* Colunas Esperadas */}
-                  <details className="rounded-lg bg-slate-50 p-2.5 dark:bg-slate-800/50">
-                    <summary className="cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      📋 Ver colunas esperadas
-                    </summary>
-                    <div className="mt-2 grid grid-cols-1 gap-1 text-xs">
-                      {Object.keys(COLUMN_MAP).map((col) => (
-                        <div key={col} className="flex items-center gap-1.5 rounded bg-white px-2 py-1 dark:bg-slate-900">
-                          <span className="text-blue-600">✓</span>
-                          <code className="text-xs text-slate-700 dark:text-slate-300">{col}</code>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                </div>
-              </div>
-
-              {/* Seção de Upload Marketing */}
-              <UploadSection
-                title="Marketing"
-                description="Upload de dados de Marketing"
-                icon="📢"
-                files={marketingFiles}
-                onFileChange={handleMarketingFileChange}
-                onRemoveFile={removeMarketingFile}
-                onUpload={handleMarketingUpload}
-                uploading={marketingUpload.uploading}
-                progress={marketingUpload.progress}
-                progressLabel={marketingUpload.progressLabel}
-                message={marketingUpload.message}
-                variant="marketing"
-                dataAttribute="marketing"
-                gradientFrom="from-purple-600"
-                gradientTo="to-pink-600"
-                tips={[
-                  { icon: '⚠️', text: 'Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
-                  { text: 'Formato de data: DD/MM/YYYY' },
-                  { text: 'Todos os campos são opcionais' },
-                ]}
-                expectedColumns={Object.keys(MARKETING_COLUMN_MAP)}
-              />
-
-              {/* Seção de Upload Valores por Cidade */}
-              <UploadSection
-                title="Valores por Cidade"
-                description="Upload de valores por cidade"
-                icon="💰"
-                files={valoresCidadeFiles}
-                onFileChange={handleValoresCidadeFileChange}
-                onRemoveFile={removeValoresCidadeFile}
-                onUpload={handleValoresCidadeUpload}
-                uploading={valoresCidadeUpload.uploading}
-                progress={valoresCidadeUpload.progress}
-                progressLabel={valoresCidadeUpload.progressLabel}
-                message={valoresCidadeUpload.message}
-                variant="valores"
-                dataAttribute="valores-cidade"
-                gradientFrom="from-emerald-600"
-                gradientTo="to-teal-600"
-                tips={[
-                  { icon: '⚠️', text: 'Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
-                  { text: 'Formato de data: DD/MM/YYYY' },
-                  { text: 'Colunas obrigatórias: DATA, ID, CIDADE, VALOR' },
-                ]}
-                expectedColumns={Object.keys(VALORES_CIDADE_COLUMN_MAP)}
-              />
-            </div>
+            {/* Seção de Upload Valores por Cidade */}
+            <UploadSection
+              title="Valores por Cidade"
+              description="Upload de valores por cidade"
+              icon="💰"
+              files={valoresCidadeFiles}
+              onFileChange={handleValoresCidadeFileChange}
+              onRemoveFile={removeValoresCidadeFile}
+              onUpload={handleValoresCidadeUpload}
+              uploading={valoresCidadeUpload.uploading}
+              progress={valoresCidadeUpload.progress}
+              progressLabel={valoresCidadeUpload.progressLabel}
+              message={valoresCidadeUpload.message}
+              variant="valores"
+              dataAttribute="valores-cidade"
+              tips={[
+                { text: '⚠️ Sobrescrita: Todos os dados anteriores serão removidos e substituídos pelos novos' },
+                { text: 'Formato de data: DD/MM/YYYY' },
+                { text: 'Colunas obrigatórias: DATA, ID, CIDADE, VALOR' },
+              ]}
+              expectedColumns={Object.keys(VALORES_CIDADE_COLUMN_MAP)}
+            />
+          </div>
 
           {/* Botão de Atualizar MVs - Centralizado abaixo */}
-          <div className="mt-6 flex justify-center">
+          <div className="flex justify-center">
             <UploadRefreshMVs />
           </div>
         </div>
