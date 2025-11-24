@@ -341,11 +341,34 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
 
         if (!data) {
           if (IS_DEV) {
-            safeLog.warn('[useDashboardMainData] dashboard_resumo retornou null ou undefined');
+            safeLog.warn('[useDashboardMainData] dashboard_resumo retornou null ou undefined, usando dados vazios');
           }
-          const errorMsg = 'Não foi possível carregar os dados do dashboard.';
-          setError(errorMsg);
-          if (onError) onError(new Error(errorMsg));
+          // Em vez de erro, usar estrutura vazia para evitar loop
+          const emptyData: DashboardResumoData = {
+            totais: { corridas_ofertadas: 0, corridas_aceitas: 0, corridas_rejeitadas: 0, corridas_completadas: 0 },
+            semanal: [],
+            dia: [],
+            turno: [],
+            sub_praca: [],
+            origem: [],
+            dimensoes: { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [], turnos: [] }
+          };
+
+          // Atualizar cache com dados vazios
+          cachedDataRef.current = emptyData;
+          cacheKeyRef.current = currentPayloadKey;
+
+          setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
+          setAderenciaSemanal([]);
+          setAderenciaDia([]);
+          setAderenciaTurno([]);
+          setAderenciaSubPraca([]);
+          setAderenciaOrigem([]);
+          setDimensoes(emptyData.dimensoes);
+
+          setLoading(false);
+          previousPayloadRef.current = currentPayloadKey;
+          isFirstExecutionRef.current = false;
           return;
         }
 
