@@ -1,12 +1,11 @@
-/**
- * Componente completo de seção de upload
- * Agrupa todos os componentes de upload em uma seção reutilizável
- */
-
 import { FileUploadArea } from './FileUploadArea';
 import { FileList } from './FileList';
 import { UploadProgress } from './UploadProgress';
 import { UploadMessage } from './UploadMessage';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, FileSpreadsheet, Upload, CheckCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface UploadSectionProps {
   title: string;
@@ -24,8 +23,8 @@ interface UploadSectionProps {
   variant?: 'default' | 'marketing' | 'valores';
   dataAttribute?: string;
   maxFiles?: number;
-  gradientFrom: string;
-  gradientTo: string;
+  gradientFrom?: string; // Mantido para compatibilidade, mas não usado
+  gradientTo?: string; // Mantido para compatibilidade, mas não usado
   tips?: Array<{ icon?: string; text: string }>;
   expectedColumns?: string[];
 }
@@ -46,25 +45,20 @@ export function UploadSection({
   variant = 'default',
   dataAttribute,
   maxFiles,
-  gradientFrom,
-  gradientTo,
   tips,
   expectedColumns,
 }: UploadSectionProps) {
   return (
-    <div className="overflow-hidden rounded-xl border bg-white shadow-lg dark:bg-slate-900 h-full flex flex-col" style={{
-      borderColor: variant === 'marketing' ? 'rgb(196 181 253)' : variant === 'valores' ? 'rgb(110 231 183)' : 'rgb(191 219 254)',
-    }}>
-      {/* Header */}
-      <div className={`bg-gradient-to-r ${gradientFrom} ${gradientTo} p-5 text-center`}>
-        <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <span className="text-2xl">{icon}</span>
-        </div>
-        <h2 className="text-lg font-bold text-white">{title}</h2>
-      </div>
+          {title}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </CardHeader>
 
-      {/* Conteúdo */}
-      <div className="p-5 space-y-3 flex-1 flex flex-col overflow-auto">
+      <CardContent className="flex-1 flex flex-col gap-4">
         {/* Área de Upload */}
         <FileUploadArea
           files={files}
@@ -84,23 +78,24 @@ export function UploadSection({
         />
 
         {/* Botão de Upload */}
-        <button
+        <Button
           onClick={onUpload}
           disabled={uploading || files.length === 0}
-          className={`w-full transform rounded-lg bg-gradient-to-r ${gradientFrom} ${gradientTo} py-2.5 font-bold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none text-sm`}
+          className="w-full"
+          variant={variant === 'marketing' ? 'default' : variant === 'valores' ? 'default' : 'default'}
         >
           {uploading ? (
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
               <span>Processando...</span>
             </div>
           ) : (
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-base">🚀</span>
-              <span>Enviar {files.length} Arquivo(s)</span>
+            <div className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              <span>Enviar {files.length > 0 ? `${files.length} Arquivo(s)` : 'Arquivo'}</span>
             </div>
           )}
-        </button>
+        </Button>
 
         {/* Barra de Progresso */}
         <UploadProgress
@@ -117,13 +112,13 @@ export function UploadSection({
 
         {/* Informações e Dicas */}
         {tips && tips.length > 0 && (
-          <div className={`rounded-lg p-3 ${variant === 'marketing' ? 'bg-purple-50 dark:bg-purple-950/30' : variant === 'valores' ? 'bg-emerald-50 dark:bg-emerald-950/30' : 'bg-blue-50 dark:bg-blue-950/30'}`}>
+          <div className="rounded-lg border bg-muted/50 p-3">
             <div className="flex items-start gap-2">
-              <span className="text-base">💡</span>
-              <ul className={`flex-1 space-y-1 text-xs ${variant === 'marketing' ? 'text-purple-800 dark:text-purple-200' : variant === 'valores' ? 'text-emerald-800 dark:text-emerald-200' : 'text-blue-800 dark:text-blue-200'}`}>
+              <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <ul className="flex-1 space-y-1 text-xs text-muted-foreground">
                 {tips.map((tip, index) => (
-                  <li key={index}>
-                    {tip.icon || '•'} {tip.text}
+                  <li key={index} className="flex items-start gap-1">
+                    {tip.text}
                   </li>
                 ))}
               </ul>
@@ -133,22 +128,21 @@ export function UploadSection({
 
         {/* Colunas Esperadas */}
         {expectedColumns && expectedColumns.length > 0 && (
-          <details className="rounded-lg bg-slate-50 p-2.5 dark:bg-slate-800/50">
-            <summary className="cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
-              📋 Ver colunas esperadas
+          <details className="group">
+            <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1">
+              <FileSpreadsheet className="h-3 w-3" />
+              Ver colunas esperadas
             </summary>
-            <div className="mt-2 grid grid-cols-1 gap-1 text-xs">
+            <div className="mt-2 flex flex-wrap gap-1">
               {expectedColumns.map((col) => (
-                <div key={col} className="flex items-center gap-1.5 rounded bg-white px-2 py-1 dark:bg-slate-900">
-                  <span className="text-blue-600">✓</span>
-                  <code className="text-xs text-slate-700 dark:text-slate-300">{col}</code>
-                </div>
+                <Badge key={col} variant="secondary" className="text-[10px] font-mono">
+                  {col}
+                </Badge>
               ))}
             </div>
           </details>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
-
