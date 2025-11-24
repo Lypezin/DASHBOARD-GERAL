@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 interface UploadSectionProps {
   title: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
   files: File[];
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveFile: (index: number) => void;
@@ -52,7 +52,7 @@ export function UploadSection({
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <span className="text-2xl">{icon}</span>
+          {icon}
           {title}
         </CardTitle>
         <p className="text-sm text-muted-foreground">{description}</p>

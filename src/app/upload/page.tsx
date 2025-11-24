@@ -15,7 +15,8 @@ import {
 } from '@/constants/upload';
 import { marketingTransformers, valoresCidadeTransformers } from '@/utils/uploadTransformers';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { PageLoading } from '@/components/ui/loading';
+import { RefreshCw, BarChart2, Megaphone, DollarSign } from 'lucide-react';
 
 export default function UploadPage() {
   const { loading, isAuthorized } = useUploadAuth();
@@ -131,23 +132,7 @@ export default function UploadPage() {
   // Mostrar loading enquanto verifica autenticação
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
-          <p className="text-lg font-semibold">Verificando permissões...</p>
-          {showRetry && (
-            <div className="mt-6 space-y-2">
-              <p className="text-sm text-muted-foreground">
-                A verificação está demorando mais que o esperado.
-              </p>
-              <Button onClick={() => window.location.reload()} variant="outline">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Tentar Novamente
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
+      <PageLoading text="Verificando permissões..." />
     );
   }
 
@@ -161,7 +146,7 @@ export default function UploadPage() {
       <div className="min-h-screen bg-background p-8">
         <div className="mx-auto max-w-[1600px] space-y-8">
           {/* Título da Página */}
-          <div className="text-center space-y-2">
+          <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold tracking-tight">Upload de Dados</h1>
             <p className="text-muted-foreground">
               Importe suas planilhas Excel para o sistema
@@ -174,7 +159,7 @@ export default function UploadPage() {
             <UploadSection
               title="Corridas"
               description="Upload de dados de corridas"
-              icon="📊"
+              icon={<BarChart2 className="h-6 w-6" />}
               files={corridasUpload.files}
               onFileChange={corridasUpload.handleFileChange}
               onRemoveFile={corridasUpload.removeFile}
@@ -197,7 +182,7 @@ export default function UploadPage() {
             <UploadSection
               title="Marketing"
               description="Upload de dados de Marketing"
-              icon="📢"
+              icon={<Megaphone className="h-6 w-6" />}
               files={marketingFiles}
               onFileChange={handleMarketingFileChange}
               onRemoveFile={removeMarketingFile}
@@ -220,7 +205,7 @@ export default function UploadPage() {
             <UploadSection
               title="Valores por Cidade"
               description="Upload de valores por cidade"
-              icon="💰"
+              icon={<DollarSign className="h-6 w-6" />}
               files={valoresCidadeFiles}
               onFileChange={handleValoresCidadeFileChange}
               onRemoveFile={removeValoresCidadeFile}

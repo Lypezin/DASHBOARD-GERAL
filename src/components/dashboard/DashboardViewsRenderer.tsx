@@ -3,7 +3,7 @@
  * Extraído de src/app/page.tsx
  */
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
   DashboardView,
@@ -16,6 +16,7 @@ import {
   PrioridadePromoView,
   ComparacaoView,
 } from '@/config/dynamicImports';
+import { LoadingSpinner } from '@/components/ui/loading';
 import type {
   Totals,
   AderenciaSemanal,
@@ -65,10 +66,7 @@ interface DashboardViewsRendererProps {
 
 const LoadingFallback = () => (
   <div className="flex h-[60vh] items-center justify-center">
-    <div className="text-center">
-      <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-      <p className="mt-4 text-sm font-semibold text-blue-700 dark:text-blue-300">Carregando...</p>
-    </div>
+    <LoadingSpinner size="lg" text="Carregando..." />
   </div>
 );
 
@@ -98,103 +96,123 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   origens,
   currentUser,
 }: DashboardViewsRendererProps) {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [previousTab, setPreviousTab] = useState(activeTab);
+
+  useEffect(() => {
+    if (previousTab !== activeTab) {
+      setIsTransitioning(true);
+      const timer = setTimeout(() => {
+        setPreviousTab(activeTab);
+        setIsTransitioning(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, previousTab]);
+
   // Verificar se precisa esperar Chart.js
   const needsChart = activeTab === 'dashboard' || activeTab === 'analise' || activeTab === 'evolucao' || activeTab === 'comparacao';
-  
+
   if (needsChart && !chartReady) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-          <p className="mt-4 text-sm font-semibold text-blue-700 dark:text-blue-300">Carregando gráficos...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Carregando gráficos..." />
+      </div>
+    );
+  }
+
+  if (isTransitioning) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <LoadingSpinner size="lg" text="Carregando dados..." />
       </div>
     );
   }
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<LoadingFallback />}>
-        {activeTab === 'dashboard' && (
-          <DashboardView
-            aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
-            aderenciaDia={aderenciaDia}
-            aderenciaTurno={aderenciaTurno}
-            aderenciaSubPraca={aderenciaSubPraca}
-            aderenciaOrigem={aderenciaOrigem}
-          />
-        )}
-        
-        {activeTab === 'analise' && (
-          totals ? (
-            <AnaliseView
-              totals={totals}
+      <div className="animate-in fade-in-0 duration-500">
+        <Suspense fallback={<LoadingFallback />}>
+          {activeTab === 'dashboard' && (
+            <DashboardView
+              aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
               aderenciaDia={aderenciaDia}
               aderenciaTurno={aderenciaTurno}
               aderenciaSubPraca={aderenciaSubPraca}
               aderenciaOrigem={aderenciaOrigem}
             />
-          ) : (
-            <LoadingFallback />
-          )
-        )}
-        
-        {activeTab === 'utr' && (
-          <UtrView
-            utrData={utrData}
-            loading={loadingTabData}
-          />
-        )}
+          )}
 
-        {activeTab === 'entregadores' && (
-          <EntregadoresMainView
-            entregadoresData={entregadoresData}
-            loading={loadingTabData}
-          />
-        )}
+          {activeTab === 'analise' && (
+            totals ? (
+              <AnaliseView
+                totals={totals}
+                aderenciaDia={aderenciaDia}
+                aderenciaTurno={aderenciaTurno}
+                aderenciaSubPraca={aderenciaSubPraca}
+                aderenciaOrigem={aderenciaOrigem}
+              />
+            ) : (
+              <LoadingFallback />
+            )
+          )}
 
-        {activeTab === 'valores' && (
-          <ValoresView
-            valoresData={valoresData}
-            loading={loadingTabData}
-          />
-        )}
+          {activeTab === 'utr' && (
+            <UtrView
+              utrData={utrData}
+              loading={loadingTabData}
+            />
+          )}
 
-        {activeTab === 'prioridade' && (
-          <PrioridadePromoView
-            entregadoresData={prioridadeData}
-            loading={loadingTabData}
-          />
-        )}
+          {activeTab === 'entregadores' && (
+            <EntregadoresMainView
+              entregadoresData={entregadoresData}
+              loading={loadingTabData}
+            />
+          )}
 
-        {activeTab === 'evolucao' && (
-          <EvolucaoView
-            evolucaoMensal={evolucaoMensal}
-            evolucaoSemanal={evolucaoSemanal}
-            loading={loadingEvolucao}
-            anoSelecionado={anoSelecionado}
-            anosDisponiveis={anosDisponiveis}
-            onAnoChange={onAnoChange}
-          />
-        )}
-        
-        {activeTab === 'comparacao' && (
-          <ComparacaoView
-            semanas={semanas}
-            pracas={pracas}
-            subPracas={subPracas}
-            origens={origens}
-            currentUser={currentUser}
-          />
-        )}
-        
-        {activeTab === 'marketing' && (
-          <MarketingView />
-        )}
-      </Suspense>
+          {activeTab === 'valores' && (
+            <ValoresView
+              valoresData={valoresData}
+              loading={loadingTabData}
+            />
+          )}
+
+          {activeTab === 'prioridade' && (
+            <PrioridadePromoView
+              entregadoresData={prioridadeData}
+              loading={loadingTabData}
+            />
+          )}
+
+          {activeTab === 'evolucao' && (
+            <EvolucaoView
+              evolucaoMensal={evolucaoMensal}
+              evolucaoSemanal={evolucaoSemanal}
+              loading={loadingEvolucao}
+              anoSelecionado={anoSelecionado}
+              anosDisponiveis={anosDisponiveis}
+              onAnoChange={onAnoChange}
+            />
+          )}
+
+          {activeTab === 'comparacao' && (
+            <ComparacaoView
+              semanas={semanas}
+              pracas={pracas}
+              subPracas={subPracas}
+              origens={origens}
+              currentUser={currentUser}
+            />
+          )}
+
+          {activeTab === 'marketing' && (
+            <MarketingView />
+          )}
+        </Suspense>
+      </div>
     </ErrorBoundary>
   );
 });
 
 DashboardViewsRenderer.displayName = 'DashboardViewsRenderer';
-

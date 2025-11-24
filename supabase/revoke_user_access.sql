@@ -1,3 +1,6 @@
+-- Primeiro remover a função existente se ela existir
+DROP FUNCTION IF EXISTS public.revoke_user_access(uuid);
+
 -- Função para revogar acesso de um usuário
 CREATE OR REPLACE FUNCTION public.revoke_user_access(user_id uuid)
 RETURNS void
