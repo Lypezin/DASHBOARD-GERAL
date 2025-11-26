@@ -26,6 +26,14 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
   viewMode,
   dadosAtivosLength,
 }) => {
+  // Verificar se há dados reais para exibir
+  const hasData = React.useMemo(() => {
+    if (!chartData?.datasets?.length) return false;
+    return chartData.datasets.some(dataset =>
+      dataset.data && dataset.data.some((val: any) => val != null && val !== 0)
+    );
+  }, [chartData]);
+
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
       <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -109,6 +117,23 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
       <CardContent className="p-6">
         {chartData.datasets.length > 0 && chartData.labels.length > 0 ? (
           <div className="relative h-[500px] w-full">
+            {!hasData && !chartError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-10 rounded-lg backdrop-blur-sm">
+                <div className="text-center p-6 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 max-w-md">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
+                    <Info className="h-6 w-6 text-slate-500 dark:text-slate-400" />
+                  </div>
+                  <p className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                    Sem dados para exibir
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Não foram encontrados registros para o ano de {anoSelecionado} com os filtros atuais.
+                    Tente selecionar outro ano ou limpar os filtros.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {chartError ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
@@ -116,27 +141,13 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
                   <p className="text-sm text-slate-500 dark:text-slate-400">{chartError}</p>
                 </div>
               </div>
-            ) : chartData && chartData.datasets && chartData.datasets.length > 0 && chartData.labels && chartData.labels.length > 0 ? (
+            ) : (
               <Line
                 data={chartData}
                 options={chartOptions}
                 redraw={true}
                 updateMode="default"
               />
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                    <BarChart2 className="h-6 w-6 text-slate-400" />
-                  </div>
-                  <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
-                    Nenhum dado disponível para {anoSelecionado}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    Selecione outro ano para visualizar os dados
-                  </p>
-                </div>
-              </div>
             )}
           </div>
         ) : (

@@ -19,15 +19,32 @@ export const processEvolucaoData = (
   const semanalArray = Array.isArray(evolucaoSemanal) ? evolucaoSemanal : [];
 
   // Filtrar e ordenar dados do ano selecionado
+  // ⚠️ CORREÇÃO: Ser mais permissivo com tipos (string/number)
   const dadosAtivos = viewMode === 'mensal'
-    ? [...mensalArray].filter(d => d && d.ano === anoSelecionado).sort((a, b) => {
-      if (a.ano !== b.ano) return a.ano - b.ano;
-      return a.mes - b.mes;
+    ? [...mensalArray].filter(d => {
+      if (!d) return false;
+      const ano = Number(d.ano);
+      return !isNaN(ano) && ano === Number(anoSelecionado);
+    }).sort((a, b) => {
+      const anoA = Number(a.ano);
+      const anoB = Number(b.ano);
+      if (anoA !== anoB) return anoA - anoB;
+
+      const mesA = Number(a.mes);
+      const mesB = Number(b.mes);
+      return mesA - mesB;
     })
     : [...semanalArray]
-      .filter(d => d && d.ano === anoSelecionado)
+      .filter(d => {
+        if (!d) return false;
+        const ano = Number(d.ano);
+        return !isNaN(ano) && ano === Number(anoSelecionado);
+      })
       .sort((a, b) => {
-        if (a.ano !== b.ano) return a.ano - b.ano;
+        const anoA = Number(a.ano);
+        const anoB = Number(b.ano);
+        if (anoA !== anoB) return anoA - anoB;
+
         const semanaA = Number(a.semana);
         const semanaB = Number(b.semana);
         if (isNaN(semanaA) || isNaN(semanaB)) return 0;
@@ -67,23 +84,7 @@ export const processEvolucaoData = (
     if (IS_DEV) {
       safeLog.info(`[processEvolucaoData] Mensal - Ano selecionado: ${anoSelecionado}`);
       safeLog.info(`[processEvolucaoData] Mensal - Total de dados recebidos: ${dadosAtivos.length}`);
-      safeLog.info(`[processEvolucaoData] Mensal - Dados por mês:`, Array.from(dadosPorMes.entries()).map(([mes, d]) => ({
-        mes,
-        mes_nome: d.mes_nome,
-        completadas: d.corridas_completadas
-      })));
-      safeLog.info(`[processEvolucaoData] Mensal - Total de labels: ${baseLabels.length}`);
-      safeLog.info(`[processEvolucaoData] Mensal - Labels: ${baseLabels.join(', ')}`);
-      safeLog.info(`[processEvolucaoData] Mensal - Dados mapeados: ${Array.from(dadosPorLabel.values()).filter(d => d !== null).length}`);
-      // Verificar mapeamento detalhado
-      baseLabels.forEach((label, index) => {
-        const dados = dadosPorLabel.get(label);
-        if (dados) {
-          safeLog.info(`[processEvolucaoData] ${label} (índice ${index}, mês ${index + 1}): completadas=${dados.corridas_completadas}`);
-        } else {
-          safeLog.info(`[processEvolucaoData] ${label} (índice ${index}, mês ${index + 1}): SEM DADOS`);
-        }
-      });
+      // ... (logs removidos para brevidade)
     }
   } else {
     // ⚠️ CRÍTICO: Mapear por número da semana (1-53)
@@ -94,11 +95,6 @@ export const processEvolucaoData = (
       const semana = typeof semanaRaw === 'string' ? parseInt(semanaRaw, 10) : Number(semanaRaw);
       if (!isNaN(semana) && semana >= 1 && semana <= 53) {
         dadosPorSemana.set(semana, d as EvolucaoSemanal);
-        if (IS_DEV) {
-          safeLog.info(`[processEvolucaoData] Mapeando semana ${semana}: completadas=${(d as EvolucaoSemanal).corridas_completadas}, aceitas=${(d as EvolucaoSemanal).corridas_aceitas}, ofertadas=${(d as EvolucaoSemanal).corridas_ofertadas}`);
-        }
-      } else if (IS_DEV) {
-        safeLog.warn(`[processEvolucaoData] Semana inválida ignorada: ${semanaRaw} (tipo: ${typeof semanaRaw})`);
       }
     });
 
@@ -116,21 +112,6 @@ export const processEvolucaoData = (
         dadosPorLabel.set(label, null);
       }
     });
-
-    // ⚠️ DEBUG: Verificar mapeamento crítico
-    if (IS_DEV) {
-      const s22Index = baseLabels.indexOf('S22');
-      const s22Dados = dadosPorLabel.get('S22');
-      safeLog.info(`[processEvolucaoData] S22 está no índice ${s22Index}, tem dados: ${s22Dados !== null && s22Dados !== undefined}`);
-      if (s22Dados) {
-        safeLog.info(`[processEvolucaoData] S22 dados: semana=${(s22Dados as EvolucaoSemanal).semana}, completadas=${(s22Dados as EvolucaoSemanal).corridas_completadas}`);
-      }
-      // Verificar primeiras e últimas semanas
-      safeLog.info(`[processEvolucaoData] Primeiros labels: ${baseLabels.slice(0, 5).join(', ')}`);
-      safeLog.info(`[processEvolucaoData] Últimos labels: ${baseLabels.slice(-5).join(', ')}`);
-      safeLog.info(`[processEvolucaoData] Total de labels: ${baseLabels.length}`);
-      safeLog.info(`[processEvolucaoData] Total de dados mapeados: ${Array.from(dadosPorLabel.values()).filter(d => d !== null).length}`);
-    }
   }
 
   return { dadosAtivos, baseLabels, dadosPorLabel };
@@ -148,52 +129,26 @@ export const getMetricConfig = (
   metric: 'ofertadas' | 'aceitas' | 'completadas' | 'horas',
   baseLabels: string[],
   dadosPorLabel: Map<string, any>
-): {
-  labels: string[];
-  data: (number | null)[];
-  label: string;
-  borderColor: string;
-  backgroundColor: any;
-  pointColor: string;
-  yAxisID: string;
-  useUtrData: boolean;
-} | null => {
+) => {
   // ⚠️ CRÍTICO: Mapear dados na mesma ordem dos labels
   // baseLabels[0] -> data[0], baseLabels[1] -> data[1], etc.
   const mapData = (getValue: (d: any) => number | null): (number | null)[] => {
     const mappedData = baseLabels.map((label, index) => {
       const d = dadosPorLabel.get(label);
       if (d === null || d === undefined) {
-        if (IS_DEV && index < 3) {
-          safeLog.info(`[getMetricConfig] Label ${label} (índice ${index}): SEM DADOS`);
-        }
         return null;
       }
       const value = getValue(d);
       if (value == null || value === undefined) {
-        if (IS_DEV && index < 3) {
-          safeLog.info(`[getMetricConfig] Label ${label} (índice ${index}): valor é null/undefined`);
-        }
         return null;
       }
       // ⚠️ CORREÇÃO: Converter para número de forma mais robusta (suporta string e number)
       const numValue = typeof value === 'string' ? parseFloat(value) : Number(value);
       if (isNaN(numValue) || !isFinite(numValue)) {
-        if (IS_DEV && index < 3) {
-          safeLog.info(`[getMetricConfig] Label ${label} (índice ${index}): valor inválido (${value})`);
-        }
         return null;
-      }
-      if (IS_DEV && index < 3) {
-        safeLog.info(`[getMetricConfig] Label ${label} (índice ${index}): valor=${numValue}`);
       }
       return numValue;
     });
-
-    if (IS_DEV) {
-      const nonNullCount = mappedData.filter(d => d !== null).length;
-      safeLog.info(`[getMetricConfig] Total de valores não-nulos: ${nonNullCount} de ${mappedData.length}`);
-    }
 
     return mappedData;
   };
@@ -230,7 +185,7 @@ export const getMetricConfig = (
         labels: baseLabels,
         data: mapData(d => {
           // ⚠️ CORREÇÃO: Garantir conversão correta (pode vir como string ou number)
-          const value = (d as any).corridas_ofertadas;
+          const value = (d as any).corridas_ofertadas ?? (d as any).ofertadas; // Fallback para 'ofertadas' se 'corridas_ofertadas' não existir
           return typeof value === 'string' ? parseFloat(value) : value;
         }),
         label: '📢 Corridas Ofertadas',
@@ -255,7 +210,7 @@ export const getMetricConfig = (
         labels: baseLabels,
         data: mapData(d => {
           // ⚠️ CORREÇÃO: Garantir conversão correta (pode vir como string ou number)
-          const value = (d as any).corridas_aceitas;
+          const value = (d as any).corridas_aceitas ?? (d as any).aceitas; // Fallback
           return typeof value === 'string' ? parseFloat(value) : value;
         }),
         label: '✅ Corridas Aceitas',
@@ -281,7 +236,8 @@ export const getMetricConfig = (
         labels: baseLabels,
         data: mapData(d => {
           // ⚠️ CORREÇÃO: Garantir conversão correta (pode vir como string ou number)
-          const value = (d as any).corridas_completadas ?? (d as any).total_corridas;
+          // Tentar 'corridas_completadas', depois 'completadas', depois 'total_corridas'
+          const value = (d as any).corridas_completadas ?? (d as any).completadas ?? (d as any).total_corridas;
           return typeof value === 'string' ? parseFloat(value) : value;
         }),
         label: '🚗 Corridas Completadas',
@@ -360,9 +316,6 @@ export const createChartData = (
 
     // Garantir tamanho correto
     if (data.length !== baseLabels.length) {
-      if (IS_DEV) {
-        safeLog.warn(`[createChartData] Dataset ${index} tem tamanho ${data.length}, esperado ${baseLabels.length}`);
-      }
       while (data.length < baseLabels.length) {
         data.push(null);
       }
@@ -437,31 +390,6 @@ export const createChartData = (
       },
     };
   });
-
-  // ⚠️ DEBUG: Validação final
-  if (IS_DEV) {
-    safeLog.info(`[createChartData] ========== INÍCIO VALIDAÇÃO ==========`);
-    safeLog.info(`[createChartData] Labels: ${baseLabels.length}, Datasets: ${datasets.length}`);
-    safeLog.info(`[createChartData] Primeiros 5 labels: ${baseLabels.slice(0, 5).join(', ')}`);
-    safeLog.info(`[createChartData] Últimos 5 labels: ${baseLabels.slice(-5).join(', ')}`);
-
-    if (datasets.length > 0) {
-      datasets.forEach((dataset, datasetIndex) => {
-        safeLog.info(`[createChartData] Dataset ${datasetIndex} (${dataset.label}): ${dataset.data.length} elementos`);
-
-        // Verificar primeiros e últimos valores
-        const primeirosValores = dataset.data.slice(0, 5).map((v, i) => `${baseLabels[i]}=${v}`).join(', ');
-        const ultimosValores = dataset.data.slice(-5).map((v, i) => `${baseLabels[baseLabels.length - 5 + i]}=${v}`).join(', ');
-        safeLog.info(`[createChartData] Dataset ${datasetIndex} - Primeiros 5: ${primeirosValores}`);
-        safeLog.info(`[createChartData] Dataset ${datasetIndex} - Últimos 5: ${ultimosValores}`);
-
-        // Contar valores não-nulos
-        const nonNullCount = dataset.data.filter(v => v !== null && v !== undefined).length;
-        safeLog.info(`[createChartData] Dataset ${datasetIndex} - Valores não-nulos: ${nonNullCount} de ${dataset.data.length}`);
-      });
-    }
-    safeLog.info(`[createChartData] ========== FIM VALIDAÇÃO ==========`);
-  }
 
   return {
     labels: baseLabels, // ⚠️ CRÍTICO: Sempre retornar todos os labels na ordem correta
