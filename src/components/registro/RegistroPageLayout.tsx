@@ -13,7 +13,7 @@ export const RegistroPageLayout = React.memo(function RegistroPageLayout({
   children,
 }: RegistroPageLayoutProps) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-950 px-4 py-12">
+    <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-950 px-4 py-12">
       {/* Background Animated Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -left-40 h-80 w-80 animate-pulse rounded-full bg-blue-500/20 blur-3xl"></div>
@@ -40,7 +40,7 @@ export const RegistroPageLayout = React.memo(function RegistroPageLayout({
         {/* Card Container */}
         <div className="group relative">
           <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 opacity-20 blur-xl transition-opacity group-hover:opacity-30"></div>
-          
+
           <div className="relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-2xl shadow-2xl ring-1 ring-white/20">
             {children}
           </div>

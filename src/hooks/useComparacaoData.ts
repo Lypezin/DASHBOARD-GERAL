@@ -108,7 +108,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         // Converter string para número e extrair ano se disponível
         let semanaNumero: number;
         let anoNumero: number | null = null;
-        
+
         if (typeof semana === 'string') {
           if (semana.includes('W')) {
             // Formato: "2025-W45" ou "S2025-W45"
@@ -179,7 +179,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         // Converter string para número e extrair ano se disponível
         let semanaNumero: number;
         let anoNumero: number | null = null;
-        
+
         if (typeof semana === 'string') {
           if (semana.includes('W')) {
             // Formato: "2025-W45" ou "S2025-W45"
@@ -231,7 +231,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       const resultadosUtr = await Promise.all(promessasUtr);
 
       if (IS_DEV) {
-        safeLog.info('📊 Dados Comparação:', { 
+        safeLog.info('📊 Dados Comparação:', {
           semanas: resultadosDados.length,
           semanasSelecionadas: semanasSelecionadas,
           resultados: resultadosDados.map(r => ({
@@ -249,16 +249,25 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           const semanaStr = String(semana);
           const resultadoSemana = String(r.semana);
           // Normalizar comparação (remover W se existir)
-          const semanaNormalizada = semanaStr.includes('W') 
-            ? semanaStr.match(/W(\d+)/)?.[1] || semanaStr 
+          const semanaNormalizada = semanaStr.includes('W')
+            ? semanaStr.match(/W(\d+)/)?.[1] || semanaStr
             : semanaStr;
           const resultadoNormalizado = resultadoSemana.includes('W')
             ? resultadoSemana.match(/W(\d+)/)?.[1] || resultadoSemana
             : resultadoSemana;
           return semanaNormalizada === resultadoNormalizado;
         });
-        return resultado?.dados;
-      }).filter((dados): dados is DashboardResumoData => dados !== undefined);
+        // Se não encontrar dados, retornar um objeto vazio estruturado ou null
+        return resultado?.dados || {
+          totais: { corridas_ofertadas: 0, corridas_aceitas: 0, corridas_rejeitadas: 0, corridas_completadas: 0 },
+          semanal: [],
+          dia: [],
+          turno: [],
+          sub_praca: [],
+          origem: [],
+          dimensoes: { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [] }
+        } as DashboardResumoData;
+      });
 
       setDadosComparacao(dadosOrdenados);
       setUtrComparacao(resultadosUtr);
