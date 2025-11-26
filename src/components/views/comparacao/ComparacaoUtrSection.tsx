@@ -71,20 +71,29 @@ export const ComparacaoUtrSection: React.FC<ComparacaoUtrSectionProps> = ({
                 </td>
                 {utrComparacao.map((item, idx) => {
                   let utrValue = 0;
+                  let hasError = false;
 
                   if (item.utr) {
                     if (item.utr.geral && typeof item.utr.geral === 'object' && 'utr' in item.utr.geral) {
                       utrValue = item.utr.geral.utr ?? 0;
                     }
+                  } else {
+                    hasError = true;
                   }
 
-                  safeLog.info(`📊 UTR Semana ${item.semana}:`, { utr: utrValue });
+                  safeLog.info(`📊 UTR Semana ${item.semana}:`, { utr: utrValue, hasError });
 
                   return (
                     <td key={idx} className="px-6 py-4 text-center border-l border-slate-200 dark:border-slate-700">
-                      <span className="inline-flex items-center rounded-full bg-purple-50 px-3 py-1 text-sm font-bold text-purple-700 dark:bg-purple-900/20 dark:text-purple-300">
-                        {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}%
-                      </span>
+                      {hasError ? (
+                        <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300" title="Erro ao calcular UTR">
+                          N/D
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-purple-50 px-3 py-1 text-sm font-bold text-purple-700 dark:bg-purple-900/20 dark:text-purple-300">
+                          {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}%
+                        </span>
+                      )}
                     </td>
                   );
                 })}

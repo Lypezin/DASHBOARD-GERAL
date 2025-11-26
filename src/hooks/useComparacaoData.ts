@@ -252,13 +252,23 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
         const filtro = buildFilterPayload(filters, currentUser);
 
-        const { data, error } = await safeRpc<UtrData>('calcular_utr', filtro, {
-          timeout: 30000,
-          validateParams: true
-        });
-        if (error) throw error;
+        try {
+          const { data, error } = await safeRpc<UtrData>('calcular_utr', filtro, {
+            timeout: 30000,
+            validateParams: true
+          });
 
-        return { semana, utr: data };
+          if (error) {
+            console.error(`%c[Comparacao] ❌ Erro ao calcular UTR para semana ${semana}:`, 'color: #ef4444; font-weight: bold', error);
+            return { semana, utr: null };
+          }
+
+          return { semana, utr: data };
+        } catch (err) {
+          console.error(`%c[Comparacao] ❌ Exceção ao calcular UTR para semana ${semana}:`, 'color: #ef4444; font-weight: bold', err);
+          // Retornar null em vez de falhar completamente
+          return { semana, utr: null };
+        }
       });
 
       const resultadosDados = await Promise.all(promessasDados);
