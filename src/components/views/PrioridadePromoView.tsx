@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Entregador, EntregadoresData } from '@/types';
-import MetricCard from '../MetricCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PrioridadeFilters } from './prioridade/PrioridadeFilters';
 import { PrioridadeSearch } from './prioridade/PrioridadeSearch';
 import { PrioridadeTable } from './prioridade/PrioridadeTable';
@@ -17,6 +17,15 @@ import {
   getCompletadasColor,
   getCompletadasBg,
 } from './prioridade/PrioridadeUtils';
+import {
+  Users,
+  Megaphone,
+  CheckCircle2,
+  XCircle,
+  Flag,
+  BarChart3,
+  AlertCircle
+} from 'lucide-react';
 
 const PrioridadePromoView = React.memo(function PrioridadePromoView({
   entregadoresData,
@@ -37,7 +46,6 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   const { searchResults, isSearching } = usePrioridadeSearch(searchTerm, entregadoresData);
 
   // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
-  // Usar useMemo para evitar recriação desnecessária
   const dataToDisplay = useMemo(() => {
     const baseData = entregadoresData?.entregadores;
     const baseArray = Array.isArray(baseData) ? baseData : [];
@@ -48,7 +56,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   const dataFiltrada = useMemo(() => {
     if (!Array.isArray(dataToDisplay)) return [];
     let filtered = [...dataToDisplay];
-    
+
     // Filtro por % de aderência (mostrar apenas quem tem o valor ou acima)
     if (filtroAderencia.trim()) {
       const aderenciaMin = parseFloat(filtroAderencia);
@@ -56,7 +64,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         filtered = filtered.filter(e => (e.aderencia_percentual ?? 0) >= aderenciaMin);
       }
     }
-    
+
     // Filtro por % de rejeição (mostrar apenas quem tem o valor ou abaixo)
     if (filtroRejeicao.trim()) {
       const rejeicaoMax = parseFloat(filtroRejeicao);
@@ -64,9 +72,8 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         filtered = filtered.filter(e => (e.rejeicao_percentual ?? 0) <= rejeicaoMax);
       }
     }
-    
+
     // Filtro por % de completadas (mostrar apenas quem tem o valor ou acima)
-    // % completadas = (corridas_completadas / corridas_ofertadas) * 100
     if (filtroCompletadas.trim()) {
       const completadasMin = parseFloat(filtroCompletadas);
       if (!isNaN(completadasMin)) {
@@ -78,9 +85,8 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         });
       }
     }
-    
+
     // Filtro por % de aceitas (mostrar apenas quem tem o valor ou acima)
-    // % aceitas = (corridas_aceitas / corridas_ofertadas) * 100
     if (filtroAceitas.trim()) {
       const aceitasMin = parseFloat(filtroAceitas);
       if (!isNaN(aceitasMin)) {
@@ -92,20 +98,17 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         });
       }
     }
-    
+
     return filtered;
   }, [dataToDisplay, filtroAderencia, filtroRejeicao, filtroCompletadas, filtroAceitas]);
 
-  // Criar uma cópia estável para ordenação usando useMemo para garantir que reordena quando necessário
-  // IMPORTANTE: useMemo deve estar antes de qualquer early return (regras dos hooks do React)
+  // Criar uma cópia estável para ordenação
   const sortedEntregadores: Entregador[] = useMemo(() => {
     if (!dataFiltrada || dataFiltrada.length === 0) return [];
-    
-    // Criar uma cópia do array para não mutar o original
+
     const dataCopy = [...dataFiltrada];
-    
+
     return dataCopy.sort((a, b) => {
-      // Campos calculados que precisam de tratamento especial
       if (sortField === 'percentual_aceitas') {
         const aPercent = calcularPercentualAceitas(a);
         const bPercent = calcularPercentualAceitas(b);
@@ -115,7 +118,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         }
         return sortDirection === 'asc' ? comparison : -comparison;
       }
-      
+
       if (sortField === 'percentual_completadas') {
         const aPercent = calcularPercentualCompletadas(a);
         const bPercent = calcularPercentualCompletadas(b);
@@ -125,36 +128,30 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         }
         return sortDirection === 'asc' ? comparison : -comparison;
       }
-      
+
       const aValue = a[sortField as keyof Entregador];
       const bValue = b[sortField as keyof Entregador];
-      
-      // Tratar valores nulos/undefined - colocar no final
+
       if (aValue == null && bValue == null) return 0;
       if (aValue == null) return 1;
       if (bValue == null) return -1;
-      
-      // Se for campo de string (nome_entregador ou id_entregador)
+
       if (sortField === 'nome_entregador' || sortField === 'id_entregador') {
         const aStr = String(aValue).toLowerCase().trim();
         const bStr = String(bValue).toLowerCase().trim();
         const comparison = aStr.localeCompare(bStr, 'pt-BR', { sensitivity: 'base', numeric: true });
         return sortDirection === 'asc' ? comparison : -comparison;
       }
-      
-      // Para valores numéricos (todos os outros campos)
-      // Garantir conversão correta para número
-    const aNum = Number(aValue) || 0;
-    const bNum = Number(bValue) || 0;
-      
-      // Comparação numérica precisa
+
+      const aNum = Number(aValue) || 0;
+      const bNum = Number(bValue) || 0;
+
       const comparison = aNum - bNum;
-      
-      // Se os números forem iguais, manter ordem estável usando nome como desempate
+
       if (comparison === 0) {
         return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
       }
-      
+
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }, [dataFiltrada, sortField, sortDirection]);
@@ -179,8 +176,8 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Carregando dados de prioridade...</p>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
+          <p className="mt-4 text-sm font-medium text-slate-500">Carregando dados de prioridade...</p>
         </div>
       </div>
     );
@@ -188,22 +185,25 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   if (!entregadoresData) {
     return (
-      <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center dark:border-rose-900 dark:bg-rose-950/30">
-        <p className="text-lg font-semibold text-rose-900 dark:text-rose-100">Erro ao carregar dados de prioridade</p>
-        <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">A função listar_entregadores não está disponível ou ocorreu um erro no servidor (500). Verifique os logs do banco de dados.</p>
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="max-w-md mx-auto rounded-xl border border-rose-200 bg-white p-6 text-center shadow-sm dark:border-rose-900 dark:bg-slate-900">
+          <AlertCircle className="mx-auto h-10 w-10 text-rose-500 mb-4" />
+          <p className="text-lg font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
+          <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">Não foi possível carregar os dados de prioridade.</p>
+        </div>
       </div>
     );
   }
 
   if (entregadoresData.entregadores.length === 0) {
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
-        <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Nenhum entregador encontrado</p>
-        <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">Tente ajustar os filtros para ver os dados.</p>
+      <div className="flex flex-col items-center justify-center py-12 text-center border rounded-xl border-dashed border-slate-300 dark:border-slate-700">
+        <Users className="h-10 w-10 text-slate-400 mb-3" />
+        <p className="text-lg font-medium text-slate-900 dark:text-white">Nenhum entregador encontrado</p>
+        <p className="text-sm text-slate-500">Tente ajustar os filtros para ver os dados.</p>
       </div>
     );
   }
-
 
   // Calcular estatísticas gerais com base nos dados filtrados
   const totalOfertadas = dataFiltrada.reduce((sum, e) => sum + e.corridas_ofertadas, 0);
@@ -212,10 +212,9 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   const totalCompletadas = dataFiltrada.reduce((sum, e) => sum + e.corridas_completadas, 0);
   const totalEntregadores = dataFiltrada.length;
   const aderenciaMedia = totalEntregadores > 0 ? dataFiltrada.reduce((sum, e) => sum + e.aderencia_percentual, 0) / totalEntregadores : 0;
-  const rejeicaoMedia = totalEntregadores > 0 ? dataFiltrada.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / totalEntregadores : 0;
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <PrioridadeFilters
         filtroAderencia={filtroAderencia}
         filtroRejeicao={filtroRejeicao}
@@ -237,46 +236,86 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
       />
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-6">
-        <MetricCard
-          title="Entregadores"
-          value={totalEntregadores}
-          icon="👥"
-          color="blue"
-        />
-        <MetricCard
-          title="Ofertadas"
-          value={totalOfertadas}
-          icon="📢"
-          color="blue"
-        />
-        <MetricCard
-          title="Aceitas"
-          value={totalAceitas}
-          icon="✅"
-          color="green"
-        />
-        <MetricCard
-          title="Rejeitadas"
-          value={totalRejeitadas}
-          icon="❌"
-          color="red"
-        />
-        <MetricCard
-          title="Completadas"
-          value={totalCompletadas}
-          icon="🏁"
-          color="blue"
-        />
-        <MetricCard
-          title="Médias"
-          value={aderenciaMedia}
-          icon="📊"
-          percentage={aderenciaMedia}
-          percentageLabel="aderência"
-          color="blue"
-        />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+        {/* Entregadores */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Entregadores</CardTitle>
+            <Users className="h-3 w-3 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+              {totalEntregadores.toLocaleString('pt-BR')}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Ofertadas */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Ofertadas</CardTitle>
+            <Megaphone className="h-3 w-3 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+              {totalOfertadas.toLocaleString('pt-BR')}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Aceitas */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Aceitas</CardTitle>
+            <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+              {totalAceitas.toLocaleString('pt-BR')}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Rejeitadas */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Rejeitadas</CardTitle>
+            <XCircle className="h-3 w-3 text-rose-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+              {totalRejeitadas.toLocaleString('pt-BR')}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Completadas */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Completadas</CardTitle>
+            <Flag className="h-3 w-3 text-indigo-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+              {totalCompletadas.toLocaleString('pt-BR')}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Aderência Média */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Aderência Média</CardTitle>
+            <BarChart3 className="h-3 w-3 text-violet-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+              {aderenciaMedia.toFixed(1)}%
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
       <PrioridadeTable
         sortedEntregadores={sortedEntregadores}
         sortField={sortField}

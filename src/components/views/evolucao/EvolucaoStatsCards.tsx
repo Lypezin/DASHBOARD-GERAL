@@ -1,5 +1,7 @@
 import React from 'react';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Car, Clock, BarChart2, Calendar } from 'lucide-react';
 
 interface EvolucaoStatsCardsProps {
   dadosAtivos: any[];
@@ -16,96 +18,85 @@ export const EvolucaoStatsCards: React.FC<EvolucaoStatsCardsProps> = ({
     return null;
   }
 
+  const totalCorridas = dadosAtivos.reduce((sum, d) => sum + ((d as any).corridas_completadas || (d as any).total_corridas || 0), 0);
+  const totalHoras = dadosAtivos.reduce((sum, d) => sum + d.total_segundos, 0) / 3600;
+  const mediaCorridas = dadosAtivos.length > 0 ? totalCorridas / dadosAtivos.length : 0;
+
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {/* Total de Corridas */}
-      <div className="group relative rounded-2xl border-0 bg-gradient-to-br from-white via-white to-blue-50/30 p-6 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative z-10 flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-              Total de Corridas
-            </p>
-            <p className="mt-3 text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">
-              {dadosAtivos.reduce((sum, d) => sum + ((d as any).corridas_completadas || (d as any).total_corridas || 0), 0).toLocaleString('pt-BR')}
-            </p>
-            <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
-              {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} analisadas
-            </p>
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between space-y-0 pb-2">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total de Corridas</p>
+            <Car className="h-4 w-4 text-blue-500" />
           </div>
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
-            🚗
+          <div className="flex items-baseline space-x-2">
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">
+              {totalCorridas.toLocaleString('pt-BR')}
+            </div>
           </div>
-        </div>
-      </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            {dadosAtivos.length} {viewMode === 'mensal' ? 'meses' : 'semanas'} analisadas
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Total de Horas */}
-      <div className="group relative rounded-2xl border-0 bg-gradient-to-br from-white via-white to-blue-50/30 p-6 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative z-10 flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-              Total de Horas
-            </p>
-            <p className="mt-3 text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">
-              {formatarHorasParaHMS(dadosAtivos.reduce((sum, d) => sum + d.total_segundos, 0) / 3600)}
-            </p>
-            <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
-              Tempo total trabalhado
-            </p>
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between space-y-0 pb-2">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total de Horas</p>
+            <Clock className="h-4 w-4 text-orange-500" />
           </div>
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
-            ⏱️
+          <div className="flex items-baseline space-x-2">
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">
+              {formatarHorasParaHMS(totalHoras)}
+            </div>
           </div>
-        </div>
-      </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Tempo total trabalhado
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Média de Corridas */}
-      <div className="group relative rounded-2xl border-0 bg-gradient-to-br from-white via-white to-blue-50/30 p-6 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative z-10 flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between space-y-0 pb-2">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
               Média {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
             </p>
-            <p className="mt-3 text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">
-              {dadosAtivos.length > 0 ? (dadosAtivos.reduce((sum, d) => sum + ((d as any).corridas_completadas || (d as any).total_corridas || 0), 0) / dadosAtivos.length).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
-            </p>
-            <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
-              Corridas por período
-            </p>
+            <BarChart2 className="h-4 w-4 text-emerald-500" />
           </div>
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
-            📊
+          <div className="flex items-baseline space-x-2">
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">
+              {mediaCorridas.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </div>
           </div>
-        </div>
-      </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Corridas por período
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Período */}
-      <div className="group relative rounded-2xl border-0 bg-gradient-to-br from-white via-white to-blue-50/30 p-6 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative z-10 flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-              Período Analisado
-            </p>
-            <p className="mt-3 text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between space-y-0 pb-2">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Período Analisado</p>
+            <Calendar className="h-4 w-4 text-purple-500" />
+          </div>
+          <div className="flex items-baseline space-x-2">
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">
               {anoSelecionado}
-            </p>
-            <p className="mt-1 text-xs text-blue-600/70 dark:text-blue-400/70 font-medium">
-              {viewMode === 'mensal' ? '12 meses' : '53 semanas'} disponíveis
-            </p>
+            </div>
           </div>
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-3xl shadow-lg group-hover:scale-110 transition-transform">
-            📅
-          </div>
-        </div>
-      </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            {viewMode === 'mensal' ? '12 meses' : '53 semanas'} disponíveis
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };
-

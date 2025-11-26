@@ -14,6 +14,8 @@ import { ComparacaoSubPracaSection } from './comparacao/ComparacaoSubPracaSectio
 import { ComparacaoOrigemSection } from './comparacao/ComparacaoOrigemSection';
 import { ComparacaoUtrSection } from './comparacao/ComparacaoUtrSection';
 import { ComparacaoDiaTable } from './comparacao/ComparacaoDiaTable';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart2, Calendar, Table, ChartBar } from 'lucide-react';
 
 const ComparacaoView = React.memo(function ComparacaoView({
   semanas,
@@ -31,7 +33,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
   const [semanasSelecionadas, setSemanasSelecionadas] = useState<string[]>([]);
   const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(null);
   const [mostrarApresentacao, setMostrarApresentacao] = useState(false);
-  
+
   // Estados para controlar visualização (tabela/gráfico)
   const [viewModeDetalhada, setViewModeDetalhada] = useState<'table' | 'chart'>('table');
   const [viewModeDia, setViewModeDia] = useState<'table' | 'chart'>('table');
@@ -81,7 +83,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
         // Se já for número, converter para string
         semanaStr = String(semana);
       }
-      
+
       if (prev.includes(semanaStr)) {
         return prev.filter(s => s !== semanaStr);
       } else {
@@ -146,43 +148,48 @@ const ComparacaoView = React.memo(function ComparacaoView({
       {dadosComparacao.length > 0 && (
         <div className="space-y-6">
           <ComparacaoMetrics dadosComparacao={dadosComparacao} />
-          
+
           {/* Tabela de Comparação Completa */}
-          <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
-            <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 dark:border-slate-800 dark:from-slate-900 dark:to-blue-950/30">
-              <div className="flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-                  <span className="text-xl">📊</span>
-                  Comparação Detalhada de Métricas
-                </h3>
+          <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+            <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <BarChart2 className="h-5 w-5 text-blue-500" />
+                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+                    Comparação Detalhada de Métricas
+                  </CardTitle>
+                </div>
                 <div className="flex gap-2">
                   <ViewToggleButton
                     active={viewModeDetalhada === 'table'}
                     onClick={() => setViewModeDetalhada('table')}
-                    label="📋 Tabela"
+                    label="Tabela"
                   />
                   <ViewToggleButton
                     active={viewModeDetalhada === 'chart'}
                     onClick={() => setViewModeDetalhada('chart')}
-                    label="📊 Gráfico"
+                    label="Gráfico"
                   />
                 </div>
               </div>
-            </div>
-            {viewModeDetalhada === 'table' ? (
-              <ComparacaoTabelaDetalhada
-                dadosComparacao={dadosComparacao}
-                semanasSelecionadas={semanasSelecionadas}
-              />
-            ) : (
-              <ComparacaoCharts
-                dadosComparacao={dadosComparacao}
-                semanasSelecionadas={semanasSelecionadas}
-                viewMode={viewModeDetalhada}
-                chartType="detalhada"
-              />
-            )}
-          </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {viewModeDetalhada === 'table' ? (
+                <ComparacaoTabelaDetalhada
+                  dadosComparacao={dadosComparacao}
+                  semanasSelecionadas={semanasSelecionadas}
+                />
+              ) : (
+                <ComparacaoCharts
+                  dadosComparacao={dadosComparacao}
+                  semanasSelecionadas={semanasSelecionadas}
+                  viewMode={viewModeDetalhada}
+                  chartType="detalhada"
+                />
+              )}
+            </CardContent>
+          </Card>
+
           <ComparacaoDiaTable
             dadosComparacao={dadosComparacao}
             semanasSelecionadas={semanasSelecionadas}
@@ -190,7 +197,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
 
           <ComparacaoSection
             title="Aderência por Dia da Semana"
-            icon="📅"
+            icon={<Calendar className="h-5 w-5 text-blue-500" />}
             description="Performance de aderência distribuída pelos dias da semana"
             type="dia"
             dadosComparacao={dadosComparacao}

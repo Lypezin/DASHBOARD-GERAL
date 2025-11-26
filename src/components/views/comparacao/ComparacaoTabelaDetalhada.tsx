@@ -2,7 +2,8 @@ import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { VariacaoBadge } from '@/components/VariacaoBadge';
 import { calcularVariacaoPercentual } from '@/utils/comparacaoCalculations';
-import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatters';
+import { formatarHorasParaHMS } from '@/utils/formatters';
+import { TrendingUp, Megaphone, CheckCircle2, XCircle, Target, Percent, Calendar, Clock } from 'lucide-react';
 
 interface ComparacaoTabelaDetalhadaProps {
   dadosComparacao: DashboardResumoData[];
@@ -18,16 +19,16 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
       <table className="w-full">
         <thead className="bg-slate-50 dark:bg-slate-800/50">
           <tr className="border-b border-slate-200 dark:border-slate-700">
-            <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Métrica
             </th>
             {semanasSelecionadas.map((semana, idx) => (
               <React.Fragment key={semana}>
-                <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
+                <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700">
                   Semana {semana}
                 </th>
                 {idx > 0 && (
-                  <th className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">
+                  <th className="px-4 py-4 text-center text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-900/10">
                     Δ% vs S{semanasSelecionadas[idx - 1]}
                   </th>
                 )}
@@ -37,10 +38,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {/* Aderência */}
-          <tr className="bg-blue-50/50 dark:bg-blue-950/20">
-            <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <span className="text-lg">📈</span>
+                <TrendingUp className="h-4 w-4 text-blue-500" />
                 Aderência Geral
               </div>
             </td>
@@ -54,14 +55,14 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
 
               return (
                 <React.Fragment key={idx}>
-                  <td className="px-6 py-4 text-center border-l-2 border-slate-300 dark:border-slate-600">
-                    <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-lg font-bold text-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
+                  <td className="px-6 py-4 text-center border-l border-slate-200 dark:border-slate-700">
+                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-sm font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
                       {aderencia.toFixed(1)}%
                     </span>
                   </td>
                   {idx > 0 && variacao !== null && (
-                    <td className="px-4 py-4 text-center bg-blue-50/30 dark:bg-blue-950/20">
-                      <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
+                    <td className="px-4 py-4 text-center bg-slate-50/50 dark:bg-slate-900/50">
+                      <VariacaoBadge variacao={variacao} className="px-2 py-0.5 text-xs" />
                     </td>
                   )}
                 </React.Fragment>
@@ -70,10 +71,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
           </tr>
 
           {/* Corridas Ofertadas */}
-          <tr className="bg-white dark:bg-slate-900">
-            <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <span className="text-lg">📢</span>
+                <Megaphone className="h-4 w-4 text-slate-500" />
                 Corridas Ofertadas
               </div>
             </td>
@@ -87,12 +88,12 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
 
               return (
                 <React.Fragment key={idx}>
-                  <td className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
+                  <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700">
                     {ofertadas.toLocaleString('pt-BR')}
                   </td>
                   {idx > 0 && variacao !== null && (
-                    <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
-                      <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
+                    <td className="px-4 py-4 text-center bg-slate-50/50 dark:bg-slate-900/50">
+                      <VariacaoBadge variacao={variacao} className="px-2 py-0.5 text-xs" />
                     </td>
                   )}
                 </React.Fragment>
@@ -101,10 +102,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
           </tr>
 
           {/* Corridas Aceitas */}
-          <tr className="bg-emerald-50/50 dark:bg-emerald-950/20">
-            <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <span className="text-lg">✅</span>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                 Corridas Aceitas
               </div>
             </td>
@@ -118,12 +119,12 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
 
               return (
                 <React.Fragment key={idx}>
-                  <td className="px-6 py-4 text-center text-base font-semibold text-emerald-700 dark:text-emerald-400 border-l-2 border-slate-300 dark:border-slate-600">
+                  <td className="px-6 py-4 text-center text-sm text-emerald-600 dark:text-emerald-400 border-l border-slate-200 dark:border-slate-700">
                     {aceitas.toLocaleString('pt-BR')}
                   </td>
                   {idx > 0 && variacao !== null && (
-                    <td className="px-4 py-4 text-center bg-emerald-50/30 dark:bg-emerald-950/20">
-                      <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
+                    <td className="px-4 py-4 text-center bg-slate-50/50 dark:bg-slate-900/50">
+                      <VariacaoBadge variacao={variacao} className="px-2 py-0.5 text-xs" />
                     </td>
                   )}
                 </React.Fragment>
@@ -132,10 +133,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
           </tr>
 
           {/* Corridas Rejeitadas */}
-          <tr className="bg-white dark:bg-slate-900">
-            <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <span className="text-lg">❌</span>
+                <XCircle className="h-4 w-4 text-rose-500" />
                 Corridas Rejeitadas
               </div>
             </td>
@@ -149,12 +150,12 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
 
               return (
                 <React.Fragment key={idx}>
-                  <td className="px-6 py-4 text-center text-base font-semibold text-rose-700 dark:text-rose-400 border-l-2 border-slate-300 dark:border-slate-600">
+                  <td className="px-6 py-4 text-center text-sm text-rose-600 dark:text-rose-400 border-l border-slate-200 dark:border-slate-700">
                     {rejeitadas.toLocaleString('pt-BR')}
                   </td>
                   {idx > 0 && variacao !== null && (
-                    <td className="px-4 py-4 text-center bg-slate-50/30 dark:bg-slate-900/50">
-                      <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" invertColors />
+                    <td className="px-4 py-4 text-center bg-slate-50/50 dark:bg-slate-900/50">
+                      <VariacaoBadge variacao={variacao} className="px-2 py-0.5 text-xs" invertColors />
                     </td>
                   )}
                 </React.Fragment>
@@ -163,10 +164,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
           </tr>
 
           {/* Corridas Completadas */}
-          <tr className="bg-purple-50/50 dark:bg-purple-950/20">
-            <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <span className="text-lg">🎯</span>
+                <Target className="h-4 w-4 text-purple-500" />
                 Corridas Completadas
               </div>
             </td>
@@ -180,12 +181,12 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
 
               return (
                 <React.Fragment key={idx}>
-                  <td className="px-6 py-4 text-center text-base font-semibold text-purple-700 dark:text-purple-400 border-l-2 border-slate-300 dark:border-slate-600">
+                  <td className="px-6 py-4 text-center text-sm text-purple-600 dark:text-purple-400 border-l border-slate-200 dark:border-slate-700">
                     {completadas.toLocaleString('pt-BR')}
                   </td>
                   {idx > 0 && variacao !== null && (
-                    <td className="px-4 py-4 text-center bg-purple-50/30 dark:bg-purple-950/20">
-                      <VariacaoBadge variacao={variacao} className="px-2.5 py-1 text-sm" />
+                    <td className="px-4 py-4 text-center bg-slate-50/50 dark:bg-slate-900/50">
+                      <VariacaoBadge variacao={variacao} className="px-2 py-0.5 text-xs" />
                     </td>
                   )}
                 </React.Fragment>
@@ -194,10 +195,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
           </tr>
 
           {/* Taxa de Aceitação */}
-          <tr className="bg-white dark:bg-slate-900">
-            <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <span className="text-lg">💯</span>
+                <Percent className="h-4 w-4 text-slate-500" />
                 Taxa de Aceitação
               </div>
             </td>
@@ -207,47 +208,47 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
                 : 0;
               return (
                 <React.Fragment key={idx}>
-                  <td className="px-6 py-4 text-center text-base font-semibold text-slate-700 dark:text-slate-300 border-l-2 border-slate-300 dark:border-slate-600">
+                  <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700">
                     {taxaAceitacao.toFixed(1)}%
                   </td>
-                  {idx > 0 && <td className="px-4 py-4 bg-slate-50/30 dark:bg-slate-900/50"></td>}
+                  {idx > 0 && <td className="px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50"></td>}
                 </React.Fragment>
               );
             })}
           </tr>
 
           {/* Horas Planejadas */}
-          <tr className="bg-amber-50/50 dark:bg-amber-950/20">
-            <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <span className="text-lg">📅</span>
+                <Calendar className="h-4 w-4 text-amber-500" />
                 Horas Planejadas
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => (
               <React.Fragment key={idx}>
-                <td className="px-6 py-4 text-center font-mono text-base font-semibold text-amber-700 dark:text-amber-400 border-l-2 border-slate-300 dark:border-slate-600">
+                <td className="px-6 py-4 text-center font-mono text-sm text-amber-600 dark:text-amber-400 border-l border-slate-200 dark:border-slate-700">
                   {formatarHorasParaHMS(dados.semanal[0]?.horas_a_entregar ?? '0')}
                 </td>
-                {idx > 0 && <td className="px-4 py-4 bg-amber-50/30 dark:bg-amber-950/20"></td>}
+                {idx > 0 && <td className="px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50"></td>}
               </React.Fragment>
             ))}
           </tr>
 
           {/* Horas Entregues */}
-          <tr className="bg-white dark:bg-slate-900">
-            <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <span className="text-lg">⏱️</span>
+                <Clock className="h-4 w-4 text-blue-500" />
                 Horas Entregues
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => (
               <React.Fragment key={idx}>
-                <td className="px-6 py-4 text-center font-mono text-base font-semibold text-blue-700 dark:text-blue-400 border-l-2 border-slate-300 dark:border-slate-600">
+                <td className="px-6 py-4 text-center font-mono text-sm text-blue-600 dark:text-blue-400 border-l border-slate-200 dark:border-slate-700">
                   {formatarHorasParaHMS(dados.semanal[0]?.horas_entregues ?? '0')}
                 </td>
-                {idx > 0 && <td className="px-4 py-4 bg-slate-50/30 dark:bg-slate-900/50"></td>}
+                {idx > 0 && <td className="px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50"></td>}
               </React.Fragment>
             ))}
           </tr>
@@ -256,4 +257,3 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
     </div>
   );
 };
-

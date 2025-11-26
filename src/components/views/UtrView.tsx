@@ -1,6 +1,16 @@
 import React, { useMemo } from 'react';
 import { UtrData } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Gauge,
+  Building2,
+  MapPin,
+  Target,
+  Clock,
+  Timer,
+  Car,
+  Activity
+} from 'lucide-react';
 
 const UtrView = React.memo(function UtrView({
   utrData,
@@ -10,8 +20,6 @@ const UtrView = React.memo(function UtrView({
   loading: boolean;
 }) {
   // Hooks devem ser chamados antes de qualquer early return
-  // Usar os nomes corretos que vêm do backend (com fallback para compatibilidade)
-  // Memoizar para evitar recálculo desnecessário
   const porPraca = useMemo(() => utrData?.praca || utrData?.por_praca || [], [utrData?.praca, utrData?.por_praca]);
   const porSubPraca = useMemo(() => utrData?.sub_praca || utrData?.por_sub_praca || [], [utrData?.sub_praca, utrData?.por_sub_praca]);
   const porOrigem = useMemo(() => utrData?.origem || utrData?.por_origem || [], [utrData?.origem, utrData?.por_origem]);
@@ -21,26 +29,19 @@ const UtrView = React.memo(function UtrView({
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-          <p className="mt-4 text-lg font-semibold text-blue-700 dark:text-blue-200">Calculando UTR...</p>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
+          <p className="mt-4 text-sm font-medium text-slate-500">Calculando UTR...</p>
         </div>
       </div>
     );
   }
 
-  if (!utrData) {
+  if (!utrData || !utrData.geral) {
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
-        <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Nenhum dado disponível</p>
-      </div>
-    );
-  }
-
-  // Verificar se geral existe antes de usar
-  if (!utrData.geral) {
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900 dark:bg-amber-950/30">
-        <p className="text-lg font-semibold text-amber-900 dark:text-amber-100">Dados incompletos - aguarde o carregamento</p>
+      <div className="flex flex-col items-center justify-center py-12 text-center border rounded-xl border-dashed border-slate-300 dark:border-slate-700">
+        <Activity className="h-10 w-10 text-slate-400 mb-3" />
+        <p className="text-lg font-medium text-slate-900 dark:text-white">Nenhum dado disponível</p>
+        <p className="text-sm text-slate-500">Aguarde o carregamento ou ajuste os filtros.</p>
       </div>
     );
   }
@@ -48,270 +49,241 @@ const UtrView = React.memo(function UtrView({
   const geral = utrData.geral;
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* UTR Geral */}
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        
-        <Card className="relative border-0 shadow-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/30 rounded-3xl overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-blue-500/20 rounded-full blur-3xl"></div>
-          
-          <CardHeader className="relative pb-6">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                <span className="text-2xl">📏</span>
-              </div>
-              <div>
-                <CardTitle className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-                  UTR Geral
-                </CardTitle>
-                <CardDescription className="text-base mt-1 text-blue-700/80 dark:text-blue-300/80">Taxa de Utilização de Recursos</CardDescription>
-              </div>
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <Gauge className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
-          </CardHeader>
-          
-          <CardContent className="relative">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              <div className="relative group/card">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-blue-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
-                <div className="relative rounded-2xl bg-white/80 dark:bg-slate-800/80 p-6 shadow-lg backdrop-blur-sm">
-                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">Tempo Total</p>
-                  <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{(geral.tempo_horas ?? 0).toFixed(2)}h</p>
-                </div>
-              </div>
-              <div className="relative group/card">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-blue-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
-                <div className="relative rounded-2xl bg-white/80 dark:bg-slate-800/80 p-6 shadow-lg backdrop-blur-sm">
-                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">Corridas Completadas</p>
-                  <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{(geral.corridas ?? 0).toLocaleString()}</p>
-                </div>
-              </div>
-              <div className="relative group/card">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-blue-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
-                <div className="relative rounded-2xl bg-white/80 dark:bg-slate-800/80 p-6 shadow-lg backdrop-blur-sm">
-                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">UTR</p>
-                  <p className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">{(geral.utr ?? 0).toFixed(2)}</p>
-                </div>
-              </div>
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+                UTR Geral
+              </CardTitle>
+              <CardDescription className="text-slate-500 dark:text-slate-400">
+                Taxa de Utilização de Recursos consolidada
+              </CardDescription>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {/* Tempo Total */}
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+              <div className="flex items-center gap-2 mb-2">
+                <Timer className="h-4 w-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-500">Tempo Total</span>
+              </div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                {(geral.tempo_horas ?? 0).toFixed(2)}h
+              </p>
+            </div>
+
+            {/* Corridas */}
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+              <div className="flex items-center gap-2 mb-2">
+                <Car className="h-4 w-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-500">Corridas</span>
+              </div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                {(geral.corridas ?? 0).toLocaleString()}
+              </p>
+            </div>
+
+            {/* UTR Score */}
+            <div className="rounded-xl border border-blue-100 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-900/10 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Score UTR</span>
+              </div>
+              <p className="text-3xl font-black text-blue-700 dark:text-blue-300 font-mono">
+                {(geral.utr ?? 0).toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* UTR por Praça */}
       {porPraca && porPraca.length > 0 && (
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
-          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-            
-            <CardHeader className="relative pb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">🏢</span>
-                </div>
-                <div>
-                  <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
-                    UTR por Praça
-                  </CardTitle>
-                  <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Análise por praça operacional</CardDescription>
-                </div>
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+          <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
               </div>
-            </CardHeader>
-            
-            <CardContent className="relative">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {porPraca.map((item) => (
-                  <div key={item.praca} className="relative group/card">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-blue-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
-                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                      <CardContent className="pt-5 pb-4">
-                        <p className="mb-4 text-base font-bold text-slate-900 dark:text-white">{item.praca}</p>
-                        <div className="space-y-2.5 text-sm">
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                            <span className="text-slate-600 dark:text-slate-400">Tempo:</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">{((item.tempo_horas ?? 0)).toFixed(2)}h</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                            <span className="text-slate-600 dark:text-slate-400">Corridas:</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">{item.corridas}</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2.5 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border border-blue-200 dark:border-blue-800">
-                            <span className="font-bold text-blue-700 dark:text-blue-300">UTR:</span>
-                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">{item.utr.toFixed(2)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+              <div>
+                <CardTitle className="text-lg font-semibold">UTR por Praça</CardTitle>
+                <CardDescription>Análise por praça operacional</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {porPraca.map((item) => (
+                <div key={item.praca} className="group relative rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:shadow-md transition-all duration-200">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-bold text-slate-900 dark:text-white truncate pr-2" title={item.praca}>
+                      {item.praca}
+                    </h3>
+                    <div className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-bold font-mono">
+                      {item.utr.toFixed(2)}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Timer className="h-3 w-3" />
+                      <span>{((item.tempo_horas ?? 0)).toFixed(1)}h</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <Car className="h-3 w-3" />
+                      <span>{item.corridas}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* UTR por Sub-Praça */}
       {porSubPraca && porSubPraca.length > 0 && (
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
-          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-            
-            <CardHeader className="relative pb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">📍</span>
-                </div>
-                <div>
-                  <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
-                    UTR por Sub-Praça
-                  </CardTitle>
-                  <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Análise por sub-praça operacional</CardDescription>
-                </div>
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+          <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <MapPin className="h-5 w-5 text-slate-600 dark:text-slate-400" />
               </div>
-            </CardHeader>
-            
-            <CardContent className="relative">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {porSubPraca.map((item) => (
-                  <div key={item.sub_praca} className="relative group/card">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-blue-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
-                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                      <CardContent className="pt-5 pb-4">
-                        <p className="mb-4 text-base font-bold text-slate-900 dark:text-white">{item.sub_praca}</p>
-                        <div className="space-y-2.5 text-sm">
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                            <span className="text-slate-600 dark:text-slate-400">Tempo:</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">{((item.tempo_horas ?? 0)).toFixed(2)}h</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                            <span className="text-slate-600 dark:text-slate-400">Corridas:</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">{item.corridas}</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2.5 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border border-blue-200 dark:border-blue-800">
-                            <span className="font-bold text-blue-700 dark:text-blue-300">UTR:</span>
-                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">{item.utr.toFixed(2)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+              <div>
+                <CardTitle className="text-lg font-semibold">UTR por Sub-Praça</CardTitle>
+                <CardDescription>Análise por sub-praça operacional</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {porSubPraca.map((item) => (
+                <div key={item.sub_praca} className="group relative rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:shadow-md transition-all duration-200">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-bold text-slate-900 dark:text-white truncate pr-2" title={item.sub_praca}>
+                      {item.sub_praca}
+                    </h3>
+                    <div className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-bold font-mono">
+                      {item.utr.toFixed(2)}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Timer className="h-3 w-3" />
+                      <span>{((item.tempo_horas ?? 0)).toFixed(1)}h</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <Car className="h-3 w-3" />
+                      <span>{item.corridas}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* UTR por Origem */}
       {porOrigem && porOrigem.length > 0 && (
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
-          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-            
-            <CardHeader className="relative pb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">🎯</span>
-                </div>
-                <div>
-                  <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
-                    UTR por Origem
-                  </CardTitle>
-                  <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Análise por origem operacional</CardDescription>
-                </div>
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+          <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <Target className="h-5 w-5 text-slate-600 dark:text-slate-400" />
               </div>
-            </CardHeader>
-            
-            <CardContent className="relative">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {porOrigem.map((item) => (
-                  <div key={item.origem} className="relative group/card">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-blue-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
-                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                      <CardContent className="pt-5 pb-4">
-                        <p className="mb-4 text-base font-bold text-slate-900 dark:text-white">{item.origem}</p>
-                        <div className="space-y-2.5 text-sm">
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                            <span className="text-slate-600 dark:text-slate-400">Tempo:</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">{((item.tempo_horas ?? 0)).toFixed(2)}h</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                            <span className="text-slate-600 dark:text-slate-400">Corridas:</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">{item.corridas}</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2.5 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border border-blue-200 dark:border-blue-800">
-                            <span className="font-bold text-blue-700 dark:text-blue-300">UTR:</span>
-                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">{item.utr.toFixed(2)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+              <div>
+                <CardTitle className="text-lg font-semibold">UTR por Origem</CardTitle>
+                <CardDescription>Análise por origem operacional</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {porOrigem.map((item) => (
+                <div key={item.origem} className="group relative rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:shadow-md transition-all duration-200">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-bold text-slate-900 dark:text-white truncate pr-2" title={item.origem}>
+                      {item.origem}
+                    </h3>
+                    <div className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-bold font-mono">
+                      {item.utr.toFixed(2)}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Timer className="h-3 w-3" />
+                      <span>{((item.tempo_horas ?? 0)).toFixed(1)}h</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <Car className="h-3 w-3" />
+                      <span>{item.corridas}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* UTR por Turno */}
       {porTurno && porTurno.length > 0 && (
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
-          <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-            
-            <CardHeader className="relative pb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">⏰</span>
-                </div>
-                <div>
-                  <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
-                    UTR por Turno
-                  </CardTitle>
-                  <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Análise por turno operacional</CardDescription>
-                </div>
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+          <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <Clock className="h-5 w-5 text-slate-600 dark:text-slate-400" />
               </div>
-            </CardHeader>
-            
-            <CardContent className="relative">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {porTurno.map((item) => (
-                  <div key={item.turno || item.periodo} className="relative group/card">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-blue-400 rounded-2xl blur opacity-0 group-hover/card:opacity-20 transition-opacity"></div>
-                    <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                      <CardContent className="pt-5 pb-4">
-                        <p className="mb-4 text-base font-bold text-slate-900 dark:text-white">{item.turno || item.periodo || 'N/D'}</p>
-                        <div className="space-y-2.5 text-sm">
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                            <span className="text-slate-600 dark:text-slate-400">Tempo:</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">{((item.tempo_horas ?? 0)).toFixed(2)}h</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
-                            <span className="text-slate-600 dark:text-slate-400">Corridas:</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">{item.corridas}</span>
-                          </div>
-                          <div className="flex justify-between items-center p-2.5 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border border-blue-200 dark:border-blue-800">
-                            <span className="font-bold text-blue-700 dark:text-blue-300">UTR:</span>
-                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">{item.utr.toFixed(2)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+              <div>
+                <CardTitle className="text-lg font-semibold">UTR por Turno</CardTitle>
+                <CardDescription>Análise por turno operacional</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {porTurno.map((item) => (
+                <div key={item.turno || item.periodo} className="group relative rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:shadow-md transition-all duration-200">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-bold text-slate-900 dark:text-white truncate pr-2" title={item.turno || item.periodo}>
+                      {item.turno || item.periodo || 'N/D'}
+                    </h3>
+                    <div className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-bold font-mono">
+                      {item.utr.toFixed(2)}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Timer className="h-3 w-3" />
+                      <span>{((item.tempo_horas ?? 0)).toFixed(1)}h</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <Car className="h-3 w-3" />
+                      <span>{item.corridas}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

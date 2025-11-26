@@ -1,10 +1,17 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
-import MetricCard from '../MetricCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnaliseTable } from '../analise/AnaliseTable';
 import { AnaliseTableTabs } from '../analise/AnaliseTableTabs';
 import { useAnaliseTaxas } from '@/hooks/analise/useAnaliseTaxas';
+import {
+  Megaphone,
+  CheckCircle2,
+  XCircle,
+  Flag,
+  ListChecks,
+  BarChart3
+} from 'lucide-react';
 
 type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem';
 
@@ -83,50 +90,114 @@ const AnaliseView = React.memo(function AnaliseView({
   }, [activeTable]);
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Cards de Métricas Principais */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        <MetricCard title="Ofertadas" value={totals.ofertadas} icon="📢" color="blue" />
-        <MetricCard title="Aceitas" value={totals.aceitas} icon="✅" percentage={taxaAceitacao} percentageLabel="de aceitação" color="green" />
-        <MetricCard title="Rejeitadas" value={totals.rejeitadas} icon="❌" percentage={taxaRejeicao} percentageLabel="de rejeição" color="red" />
-        <MetricCard title="Completadas" value={totals.completadas} icon="🏁" percentage={taxaCompletude} percentageLabel="de completude" color="blue" />
-      </div>
-
-      {/* Análise Detalhada - Tabelas */}
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-        <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-
-          <CardHeader className="relative pb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">📋</span>
-                </div>
-                <div>
-                  <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
-                    Análise Detalhada por Segmento
-                  </CardTitle>
-                  <CardDescription className="text-base mt-1 text-slate-600 dark:text-slate-400">Métricas completas de performance</CardDescription>
-                </div>
-              </div>
-              <AnaliseTableTabs
-                activeTable={activeTable}
-                onTableChange={handleTableChange}
-              />
-            </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Ofertadas */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Ofertadas</CardTitle>
+            <Megaphone className="h-4 w-4 text-blue-500" />
           </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {totals.ofertadas.toLocaleString('pt-BR')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Total de corridas ofertadas
+            </p>
+          </CardContent>
+        </Card>
 
-          <CardContent className="relative">
-            <AnaliseTable
-              data={tableData}
-              labelColumn={labelColumn}
-            />
+        {/* Aceitas */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Aceitas</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {totals.aceitas.toLocaleString('pt-BR')}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="h-1.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${taxaAceitacao}%` }}></div>
+              </div>
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">{taxaAceitacao.toFixed(1)}%</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Rejeitadas */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Rejeitadas</CardTitle>
+            <XCircle className="h-4 w-4 text-rose-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {totals.rejeitadas.toLocaleString('pt-BR')}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="h-1.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-rose-500 rounded-full" style={{ width: `${taxaRejeicao}%` }}></div>
+              </div>
+              <span className="text-xs font-medium text-rose-600 dark:text-rose-400">{taxaRejeicao.toFixed(1)}%</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Completadas */}
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Completadas</CardTitle>
+            <Flag className="h-4 w-4 text-indigo-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {totals.completadas.toLocaleString('pt-BR')}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="h-1.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${taxaCompletude}%` }}></div>
+              </div>
+              <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">{taxaCompletude.toFixed(1)}%</span>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Análise Detalhada - Tabelas */}
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <ListChecks className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+                  Análise Detalhada
+                </CardTitle>
+                <CardDescription className="text-slate-500 dark:text-slate-400">
+                  Métricas completas de performance por segmento
+                </CardDescription>
+              </div>
+            </div>
+            <AnaliseTableTabs
+              activeTable={activeTable}
+              onTableChange={handleTableChange}
+            />
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          <AnaliseTable
+            data={tableData}
+            labelColumn={labelColumn}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 });
