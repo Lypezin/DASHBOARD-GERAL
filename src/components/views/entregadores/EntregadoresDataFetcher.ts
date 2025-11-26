@@ -60,27 +60,39 @@ export async function fetchEntregadoresFallback(
     validateDateFilter(payload, 'fetchEntregadoresFallback (Marketing)');
     const safePayload = ensureDateFilter(payload);
 
-    // Buscar todas as corridas de uma vez para todos os entregadores
-    let corridasQuery = supabase
-      .from('dados_corridas')
-      .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo')
-      .in('id_da_pessoa_entregadora', idsEntregadores);
+    // OTIMIZAÇÃO: Buscar em lotes para evitar atingir o limite de query ou timeout
+    const BATCH_SIZE = 50;
+    const todasCorridas: any[] = [];
 
-    // Aplicar filtro de data (usando payload seguro)
-    if (safePayload.p_data_inicial) {
-      corridasQuery = corridasQuery.gte('data_do_periodo', safePayload.p_data_inicial);
-    }
-    if (safePayload.p_data_final) {
-      corridasQuery = corridasQuery.lte('data_do_periodo', safePayload.p_data_final);
-    }
+    for (let i = 0; i < idsEntregadores.length; i += BATCH_SIZE) {
+      const batchIds = idsEntregadores.slice(i, i + BATCH_SIZE);
 
-    // Limitar query para evitar sobrecarga
-    corridasQuery = corridasQuery.limit(QUERY_LIMITS.AGGREGATION_MAX);
+      let corridasQuery = supabase
+        .from('dados_corridas')
+        .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo')
+        .in('id_da_pessoa_entregadora', batchIds);
 
-    const { data: todasCorridas, error: corridasError } = await corridasQuery;
+      // Aplicar filtro de data (usando payload seguro)
+      if (safePayload.p_data_inicial) {
+        corridasQuery = corridasQuery.gte('data_do_periodo', safePayload.p_data_inicial);
+      }
+      if (safePayload.p_data_final) {
+        corridasQuery = corridasQuery.lte('data_do_periodo', safePayload.p_data_final);
+      }
 
-    if (corridasError) {
-      throw corridasError;
+      // Limitar query para evitar sobrecarga, mas alto o suficiente para o lote
+      corridasQuery = corridasQuery.limit(QUERY_LIMITS.AGGREGATION_MAX);
+
+      const { data: batchData, error: batchError } = await corridasQuery;
+
+      if (batchError) {
+        safeLog.error(`Erro ao buscar lote ${i} de corridas:`, batchError);
+        continue; // Tentar próximo lote em vez de falhar tudo
+      }
+
+      if (batchData) {
+        todasCorridas.push(...batchData);
+      }
     }
 
     // Criar mapa de entregadores para lookup rápido
@@ -88,7 +100,7 @@ export async function fetchEntregadoresFallback(
 
     // Agregar dados por entregador em memória
     const corridasPorEntregador = new Map<string, typeof todasCorridas>();
-    
+
     if (todasCorridas) {
       for (const corrida of todasCorridas) {
         const id = corrida.id_da_pessoa_entregadora;
@@ -127,7 +139,7 @@ export async function fetchEntregadoresFallback(
 
         const dataInicio = filtroDataInicio.dataInicial;
         const dataFim = filtroDataInicio.dataFinal;
-        
+
         if (dataInicio && primeiraData < dataInicio) {
           continue;
         }
@@ -145,13 +157,13 @@ export async function fetchEntregadoresFallback(
       // Calcular última data e dias sem rodar
       let ultimaData: string | null = null;
       let diasSemRodar: number | null = null;
-      
+
       if (corridasData.length > 0) {
         const datas = corridasData
           .map(c => c.data_do_periodo)
           .filter((d): d is string => d != null)
           .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-        
+
         if (datas.length > 0) {
           ultimaData = datas[0];
           if (ultimaData) {
@@ -202,25 +214,25 @@ export async function fetchEntregadores(
   try {
     // Preparar parâmetros do filtro rodou_dia, data início e cidade
     const params: any = {};
-    
+
     if (filtroRodouDia.dataInicial || filtroRodouDia.dataFinal) {
       params.rodou_dia_inicial = filtroRodouDia.dataInicial || null;
       params.rodou_dia_final = filtroRodouDia.dataFinal || null;
     }
-    
+
     if (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) {
       params.data_inicio_inicial = filtroDataInicio.dataInicial || null;
       params.data_inicio_final = filtroDataInicio.dataFinal || null;
     }
-    
+
     if (cidadeSelecionada) {
       params.cidade = cidadeSelecionada;
     }
-    
+
     // Obter organization_id do usuário atual
     const { getCurrentUserOrganizationId } = await import('@/utils/organizationHelpers');
     const organizationId = await getCurrentUserOrganizationId();
-    
+
     // Sempre passar um objeto, mesmo que vazio, para evitar problemas com undefined
     const finalParams = {
       ...params,
@@ -231,7 +243,7 @@ export async function fetchEntregadores(
     // Aumentar timeout para 60 segundos quando há múltiplos filtros (data início + cidade)
     const hasMultipleFilters = (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) && cidadeSelecionada;
     const timeoutDuration = hasMultipleFilters ? 60000 : 30000;
-    
+
     const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', finalParams, {
       timeout: timeoutDuration,
       validateParams: false
@@ -241,10 +253,10 @@ export async function fetchEntregadores(
       // Se a função RPC não existir ou der timeout, fazer fallback para query direta
       const errorCode = (rpcError as any)?.code || '';
       const errorMessage = String((rpcError as any)?.message || '');
-      const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
-                    errorCode === 'PGRST204' ||
-                    errorMessage.includes('404') || 
-                    errorMessage.includes('not found');
+      const is404 = errorCode === 'PGRST116' || errorCode === '42883' ||
+        errorCode === 'PGRST204' ||
+        errorMessage.includes('404') ||
+        errorMessage.includes('not found');
       const isTimeout = errorCode === 'TIMEOUT' || errorMessage.includes('timeout') || errorMessage.includes('demorou muito');
 
       if (is404 || isTimeout) {
@@ -254,7 +266,7 @@ export async function fetchEntregadores(
         }
         return await fetchEntregadoresFallbackFn();
       }
-      
+
       throw rpcError;
     }
 

@@ -90,7 +90,7 @@ export const QUERY_LIMITS = {
   /** Limite máximo para queries de fallback (evita sobrecarga) */
   FALLBACK_MAX: 5000, // Reduzido de 10000 para reduzir Disk IO
   /** Limite para queries de agregação - CRÍTICO: reduzido para evitar scans completos */
-  AGGREGATION_MAX: 10000, // Reduzido de 50000 para reduzir Disk IO em 80%
+  AGGREGATION_MAX: 100000, // Aumentado para permitir mais dados na guia de Entregadores
   /** Limite padrão para listagens */
   DEFAULT_LIST: 1000,
   /** Limite para queries de busca */
