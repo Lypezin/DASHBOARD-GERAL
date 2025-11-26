@@ -6,12 +6,11 @@ import { MarketingFilters, MarketingTotals, MarketingCityData, MarketingDateFilt
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { getCurrentUserOrganizationId } from '@/utils/organizationHelpers';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Filter, BarChart3, Send, CheckCircle2, Rocket } from 'lucide-react';
 import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
-import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
+import { MarketingFiltersSection } from './marketing/MarketingFiltersSection';
+import { MarketingStatsCards } from './marketing/MarketingStatsCards';
+import { MarketingCityCards } from './marketing/MarketingCityCards';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -204,7 +203,6 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
     };
 
     fetchData();
-    fetchData();
   }, [fetchTotals, fetchCitiesData]);
 
   const handleFilterChange = (filterName: keyof MarketingFilters, filter: MarketingDateFilter) => {
@@ -246,138 +244,16 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   return (
     <div className="space-y-6 animate-fade-in pb-8">
       {/* Filtros de Data */}
-      <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-        <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-slate-500" />
-            <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-200">
-              Filtros de Data
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <MarketingDateFilterComponent
-              label="Filtro de Liberação"
-              filter={filters.filtroLiberacao}
-              onFilterChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
-            />
-            <MarketingDateFilterComponent
-              label="Filtro de Enviados"
-              filter={filters.filtroEnviados}
-              onFilterChange={(filter) => handleFilterChange('filtroEnviados', filter)}
-            />
-            <MarketingDateFilterComponent
-              label="Filtro de Rodou Dia"
-              filter={filters.filtroRodouDia}
-              onFilterChange={(filter) => handleFilterChange('filtroRodouDia', filter)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <MarketingFiltersSection
+        filters={filters}
+        onFilterChange={handleFilterChange}
+      />
 
       {/* Cartões Principais */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Criado</CardTitle>
-            <BarChart3 className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-              {totals.criado.toLocaleString('pt-BR')}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Total criado
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Enviado</CardTitle>
-            <Send className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-              {totals.enviado.toLocaleString('pt-BR')}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Total enviado
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Liberado</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-              {totals.liberado.toLocaleString('pt-BR')}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Total liberado
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Rodando Início</CardTitle>
-            <Rocket className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-              {totals.rodandoInicio.toLocaleString('pt-BR')}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Total rodando início
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <MarketingStatsCards totals={totals} />
 
       {/* Cartões de Cidade */}
-      <div>
-        <h3 className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          Métricas por Cidade
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {citiesData.map((cityData) => (
-            <Card key={cityData.cidade} className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-200 truncate" title={cityData.cidade}>
-                  {cityData.cidade}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Enviado</span>
-                    <Badge variant="outline" className="font-mono font-medium text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/10">
-                      {cityData.enviado.toLocaleString('pt-BR')}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Liberado</span>
-                    <Badge variant="outline" className="font-mono font-medium text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10">
-                      {cityData.liberado.toLocaleString('pt-BR')}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Rodando Início</span>
-                    <Badge variant="outline" className="font-mono font-medium text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/10">
-                      {cityData.rodandoInicio.toLocaleString('pt-BR')}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      <MarketingCityCards citiesData={citiesData} />
     </div>
   );
 });
@@ -385,4 +261,3 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
 MarketingDashboardView.displayName = 'MarketingDashboardView';
 
 export default MarketingDashboardView;
-

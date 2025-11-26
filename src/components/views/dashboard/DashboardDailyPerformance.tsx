@@ -1,0 +1,99 @@
+import React, { useMemo } from 'react';
+import { AderenciaDia } from '@/types';
+import { formatarHorasParaHMS } from '@/utils/formatters';
+import { Card, CardContent } from '@/components/ui/card';
+import { CalendarDays } from 'lucide-react';
+
+interface DashboardDailyPerformanceProps {
+    aderenciaDia: AderenciaDia[];
+}
+
+export const DashboardDailyPerformance = React.memo(function DashboardDailyPerformance({
+    aderenciaDia,
+}: DashboardDailyPerformanceProps) {
+
+    // Processar aderência por dia - converter data em dia da semana
+    const aderenciaDiaOrdenada = useMemo(() => {
+        const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+        return [...aderenciaDia]
+            .filter(dia => dia.data)
+            .map(dia => {
+                const dataObj = new Date(dia.data + 'T00:00:00');
+                const diaDaSemana = diasDaSemana[dataObj.getDay()];
+                const diaIso = dataObj.getDay() === 0 ? 7 : dataObj.getDay(); // ISO: 1=Segunda, 7=Domingo
+
+                return {
+                    ...dia,
+                    dia_da_semana: diaDaSemana,
+                    dia_iso: diaIso
+                };
+            })
+            .sort((a, b) => a.dia_iso - b.dia_iso);
+    }, [aderenciaDia]);
+
+    if (aderenciaDiaOrdenada.length === 0) return null;
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5 text-slate-500" />
+                    Performance Diária
+                </h3>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                {aderenciaDiaOrdenada.map((dia, index) => {
+                    const aderencia = dia.aderencia_percentual || 0;
+                    const isToday = new Date().getDay() === (index + 1) % 7;
+
+                    const statusColor = aderencia >= 90 ? 'text-emerald-600 dark:text-emerald-400' :
+                        aderencia >= 70 ? 'text-blue-600 dark:text-blue-400' :
+                            'text-rose-600 dark:text-rose-400';
+
+                    const barColor = aderencia >= 90 ? 'bg-emerald-500' :
+                        aderencia >= 70 ? 'bg-blue-500' :
+                            'bg-rose-500';
+
+                    return (
+                        <Card
+                            key={`dia-${index}`}
+                            className={`border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 ${isToday ? 'ring-2 ring-blue-500/20 bg-blue-50/30 dark:bg-blue-900/10' : ''
+                                }`}
+                        >
+                            <CardContent className="p-4 flex flex-col items-center justify-between h-full min-h-[140px]">
+                                <div className="text-center w-full">
+                                    <div className="flex items-center justify-center gap-1.5 mb-2">
+                                        <span className={`text-xs font-bold uppercase tracking-wider ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
+                                            {dia.dia_da_semana.substring(0, 3)}
+                                        </span>
+                                        {isToday && <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>}
+                                    </div>
+
+                                    <div className={`text-2xl font-bold ${statusColor}`}>
+                                        {Math.round(aderencia)}%
+                                    </div>
+                                </div>
+
+                                <div className="w-full space-y-2 mt-3">
+                                    <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full ${barColor} rounded-full`}
+                                            style={{ width: `${Math.min(aderencia, 100)}%` }}
+                                        ></div>
+                                    </div>
+
+                                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                                        <span>{formatarHorasParaHMS(dia.horas_entregues)}</span>
+                                        <span>/ {formatarHorasParaHMS(dia.horas_a_entregar)}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
+            </div>
+        </div>
+    );
+});

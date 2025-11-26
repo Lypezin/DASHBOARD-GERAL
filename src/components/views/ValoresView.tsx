@@ -1,22 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import { ValoresEntregador, Entregador, EntregadoresData } from '@/types';
+import { ValoresEntregador } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
-  DollarSign,
-  Users,
-  Car,
-  BarChart3,
-  Search,
-  X,
-  AlertCircle,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown
-} from 'lucide-react';
+import { AlertCircle, DollarSign } from 'lucide-react';
+import { ValoresStatsCards } from './valores/ValoresStatsCards';
+import { ValoresTable } from './valores/ValoresTable';
+import { ValoresSearch } from './valores/ValoresSearch';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -178,16 +167,6 @@ const ValoresView = React.memo(function ValoresView({
     return Array.isArray(dataArray) ? dataArray.length : 0;
   }, [dataArray]);
 
-  // Função auxiliar para ícone de ordenação
-  const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
-    if (sortField !== field) {
-      return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400" />;
-    }
-    return sortDirection === 'asc' ?
-      <ArrowUp className="ml-1 h-3 w-3 text-slate-900 dark:text-white" /> :
-      <ArrowDown className="ml-1 h-3 w-3 text-slate-900 dark:text-white" />;
-  };
-
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -229,213 +208,29 @@ const ValoresView = React.memo(function ValoresView({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Barra de Pesquisa */}
-      <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Pesquisar entregador por nome ou ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-10 py-2 text-sm rounded-md border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-700"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
-            {isSearching && (
-              <div className="absolute right-10 top-1/2 -translate-y-1/2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600"></div>
-              </div>
-            )}
-          </div>
-          {searchTerm && (
-            <p className="mt-2 text-xs text-slate-500">
-              {isSearching ? 'Pesquisando...' : `Encontrado${totalEntregadores === 1 ? '' : 's'} ${totalEntregadores} resultado${totalEntregadores === 1 ? '' : 's'}`}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <ValoresSearch
+        searchTerm={searchTerm}
+        isSearching={isSearching}
+        totalResults={totalEntregadores}
+        onSearchChange={setSearchTerm}
+        onClearSearch={() => setSearchTerm('')}
+      />
 
-      {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Geral */}
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Geral</CardTitle>
-            <DollarSign className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-              {formatarReal(totalGeral)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Soma de todas as taxas
-            </p>
-          </CardContent>
-        </Card>
+      <ValoresStatsCards
+        totalGeral={totalGeral}
+        totalEntregadores={totalEntregadores}
+        totalCorridas={totalCorridas}
+        taxaMediaGeral={taxaMediaGeral}
+        formatarReal={formatarReal}
+      />
 
-        {/* Entregadores */}
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Entregadores</CardTitle>
-            <Users className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-              {totalEntregadores.toLocaleString('pt-BR')}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Total de entregadores listados
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Total Corridas */}
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Corridas</CardTitle>
-            <Car className="h-4 w-4 text-indigo-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-              {totalCorridas.toLocaleString('pt-BR')}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Corridas aceitas no período
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Taxa Média */}
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Taxa Média</CardTitle>
-            <BarChart3 className="h-4 w-4 text-violet-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-              {formatarReal(taxaMediaGeral)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Valor médio por corrida
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabela de Valores */}
-      <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-        <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-              <DollarSign className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-            </div>
-            <div>
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
-                Valores por Entregador
-              </CardTitle>
-              <CardDescription className="text-slate-500 dark:text-slate-400">
-                Detalhamento financeiro individual
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-0">
-          <div className="overflow-hidden">
-            {/* Cabeçalho fixo */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-              <div className="grid grid-cols-4 gap-4 px-6 py-3 min-w-[600px]">
-                <div
-                  className="cursor-pointer text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1"
-                  onClick={() => handleSort('nome_entregador')}
-                >
-                  Entregador
-                  <SortIcon field="nome_entregador" />
-                </div>
-                <div
-                  className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
-                  onClick={() => handleSort('total_taxas')}
-                >
-                  Total
-                  <SortIcon field="total_taxas" />
-                </div>
-                <div
-                  className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
-                  onClick={() => handleSort('numero_corridas_aceitas')}
-                >
-                  Corridas
-                  <SortIcon field="numero_corridas_aceitas" />
-                </div>
-                <div
-                  className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
-                  onClick={() => handleSort('taxa_media')}
-                >
-                  Média
-                  <SortIcon field="taxa_media" />
-                </div>
-              </div>
-            </div>
-
-            {/* Lista otimizada */}
-            <div className="max-h-[500px] sm:max-h-[600px] overflow-x-auto overflow-y-auto">
-              {sortedValores.length > 0 ? (
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {sortedValores.map((entregador, index) => {
-                    if (!entregador) return null;
-
-                    const ranking = index + 1;
-                    const totalTaxas = Number(entregador.total_taxas) || 0;
-                    const numeroCorridas = Number(entregador.numero_corridas_aceitas) || 0;
-                    const taxaMedia = Number(entregador.taxa_media) || 0;
-                    const nomeEntregador = String(entregador.nome_entregador || entregador.id_entregador || 'N/A');
-
-                    return (
-                      <div
-                        key={`${entregador.id_entregador}-${index}`}
-                        className="grid grid-cols-4 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[600px]"
-                      >
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
-                            {ranking}
-                          </span>
-                          <span className="font-medium text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-none">{nomeEntregador}</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-mono font-medium text-emerald-600 dark:text-emerald-400">
-                            {formatarReal(totalTaxas)}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-slate-600 dark:text-slate-400 text-sm">
-                            {numeroCorridas.toLocaleString('pt-BR')}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-mono text-slate-600 dark:text-slate-400 text-sm">
-                            {formatarReal(taxaMedia)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="p-8 text-center text-slate-500 dark:text-slate-400">
-                  Nenhum dado para exibir
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <ValoresTable
+        sortedValores={sortedValores}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        formatarReal={formatarReal}
+      />
     </div>
   );
 });
