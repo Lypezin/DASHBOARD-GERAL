@@ -20,16 +20,6 @@ const DashboardView = React.memo(function DashboardView({
   aderenciaSubPraca: AderenciaSubPraca[];
   aderenciaOrigem: AderenciaOrigem[];
 }) {
-  // Log para debug
-  console.log('👀 [DashboardView] Props recebidas:', {
-    hasAderenciaGeral: !!aderenciaGeral,
-    aderenciaGeral,
-    aderenciaDiaLength: aderenciaDia?.length,
-    aderenciaTurnoLength: aderenciaTurno?.length,
-    aderenciaSubPracaLength: aderenciaSubPraca?.length,
-    aderenciaOrigemLength: aderenciaOrigem?.length,
-  });
-
   const [viewMode, setViewMode] = useState<'turno' | 'sub_praca' | 'origem'>('turno');
   const { theme } = useTheme();
 

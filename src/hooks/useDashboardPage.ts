@@ -120,6 +120,11 @@ export function useDashboardPage() {
       subPraca: filters.subPraca,
       origem: filters.origem,
       turno: filters.turno,
+      // Incluir arrays de filtros múltiplos
+      subPracas: filters.subPracas,
+      origens: filters.origens,
+      turnos: filters.turnos,
+      semanas: filters.semanas,
       filtroModo: filters.filtroModo,
       dataInicial: filters.dataInicial,
       dataFinal: filters.dataFinal,
@@ -131,6 +136,11 @@ export function useDashboardPage() {
     filters.subPraca,
     filters.origem,
     filters.turno,
+    // Incluir arrays como dependências (usar JSON.stringify para comparação profunda)
+    JSON.stringify(filters.subPracas),
+    JSON.stringify(filters.origens),
+    JSON.stringify(filters.turnos),
+    JSON.stringify(filters.semanas),
     filters.filtroModo,
     filters.dataInicial,
     filters.dataFinal,

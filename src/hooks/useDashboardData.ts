@@ -70,22 +70,15 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     initialFilters.dataInicial,
     initialFilters.dataFinal,
   ]);
-  
+
   const currentUserKey = useMemo(() => {
     return currentUser ? JSON.stringify({
       is_admin: currentUser.is_admin,
       assigned_pracas: currentUser.assigned_pracas,
     }) : 'null';
   }, [currentUser?.is_admin, currentUser?.assigned_pracas?.join(',')]);
-  
+
   const filterPayload = useMemo(() => {
-    console.log('🔵 [useDashboardData] Gerando filterPayload:', {
-      initialFiltersAno: initialFilters.ano,
-      initialFiltersSemana: initialFilters.semana,
-      filtersKey,
-      currentUserKey,
-    });
-    
     if (IS_DEV) {
       safeLog.info('[useDashboardData] Gerando filterPayload:', {
         initialFilters,
@@ -95,11 +88,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       });
     }
     const payload = buildFilterPayload(initialFilters, currentUser);
-    console.log('✅ [useDashboardData] filterPayload gerado:', {
-      p_ano: payload.p_ano,
-      p_semana: payload.p_semana,
-    });
-    
+
     if (IS_DEV) {
       safeLog.info('[useDashboardData] filterPayload gerado:', {
         payload,
@@ -157,7 +146,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const aderenciaGeral = useMemo(() => {
     if (aderenciaSemanal.length === 0) return undefined;
     if (aderenciaSemanal.length === 1) return aderenciaSemanal[0];
-    
+
     const { totalHorasAEntregar, totalHorasEntregues } = aderenciaSemanal.reduce(
       (acc, semana) => ({
         totalHorasAEntregar: acc.totalHorasAEntregar + converterHorasParaDecimal(semana.horas_a_entregar || '0'),
@@ -165,11 +154,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       }),
       { totalHorasAEntregar: 0, totalHorasEntregues: 0 }
     );
-    
-    const aderenciaPercentual = totalHorasAEntregar > 0 
-      ? (totalHorasEntregues / totalHorasAEntregar) * 100 
+
+    const aderenciaPercentual = totalHorasAEntregar > 0
+      ? (totalHorasEntregues / totalHorasAEntregar) * 100
       : 0;
-    
+
     return {
       semana_ano: 'Geral',
       horas_a_entregar: totalHorasAEntregar.toFixed(2),
