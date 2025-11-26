@@ -6,6 +6,7 @@
 import React from 'react';
 import FiltroBar from '@/components/FiltroBar';
 import type { Filters, FilterOption, CurrentUser } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface DashboardFiltersContainerProps {
   filters: Filters;
@@ -38,27 +39,21 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
   }
 
   return (
-    <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-300/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-      <div className="relative bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl border-0 shadow-xl p-6 sm:p-8 backdrop-blur-sm">
-        <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-blue-400/5 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="relative">
-          <FiltroBar
-            filters={filters}
-            setFilters={setFilters}
-            anos={anosDisponiveis}
-            semanas={semanasDisponiveis.map(String)}
-            pracas={pracas}
-            subPracas={subPracas}
-            origens={origens}
-            turnos={turnos}
-            currentUser={currentUser}
-          />
-        </div>
-      </div>
-    </div>
+    <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+      <CardContent className="p-6">
+        <FiltroBar
+          filters={filters}
+          setFilters={setFilters}
+          anos={anosDisponiveis}
+          semanas={semanasDisponiveis.map(String)}
+          pracas={pracas}
+          subPracas={subPracas}
+          origens={origens}
+          turnos={turnos}
+          currentUser={currentUser}
+        />
+      </CardContent>
+    </Card>
   );
 });
 

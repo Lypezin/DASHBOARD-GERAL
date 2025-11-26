@@ -258,8 +258,8 @@ const DashboardView = React.memo(function DashboardView({
                       </div>
 
                       <div className="flex justify-between text-[10px] text-muted-foreground">
-                        <span>{formatarHorasParaHMS(dia.horas_entregues).split(':')[0]}h</span>
-                        <span>/ {formatarHorasParaHMS(dia.horas_a_entregar).split(':')[0]}h</span>
+                        <span>{formatarHorasParaHMS(dia.horas_entregues)}</span>
+                        <span>/ {formatarHorasParaHMS(dia.horas_a_entregar)}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -290,8 +290,8 @@ const DashboardView = React.memo(function DashboardView({
                   key={mode}
                   onClick={() => setViewMode(mode)}
                   className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${viewMode === mode
-                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                     }`}
                 >
                   {mode === 'sub_praca' ? 'Sub Praça' : mode.charAt(0).toUpperCase() + mode.slice(1)}
