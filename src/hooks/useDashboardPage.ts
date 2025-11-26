@@ -365,10 +365,6 @@ export function useDashboardPage() {
           ano: ultimoAno,
           semana: semanaNumero,
           semanas: [semanaNumero],
-          // Preservar arrays de filtros existentes
-          subPracas: prev.subPracas || [],
-          origens: prev.origens || [],
-          turnos: prev.turnos || [],
         }));
       }
     }
