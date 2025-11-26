@@ -1,10 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
-import { formatarHorasParaHMS, getAderenciaColorHex, converterHorasParaDecimal } from '@/utils/formatters';
+import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatters';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CircularProgress } from '@/components/ui/circular-progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  LayoutDashboard,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  CalendarDays,
+  ListChecks,
+  TrendingUp,
+  TrendingDown,
+  BarChart3
+} from 'lucide-react';
 
 const DashboardView = React.memo(function DashboardView({
   aderenciaGeral,
@@ -88,315 +99,272 @@ const DashboardView = React.memo(function DashboardView({
   }, [aderenciaGeral]);
 
   return (
-    <div className="space-y-8 animate-fade-in pb-8">
-      {/* Aderência Geral - Design Premium */}
+    <div className="space-y-6 animate-fade-in pb-8">
+      {/* Aderência Geral - Design Profissional Clean */}
       {aderenciaGeral && (
-        <div className="relative group">
-          {/* Glow effect sutil */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-          <Card className="relative border-0 shadow-2xl bg-white dark:bg-slate-900 rounded-3xl overflow-hidden">
-            {/* Background Decorativo */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/5 to-indigo-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-emerald-500/5 to-teal-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3"></div>
-
-            <CardHeader className="relative pb-2 border-b border-slate-100 dark:border-slate-800/50">
-              <div className="flex items-center gap-4 p-2">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 text-2xl">
-                  📊
-                </div>
-                <div>
-                  <CardTitle className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                    Visão Geral de Aderência
-                  </CardTitle>
-                  <CardDescription className="text-base font-medium text-slate-500 dark:text-slate-400 mt-1">
-                    Performance consolidada do período selecionado
-                  </CardDescription>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Card Principal - Gráfico */}
+          <Card className="lg:col-span-1 border-slate-200 dark:border-slate-800 shadow-sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                  <LayoutDashboard className="h-4 w-4 text-slate-500" />
+                  Aderência Geral
+                </CardTitle>
+                <Badge variant="outline" className="font-normal text-xs">
+                  Consolidado
+                </Badge>
               </div>
             </CardHeader>
-
-            <CardContent className="relative p-6 sm:p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-
-                {/* Coluna Esquerda: Gráfico Circular */}
-                <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
-                  <div className="relative">
-                    {/* Glow atrás do gráfico */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-full blur-3xl transform scale-110"></div>
-
-                    <CircularProgress
-                      value={aderenciaGeral.aderencia_percentual ?? 0}
-                      size={280}
-                      strokeWidth={24}
-                      color={
-                        (aderenciaGeral.aderencia_percentual ?? 0) >= 90
-                          ? (theme === 'dark' ? '#10b981' : '#059669') // Verde
-                          : (aderenciaGeral.aderencia_percentual ?? 0) >= 70
-                            ? (theme === 'dark' ? '#3b82f6' : '#2563eb') // Azul
-                            : (theme === 'dark' ? '#ef4444' : '#dc2626') // Vermelho
-                      }
-                      backgroundColor={theme === 'dark' ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}
-                      showLabel={true}
-                      label="Aderência Total"
-                    />
-                  </div>
-                </div>
-
-                {/* Coluna Direita: Métricas e KPIs */}
-                <div className="lg:col-span-7 space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    {/* Card: Tempo Planejado */}
-                    <div className="group/metric relative">
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-2xl blur opacity-0 group-hover/metric:opacity-100 transition-opacity duration-500"></div>
-                      <div className="relative bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
-                        <div className="flex items-center justify-between mb-3">
-                          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tempo Planejado</p>
-                          <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                            ⏱️
-                          </div>
-                        </div>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
-                          {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
-                        </p>
-                        <div className="mt-4 h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-500 rounded-full w-full opacity-50"></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Card: Tempo Entregue */}
-                    <div className="group/metric relative">
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-200 to-emerald-300 dark:from-emerald-900 dark:to-emerald-800 rounded-2xl blur opacity-0 group-hover/metric:opacity-100 transition-opacity duration-500"></div>
-                      <div className="relative bg-emerald-50/50 dark:bg-emerald-950/20 rounded-2xl p-5 border border-emerald-100 dark:border-emerald-900/50 hover:shadow-lg transition-all duration-300">
-                        <div className="flex items-center justify-between mb-3">
-                          <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Tempo Entregue</p>
-                          <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                            ✅
-                          </div>
-                        </div>
-                        <p className="text-3xl font-black text-emerald-900 dark:text-emerald-100 font-mono tracking-tight">
-                          {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
-                        </p>
-                        <div className="mt-4 h-2 w-full bg-emerald-200 dark:bg-emerald-900/50 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
-                            style={{ width: `${Math.min(((aderenciaGeral.aderencia_percentual ?? 0) / 100) * 100, 100)}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card: Gap de Performance (Destaque) */}
-                  {calcularGap && (
-                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 shadow-lg text-white">
-                      <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10 blur-xl"></div>
-                      <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-24 w-24 rounded-full bg-black/10 blur-xl"></div>
-
-                      <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div>
-                          <p className="text-blue-100 font-medium mb-1">Gap de Performance (Diferença)</p>
-                          <div className="flex items-baseline gap-2">
-                            <h3 className="text-4xl font-black font-mono tracking-tight">{calcularGap.formatado}</h3>
-                            <span className="text-blue-200 text-sm font-medium">horas não entregues</span>
-                          </div>
-                        </div>
-                        <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-inner">
-                          📉
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+            <CardContent className="flex flex-col items-center justify-center py-6">
+              <div className="relative">
+                <CircularProgress
+                  value={aderenciaGeral.aderencia_percentual ?? 0}
+                  size={200}
+                  strokeWidth={16}
+                  color={
+                    (aderenciaGeral.aderencia_percentual ?? 0) >= 90
+                      ? (theme === 'dark' ? '#10b981' : '#059669')
+                      : (aderenciaGeral.aderencia_percentual ?? 0) >= 70
+                        ? (theme === 'dark' ? '#3b82f6' : '#2563eb')
+                        : (theme === 'dark' ? '#ef4444' : '#dc2626')
+                  }
+                  backgroundColor={theme === 'dark' ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}
+                  showLabel={true}
+                  label="Total"
+                />
               </div>
             </CardContent>
           </Card>
+
+          {/* Cards de Métricas */}
+          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Tempo Planejado */}
+            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Tempo Planejado</CardTitle>
+                <Clock className="h-4 w-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                  {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Total de horas escaladas
+                </p>
+                <div className="mt-3 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full w-full opacity-60"></div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tempo Entregue */}
+            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Tempo Entregue</CardTitle>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                  {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Total de horas realizadas
+                </p>
+                <div className="mt-3 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
+                    style={{ width: `${Math.min(((aderenciaGeral.aderencia_percentual ?? 0) / 100) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gap de Performance */}
+            {calcularGap && (
+              <Card className="sm:col-span-2 border-slate-200 dark:border-slate-800 shadow-sm bg-slate-50/50 dark:bg-slate-900/50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Gap de Performance</CardTitle>
+                  <AlertCircle className="h-4 w-4 text-rose-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                      {calcularGap.formatado}
+                    </div>
+                    <span className="text-xs font-medium text-rose-600 dark:text-rose-400">
+                      não entregues
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Diferença entre planejado e realizado
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Aderência por Dia da Semana - Grid Moderno */}
+      {/* Aderência por Dia da Semana */}
       {aderenciaDiaOrdenada.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-3 px-2">
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-              <span className="text-2xl">📅</span> Performance Diária
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-slate-500" />
+              Performance Diária
             </h3>
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
             {aderenciaDiaOrdenada.map((dia, index) => {
               const aderencia = dia.aderencia_percentual || 0;
               const isToday = new Date().getDay() === (index + 1) % 7;
 
-              // Cores dinâmicas baseadas na performance
-              const statusColor = aderencia >= 90 ? 'emerald' : aderencia >= 70 ? 'blue' : 'rose';
+              const statusColor = aderencia >= 90 ? 'text-emerald-600 dark:text-emerald-400' :
+                aderencia >= 70 ? 'text-blue-600 dark:text-blue-400' :
+                  'text-rose-600 dark:text-rose-400';
+
+              const barColor = aderencia >= 90 ? 'bg-emerald-500' :
+                aderencia >= 70 ? 'bg-blue-500' :
+                  'bg-rose-500';
 
               return (
-                <div key={`dia-${index}`} className={`relative group transition-all duration-300 ${isToday ? 'scale-105 z-10' : 'hover:scale-105 hover:z-10'}`}>
-                  {isToday && (
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl blur opacity-50"></div>
-                  )}
-
-                  <Card className={`h-full border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden ${isToday ? 'bg-white dark:bg-slate-800 ring-2 ring-blue-500/20' : 'bg-white/80 dark:bg-slate-900/80'
-                    }`}>
-                    <div className={`h-1.5 w-full bg-${statusColor}-500`}></div>
-
-                    <CardContent className="p-4 flex flex-col items-center text-center h-full justify-between">
-                      <div className="mb-3">
-                        <p className={`text-sm font-bold uppercase tracking-wider ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                <Card
+                  key={`dia-${index}`}
+                  className={`border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 ${isToday ? 'ring-2 ring-blue-500/20 bg-blue-50/30 dark:bg-blue-900/10' : ''
+                    }`}
+                >
+                  <CardContent className="p-4 flex flex-col items-center justify-between h-full min-h-[140px]">
+                    <div className="text-center w-full">
+                      <div className="flex items-center justify-center gap-1.5 mb-2">
+                        <span className={`text-xs font-bold uppercase tracking-wider ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
                           {dia.dia_da_semana.substring(0, 3)}
-                        </p>
-                        {isToday && <Badge variant="secondary" className="text-[10px] h-4 px-1.5 mt-1">HOJE</Badge>}
+                        </span>
+                        {isToday && <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>}
                       </div>
 
-                      <div className="relative mb-4">
-                        <CircularProgress
-                          value={aderencia}
-                          size={70}
-                          strokeWidth={8}
-                          color={
-                            aderencia >= 90 ? '#10b981' :
-                              aderencia >= 70 ? '#3b82f6' :
-                                '#f43f5e'
-                          }
-                          showLabel={false}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                            {Math.round(aderencia)}%
-                          </span>
-                        </div>
+                      <div className={`text-2xl font-bold ${statusColor}`}>
+                        {Math.round(aderencia)}%
+                      </div>
+                    </div>
+
+                    <div className="w-full space-y-2 mt-3">
+                      <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${barColor} rounded-full`}
+                          style={{ width: `${Math.min(aderencia, 100)}%` }}
+                        ></div>
                       </div>
 
-                      <div className="w-full space-y-1.5">
-                        <div className="flex justify-between text-xs border-b border-slate-100 dark:border-slate-800 pb-1">
-                          <span className="text-slate-400">Plan:</span>
-                          <span className="font-mono font-medium">{formatarHorasParaHMS(dia.horas_a_entregar).split(':')[0]}h</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-slate-400">Real:</span>
-                          <span className={`font-mono font-bold text-${statusColor}-600 dark:text-${statusColor}-400`}>
-                            {formatarHorasParaHMS(dia.horas_entregues).split(':')[0]}h
-                          </span>
-                        </div>
+                      <div className="flex justify-between text-[10px] text-muted-foreground">
+                        <span>{formatarHorasParaHMS(dia.horas_entregues).split(':')[0]}h</span>
+                        <span>/ {formatarHorasParaHMS(dia.horas_a_entregar).split(':')[0]}h</span>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                    </div>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
         </div>
       )}
 
-      {/* Aderência Detalhada - Tabela/Cards Modernos */}
-      <div className="relative group pt-4">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-200 to-blue-200 dark:from-slate-800 dark:to-blue-900 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-        <Card className="relative border-0 shadow-xl bg-white dark:bg-slate-900 rounded-3xl overflow-hidden">
-          <CardHeader className="relative pb-6 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl">
-                  📋
-                </div>
-                <div>
-                  <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
-                    Detalhamento Operacional
-                  </CardTitle>
-                  <CardDescription className="text-slate-500 dark:text-slate-400">
-                    Análise segmentada por categorias
-                  </CardDescription>
-                </div>
+      {/* Detalhamento Operacional */}
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+        <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <ListChecks className="h-5 w-5 text-slate-600 dark:text-slate-400" />
               </div>
-
-              {/* Botões de Filtro Estilizados */}
-              <div className="flex p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
-                {(['turno', 'sub_praca', 'origem'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => setViewMode(mode)}
-                    className={`px-5 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${viewMode === mode
-                        ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm scale-105'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                      }`}
-                  >
-                    {mode === 'sub_praca' ? 'Sub Praça' : mode.charAt(0).toUpperCase() + mode.slice(1)}
-                  </button>
-                ))}
+              <div>
+                <CardTitle className="text-lg font-semibold">Detalhamento Operacional</CardTitle>
+                <CardDescription>Análise segmentada por categorias</CardDescription>
               </div>
             </div>
-          </CardHeader>
 
-          <CardContent className="relative p-6 bg-slate-50/30 dark:bg-slate-900/30">
-            {dataToRender.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {dataToRender.map((item, index) => {
-                  const statusColor = item.aderencia >= 90 ? 'emerald' : item.aderencia >= 70 ? 'blue' : 'rose';
-                  const statusText = item.aderencia >= 90 ? 'Excelente' : item.aderencia >= 70 ? 'Bom' : item.aderencia >= 50 ? 'Médio' : 'Crítico';
+            <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+              {(['turno', 'sub_praca', 'origem'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${viewMode === mode
+                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                >
+                  {mode === 'sub_praca' ? 'Sub Praça' : mode.charAt(0).toUpperCase() + mode.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </CardHeader>
 
-                  return (
-                    <div key={`${viewMode}-${index}`} className="group/card relative">
-                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl bg-${statusColor}-500 transition-all group-hover/card:w-2`}></div>
+        <CardContent className="p-6">
+          {dataToRender.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {dataToRender.map((item, index) => {
+                const statusColor = item.aderencia >= 90 ? 'text-emerald-600 dark:text-emerald-400' :
+                  item.aderencia >= 70 ? 'text-blue-600 dark:text-blue-400' :
+                    'text-rose-600 dark:text-rose-400';
 
-                      <Card className="relative border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all duration-300 pl-3 overflow-hidden bg-white dark:bg-slate-800">
-                        <CardContent className="p-5">
-                          <div className="flex justify-between items-start mb-4">
-                            <h3 className="font-bold text-lg text-slate-800 dark:text-white truncate pr-2" title={item.label}>
-                              {item.label}
-                            </h3>
-                            <Badge variant={statusColor === 'emerald' ? 'default' : statusColor === 'blue' ? 'secondary' : 'destructive'} className="shadow-none">
-                              {statusText}
-                            </Badge>
-                          </div>
+                const barColor = item.aderencia >= 90 ? 'bg-emerald-500' :
+                  item.aderencia >= 70 ? 'bg-blue-500' :
+                    'bg-rose-500';
 
-                          <div className="flex items-end gap-2 mb-4">
-                            <span className={`text-3xl font-black text-${statusColor}-600 dark:text-${statusColor}-400`}>
-                              {item.aderencia.toFixed(1)}%
-                            </span>
-                            <span className="text-sm text-slate-400 mb-1 font-medium">de aderência</span>
-                          </div>
+                const Icon = item.aderencia >= 70 ? TrendingUp : TrendingDown;
 
-                          {/* Barra de Progresso Mini */}
-                          <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mb-4">
-                            <div
-                              className={`h-full bg-${statusColor}-500 rounded-full`}
-                              style={{ width: `${Math.min(item.aderencia, 100)}%` }}
-                            ></div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
-                              <p className="text-xs text-slate-400 uppercase font-semibold">Planejado</p>
-                              <p className="font-mono font-bold text-slate-700 dark:text-slate-300">{formatarHorasParaHMS(item.horasAEntregar)}</p>
-                            </div>
-                            <div className="bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
-                              <p className="text-xs text-slate-400 uppercase font-semibold">Entregue</p>
-                              <p className={`font-mono font-bold text-${statusColor}-600 dark:text-${statusColor}-400`}>{formatarHorasParaHMS(item.horasEntregues)}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                return (
+                  <div key={`${viewMode}-${index}`} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 hover:shadow-md transition-all duration-200">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-medium text-sm text-slate-700 dark:text-slate-200 truncate pr-2" title={item.label}>
+                        {item.label}
+                      </h3>
+                      <Badge variant={item.aderencia >= 90 ? 'default' : item.aderencia >= 70 ? 'secondary' : 'destructive'} className="text-[10px] h-5 px-1.5 font-normal">
+                        {item.aderencia.toFixed(1)}%
+                      </Badge>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="h-20 w-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-4xl mb-4 text-slate-400">
-                  📊
-                </div>
-                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">Nenhum dado disponível</h3>
-                <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto mt-2">
-                  Tente ajustar os filtros ou selecionar outro modo de visualização.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`p-2 rounded-full ${item.aderencia >= 70 ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-rose-50 dark:bg-rose-900/20'}`}>
+                        <Icon className={`h-4 w-4 ${statusColor}`} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${barColor} rounded-full`}
+                            style={{ width: `${Math.min(item.aderencia, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <div className="flex justify-between bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded">
+                        <span>Plan:</span>
+                        <span className="font-mono font-medium text-slate-700 dark:text-slate-300">{formatarHorasParaHMS(item.horasAEntregar)}</span>
+                      </div>
+                      <div className="flex justify-between bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded">
+                        <span>Real:</span>
+                        <span className={`font-mono font-medium ${statusColor}`}>{formatarHorasParaHMS(item.horasEntregues)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+              <BarChart3 className="h-12 w-12 mb-3 opacity-20" />
+              <p className="text-sm font-medium">Nenhum dado disponível</p>
+              <p className="text-xs mt-1 opacity-70">
+                Ajuste os filtros para visualizar os dados
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 });
