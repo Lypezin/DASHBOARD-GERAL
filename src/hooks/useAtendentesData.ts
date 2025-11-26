@@ -56,24 +56,24 @@ export function useAtendentesData() {
       if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
         // Agrupar dados por atendente
         const atendentesMap = new Map<string, AtendenteData>();
-        let totalEnviado = 0;
-        let totalLiberado = 0;
 
         // Processar dados RPC
         for (const item of rpcData) {
           if (!atendentesMap.has(item.responsavel)) {
             atendentesMap.set(item.responsavel, {
               nome: item.responsavel,
-              enviado: item.enviado || 0,
-              liberado: item.liberado || 0,
+              enviado: 0,
+              liberado: 0,
               fotoUrl: ATENDENTES_FOTOS[item.responsavel] || null,
               cidades: [],
             });
-            totalEnviado += item.enviado || 0;
-            totalLiberado += item.liberado || 0;
           }
 
           const atendenteData = atendentesMap.get(item.responsavel)!;
+
+          // Acumular totais
+          atendenteData.enviado += item.enviado || 0;
+          atendenteData.liberado += item.liberado || 0;
 
           if (item.cidade && (item.cidade_enviado > 0 || item.cidade_liberado > 0)) {
             atendenteData.cidades!.push({
