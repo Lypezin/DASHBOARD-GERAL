@@ -128,6 +128,23 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                           if (mapIso[d.dia_iso] && mapIso[d.dia_iso].includes(diaRef)) return true;
                         }
 
+                        // Tentativa 3: Se tiver campo 'data', extrair o dia da semana
+                        if ((d as any).data) {
+                          try {
+                            const date = new Date((d as any).data + 'T00:00:00');
+                            const dayOfWeek = date.getDay(); // 0=Domingo, 1=Segunda, ...
+                            const mapDayNumber: Record<number, string> = {
+                              0: 'domingo', 1: 'segunda', 2: 'terça', 3: 'quarta',
+                              4: 'quinta', 5: 'sexta', 6: 'sábado'
+                            };
+                            const diaFromDate = mapDayNumber[dayOfWeek];
+                            const diaRef = dia.toLowerCase().trim();
+                            if (diaFromDate && diaFromDate.includes(diaRef)) return true;
+                          } catch (e) {
+                            // Ignorar erros de parse de data
+                          }
+                        }
+
                         return false;
                       });
 
@@ -155,6 +172,22 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                             };
                             const diaRef = dia.toLowerCase().trim();
                             if (mapIso[d.dia_iso] && mapIso[d.dia_iso].includes(diaRef)) return true;
+                          }
+                          // Tentativa 3: Se tiver campo 'data', extrair o dia da semana
+                          if ((d as any).data) {
+                            try {
+                              const date = new Date((d as any).data + 'T00:00:00');
+                              const dayOfWeek = date.getDay();
+                              const mapDayNumber: Record<number, string> = {
+                                0: 'domingo', 1: 'segunda', 2: 'terça', 3: 'quarta',
+                                4: 'quinta', 5: 'sexta', 6: 'sábado'
+                              };
+                              const diaFromDate = mapDayNumber[dayOfWeek];
+                              const diaRef = dia.toLowerCase().trim();
+                              if (diaFromDate && diaFromDate.includes(diaRef)) return true;
+                            } catch (e) {
+                              // Ignorar erros de parse de data
+                            }
                           }
                           return false;
                         });
