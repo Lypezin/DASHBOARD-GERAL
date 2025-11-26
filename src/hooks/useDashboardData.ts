@@ -55,6 +55,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
       subPraca: initialFilters.subPraca,
       origem: initialFilters.origem,
       turno: initialFilters.turno,
+      // Incluir arrays de filtros múltiplos
+      subPracas: initialFilters.subPracas,
+      origens: initialFilters.origens,
+      turnos: initialFilters.turnos,
+      semanas: initialFilters.semanas,
       filtroModo: initialFilters.filtroModo,
       dataInicial: initialFilters.dataInicial,
       dataFinal: initialFilters.dataFinal,
@@ -66,6 +71,11 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     initialFilters.subPraca,
     initialFilters.origem,
     initialFilters.turno,
+    // Incluir arrays como dependências
+    JSON.stringify(initialFilters.subPracas),
+    JSON.stringify(initialFilters.origens),
+    JSON.stringify(initialFilters.turnos),
+    JSON.stringify(initialFilters.semanas),
     initialFilters.filtroModo,
     initialFilters.dataInicial,
     initialFilters.dataFinal,

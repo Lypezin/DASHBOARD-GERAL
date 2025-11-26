@@ -23,7 +23,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node) &&
-          dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
@@ -37,19 +37,17 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
         if (buttonRef.current) {
           const rect = buttonRef.current.getBoundingClientRect();
           setDropdownPosition({
-            top: rect.bottom + window.scrollY + 4,
-            left: rect.left + window.scrollX,
+            top: rect.bottom + 4,
+            left: rect.left,
             width: rect.width
           });
         }
       };
-      
+
       updatePosition();
-      window.addEventListener('scroll', updatePosition, true);
       window.addEventListener('resize', updatePosition);
-      
+
       return () => {
-        window.removeEventListener('scroll', updatePosition, true);
         window.removeEventListener('resize', updatePosition);
       };
     }
@@ -59,19 +57,19 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   const handleSelect = (value: string) => {
     // Evitar duplicatas: verificar se já existe
     const isAlreadySelected = selected.includes(value);
-    
+
     const newSelected = isAlreadySelected
       ? selected.filter(item => item !== value)
       : [...selected, value];
-    
+
     onSelectionChange(newSelected);
   };
 
   const dropdownContent = isOpen && !disabled && options.length > 0 && typeof window !== 'undefined' ? createPortal(
-    <div 
+    <div
       ref={dropdownRef}
       className="fixed rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700 z-[9999]"
-      style={{ 
+      style={{
         top: `${dropdownPosition.top}px`,
         left: `${dropdownPosition.left}px`,
         width: `${dropdownPosition.width}px`,
