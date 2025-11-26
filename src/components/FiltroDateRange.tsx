@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
+import { Button } from '@/components/ui/button';
 
 interface FiltroDateRangeProps {
   dataInicial: string | null;
@@ -30,7 +31,7 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = ({
     try {
       const value = e.target.value || '';
       setTempDataInicial(value);
-      
+
       // Se data inicial for maior que data final temporária, ajustar data final temporária
       if (value && tempDataFinal && value > tempDataFinal) {
         setTempDataFinal(value);
@@ -44,7 +45,7 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = ({
     try {
       const value = e.target.value || '';
       setTempDataFinal(value);
-      
+
       // Validar que data final >= data inicial temporária
       if (value && tempDataInicial && value < tempDataInicial) {
         // Se data final for menor que inicial, ajustar para igual
@@ -59,18 +60,18 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = ({
     // Validar datas antes de aplicar
     const dataIni = tempDataInicial || null;
     let dataFim = tempDataFinal || null;
-    
+
     // Validar que data final >= data inicial
     if (dataIni && dataFim && dataFim < dataIni) {
       dataFim = dataIni;
       setTempDataFinal(dataIni);
     }
-    
+
     onDataInicialChange(dataIni);
     onDataFinalChange(dataFim);
-    
+
     safeLog.info('[FiltroDateRange] Filtro aplicado:', { dataIni, dataFim });
-    
+
     // Chamar callback se fornecido
     if (onApply) {
       onApply();
@@ -123,25 +124,26 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = ({
           />
         </div>
       </div>
-      
+
       {/* Botões de ação */}
       <div className="flex gap-2 flex-shrink-0">
-        <button
+        <Button
           onClick={handleAplicar}
           disabled={!temAlteracao}
-          className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-md transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg hover:-translate-y-0.5 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-md disabled:hover:translate-y-0 h-[42px]"
+          className="h-[42px] min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
           title={temAlteracao ? 'Aplicar filtro de datas' : 'Nenhuma alteração para aplicar'}
         >
           ✓ Aplicar
-        </button>
+        </Button>
         {temFiltro && (
-          <button
+          <Button
+            variant="outline"
             onClick={handleLimpar}
-            className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 h-[42px]"
+            className="h-[42px] min-w-[100px]"
             title="Limpar filtro de datas"
           >
             ✕ Limpar
-          </button>
+          </Button>
         )}
       </div>
     </div>

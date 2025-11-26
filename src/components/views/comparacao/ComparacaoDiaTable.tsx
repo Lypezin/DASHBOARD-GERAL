@@ -19,7 +19,10 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
     if (process.env.NODE_ENV === 'development') {
       console.log('ComparacaoDiaTable - dadosComparacao:', dadosComparacao);
       dadosComparacao.forEach((d, i) => {
-        console.log(`Semana ${semanasSelecionadas[i]} - Dias:`, d.dia);
+        console.log(`Semana ${semanasSelecionadas[i]} - Dias Raw:`, d.dia?.map(dia => ({
+          dia_da_semana: dia.dia_da_semana,
+          dia_iso: dia.dia_iso
+        })));
       });
     }
   }, [dadosComparacao, semanasSelecionadas]);
@@ -100,28 +103,32 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                     {dadosComparacao.map((dados, idx) => {
                       // Normalização para comparação de dias
                       const diaData = dados.dia?.find(d => {
-                        if (!d.dia_da_semana) return false;
-                        const diaApi = d.dia_da_semana.toLowerCase().trim();
-                        const diaRef = dia.toLowerCase().trim();
+                        // Tentativa 1: Match por dia_da_semana (string)
+                        if (d.dia_da_semana) {
+                          const diaApi = d.dia_da_semana.toLowerCase().trim();
+                          const diaRef = dia.toLowerCase().trim();
 
-                        // Verificação direta
-                        if (diaApi === diaRef) return true;
+                          if (diaApi === diaRef) return true;
+                          if (diaApi.includes(diaRef) || diaRef.includes(diaApi)) return true;
 
-                        // Verificação parcial (ex: "segunda-feira" vs "segunda")
-                        if (diaApi.includes(diaRef) || diaRef.includes(diaApi)) return true;
+                          const mapDias: Record<string, string> = {
+                            'monday': 'segunda', 'tuesday': 'terça', 'wednesday': 'quarta',
+                            'thursday': 'quinta', 'friday': 'sexta', 'saturday': 'sábado', 'sunday': 'domingo'
+                          };
+                          if (mapDias[diaApi] && mapDias[diaApi].includes(diaRef)) return true;
+                        }
 
-                        // Mapa de tradução (inglês -> português)
-                        const mapDias: Record<string, string> = {
-                          'monday': 'segunda',
-                          'tuesday': 'terça',
-                          'wednesday': 'quarta',
-                          'thursday': 'quinta',
-                          'friday': 'sexta',
-                          'saturday': 'sábado',
-                          'sunday': 'domingo'
-                        };
+                        // Tentativa 2: Match por dia_iso (number)
+                        // dia_iso: 1 (Segunda) a 7 (Domingo)
+                        if (d.dia_iso) {
+                          const mapIso: Record<number, string> = {
+                            1: 'segunda', 2: 'terça', 3: 'quarta', 4: 'quinta', 5: 'sexta', 6: 'sábado', 7: 'domingo'
+                          };
+                          const diaRef = dia.toLowerCase().trim();
+                          if (mapIso[d.dia_iso] && mapIso[d.dia_iso].includes(diaRef)) return true;
+                        }
 
-                        return mapDias[diaApi] && mapDias[diaApi].includes(diaRef);
+                        return false;
                       });
 
                       const valor = diaData?.[metrica.key as keyof typeof diaData] as number ?? 0;
@@ -130,16 +137,26 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                       if (idx > 0) {
                         const dadosAnterior = dadosComparacao[idx - 1];
                         const diaDataAnterior = dadosAnterior.dia?.find(d => {
-                          if (!d.dia_da_semana) return false;
-                          const diaApi = d.dia_da_semana.toLowerCase().trim();
-                          const diaRef = dia.toLowerCase().trim();
-                          if (diaApi === diaRef) return true;
-                          if (diaApi.includes(diaRef) || diaRef.includes(diaApi)) return true;
-                          const mapDias: Record<string, string> = {
-                            'monday': 'segunda', 'tuesday': 'terça', 'wednesday': 'quarta',
-                            'thursday': 'quinta', 'friday': 'sexta', 'saturday': 'sábado', 'sunday': 'domingo'
-                          };
-                          return mapDias[diaApi] && mapDias[diaApi].includes(diaRef);
+                          // Mesma lógica de match para o dia anterior
+                          if (d.dia_da_semana) {
+                            const diaApi = d.dia_da_semana.toLowerCase().trim();
+                            const diaRef = dia.toLowerCase().trim();
+                            if (diaApi === diaRef) return true;
+                            if (diaApi.includes(diaRef) || diaRef.includes(diaApi)) return true;
+                            const mapDias: Record<string, string> = {
+                              'monday': 'segunda', 'tuesday': 'terça', 'wednesday': 'quarta',
+                              'thursday': 'quinta', 'friday': 'sexta', 'saturday': 'sábado', 'sunday': 'domingo'
+                            };
+                            if (mapDias[diaApi] && mapDias[diaApi].includes(diaRef)) return true;
+                          }
+                          if (d.dia_iso) {
+                            const mapIso: Record<number, string> = {
+                              1: 'segunda', 2: 'terça', 3: 'quarta', 4: 'quinta', 5: 'sexta', 6: 'sábado', 7: 'domingo'
+                            };
+                            const diaRef = dia.toLowerCase().trim();
+                            if (mapIso[d.dia_iso] && mapIso[d.dia_iso].includes(diaRef)) return true;
+                          }
+                          return false;
                         });
                         const valorAnterior = diaDataAnterior?.[metrica.key as keyof typeof diaDataAnterior] as number ?? 0;
                         variacao = valorAnterior > 0 ? ((valor - valorAnterior) / valorAnterior) * 100 : 0;

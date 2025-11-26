@@ -58,8 +58,14 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
             // Se o primeiro item é um objeto, extrair a propriedade de semana
             if (typeof semanasArray[0] === 'object' && semanasArray[0] !== null) {
               semanasProcessadas = (semanasArray as Record<string, unknown>[]).map((item) => {
+                // Tentar construir formato YYYY-Www se ano e semana estiverem disponíveis
+                if (item.ano && (item.semana || item.semana_numero)) {
+                  const s = item.semana || item.semana_numero;
+                  return `${item.ano}-W${s}`;
+                }
+
                 // Tentar diferentes propriedades comuns
-                const semana = item.semana || item.semana_numero || item.numero_semana || item.ano_semana || String(item);
+                const semana = item.ano_semana || item.semana || item.semana_numero || item.numero_semana || String(item);
                 return typeof semana === 'number' ? semana : String(semana);
               }).filter((s): s is string | number => Boolean(s));
             } else {
@@ -147,6 +153,12 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
         const filtro = buildFilterPayload(filters, currentUser);
 
+        // DEBUG: Log payload
+        console.log(`[Comparacao] Requesting data for week ${semana}`, {
+          payload: filtro,
+          originalFilters: filters
+        });
+
         if (IS_DEV) {
           safeLog.info(`[Comparacao] Buscando dados para semana ${semana} (ano: ${anoNumero}, número: ${semanaNumero})`, {
             filtro: {
@@ -163,6 +175,14 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           validateParams: true
         });
         if (error) throw error;
+
+        // DEBUG: Log response
+        console.log(`[Comparacao] Response for week ${semana}:`, {
+          hasData: !!data,
+          diaLength: data?.dia?.length,
+          diaSample: data?.dia?.slice(0, 2),
+          totais: data?.totais
+        });
 
         if (IS_DEV && data) {
           safeLog.info(`[Comparacao] Dados recebidos para semana ${semana}`, {
@@ -244,21 +264,10 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       }
 
       // Garantir que os dados estão na ordem correta das semanas selecionadas
-      const dadosOrdenados = semanasSelecionadas.map(semana => {
-        const resultado = resultadosDados.find(r => {
-          const semanaStr = String(semana);
-          const resultadoSemana = String(r.semana);
-          // Normalizar comparação (remover W se existir)
-          const semanaNormalizada = semanaStr.includes('W')
-            ? semanaStr.match(/W(\d+)/)?.[1] || semanaStr
-            : semanaStr;
-          const resultadoNormalizado = resultadoSemana.includes('W')
-            ? resultadoSemana.match(/W(\d+)/)?.[1] || resultadoSemana
-            : resultadoSemana;
-          return semanaNormalizada === resultadoNormalizado;
-        });
+      // Como usamos Promise.all no map de semanasSelecionadas, a ordem já está garantida
+      const dadosOrdenados = resultadosDados.map(resultado => {
         // Se não encontrar dados, retornar um objeto vazio estruturado ou null
-        return resultado?.dados || {
+        return resultado.dados || {
           totais: { corridas_ofertadas: 0, corridas_aceitas: 0, corridas_rejeitadas: 0, corridas_completadas: 0 },
           semanal: [],
           dia: [],
