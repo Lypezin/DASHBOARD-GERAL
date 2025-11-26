@@ -57,13 +57,13 @@ const ResultadosView = React.memo(function ResultadosView() {
           filters.filtroEnviadosLiberados
         );
         setAtendentesData(atendentesComCusto);
-        }
-      } catch (err: any) {
-        safeLog.error('Erro ao buscar dados de Resultados:', err);
-        setError(err.message || 'Erro ao carregar dados de Resultados');
-      } finally {
-        setLoading(false);
       }
+    } catch (err: any) {
+      safeLog.error('Erro ao buscar dados de Resultados:', err);
+      setError(err.message || 'Erro ao carregar dados de Resultados');
+    } finally {
+      setLoading(false);
+    }
   }, [fetchAtendentesData, fetchCustoPorLiberado, filters]);
 
   // Buscar dados quando os filtros mudarem
@@ -109,15 +109,6 @@ const ResultadosView = React.memo(function ResultadosView() {
 
   return (
     <div className="space-y-4">
-      {/* Header com Totais e Filtros */}
-      <div className="space-y-4">
-        <ResultadosCards
-          totalEnviado={totais.totalEnviado}
-          totalLiberado={totais.totalLiberado}
-          atendentesData={atendentesData}
-        />
-      </div>
-
       <ResultadosFilters
         filtroLiberacao={filters.filtroLiberacao}
         filtroEnviados={filters.filtroEnviados}
@@ -126,6 +117,15 @@ const ResultadosView = React.memo(function ResultadosView() {
         onFiltroEnviadosChange={(filter) => handleFilterChange('filtroEnviados', filter)}
         onFiltroEnviadosLiberadosChange={(filter) => handleFilterChange('filtroEnviadosLiberados', filter)}
       />
+
+      {/* Header com Totais */}
+      <div className="space-y-4">
+        <ResultadosCards
+          totalEnviado={totais.totalEnviado}
+          totalLiberado={totais.totalLiberado}
+          atendentesData={atendentesData}
+        />
+      </div>
     </div>
   );
 });

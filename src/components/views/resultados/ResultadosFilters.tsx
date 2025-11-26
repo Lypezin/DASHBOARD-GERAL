@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { MarketingDateFilter } from '@/types';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Filter } from 'lucide-react';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 
@@ -25,15 +25,15 @@ export const ResultadosFilters = React.memo(function ResultadosFilters({
 }: ResultadosFiltersProps) {
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-      <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+      <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-slate-500" />
-          <h3 className="text-base font-medium text-slate-700 dark:text-slate-200">
+          <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-200">
             Filtros de Data
-          </h3>
+          </CardTitle>
         </div>
-      </div>
-      <div className="p-4">
+      </CardHeader>
+      <CardContent className="pt-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <MarketingDateFilterComponent
             label="Filtro de Liberação"
@@ -51,7 +51,7 @@ export const ResultadosFilters = React.memo(function ResultadosFilters({
             onFilterChange={onFiltroEnviadosLiberadosChange}
           />
         </div>
-      </div>
+      </CardContent>
     </Card>
   );
 });
