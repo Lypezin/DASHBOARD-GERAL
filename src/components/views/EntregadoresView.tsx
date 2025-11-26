@@ -6,7 +6,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Download } from 'lucide-react';
+import { Download, ArrowDownWideNarrow, ArrowUpNarrowWide } from 'lucide-react';
 import { EntregadoresFilters } from './entregadores/EntregadoresFilters';
 import { EntregadoresTable } from './entregadores/EntregadoresTable';
 import { EntregadoresStatsCards } from './entregadores/EntregadoresStatsCards';
@@ -23,6 +23,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [filtroRodouDia, setFiltroRodouDia] = useState<MarketingDateFilter>({
     dataInicial: null,
     dataFinal: null,
@@ -65,18 +66,25 @@ const EntregadoresView = React.memo(function EntregadoresView({
     fetchEntregadoresFn();
   }, [fetchEntregadoresFn]);
 
-  // Filtrar entregadores por nome ou ID
+  // Filtrar e ordenar entregadores
   const entregadoresFiltrados = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return entregadores;
+    let filtered = entregadores;
+
+    if (searchTerm.trim()) {
+      const termo = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(e =>
+        e.nome.toLowerCase().includes(termo) ||
+        e.id_entregador.toLowerCase().includes(termo)
+      );
     }
 
-    const termo = searchTerm.toLowerCase().trim();
-    return entregadores.filter(e =>
-      e.nome.toLowerCase().includes(termo) ||
-      e.id_entregador.toLowerCase().includes(termo)
-    );
-  }, [entregadores, searchTerm]);
+    // Ordenar por corridas completadas
+    return [...filtered].sort((a, b) => {
+      const valA = a.total_completadas || 0;
+      const valB = b.total_completadas || 0;
+      return sortOrder === 'desc' ? valB - valA : valA - valB;
+    });
+  }, [entregadores, searchTerm, sortOrder]);
 
   // Função para formatar segundos em horas (HH:MM:SS)
   const formatarSegundosParaHoras = useCallback((segundos: number): string => {
@@ -152,6 +160,23 @@ const EntregadoresView = React.memo(function EntregadoresView({
                 Entregadores que aparecem tanto no marketing quanto nas corridas ({entregadoresFiltrados.length} de {entregadores.length} entregador{entregadores.length !== 1 ? 'es' : ''})
               </p>
             </div>
+            <Button
+              onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+              variant="outline"
+              className="shrink-0"
+            >
+              {sortOrder === 'desc' ? (
+                <>
+                  <ArrowDownWideNarrow className="mr-2 h-4 w-4" />
+                  Maior para Menor
+                </>
+              ) : (
+                <>
+                  <ArrowUpNarrowWide className="mr-2 h-4 w-4" />
+                  Menor para Maior
+                </>
+              )}
+            </Button>
             <Button
               onClick={exportarParaExcel}
               disabled={entregadoresFiltrados.length === 0}
