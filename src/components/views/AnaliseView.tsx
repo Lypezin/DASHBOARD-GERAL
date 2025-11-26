@@ -8,13 +8,13 @@ import { useAnaliseTaxas } from '@/hooks/analise/useAnaliseTaxas';
 
 type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem';
 
-const AnaliseView = React.memo(function AnaliseView({ 
+const AnaliseView = React.memo(function AnaliseView({
   totals,
   aderenciaDia,
   aderenciaTurno,
   aderenciaSubPraca,
   aderenciaOrigem,
-}: { 
+}: {
   totals: Totals;
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
@@ -22,7 +22,7 @@ const AnaliseView = React.memo(function AnaliseView({
   aderenciaOrigem: AderenciaOrigem[];
 }) {
   const [activeTable, setActiveTable] = useState<TableType>('dia');
-  
+
   // Memoizar cálculos de taxas
   const { taxaAceitacao, taxaCompletude, taxaRejeicao } = useAnaliseTaxas(totals);
 
@@ -33,16 +33,24 @@ const AnaliseView = React.memo(function AnaliseView({
 
   // Preparar dados para as tabelas
   const tableData = useMemo(() => {
+    const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
     switch (activeTable) {
       case 'dia':
-        return aderenciaDia.map(item => ({
-          ...item,
-          label: item.dia_da_semana,
-        }));
+        return aderenciaDia.map(item => {
+          // Calcular dia da semana a partir da data
+          const dataObj = new Date(item.data + 'T00:00:00');
+          const diaDaSemana = diasDaSemana[dataObj.getDay()];
+
+          return {
+            ...item,
+            label: diaDaSemana,
+          };
+        });
       case 'turno':
         return aderenciaTurno.map(item => ({
           ...item,
-          label: item.periodo,
+          label: item.turno,
         }));
       case 'sub_praca':
         return aderenciaSubPraca.map(item => ({
@@ -87,10 +95,10 @@ const AnaliseView = React.memo(function AnaliseView({
       {/* Análise Detalhada - Tabelas */}
       <div className="relative group">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        
+
         <Card className="relative border-0 shadow-xl bg-gradient-to-br from-white via-white to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/10 rounded-3xl overflow-hidden">
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500/5 to-blue-400/5 rounded-full blur-3xl"></div>
-          
+
           <CardHeader className="relative pb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
               <div className="flex items-center gap-3">
