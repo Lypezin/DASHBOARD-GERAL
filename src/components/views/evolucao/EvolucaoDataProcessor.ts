@@ -17,22 +17,22 @@ export const processEvolucaoData = (
 ) => {
   const mensalArray = Array.isArray(evolucaoMensal) ? evolucaoMensal : [];
   const semanalArray = Array.isArray(evolucaoSemanal) ? evolucaoSemanal : [];
-  
+
   // Filtrar e ordenar dados do ano selecionado
-  const dadosAtivos = viewMode === 'mensal' 
+  const dadosAtivos = viewMode === 'mensal'
     ? [...mensalArray].filter(d => d && d.ano === anoSelecionado).sort((a, b) => {
-        if (a.ano !== b.ano) return a.ano - b.ano;
-        return a.mes - b.mes;
-      })
+      if (a.ano !== b.ano) return a.ano - b.ano;
+      return a.mes - b.mes;
+    })
     : [...semanalArray]
-        .filter(d => d && d.ano === anoSelecionado)
-        .sort((a, b) => {
-          if (a.ano !== b.ano) return a.ano - b.ano;
-          const semanaA = Number(a.semana);
-          const semanaB = Number(b.semana);
-          if (isNaN(semanaA) || isNaN(semanaB)) return 0;
-          return semanaA - semanaB;
-        });
+      .filter(d => d && d.ano === anoSelecionado)
+      .sort((a, b) => {
+        if (a.ano !== b.ano) return a.ano - b.ano;
+        const semanaA = Number(a.semana);
+        const semanaB = Number(b.semana);
+        if (isNaN(semanaA) || isNaN(semanaB)) return 0;
+        return semanaA - semanaB;
+      });
 
   // Gerar TODOS os labels (12 meses ou 53 semanas)
   const baseLabels = viewMode === 'mensal'
@@ -42,17 +42,18 @@ export const processEvolucaoData = (
   // ⚠️ REFORMULAÇÃO: Criar array de dados diretamente por índice
   // Chart.js mapeia: data[0] -> labels[0], data[1] -> labels[1], etc.
   const dadosPorLabel = new Map<string, any>();
-  
+
   if (viewMode === 'mensal') {
     // Mapear por número do mês (1-12)
     const dadosPorMes = new Map<number, EvolucaoMensal>();
     dadosAtivos.forEach(d => {
-      const mes = (d as EvolucaoMensal).mes;
-      if (mes != null && mes >= 1 && mes <= 12) {
+      const mesRaw = (d as EvolucaoMensal).mes;
+      const mes = typeof mesRaw === 'string' ? parseInt(mesRaw, 10) : Number(mesRaw);
+      if (!isNaN(mes) && mes >= 1 && mes <= 12) {
         dadosPorMes.set(mes, d as EvolucaoMensal);
       }
     });
-    
+
     // ⚠️ CRÍTICO: Preencher usando baseLabels para garantir correspondência exata
     // baseLabels já contém os meses em português na ordem correta (Janeiro, Fevereiro, ..., Dezembro)
     // Cada label corresponde ao índice + 1 (Janeiro = índice 0 = mês 1, Fevereiro = índice 1 = mês 2, etc.)
@@ -61,7 +62,7 @@ export const processEvolucaoData = (
       const dados = dadosPorMes.get(mesNumero);
       dadosPorLabel.set(label, dados ?? null);
     });
-    
+
     // ⚠️ DEBUG: Verificar mapeamento
     if (IS_DEV) {
       safeLog.info(`[processEvolucaoData] Mensal - Ano selecionado: ${anoSelecionado}`);
@@ -100,7 +101,7 @@ export const processEvolucaoData = (
         safeLog.warn(`[processEvolucaoData] Semana inválida ignorada: ${semanaRaw} (tipo: ${typeof semanaRaw})`);
       }
     });
-    
+
     // ⚠️ CRÍTICO: Preencher todas as 53 semanas na ordem correta
     // Garantir que os labels gerados correspondam exatamente aos dados
     baseLabels.forEach((label, index) => {
@@ -115,7 +116,7 @@ export const processEvolucaoData = (
         dadosPorLabel.set(label, null);
       }
     });
-    
+
     // ⚠️ DEBUG: Verificar mapeamento crítico
     if (IS_DEV) {
       const s22Index = baseLabels.indexOf('S22');
@@ -188,12 +189,12 @@ export const getMetricConfig = (
       }
       return numValue;
     });
-    
+
     if (IS_DEV) {
       const nonNullCount = mappedData.filter(d => d !== null).length;
       safeLog.info(`[getMetricConfig] Total de valores não-nulos: ${nonNullCount} de ${mappedData.length}`);
     }
-    
+
     return mappedData;
   };
 
@@ -356,7 +357,7 @@ export const createChartData = (
   const datasets = metricConfigs.map((config, index) => {
     // ⚠️ CRÍTICO: Os dados já vêm na ordem correta dos labels
     let data: (number | null)[] = [...config.data];
-    
+
     // Garantir tamanho correto
     if (data.length !== baseLabels.length) {
       if (IS_DEV) {
@@ -367,20 +368,20 @@ export const createChartData = (
       }
       data = data.slice(0, baseLabels.length);
     }
-    
+
     // Normalizar valores
     data = data.map(v => {
       if (v == null || v === undefined) return null;
       const num = Number(v);
       return isNaN(num) || !isFinite(num) ? null : num;
     });
-    
+
     // Aplicar offset visual se necessário
     if (data.length > 0 && data.some(v => v != null) && config.yAxisID === 'y' && globalMaxValue > 0 && !config.label.includes('Horas')) {
       const baseOffset = globalMaxValue * CHART_CONSTANTS.VISUAL_OFFSET_BASE_PERCENT;
       const offsets = [0, baseOffset * 0.5, baseOffset];
       const offset = offsets[index] || 0;
-      
+
       if (offset > 0) {
         data = data.map((value: number | null) => {
           if (value == null || value === 0) return value;
@@ -388,18 +389,18 @@ export const createChartData = (
         });
       }
     }
-    
+
     const order = index;
     const borderWidth = CHART_CONSTANTS.BORDER_WIDTHS[index] || 4;
-    const pointRadius = isSemanal 
+    const pointRadius = isSemanal
       ? (CHART_CONSTANTS.POINT_RADIUS_SEMANAL[index] || 6)
       : (CHART_CONSTANTS.POINT_RADIUS_MENSAL[index] || 9);
     const dashPattern = CHART_CONSTANTS.DASH_PATTERNS[index] || [];
     const opacity = CHART_CONSTANTS.OPACITIES[index] || 1.0;
-    
+
     const borderColorWithOpacity = adjustColorOpacity(config.borderColor, opacity);
     const pointColorWithOpacity = adjustColorOpacity(config.pointColor, opacity);
-    
+
     return {
       label: config.label,
       data,
@@ -443,17 +444,17 @@ export const createChartData = (
     safeLog.info(`[createChartData] Labels: ${baseLabels.length}, Datasets: ${datasets.length}`);
     safeLog.info(`[createChartData] Primeiros 5 labels: ${baseLabels.slice(0, 5).join(', ')}`);
     safeLog.info(`[createChartData] Últimos 5 labels: ${baseLabels.slice(-5).join(', ')}`);
-    
+
     if (datasets.length > 0) {
       datasets.forEach((dataset, datasetIndex) => {
         safeLog.info(`[createChartData] Dataset ${datasetIndex} (${dataset.label}): ${dataset.data.length} elementos`);
-        
+
         // Verificar primeiros e últimos valores
         const primeirosValores = dataset.data.slice(0, 5).map((v, i) => `${baseLabels[i]}=${v}`).join(', ');
         const ultimosValores = dataset.data.slice(-5).map((v, i) => `${baseLabels[baseLabels.length - 5 + i]}=${v}`).join(', ');
         safeLog.info(`[createChartData] Dataset ${datasetIndex} - Primeiros 5: ${primeirosValores}`);
         safeLog.info(`[createChartData] Dataset ${datasetIndex} - Últimos 5: ${ultimosValores}`);
-        
+
         // Contar valores não-nulos
         const nonNullCount = dataset.data.filter(v => v !== null && v !== undefined).length;
         safeLog.info(`[createChartData] Dataset ${datasetIndex} - Valores não-nulos: ${nonNullCount} de ${dataset.data.length}`);
