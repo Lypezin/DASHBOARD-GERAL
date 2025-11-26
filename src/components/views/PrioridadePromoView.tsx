@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Entregador, EntregadoresData } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { PrioridadeFilters } from './prioridade/PrioridadeFilters';
 import { PrioridadeSearch } from './prioridade/PrioridadeSearch';
 import { PrioridadeTable } from './prioridade/PrioridadeTable';
 import { usePrioridadeSearch } from './prioridade/usePrioridadeSearch';
+import { exportarPrioridadeParaExcel } from './prioridade/PrioridadeExcelExport';
+import { safeLog } from '@/lib/errorHandler';
 import {
   calcularPercentualAceitas,
   calcularPercentualCompletadas,
@@ -24,7 +27,8 @@ import {
   XCircle,
   Flag,
   BarChart3,
-  AlertCircle
+  AlertCircle,
+  Download
 } from 'lucide-react';
 
 const PrioridadePromoView = React.memo(function PrioridadePromoView({
@@ -172,6 +176,16 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
     setFiltroAceitas('');
   };
 
+  // Função para exportar dados para Excel
+  const exportarParaExcel = async () => {
+    try {
+      await exportarPrioridadeParaExcel(sortedEntregadores);
+    } catch (err: any) {
+      safeLog.error('Erro ao exportar para Excel:', err);
+      alert('Erro ao exportar dados para Excel. Por favor, tente novamente.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -215,6 +229,31 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Prioridade / Promo
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Análise detalhada de aderência e performance dos entregadores
+              </p>
+            </div>
+            <Button
+              onClick={exportarParaExcel}
+              disabled={sortedEntregadores.length === 0}
+              variant="outline"
+              className="shrink-0"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar Excel
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <PrioridadeFilters
         filtroAderencia={filtroAderencia}
         filtroRejeicao={filtroRejeicao}
