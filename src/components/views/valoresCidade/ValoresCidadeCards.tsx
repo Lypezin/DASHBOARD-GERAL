@@ -1,7 +1,9 @@
 import React from 'react';
-import MarketingCard from '@/components/MarketingCard';
 import CustoPorLiberadoCard from '@/components/CustoPorLiberadoCard';
 import { ValoresCidadePorCidade } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { BarChart3, DollarSign, Building2 } from 'lucide-react';
 
 interface ValoresCidadeCardsProps {
   totalGeral: number;
@@ -18,20 +20,35 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
     <>
       {/* Cartões Principais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MarketingCard
-          title="Total Geral"
-          value={totalGeral}
-          icon="💰"
-          color="green"
-          formatCurrency={true}
-        />
-        <MarketingCard
-          title="Custo por Liberado"
-          value={custoPorLiberado}
-          icon="📊"
-          color="purple"
-          formatCurrency={true}
-        />
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Geral</CardTitle>
+            <DollarSign className="h-4 w-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalGeral)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Valor total acumulado
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Custo por Liberado</CardTitle>
+            <BarChart3 className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(custoPorLiberado)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Média geral
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Cartões de Cidade */}
@@ -50,14 +67,19 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {cidadesData.map((cidadeData) => (
-                <MarketingCard
-                  key={cidadeData.cidade}
-                  title={cidadeData.cidade}
-                  value={cidadeData.valor_total}
-                  icon="🏙️"
-                  color="blue"
-                  formatCurrency={true}
-                />
+                <Card key={cidadeData.cidade} className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate" title={cidadeData.cidade}>
+                      {cidadeData.cidade}
+                    </CardTitle>
+                    <Building2 className="h-4 w-4 text-blue-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cidadeData.valor_total)}
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}

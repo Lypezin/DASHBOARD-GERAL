@@ -18,37 +18,36 @@ export const ResultadosCards = React.memo(function ResultadosCards({
 }: ResultadosCardsProps) {
   return (
     <>
-      {/* Cards de Totais - Destaque */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Card className="border-emerald-200/50 bg-gradient-to-br from-emerald-50 to-green-50 shadow-md hover:shadow-lg transition-shadow dark:border-emerald-800/50 dark:from-emerald-950/30 dark:to-green-950/30">
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide mb-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
                   Total Enviado
                 </p>
-                <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">
+                <p className="text-3xl font-bold text-slate-900 dark:text-white font-mono">
                   {totalEnviado.toLocaleString('pt-BR')}
                 </p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 dark:bg-emerald-500/30">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
                 <Send className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
           </div>
         </Card>
-        <Card className="border-blue-200/50 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-md hover:shadow-lg transition-shadow dark:border-blue-800/50 dark:from-blue-950/30 dark:to-indigo-950/30">
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
                   Total Liberado
                 </p>
-                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                <p className="text-3xl font-bold text-slate-900 dark:text-white font-mono">
                   {totalLiberado.toLocaleString('pt-BR')}
                 </p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/20 dark:bg-blue-500/30">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
                 <CheckCircle2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>

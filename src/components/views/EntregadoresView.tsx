@@ -5,6 +5,7 @@ import { EntregadorMarketing, MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Download } from 'lucide-react';
 import { EntregadoresFilters } from './entregadores/EntregadoresFilters';
 import { EntregadoresTable } from './entregadores/EntregadoresTable';
@@ -69,9 +70,9 @@ const EntregadoresView = React.memo(function EntregadoresView({
     if (!searchTerm.trim()) {
       return entregadores;
     }
-    
+
     const termo = searchTerm.toLowerCase().trim();
-    return entregadores.filter(e => 
+    return entregadores.filter(e =>
       e.nome.toLowerCase().includes(termo) ||
       e.id_entregador.toLowerCase().includes(termo)
     );
@@ -140,26 +141,29 @@ const EntregadoresView = React.memo(function EntregadoresView({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-6 dark:border-purple-900 dark:from-purple-950/30 dark:to-pink-950/30">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-              Entregadores do Marketing
-            </h2>
-            <p className="mt-2 text-sm text-purple-700 dark:text-purple-300">
-              Entregadores que aparecem tanto no marketing quanto nas corridas ({entregadoresFiltrados.length} de {entregadores.length} entregador{entregadores.length !== 1 ? 'es' : ''})
-            </p>
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Entregadores do Marketing
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Entregadores que aparecem tanto no marketing quanto nas corridas ({entregadoresFiltrados.length} de {entregadores.length} entregador{entregadores.length !== 1 ? 'es' : ''})
+              </p>
+            </div>
+            <Button
+              onClick={exportarParaExcel}
+              disabled={entregadoresFiltrados.length === 0}
+              variant="outline"
+              className="shrink-0"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar Excel
+            </Button>
           </div>
-          <Button
-            onClick={exportarParaExcel}
-            disabled={entregadoresFiltrados.length === 0}
-            className="bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-800 shrink-0"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Exportar Excel
-          </Button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Filtros */}
       <EntregadoresFilters
@@ -192,7 +196,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
             {searchTerm.trim() ? 'Nenhum entregador encontrado' : 'Nenhum entregador disponível'}
           </p>
           <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
-            {searchTerm.trim() 
+            {searchTerm.trim()
               ? `Nenhum entregador corresponde à pesquisa "${searchTerm}".`
               : 'Não há entregadores que aparecem tanto no marketing quanto nas corridas.'}
           </p>

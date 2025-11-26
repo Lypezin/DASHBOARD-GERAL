@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart3, CheckCircle2, Target } from 'lucide-react';
 
 interface CustoPorLiberadoCardProps {
   cidade: string;
@@ -68,46 +70,40 @@ const CustoPorLiberadoCard: React.FC<CustoPorLiberadoCardProps> = ({
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-200/50 bg-white/90 backdrop-blur-sm p-4 sm:p-5 md:p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-slate-300 dark:border-slate-700/50 dark:bg-slate-900/90">
-      <div className={`absolute right-0 top-0 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br ${colors.gradient} opacity-10 blur-3xl transition-opacity group-hover:opacity-25`}></div>
-      
-      <div className="relative">
-        <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3">
-          <div className="flex-1 min-w-0 pr-2 sm:pr-3 overflow-hidden">
-            <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">
-              {cidade} - Custo/Liberado
-            </p>
-            <p className="mt-1 sm:mt-2 text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 transition-transform group-hover:scale-105 dark:text-white leading-tight break-words" style={{ fontVariantNumeric: 'tabular-nums', wordBreak: 'break-word' }}>
-              {formatCurrency(custoPorLiberado)}
-            </p>
-          </div>
-          <div className={`flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br ${colors.gradient} text-lg sm:text-xl md:text-2xl text-white shadow-xl ring-2 ring-white/20 transition-all duration-300 group-hover:rotate-6 group-hover:scale-110 group-hover:shadow-2xl`}>
-            📊
-          </div>
+    <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground truncate" title={cidade}>
+          {cidade} - Custo/Liberado
+        </CardTitle>
+        <BarChart3 className="h-4 w-4 text-purple-500" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+          {formatCurrency(custoPorLiberado)}
         </div>
 
         {/* Informação de quantos faltam */}
         {jaAtingiuMeta ? (
-          <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <span className="text-lg">✅</span>
-              <p className="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                Meta atingida! Custo abaixo de {formatCurrency(META_CUSTO)}
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                Meta atingida! Abaixo de {formatCurrency(META_CUSTO)}
               </p>
             </div>
           </div>
         ) : faltamLiberados > 0 ? (
-          <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <span className="text-lg">🎯</span>
-              <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400">
-                Faltam <span className="font-bold text-orange-600 dark:text-orange-400">{faltamLiberados}</span> liberados para chegar a {formatCurrency(META_CUSTO)}
+              <Target className="h-4 w-4 text-orange-500" />
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                Faltam <span className="font-bold text-orange-600 dark:text-orange-400">{faltamLiberados}</span> para {formatCurrency(META_CUSTO)}
               </p>
             </div>
           </div>
         ) : null}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

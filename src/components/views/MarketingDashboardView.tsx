@@ -5,12 +5,13 @@ import { supabase } from '@/lib/supabaseClient';
 import { MarketingFilters, MarketingTotals, MarketingCityData, MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import MarketingCard from '@/components/MarketingCard';
-import MarketingCityCard from '@/components/MarketingCityCard';
-import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
+import { getCurrentUserOrganizationId } from '@/utils/organizationHelpers';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Filter, BarChart3, Send, CheckCircle2, Rocket } from 'lucide-react';
 import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
-import { getCurrentUserOrganizationId } from '@/utils/organizationHelpers';
+import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -243,89 +244,137 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Filtros de Data com design premium */}
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-300/20 via-pink-300/20 to-purple-300/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-        <div className="relative rounded-3xl border-0 bg-gradient-to-br from-white via-purple-50/20 to-pink-50/20 p-6 shadow-xl dark:from-slate-800 dark:via-purple-950/20 dark:to-pink-950/20 overflow-hidden">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-0 right-0 h-64 w-64 bg-purple-500/5 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 h-48 w-48 bg-pink-500/5 rounded-full blur-3xl"></div>
+    <div className="space-y-6 animate-fade-in pb-8">
+      {/* Filtros de Data */}
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+        <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-slate-500" />
+            <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-200">
+              Filtros de Data
+            </CardTitle>
           </div>
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md">
-                <span className="text-lg">🔍</span>
-              </div>
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
-                Filtros de Data
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <MarketingDateFilterComponent
-                label="Filtro de Liberação"
-                filter={filters.filtroLiberacao}
-                onFilterChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
-              />
-              <MarketingDateFilterComponent
-                label="Filtro de Enviados"
-                filter={filters.filtroEnviados}
-                onFilterChange={(filter) => handleFilterChange('filtroEnviados', filter)}
-              />
-              <MarketingDateFilterComponent
-                label="Filtro de Rodou Dia"
-                filter={filters.filtroRodouDia}
-                onFilterChange={(filter) => handleFilterChange('filtroRodouDia', filter)}
-              />
-            </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <MarketingDateFilterComponent
+              label="Filtro de Liberação"
+              filter={filters.filtroLiberacao}
+              onFilterChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
+            />
+            <MarketingDateFilterComponent
+              label="Filtro de Enviados"
+              filter={filters.filtroEnviados}
+              onFilterChange={(filter) => handleFilterChange('filtroEnviados', filter)}
+            />
+            <MarketingDateFilterComponent
+              label="Filtro de Rodou Dia"
+              filter={filters.filtroRodouDia}
+              onFilterChange={(filter) => handleFilterChange('filtroRodouDia', filter)}
+            />
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Cartões Principais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MarketingCard
-          title="Criado"
-          value={totals.criado}
-          icon="📊"
-          color="blue"
-        />
-        <MarketingCard
-          title="Enviado"
-          value={totals.enviado}
-          icon="📤"
-          color="green"
-        />
-        <MarketingCard
-          title="Liberado"
-          value={totals.liberado}
-          icon="✅"
-          color="purple"
-        />
-        <MarketingCard
-          title="Rodando Início"
-          value={totals.rodandoInicio}
-          icon="🚀"
-          color="orange"
-        />
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Criado</CardTitle>
+            <BarChart3 className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {totals.criado.toLocaleString('pt-BR')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Total criado
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Enviado</CardTitle>
+            <Send className="h-4 w-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {totals.enviado.toLocaleString('pt-BR')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Total enviado
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Liberado</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {totals.liberado.toLocaleString('pt-BR')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Total liberado
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Rodando Início</CardTitle>
+            <Rocket className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+              {totals.rodandoInicio.toLocaleString('pt-BR')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Total rodando início
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Cartões de Cidade */}
       <div>
-        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+        <h3 className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           Métricas por Cidade
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {citiesData.map((cityData) => (
-            <MarketingCityCard
-              key={cityData.cidade}
-              cidade={cityData.cidade}
-              enviado={cityData.enviado}
-              liberado={cityData.liberado}
-              rodandoInicio={cityData.rodandoInicio}
-            />
+            <Card key={cityData.cidade} className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-200 truncate" title={cityData.cidade}>
+                  {cityData.cidade}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Enviado</span>
+                    <Badge variant="outline" className="font-mono font-medium text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/10">
+                      {cityData.enviado.toLocaleString('pt-BR')}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Liberado</span>
+                    <Badge variant="outline" className="font-mono font-medium text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10">
+                      {cityData.liberado.toLocaleString('pt-BR')}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Rodando Início</span>
+                    <Badge variant="outline" className="font-mono font-medium text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/10">
+                      {cityData.rodandoInicio.toLocaleString('pt-BR')}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
