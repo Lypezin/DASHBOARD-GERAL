@@ -15,7 +15,7 @@ import { ComparacaoOrigemSection } from './comparacao/ComparacaoOrigemSection';
 import { ComparacaoUtrSection } from './comparacao/ComparacaoUtrSection';
 import { ComparacaoDiaTable } from './comparacao/ComparacaoDiaTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart2, Calendar, Table, ChartBar } from 'lucide-react';
+import { BarChart2, Calendar } from 'lucide-react';
 
 const ComparacaoView = React.memo(function ComparacaoView({
   semanas,
