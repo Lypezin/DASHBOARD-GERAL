@@ -1,5 +1,11 @@
+
+
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from './constants';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ChevronLeft, ChevronRight, FileDown, X, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ApresentacaoPreviewProps {
   slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
@@ -77,76 +83,74 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
           white-space: normal !important;
         }
       `}</style>
-      
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        {isGenerating && (
-          <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50">
-            <svg className="animate-spin h-16 w-16 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <h2 className="text-white text-2xl font-bold">Gerando PDF, por favor aguarde...</h2>
-            <p className="text-white text-lg mt-2">Isso pode levar alguns segundos.</p>
-          </div>
-        )}
-        <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full h-[95vh] flex flex-col">
-          <div className="sticky top-0 bg-white p-4 border-b border-slate-200 flex justify-between items-center z-10">
-            <h3 className="text-xl font-bold text-slate-800">Preview da Apresentação</h3>
+
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+        <Card className="w-full max-w-6xl h-[95vh] flex flex-col overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl">
+          <div className="sticky top-0 bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Preview da Apresentação</h3>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <button
+              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={onPrev}
                   disabled={currentSlide === 0 || totalSlides === 0}
-                  className="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg shadow-sm hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-8 w-8 p-0"
                 >
-                  Anterior
-                </button>
-                <span className="text-slate-600 font-medium text-sm">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-300 min-w-[3rem] text-center">
                   {slideAtualExibicao} / {totalSlides}
                 </span>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={onNext}
                   disabled={totalSlides === 0 || currentSlide === totalSlides - 1}
-                  className="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg shadow-sm hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-8 w-8 p-0"
                 >
-                  Próximo
-                </button>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
-              <div className="h-6 w-px bg-slate-300"></div>
-              <button
+
+              <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+              <Button
                 onClick={onGeneratePDF}
                 disabled={totalSlides === 0 || isGenerating}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center gap-3 min-w-[140px] justify-center"
+                className="bg-blue-600 hover:bg-blue-700 text-white min-w-[140px]"
               >
                 {isGenerating ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    <span>Gerando...</span>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Gerando...
                   </>
                 ) : (
                   <>
-                    <span>📄</span>
-                    <span>Gerar PDF</span>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Gerar PDF
                   </>
                 )}
-              </button>
-              <button
+              </Button>
+
+              <Button
+                variant="outline"
                 onClick={onClose}
-                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg shadow-md hover:bg-slate-300 transition-colors"
+                className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                ✕ Fechar
-              </button>
+                <X className="mr-2 h-4 w-4" />
+                Fechar
+              </Button>
             </div>
           </div>
 
           <div
             ref={previewContainerRef}
-            className="bg-slate-100 flex-1 overflow-hidden p-4"
-            style={{ position: 'relative' }}
+            className="bg-slate-100 dark:bg-slate-950 flex-1 overflow-hidden p-4 relative"
           >
             <div
               ref={contentRef}
-              className="relative"
+              className="relative shadow-2xl"
               style={{
                 ...slideDimensionsStyle,
                 position: 'absolute',
@@ -162,10 +166,10 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
             >
               {totalSlides === 0 ? (
                 <div
-                  className="slide bg-gradient-to-br from-blue-600 to-blue-800 text-white absolute inset-0 flex items-center justify-center text-4xl font-semibold"
+                  className="slide bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 absolute inset-0 flex items-center justify-center text-xl font-medium border border-slate-200 dark:border-slate-800 rounded-lg"
                   style={slideDimensionsStyle}
                 >
-                  Nenhum dado disponível.
+                  Nenhum dado disponível para visualização.
                 </div>
               ) : (
                 slides.map((slide, index) => (
@@ -176,26 +180,29 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
               )}
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Overlay de carregamento */}
       {isGenerating && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
-          <div className="bg-white rounded-xl p-8 shadow-2xl flex flex-col items-center gap-6 max-w-sm mx-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] animate-in fade-in duration-200">
+          <Card className="p-8 shadow-2xl flex flex-col items-center gap-6 max-w-sm mx-4 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
+              <Loader2 className="h-12 w-12 text-blue-600 animate-spin relative z-10" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Gerando PDF
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Processando slides e otimizando qualidade...
               </p>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 Aguarde, não feche esta janela
               </p>
             </div>
-          </div>
+          </Card>
         </div>
       )}
     </>

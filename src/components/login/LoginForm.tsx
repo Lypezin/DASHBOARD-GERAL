@@ -6,6 +6,11 @@
 import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
 import type { LoginFormData } from '@/hooks/login/useLogin';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 
 interface LoginFormProps {
   loading: boolean;
@@ -42,105 +47,103 @@ export const LoginForm = React.memo(function LoginForm({
   return (
     <>
       {/* Card Header */}
-      <div className="mb-8">
-        <h2 className="mb-2 text-3xl font-bold text-white">Bem-vindo de volta</h2>
-        <p className="text-sm font-medium text-slate-400">Entre com suas credenciais para continuar</p>
+      <div className="mb-8 text-center">
+        <h2 className="mb-2 text-3xl font-bold text-slate-900 dark:text-white">Bem-vindo de volta</h2>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Entre com suas credenciais para continuar</p>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 animate-scale-in rounded-2xl border border-rose-500/50 bg-rose-500/10 p-4 backdrop-blur-sm">
-          <div className="flex items-start gap-3">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500/20">
-              <span className="text-sm">⚠️</span>
-            </div>
-            <p className="flex-1 text-sm font-medium text-rose-200">{error}</p>
-          </div>
-        </div>
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email Field */}
         <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-semibold text-slate-300">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={handleEmailChange}
-            required
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-white placeholder:text-slate-500 backdrop-blur-sm transition-all duration-200 focus:border-blue-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/20 hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="seu@email.com"
-            disabled={loading}
-          />
+          <Label htmlFor="email">Email</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={handleEmailChange}
+              required
+              className="pl-9"
+              placeholder="seu@email.com"
+              disabled={loading}
+            />
+          </div>
         </div>
 
         {/* Password Field */}
         <div className="space-y-2">
-          <label htmlFor="password" className="block text-sm font-semibold text-slate-300">
-            Senha
-          </label>
+          <Label htmlFor="password">Senha</Label>
           <div className="relative">
-            <input
+            <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={handlePasswordChange}
               required
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 pr-12 text-white placeholder:text-slate-500 backdrop-blur-sm transition-all duration-200 focus:border-blue-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/20 hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="pl-9 pr-10"
               placeholder="••••••••"
               disabled={loading}
             />
             <button
               type="button"
               onClick={toggleShowPassword}
-              className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-white"
+              className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
         </div>
 
         {/* Submit Button */}
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 py-4 font-bold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 active:scale-[0.98]"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 px-8"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 opacity-0 transition-opacity group-hover:opacity-100"></div>
-          <div className="relative flex items-center justify-center gap-2">
-            {loading ? (
-              <>
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
-                <span>Entrando...</span>
-              </>
-            ) : (
-              <>
-                <span>Entrar</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
-              </>
-            )}
-          </div>
-        </button>
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Entrando...
+            </>
+          ) : (
+            <>
+              Entrar
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
       </form>
 
       {/* Divider */}
-      <div className="my-6 flex items-center gap-4">
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-        <span className="text-xs font-medium text-slate-500">ou</span>
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+            ou
+          </span>
+        </div>
       </div>
 
       {/* Register Link */}
       <div className="text-center">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Não tem uma conta?{' '}
-          <Link 
-            href="/registro" 
-            className="font-bold text-blue-400 transition-all hover:text-blue-300 hover:underline"
+          <Link
+            href="/registro"
+            className="font-bold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
           >
             Criar conta
           </Link>

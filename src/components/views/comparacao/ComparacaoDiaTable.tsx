@@ -14,6 +14,16 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
   dadosComparacao,
   semanasSelecionadas,
 }) => {
+  // Debug logging
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('ComparacaoDiaTable - dadosComparacao:', dadosComparacao);
+      dadosComparacao.forEach((d, i) => {
+        console.log(`Semana ${semanasSelecionadas[i]} - Dias:`, d.dia);
+      });
+    }
+  }, [dadosComparacao, semanasSelecionadas]);
+
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
       <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -88,13 +98,49 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                     )}
                     <td className={`px-4 py-2 text-center text-sm font-medium ${metrica.color}`}>{metrica.label}</td>
                     {dadosComparacao.map((dados, idx) => {
-                      const diaData = dados.dia?.find(d => d.dia_da_semana === dia);
+                      // Normalização para comparação de dias
+                      const diaData = dados.dia?.find(d => {
+                        if (!d.dia_da_semana) return false;
+                        const diaApi = d.dia_da_semana.toLowerCase().trim();
+                        const diaRef = dia.toLowerCase().trim();
+
+                        // Verificação direta
+                        if (diaApi === diaRef) return true;
+
+                        // Verificação parcial (ex: "segunda-feira" vs "segunda")
+                        if (diaApi.includes(diaRef) || diaRef.includes(diaApi)) return true;
+
+                        // Mapa de tradução (inglês -> português)
+                        const mapDias: Record<string, string> = {
+                          'monday': 'segunda',
+                          'tuesday': 'terça',
+                          'wednesday': 'quarta',
+                          'thursday': 'quinta',
+                          'friday': 'sexta',
+                          'saturday': 'sábado',
+                          'sunday': 'domingo'
+                        };
+
+                        return mapDias[diaApi] && mapDias[diaApi].includes(diaRef);
+                      });
+
                       const valor = diaData?.[metrica.key as keyof typeof diaData] as number ?? 0;
 
                       let variacao = null;
                       if (idx > 0) {
                         const dadosAnterior = dadosComparacao[idx - 1];
-                        const diaDataAnterior = dadosAnterior.dia?.find(d => d.dia_da_semana === dia);
+                        const diaDataAnterior = dadosAnterior.dia?.find(d => {
+                          if (!d.dia_da_semana) return false;
+                          const diaApi = d.dia_da_semana.toLowerCase().trim();
+                          const diaRef = dia.toLowerCase().trim();
+                          if (diaApi === diaRef) return true;
+                          if (diaApi.includes(diaRef) || diaRef.includes(diaApi)) return true;
+                          const mapDias: Record<string, string> = {
+                            'monday': 'segunda', 'tuesday': 'terça', 'wednesday': 'quarta',
+                            'thursday': 'quinta', 'friday': 'sexta', 'saturday': 'sábado', 'sunday': 'domingo'
+                          };
+                          return mapDias[diaApi] && mapDias[diaApi].includes(diaRef);
+                        });
                         const valorAnterior = diaDataAnterior?.[metrica.key as keyof typeof diaDataAnterior] as number ?? 0;
                         variacao = valorAnterior > 0 ? ((valor - valorAnterior) / valorAnterior) * 100 : 0;
                       }
