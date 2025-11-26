@@ -221,6 +221,25 @@ export function useDashboardPage() {
       setFilters((prev) => {
         const updated = updater(prev);
 
+        // LOG: Rastrear mudanças nos arrays de filtros
+        if (prev.subPracas?.length !== updated.subPracas?.length ||
+          prev.origens?.length !== updated.origens?.length ||
+          prev.turnos?.length !== updated.turnos?.length) {
+          console.log('🔴 [setFiltersProtected] Arrays de filtros mudaram:', {
+            antes: {
+              subPracas: prev.subPracas?.length || 0,
+              origens: prev.origens?.length || 0,
+              turnos: prev.turnos?.length || 0,
+            },
+            depois: {
+              subPracas: updated.subPracas?.length || 0,
+              origens: updated.origens?.length || 0,
+              turnos: updated.turnos?.length || 0,
+            },
+            stackTrace: stackTrace?.split('\n').slice(1, 4).join('\n'),
+          });
+        }
+
         // Proteger ano e semana se já foram inicializados
         if (filtersProtectedRef.current) {
           const wouldResetAno = prev.ano !== null && updated.ano === null;
@@ -249,6 +268,23 @@ export function useDashboardPage() {
     } else {
       // Proteger ano e semana se já foram inicializados
       const filtersObj = newFilters as Filters;
+
+      // LOG: Rastrear mudanças nos arrays de filtros
+      const currentSubPracas = filters.subPracas?.length || 0;
+      const currentOrigens = filters.origens?.length || 0;
+      const currentTurnos = filters.turnos?.length || 0;
+      const newSubPracas = filtersObj.subPracas?.length || 0;
+      const newOrigens = filtersObj.origens?.length || 0;
+      const newTurnos = filtersObj.turnos?.length || 0;
+
+      if (currentSubPracas !== newSubPracas || currentOrigens !== newOrigens || currentTurnos !== newTurnos) {
+        console.log('🔴 [setFiltersProtected] Arrays de filtros mudaram (obj):', {
+          antes: { subPracas: currentSubPracas, origens: currentOrigens, turnos: currentTurnos },
+          depois: { subPracas: newSubPracas, origens: newOrigens, turnos: newTurnos },
+          stackTrace: stackTrace?.split('\n').slice(1, 4).join('\n'),
+        });
+      }
+
       if (filtersProtectedRef.current) {
         const currentAno = filters.ano;
         const currentSemana = filters.semana;
@@ -278,7 +314,7 @@ export function useDashboardPage() {
 
       setFilters(filtersObj);
     }
-  }, [filters.ano, filters.semana]);
+  }, [filters.ano, filters.semana, filters.subPracas, filters.origens, filters.turnos]);
 
   // Auto-inicialização de filtros
   useEffect(() => {
