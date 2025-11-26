@@ -109,7 +109,7 @@ export const processarDadosBasicos = (
   const semanaSelecionada2 = semanasSelecionadas[1] ?? '';
   const numSem1 = extrairNumeroSemana(semanaSelecionada1) || semanaSelecionada1 || '—';
   const numSem2 = extrairNumeroSemana(semanaSelecionada2) || semanaSelecionada2 || '—';
-  
+
   return {
     semana1: sem1,
     semana2: sem2,
@@ -279,10 +279,10 @@ export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProces
   const turnosSemana1 = semana1.turno || [];
   const turnosSemana2 = semana2.turno || [];
   const turnosSemana1Map = new Map(
-    turnosSemana1.map((turno) => [(turno.periodo || '').trim(), turno])
+    turnosSemana1.map((turno) => [(turno.turno || '').trim(), turno])
   );
   const turnosSemana2Map = new Map(
-    turnosSemana2.map((turno) => [(turno.periodo || '').trim(), turno])
+    turnosSemana2.map((turno) => [(turno.turno || '').trim(), turno])
   );
 
   const todosTurnos = Array.from(

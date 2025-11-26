@@ -106,11 +106,13 @@ export function processPrintData(
       semana1: { aderencia: aderenciaSem1, horasEntregues: formatHMS(Math.abs(horasSem1).toString()) },
       semana2: { aderencia: aderenciaSem2, horasEntregues: formatHMS(Math.abs(horasSem2).toString()) },
       variacoes: [
-        { label: 'Δ Horas', valor: (() => {
-          const dif = horasSem2 - horasSem1;
-          const prefix = dif > 0 ? '+' : dif < 0 ? '−' : '';
-          return `${prefix}${formatHMS(Math.abs(dif).toString())}`;
-        })(), positivo: horasSem2 - horasSem1 >= 0 },
+        {
+          label: 'Δ Horas', valor: (() => {
+            const dif = horasSem2 - horasSem1;
+            const prefix = dif > 0 ? '+' : dif < 0 ? '−' : '';
+            return `${prefix}${formatHMS(Math.abs(dif).toString())}`;
+          })(), positivo: horasSem2 - horasSem1 >= 0
+        },
         { label: '% Horas', valor: formatSigned(((horasSem2 - horasSem1) / (horasSem1 || 1)) * 100), positivo: ((horasSem2 - horasSem1) / (horasSem1 || 1)) * 100 >= 0 },
         { label: '% Aderência', valor: formatSigned(((aderenciaSem2 - aderenciaSem1) / (aderenciaSem1 || 1)) * 100), positivo: ((aderenciaSem2 - aderenciaSem1) / (aderenciaSem1 || 1)) * 100 >= 0 },
       ],
@@ -149,8 +151,8 @@ export function processPrintData(
   // Processar Turnos
   const turnosSemana1 = semana1?.turno || [];
   const turnosSemana2 = semana2?.turno || [];
-  const turnosSemana1Map = new Map(turnosSemana1.map((t: AderenciaTurno) => [String(t.periodo || '').trim(), t]));
-  const turnosSemana2Map = new Map(turnosSemana2.map((t: AderenciaTurno) => [String(t.periodo || '').trim(), t]));
+  const turnosSemana1Map = new Map(turnosSemana1.map((t: AderenciaTurno) => [String(t.turno || '').trim(), t]));
+  const turnosSemana2Map = new Map(turnosSemana2.map((t: AderenciaTurno) => [String(t.turno || '').trim(), t]));
   const todosTurnos = Array.from(new Set([...turnosSemana1Map.keys(), ...turnosSemana2Map.keys()])) as string[];
   todosTurnos.sort((a, b) => a.localeCompare(b, 'pt-BR'));
   const turnosComparativo = todosTurnos.map((nomeTurno) => {
