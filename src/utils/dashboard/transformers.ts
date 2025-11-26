@@ -32,6 +32,18 @@ export const enrichAderenciaDia = (diaData: AderenciaDia) => {
 };
 
 export const transformDashboardData = (data: DashboardResumoData) => {
+    // Debug temporário
+    console.log('🔧 [transformDashboardData] Dados recebidos do RPC:', {
+        hasTotais: !!data.totais,
+        diasLength: data.dia?.length || 0,
+        turnoLength: data.turno?.length || 0,
+        subPracaLength: data.sub_praca?.length || 0,
+        origemLength: data.origem?.length || 0,
+        primeiroDia: data.dia?.[0],
+        primeiroTurno: data.turno?.[0],
+        primeiraSubPraca: data.sub_praca?.[0],
+    });
+
     const totals: Totals = {
         ofertadas: safeNumber(data.totais?.corridas_ofertadas ?? 0),
         aceitas: safeNumber(data.totais?.corridas_aceitas ?? 0),
@@ -78,6 +90,12 @@ export const transformDashboardData = (data: DashboardResumoData) => {
             horas_entregues: convertHorasToString(item.horas_entregues)
         }))
         : [];
+
+    console.log('✅ [transformDashboardData] Dados transformados:', {
+        aderenciaTurnoLength: aderenciaTurno.length,
+        aderenciaSubPracaLength: aderenciaSubPraca.length,
+        aderenciaOrigemLength: aderenciaOrigem.length,
+    });
 
     return {
         totals,
