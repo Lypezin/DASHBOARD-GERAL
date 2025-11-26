@@ -52,16 +52,6 @@ const DashboardView = React.memo(function DashboardView({
     }
   }, [viewMode, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
-  // Debug temporário
-  console.log('🔍 [DashboardView] Dados recebidos:', {
-    viewMode,
-    aderenciaTurnoLength: aderenciaTurno?.length || 0,
-    aderenciaSubPracaLength: aderenciaSubPraca?.length || 0,
-    aderenciaOrigemLength: aderenciaOrigem?.length || 0,
-    dataToRenderLength: dataToRender?.length || 0,
-    aderenciaSubPraca: aderenciaSubPraca?.slice(0, 2), // Primeiros 2 itens
-  });
-
   // Processar aderência por dia - converter data em dia da semana
   const aderenciaDiaOrdenada = useMemo(() => {
     const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
