@@ -100,7 +100,6 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   if (filters.subPracas && filters.subPracas.length > 0) {
     const limited = filters.subPracas.slice(0, MAX_ARRAY_SIZE);
     subPraca = limited.length === 1 ? limited[0] : limited.join(',');
-    console.log('🔵 [buildFilterPayload] SUB PRAÇA filtrada:', { subPracas: filters.subPracas, subPraca });
   } else if (filters.subPraca) {
     subPraca = filters.subPraca.length > 100 ? filters.subPraca.substring(0, 100) : filters.subPraca;
   }
@@ -109,7 +108,6 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   if (filters.origens && filters.origens.length > 0) {
     const limited = filters.origens.slice(0, MAX_ARRAY_SIZE);
     origem = limited.length === 1 ? limited[0] : limited.join(',');
-    console.log('🔵 [buildFilterPayload] ORIGEM filtrada:', { origens: filters.origens, origem });
   } else if (filters.origem) {
     origem = filters.origem.length > 100 ? filters.origem.substring(0, 100) : filters.origem;
   }
@@ -118,7 +116,6 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   if (filters.turnos && filters.turnos.length > 0) {
     const limited = filters.turnos.slice(0, MAX_ARRAY_SIZE);
     turno = limited.length === 1 ? limited[0] : limited.join(',');
-    console.log('🔵 [buildFilterPayload] TURNO filtrado:', { turnos: filters.turnos, turno });
   } else if (filters.turno) {
     turno = filters.turno.length > 100 ? filters.turno.substring(0, 100) : filters.turno;
   }
@@ -255,15 +252,6 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     p_data_final: dataFinal,
     p_organization_id: organizationId,
   } as const;
-
-  // Log temporário para debug dos filtros
-  console.log('✅ [buildFilterPayload] Payload final:', {
-    p_sub_praca: payload.p_sub_praca,
-    p_origem: payload.p_origem,
-    p_turno: payload.p_turno,
-    p_ano: payload.p_ano,
-    p_semana: payload.p_semana,
-  });
 
   if (IS_DEV) {
     safeLog.info('[buildFilterPayload] Payload gerado:', payload);
