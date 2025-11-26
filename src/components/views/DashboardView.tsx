@@ -38,7 +38,7 @@ const DashboardView = React.memo(function DashboardView({
     switch (viewMode) {
       case 'turno':
         return aderenciaTurno.map(item => ({
-          label: item.periodo || 'N/A',
+          label: item.turno || 'N/A',
           aderencia: item.aderencia_percentual || 0,
           horasAEntregar: item.horas_a_entregar || '0',
           horasEntregues: item.horas_entregues || '0'
@@ -62,20 +62,24 @@ const DashboardView = React.memo(function DashboardView({
     }
   }, [viewMode, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
-  // Ordem dos dias da semana - ordenar por dia_iso (1=Segunda, 7=Domingo)
-  // Filtrar itens inválidos (N/D ou dia_iso inválido)
+  // Processar aderência por dia - converter data em dia da semana
   const aderenciaDiaOrdenada = useMemo(() => {
+    const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
     return [...aderenciaDia]
-      .filter(dia =>
-        dia.dia_da_semana &&
-        dia.dia_da_semana !== 'N/D' &&
-        dia.dia_iso >= 1 &&
-        dia.dia_iso <= 7
-      )
-      .sort((a, b) => {
-        // Ordenar por dia_iso (1=Segunda, 7=Domingo)
-        return (a.dia_iso || 0) - (b.dia_iso || 0);
-      });
+      .filter(dia => dia.data)
+      .map(dia => {
+        const dataObj = new Date(dia.data + 'T00:00:00');
+        const diaDaSemana = diasDaSemana[dataObj.getDay()];
+        const diaIso = dataObj.getDay() === 0 ? 7 : dataObj.getDay(); // ISO: 1=Segunda, 7=Domingo
+
+        return {
+          ...dia,
+          dia_da_semana: diaDaSemana,
+          dia_iso: diaIso
+        };
+      })
+      .sort((a, b) => a.dia_iso - b.dia_iso);
   }, [aderenciaDia]);
 
   // Calcular gap de performance
@@ -237,8 +241,8 @@ const DashboardView = React.memo(function DashboardView({
                   return (
                     <div key={`dia-${index}`} className="relative group/card min-w-0">
                       <div className={`absolute -inset-0.5 rounded-2xl blur transition-all duration-300 ${isToday
-                          ? 'bg-gradient-to-r from-blue-400 to-blue-500 opacity-60'
-                          : 'bg-gradient-to-r from-blue-300 to-blue-400 opacity-0 group-hover/card:opacity-20'
+                        ? 'bg-gradient-to-r from-blue-400 to-blue-500 opacity-60'
+                        : 'bg-gradient-to-r from-blue-300 to-blue-400 opacity-0 group-hover/card:opacity-20'
                         }`}></div>
 
                       <Card
@@ -338,8 +342,8 @@ const DashboardView = React.memo(function DashboardView({
                 <button
                   onClick={() => setViewMode('turno')}
                   className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === 'turno'
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
-                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                    : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
                     }`}
                 >
                   Turno
@@ -347,8 +351,8 @@ const DashboardView = React.memo(function DashboardView({
                 <button
                   onClick={() => setViewMode('sub_praca')}
                   className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === 'sub_praca'
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
-                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                    : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
                     }`}
                 >
                   Sub Praça
@@ -356,8 +360,8 @@ const DashboardView = React.memo(function DashboardView({
                 <button
                   onClick={() => setViewMode('origem')}
                   className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === 'origem'
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
-                      : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                    : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
                     }`}
                 >
                   Origem
@@ -377,10 +381,10 @@ const DashboardView = React.memo(function DashboardView({
                   return (
                     <div key={`${viewMode}-${index}`} className="relative group/card">
                       <div className={`absolute -inset-0.5 rounded-2xl blur opacity-0 group-hover/card:opacity-30 transition-opacity ${item.aderencia >= 90
-                          ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' // Verde para bom
-                          : item.aderencia >= 70
-                            ? 'bg-gradient-to-r from-blue-400 to-blue-500' // Azul para médio
-                            : 'bg-gradient-to-r from-red-400 to-red-500' // Vermelho para ruim
+                        ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' // Verde para bom
+                        : item.aderencia >= 70
+                          ? 'bg-gradient-to-r from-blue-400 to-blue-500' // Azul para médio
+                          : 'bg-gradient-to-r from-red-400 to-red-500' // Vermelho para ruim
                         }`}></div>
 
                       <Card className="relative border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/20 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
@@ -389,8 +393,8 @@ const DashboardView = React.memo(function DashboardView({
                             <h3 className="font-bold text-xl text-slate-900 dark:text-white">{item.label}</h3>
                             <Badge
                               className={`font-bold border-0 shadow-md ${statusColor === 'emerald' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white' :
-                                  statusColor === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' :
-                                    'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                                statusColor === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' :
+                                  'bg-gradient-to-r from-red-500 to-red-600 text-white'
                                 }`}
                             >
                               {statusText}

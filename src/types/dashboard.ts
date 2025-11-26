@@ -19,8 +19,7 @@ export interface AderenciaSemanal {
 }
 
 export interface AderenciaDia {
-  dia_iso: number;
-  dia_da_semana: string;
+  data: string; // Data do período (YYYY-MM-DD)
   horas_a_entregar: string;
   horas_entregues: string;
   aderencia_percentual: number;
@@ -33,7 +32,7 @@ export interface AderenciaDia {
 }
 
 export interface AderenciaTurno {
-  periodo: string;
+  turno: string; // Nome do turno/período
   horas_a_entregar: string;
   horas_entregues: string;
   aderencia_percentual: number;
