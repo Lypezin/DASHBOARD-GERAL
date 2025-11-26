@@ -27,9 +27,9 @@ export async function fetchUtrFallback(payload: FilterPayload): Promise<UtrData 
       semanaInicio.setDate(semanaInicio.getDate() + (safePayload.p_semana - 1) * 7);
       const semanaFim = new Date(semanaInicio);
       semanaFim.setDate(semanaFim.getDate() + 6);
-      
+
       query = query.gte('data_do_periodo', semanaInicio.toISOString().split('T')[0])
-                   .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
+        .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
     } else if (payload.p_ano) {
       const anoInicio = `${payload.p_ano}-01-01`;
       const anoFim = `${payload.p_ano}-12-31`;
@@ -157,10 +157,14 @@ export async function fetchEntregadoresFallback(payload: FilterPayload): Promise
     validateDateFilter(payload, 'fetchEntregadoresFallback');
     const safePayload = ensureDateFilter(payload);
 
-    let query = supabase
+    // 1. Buscar IDs distintos de entregadores que correspondem aos filtros
+    // Isso é muito mais leve do que buscar todas as corridas
+    let entregadoresQuery = supabase
       .from('dados_corridas')
-      .select('id_da_pessoa_entregadora, pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_rejeitadas, numero_de_corridas_completadas, tempo_disponivel_escalado, data_do_periodo');
+      .select('id_da_pessoa_entregadora, pessoa_entregadora')
+      .not('id_da_pessoa_entregadora', 'is', null);
 
+    // Aplicar filtros na query de entregadores
     if (safePayload.p_semana && safePayload.p_ano) {
       const dataInicio = new Date(safePayload.p_ano, 0, 1);
       const diaSemana = dataInicio.getDay();
@@ -171,21 +175,21 @@ export async function fetchEntregadoresFallback(payload: FilterPayload): Promise
       semanaInicio.setDate(semanaInicio.getDate() + (safePayload.p_semana - 1) * 7);
       const semanaFim = new Date(semanaInicio);
       semanaFim.setDate(semanaFim.getDate() + 6);
-      
-      query = query.gte('data_do_periodo', semanaInicio.toISOString().split('T')[0])
-                   .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
+
+      entregadoresQuery = entregadoresQuery.gte('data_do_periodo', semanaInicio.toISOString().split('T')[0])
+        .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
     } else if (safePayload.p_ano) {
       const anoInicio = `${safePayload.p_ano}-01-01`;
       const anoFim = `${safePayload.p_ano}-12-31`;
-      query = query.gte('data_do_periodo', anoInicio).lte('data_do_periodo', anoFim);
+      entregadoresQuery = entregadoresQuery.gte('data_do_periodo', anoInicio).lte('data_do_periodo', anoFim);
     }
 
     if (safePayload.p_data_inicial) {
-      query = query.gte('data_do_periodo', safePayload.p_data_inicial);
+      entregadoresQuery = entregadoresQuery.gte('data_do_periodo', safePayload.p_data_inicial);
     }
 
     if (safePayload.p_data_final) {
-      query = query.lte('data_do_periodo', safePayload.p_data_final);
+      entregadoresQuery = entregadoresQuery.lte('data_do_periodo', safePayload.p_data_final);
     }
 
     if (safePayload.p_praca) {
@@ -193,9 +197,9 @@ export async function fetchEntregadoresFallback(payload: FilterPayload): Promise
         ? safePayload.p_praca.split(',').map((p: string) => p.trim())
         : [String(safePayload.p_praca).trim()];
       if (pracas.length === 1) {
-        query = query.eq('praca', pracas[0]);
+        entregadoresQuery = entregadoresQuery.eq('praca', pracas[0]);
       } else {
-        query = query.in('praca', pracas);
+        entregadoresQuery = entregadoresQuery.in('praca', pracas);
       }
     }
 
@@ -204,9 +208,9 @@ export async function fetchEntregadoresFallback(payload: FilterPayload): Promise
         ? safePayload.p_sub_praca.split(',').map((p: string) => p.trim())
         : [String(safePayload.p_sub_praca).trim()];
       if (subPracas.length === 1) {
-        query = query.eq('sub_praca', subPracas[0]);
+        entregadoresQuery = entregadoresQuery.eq('sub_praca', subPracas[0]);
       } else {
-        query = query.in('sub_praca', subPracas);
+        entregadoresQuery = entregadoresQuery.in('sub_praca', subPracas);
       }
     }
 
@@ -215,24 +219,43 @@ export async function fetchEntregadoresFallback(payload: FilterPayload): Promise
         ? safePayload.p_origem.split(',').map((o: string) => o.trim())
         : [String(safePayload.p_origem).trim()];
       if (origens.length === 1) {
-        query = query.eq('origem', origens[0]);
+        entregadoresQuery = entregadoresQuery.eq('origem', origens[0]);
       } else {
-        query = query.in('origem', origens);
+        entregadoresQuery = entregadoresQuery.in('origem', origens);
       }
     }
 
-    query = query.limit(QUERY_LIMITS.AGGREGATION_MAX);
+    // Usar limit alto para IDs distintos (mas não absurdo)
+    // Como não temos DISTINCT ON fácil via client sem raw SQL complexo, 
+    // vamos buscar normal e dedublicar no cliente.
+    // O ideal seria .select('...', { count: 'exact', head: false }).range(0, 5000)
+    // Mas vamos confiar no limit
+    entregadoresQuery = entregadoresQuery.limit(5000);
 
-    const { data, error } = await query;
+    const { data: rawEntregadores, error: entregadoresError } = await entregadoresQuery;
 
-    if (error) {
-      throw error;
-    }
+    if (entregadoresError) throw entregadoresError;
 
-    if (!data || data.length === 0) {
+    if (!rawEntregadores || rawEntregadores.length === 0) {
       return { entregadores: [], total: 0 };
     }
 
+    // Deduplicar entregadores
+    const uniqueEntregadores = new Map<string, string>();
+    rawEntregadores.forEach(r => {
+      if (r.id_da_pessoa_entregadora) {
+        uniqueEntregadores.set(r.id_da_pessoa_entregadora, r.pessoa_entregadora || r.id_da_pessoa_entregadora);
+      }
+    });
+
+    const entregadoresIds = Array.from(uniqueEntregadores.keys());
+
+    if (entregadoresIds.length === 0) {
+      return { entregadores: [], total: 0 };
+    }
+
+    // 2. Buscar estatísticas em lotes
+    const BATCH_SIZE = 50;
     const entregadoresMap = new Map<string, {
       id_entregador: string;
       nome_entregador: string;
@@ -243,37 +266,81 @@ export async function fetchEntregadoresFallback(payload: FilterPayload): Promise
       tempo_total: number;
     }>();
 
-    for (const row of data) {
-      const id = row.id_da_pessoa_entregadora;
-      if (!id) continue;
+    // Inicializar mapa
+    entregadoresIds.forEach(id => {
+      entregadoresMap.set(id, {
+        id_entregador: id,
+        nome_entregador: uniqueEntregadores.get(id) || id,
+        corridas_ofertadas: 0,
+        corridas_aceitas: 0,
+        corridas_rejeitadas: 0,
+        corridas_completadas: 0,
+        tempo_total: 0
+      });
+    });
 
-      const nome = row.pessoa_entregadora || id;
-      const ofertadas = Number(row.numero_de_corridas_ofertadas) || 0;
-      const aceitas = Number(row.numero_de_corridas_aceitas) || 0;
-      const rejeitadas = Number(row.numero_de_corridas_rejeitadas) || 0;
-      const completadas = Number(row.numero_de_corridas_completadas) || 0;
-      
-      const tempoStr = row.tempo_disponivel_escalado || '0:00:00';
-      const [hours, minutes, seconds] = tempoStr.split(':').map(Number);
-      const tempo = (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
+    for (let i = 0; i < entregadoresIds.length; i += BATCH_SIZE) {
+      const batchIds = entregadoresIds.slice(i, i + BATCH_SIZE);
 
-      if (entregadoresMap.has(id)) {
-        const existing = entregadoresMap.get(id)!;
-        existing.corridas_ofertadas += ofertadas;
-        existing.corridas_aceitas += aceitas;
-        existing.corridas_rejeitadas += rejeitadas;
-        existing.corridas_completadas += completadas;
-        existing.tempo_total += tempo;
-      } else {
-        entregadoresMap.set(id, {
-          id_entregador: id,
-          nome_entregador: nome,
-          corridas_ofertadas: ofertadas,
-          corridas_aceitas: aceitas,
-          corridas_rejeitadas: rejeitadas,
-          corridas_completadas: completadas,
-          tempo_total: tempo
-        });
+      let statsQuery = supabase
+        .from('dados_corridas')
+        .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_rejeitadas, numero_de_corridas_completadas, tempo_disponivel_escalado')
+        .in('id_da_pessoa_entregadora', batchIds);
+
+      // Reaplicar filtros de data para garantir estatísticas corretas
+      if (safePayload.p_semana && safePayload.p_ano) {
+        // ... (mesma lógica de data)
+        const dataInicio = new Date(safePayload.p_ano, 0, 1);
+        const diaSemana = dataInicio.getDay();
+        const diasParaSegunda = (diaSemana === 0 ? -6 : 1) - diaSemana;
+        const primeiraSegunda = new Date(dataInicio);
+        primeiraSegunda.setDate(primeiraSegunda.getDate() + diasParaSegunda);
+        const semanaInicio = new Date(primeiraSegunda);
+        semanaInicio.setDate(semanaInicio.getDate() + (safePayload.p_semana - 1) * 7);
+        const semanaFim = new Date(semanaInicio);
+        semanaFim.setDate(semanaFim.getDate() + 6);
+
+        statsQuery = statsQuery.gte('data_do_periodo', semanaInicio.toISOString().split('T')[0])
+          .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
+      } else if (safePayload.p_ano) {
+        const anoInicio = `${safePayload.p_ano}-01-01`;
+        const anoFim = `${safePayload.p_ano}-12-31`;
+        statsQuery = statsQuery.gte('data_do_periodo', anoInicio).lte('data_do_periodo', anoFim);
+      }
+
+      if (safePayload.p_data_inicial) {
+        statsQuery = statsQuery.gte('data_do_periodo', safePayload.p_data_inicial);
+      }
+
+      if (safePayload.p_data_final) {
+        statsQuery = statsQuery.lte('data_do_periodo', safePayload.p_data_final);
+      }
+
+      // Limite alto por lote
+      statsQuery = statsQuery.limit(QUERY_LIMITS.AGGREGATION_MAX);
+
+      const { data: batchData, error: batchError } = await statsQuery;
+
+      if (batchError) {
+        safeLog.error(`Erro ao buscar lote ${i} de estatísticas:`, batchError);
+        continue;
+      }
+
+      if (batchData) {
+        for (const row of batchData) {
+          const id = row.id_da_pessoa_entregadora;
+          if (!id || !entregadoresMap.has(id)) continue;
+
+          const existing = entregadoresMap.get(id)!;
+          existing.corridas_ofertadas += Number(row.numero_de_corridas_ofertadas) || 0;
+          existing.corridas_aceitas += Number(row.numero_de_corridas_aceitas) || 0;
+          existing.corridas_rejeitadas += Number(row.numero_de_corridas_rejeitadas) || 0;
+          existing.corridas_completadas += Number(row.numero_de_corridas_completadas) || 0;
+
+          const tempoStr = row.tempo_disponivel_escalado || '0:00:00';
+          const [hours, minutes, seconds] = tempoStr.split(':').map(Number);
+          existing.tempo_total += (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
+        }
       }
     }
 
@@ -328,9 +395,9 @@ export async function fetchValoresFallback(payload: FilterPayload): Promise<Valo
       semanaInicio.setDate(semanaInicio.getDate() + (safePayload.p_semana - 1) * 7);
       const semanaFim = new Date(semanaInicio);
       semanaFim.setDate(semanaFim.getDate() + 6);
-      
+
       query = query.gte('data_do_periodo', semanaInicio.toISOString().split('T')[0])
-                   .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
+        .lte('data_do_periodo', semanaFim.toISOString().split('T')[0]);
     } else if (safePayload.p_ano) {
       const anoInicio = `${safePayload.p_ano}-01-01`;
       const anoFim = `${safePayload.p_ano}-12-31`;
@@ -424,8 +491,8 @@ export async function fetchValoresFallback(payload: FilterPayload): Promise<Valo
       nome_entregador: item.nome_entregador,
       total_taxas: item.total_taxas,
       numero_corridas_aceitas: item.numero_corridas_aceitas,
-      taxa_media: item.numero_corridas_aceitas > 0 
-        ? item.total_taxas / item.numero_corridas_aceitas 
+      taxa_media: item.numero_corridas_aceitas > 0
+        ? item.total_taxas / item.numero_corridas_aceitas
         : 0,
     }));
 

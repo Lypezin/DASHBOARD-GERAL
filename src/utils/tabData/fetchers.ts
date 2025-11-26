@@ -85,7 +85,7 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
     ...restPayload,
   };
 
-  const result = await safeRpc<any>('listar_entregadores', listarEntregadoresPayload, {
+  const result = await safeRpc<any>('listar_entregadores_v2', listarEntregadoresPayload, {
     timeout: RPC_TIMEOUTS.LONG,
     validateParams: false
   });
