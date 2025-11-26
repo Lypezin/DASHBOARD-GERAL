@@ -68,11 +68,11 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-purple-600 dark:text-purple-400">2.</span>
-                  <span>Clique em <strong>"Comparar Semanas"</strong> para carregar os dados.</span>
+                  <span>Clique em <strong>&quot;Comparar Semanas&quot;</strong> para carregar os dados.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-purple-600 dark:text-purple-400">3.</span>
-                  <span>Clique em <strong>"Apresentação"</strong> para visualizar e gerar o PDF.</span>
+                  <span>Clique em <strong>&quot;Apresentação&quot;</strong> para visualizar e gerar o PDF.</span>
                 </li>
               </ol>
             </div>
