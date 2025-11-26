@@ -153,11 +153,17 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
         const filtro = buildFilterPayload(filters, currentUser);
 
-        // DEBUG: Log payload
-        console.log(`[Comparacao] Requesting data for week ${semana}`, {
-          payload: filtro,
-          originalFilters: filters
+        // DEBUG: Log payload com mais detalhes
+        console.log(`%c[Comparacao] 🔍 Requesting data for SEMANA ${semana}`, 'color: #3b82f6; font-weight: bold');
+        console.table({
+          semana_original: semana,
+          semana_numero: semanaNumero,
+          ano: anoNumero,
+          p_ano: filtro.p_ano,
+          p_semana: filtro.p_semana,
+          p_praca: filtro.p_praca
         });
+        console.log('Full payload:', filtro);
 
         if (IS_DEV) {
           safeLog.info(`[Comparacao] Buscando dados para semana ${semana} (ano: ${anoNumero}, número: ${semanaNumero})`, {
@@ -176,13 +182,21 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         });
         if (error) throw error;
 
-        // DEBUG: Log response
-        console.log(`[Comparacao] Response for week ${semana}:`, {
+        // DEBUG: Log response com mais detalhes
+        console.log(`%c[Comparacao] ✅ Response for SEMANA ${semana}`, 'color: #10b981; font-weight: bold');
+        console.table({
           hasData: !!data,
-          diaLength: data?.dia?.length,
-          diaSample: data?.dia?.slice(0, 2),
-          totais: data?.totais
+          corridasOfertadas: data?.totais?.corridas_ofertadas || 0,
+          corridasAceitas: data?.totais?.corridas_aceitas || 0,
+          diaLength: data?.dia?.length || 0
         });
+
+        if (data?.dia && data.dia.length > 0) {
+          console.log('First day sample:', data.dia[0]);
+        } else {
+          console.warn(`%c⚠️ NO DIA DATA for week ${semana}!`, 'color: #f59e0b; font-weight: bold');
+        }
+        console.log('Full response:', data);
 
         if (IS_DEV && data) {
           safeLog.info(`[Comparacao] Dados recebidos para semana ${semana}`, {
@@ -276,6 +290,16 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           origem: [],
           dimensoes: { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [] }
         } as DashboardResumoData;
+      });
+
+      console.log('%c[Comparacao] 📦 Final processed data:', 'color: #8b5cf6; font-weight: bold');
+      console.log('dadosOrdenados length:', dadosOrdenados.length);
+      dadosOrdenados.forEach((dados, idx) => {
+        console.log(`Week ${semanasSelecionadas[idx]}:`, {
+          corridasOfertadas: dados.totais?.corridas_ofertadas,
+          diaLength: dados.dia?.length,
+          hasDiaData: dados.dia && dados.dia.length > 0
+        });
       });
 
       setDadosComparacao(dadosOrdenados);

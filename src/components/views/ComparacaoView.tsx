@@ -4,6 +4,9 @@ import { safeLog } from '@/lib/errorHandler';
 import ApresentacaoView from '@/components/ApresentacaoView';
 import { registerChartJS } from '@/lib/chartConfig';
 import { ViewToggleButton } from './ViewToggleButton';
+
+// Importar teste de diagnóstico (REMOVER após debug)
+import '@/utils/test/testComparacaoData';
 import { ComparacaoTabelaDetalhada } from './comparacao/ComparacaoTabelaDetalhada';
 import { useComparacaoData } from '@/hooks/useComparacaoData';
 import { ComparacaoFilters } from './comparacao/ComparacaoFilters';
