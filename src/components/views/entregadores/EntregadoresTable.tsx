@@ -7,9 +7,9 @@ import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 interface EntregadoresTableProps {
   entregadores: EntregadorMarketing[];
   formatarSegundosParaHoras: (segundos: number) => string;
-  sortField: keyof EntregadorMarketing;
+  sortField: keyof EntregadorMarketing | 'rodando';
   sortDirection: 'asc' | 'desc';
-  onSort: (field: keyof EntregadorMarketing) => void;
+  onSort: (field: keyof EntregadorMarketing | 'rodando') => void;
 }
 
 export const EntregadoresTable = React.memo(function EntregadoresTable({
@@ -23,7 +23,7 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
     return null;
   }
 
-  const getSortIcon = (field: keyof EntregadorMarketing) => {
+  const getSortIcon = (field: keyof EntregadorMarketing | 'rodando') => {
     if (sortField !== field) return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400 inline" />;
     return sortDirection === 'asc' ?
       <ArrowUp className="ml-1 h-3 w-3 text-purple-900 dark:text-purple-100 inline" /> :
@@ -90,8 +90,11 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
               >
                 Dias sem Rodar {getSortIcon('dias_sem_rodar')}
               </th>
-              <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                Rodando
+              <th
+                className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('rodando')}
+              >
+                Rodando {getSortIcon('rodando')}
               </th>
             </tr>
           </thead>
@@ -145,12 +148,12 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <span className={`text-sm font-semibold ${entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
-                        ? 'text-slate-400 dark:text-slate-500'
-                        : entregador.dias_sem_rodar === 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : entregador.dias_sem_rodar <= 3
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-rose-600 dark:text-rose-400'
+                      ? 'text-slate-400 dark:text-slate-500'
+                      : entregador.dias_sem_rodar === 0
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : entregador.dias_sem_rodar <= 3
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-rose-600 dark:text-rose-400'
                       }`}>
                       {entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
                         ? 'N/A'
@@ -162,8 +165,8 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <span className={`text-sm font-semibold ${estaRodando
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-slate-400 dark:text-slate-500'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-400 dark:text-slate-500'
                       }`}>
                       {estaRodando ? 'SIM' : 'NÃO'}
                     </span>

@@ -23,7 +23,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortField, setSortField] = useState<keyof EntregadorMarketing>('total_completadas');
+  const [sortField, setSortField] = useState<keyof EntregadorMarketing | 'rodando'>('total_completadas');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filtroRodouDia, setFiltroRodouDia] = useState<MarketingDateFilter>({
     dataInicial: null,
@@ -67,7 +67,7 @@ const EntregadoresView = React.memo(function EntregadoresView({
     fetchEntregadoresFn();
   }, [fetchEntregadoresFn]);
 
-  const handleSort = useCallback((field: keyof EntregadorMarketing) => {
+  const handleSort = useCallback((field: keyof EntregadorMarketing | 'rodando') => {
     if (sortField === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
@@ -89,6 +89,20 @@ const EntregadoresView = React.memo(function EntregadoresView({
     }
 
     return [...filtered].sort((a, b) => {
+      if (sortField === 'rodando') {
+        const rodandoA = (a.total_completadas || 0) > 30;
+        const rodandoB = (b.total_completadas || 0) > 30;
+
+        if (rodandoA === rodandoB) return 0;
+
+        // Se sortDirection é 'asc', false vem antes de true (NÃO antes de SIM)
+        // Se sortDirection é 'desc', true vem antes de false (SIM antes de NÃO)
+        const valA = rodandoA ? 1 : 0;
+        const valB = rodandoB ? 1 : 0;
+
+        return sortDirection === 'asc' ? valA - valB : valB - valA;
+      }
+
       const valA = a[sortField];
       const valB = b[sortField];
 
