@@ -6,7 +6,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Download, ArrowDownWideNarrow, ArrowUpNarrowWide } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { EntregadoresFilters } from './entregadores/EntregadoresFilters';
 import { EntregadoresTable } from './entregadores/EntregadoresTable';
 import { EntregadoresStatsCards } from './entregadores/EntregadoresStatsCards';
@@ -23,7 +23,8 @@ const EntregadoresView = React.memo(function EntregadoresView({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortField, setSortField] = useState<keyof EntregadorMarketing>('total_completadas');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filtroRodouDia, setFiltroRodouDia] = useState<MarketingDateFilter>({
     dataInicial: null,
     dataFinal: null,
@@ -66,6 +67,15 @@ const EntregadoresView = React.memo(function EntregadoresView({
     fetchEntregadoresFn();
   }, [fetchEntregadoresFn]);
 
+  const handleSort = useCallback((field: keyof EntregadorMarketing) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  }, [sortField]);
+
   // Filtrar e ordenar entregadores
   const entregadoresFiltrados = useMemo(() => {
     let filtered = entregadores;
@@ -78,13 +88,23 @@ const EntregadoresView = React.memo(function EntregadoresView({
       );
     }
 
-    // Ordenar por corridas completadas
     return [...filtered].sort((a, b) => {
-      const valA = a.total_completadas || 0;
-      const valB = b.total_completadas || 0;
-      return sortOrder === 'desc' ? valB - valA : valA - valB;
+      const valA = a[sortField];
+      const valB = b[sortField];
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return sortDirection === 'asc'
+          ? valA.localeCompare(valB)
+          : valB.localeCompare(valA);
+      }
+
+      // Tratamento para números e nulos
+      const numA = Number(valA) || 0;
+      const numB = Number(valB) || 0;
+
+      return sortDirection === 'asc' ? numA - numB : numB - numA;
     });
-  }, [entregadores, searchTerm, sortOrder]);
+  }, [entregadores, searchTerm, sortField, sortDirection]);
 
   // Função para formatar segundos em horas (HH:MM:SS)
   const formatarSegundosParaHoras = useCallback((segundos: number): string => {
@@ -161,23 +181,6 @@ const EntregadoresView = React.memo(function EntregadoresView({
               </p>
             </div>
             <Button
-              onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
-              variant="outline"
-              className="shrink-0"
-            >
-              {sortOrder === 'desc' ? (
-                <>
-                  <ArrowDownWideNarrow className="mr-2 h-4 w-4" />
-                  Maior para Menor
-                </>
-              ) : (
-                <>
-                  <ArrowUpNarrowWide className="mr-2 h-4 w-4" />
-                  Menor para Maior
-                </>
-              )}
-            </Button>
-            <Button
               onClick={exportarParaExcel}
               disabled={entregadoresFiltrados.length === 0}
               variant="outline"
@@ -214,6 +217,12 @@ const EntregadoresView = React.memo(function EntregadoresView({
         <EntregadoresTable
           entregadores={entregadoresFiltrados}
           formatarSegundosParaHoras={formatarSegundosParaHoras}
+          // @ts-ignore
+          sortField={sortField}
+          // @ts-ignore
+          sortDirection={sortDirection}
+          // @ts-ignore
+          onSort={handleSort}
         />
       ) : (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900 dark:bg-amber-950/30">

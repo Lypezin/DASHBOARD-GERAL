@@ -2,19 +2,33 @@
 
 import React from 'react';
 import { EntregadorMarketing } from '@/types';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface EntregadoresTableProps {
   entregadores: EntregadorMarketing[];
   formatarSegundosParaHoras: (segundos: number) => string;
+  sortField: keyof EntregadorMarketing;
+  sortDirection: 'asc' | 'desc';
+  onSort: (field: keyof EntregadorMarketing) => void;
 }
 
 export const EntregadoresTable = React.memo(function EntregadoresTable({
   entregadores,
   formatarSegundosParaHoras,
+  sortField,
+  sortDirection,
+  onSort,
 }: EntregadoresTableProps) {
   if (entregadores.length === 0) {
     return null;
   }
+
+  const getSortIcon = (field: keyof EntregadorMarketing) => {
+    if (sortField !== field) return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400 inline" />;
+    return sortDirection === 'asc' ?
+      <ArrowUp className="ml-1 h-3 w-3 text-purple-900 dark:text-purple-100 inline" /> :
+      <ArrowDown className="ml-1 h-3 w-3 text-purple-900 dark:text-purple-100 inline" />;
+  };
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900 overflow-hidden">
@@ -22,32 +36,59 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
         <table className="w-full">
           <thead className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                ID
+              <th
+                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('id_entregador')}
+              >
+                ID {getSortIcon('id_entregador')}
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                Nome
+              <th
+                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('nome')}
+              >
+                Nome {getSortIcon('nome')}
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                Cidade
+              <th
+                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('regiao_atuacao')}
+              >
+                Cidade {getSortIcon('regiao_atuacao')}
               </th>
-              <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                Ofertadas
+              <th
+                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('total_ofertadas')}
+              >
+                Ofertadas {getSortIcon('total_ofertadas')}
               </th>
-              <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                Aceitas
+              <th
+                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('total_aceitas')}
+              >
+                Aceitas {getSortIcon('total_aceitas')}
               </th>
-              <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                Completadas
+              <th
+                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('total_completadas')}
+              >
+                Completadas {getSortIcon('total_completadas')}
               </th>
-              <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                Rejeitadas
+              <th
+                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('total_rejeitadas')}
+              >
+                Rejeitadas {getSortIcon('total_rejeitadas')}
               </th>
-              <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                Horas
+              <th
+                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('total_segundos')}
+              >
+                Horas {getSortIcon('total_segundos')}
               </th>
-              <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
-                Dias sem Rodar
+              <th
+                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                onClick={() => onSort('dias_sem_rodar')}
+              >
+                Dias sem Rodar {getSortIcon('dias_sem_rodar')}
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100">
                 Rodando
@@ -103,29 +144,27 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <span className={`text-sm font-semibold ${
-                      entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
+                    <span className={`text-sm font-semibold ${entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
                         ? 'text-slate-400 dark:text-slate-500'
                         : entregador.dias_sem_rodar === 0
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : entregador.dias_sem_rodar <= 3
-                        ? 'text-amber-600 dark:text-amber-400'
-                        : 'text-rose-600 dark:text-rose-400'
-                    }`}>
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : entregador.dias_sem_rodar <= 3
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-rose-600 dark:text-rose-400'
+                      }`}>
                       {entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
                         ? 'N/A'
                         : entregador.dias_sem_rodar === 0
-                        ? 'Hoje'
-                        : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`
+                          ? 'Hoje'
+                          : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`
                       }
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <span className={`text-sm font-semibold ${
-                      estaRodando
+                    <span className={`text-sm font-semibold ${estaRodando
                         ? 'text-emerald-600 dark:text-emerald-400'
                         : 'text-slate-400 dark:text-slate-500'
-                    }`}>
+                      }`}>
                       {estaRodando ? 'SIM' : 'NÃO'}
                     </span>
                   </td>
