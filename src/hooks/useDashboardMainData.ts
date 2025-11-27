@@ -106,25 +106,6 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     if (previousPayloadWasInvalid && hasValidFilters) {
       if (IS_DEV) safeLog.info('[useDashboardMainData] Limpando cache - payload mudou de inválido para válido');
       cacheKeyRef.current = '';
-      cachedDataRef.current = null;
-    }
-
-    pendingPayloadKeyRef.current = payloadKey;
-
-    // Verificar cache
-    if (shouldFetch && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
-      if (IS_DEV) safeLog.info('[useDashboardMainData] Usando dados do cache');
-
-      const processedData = transformDashboardData(cachedDataRef.current);
-
-      setTotals(processedData.totals);
-      setAderenciaSemanal(processedData.aderenciaSemanal);
-      setAderenciaDia(processedData.aderenciaDia);
-      setAderenciaTurno(processedData.aderenciaTurno);
-      setAderenciaSubPraca(processedData.aderenciaSubPraca);
-      setAderenciaOrigem(processedData.aderenciaOrigem);
-
-      if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
 
       setError(null);
       setLoading(false);
