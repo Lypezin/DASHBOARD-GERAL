@@ -10,11 +10,11 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  
+
   // Otimizações de build
   swcMinify: true,
   output: 'standalone',
-  
+
   // Otimizações de imagens
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -44,7 +44,7 @@ const nextConfig = {
         'pdfmake/build/vfs_fonts': 'commonjs pdfmake/build/vfs_fonts',
       });
     }
-    
+
     // Ignorar módulos Node.js no cliente se necessário
     if (!isServer) {
       config.resolve.fallback = {
@@ -54,7 +54,7 @@ const nextConfig = {
         crypto: false,
       };
     }
-    
+
     return config;
   },
 
@@ -73,7 +73,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Aplicar headers de segurança em todas as rotas
+        // Headers de segurança globais
         source: '/:path*',
         headers: [
           {
@@ -115,14 +115,19 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()'
-          },
-          // Headers de performance
+          }
+        ],
+      },
+      {
+        // Cache agressivo APENAS para imagens e fontes (que não mudam frequentemente ou têm hash)
+        source: '/:path*.{jpg,jpeg,png,gif,webp,avif,ico,svg,woff,woff2,ttf,eot}',
+        headers: [
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable'
           }
-        ],
-      },
+        ]
+      }
     ];
   },
 };
