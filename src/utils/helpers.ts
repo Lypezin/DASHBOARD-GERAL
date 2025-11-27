@@ -223,11 +223,19 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
   // Obter organization_id do usuário atual
   let organizationId = currentUser?.organization_id || null;
 
+  console.log('[buildFilterPayload] DEBUG organization_id:', {
+    currentUser,
+    organizationId,
+    'currentUser.organization_id': currentUser?.organization_id,
+    'is_admin': currentUser?.is_admin
+  });
+
   const isAdminOrMaster = currentUser?.is_admin === true;
 
   // Se for admin ou master, permitir ver tudo (enviar null)
   // Isso permite que a função RPC decida (geralmente mostra tudo para admin)
   if (isAdminOrMaster) {
+    console.log('[buildFilterPayload] User is admin, setting organization_id to NULL');
     organizationId = null;
   }
 
