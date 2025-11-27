@@ -14,10 +14,22 @@ interface FetchOptions {
 /**
  * Busca dados de UTR
  */
+/**
+ * Busca dados de UTR
+ */
 export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrData | null; error: RpcError | null }> {
   const { filterPayload } = options;
 
-  const result = await safeRpc<any>('calcular_utr_completo', filterPayload as any, {
+  const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_turno', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
+  const utrPayload: FilterPayload = {};
+
+  for (const key of allowedParams) {
+    if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
+      utrPayload[key] = filterPayload[key];
+    }
+  }
+
+  const result = await safeRpc<any>('calcular_utr_completo', utrPayload as any, {
     timeout: RPC_TIMEOUTS.DEFAULT,
     validateParams: true
   });
@@ -80,10 +92,14 @@ export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrDa
 export async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
   const { filterPayload } = options;
 
-  const { p_turno, ...restPayload } = filterPayload;
-  const listarEntregadoresPayload = {
-    ...restPayload,
-  };
+  const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
+  const listarEntregadoresPayload: FilterPayload = {};
+
+  for (const key of allowedParams) {
+    if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
+      listarEntregadoresPayload[key] = filterPayload[key];
+    }
+  }
 
   const result = await safeRpc<any>('listar_entregadores_v2', listarEntregadoresPayload, {
     timeout: RPC_TIMEOUTS.LONG,
