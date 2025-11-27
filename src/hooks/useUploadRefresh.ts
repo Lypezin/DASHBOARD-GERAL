@@ -147,14 +147,15 @@ export function useUploadRefresh() {
 
 
   const processMVs = useCallback(async (mvs: PendingMV[]) => {
-    // Garantir que mv_dashboard_resumo e mv_aderencia_agregada estejam na lista
-    const dashboardMvName = 'mv_dashboard_resumo';
+    // Garantir que mv_aderencia_agregada esteja na lista (se necessário)
     const aderenciaMvName = 'mv_aderencia_agregada';
 
     let mvsToProcess = [...mvs];
 
-    if (!mvsToProcess.some(mv => mv.mv_name === dashboardMvName)) {
-      mvsToProcess.push({ mv_name: dashboardMvName, last_refresh: null, priority: 1, needs_refresh: true } as unknown as PendingMV);
+    // mv_dashboard_resumo agora é uma tabela atualizada via triggers, não precisa de refresh
+    
+    if (!mvsToProcess.some(mv => mv.mv_name === aderenciaMvName)) {
+      mvsToProcess.push({ mv_name: aderenciaMvName, last_refresh: null, priority: 1, needs_refresh: true } as unknown as PendingMV);
     }
 
     if (!mvsToProcess.some(mv => mv.mv_name === aderenciaMvName)) {
