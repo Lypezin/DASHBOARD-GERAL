@@ -157,6 +157,7 @@ const ComparacaoView = React.memo(function ComparacaoView({
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2">
                   <BarChart2 className="h-5 w-5 text-blue-500" />
+                  {/* <span className="text-xl">📊</span> */}
                   <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
                     Comparação Detalhada de Métricas
                   </CardTitle>

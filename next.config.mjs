@@ -1,8 +1,8 @@
-import bundleAnalyzer from '@next/bundle-analyzer';
+// import bundleAnalyzer from '@next/bundle-analyzer';
 
-const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-});
+// const withBundleAnalyzer = bundleAnalyzer({
+//   enabled: process.env.ANALYZE === 'true',
+// });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -127,9 +127,19 @@ const nextConfig = {
             value: 'public, max-age=31536000, immutable'
           }
         ]
+      },
+      {
+        // Desabilitar cache para arquivos de build do Next.js e HTML para garantir que o usuário sempre receba a versão mais recente
+        source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate'
+          }
+        ]
       }
     ];
   },
 };
 
-export default withBundleAnalyzer(nextConfig);
+export default nextConfig;
