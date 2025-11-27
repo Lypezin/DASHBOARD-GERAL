@@ -14,7 +14,7 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 export async function syncOrganizationIdToMetadata(): Promise<boolean> {
   try {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       if (IS_DEV) {
         safeLog.warn('[syncOrganizationIdToMetadata] Usuário não autenticado');
@@ -79,7 +79,7 @@ export async function syncOrganizationIdToMetadata(): Promise<boolean> {
 export async function getCurrentUserOrganizationId(): Promise<string | null> {
   try {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       if (IS_DEV) {
         safeLog.warn('[getCurrentUserOrganizationId] Usuário não autenticado');
@@ -89,7 +89,7 @@ export async function getCurrentUserOrganizationId(): Promise<string | null> {
 
     // Tentar obter do user_metadata primeiro
     const orgIdFromMetadata = user.user_metadata?.organization_id as string | undefined;
-    if (orgIdFromMetadata) {
+    if (orgIdFromMetadata && orgIdFromMetadata !== '00000000-0000-0000-0000-000000000001') {
       return orgIdFromMetadata;
     }
 
@@ -112,15 +112,16 @@ export async function getCurrentUserOrganizationId(): Promise<string | null> {
 
     const orgId = profile.organization_id;
 
-    // Se for admin ou master sem organization_id, usar organização padrão
-    if (!orgId && (profile.is_admin || profile.role === 'master')) {
+    // Se for admin ou master sem organization_id (ou com dummy UUID), retornar null para acesso total
+    const isDummyId = orgId === '00000000-0000-0000-0000-000000000001';
+    if ((!orgId || isDummyId) && (profile.is_admin || profile.role === 'master')) {
       if (IS_DEV) {
-        safeLog.warn('[getCurrentUserOrganizationId] Admin/Master sem organization_id, usando padrão');
+        safeLog.warn('[getCurrentUserOrganizationId] Admin/Master sem organization_id, retornando null para acesso total');
       }
-      return '00000000-0000-0000-0000-000000000001';
+      return null;
     }
 
-    return orgId || null;
+    return (isDummyId ? null : orgId) || null;
   } catch (err) {
     if (IS_DEV) {
       safeLog.error('[getCurrentUserOrganizationId] Erro inesperado:', err);

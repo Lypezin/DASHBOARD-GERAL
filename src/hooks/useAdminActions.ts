@@ -74,7 +74,7 @@ export function useAdminActions(
             assigned_pracas: selectedRole === 'marketing' ? [] : selectedPracas,
             approved_at: new Date().toISOString(),
             approved_by: currentUser?.id || null,
-            organization_id: selectedOrganizationId || '00000000-0000-0000-0000-000000000001'
+            organization_id: selectedOrganizationId || null
           };
 
           if (selectedRole) {
