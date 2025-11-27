@@ -140,6 +140,12 @@ const nextConfig = {
       }
     ];
   },
+
+  // Forçar um ID de build único para invalidar caches persistentes
+  generateBuildId: async () => {
+    // Retorna o timestamp atual como ID de build
+    return `build-${Date.now()}`;
+  },
 };
 
 export default nextConfig;
