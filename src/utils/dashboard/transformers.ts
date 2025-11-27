@@ -56,21 +56,27 @@ export const transformDashboardData = (data: DashboardResumoData) => {
     };
 
     const aderenciaSemanal: AderenciaSemanal[] = Array.isArray(data.semanal)
-        ? data.semanal.map(item => ({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar || item.segundos_planejados || 0),
-            horas_entregues: convertHorasToString(item.horas_entregues || item.segundos_realizados || 0)
-        }))
+        ? data.semanal.map(item => {
+            const itemAny = item as any;
+            return {
+                ...item,
+                horas_a_entregar: convertHorasToString(item.horas_a_entregar || itemAny.segundos_planejados || 0),
+                horas_entregues: convertHorasToString(item.horas_entregues || itemAny.segundos_realizados || 0)
+            };
+        })
         : [];
 
     const aderenciaDia = Array.isArray(data.dia)
-        ? data.dia.map(item => enrichAderenciaDia({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar || item.segundos_planejados || 0),
-            horas_entregues: convertHorasToString(item.horas_entregues || item.segundos_realizados || 0),
-            // Support both field names from RPC
-            dia_da_semana: item.dia_da_semana || item.dia_semana
-        }))
+        ? data.dia.map(item => {
+            const itemAny = item as any;
+            return enrichAderenciaDia({
+                ...item,
+                horas_a_entregar: convertHorasToString(item.horas_a_entregar || itemAny.segundos_planejados || 0),
+                horas_entregues: convertHorasToString(item.horas_entregues || itemAny.segundos_realizados || 0),
+                // Support both field names from RPC
+                dia_da_semana: item.dia_da_semana || itemAny.dia_semana
+            });
+        })
         : [];
 
     const aderenciaTurno: AderenciaTurno[] = Array.isArray(data.turno)
