@@ -113,8 +113,15 @@ export function useDashboardPage() {
 
   // Selecionar automaticamente o ano mais recente se nenhum estiver selecionado
   useEffect(() => {
+    console.log('[DashboardPage] Auto-selection check:', {
+      anosDisponiveis,
+      'filters.ano': filters.ano,
+      shouldSelect: anosDisponiveis && anosDisponiveis.length > 0 && !filters.ano
+    });
+
     if (anosDisponiveis && anosDisponiveis.length > 0 && !filters.ano) {
       const maxYear = Math.max(...anosDisponiveis);
+      console.log(`[DashboardPage] ✅ AUTO-SELECIONANDO ANO: ${maxYear}`);
       if (IS_DEV) safeLog.info(`[DashboardPage] Definindo ano padrão para: ${maxYear}`);
       setFilters(prev => ({ ...prev, ano: maxYear }));
       setAnoEvolucao(maxYear);

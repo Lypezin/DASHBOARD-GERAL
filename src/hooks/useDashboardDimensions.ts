@@ -37,7 +37,8 @@ export function useDashboardDimensions() {
 
       } catch (err) {
         safeLog.error('Erro ao buscar dimensões iniciais:', err);
-        setAnosDisponiveis([new Date().getFullYear()]);
+        // Fallback para 2025 (ano com dados conhecidos)
+        setAnosDisponiveis([2025]);
         setSemanasDisponiveis([]);
       } finally {
         setLoading(false);
