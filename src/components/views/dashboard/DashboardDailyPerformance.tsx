@@ -87,7 +87,7 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
                                 <div className="text-center w-full">
                                     <div className="flex items-center justify-center gap-1.5 mb-2">
                                         <span className={`text-xs font-bold uppercase tracking-wider ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
-                                            {dia.dia_da_semana.substring(0, 3)}
+                                            {dia.dia_da_semana?.substring(0, 3) || '---'}
                                         </span>
                                         {isToday && <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>}
                                     </div>
