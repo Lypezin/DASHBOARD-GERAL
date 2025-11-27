@@ -159,6 +159,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
         // Verificar aprovação e permissões se necessário
         if (requireApproval || requiredRole || fetchUserProfile) {
           try {
+            console.log('🔵 [useAuthGuard] Buscando perfil do usuário...');
             const { data: profile, error: profileError } = await safeRpc<{
               is_approved: boolean;
               is_admin: boolean;
@@ -170,8 +171,11 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
               validateParams: false
             });
 
+            console.log('🔵 [useAuthGuard] Resultado do perfil:', { profile, profileError });
+
             if (profileError) {
               // Erro ao buscar perfil - fazer logout e redirecionar
+              console.log('🔴 [useAuthGuard] Erro ao buscar perfil:', profileError);
               if (IS_DEV) {
                 safeLog.warn('[useAuthGuard] Erro ao buscar perfil, fazendo logout:', profileError);
               }
@@ -182,6 +186,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
 
             // Verificar aprovação
             if (requireApproval && !profile?.is_approved) {
+              console.log('🔴 [useAuthGuard] Usuário não aprovado');
               if (IS_DEV) {
                 safeLog.warn('[useAuthGuard] Usuário não aprovado, fazendo logout');
               }
@@ -189,6 +194,8 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
               if (onAuthFailure) onAuthFailure();
               return;
             }
+
+            console.log('✅ [useAuthGuard] Usuário aprovado, continuando...');
 
             // Verificar role
             if (requiredRole && profile?.role) {
@@ -245,6 +252,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
             }
 
             // Usuário autenticado e autorizado
+            console.log('✅ [useAuthGuard] Autenticação completa! Usuário autorizado.');
             setIsAuthenticated(true);
           } catch (err) {
             // Erro ao verificar perfil - fazer logout e redirecionar
