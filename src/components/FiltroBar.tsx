@@ -129,15 +129,22 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [anos]);
 
   const semanasOptions = useMemo(() => {
-    return semanas.map((sem) => {
-      let weekNumber = sem;
-      if (sem.includes('-W')) {
-        weekNumber = sem.split('-W')[1];
-      }
-      // Remover zeros à esquerda para garantir match com o filtro (que é number)
-      const normalizedWeek = String(parseInt(weekNumber, 10));
-      return { value: normalizedWeek, label: `Semana ${normalizedWeek}` };
-    });
+    return semanas
+      .filter(sem => sem && sem !== '' && sem !== 'NaN')  // Filtrar valores vazios ou inválidos
+      .map((sem) => {
+        let weekNumber = sem;
+        if (sem.includes('-W')) {
+          weekNumber = sem.split('-W')[1];
+        }
+        // Remover zeros à esquerda para garantir match com o filtro (que é number)
+        const parsed = parseInt(weekNumber, 10);
+        if (isNaN(parsed)) {
+          return null; // Ignorar valores inválidos
+        }
+        const normalizedWeek = String(parsed);
+        return { value: normalizedWeek, label: `Semana ${normalizedWeek}` };
+      })
+      .filter((opt): opt is { value: string; label: string } => opt !== null); // Remover nulls com Type Guard
   }, [semanas]);
 
   const isModoIntervalo = filters?.filtroModo === 'intervalo';
