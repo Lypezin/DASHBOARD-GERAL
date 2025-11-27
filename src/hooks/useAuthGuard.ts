@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
@@ -62,6 +62,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
   } = options;
 
   const router = useRouter();
+  const pathname = usePathname();
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -70,7 +71,16 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        console.log('🔵 [useAuthGuard] Iniciando verificação de autenticação');
+        console.log('🔵 [useAuthGuard] Iniciando verificação de autenticação', { pathname });
+
+        // CRÍTICO: Não executar AuthGuard nas páginas de login/registro
+        if (pathname === '/login' || pathname === '/registro') {
+          console.log('⚠️ [useAuthGuard] Página de login/registro detectada, pulando verificação');
+          setIsChecking(false);
+          setIsAuthenticated(false);
+          return;
+        }
+
         setIsChecking(true);
         setError(null);
 
@@ -263,7 +273,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
     };
 
     checkAuthentication();
-  }, [router, requireApproval, requiredRole, fetchUserProfile, onAuthFailure]);
+  }, [router, pathname, requireApproval, requiredRole, fetchUserProfile, onAuthFailure]);
 
   return {
     isChecking,
