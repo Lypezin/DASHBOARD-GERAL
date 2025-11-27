@@ -108,8 +108,18 @@ export function useDashboardPage() {
     evolucaoSemanal,
     utrSemanal,
     loadingEvolucao,
-    aderenciaGeral,
+    aderenciaGeral
   } = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
+
+  // Selecionar automaticamente o ano mais recente se nenhum estiver selecionado
+  useEffect(() => {
+    if (anosDisponiveis && anosDisponiveis.length > 0 && !filters.ano) {
+      const maxYear = Math.max(...anosDisponiveis);
+      if (IS_DEV) safeLog.info(`[DashboardPage] Definindo ano padrão para: ${maxYear}`);
+      setFilters(prev => ({ ...prev, ano: maxYear }));
+      setAnoEvolucao(maxYear);
+    }
+  }, [anosDisponiveis, filters.ano]);
 
   // Criar uma string estável dos filtros para usar como dependência
   const filtersKey = useMemo(() => {
@@ -314,122 +324,11 @@ export function useDashboardPage() {
 
       setFilters(filtersObj);
     }
-  }, [filters.ano, filters.semana, filters.subPracas, filters.origens, filters.turnos]);
+  }, [filters]);
 
-  // Auto-inicialização de filtros
-  useEffect(() => {
-    // Se já tentou inicializar e os filtros ainda estão null, não tentar novamente
-    if (hasTriedInitializeRef.current && filters.ano === null && filters.semana === null) {
-      return;
-    }
-
-    // Só inicializar se os filtros ainda estão vazios e os dados estão disponíveis
-    if (
-      !filtersInitializedRef.current &&
-      filters.ano === null &&
-      filters.semana === null &&
-      Array.isArray(anosDisponiveis) &&
-      anosDisponiveis.length > 0 &&
-      Array.isArray(semanasDisponiveis) &&
-      semanasDisponiveis.length > 0
-    ) {
-      hasTriedInitializeRef.current = true;
-
-      const ultimoAno = anosDisponiveis[anosDisponiveis.length - 1];
-      const ultimaSemana = semanasDisponiveis[semanasDisponiveis.length - 1];
-
-      // Converter semana de string para número se necessário
-      let semanaNumero: number;
-      if (typeof ultimaSemana === 'string') {
-        if (ultimaSemana.includes('W')) {
-          const match = ultimaSemana.match(/W(\d+)/);
-          semanaNumero = match ? parseInt(match[1], 10) : parseInt(ultimaSemana, 10);
-        } else {
-          semanaNumero = parseInt(ultimaSemana, 10);
-        }
-      } else {
-        semanaNumero = Number(ultimaSemana);
-      }
-
-      if (!isNaN(semanaNumero) && semanaNumero > 0 && semanaNumero <= 53) {
-        // console.log('✅ [DashboardPage] INICIALIZANDO FILTROS:', {
-        //   ano: ultimoAno,
-        //   semana: semanaNumero,
-        // });
-
-        filtersInitializedRef.current = true;
-        filtersProtectedRef.current = true;
-
-        setFilters((prev) => ({
-          ...prev,
-          ano: ultimoAno,
-          semana: semanaNumero,
-          semanas: [semanaNumero],
-        }));
-      }
-    }
-  }, [anosDisponiveis, semanasDisponiveis]);
-
-  // Registrar atividade do usuário com debounce
-  const tabChangeTimeoutRef2 = useRef<NodeJS.Timeout | null>(null);
-  useEffect(() => {
-    if (!currentUser) return;
-
-    if (tabChangeTimeoutRef2.current) {
-      clearTimeout(tabChangeTimeoutRef2.current);
-    }
-
-    tabChangeTimeoutRef2.current = setTimeout(() => {
-      registrarAtividade('tab_change', { message: `Navegou para a aba ${activeTab}`, tab: activeTab }, activeTab, filters);
-    }, DELAYS.TAB_CHANGE);
-
-    return () => {
-      if (tabChangeTimeoutRef2.current) {
-        clearTimeout(tabChangeTimeoutRef2.current);
-      }
-    };
-  }, [activeTab, registrarAtividade, filters, currentUser]);
-
-  // Aplicar filtro automático quando currentUser mudar
-  useEffect(() => {
-    if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length === 1) {
-      setFiltersProtected(prev => {
-        if (prev.praca !== currentUser.assigned_pracas[0]) {
-          return {
-            ...prev,
-            praca: currentUser.assigned_pracas[0]
-          };
-        }
-        return prev;
-      });
-    }
-  }, [currentUser, setFiltersProtected]);
-
-  // Refs para controlar mudanças de tab
-  const tabChangeRef = useRef(false);
-  const tabChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const currentTabRef = useRef(activeTab);
-
-  useEffect(() => {
-    currentTabRef.current = activeTab;
-  }, [activeTab]);
-
-  // Handler memoizado para mudança de tab
+  // Função para mudar de aba
   const handleTabChange = useCallback((tab: TabType) => {
-    if (currentTabRef.current === tab) {
-      return;
-    }
-
-    if (tabChangeTimeoutRef.current) {
-      clearTimeout(tabChangeTimeoutRef.current);
-    }
-
-    tabChangeRef.current = true;
     setActiveTab(tab);
-
-    tabChangeTimeoutRef.current = setTimeout(() => {
-      tabChangeRef.current = false;
-    }, DELAYS.TAB_CHANGE_PROTECTION);
   }, []);
 
   return {
@@ -441,17 +340,16 @@ export function useDashboardPage() {
     // Tabs e Filtros
     activeTab,
     filters,
-    setFilters: setFiltersProtected, // Exportar wrapper protegido
+    setFilters: setFiltersProtected,
     handleTabChange,
 
     // Dados do Dashboard
-    totals,
-    aderenciaSemanal,
+    aderenciaGeral,
     aderenciaDia,
     aderenciaTurno,
     aderenciaSubPraca,
     aderenciaOrigem,
-    aderenciaGeral,
+    totals,
     anosDisponiveis,
     semanasDisponiveis,
     pracas,
@@ -464,11 +362,9 @@ export function useDashboardPage() {
     // Dados de Evolução
     evolucaoMensal,
     evolucaoSemanal,
-    utrSemanal,
     loadingEvolucao,
-    anoEvolucao,
-    setAnoEvolucao,
     anoSelecionado: anoEvolucao,
+    setAnoEvolucao,
 
     // Dados de Tabs
     utrData,
@@ -477,8 +373,7 @@ export function useDashboardPage() {
     prioridadeData,
     loadingTabData,
 
-    // UI State
+    // Chart
     chartReady,
   };
 }
-
