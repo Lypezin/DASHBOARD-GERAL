@@ -6,16 +6,20 @@
  * Payload de filtros para funções RPC
  */
 export interface FilterPayload {
-  p_ano?: number | null;
-  p_semana?: number | null;
-  p_data_inicial?: string | null;
-  p_data_final?: string | null;
-  p_praca?: string | string[] | null;
-  p_sub_praca?: string | string[] | null;
-  p_origem?: string | string[] | null;
-  p_turno?: string | string[] | null;
-  p_limite_semanas?: number | null;
-  p_organization_id?: string | null;
+  p_ano: number | null;
+  p_semana: number | null;
+  p_semanas?: number[] | null;
+  p_praca: string | null;
+  p_sub_praca: string | null;
+  p_origem: string | null;
+  p_turno: string | null;
+  p_sub_pracas?: string[] | null;
+  p_origens?: string[] | null;
+  p_turnos?: string[] | null;
+  p_filtro_modo?: string;
+  p_data_inicial: string | null;
+  p_data_final: string | null;
+  p_organization_id: string | null;
   [key: string]: unknown;
 }
 
@@ -52,4 +56,3 @@ export interface DashboardFilters {
   dataInicial: string | null;
   dataFinal: string | null;
 }
-

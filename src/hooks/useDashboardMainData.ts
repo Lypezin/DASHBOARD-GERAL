@@ -164,12 +164,16 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           return;
         }
 
+        if (IS_DEV) safeLog.info('[useDashboardMainData] Chamando dashboard_resumo com payload:', currentPayload);
+        console.log('🔵 [useDashboardMainData] Chamando dashboard_resumo...');
+
         const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', currentPayload, {
           timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: false
         });
 
         if (rpcError) {
+          console.log('🔴 [useDashboardMainData] Erro no RPC dashboard_resumo:', rpcError);
           const errorMessage = String(rpcError?.message || '');
           if (errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
             const errorMsg = 'Variáveis de ambiente do Supabase não estão configuradas.';
@@ -182,6 +186,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           if (onError) onError(rpcError);
           return;
         }
+
+        console.log('✅ [useDashboardMainData] dashboard_resumo retornou sucesso');
 
         if (!data) {
           if (IS_DEV) safeLog.warn('[useDashboardMainData] dashboard_resumo retornou null ou undefined');
