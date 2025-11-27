@@ -67,6 +67,14 @@ export function useHeaderAuth() {
         return;
       }
 
+      // Se estiver na página de login/registro e já estiver autenticado,
+      // deixar o middleware ou a própria página lidar com o redirecionamento
+      if (pathname === '/login' || pathname === '/registro') {
+        setHasTriedAuth(true);
+        setIsLoading(false);
+        // Buscar perfil apenas para mostrar no header se necessário, mas não bloquear
+      }
+
       setHasTriedAuth(true);
 
       // Buscar perfil com retry
@@ -172,7 +180,9 @@ export function useHeaderAuth() {
         checkUser();
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        router.push('/login');
+        if (pathname !== '/login' && pathname !== '/registro') {
+          router.push('/login');
+        }
       } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
         if (IS_DEV && event === 'USER_UPDATED') {
           safeLog.info('[Header] Evento USER_UPDATED recebido, atualizando perfil...');

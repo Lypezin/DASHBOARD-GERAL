@@ -19,7 +19,12 @@ export function useSessionCleanup() {
         const { data: { session } } = await supabase.auth.getSession();
         // Se houver sessão mas não for válida (sem user), limpar
         if (session && !session.user) {
-          await supabase.auth.signOut();
+          if (IS_DEV) safeLog.warn('[useSessionCleanup] Sessão inválida detectada, limpando...');
+
+          await supabase.auth.signOut().catch(err => {
+            if (IS_DEV) safeLog.warn('[useSessionCleanup] Erro ao fazer signOut (ignorado):', err);
+          });
+
           if (typeof window !== 'undefined') {
             const keysToRemove: string[] = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -29,6 +34,7 @@ export function useSessionCleanup() {
               }
             }
             keysToRemove.forEach(key => localStorage.removeItem(key));
+            if (IS_DEV) safeLog.info('[useSessionCleanup] LocalStorage limpo');
           }
         }
       } catch (err) {
@@ -36,7 +42,7 @@ export function useSessionCleanup() {
         if (IS_DEV) safeLog.warn('Erro ao verificar sessão no login:', err);
       }
     };
-    
+
     checkAndCleanInvalidSession();
   }, []);
 }
