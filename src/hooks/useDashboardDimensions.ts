@@ -29,7 +29,11 @@ export function useDashboardDimensions() {
         setAnosDisponiveis(anosResult.data || []);
 
         if (semanasResult.error) throw semanasResult.error;
-        setSemanasDisponiveis(Array.isArray(semanasResult.data) ? semanasResult.data.map(s => String(s)) : []);
+        setSemanasDisponiveis(
+          Array.isArray(semanasResult.data)
+            ? semanasResult.data.map(s => typeof s === 'object' && s !== null && 'semana' in s ? String(s.semana) : String(s))
+            : []
+        );
 
       } catch (err) {
         safeLog.error('Erro ao buscar dimensões iniciais:', err);
