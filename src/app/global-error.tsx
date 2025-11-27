@@ -22,9 +22,14 @@ export default function GlobalError({
             error.message?.includes('not found');
 
         if (isChunkLoadError) {
-            safeLog.warn('ChunkLoadError detected. Reloading page...');
-            // Force hard reload to fetch new chunks
-            window.location.reload();
+            safeLog.warn('ChunkLoadError detected. Reloading page with cache busting...');
+
+            // Force hard reload with cache busting
+            // Appending a timestamp query param forces the browser to fetch the HTML again
+            // bypassing the stale 'immutable' cache
+            const url = new URL(window.location.href);
+            url.searchParams.set('v', Date.now().toString());
+            window.location.href = url.toString();
         }
     }, [error]);
 
@@ -40,7 +45,11 @@ export default function GlobalError({
                             Uma nova versão do sistema está disponível ou ocorreu um erro inesperado.
                         </p>
                         <button
-                            onClick={() => window.location.reload()}
+                            onClick={() => {
+                                const url = new URL(window.location.href);
+                                url.searchParams.set('v', Date.now().toString());
+                                window.location.href = url.toString();
+                            }}
                             className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             Atualizar Página
