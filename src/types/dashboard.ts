@@ -19,7 +19,7 @@ export interface AderenciaSemanal {
 }
 
 export interface AderenciaDia {
-  data: string; // Data do período (YYYY-MM-DD)
+  data?: string; // Data do período (YYYY-MM-DD) - Opcional pois pode vir agrupado por dia da semana
   horas_a_entregar: string;
   horas_entregues: string;
   aderencia_percentual: number;

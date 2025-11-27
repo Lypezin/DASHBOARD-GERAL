@@ -19,16 +19,32 @@ export const convertHorasToString = (value: number | string | undefined | null):
  * Enriquece os dados de AderenciaDia calculando dia_da_semana e dia_iso a partir da data
  */
 export const enrichAderenciaDia = (diaData: AderenciaDia) => {
-    const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    const dataObj = new Date(diaData.data + 'T00:00:00');
-    const diaDaSemana = diasDaSemana[dataObj.getDay()];
-    const diaIso = dataObj.getDay() === 0 ? 7 : dataObj.getDay(); // ISO: 1=Segunda, 7=Domingo
+    // Se já tem dia_da_semana (vindo do RPC), retorna como está
+    if (diaData.dia_da_semana) {
+        return diaData;
+    }
 
-    return {
-        ...diaData,
-        dia_da_semana: diaDaSemana,
-        dia_iso: diaIso
-    };
+    // Se tem data, calcula o dia da semana
+    if (diaData.data) {
+        const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        const dataObj = new Date(diaData.data + 'T00:00:00');
+
+        // Validação básica de data
+        if (isNaN(dataObj.getTime())) {
+            return diaData;
+        }
+
+        const diaDaSemana = diasDaSemana[dataObj.getDay()];
+        const diaIso = dataObj.getDay() === 0 ? 7 : dataObj.getDay(); // ISO: 1=Segunda, 7=Domingo
+
+        return {
+            ...diaData,
+            dia_da_semana: diaDaSemana,
+            dia_iso: diaIso
+        };
+    }
+
+    return diaData;
 };
 
 export const transformDashboardData = (data: DashboardResumoData) => {
