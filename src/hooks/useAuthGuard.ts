@@ -84,10 +84,10 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
             clearSupabaseStorage();
           }
         }
-        
+
         // Verificar sessão atual
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+
         if (sessionError || !session || !session.user) {
           // Sem sessão válida - limpar e redirecionar
           if (IS_DEV) {
@@ -97,23 +97,36 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
           if (onAuthFailure) onAuthFailure();
           return;
         }
-        
-        // Verificar se o token da sessão ainda é válido
-        try {
-          const { data: { user: verifiedUser }, error: verifyError } = await supabase.auth.getUser();
-          if (verifyError || !verifiedUser) {
-            // Token inválido - limpar e redirecionar
-            if (IS_DEV) {
-              safeLog.warn('[useAuthGuard] Token inválido, limpando e redirecionando para login');
+
+        // Verificar se o token da sessão ainda é válido com retry
+        let verifiedUser = null;
+        let verifyError = null;
+        const maxRetries = 3;
+
+        for (let i = 0; i < maxRetries; i++) {
+          try {
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (user) {
+              verifiedUser = user;
+              verifyError = null;
+              break;
+            } else if (error) {
+              verifyError = error;
+              if (IS_DEV) safeLog.warn(`[useAuthGuard] Tentativa ${i + 1}/${maxRetries} falhou:`, error.message);
+              // Esperar um pouco antes de tentar novamente (backoff exponencial)
+              await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, i)));
             }
-            await signOutAndRedirect(router);
-            if (onAuthFailure) onAuthFailure();
-            return;
+          } catch (err) {
+            verifyError = err;
+            if (IS_DEV) safeLog.warn(`[useAuthGuard] Erro na tentativa ${i + 1}/${maxRetries}:`, err);
+            await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, i)));
           }
-        } catch (verifyErr) {
-          // Erro ao verificar token - limpar e redirecionar
+        }
+
+        if (verifyError || !verifiedUser) {
+          // Token inválido após todas as tentativas - limpar e redirecionar
           if (IS_DEV) {
-            safeLog.warn('[useAuthGuard] Erro ao verificar token, limpando e redirecionando para login:', verifyErr);
+            safeLog.error('[useAuthGuard] Token inválido após retries, limpando e redirecionando:', verifyError);
           }
           await signOutAndRedirect(router);
           if (onAuthFailure) onAuthFailure();
@@ -162,13 +175,13 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
                 'admin': 3,
                 'master': 4, // Master tem o nível mais alto
               };
-              
+
               const userRoleLevel = roleHierarchy[profile.role] || 0;
               const requiredRoleLevel = roleHierarchy[requiredRole] || 0;
-              
+
               // Master e admin sempre têm acesso total
               const isMasterOrAdmin = profile.role === 'master' || profile.is_admin;
-              
+
               if (!isMasterOrAdmin && userRoleLevel < requiredRoleLevel) {
                 if (IS_DEV) {
                   safeLog.warn(`[useAuthGuard] Usuário não tem role suficiente. Requerido: ${requiredRole}, Atual: ${profile.role}`);
@@ -190,7 +203,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
                   safeLog.warn('[useAuthGuard] Admin/Master sem organization_id, usando organização padrão como fallback');
                 }
               }
-              
+
               if (IS_DEV) {
                 safeLog.info('[useAuthGuard] Perfil obtido:', {
                   is_admin: profile.is_admin,

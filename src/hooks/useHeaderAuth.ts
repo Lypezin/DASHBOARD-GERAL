@@ -58,11 +58,25 @@ export function useHeaderAuth() {
 
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
+      // Log para debug do loop
+      if (IS_DEV) {
+        console.log('[HeaderAuth] Check:', {
+          pathname,
+          hasUser: !!authUser,
+          error: authError?.message
+        });
+      }
+
       if (authError || !authUser) {
         setHasTriedAuth(true);
         setIsLoading(false);
+
+        // Proteção contra loop
         if (pathname !== '/login' && pathname !== '/registro') {
+          if (IS_DEV) console.log('[HeaderAuth] Redirecting to login from:', pathname);
           router.push('/login');
+        } else {
+          if (IS_DEV) console.log('[HeaderAuth] Already on login/register, skipping redirect');
         }
         return;
       }

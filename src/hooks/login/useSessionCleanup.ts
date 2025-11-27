@@ -19,6 +19,7 @@ export function useSessionCleanup() {
         const { data: { session } } = await supabase.auth.getSession();
         // Se houver sessão mas não for válida (sem user), limpar
         if (session && !session.user) {
+          if (IS_DEV) console.log('[SessionCleanup] Invalid session detected (no user), cleaning up...');
           if (IS_DEV) safeLog.warn('[useSessionCleanup] Sessão inválida detectada, limpando...');
 
           await supabase.auth.signOut().catch(err => {
@@ -46,4 +47,3 @@ export function useSessionCleanup() {
     checkAndCleanInvalidSession();
   }, []);
 }
-
