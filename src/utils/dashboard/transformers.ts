@@ -58,16 +58,18 @@ export const transformDashboardData = (data: DashboardResumoData) => {
     const aderenciaSemanal: AderenciaSemanal[] = Array.isArray(data.semanal)
         ? data.semanal.map(item => ({
             ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar || item.segundos_planejados || 0),
+            horas_entregues: convertHorasToString(item.horas_entregues || item.segundos_realizados || 0)
         }))
         : [];
 
     const aderenciaDia = Array.isArray(data.dia)
         ? data.dia.map(item => enrichAderenciaDia({
             ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
+            horas_a_entregar: convertHorasToString(item.horas_a_entregar || item.segundos_planejados || 0),
+            horas_entregues: convertHorasToString(item.horas_entregues || item.segundos_realizados || 0),
+            // Support both field names from RPC
+            dia_da_semana: item.dia_da_semana || item.dia_semana
         }))
         : [];
 
