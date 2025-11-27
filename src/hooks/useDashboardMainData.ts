@@ -157,60 +157,88 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           console.log('🔴 [useDashboardMainData] Erro no RPC dashboard_resumo:', rpcError);
           const errorMessage = String(rpcError?.message || '');
           if (errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
-            const errorMsg = 'Variáveis de ambiente do Supabase não estão configuradas.';
+            const emptyData = createEmptyDashboardData();
+
+            if (rpcError) {
+              console.log('🔴 [useDashboardMainData] Erro no RPC dashboard_resumo:', rpcError);
+              const errorMessage = String(rpcError?.message || '');
+              if (errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
+                const errorMsg = 'Variáveis de ambiente do Supabase não estão configuradas.';
+                setError(errorMsg);
+                if (onError) onError(new Error(errorMsg));
+                return;
+              }
+              safeLog.error('Erro ao carregar dashboard_resumo:', rpcError);
+              setAderenciaSemanal([]);
+              setAderenciaDia([]);
+              setAderenciaTurno([]);
+              setAderenciaSubPraca([]);
+              setAderenciaOrigem([]);
+              setDimensoes(emptyData.dimensoes);
+
+              setLoading(false);
+              previousPayloadRef.current = currentPayloadKey;
+              isFirstExecutionRef.current = false;
+              return;
+            }
+
+            console.log('✅ [useDashboardMainData] dashboard_resumo retornou sucesso');
+
+            if (!data) {
+              if (IS_DEV) safeLog.warn('[useDashboardMainData] dashboard_resumo retornou null ou undefined');
+              cachedDataRef.current = emptyData;
+              cacheKeyRef.current = currentPayloadKey;
+
+              setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
+              setAderenciaSemanal([]);
+              setAderenciaDia([]);
+              setAderenciaTurno([]);
+              setAderenciaSubPraca([]);
+              setAderenciaOrigem([]);
+              setDimensoes(emptyData.dimensoes);
+
+              setLoading(false);
+              previousPayloadRef.current = currentPayloadKey;
+              isFirstExecutionRef.current = false;
+              return;
+            }
+
+            if (IS_DEV) safeLog.info('[useDashboardMainData] Dados recebidos com sucesso');
+
+            const cacheKeyToUse = isFirstExecutionInTimeout && !hasValidFiltersInTimeout
+              ? '__first_execution_dimensions__'
+              : currentPayloadKey;
+
+            cachedDataRef.current = data;
+            cacheKeyRef.current = cacheKeyToUse;
+
+            const processedData = transformDashboardData(data);
+
+            setTotals(processedData.totals);
+            setAderenciaSemanal(processedData.aderenciaSemanal);
+            setAderenciaDia(processedData.aderenciaDia);
+            setAderenciaTurno(processedData.aderenciaTurno);
+            setAderenciaSubPraca(processedData.aderenciaSubPraca);
+            setAderenciaOrigem(processedData.aderenciaOrigem);
+
+            if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
+
+            previousPayloadRef.current = currentPayloadKey;
+            isFirstExecutionRef.current = false;
+            pendingPayloadKeyRef.current = '';
+            setError(null);
+
+          } catch (err) {
+            const errorMsg = getSafeErrorMessage(err);
+            const error = err instanceof Error ? err : new Error(errorMsg);
+            safeLog.error('Erro ao carregar dados principais do dashboard:', err);
             setError(errorMsg);
-            if (onError) onError(new Error(errorMsg));
-            return;
+            if (onError) onError(error);
+          } finally {
+            setLoading(false);
+            if (debounceRef.current === timeoutId) debounceRef.current = null;
           }
-          setAderenciaSemanal([]);
-          setAderenciaDia([]);
-          setAderenciaTurno([]);
-          setAderenciaSubPraca([]);
-          setAderenciaOrigem([]);
-          setDimensoes(emptyData.dimensoes);
-
-          setLoading(false);
-          previousPayloadRef.current = currentPayloadKey;
-          isFirstExecutionRef.current = false;
-          return;
-        }
-
-        if (IS_DEV) safeLog.info('[useDashboardMainData] Dados recebidos com sucesso');
-
-        const cacheKeyToUse = isFirstExecutionInTimeout && !hasValidFiltersInTimeout
-          ? '__first_execution_dimensions__'
-          : currentPayloadKey;
-
-        cachedDataRef.current = data;
-        cacheKeyRef.current = cacheKeyToUse;
-
-        const processedData = transformDashboardData(data);
-
-        setTotals(processedData.totals);
-        setAderenciaSemanal(processedData.aderenciaSemanal);
-        setAderenciaDia(processedData.aderenciaDia);
-        setAderenciaTurno(processedData.aderenciaTurno);
-        setAderenciaSubPraca(processedData.aderenciaSubPraca);
-        setAderenciaOrigem(processedData.aderenciaOrigem);
-
-        if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
-
-        previousPayloadRef.current = currentPayloadKey;
-        isFirstExecutionRef.current = false;
-        pendingPayloadKeyRef.current = '';
-        setError(null);
-
-      } catch (err) {
-        const errorMsg = getSafeErrorMessage(err);
-        const error = err instanceof Error ? err : new Error(errorMsg);
-        safeLog.error('Erro ao carregar dados principais do dashboard:', err);
-        setError(errorMsg);
-        if (onError) onError(error);
-      } finally {
-        setLoading(false);
-        if (debounceRef.current === timeoutId) debounceRef.current = null;
-      }
-    }, DELAYS.DEBOUNCE);
+        }, DELAYS.DEBOUNCE);
 
     debounceRef.current = timeoutId;
 
