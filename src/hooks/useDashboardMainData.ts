@@ -181,21 +181,6 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
             if (onError) onError(new Error(errorMsg));
             return;
           }
-          safeLog.error('Erro ao carregar dashboard_resumo:', rpcError);
-          setError(getSafeErrorMessage(rpcError));
-          if (onError) onError(rpcError);
-          return;
-        }
-
-        console.log('✅ [useDashboardMainData] dashboard_resumo retornou sucesso');
-
-        if (!data) {
-          if (IS_DEV) safeLog.warn('[useDashboardMainData] dashboard_resumo retornou null ou undefined');
-          const emptyData = createEmptyDashboardData();
-          cachedDataRef.current = emptyData;
-          cacheKeyRef.current = currentPayloadKey;
-
-          setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
           setAderenciaSemanal([]);
           setAderenciaDia([]);
           setAderenciaTurno([]);
