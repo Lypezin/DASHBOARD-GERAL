@@ -22,21 +22,28 @@ export function useLogin() {
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = useCallback(async (formData: LoginFormData) => {
+    console.log('🔵 [useLogin] Iniciando processo de login...');
     setLoading(true);
     setError(null);
 
     try {
+      console.log('🔵 [useLogin] Chamando signInWithPassword...');
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
-      if (signInError) throw signInError;
+      if (signInError) {
+        console.log('🔴 [useLogin] Erro no signInWithPassword:', signInError.message);
+        throw signInError;
+      }
+
+      console.log('✅ [useLogin] signInWithPassword bem-sucedido');
 
       // Verificar se o usuário está aprovado com retry
       let profile: any = null;
       let profileError: any = null;
-      
+
       try {
         const result = await supabase.rpc('get_current_user_profile') as { data: any; error: any };
         profile = result.data;
@@ -44,7 +51,7 @@ export function useLogin() {
       } catch (err) {
         profileError = err;
       }
-      
+
       // Se houver erro, tentar novamente uma vez
       if (profileError && !profile) {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -61,10 +68,10 @@ export function useLogin() {
         // Erro ao carregar perfil - fazer logout apenas se for erro permanente
         const errorCode = (profileError as any)?.code || '';
         const errorMessage = String((profileError as any)?.message || '');
-        const isTemporaryError = errorCode === 'TIMEOUT' || 
-                                errorMessage.includes('timeout') ||
-                                errorMessage.includes('network');
-        
+        const isTemporaryError = errorCode === 'TIMEOUT' ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('network');
+
         if (isTemporaryError) {
           // Erro temporário - tentar continuar
           if (IS_DEV) safeLog.warn('Erro temporário ao carregar perfil no login, continuando...');
@@ -102,17 +109,17 @@ export function useLogin() {
             p_tab_name: 'dashboard',
             p_filters_applied: null // Passar null em vez de {} vazio
           });
-          
+
           // Ignorar erro silenciosamente - não bloquear login
           // Apenas logar em desenvolvimento se não for 404
           if (rpcError) {
             const errorCode = (rpcError as any)?.code || '';
             const errorMessage = String((rpcError as any)?.message || '');
-            const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
-                          errorCode === 'PGRST204' ||
-                          errorMessage.includes('404') || 
-                          errorMessage.includes('not found');
-            
+            const is404 = errorCode === 'PGRST116' || errorCode === '42883' ||
+              errorCode === 'PGRST204' ||
+              errorMessage.includes('404') ||
+              errorMessage.includes('not found');
+
             if (!is404 && IS_DEV) {
               safeLog.warn('Erro ao registrar atividade de login (não bloqueante):', rpcError);
             }
@@ -124,6 +131,7 @@ export function useLogin() {
       }
 
       // Login bem-sucedido
+      console.log('✅ [useLogin] Login completo, redirecionando para /');
       router.push('/');
       router.refresh();
     } catch (err: any) {

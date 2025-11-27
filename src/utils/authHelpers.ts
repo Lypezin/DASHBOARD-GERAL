@@ -22,10 +22,10 @@ export function clearSupabaseStorage(): void {
     }
   }
   keysToRemove.forEach(key => localStorage.removeItem(key));
-  
+
   // Também remover chave específica se existir
   localStorage.removeItem('supabase.auth.token');
-  
+
   if (IS_DEV) {
     safeLog.info('[clearSupabaseStorage] Limpou chaves do localStorage:', keysToRemove.length);
   }
@@ -36,7 +36,7 @@ export function clearSupabaseStorage(): void {
  */
 export function hasOldSupabaseTokens(): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   return Array.from({ length: localStorage.length }, (_, i) => {
     const key = localStorage.key(i);
     return key && (key.startsWith('sb-') || key.includes('supabase'));
@@ -47,6 +47,8 @@ export function hasOldSupabaseTokens(): boolean {
  * Limpa sessão e storage, redirecionando para login
  */
 export async function signOutAndRedirect(router: { push: (path: string) => void }, redirectPath: string = '/login'): Promise<void> {
+  console.log('🔴 [signOutAndRedirect] Fazendo logout e redirecionando para:', redirectPath);
+  console.trace('[signOutAndRedirect] Stack trace:');
   try {
     await supabase.auth.signOut();
     clearSupabaseStorage();
