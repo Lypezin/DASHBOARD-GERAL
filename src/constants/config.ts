@@ -14,7 +14,7 @@ export const RPC_TIMEOUTS = {
   /** Timeout para requisições médias (queries moderadas) */
   MEDIUM: 20000, // 20 segundos
   /** Timeout para requisições longas (processamento pesado) */
-  LONG: 60000, // 60 segundos
+  LONG: 120000, // 120 segundos
 } as const;
 
 /**

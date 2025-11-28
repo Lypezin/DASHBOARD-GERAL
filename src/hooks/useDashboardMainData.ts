@@ -5,7 +5,6 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import {
   Totals,
   AderenciaSemanal,
@@ -16,18 +15,11 @@ import {
   DashboardResumoData,
   DimensoesDashboard,
 } from '@/types';
-import { RPC_TIMEOUTS, DELAYS } from '@/constants/config';
+import { DELAYS } from '@/constants/config';
 import { transformDashboardData, createEmptyDashboardData } from '@/utils/dashboard/transformers';
+import { useDashboardDataFetcher } from './useDashboardDataFetcher';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-
-function getSafeErrorMessage(error: unknown): string {
-  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
-    return error.message;
-  }
-  if (typeof error === 'string') return error;
-  return 'Erro ao carregar dados do dashboard';
-}
 
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
@@ -50,8 +42,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>([]);
   const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>([]);
   const [dimensoes, setDimensoes] = useState<DimensoesDashboard | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { fetchDashboardData, loading, error } = useDashboardDataFetcher({ filterPayload, onError });
 
   const cacheKeyRef = useRef<string>('');
   const cachedDataRef = useRef<DashboardResumoData | null>(null);
@@ -127,8 +119,6 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
 
       if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
 
-      setError(null);
-      setLoading(false);
       previousPayloadRef.current = payloadKey;
       isFirstExecutionRef.current = false;
       return;
@@ -148,76 +138,9 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
 
       if (IS_DEV) safeLog.info('[useDashboardMainData] Iniciando fetch com payload válido:', currentPayload);
 
-      setLoading(true);
-      setError(null);
+      const data = await fetchDashboardData(currentPayload);
 
-      try {
-        // Verificar se o Supabase está disponível
-        try {
-          const { supabase } = await import('@/lib/supabaseClient');
-          if (!supabase || !supabase.rpc) throw new Error('Cliente Supabase não está disponível');
-        } catch (supabaseError) {
-          console.error('❌ [useDashboardMainData] Erro ao verificar cliente Supabase:', supabaseError);
-          const errorMsg = 'Cliente Supabase não está disponível. Aguarde o carregamento completo da página.';
-          setError(errorMsg);
-          if (onError) onError(new Error(errorMsg));
-          setLoading(false);
-          return;
-        }
-
-        if (IS_DEV) safeLog.info('[useDashboardMainData] Chamando dashboard_resumo com payload:', currentPayload);
-
-        const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', currentPayload, {
-          timeout: RPC_TIMEOUTS.DEFAULT,
-          validateParams: false
-        });
-
-        const emptyData = createEmptyDashboardData();
-
-        if (rpcError) {
-          console.log('🔴 [useDashboardMainData] Erro no RPC dashboard_resumo:', rpcError);
-          const errorMessage = String(rpcError?.message || '');
-          if (errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
-            const errorMsg = 'Variáveis de ambiente do Supabase não estão configuradas.';
-            setError(errorMsg);
-            if (onError) onError(new Error(errorMsg));
-            return;
-          }
-          safeLog.error('Erro ao carregar dashboard_resumo:', rpcError);
-          setAderenciaSemanal([]);
-          setAderenciaDia([]);
-          setAderenciaTurno([]);
-          setAderenciaSubPraca([]);
-          setAderenciaOrigem([]);
-          setDimensoes(emptyData.dimensoes);
-
-          setLoading(false);
-          previousPayloadRef.current = currentPayloadKey;
-          isFirstExecutionRef.current = false;
-          return;
-        }
-
-        if (!data) {
-          if (IS_DEV) safeLog.warn('[useDashboardMainData] dashboard_resumo retornou null ou undefined');
-          cachedDataRef.current = emptyData;
-          cacheKeyRef.current = currentPayloadKey;
-
-          setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
-          setAderenciaSemanal([]);
-          setAderenciaDia([]);
-          setAderenciaTurno([]);
-          setAderenciaSubPraca([]);
-          setAderenciaOrigem([]);
-          setDimensoes(emptyData.dimensoes);
-
-          setLoading(false);
-          previousPayloadRef.current = currentPayloadKey;
-          isFirstExecutionRef.current = false;
-          return;
-        }
-
-        if (IS_DEV) safeLog.info('[useDashboardMainData] Dados recebidos com sucesso');
-
+      if (data) {
         const cacheKeyToUse = isFirstExecutionInTimeout && !hasValidFiltersInTimeout
           ? '__first_execution_dimensions__'
           : currentPayloadKey;
@@ -239,18 +162,21 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         previousPayloadRef.current = currentPayloadKey;
         isFirstExecutionRef.current = false;
         pendingPayloadKeyRef.current = '';
-        setError(null);
-
-      } catch (err) {
-        const errorMsg = getSafeErrorMessage(err);
-        const error = err instanceof Error ? err : new Error(errorMsg);
-        safeLog.error('Erro ao carregar dados principais do dashboard:', err);
-        setError(errorMsg);
-        if (onError) onError(error);
-      } finally {
-        setLoading(false);
-        if (debounceRef.current === timeoutId) debounceRef.current = null;
+      } else {
+        // Handle empty data or error (already handled in fetcher)
+        const emptyData = createEmptyDashboardData();
+        setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
+        setAderenciaSemanal([]);
+        setAderenciaDia([]);
+        setAderenciaTurno([]);
+        setAderenciaSubPraca([]);
+        setAderenciaOrigem([]);
+        setDimensoes(emptyData.dimensoes);
+        previousPayloadRef.current = currentPayloadKey;
+        isFirstExecutionRef.current = false;
       }
+
+      if (debounceRef.current === timeoutId) debounceRef.current = null;
     }, DELAYS.DEBOUNCE);
 
     debounceRef.current = timeoutId;
@@ -261,7 +187,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         debounceRef.current = null;
       }
     };
-  }, [payloadKey, onError]);
+  }, [payloadKey, onError, fetchDashboardData]);
 
   return {
     totals,
