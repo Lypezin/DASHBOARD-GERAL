@@ -5,6 +5,7 @@ import { supabase } from './supabaseClient';
 import { validateFilterPayload } from './validate';
 import { safeLog } from './errorHandler';
 import { rpcRateLimiter } from './rateLimiter';
+import { sanitizeParams, sanitizeError } from './rpcUtils';
 import { RpcParams, RpcResult, RpcOptions, RpcError, SanitizedRpcParams } from '@/types/rpc';
 
 import { RPC_TIMEOUTS } from '@/constants/config';
@@ -79,7 +80,7 @@ export async function safeRpc<T = unknown>(
     // - Passar {} vazio: supabase.rpc('function_name', {})
     // Mas o PostgREST pode reclamar se passarmos {} quando a função não espera parâmetros
     // Vamos usar undefined para funções sem parâmetros
-    
+
     // Normalizar parâmetros: converter undefined para null e manter null como está
     // Isso garante que funções RPC que esperam null para usar DEFAULT funcionem corretamente
     if (params && typeof params === 'object' && !Array.isArray(params)) {
@@ -93,7 +94,7 @@ export async function safeRpc<T = unknown>(
       // Para funções sem parâmetros, usar undefined
       validatedParams = undefined;
     }
-    
+
     // Aplicar validação se solicitado e se ainda temos parâmetros
     if (validateParams && validatedParams && typeof validatedParams === 'object' && validatedParams !== undefined) {
       try {
@@ -152,7 +153,7 @@ export async function safeRpc<T = unknown>(
       rpcPromise = validatedParams === undefined
         ? (supabase.rpc as any)(functionName) // Chamar sem segundo parâmetro
         : supabase.rpc(functionName, validatedParams);
-      
+
       // Verificar se a promise foi criada corretamente
       if (!rpcPromise || typeof rpcPromise.then !== 'function') {
         return {
@@ -168,7 +169,7 @@ export async function safeRpc<T = unknown>(
       return {
         data: null,
         error: {
-          message: typeof window === 'undefined' 
+          message: typeof window === 'undefined'
             ? 'Requisição RPC não disponível no servidor. Aguarde o carregamento no cliente.'
             : 'Erro ao criar requisição RPC. Tente novamente.',
           code: 'RPC_INIT_ERROR',
@@ -176,7 +177,7 @@ export async function safeRpc<T = unknown>(
         },
       };
     }
-    
+
     // Criar timeout
     let timeoutId: NodeJS.Timeout | null = null;
     const timeoutPromise = new Promise<RpcResult<null>>((resolve) => {
@@ -193,25 +194,25 @@ export async function safeRpc<T = unknown>(
 
     try {
       const result = await Promise.race([rpcPromise, timeoutPromise]);
-      
+
       // Limpar timeout se ainda estiver ativo
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-    
+
       // Se houver erro, sanitizar mensagem em produção
       if (result.error) {
         // Verificar se é erro 400/404 (função não encontrada ou parâmetros inválidos)
         const errorCode = (result.error as RpcError)?.code;
         const errorMessage = String((result.error as RpcError)?.message || '');
-        const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' || 
-                           errorCode === 'PGRST204' || // Bad Request
-                           errorMessage.includes('400') ||
-                           errorMessage.includes('404') ||
-                           errorMessage.includes('not found') ||
-                           errorMessage.includes('invalid input') ||
-                           errorMessage.includes('structure of query does not match'); // Erro de tipo de retorno
-        
+        const is400or404 = errorCode === 'PGRST116' || errorCode === '42883' ||
+          errorCode === 'PGRST204' || // Bad Request
+          errorMessage.includes('400') ||
+          errorMessage.includes('404') ||
+          errorMessage.includes('not found') ||
+          errorMessage.includes('invalid input') ||
+          errorMessage.includes('structure of query does not match'); // Erro de tipo de retorno
+
         // Silenciar erros 400/404 completamente (não logar em nenhum ambiente)
         // Esses erros são esperados em certas situações e não devem aparecer no console
         if (is400or404) {
@@ -231,7 +232,7 @@ export async function safeRpc<T = unknown>(
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      
+
       return {
         data: null,
         error: sanitizeError(error)
@@ -245,114 +246,5 @@ export async function safeRpc<T = unknown>(
   }
 }
 
-/**
- * Sanitiza parâmetros limitando tamanho de arrays
- */
-function sanitizeParams(params: RpcParams): SanitizedRpcParams {
-  const sanitized = { ...params };
-  
-  // Limitar arrays
-  if (sanitized.p_sub_praca && Array.isArray(sanitized.p_sub_praca)) {
-    sanitized.p_sub_praca = sanitized.p_sub_praca.slice(0, 50).join(',');
-  } else if (typeof sanitized.p_sub_praca === 'string' && sanitized.p_sub_praca.includes(',')) {
-    const items = sanitized.p_sub_praca.split(',').slice(0, 50);
-    sanitized.p_sub_praca = items.join(',');
-  }
-  
-  if (sanitized.p_origem && Array.isArray(sanitized.p_origem)) {
-    sanitized.p_origem = sanitized.p_origem.slice(0, 50).join(',');
-  } else if (typeof sanitized.p_origem === 'string' && sanitized.p_origem.includes(',')) {
-    const items = sanitized.p_origem.split(',').slice(0, 50);
-    sanitized.p_origem = items.join(',');
-  }
-  
-  if (sanitized.p_turno && Array.isArray(sanitized.p_turno)) {
-    sanitized.p_turno = sanitized.p_turno.slice(0, 50).join(',');
-  } else if (typeof sanitized.p_turno === 'string' && sanitized.p_turno.includes(',')) {
-    const items = sanitized.p_turno.split(',').slice(0, 50);
-    sanitized.p_turno = items.join(',');
-  }
 
-  // Validar números
-  if (sanitized.p_ano !== undefined && sanitized.p_ano !== null) {
-    const ano = parseInt(String(sanitized.p_ano), 10);
-    if (isNaN(ano) || ano < 2000 || ano > 2100) {
-      delete sanitized.p_ano;
-    } else {
-      sanitized.p_ano = ano;
-    }
-  }
-
-  if (sanitized.p_semana !== undefined && sanitized.p_semana !== null) {
-    const semana = parseInt(String(sanitized.p_semana), 10);
-    if (isNaN(semana) || semana < 1 || semana > 53) {
-      delete sanitized.p_semana;
-    } else {
-      sanitized.p_semana = semana;
-    }
-  }
-
-  // Limitar praças (pode ser string única ou múltiplas separadas por vírgula)
-  if (sanitized.p_praca) {
-    if (Array.isArray(sanitized.p_praca)) {
-      sanitized.p_praca = sanitized.p_praca.slice(0, 50).join(',');
-    } else if (typeof sanitized.p_praca === 'string') {
-      if (sanitized.p_praca.includes(',')) {
-        const items = sanitized.p_praca.split(',').slice(0, 50);
-        sanitized.p_praca = items.join(',');
-      } else {
-        sanitized.p_praca = sanitized.p_praca.substring(0, 100);
-      }
-    }
-  }
-
-  return sanitized;
-}
-
-/**
- * Sanitiza mensagens de erro para não expor informações sensíveis em produção
- */
-function sanitizeError(error: unknown): RpcError {
-  if (!error) {
-    return {
-      message: 'Erro desconhecido',
-      code: 'UNKNOWN',
-    };
-  }
-
-  const IS_PROD = process.env.NODE_ENV === 'production';
-  const errorObj = error as { code?: string; error_code?: string; message?: string; details?: string; hint?: string };
-
-  // Mapeamento de códigos de erro para mensagens genéricas
-  const ERROR_MESSAGES: Record<string, string> = {
-    '42883': 'Função não configurada. Entre em contato com o administrador.',
-    '42P01': 'Recurso não disponível no momento.',
-    'PGRST116': 'Recurso não encontrado.',
-    'TIMEOUT': 'A requisição demorou muito para responder. Tente novamente.',
-    '23505': 'Dados duplicados. Verifique as informações.',
-    '23503': 'Erro de referência. Verifique os dados.',
-    '23502': 'Campo obrigatório não preenchido.',
-  };
-
-  const errorCode = errorObj.code || errorObj.error_code;
-  const genericMessage = errorCode && ERROR_MESSAGES[errorCode] 
-    ? ERROR_MESSAGES[errorCode] 
-    : 'Ocorreu um erro. Tente novamente mais tarde.';
-
-  if (IS_PROD) {
-    // Em produção, retornar mensagem genérica
-    return {
-      message: genericMessage,
-      code: errorCode || 'UNKNOWN_ERROR',
-    };
-  } else {
-    // Em desenvolvimento, incluir mais detalhes
-    return {
-      message: errorObj.message || genericMessage,
-      code: errorCode,
-      details: errorObj.details,
-      hint: errorObj.hint,
-    };
-  }
-}
 

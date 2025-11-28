@@ -13,7 +13,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { useDashboardDimensions } from './useDashboardDimensions';
 import { useDashboardMainData } from './useDashboardMainData';
 import { useDashboardEvolucao } from './useDashboardEvolucao';
-import { useDashboardFilters } from './useDashboardFilters';
+import { useDashboardFilterOptions } from './useDashboardFilterOptions';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -147,7 +147,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
     subPracas,
     origens,
     turnos,
-  } = useDashboardFilters({
+  } = useDashboardFilterOptions({
     dimensoes,
     currentUser,
   });
