@@ -47,56 +47,85 @@ export const enrichAderenciaDia = (diaData: AderenciaDia) => {
     return diaData;
 };
 
-export const transformDashboardData = (data: DashboardResumoData) => {
+export const transformDashboardData = (data: any) => {
+    // Handle array response from RPC (RETURNS TABLE) or single object
+    const rawData = Array.isArray(data) ? (data[0] || {}) : data;
+
+    if (!rawData) {
+        const empty = createEmptyDashboardData();
+        return {
+            totals: {
+                ofertadas: empty.totais.corridas_ofertadas,
+                aceitas: empty.totais.corridas_aceitas,
+                rejeitadas: empty.totais.corridas_rejeitadas,
+                completadas: empty.totais.corridas_completadas,
+            },
+            aderenciaSemanal: [],
+            aderenciaDia: [],
+            aderenciaTurno: [],
+            aderenciaSubPraca: [],
+            aderenciaOrigem: [],
+            dimensoes: empty.dimensoes
+        };
+    }
+
+    // Check if it's the new flat format (from RPC RETURNS TABLE) or the old nested format
+    // New format has keys like 'total_ofertadas', 'aderencia_semanal'
+    // Old format has keys like 'totais', 'semanal'
+    const isFlat = 'total_ofertadas' in rawData || 'aderencia_semanal' in rawData;
+
     const totals: Totals = {
-        ofertadas: safeNumber(data.totais?.corridas_ofertadas ?? 0),
-        aceitas: safeNumber(data.totais?.corridas_aceitas ?? 0),
-        rejeitadas: safeNumber(data.totais?.corridas_rejeitadas ?? 0),
-        completadas: safeNumber(data.totais?.corridas_completadas ?? 0),
+        ofertadas: safeNumber(isFlat ? rawData.total_ofertadas : rawData.totais?.corridas_ofertadas ?? 0),
+        aceitas: safeNumber(isFlat ? rawData.total_aceitas : rawData.totais?.corridas_aceitas ?? 0),
+        rejeitadas: safeNumber(isFlat ? rawData.total_rejeitadas : rawData.totais?.corridas_rejeitadas ?? 0),
+        completadas: safeNumber(isFlat ? rawData.total_completadas : rawData.totais?.corridas_completadas ?? 0),
     };
 
-    const aderenciaSemanal: AderenciaSemanal[] = Array.isArray(data.semanal)
-        ? data.semanal.map(item => {
-            const itemAny = item as any;
+    const rawSemanal = (isFlat ? rawData.aderencia_semanal : rawData.semanal) || [];
+    const aderenciaSemanal: AderenciaSemanal[] = Array.isArray(rawSemanal)
+        ? rawSemanal.map((item: any) => {
             return {
                 ...item,
-                horas_a_entregar: convertHorasToString(item.horas_a_entregar || itemAny.segundos_planejados || 0),
-                horas_entregues: convertHorasToString(item.horas_entregues || itemAny.segundos_realizados || 0)
+                horas_a_entregar: convertHorasToString(item.horas_a_entregar || item.segundos_planejados || 0),
+                horas_entregues: convertHorasToString(item.horas_entregues || item.segundos_realizados || 0)
             };
         })
         : [];
 
-    const aderenciaDia = Array.isArray(data.dia)
-        ? data.dia.map(item => {
-            const itemAny = item as any;
+    const rawDia = (isFlat ? rawData.aderencia_dia : rawData.dia) || [];
+    const aderenciaDia = Array.isArray(rawDia)
+        ? rawDia.map((item: any) => {
             return enrichAderenciaDia({
                 ...item,
-                horas_a_entregar: convertHorasToString(item.horas_a_entregar || itemAny.segundos_planejados || 0),
-                horas_entregues: convertHorasToString(item.horas_entregues || itemAny.segundos_realizados || 0),
+                horas_a_entregar: convertHorasToString(item.horas_a_entregar || item.segundos_planejados || 0),
+                horas_entregues: convertHorasToString(item.horas_entregues || item.segundos_realizados || 0),
                 // Support both field names from RPC
-                dia_da_semana: item.dia_da_semana || itemAny.dia_semana
+                dia_da_semana: item.dia_da_semana || item.dia_semana
             });
         })
         : [];
 
-    const aderenciaTurno: AderenciaTurno[] = Array.isArray(data.turno)
-        ? data.turno.map(item => ({
+    const rawTurno = (isFlat ? rawData.aderencia_turno : rawData.turno) || [];
+    const aderenciaTurno: AderenciaTurno[] = Array.isArray(rawTurno)
+        ? rawTurno.map((item: any) => ({
             ...item,
             horas_a_entregar: convertHorasToString(item.horas_a_entregar),
             horas_entregues: convertHorasToString(item.horas_entregues)
         }))
         : [];
 
-    const aderenciaSubPraca: AderenciaSubPraca[] = Array.isArray(data.sub_praca)
-        ? data.sub_praca.map(item => ({
+    const rawSubPraca = (isFlat ? rawData.aderencia_sub_praca : rawData.sub_praca) || [];
+    const aderenciaSubPraca: AderenciaSubPraca[] = Array.isArray(rawSubPraca)
+        ? rawSubPraca.map((item: any) => ({
             ...item,
             horas_a_entregar: convertHorasToString(item.horas_a_entregar),
             horas_entregues: convertHorasToString(item.horas_entregues)
         }))
         : [];
 
-    const aderenciaOrigem: AderenciaOrigem[] = Array.isArray(data.origem)
-        ? data.origem.map(item => ({
+    const rawOrigem = (isFlat ? rawData.aderencia_origem : rawData.origem) || [];
+    const aderenciaOrigem: AderenciaOrigem[] = Array.isArray(rawOrigem)
+        ? rawOrigem.map((item: any) => ({
             ...item,
             horas_a_entregar: convertHorasToString(item.horas_a_entregar),
             horas_entregues: convertHorasToString(item.horas_entregues)
@@ -110,7 +139,7 @@ export const transformDashboardData = (data: DashboardResumoData) => {
         aderenciaTurno,
         aderenciaSubPraca,
         aderenciaOrigem,
-        dimensoes: data.dimensoes
+        dimensoes: rawData.dimensoes || { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [], turnos: [] }
     };
 };
 
