@@ -70,6 +70,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     filterPayload.p_turno,
     filterPayload.p_data_inicial,
     filterPayload.p_data_final,
+    filterPayload.p_organization_id,
   ]);
 
   useEffect(() => {
