@@ -8,6 +8,7 @@ import {
     Totals
 } from '@/types';
 import { safeNumber } from '@/utils/helpers';
+import { formatarHorasParaHMS } from '@/utils/formatters';
 
 export const convertHorasToString = (value: number | string | undefined | null): string => {
     if (value === undefined || value === null) return '0';
@@ -84,10 +85,14 @@ export const transformDashboardData = (data: any) => {
     const rawSemanal = (isFlat ? rawData.aderencia_semanal : rawData.semanal) || [];
     const aderenciaSemanal: AderenciaSemanal[] = Array.isArray(rawSemanal)
         ? rawSemanal.map((item: any) => {
+            // Convert seconds to HH:MM:SS if needed
+            const horasAEntregar = item.horas_a_entregar || item.segundos_planejados || 0;
+            const horasEntregues = item.horas_entregues || item.segundos_realizados || 0;
+
             return {
                 ...item,
-                horas_a_entregar: convertHorasToString(item.horas_a_entregar || item.segundos_planejados || 0),
-                horas_entregues: convertHorasToString(item.horas_entregues || item.segundos_realizados || 0)
+                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
+                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues)
             };
         })
         : [];
@@ -95,10 +100,14 @@ export const transformDashboardData = (data: any) => {
     const rawDia = (isFlat ? rawData.aderencia_dia : rawData.dia) || [];
     const aderenciaDia = Array.isArray(rawDia)
         ? rawDia.map((item: any) => {
+            // Convert seconds to HH:MM:SS if needed
+            const horasAEntregar = item.horas_a_entregar || item.segundos_planejados || 0;
+            const horasEntregues = item.horas_entregues || item.segundos_realizados || 0;
+
             return enrichAderenciaDia({
                 ...item,
-                horas_a_entregar: convertHorasToString(item.horas_a_entregar || item.segundos_planejados || 0),
-                horas_entregues: convertHorasToString(item.horas_entregues || item.segundos_realizados || 0),
+                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
+                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues),
                 // Support both field names from RPC
                 dia_da_semana: item.dia_da_semana || item.dia_semana
             });
@@ -107,29 +116,44 @@ export const transformDashboardData = (data: any) => {
 
     const rawTurno = (isFlat ? rawData.aderencia_turno : rawData.turno) || [];
     const aderenciaTurno: AderenciaTurno[] = Array.isArray(rawTurno)
-        ? rawTurno.map((item: any) => ({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
-        }))
+        ? rawTurno.map((item: any) => {
+            const horasAEntregar = item.horas_a_entregar || item.segundos_planejados || 0;
+            const horasEntregues = item.horas_entregues || item.segundos_realizados || 0;
+
+            return {
+                ...item,
+                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
+                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues)
+            };
+        })
         : [];
 
     const rawSubPraca = (isFlat ? rawData.aderencia_sub_praca : rawData.sub_praca) || [];
     const aderenciaSubPraca: AderenciaSubPraca[] = Array.isArray(rawSubPraca)
-        ? rawSubPraca.map((item: any) => ({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
-        }))
+        ? rawSubPraca.map((item: any) => {
+            const horasAEntregar = item.horas_a_entregar || item.segundos_planejados || 0;
+            const horasEntregues = item.horas_entregues || item.segundos_realizados || 0;
+
+            return {
+                ...item,
+                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
+                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues)
+            };
+        })
         : [];
 
     const rawOrigem = (isFlat ? rawData.aderencia_origem : rawData.origem) || [];
     const aderenciaOrigem: AderenciaOrigem[] = Array.isArray(rawOrigem)
-        ? rawOrigem.map((item: any) => ({
-            ...item,
-            horas_a_entregar: convertHorasToString(item.horas_a_entregar),
-            horas_entregues: convertHorasToString(item.horas_entregues)
-        }))
+        ? rawOrigem.map((item: any) => {
+            const horasAEntregar = item.horas_a_entregar || item.segundos_planejados || 0;
+            const horasEntregues = item.horas_entregues || item.segundos_realizados || 0;
+
+            return {
+                ...item,
+                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
+                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues)
+            };
+        })
         : [];
 
     return {
