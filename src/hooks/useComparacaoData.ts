@@ -290,8 +290,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       // Garantir que os dados estão na ordem correta das semanas selecionadas
       // Como usamos Promise.all no map de semanasSelecionadas, a ordem já está garantida
       const dadosOrdenados = resultadosDados.map(resultado => {
-        // Se não encontrar dados, retornar um objeto vazio estruturado ou null
-        return resultado.dados || {
+        const defaultData: DashboardResumoData = {
           totais: { corridas_ofertadas: 0, corridas_aceitas: 0, corridas_rejeitadas: 0, corridas_completadas: 0 },
           semanal: [],
           dia: [],
@@ -299,7 +298,19 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           sub_praca: [],
           origem: [],
           dimensoes: { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [] }
-        } as DashboardResumoData;
+        };
+
+        const dados = resultado.dados ? { ...defaultData, ...resultado.dados } : defaultData;
+
+        // Garantir que objetos aninhados existam
+        if (!dados.totais) dados.totais = defaultData.totais;
+        if (!dados.dia) dados.dia = [];
+        if (!dados.semanal) dados.semanal = [];
+        if (!dados.turno) dados.turno = [];
+        if (!dados.sub_praca) dados.sub_praca = [];
+        if (!dados.origem) dados.origem = [];
+
+        return dados;
       });
 
       console.log('%c[Comparacao] 📦 Final processed data:', 'color: #8b5cf6; font-weight: bold');
