@@ -45,9 +45,27 @@ const AnaliseView = React.memo(function AnaliseView({
     switch (activeTable) {
       case 'dia':
         return aderenciaDia.map(item => {
-          // Calcular dia da semana a partir da data
-          const dataObj = new Date(item.data + 'T00:00:00');
-          const diaDaSemana = diasDaSemana[dataObj.getDay()];
+          // Tentar usar o dia da semana já calculado pelo backend
+          if (item.dia_da_semana) {
+            return {
+              ...item,
+              label: item.dia_da_semana,
+            };
+          }
+
+          // Fallback: Calcular dia da semana a partir da data
+          let diaDaSemana = 'N/D';
+          if (item.data) {
+            try {
+              // Adicionar T00:00:00 para garantir timezone local/correto
+              const dataObj = new Date(item.data.includes('T') ? item.data : item.data + 'T00:00:00');
+              if (!isNaN(dataObj.getTime())) {
+                diaDaSemana = diasDaSemana[dataObj.getDay()] || 'N/D';
+              }
+            } catch (e) {
+              console.error('Erro ao processar data:', item.data);
+            }
+          }
 
           return {
             ...item,
