@@ -176,16 +176,20 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         }
 
         // Buscar dados do dashboard
-        const { data, error } = await safeRpc<DashboardResumoData>('dashboard_resumo', filtro, {
+        const { data: rawData, error } = await safeRpc<DashboardResumoData | DashboardResumoData[]>('dashboard_resumo', filtro, {
           timeout: 30000,
           validateParams: true
         });
         if (error) throw error;
 
+        // A função dashboard_resumo retorna SETOF record, então o Supabase retorna um array
+        const data = Array.isArray(rawData) ? rawData[0] : rawData;
+
         // DEBUG: Log response com mais detalhes
         console.log(`%c[Comparacao] ✅ Response for SEMANA ${semana}`, 'color: #10b981; font-weight: bold');
         console.table({
           hasData: !!data,
+          isArray: Array.isArray(rawData),
           corridasOfertadas: data?.totais?.corridas_ofertadas || 0,
           corridasAceitas: data?.totais?.corridas_aceitas || 0,
           diaLength: data?.dia?.length || 0
@@ -196,7 +200,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         } else {
           console.warn(`%c⚠️ NO DIA DATA for week ${semana}!`, 'color: #f59e0b; font-weight: bold');
         }
-        console.log('Full response:', data);
+        console.log('Full response:', rawData);
 
         if (IS_DEV && data) {
           safeLog.info(`[Comparacao] Dados recebidos para semana ${semana}`, {
