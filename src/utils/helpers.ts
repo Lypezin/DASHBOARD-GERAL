@@ -232,11 +232,12 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
 
   const isAdminOrMaster = currentUser?.is_admin === true;
 
-  // CORREÇÃO: Admins devem ver dados de todas as organizações
-  if (isAdminOrMaster) {
-    console.log('[buildFilterPayload] User is admin, setting organization_id to NULL');
-    organizationId = null;
-  }
+  // Nova abordagem: Sempre enviar organization_id, deixar a função SQL decidir
+  // A função SQL vai verificar se o usuário é admin e ignorar o filtro se necessário
+  // if (isAdminOrMaster) {
+  //   console.log('[buildFilterPayload] User is admin, setting organization_id to NULL');
+  //   organizationId = null;
+  // }
 
   // Se organizationId ainda for null após fallback, pode causar retorno vazio das funções RPC
   // Isso é esperado para isolamento de dados, mas pode ser um problema se o usuário deveria ter acesso
