@@ -11,33 +11,30 @@ export const processarDemanda = (dadosBasicos: DadosBasicos) => {
     const { semana1, semana2 } = dadosBasicos;
     if (!semana1 || !semana2) return [];
 
-    const totaisSemana1 = semana1.totais || {};
-    const totaisSemana2 = semana2.totais || {};
-
     return [
         {
             label: 'Ofertadas',
             icone: '📦',
-            valor1: Number(totaisSemana1.corridas_ofertadas || 0),
-            valor2: Number(totaisSemana2.corridas_ofertadas || 0),
+            valor1: Number(semana1.total_ofertadas || 0),
+            valor2: Number(semana2.total_ofertadas || 0),
         },
         {
             label: 'Aceitas',
             icone: '🤝',
-            valor1: Number(totaisSemana1.corridas_aceitas || 0),
-            valor2: Number(totaisSemana2.corridas_aceitas || 0),
+            valor1: Number(semana1.total_aceitas || 0),
+            valor2: Number(semana2.total_aceitas || 0),
         },
         {
             label: 'Completadas',
             icone: '🏁',
-            valor1: Number(totaisSemana1.corridas_completadas || 0),
-            valor2: Number(totaisSemana2.corridas_completadas || 0),
+            valor1: Number(semana1.total_completadas || 0),
+            valor2: Number(semana2.total_completadas || 0),
         },
         {
             label: 'Rejeitadas',
             icone: '⛔',
-            valor1: Number(totaisSemana1.corridas_rejeitadas || 0),
-            valor2: Number(totaisSemana2.corridas_rejeitadas || 0),
+            valor1: Number(semana1.total_rejeitadas || 0),
+            valor2: Number(semana2.total_rejeitadas || 0),
         },
     ].map((item) => {
         const diffValor = calcularDiferenca(item.valor1, item.valor2);
