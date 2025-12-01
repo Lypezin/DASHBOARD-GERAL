@@ -31,7 +31,7 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
         label: `Completadas S${semana}`,
         data: origensDisponiveis.map((origem) => {
           const dadosSemana = dadosComparacao[idx];
-          const origemData = dadosSemana?.origem?.find((o) => (o.origem || '').trim() === origem);
+          const origemData = dadosSemana?.aderencia_origem?.find((o) => (o.origem || '').trim() === origem);
           return origemData?.corridas_completadas ?? 0;
         }),
         backgroundColor: barColors[idx % barColors.length],
@@ -46,7 +46,7 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
         label: `Aderência S${semana}`,
         data: origensDisponiveis.map((origem) => {
           const dadosSemana = dadosComparacao[idx];
-          const origemData = dadosSemana?.origem?.find((o) => (o.origem || '').trim() === origem);
+          const origemData = dadosSemana?.aderencia_origem?.find((o) => (o.origem || '').trim() === origem);
           return origemData?.aderencia_percentual ?? 0;
         }),
         borderColor: lineColors[idx % lineColors.length],
@@ -121,7 +121,7 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
             {
               type: 'bar' as const,
               label: 'Ofertadas',
-              data: dadosComparacao.map(d => d.totais?.corridas_ofertadas ?? 0),
+              data: dadosComparacao.map(d => d.total_ofertadas ?? 0),
               backgroundColor: 'rgba(100, 116, 139, 0.7)',
               borderColor: 'rgb(100, 116, 139)',
               borderWidth: 1,
@@ -131,7 +131,7 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
             {
               type: 'bar' as const,
               label: 'Aceitas',
-              data: dadosComparacao.map(d => d.totais?.corridas_aceitas ?? 0),
+              data: dadosComparacao.map(d => d.total_aceitas ?? 0),
               backgroundColor: 'rgba(16, 185, 129, 0.7)',
               borderColor: 'rgb(16, 185, 129)',
               borderWidth: 1,
@@ -141,7 +141,7 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
             {
               type: 'bar' as const,
               label: 'Completadas',
-              data: dadosComparacao.map(d => d.totais?.corridas_completadas ?? 0),
+              data: dadosComparacao.map(d => d.total_completadas ?? 0),
               backgroundColor: 'rgba(139, 92, 246, 0.7)',
               borderColor: 'rgb(139, 92, 246)',
               borderWidth: 1,
@@ -151,7 +151,7 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
             {
               type: 'line' as any,
               label: 'Aderência (%)',
-              data: dadosComparacao.map(d => d.semanal[0]?.aderencia_percentual ?? 0),
+              data: dadosComparacao.map(d => d.aderencia_semanal[0]?.aderencia_percentual ?? 0),
               backgroundColor: 'rgba(59, 130, 246, 0.2)',
               borderColor: 'rgb(59, 130, 246)',
               borderWidth: 3,
@@ -194,7 +194,7 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
                 label: (context: any) => {
                   const label = context.dataset.label || '';
                   const value = context.parsed.y;
-                  
+
                   if (label === 'Aderência (%)') {
                     return `  ${label}: ${value.toFixed(1)}%`;
                   }
@@ -271,12 +271,12 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
               { bg: 'rgba(236, 72, 153, 0.2)', border: 'rgb(236, 72, 153)' },
             ];
             const cor = cores[idx % cores.length];
-            
+
             return {
               label: `Semana ${semana}`,
               data: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map(dia => {
                 const dados = dadosComparacao[idx];
-                const diaData = dados?.dia?.find(d => d.dia_da_semana === dia);
+                const diaData = dados?.aderencia_dia?.find(d => d.dia_da_semana === dia);
                 return diaData?.aderencia_percentual ?? 0;
               }),
               backgroundColor: cor.bg,
@@ -308,7 +308,7 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
   }
 
   if (chartType === 'subPraca') {
-    const subPracas = Array.from(new Set(dadosComparacao.flatMap(d => d.sub_praca?.map(sp => sp.sub_praca) ?? [])));
+    const subPracas = Array.from(new Set(dadosComparacao.flatMap(d => d.aderencia_sub_praca?.map(sp => sp.sub_praca) ?? [])));
     return (
       <div className="p-6">
         <Line data={{
@@ -322,12 +322,12 @@ export const ComparacaoCharts: React.FC<ComparacaoChartsProps> = ({
               { bg: 'rgba(236, 72, 153, 0.2)', border: 'rgb(236, 72, 153)' },
             ];
             const cor = cores[idx % cores.length];
-            
+
             return {
               label: `Semana ${semana}`,
               data: subPracas.map(subPraca => {
                 const dados = dadosComparacao[idx];
-                const subPracaData = dados?.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                const subPracaData = dados?.aderencia_sub_praca?.find(sp => sp.sub_praca === subPraca);
                 return subPracaData?.aderencia_percentual ?? 0;
               }),
               backgroundColor: cor.bg,
