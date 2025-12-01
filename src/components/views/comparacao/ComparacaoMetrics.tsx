@@ -12,13 +12,13 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
   dadosComparacao,
 }) => {
   const aderenciaMedia = Number(
-    (dadosComparacao.reduce((sum, d) => sum + (d.semanal[0]?.aderencia_percentual ?? 0), 0) / dadosComparacao.length).toFixed(1)
+    (dadosComparacao.reduce((sum, d) => sum + (d.aderencia_semanal[0]?.aderencia_percentual ?? 0), 0) / dadosComparacao.length).toFixed(1)
   );
 
-  const totalCorridas = dadosComparacao.reduce((sum, d) => sum + (d.totais?.corridas_completadas ?? 0), 0);
+  const totalCorridas = dadosComparacao.reduce((sum, d) => sum + (d.total_completadas ?? 0), 0);
 
   const horasEntregues = formatarHorasParaHMS(
-    dadosComparacao.reduce((sum, d) => sum + converterHorasParaDecimal(d.semanal[0]?.horas_entregues ?? '0'), 0).toString()
+    dadosComparacao.reduce((sum, d) => sum + converterHorasParaDecimal(d.aderencia_semanal[0]?.horas_entregues ?? '0'), 0).toString()
   );
 
   return (
