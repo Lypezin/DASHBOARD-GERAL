@@ -296,12 +296,15 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       // Como usamos Promise.all no map de semanasSelecionadas, a ordem já está garantida
       const dadosOrdenados = resultadosDados.map(resultado => {
         const defaultData: DashboardResumoData = {
-          totais: { corridas_ofertadas: 0, corridas_aceitas: 0, corridas_rejeitadas: 0, corridas_completadas: 0 },
-          semanal: [],
-          dia: [],
-          turno: [],
-          sub_praca: [],
-          origem: [],
+          total_ofertadas: 0,
+          total_aceitas: 0,
+          total_completadas: 0,
+          total_rejeitadas: 0,
+          aderencia_semanal: [],
+          aderencia_dia: [],
+          aderencia_turno: [],
+          aderencia_sub_praca: [],
+          aderencia_origem: [],
           dimensoes: { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [] }
         };
 
