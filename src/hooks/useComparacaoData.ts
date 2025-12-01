@@ -286,7 +286,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           resultados: resultadosDados.map(r => ({
             semana: r.semana,
             hasData: !!r.dados,
-            corridasOfertadas: r.dados?.totais?.corridas_ofertadas
+            corridasOfertadas: r.dados?.total_ofertadas
           }))
         });
         safeLog.info('🎯 UTR Comparação:', { semanas: resultadosUtr.length });
@@ -310,13 +310,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
         const dados = resultado.dados ? { ...defaultData, ...resultado.dados } : defaultData;
 
-        // Garantir que objetos aninhados existam
-        if (!dados.totais) dados.totais = defaultData.totais;
-        if (!dados.dia) dados.dia = [];
-        if (!dados.semanal) dados.semanal = [];
-        if (!dados.turno) dados.turno = [];
-        if (!dados.sub_praca) dados.sub_praca = [];
-        if (!dados.origem) dados.origem = [];
+
 
         return dados;
       });
@@ -325,9 +319,9 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       console.log('dadosOrdenados length:', dadosOrdenados.length);
       dadosOrdenados.forEach((dados, idx) => {
         console.log(`Week ${semanasSelecionadas[idx]}:`, {
-          corridasOfertadas: dados.totais?.corridas_ofertadas,
-          diaLength: dados.dia?.length,
-          hasDiaData: dados.dia && dados.dia.length > 0
+          corridasOfertadas: dados.total_ofertadas,
+          diaLength: dados.aderencia_dia?.length,
+          hasDiaData: dados.aderencia_dia && dados.aderencia_dia.length > 0
         });
       });
 

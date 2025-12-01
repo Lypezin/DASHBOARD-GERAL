@@ -55,11 +55,11 @@ export const processarDadosBasicos = (
         numeroSemana2: numSem2,
         periodoSemana1: calcularPeriodoSemana(numSem1),
         periodoSemana2: calcularPeriodoSemana(numSem2),
-        aderencia1: sem1?.semanal?.[0]?.aderencia_percentual || 0,
-        aderencia2: sem2?.semanal?.[0]?.aderencia_percentual || 0,
-        horasEntregues1: converterHorasParaDecimal(sem1?.semanal?.[0]?.horas_entregues || '0'),
-        horasEntregues2: converterHorasParaDecimal(sem2?.semanal?.[0]?.horas_entregues || '0'),
-        horasPlanejadas1: converterHorasParaDecimal(sem1?.semanal?.[0]?.horas_a_entregar || '0'),
-        horasPlanejadas2: converterHorasParaDecimal(sem2?.semanal?.[0]?.horas_a_entregar || '0'),
+        aderencia1: sem1?.aderencia_semanal?.[0]?.aderencia_percentual || 0,
+        aderencia2: sem2?.aderencia_semanal?.[0]?.aderencia_percentual || 0,
+        horasEntregues1: converterHorasParaDecimal(sem1?.aderencia_semanal?.[0]?.horas_entregues || '0'),
+        horasEntregues2: converterHorasParaDecimal(sem2?.aderencia_semanal?.[0]?.horas_entregues || '0'),
+        horasPlanejadas1: converterHorasParaDecimal(sem1?.aderencia_semanal?.[0]?.horas_a_entregar || '0'),
+        horasPlanejadas2: converterHorasParaDecimal(sem2?.aderencia_semanal?.[0]?.horas_a_entregar || '0'),
     };
 };

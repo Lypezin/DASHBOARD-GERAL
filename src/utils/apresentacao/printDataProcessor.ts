@@ -54,12 +54,12 @@ export function processPrintData(
   numeroSemana1: string,
   numeroSemana2: string
 ): ProcessedPrintData {
-  const aderencia1 = semana1?.semanal?.[0]?.aderencia_percentual || 0;
-  const aderencia2 = semana2?.semanal?.[0]?.aderencia_percentual || 0;
-  const horasEntregues1 = converterHorasParaDecimal(semana1?.semanal?.[0]?.horas_entregues || '0');
-  const horasEntregues2 = converterHorasParaDecimal(semana2?.semanal?.[0]?.horas_entregues || '0');
-  const horasPlanejadas1 = converterHorasParaDecimal(semana1?.semanal?.[0]?.horas_a_entregar || '0');
-  const horasPlanejadas2 = converterHorasParaDecimal(semana2?.semanal?.[0]?.horas_a_entregar || '0');
+  const aderencia1 = semana1?.aderencia_semanal?.[0]?.aderencia_percentual || 0;
+  const aderencia2 = semana2?.aderencia_semanal?.[0]?.aderencia_percentual || 0;
+  const horasEntregues1 = converterHorasParaDecimal(semana1?.aderencia_semanal?.[0]?.horas_entregues || '0');
+  const horasEntregues2 = converterHorasParaDecimal(semana2?.aderencia_semanal?.[0]?.horas_entregues || '0');
+  const horasPlanejadas1 = converterHorasParaDecimal(semana1?.aderencia_semanal?.[0]?.horas_a_entregar || '0');
+  const horasPlanejadas2 = converterHorasParaDecimal(semana2?.aderencia_semanal?.[0]?.horas_a_entregar || '0');
 
   const resumoSemana1 = {
     numeroSemana: numeroSemana1,
@@ -84,8 +84,8 @@ export function processPrintData(
   };
 
   // Processar Sub Praças
-  const subPracasSemana1 = semana1?.sub_praca || [];
-  const subPracasSemana2 = semana2?.sub_praca || [];
+  const subPracasSemana1 = semana1?.aderencia_sub_praca || [];
+  const subPracasSemana2 = semana2?.aderencia_sub_praca || [];
   const subPracasSemana1Map = new Map(subPracasSemana1.map((i: AderenciaSubPraca) => [String(i.sub_praca || '').trim(), i]));
   const subPracasSemana2Map = new Map(subPracasSemana2.map((i: AderenciaSubPraca) => [String(i.sub_praca || '').trim(), i]));
   const todasSubPracas = Array.from(new Set([...subPracasSemana1Map.keys(), ...subPracasSemana2Map.keys()])) as string[];
@@ -121,8 +121,8 @@ export function processPrintData(
   const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
 
   // Processar Dias
-  const diasSemana1Map = new Map((semana1?.dia || []).map((d: AderenciaDia) => [d.dia_da_semana, d]));
-  const diasSemana2Map = new Map((semana2?.dia || []).map((d: AderenciaDia) => [d.dia_da_semana, d]));
+  const diasSemana1Map = new Map((semana1?.aderencia_dia || []).map((d: AderenciaDia) => [d.dia_da_semana, d]));
+  const diasSemana2Map = new Map((semana2?.aderencia_dia || []).map((d: AderenciaDia) => [d.dia_da_semana, d]));
 
   const semana1Dias = diasOrdem.map((dia) => {
     const info = diasSemana1Map.get(dia) || ({} as Partial<AderenciaDia>);
@@ -149,8 +149,8 @@ export function processPrintData(
   });
 
   // Processar Turnos
-  const turnosSemana1 = semana1?.turno || [];
-  const turnosSemana2 = semana2?.turno || [];
+  const turnosSemana1 = semana1?.aderencia_turno || [];
+  const turnosSemana2 = semana2?.aderencia_turno || [];
   const turnosSemana1Map = new Map(turnosSemana1.map((t: AderenciaTurno) => [String(t.turno || '').trim(), t]));
   const turnosSemana2Map = new Map(turnosSemana2.map((t: AderenciaTurno) => [String(t.turno || '').trim(), t]));
   const todosTurnos = Array.from(new Set([...turnosSemana1Map.keys(), ...turnosSemana2Map.keys()])) as string[];
@@ -176,8 +176,8 @@ export function processPrintData(
   const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
 
   // Processar Origens
-  const origensSemana1 = semana1?.origem || [];
-  const origensSemana2 = semana2?.origem || [];
+  const origensSemana1 = semana1?.aderencia_origem || [];
+  const origensSemana2 = semana2?.aderencia_origem || [];
   const origensSemana1Map = new Map(origensSemana1.map((o: AderenciaOrigem) => [String(o.origem || '').trim(), o]));
   const origensSemana2Map = new Map(origensSemana2.map((o: AderenciaOrigem) => [String(o.origem || '').trim(), o]));
   const todasOrigens = Array.from(new Set([...origensSemana1Map.keys(), ...origensSemana2Map.keys()])) as string[];

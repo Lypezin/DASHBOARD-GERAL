@@ -56,10 +56,10 @@ export const transformDashboardData = (data: any) => {
         const empty = createEmptyDashboardData();
         return {
             totals: {
-                ofertadas: empty.totais.corridas_ofertadas,
-                aceitas: empty.totais.corridas_aceitas,
-                rejeitadas: empty.totais.corridas_rejeitadas,
-                completadas: empty.totais.corridas_completadas,
+                ofertadas: empty.total_ofertadas,
+                aceitas: empty.total_aceitas,
+                rejeitadas: empty.total_rejeitadas,
+                completadas: empty.total_completadas,
             },
             aderenciaSemanal: [],
             aderenciaDia: [],
@@ -168,11 +168,14 @@ export const transformDashboardData = (data: any) => {
 };
 
 export const createEmptyDashboardData = (): DashboardResumoData => ({
-    totais: { corridas_ofertadas: 0, corridas_aceitas: 0, corridas_rejeitadas: 0, corridas_completadas: 0 },
-    semanal: [],
-    dia: [],
-    turno: [],
-    sub_praca: [],
-    origem: [],
+    total_ofertadas: 0,
+    total_aceitas: 0,
+    total_completadas: 0,
+    total_rejeitadas: 0,
+    aderencia_semanal: [],
+    aderencia_dia: [],
+    aderencia_turno: [],
+    aderencia_sub_praca: [],
+    aderencia_origem: [],
     dimensoes: { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [], turnos: [] }
 });
