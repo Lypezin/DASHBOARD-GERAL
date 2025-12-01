@@ -102,7 +102,7 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                     <td className={`px-4 py-2 text-center text-sm font-medium ${metrica.color}`}>{metrica.label}</td>
                     {dadosComparacao.map((dados, idx) => {
                       // Normalização para comparação de dias
-                      const diaData = dados.dia?.find(d => {
+                      const diaData = dados.aderencia_dia?.find(d => {
                         // Tentativa 1: Match por dia_da_semana (string)
                         if (d.dia_da_semana) {
                           const diaApi = d.dia_da_semana.toLowerCase().trim();
@@ -153,7 +153,7 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                       let variacao = null;
                       if (idx > 0) {
                         const dadosAnterior = dadosComparacao[idx - 1];
-                        const diaDataAnterior = dadosAnterior.dia?.find(d => {
+                        const diaDataAnterior = dadosAnterior.aderencia_dia?.find(d => {
                           // Mesma lógica de match para o dia anterior
                           if (d.dia_da_semana) {
                             const diaApi = d.dia_da_semana.toLowerCase().trim();

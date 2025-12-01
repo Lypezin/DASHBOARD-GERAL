@@ -16,6 +16,16 @@ export const convertHorasToString = (value: number | string | undefined | null):
     return String(value);
 };
 
+const processSeconds = (val: number | string | undefined | null): string => {
+    if (val === undefined || val === null) return '00:00:00';
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    if (isNaN(num)) return '00:00:00';
+    // If it's already formatted as HH:MM:SS (unlikely for seconds field but possible if field reused)
+    if (typeof val === 'string' && val.includes(':')) return val;
+
+    return formatarHorasParaHMS(num / 3600);
+};
+
 /**
  * Enriquece os dados de AderenciaDia calculando dia_da_semana e dia_iso a partir da data
  */
@@ -91,8 +101,8 @@ export const transformDashboardData = (data: any) => {
 
             return {
                 ...item,
-                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
-                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues)
+                horas_a_entregar: processSeconds(item.horas_a_entregar || item.segundos_planejados),
+                horas_entregues: processSeconds(item.horas_entregues || item.segundos_realizados)
             };
         })
         : [];
@@ -106,8 +116,8 @@ export const transformDashboardData = (data: any) => {
 
             return enrichAderenciaDia({
                 ...item,
-                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
-                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues),
+                horas_a_entregar: processSeconds(item.horas_a_entregar || item.segundos_planejados),
+                horas_entregues: processSeconds(item.horas_entregues || item.segundos_realizados),
                 // Support both field names from RPC
                 dia_da_semana: item.dia_da_semana || item.dia_semana
             });
@@ -122,8 +132,8 @@ export const transformDashboardData = (data: any) => {
 
             return {
                 ...item,
-                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
-                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues)
+                horas_a_entregar: processSeconds(item.horas_a_entregar || item.segundos_planejados),
+                horas_entregues: processSeconds(item.horas_entregues || item.segundos_realizados)
             };
         })
         : [];
@@ -136,8 +146,8 @@ export const transformDashboardData = (data: any) => {
 
             return {
                 ...item,
-                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
-                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues)
+                horas_a_entregar: processSeconds(item.horas_a_entregar || item.segundos_planejados),
+                horas_entregues: processSeconds(item.horas_entregues || item.segundos_realizados)
             };
         })
         : [];
@@ -150,19 +160,19 @@ export const transformDashboardData = (data: any) => {
 
             return {
                 ...item,
-                horas_a_entregar: typeof horasAEntregar === 'number' ? formatarHorasParaHMS(horasAEntregar / 3600) : convertHorasToString(horasAEntregar),
-                horas_entregues: typeof horasEntregues === 'number' ? formatarHorasParaHMS(horasEntregues / 3600) : convertHorasToString(horasEntregues)
+                horas_a_entregar: processSeconds(item.horas_a_entregar || item.segundos_planejados),
+                horas_entregues: processSeconds(item.horas_entregues || item.segundos_realizados)
             };
         })
         : [];
 
     return {
         totals,
-        aderenciaSemanal,
-        aderenciaDia,
-        aderenciaTurno,
-        aderenciaSubPraca,
-        aderenciaOrigem,
+        aderencia_semanal: aderenciaSemanal,
+        aderencia_dia: aderenciaDia,
+        aderencia_turno: aderenciaTurno,
+        aderencia_sub_praca: aderenciaSubPraca,
+        aderencia_origem: aderenciaOrigem,
         dimensoes: rawData.dimensoes || { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [], turnos: [] }
     };
 };
