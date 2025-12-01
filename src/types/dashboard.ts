@@ -99,24 +99,40 @@ export interface DimensoesDashboard {
   anos: number[];
   semanas: string[];
   pracas: string[];
-  sub_pracas: string[];
+  sub_pracas: string[]
   origens: string[];
   turnos?: string[];
 }
 
 export interface DashboardResumoData {
-  totais: {
+  // Totais no nível raiz (não em objeto `totais`)
+  total_ofertadas: number;
+  total_aceitas: number;
+  total_completadas: number;
+  total_rejeitadas: number;
+
+  // Arrays de aderência
+  aderencia_semanal: AderenciaSemanal[];
+  aderencia_dia: AderenciaDia[];
+  aderencia_turno: AderenciaTurno[];
+  aderencia_sub_praca: AderenciaSubPraca[];
+  aderencia_origem: AderenciaOrigem[];
+
+  // Dimensões
+  dimensoes: DimensoesDashboard;
+
+  // Aliases para compatibilidade
+  totais?: {
     corridas_ofertadas: number;
     corridas_aceitas: number;
     corridas_rejeitadas: number;
     corridas_completadas: number;
   };
-  semanal: AderenciaSemanal[];
-  dia: AderenciaDia[];
-  turno: AderenciaTurno[];
-  sub_praca: AderenciaSubPraca[];
-  origem: AderenciaOrigem[];
-  dimensoes: DimensoesDashboard;
+  semanal?: AderenciaSemanal[];
+  dia?: AderenciaDia[];
+  turno?: AderenciaTurno[];
+  sub_praca?: AderenciaSubPraca[];
+  origem?: AderenciaOrigem[];
 }
 
 export interface UtrGeral {

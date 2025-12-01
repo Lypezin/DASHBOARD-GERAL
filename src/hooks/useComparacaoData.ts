@@ -191,13 +191,13 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         console.table({
           hasData: !!data,
           isArray: Array.isArray(rawData),
-          corridasOfertadas: data?.totais?.corridas_ofertadas || 0,
-          corridasAceitas: data?.totais?.corridas_aceitas || 0,
-          diaLength: data?.dia?.length || 0
+          corridasOfertadas: data?.total_ofertadas || 0,
+          corridasAceitas: data?.total_aceitas || 0,
+          diaLength: data?.aderencia_dia?.length || 0
         });
 
-        if (data?.dia && data.dia.length > 0) {
-          console.log('First day sample:', data.dia[0]);
+        if (data?.aderencia_dia && data.aderencia_dia.length > 0) {
+          console.log('First day sample:', data.aderencia_dia[0]);
         } else {
           console.warn(`%c⚠️ NO DIA DATA for week ${semana}!`, 'color: #f59e0b; font-weight: bold');
         }
@@ -205,8 +205,8 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
         if (IS_DEV && data) {
           safeLog.info(`[Comparacao] Dados recebidos para semana ${semana}`, {
-            corridasOfertadas: data.totais?.corridas_ofertadas,
-            corridasAceitas: data.totais?.corridas_aceitas,
+            corridasOfertadas: data.total_ofertadas,
+            corridasAceitas: data.total_aceitas,
           });
         }
 
