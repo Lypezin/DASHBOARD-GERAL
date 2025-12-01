@@ -46,10 +46,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => {
-              const aderencia = dados.semanal[0]?.aderencia_percentual ?? 0;
+              const aderencia = dados.aderencia_semanal[0]?.aderencia_percentual ?? 0;
               let variacao: number | null = null;
               if (idx > 0) {
-                const aderenciaAnterior = dadosComparacao[idx - 1].semanal[0]?.aderencia_percentual ?? 0;
+                const aderenciaAnterior = dadosComparacao[idx - 1].aderencia_semanal[0]?.aderencia_percentual ?? 0;
                 variacao = calcularVariacaoPercentual(aderenciaAnterior, aderencia);
               }
 
@@ -79,10 +79,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => {
-              const ofertadas = dados.totais?.corridas_ofertadas ?? 0;
+              const ofertadas = dados.total_ofertadas ?? 0;
               let variacao: number | null = null;
               if (idx > 0) {
-                const ofertadasAnterior = dadosComparacao[idx - 1].totais?.corridas_ofertadas ?? 0;
+                const ofertadasAnterior = dadosComparacao[idx - 1].total_ofertadas ?? 0;
                 variacao = calcularVariacaoPercentual(ofertadasAnterior, ofertadas);
               }
 
@@ -110,10 +110,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => {
-              const aceitas = dados.totais?.corridas_aceitas ?? 0;
+              const aceitas = dados.total_aceitas ?? 0;
               let variacao: number | null = null;
               if (idx > 0) {
-                const aceitasAnterior = dadosComparacao[idx - 1].totais?.corridas_aceitas ?? 0;
+                const aceitasAnterior = dadosComparacao[idx - 1].total_aceitas ?? 0;
                 variacao = calcularVariacaoPercentual(aceitasAnterior, aceitas);
               }
 
@@ -141,10 +141,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => {
-              const rejeitadas = dados.totais?.corridas_rejeitadas ?? 0;
+              const rejeitadas = dados.total_rejeitadas ?? 0;
               let variacao: number | null = null;
               if (idx > 0) {
-                const rejeitadasAnterior = dadosComparacao[idx - 1].totais?.corridas_rejeitadas ?? 0;
+                const rejeitadasAnterior = dadosComparacao[idx - 1].total_rejeitadas ?? 0;
                 variacao = calcularVariacaoPercentual(rejeitadasAnterior, rejeitadas);
               }
 
@@ -172,10 +172,10 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => {
-              const completadas = dados.totais?.corridas_completadas ?? 0;
+              const completadas = dados.total_completadas ?? 0;
               let variacao: number | null = null;
               if (idx > 0) {
-                const completadasAnterior = dadosComparacao[idx - 1].totais?.corridas_completadas ?? 0;
+                const completadasAnterior = dadosComparacao[idx - 1].total_completadas ?? 0;
                 variacao = calcularVariacaoPercentual(completadasAnterior, completadas);
               }
 
@@ -203,8 +203,8 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => {
-              const taxaAceitacao = dados.totais?.corridas_ofertadas
-                ? ((dados.totais?.corridas_aceitas ?? 0) / dados.totais.corridas_ofertadas) * 100
+              const taxaAceitacao = dados.total_ofertadas
+                ? ((dados.total_aceitas ?? 0) / dados.total_ofertadas) * 100
                 : 0;
               return (
                 <React.Fragment key={idx}>
@@ -228,7 +228,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             {dadosComparacao.map((dados, idx) => (
               <React.Fragment key={idx}>
                 <td className="px-6 py-4 text-center font-mono text-sm text-amber-600 dark:text-amber-400 border-l border-slate-200 dark:border-slate-700">
-                  {formatarHorasParaHMS(dados.semanal[0]?.horas_a_entregar ?? '0')}
+                  {formatarHorasParaHMS(dados.aderencia_semanal[0]?.horas_a_entregar ?? '0')}
                 </td>
                 {idx > 0 && <td className="px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50"></td>}
               </React.Fragment>
@@ -246,7 +246,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             {dadosComparacao.map((dados, idx) => (
               <React.Fragment key={idx}>
                 <td className="px-6 py-4 text-center font-mono text-sm text-blue-600 dark:text-blue-400 border-l border-slate-200 dark:border-slate-700">
-                  {formatarHorasParaHMS(dados.semanal[0]?.horas_entregues ?? '0')}
+                  {formatarHorasParaHMS(dados.aderencia_semanal[0]?.horas_entregues ?? '0')}
                 </td>
                 {idx > 0 && <td className="px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50"></td>}
               </React.Fragment>
