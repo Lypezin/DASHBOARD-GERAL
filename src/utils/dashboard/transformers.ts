@@ -71,11 +71,11 @@ export const transformDashboardData = (data: any) => {
                 rejeitadas: empty.total_rejeitadas,
                 completadas: empty.total_completadas,
             },
-            aderenciaSemanal: [],
-            aderenciaDia: [],
-            aderenciaTurno: [],
-            aderenciaSubPraca: [],
-            aderenciaOrigem: [],
+            aderencia_semanal: [],
+            aderencia_dia: [],
+            aderencia_turno: [],
+            aderencia_sub_praca: [],
+            aderencia_origem: [],
             dimensoes: empty.dimensoes
         };
     }

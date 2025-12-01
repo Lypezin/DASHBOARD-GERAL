@@ -111,11 +111,11 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       const processedData = transformDashboardData(cachedDataRef.current);
 
       setTotals(processedData.totals);
-      setAderenciaSemanal(processedData.aderenciaSemanal);
-      setAderenciaDia(processedData.aderenciaDia);
-      setAderenciaTurno(processedData.aderenciaTurno);
-      setAderenciaSubPraca(processedData.aderenciaSubPraca);
-      setAderenciaOrigem(processedData.aderenciaOrigem);
+      setAderenciaSemanal(processedData.aderencia_semanal);
+      setAderenciaDia(processedData.aderencia_dia);
+      setAderenciaTurno(processedData.aderencia_turno);
+      setAderenciaSubPraca(processedData.aderencia_sub_praca);
+      setAderenciaOrigem(processedData.aderencia_origem);
 
       if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
 
@@ -151,11 +151,11 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         const processedData = transformDashboardData(data);
 
         setTotals(processedData.totals);
-        setAderenciaSemanal(processedData.aderenciaSemanal);
-        setAderenciaDia(processedData.aderenciaDia);
-        setAderenciaTurno(processedData.aderenciaTurno);
-        setAderenciaSubPraca(processedData.aderenciaSubPraca);
-        setAderenciaOrigem(processedData.aderenciaOrigem);
+        setAderenciaSemanal(processedData.aderencia_semanal);
+        setAderenciaDia(processedData.aderencia_dia);
+        setAderenciaTurno(processedData.aderencia_turno);
+        setAderenciaSubPraca(processedData.aderencia_sub_praca);
+        setAderenciaOrigem(processedData.aderencia_origem);
 
         if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
 
