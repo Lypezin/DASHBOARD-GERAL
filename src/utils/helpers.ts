@@ -232,7 +232,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
 
   const isAdminOrMaster = currentUser?.is_admin === true;
 
-  // CORREÇÃO: NÃO setar null para admins
+  // CORREÇÃO: Admins devem ver dados de todas as organizações
   if (isAdminOrMaster) {
     console.log('[buildFilterPayload] User is admin, setting organization_id to NULL');
     organizationId = null;

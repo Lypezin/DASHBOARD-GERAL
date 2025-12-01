@@ -161,7 +161,8 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           ano: anoNumero,
           p_ano: filtro.p_ano,
           p_semana: filtro.p_semana,
-          p_praca: filtro.p_praca
+          p_praca: filtro.p_praca,
+          p_organization_id: filtro.p_organization_id
         });
         console.log('Full payload:', filtro);
 
