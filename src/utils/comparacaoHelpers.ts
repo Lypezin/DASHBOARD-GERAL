@@ -253,7 +253,18 @@ export function getTimeMetric(obj: any, metricKey: string): string | number {
 export function getWeeklyHours(dados: DashboardResumoData, metricKey: 'horas_planejadas' | 'horas_entregues'): string {
   // 1. Tentar pegar de aderencia_semanal
   if (dados.aderencia_semanal && dados.aderencia_semanal.length > 0) {
-    const val = getTimeMetric(dados.aderencia_semanal[0], metricKey);
+    const semanaData = dados.aderencia_semanal[0] as any;
+
+    // Verificar se existem os campos de segundos (retornados pelo RPC atual)
+    if (metricKey === 'horas_planejadas' && semanaData.segundos_planejados !== undefined) {
+      return formatarHorasParaHMS(Number(semanaData.segundos_planejados) / 3600);
+    }
+    if (metricKey === 'horas_entregues' && semanaData.segundos_realizados !== undefined) {
+      return formatarHorasParaHMS(Number(semanaData.segundos_realizados) / 3600);
+    }
+
+    // Tentar chaves antigas/formatadas
+    const val = getTimeMetric(semanaData, metricKey);
     if (val && val !== '0' && val !== '00:00:00') {
       return String(val);
     }
@@ -264,9 +275,17 @@ export function getWeeklyHours(dados: DashboardResumoData, metricKey: 'horas_pla
     let totalDecimal = 0;
 
     dados.aderencia_dia.forEach(dia => {
-      // Usar getTimeMetric também para o dia, pois as chaves podem variar
-      const val = getTimeMetric(dia, metricKey);
-      totalDecimal += converterHorasParaDecimal(val);
+      const d = dia as any;
+      // Verificar segundos no nível do dia também
+      if (metricKey === 'horas_planejadas' && d.segundos_planejados !== undefined) {
+        totalDecimal += Number(d.segundos_planejados) / 3600;
+      } else if (metricKey === 'horas_entregues' && d.segundos_realizados !== undefined) {
+        totalDecimal += Number(d.segundos_realizados) / 3600;
+      } else {
+        // Fallback para chaves antigas
+        const val = getTimeMetric(dia, metricKey);
+        totalDecimal += converterHorasParaDecimal(val);
+      }
     });
 
     if (totalDecimal > 0) {
