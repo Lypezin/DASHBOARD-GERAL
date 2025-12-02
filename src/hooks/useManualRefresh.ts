@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import type {
     RefreshMVState,
     RefreshMVResult,
     PendingMV,
     RetryFailedMVsResult,
 } from '@/types/upload';
+import { mvService } from '@/services/mvService';
 
 export function useManualRefresh() {
     const [state, setState] = useState<RefreshMVState>({
@@ -26,10 +26,6 @@ export function useManualRefresh() {
         let mvsToProcess = [...mvs];
 
         // mv_dashboard_resumo agora é uma tabela atualizada via triggers, não precisa de refresh
-
-        if (!mvsToProcess.some(mv => mv.mv_name === aderenciaMvName)) {
-            mvsToProcess.push({ mv_name: aderenciaMvName, last_refresh: null, priority: 1, needs_refresh: true } as unknown as PendingMV);
-        }
 
         if (!mvsToProcess.some(mv => mv.mv_name === aderenciaMvName)) {
             mvsToProcess.push({ mv_name: aderenciaMvName, last_refresh: null, priority: 1, needs_refresh: true } as unknown as PendingMV);
@@ -60,14 +56,7 @@ export function useManualRefresh() {
             }));
 
             try {
-                const { data: refreshData, error: refreshError } = await safeRpc<RefreshMVResult>(
-                    'refresh_single_mv_with_progress',
-                    { mv_name_param: mv.mv_name },
-                    {
-                        timeout: 300000, // 5 minutos por MV
-                        validateParams: false
-                    }
-                );
+                const { data: refreshData, error: refreshError } = await mvService.refreshSingleMV(mv.mv_name);
 
                 // Atualizar progresso após processar
                 setState(prev => ({
@@ -76,57 +65,17 @@ export function useManualRefresh() {
                     completed: currentIndex,
                 }));
 
-                // Verificar se houve erro na chamada RPC
-                if (refreshError) {
-                    const errorCode = refreshError?.code;
-                    const errorMessage = String(refreshError?.message || '');
-                    const isTimeout =
-                        errorCode === 'TIMEOUT' ||
-                        errorMessage.includes('timeout') ||
-                        errorMessage.includes('demorou muito');
+                const result = mvService.processRefreshResult(refreshData, refreshError, mv.mv_name);
 
-                    if (isTimeout) {
-                        safeLog.warn(
-                            `Timeout ao atualizar ${mv.mv_name}(verificando se foi atualizada mesmo assim)`
-                        );
-                    } else {
-                        failCount++;
-                        failedViews.push(mv.mv_name);
-                        safeLog.error(`Erro ao atualizar ${mv.mv_name}: `, refreshError);
-                    }
-                } else if (refreshData) {
-                    // A função RPC retorna o resultado dentro de uma propriedade com o nome da função
-                    const result = (refreshData as unknown as { refresh_single_mv_with_progress?: RefreshMVResult })
-                        ?.refresh_single_mv_with_progress || refreshData;
-
-                    const success = result?.success === true;
-                    const viewName = result?.view || mv.mv_name;
-                    const duration = result?.duration_seconds;
-                    const method = result?.method;
-                    const warning = result?.warning;
-                    const error = result?.error;
-
-                    // Se success = true OU se tem warning de fallback (que significa que funcionou), considerar sucesso
-                    const isSuccess =
-                        success ||
-                        (warning && (warning.includes('fallback') || warning.includes('CONCURRENTLY falhou')));
-
-                    if (isSuccess) {
-                        successCount++;
-                        const durationStr = duration ? `${duration.toFixed(1)}s` : 'N/A';
-                        const methodStr = method || (warning ? 'FALLBACK' : 'NORMAL');
-                        safeLog.info(`✅ ${viewName} atualizada em ${durationStr}(${methodStr})`);
-                    } else {
-                        failCount++;
-                        failedViews.push(mv.mv_name);
-                        const errorMsg = error || 'Erro desconhecido';
-                        safeLog.warn(`Falha ao atualizar ${mv.mv_name}: ${errorMsg}`);
-                    }
+                if (result.success) {
+                    successCount++;
+                } else if (result.isTimeout) {
+                    // Timeout warning handled in service
                 } else {
                     failCount++;
                     failedViews.push(mv.mv_name);
-                    safeLog.warn(`Resposta vazia ao atualizar ${mv.mv_name}`);
                 }
+
             } catch (error) {
                 failCount++;
                 failedViews.push(mv.mv_name);
@@ -179,14 +128,7 @@ export function useManualRefresh() {
 
         try {
             // Passo 1: Obter lista de MVs pendentes
-            const { data: pendingData, error: pendingError } = await safeRpc<PendingMV[]>(
-                'get_pending_mvs',
-                {},
-                {
-                    timeout: 30000,
-                    validateParams: false
-                }
-            );
+            const { data: pendingData, error: pendingError } = await mvService.getPendingMVs();
 
             if (pendingError) {
                 const errorMessage = pendingError?.message || 'Erro desconhecido';
@@ -259,14 +201,7 @@ export function useManualRefresh() {
         });
 
         try {
-            const { data, error } = await safeRpc<RetryFailedMVsResult>(
-                'retry_failed_mvs',
-                { mv_names: currentFailedMVs },
-                {
-                    timeout: 600000, // 10 minutos
-                    validateParams: false
-                }
-            );
+            const { data, error } = await mvService.retryFailedMVs(currentFailedMVs);
 
             if (error) {
                 const errorMessage = error?.message || 'Erro desconhecido';

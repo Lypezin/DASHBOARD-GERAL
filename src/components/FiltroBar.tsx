@@ -118,7 +118,7 @@ const FiltroBar = React.memo(function FiltroBar({
       <div className="flex flex-wrap items-end gap-4">
         {/* Filtros de Ano/Semana ou Intervalo de Datas */}
         {isModoIntervalo ? (
-          <div className="flex items-end gap-4 flex-1 min-w-[300px]">
+          <div className="flex items-end gap-4 flex-auto min-w-[520px]">
             <FiltroDateRange
               dataInicial={filters?.dataInicial ?? null}
               dataFinal={filters?.dataFinal ?? null}
