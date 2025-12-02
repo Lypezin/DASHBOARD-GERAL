@@ -1,6 +1,7 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import { DashboardResumoData } from '@/types';
+import { findDayData } from '@/utils/comparacaoHelpers';
 
 interface ComparacaoChartDiaProps {
     dadosComparacao: DashboardResumoData[];
@@ -29,7 +30,8 @@ export const ComparacaoChartDia: React.FC<ComparacaoChartDiaProps> = ({
                         label: `Semana ${semana}`,
                         data: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map(dia => {
                             const dados = dadosComparacao[idx];
-                            const diaData = dados?.aderencia_dia?.find(d => d.dia_da_semana === dia);
+                            // Usar helper para encontrar dados do dia
+                            const diaData = findDayData(dia, dados?.aderencia_dia);
                             return diaData?.aderencia_percentual ?? 0;
                         }),
                         backgroundColor: cor.bg,

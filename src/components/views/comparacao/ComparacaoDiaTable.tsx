@@ -4,6 +4,7 @@ import { VariacaoBadge } from '@/components/VariacaoBadge';
 import { DIAS_DA_SEMANA } from '@/constants/comparacao';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart3 } from 'lucide-react';
+import { findDayData } from '@/utils/comparacaoHelpers';
 
 interface ComparacaoDiaTableProps {
   dadosComparacao: DashboardResumoData[];
@@ -101,96 +102,14 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                     )}
                     <td className={`px-4 py-2 text-center text-sm font-medium ${metrica.color}`}>{metrica.label}</td>
                     {dadosComparacao.map((dados, idx) => {
-                      // Normalização para comparação de dias
-                      const diaData = dados.aderencia_dia?.find(d => {
-                        // Tentativa 1: Match por dia_da_semana (string)
-                        if (d.dia_da_semana) {
-                          const diaApi = d.dia_da_semana.toLowerCase().trim();
-                          const diaRef = dia.toLowerCase().trim();
-
-                          if (diaApi === diaRef) return true;
-                          if (diaApi.includes(diaRef) || diaRef.includes(diaApi)) return true;
-
-                          const mapDias: Record<string, string> = {
-                            'monday': 'segunda', 'tuesday': 'terça', 'wednesday': 'quarta',
-                            'thursday': 'quinta', 'friday': 'sexta', 'saturday': 'sábado', 'sunday': 'domingo'
-                          };
-                          if (mapDias[diaApi] && mapDias[diaApi].includes(diaRef)) return true;
-                        }
-
-                        // Tentativa 2: Match por dia_iso (number)
-                        // dia_iso: 1 (Segunda) a 7 (Domingo)
-                        if (d.dia_iso) {
-                          const mapIso: Record<number, string> = {
-                            1: 'segunda', 2: 'terça', 3: 'quarta', 4: 'quinta', 5: 'sexta', 6: 'sábado', 7: 'domingo'
-                          };
-                          const diaRef = dia.toLowerCase().trim();
-                          if (mapIso[d.dia_iso] && mapIso[d.dia_iso].includes(diaRef)) return true;
-                        }
-
-                        // Tentativa 3: Se tiver campo 'data', extrair o dia da semana
-                        if ((d as any).data) {
-                          try {
-                            const date = new Date((d as any).data + 'T00:00:00');
-                            const dayOfWeek = date.getDay(); // 0=Domingo, 1=Segunda, ...
-                            const mapDayNumber: Record<number, string> = {
-                              0: 'domingo', 1: 'segunda', 2: 'terça', 3: 'quarta',
-                              4: 'quinta', 5: 'sexta', 6: 'sábado'
-                            };
-                            const diaFromDate = mapDayNumber[dayOfWeek];
-                            const diaRef = dia.toLowerCase().trim();
-                            if (diaFromDate && diaFromDate.includes(diaRef)) return true;
-                          } catch (e) {
-                            // Ignorar erros de parse de data
-                          }
-                        }
-
-                        return false;
-                      });
-
+                      // Usar helper para encontrar dados do dia
+                      const diaData = findDayData(dia, dados.aderencia_dia);
                       const valor = diaData?.[metrica.key as keyof typeof diaData] as number ?? 0;
 
                       let variacao = null;
                       if (idx > 0) {
                         const dadosAnterior = dadosComparacao[idx - 1];
-                        const diaDataAnterior = dadosAnterior.aderencia_dia?.find(d => {
-                          // Mesma lógica de match para o dia anterior
-                          if (d.dia_da_semana) {
-                            const diaApi = d.dia_da_semana.toLowerCase().trim();
-                            const diaRef = dia.toLowerCase().trim();
-                            if (diaApi === diaRef) return true;
-                            if (diaApi.includes(diaRef) || diaRef.includes(diaApi)) return true;
-                            const mapDias: Record<string, string> = {
-                              'monday': 'segunda', 'tuesday': 'terça', 'wednesday': 'quarta',
-                              'thursday': 'quinta', 'friday': 'sexta', 'saturday': 'sábado', 'sunday': 'domingo'
-                            };
-                            if (mapDias[diaApi] && mapDias[diaApi].includes(diaRef)) return true;
-                          }
-                          if (d.dia_iso) {
-                            const mapIso: Record<number, string> = {
-                              1: 'segunda', 2: 'terça', 3: 'quarta', 4: 'quinta', 5: 'sexta', 6: 'sábado', 7: 'domingo'
-                            };
-                            const diaRef = dia.toLowerCase().trim();
-                            if (mapIso[d.dia_iso] && mapIso[d.dia_iso].includes(diaRef)) return true;
-                          }
-                          // Tentativa 3: Se tiver campo 'data', extrair o dia da semana
-                          if ((d as any).data) {
-                            try {
-                              const date = new Date((d as any).data + 'T00:00:00');
-                              const dayOfWeek = date.getDay();
-                              const mapDayNumber: Record<number, string> = {
-                                0: 'domingo', 1: 'segunda', 2: 'terça', 3: 'quarta',
-                                4: 'quinta', 5: 'sexta', 6: 'sábado'
-                              };
-                              const diaFromDate = mapDayNumber[dayOfWeek];
-                              const diaRef = dia.toLowerCase().trim();
-                              if (diaFromDate && diaFromDate.includes(diaRef)) return true;
-                            } catch (e) {
-                              // Ignorar erros de parse de data
-                            }
-                          }
-                          return false;
-                        });
+                        const diaDataAnterior = findDayData(dia, dadosAnterior.aderencia_dia);
                         const valorAnterior = diaDataAnterior?.[metrica.key as keyof typeof diaDataAnterior] as number ?? 0;
                         variacao = valorAnterior > 0 ? ((valor - valorAnterior) / valorAnterior) * 100 : 0;
                       }
