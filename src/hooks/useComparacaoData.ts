@@ -116,19 +116,6 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser);
         const { semanaNumero, anoNumero } = parseWeekString(semana);
 
-        // DEBUG: Log payload com mais detalhes
-        console.log(`%c[Comparacao] 🔍 Requesting data for SEMANA ${semana}`, 'color: #3b82f6; font-weight: bold');
-        console.table({
-          semana_original: semana,
-          semana_numero: semanaNumero,
-          ano: anoNumero,
-          p_ano: filtro.p_ano,
-          p_semana: filtro.p_semana,
-          p_praca: filtro.p_praca,
-          p_organization_id: filtro.p_organization_id
-        });
-        console.log('Full payload:', filtro);
-
         if (IS_DEV) {
           safeLog.info(`[Comparacao] Buscando dados para semana ${semana} (ano: ${anoNumero}, número: ${semanaNumero})`, {
             filtro: {
@@ -148,23 +135,6 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
         // A função dashboard_resumo retorna SETOF record, então o Supabase retorna um array
         const data = Array.isArray(rawData) ? rawData[0] : rawData;
-
-        // DEBUG: Log response com mais detalhes
-        console.log(`%c[Comparacao] ✅ Response for SEMANA ${semana}`, 'color: #10b981; font-weight: bold');
-        console.table({
-          hasData: !!data,
-          isArray: Array.isArray(rawData),
-          corridasOfertadas: data?.total_ofertadas || 0,
-          corridasAceitas: data?.total_aceitas || 0,
-          diaLength: data?.aderencia_dia?.length || 0
-        });
-
-        if (data?.aderencia_dia && data.aderencia_dia.length > 0) {
-          console.log('First day sample:', data.aderencia_dia[0]);
-        } else {
-          console.warn(`%c⚠️ NO DIA DATA for week ${semana}!`, 'color: #f59e0b; font-weight: bold');
-        }
-        console.log('Full response:', rawData);
 
         if (IS_DEV && data) {
           safeLog.info(`[Comparacao] Dados recebidos para semana ${semana}`, {
@@ -187,13 +157,13 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           });
 
           if (error) {
-            console.error(`%c[Comparacao] ❌ Erro ao calcular UTR para semana ${semana}:`, 'color: #ef4444; font-weight: bold', error);
+            safeLog.error(`[Comparacao] Erro ao calcular UTR para semana ${semana}:`, error);
             return { semana, utr: null };
           }
 
           return { semana, utr: data };
         } catch (err) {
-          console.error(`%c[Comparacao] ❌ Exceção ao calcular UTR para semana ${semana}:`, 'color: #ef4444; font-weight: bold', err);
+          safeLog.error(`[Comparacao] Exceção ao calcular UTR para semana ${semana}:`, err);
           // Retornar null em vez de falhar completamente
           return { semana, utr: null };
         }
@@ -233,19 +203,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
         const dados = resultado.dados ? { ...defaultData, ...resultado.dados } : defaultData;
 
-
-
         return dados;
-      });
-
-      console.log('%c[Comparacao] 📦 Final processed data:', 'color: #8b5cf6; font-weight: bold');
-      console.log('dadosOrdenados length:', dadosOrdenados.length);
-      dadosOrdenados.forEach((dados, idx) => {
-        console.log(`Week ${semanasSelecionadas[idx]}:`, {
-          corridasOfertadas: dados.total_ofertadas,
-          diaLength: dados.aderencia_dia?.length,
-          hasDiaData: dados.aderencia_dia && dados.aderencia_dia.length > 0
-        });
       });
 
       setDadosComparacao(dadosOrdenados);

@@ -15,18 +15,6 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
   dadosComparacao,
   semanasSelecionadas,
 }) => {
-  // Debug logging
-  React.useEffect(() => {
-    // Log incondicional para debug
-    console.log('ComparacaoDiaTable - dadosComparacao:', dadosComparacao);
-    dadosComparacao.forEach((d, i) => {
-      console.log(`Semana ${semanasSelecionadas[i]} - Aderencia Dia Raw:`, JSON.stringify(d.aderencia_dia, null, 2));
-      if (d.aderencia_dia && d.aderencia_dia.length > 0) {
-        console.log('Sample item keys:', Object.keys(d.aderencia_dia[0]));
-      }
-    });
-  }, [dadosComparacao, semanasSelecionadas]);
-
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
       <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -44,16 +32,6 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
       </CardHeader>
 
       <CardContent className="p-0">
-        {/* DEBUG: Mostrar dados brutos se estiver em dev ou se solicitado */}
-        <div className="p-4 bg-slate-100 dark:bg-slate-800 text-xs font-mono overflow-auto max-h-40 mb-4">
-          <p className="font-bold text-red-500 mb-2">DEBUG INFO (Remover em produção)</p>
-          {dadosComparacao.map((d, i) => (
-            <div key={i} className="mb-2">
-              <strong>Semana {semanasSelecionadas[i]}:</strong>
-              <pre>{JSON.stringify(d.aderencia_dia?.slice(0, 2), null, 2)}</pre>
-            </div>
-          ))}
-        </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
