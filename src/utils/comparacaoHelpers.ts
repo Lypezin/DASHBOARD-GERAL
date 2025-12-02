@@ -216,3 +216,32 @@ export function getMetricValue(obj: any, metricKey: string): number {
 
   return 0;
 }
+
+/**
+ * Obtém o valor de uma métrica de tempo (string HH:MM:SS ou número) tentando diferentes chaves
+ */
+export function getTimeMetric(obj: any, metricKey: string): string | number {
+  if (!obj) return '0';
+
+  const keyMap: Record<string, string[]> = {
+    'horas_planejadas': ['horas_a_entregar', 'horas_planejadas', 'total_horas_planejadas', 'meta_horas', 'horas_meta'],
+    'horas_entregues': ['horas_entregues', 'horas_realizadas', 'total_horas_entregues', 'horas_feitas', 'horas_executadas']
+  };
+
+  // Tentar a chave exata primeiro
+  if (obj[metricKey] !== undefined && obj[metricKey] !== null) {
+    return obj[metricKey];
+  }
+
+  // Tentar variações
+  const variations = keyMap[metricKey];
+  if (variations) {
+    for (const key of variations) {
+      if (obj[key] !== undefined && obj[key] !== null) {
+        return obj[key];
+      }
+    }
+  }
+
+  return '0';
+}

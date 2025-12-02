@@ -3,6 +3,7 @@ import { DashboardResumoData } from '@/types';
 import { VariacaoBadge } from '@/components/VariacaoBadge';
 import { calcularVariacaoPercentual } from '@/utils/comparacaoCalculations';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+import { getTimeMetric } from '@/utils/comparacaoHelpers';
 import { TrendingUp, Megaphone, CheckCircle2, XCircle, Target, Percent, Calendar, Clock } from 'lucide-react';
 
 interface ComparacaoTabelaDetalhadaProps {
@@ -225,14 +226,17 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
                 Horas Planejadas
               </div>
             </td>
-            {dadosComparacao.map((dados, idx) => (
-              <React.Fragment key={idx}>
-                <td className="px-6 py-4 text-center font-mono text-sm text-amber-600 dark:text-amber-400 border-l border-slate-200 dark:border-slate-700">
-                  {formatarHorasParaHMS(dados.aderencia_semanal[0]?.horas_a_entregar ?? '0')}
-                </td>
-                {idx > 0 && <td className="px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50"></td>}
-              </React.Fragment>
-            ))}
+            {dadosComparacao.map((dados, idx) => {
+              const horas = getTimeMetric(dados.aderencia_semanal[0], 'horas_planejadas');
+              return (
+                <React.Fragment key={idx}>
+                  <td className="px-6 py-4 text-center font-mono text-sm text-amber-600 dark:text-amber-400 border-l border-slate-200 dark:border-slate-700">
+                    {formatarHorasParaHMS(horas)}
+                  </td>
+                  {idx > 0 && <td className="px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50"></td>}
+                </React.Fragment>
+              );
+            })}
           </tr>
 
           {/* Horas Entregues */}
@@ -243,14 +247,17 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
                 Horas Entregues
               </div>
             </td>
-            {dadosComparacao.map((dados, idx) => (
-              <React.Fragment key={idx}>
-                <td className="px-6 py-4 text-center font-mono text-sm text-blue-600 dark:text-blue-400 border-l border-slate-200 dark:border-slate-700">
-                  {formatarHorasParaHMS(dados.aderencia_semanal[0]?.horas_entregues ?? '0')}
-                </td>
-                {idx > 0 && <td className="px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50"></td>}
-              </React.Fragment>
-            ))}
+            {dadosComparacao.map((dados, idx) => {
+              const horas = getTimeMetric(dados.aderencia_semanal[0], 'horas_entregues');
+              return (
+                <React.Fragment key={idx}>
+                  <td className="px-6 py-4 text-center font-mono text-sm text-blue-600 dark:text-blue-400 border-l border-slate-200 dark:border-slate-700">
+                    {formatarHorasParaHMS(horas)}
+                  </td>
+                  {idx > 0 && <td className="px-4 py-4 bg-slate-50/50 dark:bg-slate-900/50"></td>}
+                </React.Fragment>
+              );
+            })}
           </tr>
         </tbody>
       </table>
