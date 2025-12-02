@@ -1,6 +1,7 @@
 import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatters';
+import { getWeeklyHours } from '@/utils/comparacaoHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Car, Clock } from 'lucide-react';
 
@@ -18,7 +19,7 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
   const totalCorridas = dadosComparacao.reduce((sum, d) => sum + (d.total_completadas ?? 0), 0);
 
   const horasEntregues = formatarHorasParaHMS(
-    dadosComparacao.reduce((sum, d) => sum + converterHorasParaDecimal(d.aderencia_semanal[0]?.horas_entregues ?? '0'), 0).toString()
+    dadosComparacao.reduce((sum, d) => sum + converterHorasParaDecimal(getWeeklyHours(d, 'horas_entregues')), 0).toString()
   );
 
   return (
