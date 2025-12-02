@@ -6,6 +6,7 @@ import { VariacaoBadge } from '@/components/VariacaoBadge';
 import { calcularVariacaoPercentual } from '@/utils/comparacaoCalculations';
 import { DIAS_DA_SEMANA } from '@/constants/comparacao';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { findDayData, getMetricValue } from '@/utils/comparacaoHelpers';
 
 interface ComparacaoSectionProps {
   title: string;
@@ -104,14 +105,14 @@ export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
                     <tr key={dia} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-6 py-4 text-center font-medium text-slate-900 dark:text-white">{dia}</td>
                       {dadosComparacao.map((dados, idx) => {
-                        const diaData = dados.aderencia_dia?.find(d => d.dia_da_semana === dia);
-                        const aderencia = diaData?.aderencia_percentual ?? 0;
+                        const diaData = findDayData(dia, dados.aderencia_dia);
+                        const aderencia = getMetricValue(diaData, 'aderencia_percentual');
 
                         let variacao = null;
                         if (idx > 0) {
                           const dadosAnterior = dadosComparacao[idx - 1];
-                          const diaDataAnterior = dadosAnterior.aderencia_dia?.find(d => d.dia_da_semana === dia);
-                          const aderenciaAnterior = diaDataAnterior?.aderencia_percentual ?? 0;
+                          const diaDataAnterior = findDayData(dia, dadosAnterior.aderencia_dia);
+                          const aderenciaAnterior = getMetricValue(diaDataAnterior, 'aderencia_percentual');
                           variacao = calcularVariacaoPercentual(aderenciaAnterior, aderencia);
                         }
 

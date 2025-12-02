@@ -57,6 +57,18 @@ export function createComparisonFilter(
 }
 
 /**
+ * Normaliza uma string para comparação (remove acentos e converte para minúsculas)
+ */
+function normalizeString(str: string): string {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+/**
  * Encontra os dados de aderência para um dia específico da semana
  * lida com diferentes formatos de dia (string, iso, date)
  */
@@ -66,30 +78,52 @@ export function findDayData(
 ): AderenciaDia | undefined {
   if (!aderenciaDia || aderenciaDia.length === 0) return undefined;
 
+  const diaRefNorm = normalizeString(diaRef);
+
   return aderenciaDia.find(d => {
     // Tentativa 1: Match por dia_da_semana (string)
     if (d.dia_da_semana) {
-      const diaApi = d.dia_da_semana.toLowerCase().trim();
-      const diaTarget = diaRef.toLowerCase().trim();
+      const diaApiNorm = normalizeString(d.dia_da_semana);
 
-      if (diaApi === diaTarget) return true;
-      if (diaApi.includes(diaTarget) || diaTarget.includes(diaApi)) return true;
+      if (diaApiNorm === diaRefNorm) return true;
+      if (diaApiNorm.includes(diaRefNorm) || diaRefNorm.includes(diaApiNorm)) return true;
 
+      // Mapa estendido com variações sem acento e em inglês
       const mapDias: Record<string, string> = {
-        'monday': 'segunda', 'tuesday': 'terça', 'wednesday': 'quarta',
-        'thursday': 'quinta', 'friday': 'sexta', 'saturday': 'sábado', 'sunday': 'domingo'
+        'monday': 'segunda', 'segunda': 'segunda', 'seg': 'segunda',
+        'tuesday': 'terca', 'terca': 'terca', 'ter': 'terca',
+        'wednesday': 'quarta', 'quarta': 'quarta', 'qua': 'quarta',
+        'thursday': 'quinta', 'quinta': 'quinta', 'qui': 'quinta',
+        'friday': 'sexta', 'sexta': 'sexta', 'sex': 'sexta',
+        'saturday': 'sabado', 'sabado': 'sabado', 'sab': 'sabado',
+        'sunday': 'domingo', 'domingo': 'domingo', 'dom': 'domingo'
       };
-      if (mapDias[diaApi] && mapDias[diaApi].includes(diaTarget)) return true;
+
+      // Tenta mapear ambos para uma chave comum
+      const keyApi = mapDias[diaApiNorm] || diaApiNorm;
+      const keyRef = mapDias[diaRefNorm] || diaRefNorm;
+
+      if (keyApi === keyRef) return true;
     }
 
     // Tentativa 2: Match por dia_iso (number)
     // dia_iso: 1 (Segunda) a 7 (Domingo)
     if (d.dia_iso) {
       const mapIso: Record<number, string> = {
-        1: 'segunda', 2: 'terça', 3: 'quarta', 4: 'quinta', 5: 'sexta', 6: 'sábado', 7: 'domingo'
+        1: 'segunda', 2: 'terca', 3: 'quarta', 4: 'quinta', 5: 'sexta', 6: 'sabado', 7: 'domingo'
       };
-      const diaTarget = diaRef.toLowerCase().trim();
-      if (mapIso[d.dia_iso] && mapIso[d.dia_iso].includes(diaTarget)) return true;
+      // Normalizar o valor do mapa também (embora já esteja sem acento ali)
+      const keyIso = mapIso[d.dia_iso];
+
+      // Mapa reverso para o diaRef (caso ele seja 'terça' e o mapa tenha 'terca')
+      const mapDiasRef: Record<string, string> = {
+        'segunda': 'segunda', 'terça': 'terca', 'terca': 'terca',
+        'quarta': 'quarta', 'quinta': 'quinta', 'sexta': 'sexta',
+        'sábado': 'sabado', 'sabado': 'sabado', 'domingo': 'domingo'
+      };
+      const keyRefNorm = mapDiasRef[diaRefNorm] || diaRefNorm;
+
+      if (keyIso && keyIso === keyRefNorm) return true;
     }
 
     // Tentativa 3: Se tiver campo 'data', extrair o dia da semana
@@ -98,17 +132,87 @@ export function findDayData(
         const date = new Date(d.data + 'T00:00:00');
         const dayOfWeek = date.getDay(); // 0=Domingo, 1=Segunda, ...
         const mapDayNumber: Record<number, string> = {
-          0: 'domingo', 1: 'segunda', 2: 'terça', 3: 'quarta',
-          4: 'quinta', 5: 'sexta', 6: 'sábado'
+          0: 'domingo', 1: 'segunda', 2: 'terca', 3: 'quarta',
+          4: 'quinta', 5: 'sexta', 6: 'sabado'
         };
         const diaFromDate = mapDayNumber[dayOfWeek];
-        const diaTarget = diaRef.toLowerCase().trim();
-        if (diaFromDate && diaFromDate.includes(diaTarget)) return true;
+
+        const mapDiasRef: Record<string, string> = {
+          'segunda': 'segunda', 'terça': 'terca', 'terca': 'terca',
+          'quarta': 'quarta', 'quinta': 'quinta', 'sexta': 'sexta',
+          'sábado': 'sabado', 'sabado': 'sabado', 'domingo': 'domingo'
+        };
+        const keyRefNorm = mapDiasRef[diaRefNorm] || diaRefNorm;
+
+        if (diaFromDate && diaFromDate === keyRefNorm) return true;
       } catch (e) {
         // Ignorar erros de parse de data
       }
     }
 
+    // Tentativa 4: Match por propriedade 'dia' ou 'day_name'
+    const propDia = (d as any).dia || (d as any).day_name;
+    if (propDia) {
+      const diaApiNorm = normalizeString(String(propDia));
+
+      // Mapa estendido
+      const mapDias: Record<string, string> = {
+        'monday': 'segunda', 'segunda': 'segunda',
+        'tuesday': 'terca', 'terca': 'terca', 'terça': 'terca',
+        'wednesday': 'quarta', 'quarta': 'quarta',
+        'thursday': 'quinta', 'quinta': 'quinta',
+        'friday': 'sexta', 'sexta': 'sexta',
+        'saturday': 'sabado', 'sabado': 'sabado', 'sábado': 'sabado',
+        'sunday': 'domingo', 'domingo': 'domingo'
+      };
+
+      const keyApi = mapDias[diaApiNorm] || diaApiNorm;
+
+      const mapDiasRef: Record<string, string> = {
+        'segunda': 'segunda', 'terça': 'terca', 'terca': 'terca',
+        'quarta': 'quarta', 'quinta': 'quinta', 'sexta': 'sexta',
+        'sábado': 'sabado', 'sabado': 'sabado', 'domingo': 'domingo'
+      };
+      const keyRef = mapDiasRef[diaRefNorm] || diaRefNorm;
+
+      if (keyApi === keyRef) return true;
+    }
+
     return false;
   });
+}
+
+/**
+ * Obtém o valor de uma métrica tentando diferentes chaves possíveis
+ */
+export function getMetricValue(obj: any, metricKey: string): number {
+  if (!obj) return 0;
+
+  // Mapa de variações de chaves conhecidas
+  const keyMap: Record<string, string[]> = {
+    'corridas_ofertadas': ['corridas_ofertadas', 'ofertadas', 'total_ofertadas', 'qtd_ofertadas'],
+    'corridas_aceitas': ['corridas_aceitas', 'aceitas', 'total_aceitas', 'qtd_aceitas'],
+    'corridas_rejeitadas': ['corridas_rejeitadas', 'rejeitadas', 'total_rejeitadas', 'qtd_rejeitadas'],
+    'corridas_completadas': ['corridas_completadas', 'completadas', 'total_completadas', 'qtd_completadas'],
+    'aderencia_percentual': ['aderencia_percentual', 'aderencia', 'taxa_aderencia', 'percentual_aderencia'],
+    'taxa_aceitacao': ['taxa_aceitacao', 'aceitacao', 'percentual_aceitacao'],
+    'taxa_completude': ['taxa_completude', 'completude', 'percentual_completude']
+  };
+
+  // Tentar a chave exata primeiro
+  if (obj[metricKey] !== undefined && obj[metricKey] !== null) {
+    return Number(obj[metricKey]);
+  }
+
+  // Tentar variações
+  const variations = keyMap[metricKey];
+  if (variations) {
+    for (const key of variations) {
+      if (obj[key] !== undefined && obj[key] !== null) {
+        return Number(obj[key]);
+      }
+    }
+  }
+
+  return 0;
 }

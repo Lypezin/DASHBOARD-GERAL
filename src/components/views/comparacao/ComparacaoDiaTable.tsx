@@ -4,7 +4,7 @@ import { VariacaoBadge } from '@/components/VariacaoBadge';
 import { DIAS_DA_SEMANA } from '@/constants/comparacao';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart3 } from 'lucide-react';
-import { findDayData } from '@/utils/comparacaoHelpers';
+import { findDayData, getMetricValue } from '@/utils/comparacaoHelpers';
 
 interface ComparacaoDiaTableProps {
   dadosComparacao: DashboardResumoData[];
@@ -17,15 +17,14 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
 }) => {
   // Debug logging
   React.useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('ComparacaoDiaTable - dadosComparacao:', dadosComparacao);
-      dadosComparacao.forEach((d, i) => {
-        console.log(`Semana ${semanasSelecionadas[i]} - Dias Raw:`, d.dia?.map(dia => ({
-          dia_da_semana: dia.dia_da_semana,
-          dia_iso: dia.dia_iso
-        })));
-      });
-    }
+    // Log incondicional para debug
+    console.log('ComparacaoDiaTable - dadosComparacao:', dadosComparacao);
+    dadosComparacao.forEach((d, i) => {
+      console.log(`Semana ${semanasSelecionadas[i]} - Aderencia Dia Raw:`, JSON.stringify(d.aderencia_dia, null, 2));
+      if (d.aderencia_dia && d.aderencia_dia.length > 0) {
+        console.log('Sample item keys:', Object.keys(d.aderencia_dia[0]));
+      }
+    });
   }, [dadosComparacao, semanasSelecionadas]);
 
   return (
@@ -45,6 +44,17 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
       </CardHeader>
 
       <CardContent className="p-0">
+        {/* DEBUG: Mostrar dados brutos se estiver em dev ou se solicitado */}
+        <div className="p-4 bg-slate-100 dark:bg-slate-800 text-xs font-mono overflow-auto max-h-40 mb-4">
+          <p className="font-bold text-red-500 mb-2">DEBUG INFO (Remover em produção)</p>
+          {dadosComparacao.map((d, i) => (
+            <div key={i} className="mb-2">
+              <strong>Semana {semanasSelecionadas[i]}:</strong>
+              <pre>{JSON.stringify(d.aderencia_dia?.slice(0, 2), null, 2)}</pre>
+            </div>
+          ))}
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-slate-800/50">
@@ -104,13 +114,13 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                     {dadosComparacao.map((dados, idx) => {
                       // Usar helper para encontrar dados do dia
                       const diaData = findDayData(dia, dados.aderencia_dia);
-                      const valor = diaData?.[metrica.key as keyof typeof diaData] as number ?? 0;
+                      const valor = getMetricValue(diaData, metrica.key);
 
                       let variacao = null;
                       if (idx > 0) {
                         const dadosAnterior = dadosComparacao[idx - 1];
                         const diaDataAnterior = findDayData(dia, dadosAnterior.aderencia_dia);
-                        const valorAnterior = diaDataAnterior?.[metrica.key as keyof typeof diaDataAnterior] as number ?? 0;
+                        const valorAnterior = getMetricValue(diaDataAnterior, metrica.key);
                         variacao = valorAnterior > 0 ? ((valor - valorAnterior) / valorAnterior) * 100 : 0;
                       }
 
