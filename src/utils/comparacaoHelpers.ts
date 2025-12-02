@@ -1,5 +1,6 @@
-import { CurrentUser, AderenciaDia } from '@/types';
+import { CurrentUser, AderenciaDia, DashboardResumoData } from '@/types';
 import { buildFilterPayload } from '@/utils/helpers';
+import { converterHorasParaDecimal, formatarHorasParaHMS } from '@/utils/formatters';
 
 export interface WeekInfo {
   semanaNumero: number;
@@ -244,4 +245,34 @@ export function getTimeMetric(obj: any, metricKey: string): string | number {
   }
 
   return '0';
+}
+
+/**
+ * Calcula as horas semanais, tentando pegar de aderencia_semanal ou somando de aderencia_dia
+ */
+export function getWeeklyHours(dados: DashboardResumoData, metricKey: 'horas_planejadas' | 'horas_entregues'): string {
+  // 1. Tentar pegar de aderencia_semanal
+  if (dados.aderencia_semanal && dados.aderencia_semanal.length > 0) {
+    const val = getTimeMetric(dados.aderencia_semanal[0], metricKey);
+    if (val && val !== '0' && val !== '00:00:00') {
+      return String(val);
+    }
+  }
+
+  // 2. Fallback: Somar de aderencia_dia
+  if (dados.aderencia_dia && dados.aderencia_dia.length > 0) {
+    let totalDecimal = 0;
+
+    dados.aderencia_dia.forEach(dia => {
+      // Usar getTimeMetric também para o dia, pois as chaves podem variar
+      const val = getTimeMetric(dia, metricKey);
+      totalDecimal += converterHorasParaDecimal(val);
+    });
+
+    if (totalDecimal > 0) {
+      return formatarHorasParaHMS(totalDecimal);
+    }
+  }
+
+  return '00:00:00';
 }

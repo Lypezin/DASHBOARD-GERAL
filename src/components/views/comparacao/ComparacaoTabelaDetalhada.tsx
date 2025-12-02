@@ -3,7 +3,7 @@ import { DashboardResumoData } from '@/types';
 import { VariacaoBadge } from '@/components/VariacaoBadge';
 import { calcularVariacaoPercentual } from '@/utils/comparacaoCalculations';
 import { formatarHorasParaHMS } from '@/utils/formatters';
-import { getTimeMetric } from '@/utils/comparacaoHelpers';
+import { getTimeMetric, getWeeklyHours } from '@/utils/comparacaoHelpers';
 import { TrendingUp, Megaphone, CheckCircle2, XCircle, Target, Percent, Calendar, Clock } from 'lucide-react';
 
 interface ComparacaoTabelaDetalhadaProps {
@@ -227,7 +227,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => {
-              const horas = getTimeMetric(dados.aderencia_semanal[0], 'horas_planejadas');
+              const horas = getWeeklyHours(dados, 'horas_planejadas');
               return (
                 <React.Fragment key={idx}>
                   <td className="px-6 py-4 text-center font-mono text-sm text-amber-600 dark:text-amber-400 border-l border-slate-200 dark:border-slate-700">
@@ -248,7 +248,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
               </div>
             </td>
             {dadosComparacao.map((dados, idx) => {
-              const horas = getTimeMetric(dados.aderencia_semanal[0], 'horas_entregues');
+              const horas = getWeeklyHours(dados, 'horas_entregues');
               return (
                 <React.Fragment key={idx}>
                   <td className="px-6 py-4 text-center font-mono text-sm text-blue-600 dark:text-blue-400 border-l border-slate-200 dark:border-slate-700">
