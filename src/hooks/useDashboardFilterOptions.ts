@@ -103,10 +103,13 @@ export function useDashboardFilterOptions(options: UseDashboardFiltersOptions) {
           // Processar sub-praças
           let subPracasDisponiveis: FilterOption[] = [];
           if (!subPracasResult.error && subPracasResult.data && Array.isArray(subPracasResult.data)) {
-            subPracasDisponiveis = subPracasResult.data.map((item: { sub_praca: string }) => ({
-              value: String(item.sub_praca),
-              label: String(item.sub_praca)
-            }));
+            subPracasDisponiveis = subPracasResult.data.map((item: any) => {
+              const value = typeof item === 'object' && item !== null ? (item.sub_praca || Object.values(item)[0]) : item;
+              return {
+                value: String(value),
+                label: String(value)
+              };
+            });
           } else {
             // Fallback: filtrar por nome
             if (IS_DEV) {
@@ -128,10 +131,13 @@ export function useDashboardFilterOptions(options: UseDashboardFiltersOptions) {
           // Processar turnos
           let turnosDisponiveis: FilterOption[] = [];
           if (!turnosResult.error && turnosResult.data && Array.isArray(turnosResult.data)) {
-            turnosDisponiveis = turnosResult.data.map((item: { turno: string }) => ({
-              value: String(item.turno),
-              label: String(item.turno)
-            }));
+            turnosDisponiveis = turnosResult.data.map((item: any) => {
+              const value = typeof item === 'object' && item !== null ? (item.turno || Object.values(item)[0]) : item;
+              return {
+                value: String(value),
+                label: String(value)
+              };
+            });
           } else {
             // Fallback: usar do dashboard
             if (IS_DEV) {
@@ -146,10 +152,13 @@ export function useDashboardFilterOptions(options: UseDashboardFiltersOptions) {
           // Processar origens
           let origensDisponiveis: FilterOption[] = [];
           if (!origensResult.error && origensResult.data && Array.isArray(origensResult.data)) {
-            origensDisponiveis = origensResult.data.map((item: { origem: string }) => ({
-              value: String(item.origem),
-              label: String(item.origem)
-            }));
+            origensDisponiveis = origensResult.data.map((item: any) => {
+              const value = typeof item === 'object' && item !== null ? (item.origem || Object.values(item)[0]) : item;
+              return {
+                value: String(value),
+                label: String(value)
+              };
+            });
           } else {
             // Fallback: usar do dashboard
             if (IS_DEV) {
