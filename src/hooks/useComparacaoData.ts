@@ -3,6 +3,7 @@ import { DashboardResumoData, UtrData, CurrentUser } from '@/types';
 import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { buildFilterPayload } from '@/utils/helpers';
+import { createComparisonFilter, parseWeekString } from '@/utils/comparacaoHelpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -111,47 +112,9 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     try {
       // Buscar dados para cada semana selecionada
       const promessasDados = semanasSelecionadas.map(async (semana) => {
-        // Converter string para número e extrair ano se disponível
-        let semanaNumero: number;
-        let anoNumero: number | null = null;
-
-        if (typeof semana === 'string') {
-          if (semana.includes('W')) {
-            // Formato: "2025-W45" ou "S2025-W45"
-            const anoMatch = semana.match(/(\d{4})/);
-            const semanaMatch = semana.match(/W(\d+)/);
-            anoNumero = anoMatch ? parseInt(anoMatch[1], 10) : new Date().getFullYear();
-            semanaNumero = semanaMatch ? parseInt(semanaMatch[1], 10) : parseInt(semana, 10);
-          } else {
-            // Apenas número da semana, usar ano atual
-            semanaNumero = parseInt(semana, 10);
-            anoNumero = new Date().getFullYear();
-          }
-        } else {
-          semanaNumero = semana;
-          anoNumero = new Date().getFullYear();
-        }
-
-        // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
-        // IMPORTANTE: Não incluir semanas array para evitar duplicação de agregação
-        // IMPORTANTE: Sempre passar ano junto com semana para a função RPC funcionar corretamente
-        const filters = {
-          ano: anoNumero,
-          semana: semanaNumero,
-          semanas: [], // Array vazio para evitar duplicação
-          praca: pracaSelecionada,
-          subPraca: null,
-          origem: null,
-          turno: null,
-          subPracas: [],
-          origens: [],
-          turnos: [],
-          filtroModo: 'ano_semana' as const,
-          dataInicial: null,
-          dataFinal: null,
-        };
-
-        const filtro = buildFilterPayload(filters, currentUser);
+        // Usar helper para criar filtro
+        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser);
+        const { semanaNumero, anoNumero } = parseWeekString(semana);
 
         // DEBUG: Log payload com mais detalhes
         console.log(`%c[Comparacao] 🔍 Requesting data for SEMANA ${semana}`, 'color: #3b82f6; font-weight: bold');
@@ -215,47 +178,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
       // Buscar UTR para cada semana
       const promessasUtr = semanasSelecionadas.map(async (semana) => {
-        // Converter string para número e extrair ano se disponível
-        let semanaNumero: number;
-        let anoNumero: number | null = null;
-
-        if (typeof semana === 'string') {
-          if (semana.includes('W')) {
-            // Formato: "2025-W45" ou "S2025-W45"
-            const anoMatch = semana.match(/(\d{4})/);
-            const semanaMatch = semana.match(/W(\d+)/);
-            anoNumero = anoMatch ? parseInt(anoMatch[1], 10) : new Date().getFullYear();
-            semanaNumero = semanaMatch ? parseInt(semanaMatch[1], 10) : parseInt(semana, 10);
-          } else {
-            // Apenas número da semana, usar ano atual
-            semanaNumero = parseInt(semana, 10);
-            anoNumero = new Date().getFullYear();
-          }
-        } else {
-          semanaNumero = semana;
-          anoNumero = new Date().getFullYear();
-        }
-
-        // Usar buildFilterPayload para garantir que múltiplas praças sejam tratadas corretamente
-        // IMPORTANTE: Não incluir semanas array para evitar duplicação de agregação
-        // IMPORTANTE: Sempre passar ano junto com semana para a função RPC funcionar corretamente
-        const filters = {
-          ano: anoNumero,
-          semana: semanaNumero,
-          semanas: [], // Array vazio para evitar duplicação
-          praca: pracaSelecionada,
-          subPraca: null,
-          origem: null,
-          turno: null,
-          subPracas: [],
-          origens: [],
-          turnos: [],
-          filtroModo: 'ano_semana' as const,
-          dataInicial: null,
-          dataFinal: null,
-        };
-
-        const filtro = buildFilterPayload(filters, currentUser);
+        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser);
 
         try {
           const { data, error } = await safeRpc<UtrData>('calcular_utr', filtro, {

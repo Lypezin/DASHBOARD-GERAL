@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
+import { executeAdminRpc } from '@/utils/adminHelpers';
 import { User, UserProfile } from './useAdminData';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -30,45 +30,15 @@ export function useAdminActions(
     if (!selectedUser) return;
 
     try {
-      let result: any;
-      let error: any;
-
-      try {
-        const directResult = await supabase.rpc('approve_user', {
+      const { error } = await executeAdminRpc(
+        'approve_user',
+        {
           user_id: selectedUser.id,
           pracas: selectedPracas,
           p_role: selectedRole,
           p_organization_id: selectedOrganizationId,
-        });
-        result = directResult.data;
-        error = directResult.error;
-      } catch (rpcErr) {
-        const safeResult = await safeRpc('approve_user', {
-          user_id: selectedUser.id,
-          pracas: selectedPracas,
-          p_role: selectedRole,
-          p_organization_id: selectedOrganizationId,
-        }, {
-          timeout: 30000,
-          validateParams: false
-        });
-        result = safeResult.data;
-        error = safeResult.error;
-      }
-
-      if (error) {
-        const errorCode = (error as any)?.code;
-        const errorMessage = String((error as any)?.message || '');
-        const is404 = errorCode === 'PGRST116' ||
-          errorCode === '42883' ||
-          errorMessage.includes('404') ||
-          errorMessage.includes('not found') ||
-          (errorMessage.includes('function') && errorMessage.includes('does not exist'));
-
-        if (is404) {
-          if (IS_DEV) {
-            safeLog.warn('Função RPC não encontrada, tentando atualização direta via Supabase');
-          }
+        },
+        async () => {
           const updateData: any = {
             is_approved: true,
             assigned_pracas: selectedRole === 'marketing' ? [] : selectedPracas,
@@ -82,16 +52,14 @@ export function useAdminActions(
             updateData.is_admin = (selectedRole === 'admin' || selectedRole === 'master');
           }
 
-          const { error: updateError } = await supabase
+          return supabase
             .from('user_profiles')
             .update(updateData)
             .eq('id', selectedUser.id);
-
-          if (updateError) throw updateError;
-        } else {
-          throw error;
         }
-      }
+      );
+
+      if (error) throw error;
 
       setShowModal(false);
       setSelectedUser(null);
@@ -126,38 +94,15 @@ export function useAdminActions(
     if (!editingUser) return;
 
     try {
-      let result: any;
-      let error: any;
-
-      try {
-        const directResult = await supabase.rpc('update_user_pracas', {
+      const { error } = await executeAdminRpc(
+        'update_user_pracas',
+        {
           user_id: editingUser.id,
           pracas: selectedPracas,
           p_role: selectedRole,
           p_organization_id: selectedOrganizationId,
-        });
-        result = directResult.data;
-        error = directResult.error;
-      } catch (rpcErr) {
-        const safeResult = await safeRpc('update_user_pracas', {
-          user_id: editingUser.id,
-          pracas: selectedPracas,
-          p_role: selectedRole,
-          p_organization_id: selectedOrganizationId,
-        }, {
-          timeout: 30000,
-          validateParams: false
-        });
-        result = safeResult.data;
-        error = safeResult.error;
-      }
-
-      if (error) {
-        if ((error as any)?.code === 'PGRST116' || (error as any)?.message?.includes('404') || (error as any)?.message?.includes('not found')) {
-          if (IS_DEV) {
-            safeLog.warn('Função RPC não encontrada, tentando atualização direta via Supabase');
-          }
-
+        },
+        async () => {
           const updateData: any = {
             assigned_pracas: selectedRole === 'marketing' ? [] : selectedPracas
           };
@@ -171,16 +116,14 @@ export function useAdminActions(
             updateData.organization_id = selectedOrganizationId;
           }
 
-          const { error: updateError } = await supabase
+          return supabase
             .from('user_profiles')
             .update(updateData)
             .eq('id', editingUser.id);
-
-          if (updateError) throw updateError;
-        } else {
-          throw error;
         }
-      }
+      );
+
+      if (error) throw error;
 
       setShowEditModal(false);
       setEditingUser(null);
@@ -207,43 +150,21 @@ export function useAdminActions(
     if (!confirm('Tem certeza que deseja revogar o acesso deste usuário?')) return;
 
     try {
-      const { error } = await safeRpc('revoke_user_access', {
-        user_id: userId,
-      }, {
-        timeout: 30000,
-        validateParams: true
-      });
+      const { error } = await executeAdminRpc(
+        'revoke_user_access',
+        { user_id: userId },
+        async () => supabase
+          .from('user_profiles')
+          .update({
+            is_approved: false,
+            status: 'pending',
+            role: 'user',
+            assigned_pracas: []
+          })
+          .eq('id', userId)
+      );
 
-      if (error) {
-        // Se der erro no RPC, tentar atualizar diretamente
-        const errorCode = (error as any)?.code;
-        const errorMessage = String((error as any)?.message || '');
-        const is404 = errorCode === 'PGRST116' ||
-          errorCode === '42883' ||
-          errorMessage.includes('404') ||
-          errorMessage.includes('not found') ||
-          (errorMessage.includes('function') && errorMessage.includes('does not exist'));
-
-        if (is404) {
-          if (IS_DEV) {
-            safeLog.warn('Função revoke_user_access não encontrada, tentando atualização direta');
-          }
-
-          const { error: updateError } = await supabase
-            .from('user_profiles')
-            .update({
-              is_approved: false,
-              status: 'pending',
-              role: 'user',
-              assigned_pracas: []
-            })
-            .eq('id', userId);
-
-          if (updateError) throw updateError;
-        } else {
-          throw error;
-        }
-      }
+      if (error) throw error;
       fetchData();
     } catch (err: any) {
       alert('Erro ao revogar acesso: ' + err.message);
@@ -255,27 +176,13 @@ export function useAdminActions(
     if (!confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
 
     try {
-      let data: any = null;
-      let error: any = null;
-
-      try {
-        const result = await supabase.rpc('set_user_admin', {
+      const { data, error } = await executeAdminRpc(
+        'set_user_admin',
+        {
           user_id: userId,
           make_admin: !currentIsAdmin,
-        });
-        data = result.data;
-        error = result.error;
-      } catch (rpcErr) {
-        const safeResult = await safeRpc('set_user_admin', {
-          user_id: userId,
-          make_admin: !currentIsAdmin,
-        }, {
-          timeout: 30000,
-          validateParams: false
-        });
-        data = safeResult.data;
-        error = safeResult.error;
-      }
+        }
+      );
 
       if (error) {
         if (IS_DEV) {

@@ -40,76 +40,15 @@ const functionAvailability = {
 import type { DashboardFilters } from '@/types/filters';
 import type { CurrentUser } from '@/types';
 
+import { useSessionId } from './useSessionId';
+
 export function useUserActivity(
   activeTab: string,
   filters: DashboardFilters | Record<string, unknown>,
   currentUser: CurrentUser | null
 ) {
   const [isPageVisible, setIsPageVisible] = useState(true);
-  const [sessionId, setSessionId] = useState<string>('');
-
-  // Obter sessionId do Supabase com retry e listener
-  useEffect(() => {
-    let mounted = true;
-    let retryTimeout: NodeJS.Timeout | null = null;
-    
-    const getSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (mounted && session?.user?.id) {
-          setSessionId(session.user.id);
-          if (IS_DEV) {
-            safeLog.info('SessionId capturado:', session.user.id);
-          }
-        } else if (mounted) {
-          // Tentar novamente após 1 segundo se não conseguir na primeira tentativa
-          retryTimeout = setTimeout(async () => {
-            if (!mounted) return;
-            try {
-              const { data: { session: retrySession } } = await supabase.auth.getSession();
-              if (retrySession?.user?.id && mounted) {
-                setSessionId(retrySession.user.id);
-                if (IS_DEV) {
-                  safeLog.info('SessionId capturado no retry:', retrySession.user.id);
-                }
-              }
-            } catch (err) {
-              if (IS_DEV) {
-                safeLog.warn('Erro ao capturar sessionId no retry:', err);
-              }
-            }
-          }, 1000);
-        }
-      } catch (err) {
-        if (IS_DEV) {
-          safeLog.warn('Erro ao capturar sessionId:', err);
-        }
-      }
-    };
-    
-    // Capturar sessionId inicial
-    getSession();
-    
-    // Listener para mudanças na sessão
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (mounted && session?.user?.id) {
-        setSessionId(session.user.id);
-        if (IS_DEV) {
-          safeLog.info('SessionId atualizado via listener:', session.user.id);
-        }
-      } else if (mounted && event === 'SIGNED_OUT') {
-        setSessionId('');
-      }
-    });
-
-    return () => {
-      mounted = false;
-      if (retryTimeout) {
-        clearTimeout(retryTimeout);
-      }
-      subscription.unsubscribe();
-    };
-  }, []);
+  const sessionId = useSessionId();
 
   // Usar refs para evitar dependências desnecessárias
   const activeTabRef = useRef(activeTab);
@@ -145,7 +84,7 @@ export function useUserActivity(
       // Resetar status para tentar novamente
       functionAvailability.status = null;
     }
-    
+
     try {
       let descricaoDetalhada = '';
       const tabNames: Record<string, string> = {
@@ -170,7 +109,7 @@ export function useUserActivity(
           if (filtersObj.sub_praca || filtersObj.subPraca) filtros.push(`Sub-Praça: ${filtersObj.sub_praca || filtersObj.subPraca}`);
           if (filtersObj.origem) filtros.push(`Origem: ${filtersObj.origem}`);
           if (filtersObj.turno) filtros.push(`Turno: ${filtersObj.turno}`);
-          
+
           if (filtros.length > 0) {
             descricaoDetalhada = `Filtrou: ${filtros.join(', ')} na aba ${nomeAba}`;
           } else {
@@ -195,7 +134,7 @@ export function useUserActivity(
         default:
           descricaoDetalhada = typeof action_details === 'string' ? action_details : `${action_type} na aba ${nomeAba}`;
       }
-      
+
       // Garantir que sessionId não está vazio
       if (!sessionId || sessionId.trim() === '') {
         if (IS_DEV) {
@@ -219,12 +158,12 @@ export function useUserActivity(
         // Ignorar erros 404 (função não encontrada) e heartbeat silenciosamente
         const errorCode = error?.code;
         const errorMessage = String(error?.message || '');
-        const is404 = errorCode === 'PGRST116' || errorCode === '42883' || 
-                      errorCode === 'PGRST204' ||
-                      errorMessage.includes('404') || 
-                      errorMessage.includes('not found') ||
-                      (errorMessage.includes('function') && errorMessage.includes('does not exist'));
-        
+        const is404 = errorCode === 'PGRST116' || errorCode === '42883' ||
+          errorCode === 'PGRST204' ||
+          errorMessage.includes('404') ||
+          errorMessage.includes('not found') ||
+          (errorMessage.includes('function') && errorMessage.includes('does not exist'));
+
         if (is404) {
           // Marcar função como indisponível para evitar chamadas futuras
           functionAvailability.status = false;
@@ -237,12 +176,12 @@ export function useUserActivity(
           if (functionAvailability.status === null) {
             functionAvailability.status = true;
           }
-          
+
           // Para heartbeat, ignorar silenciosamente todos os erros
           if (action_type === 'heartbeat') {
             return;
           }
-          
+
           // Apenas logar erros não-404 e não-heartbeat em desenvolvimento
           if (IS_DEV) {
             safeLog.warn('Erro ao registrar atividade:', { error, action_type });
@@ -266,7 +205,7 @@ export function useUserActivity(
   const tabChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (!currentUserRef.current || !sessionId) return;
-    
+
     // Limpar timeout anterior se existir
     if (tabChangeTimeoutRef.current) {
       clearTimeout(tabChangeTimeoutRef.current);
@@ -286,7 +225,7 @@ export function useUserActivity(
 
   useEffect(() => {
     if (!currentUserRef.current || !sessionId) return;
-    
+
     if (Object.values(filtersRef.current).some(v => v !== null && v !== undefined && (Array.isArray(v) ? v.length > 0 : true))) {
       registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current);
     }
@@ -296,11 +235,11 @@ export function useUserActivity(
 
   useEffect(() => {
     if (!sessionId) return;
-    
+
     const handleVisibilityChange = () => {
       const visible = !document.hidden;
       setIsPageVisible(visible);
-      
+
       if (currentUserRef.current && sessionId) {
         if (visible) {
           registrarAtividade('page_visible', {}, activeTabRef.current, filtersRef.current);
@@ -311,7 +250,7 @@ export function useUserActivity(
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -321,12 +260,12 @@ export function useUserActivity(
 
   useEffect(() => {
     if (!currentUserRef.current || !sessionId) return;
-    
+
     // Registrar login apenas uma vez quando o usuário é carregado
     const loginTimeout = setTimeout(() => {
       registrarAtividade('login', { dispositivo: 'web' }, activeTabRef.current, filtersRef.current);
     }, 500); // Pequeno delay para garantir que tudo está inicializado
-    
+
     const heartbeatInterval = setInterval(() => {
       // Só enviar heartbeat se a função estiver disponível e a página estiver visível
       if (currentUserRef.current && isPageVisible && sessionId && functionAvailability.status !== false) {

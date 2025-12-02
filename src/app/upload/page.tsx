@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { UploadSection } from '@/components/upload/UploadSection';
 import { UploadRefreshMVs } from '@/components/upload/UploadRefreshMVs';
+import { UploadHeader } from '@/components/upload/UploadHeader';
 import { useUploadAuth } from '@/hooks/useUploadAuth';
 import { useCorridasUpload } from '@/hooks/useCorridasUpload';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useOrganizationSelection } from '@/hooks/useOrganizationSelection';
 import { validateFile } from '@/utils/fileValidation';
 import {
   COLUMN_MAP,
@@ -14,16 +16,8 @@ import {
   VALORES_CIDADE_COLUMN_MAP,
 } from '@/constants/upload';
 import { marketingTransformers, valoresCidadeTransformers } from '@/utils/uploadTransformers';
-import { Button } from '@/components/ui/button';
 import { PageLoading } from '@/components/ui/loading';
-import { RefreshCw, BarChart2, Megaphone, DollarSign, Building2 } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-interface Organization {
-  id: string;
-  name: string;
-}
+import { BarChart2, Megaphone, DollarSign } from 'lucide-react';
 
 export default function UploadPage() {
   const { loading, isAuthorized, user } = useUploadAuth();
@@ -31,10 +25,13 @@ export default function UploadPage() {
   const [valoresCidadeFiles, setValoresCidadeFiles] = useState<File[]>([]);
   const [showRetry, setShowRetry] = useState(false);
 
-  // Estado para organização selecionada (para admins globais)
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [selectedOrgId, setSelectedOrgId] = useState<string>('');
-  const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
+  // Hook para seleção de organização
+  const {
+    organizations,
+    selectedOrgId,
+    setSelectedOrgId,
+    isLoadingOrgs
+  } = useOrganizationSelection(isAuthorized, user);
 
   // Mostrar botão de retry se o loading demorar muito
   useEffect(() => {
@@ -48,62 +45,6 @@ export default function UploadPage() {
       setShowRetry(false);
     }
   }, [loading]);
-
-  // Carregar organizações se for admin GLOBAL
-  useEffect(() => {
-    if (isAuthorized && user?.id) {
-      const fetchOrgs = async () => {
-        setIsLoadingOrgs(true);
-        try {
-          // Verificar se é admin global primeiro
-          const { data: isGlobal } = await supabase.rpc('is_global_admin');
-
-          if (!isGlobal) {
-            // Se não for global, definir apenas a organização do usuário e não carregar lista
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('organization_id')
-              .eq('id', user.id)
-              .single();
-
-            if (profile?.organization_id) {
-              setSelectedOrgId(profile.organization_id);
-            }
-            setOrganizations([]); // Não mostrar lista
-            return;
-          }
-
-          // Se for global, carregar lista
-          const { data, error } = await supabase
-            .from('organizations')
-            .select('id, name')
-            .order('name');
-
-          if (data) {
-            setOrganizations(data);
-            // Tentar selecionar a organização do usuário atual como padrão
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('organization_id')
-              .eq('id', user.id)
-              .single();
-
-            if (profile?.organization_id) {
-              setSelectedOrgId(profile.organization_id);
-            } else if (data.length > 0) {
-              setSelectedOrgId(data[0].id);
-            }
-          }
-        } catch (error) {
-          console.error('Erro ao carregar organizações:', error);
-        } finally {
-          setIsLoadingOrgs(false);
-        }
-      };
-
-      fetchOrgs();
-    }
-  }, [isAuthorized, user]);
 
   // Hook para upload de corridas
   const corridasUpload = useCorridasUpload({
@@ -217,37 +158,14 @@ export default function UploadPage() {
     <ErrorBoundary>
       <div className="min-h-screen bg-background p-8">
         <div className="mx-auto max-w-[1600px] space-y-8">
-          {/* Cabeçalho e Seletor de Organização */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-3xl font-bold tracking-tight">Upload de Dados</h1>
-              <p className="text-muted-foreground">
-                Importe suas planilhas Excel para o sistema
-              </p>
-            </div>
-
-            {/* Seletor de Organização (Visível APENAS para Admins Globais/Master) */}
-            {isAuthorized && user?.id && organizations.length > 0 && (
-              <div className="flex items-center gap-3 bg-card p-4 rounded-lg border shadow-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Building2 className="h-5 w-5" />
-                  <span className="text-sm font-medium">Organização Alvo:</span>
-                </div>
-                <Select value={selectedOrgId} onValueChange={setSelectedOrgId} disabled={isLoadingOrgs}>
-                  <SelectTrigger className="w-[250px]">
-                    <SelectValue placeholder="Selecione uma organização" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
+          <UploadHeader
+            isAuthorized={isAuthorized}
+            user={user}
+            organizations={organizations}
+            selectedOrgId={selectedOrgId}
+            isLoadingOrgs={isLoadingOrgs}
+            onOrgChange={setSelectedOrgId}
+          />
 
           {/* Grid de Uploads - Três seções lado a lado */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
