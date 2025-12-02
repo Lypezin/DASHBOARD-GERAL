@@ -82,9 +82,10 @@ export function findDayData(
   const diaRefNorm = normalizeString(diaRef);
 
   return aderenciaDia.find(d => {
-    // Tentativa 1: Match por dia_da_semana (string)
-    if (d.dia_da_semana) {
-      const diaApiNorm = normalizeString(d.dia_da_semana);
+    // Tentativa 1: Match por dia_da_semana (string) ou dia_semana (backend)
+    const diaApi = d.dia_da_semana || d.dia_semana;
+    if (diaApi) {
+      const diaApiNorm = normalizeString(diaApi);
 
       if (diaApiNorm === diaRefNorm) return true;
       if (diaApiNorm.includes(diaRefNorm) || diaRefNorm.includes(diaApiNorm)) return true;

@@ -31,6 +31,7 @@ export interface AderenciaDia {
   taxa_completude?: number;
   // Campos calculados (adicionados em runtime)
   dia_da_semana?: string;
+  dia_semana?: string;
   dia_iso?: number;
 }
 
