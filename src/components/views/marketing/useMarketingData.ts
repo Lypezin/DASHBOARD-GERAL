@@ -28,34 +28,41 @@ export function useMarketingData() {
 
     const fetchTotals = useCallback(async () => {
         try {
-            // Verificar se há pelo menos um filtro de data definido
+            // Se não houver filtro, usar o mês atual como padrão
             const hasFilter =
                 filters.filtroEnviados.dataInicial ||
                 filters.filtroLiberacao.dataInicial ||
                 filters.filtroRodouDia.dataInicial;
 
+            let defaultStart = null;
+            let defaultEnd = null;
+
             if (!hasFilter) {
-                setTotals({ criado: 0, enviado: 0, liberado: 0, rodandoInicio: 0 });
-                return;
+                const now = new Date();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                defaultStart = firstDay.toISOString().split('T')[0];
+                defaultEnd = lastDay.toISOString().split('T')[0];
             }
 
             // Obter organization_id do usuário atual
             const organizationId = await getCurrentUserOrganizationId();
 
             // Tentar usar RPC primeiro
-            // Sempre passar todos os parâmetros (null quando não há filtro)
+            // Se tiver filtro específico, usa ele. Se não, usa o default (mês atual) para todos os campos de data
+            // Isso garante que a dashboard sempre mostre algo relevante
             const { data: rpcData, error: rpcError } = await safeRpc<Array<{
                 criado: number;
                 enviado: number;
                 liberado: number;
                 rodando_inicio: number;
             }>>('get_marketing_totals', {
-                data_envio_inicial: filters.filtroEnviados.dataInicial || null,
-                data_envio_final: filters.filtroEnviados.dataFinal || null,
-                data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
-                data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
-                rodou_dia_inicial: filters.filtroRodouDia.dataInicial || null,
-                rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
+                data_envio_inicial: filters.filtroEnviados.dataInicial || defaultStart,
+                data_envio_final: filters.filtroEnviados.dataFinal || defaultEnd,
+                data_liberacao_inicial: filters.filtroLiberacao.dataInicial || defaultStart,
+                data_liberacao_final: filters.filtroLiberacao.dataFinal || defaultEnd,
+                rodou_dia_inicial: filters.filtroRodouDia.dataInicial || defaultStart,
+                rodou_dia_final: filters.filtroRodouDia.dataFinal || defaultEnd,
                 p_organization_id: organizationId,
             }, { validateParams: false });
 
@@ -85,19 +92,35 @@ export function useMarketingData() {
             let enviadoQuery = supabase
                 .from('dados_marketing')
                 .select('*', { count: 'exact', head: true });
-            enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
+            
+            // Aplicar filtro ou default
+            if (filters.filtroEnviados.dataInicial) {
+                 enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
+            } else if (defaultStart && defaultEnd) {
+                 enviadoQuery = enviadoQuery.gte('data_envio', defaultStart).lte('data_envio', defaultEnd);
+            }
             const { count: enviadoCount } = await enviadoQuery;
 
             let liberadoQuery = supabase
                 .from('dados_marketing')
                 .select('*', { count: 'exact', head: true });
-            liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
+            
+            if (filters.filtroLiberacao.dataInicial) {
+                liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
+            } else if (defaultStart && defaultEnd) {
+                liberadoQuery = liberadoQuery.gte('data_liberacao', defaultStart).lte('data_liberacao', defaultEnd);
+            }
             const { count: liberadoCount } = await liberadoQuery;
 
             let rodandoQuery = supabase
                 .from('dados_marketing')
                 .select('*', { count: 'exact', head: true });
-            rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
+            
+            if (filters.filtroRodouDia.dataInicial) {
+                rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
+            } else if (defaultStart && defaultEnd) {
+                rodandoQuery = rodandoQuery.gte('rodou_dia', defaultStart).lte('rodou_dia', defaultEnd);
+            }
             const { count: rodandoCount } = await rodandoQuery;
 
             setTotals({
@@ -114,34 +137,39 @@ export function useMarketingData() {
 
     const fetchCitiesData = useCallback(async () => {
         try {
-            // Verificar se há pelo menos um filtro de data definido
+            // Se não houver filtro, usar o mês atual como padrão
             const hasFilter =
                 filters.filtroEnviados.dataInicial ||
                 filters.filtroLiberacao.dataInicial ||
                 filters.filtroRodouDia.dataInicial;
 
+            let defaultStart = null;
+            let defaultEnd = null;
+
             if (!hasFilter) {
-                setCitiesData([]);
-                return;
+                const now = new Date();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                defaultStart = firstDay.toISOString().split('T')[0];
+                defaultEnd = lastDay.toISOString().split('T')[0];
             }
 
             // Obter organization_id do usuário atual
             const organizationId = await getCurrentUserOrganizationId();
 
             // Tentar usar RPC primeiro
-            // Sempre passar todos os parâmetros (null quando não há filtro)
             const { data: rpcData, error: rpcError } = await safeRpc<Array<{
                 cidade: string;
                 enviado: number;
                 liberado: number;
                 rodando_inicio: number;
             }>>('get_marketing_cities_data', {
-                data_envio_inicial: filters.filtroEnviados.dataInicial || null,
-                data_envio_final: filters.filtroEnviados.dataFinal || null,
-                data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
-                data_liberacao_final: filters.filtroLiberacao.dataFinal || null,
-                rodou_dia_inicial: filters.filtroRodouDia.dataInicial || null,
-                rodou_dia_final: filters.filtroRodouDia.dataFinal || null,
+                data_envio_inicial: filters.filtroEnviados.dataInicial || defaultStart,
+                data_envio_final: filters.filtroEnviados.dataFinal || defaultEnd,
+                data_liberacao_inicial: filters.filtroLiberacao.dataInicial || defaultStart,
+                data_liberacao_final: filters.filtroLiberacao.dataFinal || defaultEnd,
+                rodou_dia_inicial: filters.filtroRodouDia.dataInicial || defaultStart,
+                rodou_dia_final: filters.filtroRodouDia.dataFinal || defaultEnd,
                 p_organization_id: organizationId,
             }, { validateParams: false });
 
@@ -173,21 +201,36 @@ export function useMarketingData() {
                     .from('dados_marketing')
                     .select('*', { count: 'exact', head: true });
                 enviadoQuery = buildCityQuery(enviadoQuery, cidade);
-                enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
+                
+                if (filters.filtroEnviados.dataInicial) {
+                    enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
+                } else if (defaultStart && defaultEnd) {
+                    enviadoQuery = enviadoQuery.gte('data_envio', defaultStart).lte('data_envio', defaultEnd);
+                }
                 const { count: enviadoCount } = await enviadoQuery;
 
                 let liberadoQuery = supabase
                     .from('dados_marketing')
                     .select('*', { count: 'exact', head: true });
                 liberadoQuery = buildCityQuery(liberadoQuery, cidade);
-                liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
+                
+                if (filters.filtroLiberacao.dataInicial) {
+                    liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
+                } else if (defaultStart && defaultEnd) {
+                    liberadoQuery = liberadoQuery.gte('data_liberacao', defaultStart).lte('data_liberacao', defaultEnd);
+                }
                 const { count: liberadoCount } = await liberadoQuery;
 
                 let rodandoQuery = supabase
                     .from('dados_marketing')
                     .select('*', { count: 'exact', head: true });
                 rodandoQuery = buildCityQuery(rodandoQuery, cidade);
-                rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
+                
+                if (filters.filtroRodouDia.dataInicial) {
+                    rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
+                } else if (defaultStart && defaultEnd) {
+                    rodandoQuery = rodandoQuery.gte('rodou_dia', defaultStart).lte('rodou_dia', defaultEnd);
+                }
                 const { count: rodandoCount } = await rodandoQuery;
 
                 citiesDataArray.push({
