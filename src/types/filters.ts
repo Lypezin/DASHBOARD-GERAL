@@ -35,6 +35,9 @@ export interface ValidatedFilterPayload {
   p_sub_praca?: string;
   p_origem?: string;
   p_turno?: string;
+  p_sub_pracas?: string[];
+  p_origens?: string[];
+  p_turnos?: string[];
   p_limite_semanas?: number;
 }
 

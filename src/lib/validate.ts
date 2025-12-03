@@ -38,25 +38,25 @@ export function validateFilterPayload(payload: FilterPayload): ValidatedFilterPa
       if (!dateRegex.test(dataInicial)) {
         throw new Error('Data inicial inválida. Use o formato YYYY-MM-DD.');
       }
-      
+
       const data = new Date(dataInicial);
       if (isNaN(data.getTime())) {
         throw new Error('Data inicial inválida.');
       }
-      
+
       // Validar range: não permitir datas futuras ou muito antigas
       const hoje = new Date();
       hoje.setHours(23, 59, 59, 999); // Fim do dia de hoje
       const dataMinima = new Date('2020-01-01');
-      
+
       if (data > hoje) {
         throw new Error('Data inicial não pode ser futura.');
       }
-      
+
       if (data < dataMinima) {
         throw new Error('Data inicial não pode ser anterior a 2020-01-01.');
       }
-      
+
       validated.p_data_inicial = dataInicial;
     }
   }
@@ -70,25 +70,25 @@ export function validateFilterPayload(payload: FilterPayload): ValidatedFilterPa
       if (!dateRegex.test(dataFinal)) {
         throw new Error('Data final inválida. Use o formato YYYY-MM-DD.');
       }
-      
+
       const data = new Date(dataFinal);
       if (isNaN(data.getTime())) {
         throw new Error('Data final inválida.');
       }
-      
+
       // Validar range: não permitir datas futuras ou muito antigas
       const hoje = new Date();
       hoje.setHours(23, 59, 59, 999); // Fim do dia de hoje
       const dataMinima = new Date('2020-01-01');
-      
+
       if (data > hoje) {
         throw new Error('Data final não pode ser futura.');
       }
-      
+
       if (data < dataMinima) {
         throw new Error('Data final não pode ser anterior a 2020-01-01.');
       }
-      
+
       // Validar que data final >= data inicial
       if (validated.p_data_inicial) {
         const dataIni = new Date(validated.p_data_inicial);
@@ -96,11 +96,11 @@ export function validateFilterPayload(payload: FilterPayload): ValidatedFilterPa
           throw new Error('Data final deve ser maior ou igual à data inicial.');
         }
       }
-      
+
       validated.p_data_final = dataFinal;
     }
   }
-  
+
   // Se apenas uma data foi fornecida, usar a mesma para ambas (filtrar 1 dia)
   if (validated.p_data_inicial && !validated.p_data_final) {
     validated.p_data_final = validated.p_data_inicial;
@@ -112,7 +112,7 @@ export function validateFilterPayload(payload: FilterPayload): ValidatedFilterPa
   // Validar praça (pode ser string única ou múltiplas separadas por vírgula)
   if (payload.p_praca) {
     let pracas: string[];
-    
+
     if (Array.isArray(payload.p_praca)) {
       pracas = payload.p_praca;
     } else if (typeof payload.p_praca === 'string') {
@@ -150,7 +150,7 @@ export function validateFilterPayload(payload: FilterPayload): ValidatedFilterPa
   // Validar sub-praças (array ou string separada por vírgula)
   if (payload.p_sub_praca) {
     let subPracas: string[];
-    
+
     if (Array.isArray(payload.p_sub_praca)) {
       subPracas = payload.p_sub_praca;
     } else if (typeof payload.p_sub_praca === 'string') {
@@ -183,7 +183,7 @@ export function validateFilterPayload(payload: FilterPayload): ValidatedFilterPa
   // Validar origens (mesma lógica de sub-praças)
   if (payload.p_origem) {
     let origens: string[];
-    
+
     if (Array.isArray(payload.p_origem)) {
       origens = payload.p_origem;
     } else if (typeof payload.p_origem === 'string') {
@@ -215,7 +215,7 @@ export function validateFilterPayload(payload: FilterPayload): ValidatedFilterPa
   // Validar turnos (mesma lógica)
   if (payload.p_turno) {
     let turnos: string[];
-    
+
     if (Array.isArray(payload.p_turno)) {
       turnos = payload.p_turno;
     } else if (typeof payload.p_turno === 'string') {
@@ -242,6 +242,36 @@ export function validateFilterPayload(payload: FilterPayload): ValidatedFilterPa
       });
 
     validated.p_turno = turnos.join(',');
+  }
+
+  // Validar p_sub_pracas (array)
+  if (payload.p_sub_pracas && Array.isArray(payload.p_sub_pracas) && payload.p_sub_pracas.length > 0) {
+    const subPracas = payload.p_sub_pracas
+      .slice(0, 50)
+      .map(s => String(s).trim())
+      .filter(s => s.length > 0 && s.length <= 100);
+
+    validated.p_sub_pracas = subPracas;
+  }
+
+  // Validar p_origens (array)
+  if (payload.p_origens && Array.isArray(payload.p_origens) && payload.p_origens.length > 0) {
+    const origens = payload.p_origens
+      .slice(0, 50)
+      .map(s => String(s).trim())
+      .filter(s => s.length > 0 && s.length <= 100);
+
+    validated.p_origens = origens;
+  }
+
+  // Validar p_turnos (array)
+  if (payload.p_turnos && Array.isArray(payload.p_turnos) && payload.p_turnos.length > 0) {
+    const turnos = payload.p_turnos
+      .slice(0, 50)
+      .map(s => String(s).trim())
+      .filter(s => s.length > 0 && s.length <= 100);
+
+    validated.p_turnos = turnos;
   }
 
   // Validar limite (para queries que aceitam)
@@ -290,7 +320,7 @@ export function validateString(
   }
 
   const str = String(value).trim();
-  
+
   if (!allowEmpty && str.length === 0) {
     throw new Error(`${fieldName} não pode estar vazio.`);
   }
