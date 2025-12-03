@@ -24,59 +24,112 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
     const { user } = useAuth();
     const [selectedWeek, setSelectedWeek] = React.useState<string | null>(null);
 
-    // Gerar últimas 12 semanas com datas e labels amigáveis
+    // Gerar semanas do ano atual (da semana 1 até a atual)
     const weeks = React.useMemo(() => {
         const result = [];
         const today = new Date();
+        const currentYear = today.getFullYear();
 
-        for (let i = 0; i < 12; i++) {
-            const d = new Date(today);
-            d.setDate(d.getDate() - (i * 7));
+        // Começar do dia 1 de janeiro do ano atual
+        const startDate = new Date(currentYear, 0, 1);
 
-            // Get ISO week number
-            const target = new Date(d.valueOf());
-            const dayNr = (d.getDay() + 6) % 7;
-            target.setDate(target.getDate() - dayNr + 3);
-            const firstThursday = target.valueOf();
-            target.setMonth(0, 1);
-            if (target.getDay() !== 4) {
-                target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+        // Encontrar a primeira segunda-feira ou o início da primeira semana ISO
+        // Ajuste simples: iterar semana a semana até passar da data atual
+
+        let currentWeekStart = new Date(startDate);
+        // Ajustar para a primeira segunda-feira se necessário, ou usar lógica ISO
+        // Para simplificar e garantir consistência com o backend (Postgres 'IW'), vamos usar uma biblioteca ou lógica robusta
+        // Mas aqui vamos iterar:
+
+        // Função auxiliar para obter número da semana ISO
+        const getWeekNumber = (d: Date) => {
+            const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            const dayNum = date.getUTCDay() || 7;
+            date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+            return Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+        };
+
+        // Começar um pouco antes para garantir que pegamos a semana 1
+        let d = new Date(currentYear, 0, 1);
+
+        // Se 1 de jan não for segunda, voltar para a segunda anterior para começar a semana completa
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // ajusta para segunda-feira
+        d.setDate(diff);
+
+        while (d <= today || getWeekNumber(d) === 1) { // Continua enquanto for menor que hoje ou se for a semana 1 (para garantir inicio)
+            // Se passou do ano e não é semana 1, para.
+            if (d.getFullYear() > currentYear && getWeekNumber(d) !== 1) break;
+
+            const weekNum = getWeekNumber(d);
+
+            // Se estamos no ano anterior mas é semana 52/53, ignorar se queremos apenas ano atual, 
+            // mas ISO weeks podem cruzar anos. O usuário pediu "Semanas começarem na 01".
+            // Vamos focar nas semanas que têm a maior parte no ano atual ou são do ano atual.
+
+            const startOfWeek = new Date(d);
+            const endOfWeek = new Date(d);
+            endOfWeek.setDate(endOfWeek.getDate() + 6);
+
+            // Format label
+            const startStr = startOfWeek.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            const endStr = endOfWeek.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+            // Adicionar apenas se a semana pertencer majoritariamente ao ano atual ou se for a semana 1
+            // O backend usa YYYY-"W"IW.
+            // Vamos garantir que o ID bata com o que o backend espera/retorna se filtrarmos.
+            // Mas o filtro de data é por DATA, não por ID de semana. O ID é só pra UI.
+
+            // Evitar duplicatas e loops infinitos
+            if (result.length > 0 && result[result.length - 1].id === `${currentYear}-W${weekNum}`) {
+                d.setDate(d.getDate() + 7);
+                continue;
             }
-            const weekNumber = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
-            const year = d.getFullYear();
 
-            // Calculate Start (Monday) and End (Sunday) dates
-            const simple = new Date(year, 0, 1 + (weekNumber - 1) * 7);
-            const dayOfWeek = simple.getDay();
-            const isoWeekStart = simple;
-            if (dayOfWeek <= 4)
-                isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
-            else
-                isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+            // Só adiciona se o ano da semana ISO for o ano atual (ou se for a primeira semana que pode começar ano passado)
+            // Simplificação: Mostrar todas as semanas que começam este ano até hoje.
 
-            const start = new Date(isoWeekStart);
-            const end = new Date(start);
-            end.setDate(end.getDate() + 6);
-
-            // Format label: "S47 (17/11 - 23/11)"
-            const startStr = start.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-            const endStr = end.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            if (weekNum > 53) { // Safety break
+                break;
+            }
 
             result.push({
-                id: `${year}-W${weekNumber}`,
-                label: `Semana ${weekNumber}`,
+                id: `${currentYear}-W${weekNum}`,
+                label: `Semana ${weekNum}`,
                 subLabel: `${startStr} - ${endStr}`,
-                start: start.toISOString().split('T')[0],
-                end: end.toISOString().split('T')[0]
+                start: startOfWeek.toISOString().split('T')[0],
+                end: endOfWeek.toISOString().split('T')[0]
             });
+
+            d.setDate(d.getDate() + 7);
+
+            if (d > today) break;
         }
-        return result;
+
+        // Inverter para mostrar a mais recente primeiro (opcional, mas comum em dashboards)
+        // O usuário pediu "começar na 01", talvez queira ordem ascendente?
+        // "As semanas deveriam começar na 01" -> sugere lista ordenada 1..N
+        // Vamos ordenar ASC (1, 2, 3...)
+        return result.sort((a, b) => {
+            const wA = parseInt(a.id.split('W')[1]);
+            const wB = parseInt(b.id.split('W')[1]);
+            return wA - wB;
+        });
     }, []);
 
     const handleWeekSelect = (weekId: string | null, start: string, end: string) => {
         if (!weekId) {
             setSelectedWeek(null);
-            handleFilterChange('filtroDataInicio', { dataInicial: null, dataFinal: null });
+            // Default: Ano atual completo
+            const today = new Date();
+            const startYear = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+            const endYear = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+
+            handleFilterChange('filtroDataInicio', {
+                dataInicial: startYear,
+                dataFinal: endYear
+            });
             return;
         }
 
@@ -86,6 +139,19 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
             dataFinal: end
         });
     };
+
+    // Set default filter on mount if none exists
+    React.useEffect(() => {
+        if (!filters.filtroDataInicio.dataInicial && !selectedWeek) {
+            const today = new Date();
+            const startYear = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+            const endYear = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+            handleFilterChange('filtroDataInicio', {
+                dataInicial: startYear,
+                dataFinal: endYear
+            });
+        }
+    }, []);
 
     if (loading) {
         return (

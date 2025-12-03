@@ -171,6 +171,39 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                     <Bar data={chartData as any} options={options} />
                 </div>
             </div>
+
+            {/* Detalhamento Semanal (Cards) */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Detalhamento Semanal</h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {[...data].reverse().map((item) => (
+                        <div key={item.semana} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                    {item.semana}
+                                </span>
+                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${item.saldo >= 0
+                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                        : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+                                    }`}>
+                                    Saldo: {item.saldo > 0 ? '+' : ''}{item.saldo}
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 mt-3">
+                                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-2 rounded-lg">
+                                    <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80">Entradas</p>
+                                    <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{item.entradas}</p>
+                                </div>
+                                <div className="bg-rose-50 dark:bg-rose-900/10 p-2 rounded-lg">
+                                    <p className="text-xs text-rose-600/80 dark:text-rose-400/80">Saídas</p>
+                                    <p className="text-lg font-bold text-rose-700 dark:text-rose-400">{item.saidas}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };
