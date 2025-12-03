@@ -24,7 +24,7 @@ export const MarketingFiltersSection = React.memo(function MarketingFiltersSecti
                 </div>
             </CardHeader>
             <CardContent className="pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <MarketingDateFilterComponent
                         label="Filtro de Liberação"
                         filter={filters.filtroLiberacao}
@@ -39,6 +39,11 @@ export const MarketingFiltersSection = React.memo(function MarketingFiltersSecti
                         label="Filtro de Rodou Dia"
                         filter={filters.filtroRodouDia}
                         onFilterChange={(filter) => onFilterChange('filtroRodouDia', filter)}
+                    />
+                    <MarketingDateFilterComponent
+                        label="Filtro de Data Início"
+                        filter={filters.filtroDataInicio}
+                        onFilterChange={(filter) => onFilterChange('filtroDataInicio', filter)}
                     />
                 </div>
             </CardContent>

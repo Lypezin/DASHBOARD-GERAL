@@ -4,9 +4,10 @@ import { RPC_TIMEOUTS } from '@/constants/config';
 import { safeLog } from '@/lib/errorHandler';
 
 interface FluxoEntregadores {
-    semana_inicio: string;
+    semana: string;
     entradas: number;
     saidas: number;
+    saldo: number;
 }
 
 interface UseEntradaSaidaDataProps {

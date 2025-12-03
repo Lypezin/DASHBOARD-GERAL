@@ -34,7 +34,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
 
     const chartData = useMemo(() => {
         return {
-            labels: data.map(d => format(parseISO(d.semana_inicio), 'dd/MM', { locale: ptBR })),
+            labels: data.map(d => format(parseISO(d.semana), 'dd/MM', { locale: ptBR })),
             datasets: [
                 {
                     label: 'Entradas (Novos Ativos)',

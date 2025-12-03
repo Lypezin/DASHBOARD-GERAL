@@ -29,6 +29,7 @@ export interface MarketingFilters {
   filtroLiberacao: MarketingDateFilter;
   filtroEnviados: MarketingDateFilter;
   filtroRodouDia: MarketingDateFilter;
+  filtroDataInicio: MarketingDateFilter;
 }
 
 export interface MarketingCityData {

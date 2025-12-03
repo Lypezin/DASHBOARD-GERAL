@@ -55,8 +55,8 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
 
             {/* Conteúdo Principal */}
             <EntradaSaidaView
-                dataInicial={filters.filtroRodouDia.dataInicial}
-                dataFinal={filters.filtroRodouDia.dataFinal}
+                dataInicial={filters.filtroDataInicio.dataInicial}
+                dataFinal={filters.filtroDataInicio.dataFinal}
                 organizationId={user?.organization_id || undefined}
             />
         </div>

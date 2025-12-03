@@ -23,6 +23,7 @@ export function useMarketingData() {
         filtroLiberacao: { dataInicial: null, dataFinal: null },
         filtroEnviados: { dataInicial: null, dataFinal: null },
         filtroRodouDia: { dataInicial: null, dataFinal: null },
+        filtroDataInicio: { dataInicial: null, dataFinal: null },
     });
 
     const fetchTotals = useCallback(async () => {
