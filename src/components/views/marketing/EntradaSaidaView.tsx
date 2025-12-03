@@ -114,7 +114,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                             <ArrowUpRight className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                         </div>
                     </div>
-                    <p className="mt-1 text-xs text-slate-400">Novos entregadores ativos (>30 rotas)</p>
+                    <p className="mt-1 text-xs text-slate-400">Novos entregadores ativos (&gt;30 rotas)</p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
