@@ -15,6 +15,61 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
     } = useMarketingData();
 
     const { user } = useAuth();
+    const [selectedWeek, setSelectedWeek] = React.useState<string | null>(null);
+
+    // Gerar últimas 12 semanas
+    const weeks = React.useMemo(() => {
+        const result = [];
+        const today = new Date();
+        for (let i = 0; i < 12; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - (i * 7));
+            // Get ISO week number
+            const target = new Date(d.valueOf());
+            const dayNr = (d.getDay() + 6) % 7;
+            target.setDate(target.getDate() - dayNr + 3);
+            const firstThursday = target.valueOf();
+            target.setMonth(0, 1);
+            if (target.getDay() !== 4) {
+                target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+            }
+            const weekNumber = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
+            const year = d.getFullYear();
+            result.push(`${year}-W${weekNumber.toString().padStart(2, '0')}`);
+        }
+        return result;
+    }, []);
+
+    const handleWeekSelect = (weekStr: string) => {
+        if (selectedWeek === weekStr) {
+            setSelectedWeek(null);
+            handleFilterChange('filtroDataInicio', { dataInicial: null, dataFinal: null });
+            return;
+        }
+
+        setSelectedWeek(weekStr);
+
+        // Parse week string (YYYY-Www) to dates
+        const [year, week] = weekStr.split('-W').map(Number);
+
+        // Simple calculation for ISO week start (Monday)
+        const simple = new Date(year, 0, 1 + (week - 1) * 7);
+        const dayOfWeek = simple.getDay();
+        const isoWeekStart = simple;
+        if (dayOfWeek <= 4)
+            isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+        else
+            isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+
+        const start = isoWeekStart;
+        const end = new Date(start);
+        end.setDate(end.getDate() + 6);
+
+        handleFilterChange('filtroDataInicio', {
+            dataInicial: start.toISOString().split('T')[0],
+            dataFinal: end.toISOString().split('T')[0]
+        });
+    };
 
     if (loading) {
         return (
@@ -57,12 +112,39 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
                         </CardTitle>
                     </div>
                 </CardHeader>
-                <CardContent className="pt-4">
+                <CardContent className="pt-4 space-y-6">
+                    {/* Filtro de Semanas */}
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                            Filtrar por Semana
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                            {weeks.map((week) => (
+                                <button
+                                    key={week}
+                                    onClick={() => handleWeekSelect(week)}
+                                    className={`
+                                        px-3 py-1.5 text-sm rounded-md border transition-colors
+                                        ${selectedWeek === week
+                                            ? 'bg-blue-600 text-white border-blue-600'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                        }
+                                    `}
+                                >
+                                    {week}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <MarketingDateFilterComponent
                             label="Filtro de Data Início"
                             filter={filters.filtroDataInicio}
-                            onFilterChange={(filter) => handleFilterChange('filtroDataInicio', filter)}
+                            onFilterChange={(filter) => {
+                                setSelectedWeek(null); // Clear week selection if manual date is picked
+                                handleFilterChange('filtroDataInicio', filter);
+                            }}
                         />
                     </div>
                 </CardContent>
