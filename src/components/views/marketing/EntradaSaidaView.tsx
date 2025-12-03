@@ -9,12 +9,18 @@ import {
     LineElement,
     PointElement,
     Title,
-    Tooltip,
+    Tooltip as ChartTooltip,
     Legend,
 } from 'chart.js';
 import { ArrowDownRight, ArrowUpRight, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 ChartJS.register(
     CategoryScale,
@@ -23,7 +29,7 @@ ChartJS.register(
     LineElement,
     PointElement,
     Title,
-    Tooltip,
+    ChartTooltip,
     Legend
 );
 
@@ -190,14 +196,51 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="flex flex-col justify-center rounded-lg bg-emerald-50/50 p-2.5 dark:bg-emerald-900/10 border border-emerald-100/50 dark:border-emerald-800/30">
-                                        <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600/70 dark:text-emerald-400/70">Entradas</p>
-                                        <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400">{item.entradas}</p>
-                                    </div>
-                                    <div className="flex flex-col justify-center rounded-lg bg-rose-50/50 p-2.5 dark:bg-rose-900/10 border border-rose-100/50 dark:border-rose-800/30">
-                                        <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-600/70 dark:text-rose-400/70">Saídas</p>
-                                        <p className="text-xl font-bold text-rose-700 dark:text-rose-400">{item.saidas}</p>
-                                    </div>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="flex flex-col justify-center rounded-lg bg-emerald-50/50 p-2.5 dark:bg-emerald-900/10 border border-emerald-100/50 dark:border-emerald-800/30 cursor-help transition-colors hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20">
+                                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600/70 dark:text-emerald-400/70">Entradas</p>
+                                                    <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400">{item.entradas}</p>
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-h-64 overflow-y-auto">
+                                                <p className="font-semibold mb-2 text-emerald-600">Entradas ({item.entradas}):</p>
+                                                {item.nomes_entradas && item.nomes_entradas.length > 0 ? (
+                                                    <ul className="list-disc pl-4 text-xs space-y-1">
+                                                        {item.nomes_entradas.map((nome, idx) => (
+                                                            <li key={idx}>{nome}</li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <p className="text-xs text-slate-500">Nenhum registro</p>
+                                                )}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="flex flex-col justify-center rounded-lg bg-rose-50/50 p-2.5 dark:bg-rose-900/10 border border-rose-100/50 dark:border-rose-800/30 cursor-help transition-colors hover:bg-rose-100/50 dark:hover:bg-rose-900/20">
+                                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-600/70 dark:text-rose-400/70">Saídas</p>
+                                                    <p className="text-xl font-bold text-rose-700 dark:text-rose-400">{item.saidas}</p>
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-h-64 overflow-y-auto">
+                                                <p className="font-semibold mb-2 text-rose-600">Saídas ({item.saidas}):</p>
+                                                {item.nomes_saidas && item.nomes_saidas.length > 0 ? (
+                                                    <ul className="list-disc pl-4 text-xs space-y-1">
+                                                        {item.nomes_saidas.map((nome, idx) => (
+                                                            <li key={idx}>{nome}</li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <p className="text-xs text-slate-500">Nenhum registro</p>
+                                                )}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
                             </div>
                         );

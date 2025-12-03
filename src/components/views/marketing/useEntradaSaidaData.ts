@@ -8,6 +8,8 @@ interface FluxoEntregadores {
     entradas: number;
     saidas: number;
     saldo: number;
+    nomes_entradas: string[];
+    nomes_saidas: string[];
 }
 
 import { CITY_DB_MAPPING } from '@/constants/marketing';
