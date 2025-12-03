@@ -28,6 +28,17 @@ export function useMarketingData() {
 
     const fetchTotals = useCallback(async () => {
         try {
+            // Verificar se há pelo menos um filtro de data definido
+            const hasFilter =
+                filters.filtroEnviados.dataInicial ||
+                filters.filtroLiberacao.dataInicial ||
+                filters.filtroRodouDia.dataInicial;
+
+            if (!hasFilter) {
+                setTotals({ criado: 0, enviado: 0, liberado: 0, rodandoInicio: 0 });
+                return;
+            }
+
             // Obter organization_id do usuário atual
             const organizationId = await getCurrentUserOrganizationId();
 
@@ -103,6 +114,17 @@ export function useMarketingData() {
 
     const fetchCitiesData = useCallback(async () => {
         try {
+            // Verificar se há pelo menos um filtro de data definido
+            const hasFilter =
+                filters.filtroEnviados.dataInicial ||
+                filters.filtroLiberacao.dataInicial ||
+                filters.filtroRodouDia.dataInicial;
+
+            if (!hasFilter) {
+                setCitiesData([]);
+                return;
+            }
+
             // Obter organization_id do usuário atual
             const organizationId = await getCurrentUserOrganizationId();
 
