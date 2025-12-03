@@ -65,6 +65,10 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     filterPayload.p_data_inicial,
     filterPayload.p_data_final,
     filterPayload.p_organization_id,
+    // Adicionar dependências de arrays para garantir que mudanças nesses filtros invalidem o cache/payload
+    JSON.stringify(filterPayload.p_sub_pracas),
+    JSON.stringify(filterPayload.p_origens),
+    JSON.stringify(filterPayload.p_turnos),
   ]);
 
   useEffect(() => {
