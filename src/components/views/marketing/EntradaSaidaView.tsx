@@ -176,8 +176,8 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Detalhamento Semanal</h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
                     {[...data].reverse().map((item) => {
-                        // Format week label: "2025-W16" -> "Semana 16"
-                        const weekLabel = item.semana.replace(/(\d{4})-W(\d+)/, 'Semana $2');
+                        // Format week label: "2025-W16" -> "Semana 16/25"
+                        const weekLabel = item.semana.replace(/^(\d{2})(\d{2})-W(\d+)$/, 'Semana $3/$2');
 
                         return (
                             <div key={item.semana} className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
