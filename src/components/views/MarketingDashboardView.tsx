@@ -75,16 +75,16 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
 
           {/* Funil Detalhado */}
           <MarketingFunnelView
-            dataInicial={filters.startDate}
-            dataFinal={filters.endDate}
+            dataInicial={filters.filtroEnviados.dataInicial}
+            dataFinal={filters.filtroEnviados.dataFinal}
             organizationId={user?.organization_id}
           />
         </TabsContent>
 
         <TabsContent value="entrada-saida" className="space-y-4">
           <EntradaSaidaView
-            dataInicial={filters.startDate}
-            dataFinal={filters.endDate}
+            dataInicial={filters.filtroRodouDia.dataInicial}
+            dataFinal={filters.filtroRodouDia.dataFinal}
             organizationId={user?.organization_id}
           />
         </TabsContent>
