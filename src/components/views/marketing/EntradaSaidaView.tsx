@@ -6,6 +6,8 @@ import {
     CategoryScale,
     LinearScale,
     BarElement,
+    LineElement,
+    PointElement,
     Title,
     Tooltip,
     Legend,
@@ -18,6 +20,8 @@ ChartJS.register(
     CategoryScale,
     LinearScale,
     BarElement,
+    LineElement,
+    PointElement,
     Title,
     Tooltip,
     Legend
@@ -37,18 +41,32 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
             labels: data.map(d => format(parseISO(d.semana), 'dd/MM', { locale: ptBR })),
             datasets: [
                 {
+                    type: 'line' as const,
+                    label: 'Saldo',
+                    data: data.map(d => d.saldo),
+                    borderColor: 'rgb(59, 130, 246)', // Blue-500
+                    backgroundColor: 'rgb(59, 130, 246)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    order: 0, // Render on top
+                },
+                {
+                    type: 'bar' as const,
                     label: 'Entradas (Novos Ativos)',
                     data: data.map(d => d.entradas),
                     backgroundColor: 'rgba(34, 197, 94, 0.7)', // Emerald-500
                     borderColor: 'rgb(34, 197, 94)',
                     borderWidth: 1,
+                    order: 1,
                 },
                 {
+                    type: 'bar' as const,
                     label: 'Saídas (Churn)',
                     data: data.map(d => d.saidas),
                     backgroundColor: 'rgba(239, 68, 68, 0.7)', // Red-500
                     borderColor: 'rgb(239, 68, 68)',
                     borderWidth: 1,
+                    order: 1,
                 },
             ],
         };
@@ -150,7 +168,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                 <h3 className="mb-6 text-lg font-semibold text-slate-900 dark:text-white">Fluxo Semanal</h3>
                 <div className="h-[400px] w-full">
-                    <Bar data={chartData} options={options} />
+                    <Bar data={chartData as any} options={options} />
                 </div>
             </div>
         </div>
