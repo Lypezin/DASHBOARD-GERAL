@@ -77,7 +77,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
           <MarketingFunnelView
             dataInicial={filters.filtroEnviados.dataInicial}
             dataFinal={filters.filtroEnviados.dataFinal}
-            organizationId={user?.organization_id}
+            organizationId={user?.organization_id || undefined}
           />
         </TabsContent>
 
@@ -85,7 +85,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
           <EntradaSaidaView
             dataInicial={filters.filtroRodouDia.dataInicial}
             dataFinal={filters.filtroRodouDia.dataFinal}
-            organizationId={user?.organization_id}
+            organizationId={user?.organization_id || undefined}
           />
         </TabsContent>
       </Tabs>
