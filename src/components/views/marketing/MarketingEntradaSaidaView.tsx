@@ -5,6 +5,13 @@ import { Filter } from 'lucide-react';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import { EntradaSaidaView } from './EntradaSaidaView';
 import { useAuth } from '@/hooks/useAuth';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView() {
     const {
@@ -66,10 +73,9 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
         return result;
     }, []);
 
-    const handleWeekSelect = (weekId: string, start: string, end: string) => {
-        if (selectedWeek === weekId) {
+    const handleWeekSelect = (weekId: string | null, start: string, end: string) => {
+        if (!weekId) {
             setSelectedWeek(null);
-            // Reset to default (current month) or let user pick
             handleFilterChange('filtroDataInicio', { dataInicial: null, dataFinal: null });
             return;
         }
@@ -124,30 +130,35 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
                 </CardHeader>
                 <CardContent className="pt-4 space-y-6">
                     {/* Filtro de Semanas */}
-                    <div>
+                    <div className="w-full sm:w-72">
                         <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Filtrar por Semana (Últimas 12)
+                            Filtrar por Semana
                         </label>
-                        <div className="flex flex-wrap gap-2">
-                            {weeks.map((week) => (
-                                <button
-                                    key={week.id}
-                                    onClick={() => handleWeekSelect(week.id, week.start, week.end)}
-                                    className={`
-                                        flex flex-col items-center justify-center px-3 py-2 rounded-md border transition-all min-w-[100px]
-                                        ${selectedWeek === week.id
-                                            ? 'bg-blue-600 text-white border-blue-600 shadow-md transform scale-105'
-                                            : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
-                                        }
-                                    `}
-                                >
-                                    <span className="text-sm font-bold">{week.label}</span>
-                                    <span className={`text-[10px] ${selectedWeek === week.id ? 'text-blue-100' : 'text-slate-400'}`}>
-                                        {week.subLabel}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
+                        <Select
+                            value={selectedWeek || "all"}
+                            onValueChange={(value) => {
+                                if (value === "all") {
+                                    handleWeekSelect(null, '', '');
+                                } else {
+                                    const week = weeks.find(w => w.id === value);
+                                    if (week) {
+                                        handleWeekSelect(week.id, week.start, week.end);
+                                    }
+                                }
+                            }}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecione uma semana" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todas as semanas (Personalizado)</SelectItem>
+                                {weeks.map((week) => (
+                                    <SelectItem key={week.id} value={week.id}>
+                                        {week.label} ({week.subLabel})
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {/* Filtro Manual (Escondido se semana selecionada) */}
@@ -168,12 +179,11 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
                             <span>📅 Filtro ativo: <strong>{weeks.find(w => w.id === selectedWeek)?.label}</strong> ({weeks.find(w => w.id === selectedWeek)?.subLabel})</span>
                             <button
                                 onClick={() => {
-                                    setSelectedWeek(null);
-                                    handleFilterChange('filtroDataInicio', { dataInicial: null, dataFinal: null });
+                                    handleWeekSelect(null, '', '');
                                 }}
                                 className="ml-auto underline hover:text-blue-800 dark:hover:text-blue-200"
                             >
-                                Limpar filtro e usar datas personalizadas
+                                Limpar filtro
                             </button>
                         </div>
                     )}
