@@ -23,8 +23,22 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId }: 
 
     useEffect(() => {
         async function fetchData() {
-            if (!dataInicial || !dataFinal || !organizationId) {
+            if (!organizationId) {
                 return;
+            }
+
+            // Se não houver datas, usar o mês atual como padrão
+            let start = dataInicial;
+            let end = dataFinal;
+
+            if (!start || !end) {
+                const now = new Date();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+                // Formato YYYY-MM-DD
+                start = firstDay.toISOString().split('T')[0];
+                end = lastDay.toISOString().split('T')[0];
             }
 
             setLoading(true);
@@ -32,11 +46,11 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId }: 
 
             try {
                 const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('get_fluxo_entregadores', {
-                    p_data_inicial: dataInicial,
-                    p_data_final: dataFinal,
+                    p_data_inicial: start,
+                    p_data_final: end,
                     p_organization_id: organizationId
                 }, {
-                    timeout: RPC_TIMEOUTS.LONG, // Pode demorar um pouco devido aos cálculos
+                    timeout: RPC_TIMEOUTS.LONG,
                     validateParams: true
                 });
 
