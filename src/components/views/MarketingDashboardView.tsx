@@ -5,6 +5,11 @@ import { MarketingFiltersSection } from './marketing/MarketingFiltersSection';
 import { MarketingStatsCards } from './marketing/MarketingStatsCards';
 import { MarketingCityCards } from './marketing/MarketingCityCards';
 import { useMarketingData } from './marketing/useMarketingData';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MarketingFunnelView } from './marketing/MarketingFunnelView';
+import { EntradaSaidaView } from './marketing/EntradaSaidaView';
+import { format } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
 
 const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   const {
@@ -15,6 +20,8 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
     filters,
     handleFilterChange
   } = useMarketingData();
+
+  const { user } = useAuth();
 
   if (loading) {
     return (
@@ -56,8 +63,32 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
       {/* Cartões Principais */}
       <MarketingStatsCards totals={totals} />
 
-      {/* Cartões de Cidade */}
-      <MarketingCityCards citiesData={citiesData} />
+      <Tabs defaultValue="funil" className="w-full space-y-6">
+        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+          <TabsTrigger value="funil">Funil de Conversão</TabsTrigger>
+          <TabsTrigger value="entrada-saida">Entrada/Saída</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="funil" className="space-y-4">
+          {/* Cartões de Cidade */}
+          <MarketingCityCards citiesData={citiesData} />
+
+          {/* Funil Detalhado */}
+          <MarketingFunnelView
+            dataInicial={filters.startDate}
+            dataFinal={filters.endDate}
+            organizationId={user?.organization_id}
+          />
+        </TabsContent>
+
+        <TabsContent value="entrada-saida" className="space-y-4">
+          <EntradaSaidaView
+            dataInicial={filters.startDate}
+            dataFinal={filters.endDate}
+            organizationId={user?.organization_id}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 });
