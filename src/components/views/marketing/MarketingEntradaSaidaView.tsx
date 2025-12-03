@@ -17,13 +17,15 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
     const { user } = useAuth();
     const [selectedWeek, setSelectedWeek] = React.useState<string | null>(null);
 
-    // Gerar últimas 12 semanas
+    // Gerar últimas 12 semanas com datas e labels amigáveis
     const weeks = React.useMemo(() => {
         const result = [];
         const today = new Date();
+
         for (let i = 0; i < 12; i++) {
             const d = new Date(today);
             d.setDate(d.getDate() - (i * 7));
+
             // Get ISO week number
             const target = new Date(d.valueOf());
             const dayNr = (d.getDay() + 6) % 7;
@@ -35,39 +37,47 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
             }
             const weekNumber = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
             const year = d.getFullYear();
-            result.push(`${year}-W${weekNumber.toString().padStart(2, '0')}`);
+
+            // Calculate Start (Monday) and End (Sunday) dates
+            const simple = new Date(year, 0, 1 + (weekNumber - 1) * 7);
+            const dayOfWeek = simple.getDay();
+            const isoWeekStart = simple;
+            if (dayOfWeek <= 4)
+                isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+            else
+                isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+
+            const start = new Date(isoWeekStart);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 6);
+
+            // Format label: "S47 (17/11 - 23/11)"
+            const startStr = start.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            const endStr = end.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+            result.push({
+                id: `${year}-W${weekNumber}`,
+                label: `Semana ${weekNumber}`,
+                subLabel: `${startStr} - ${endStr}`,
+                start: start.toISOString().split('T')[0],
+                end: end.toISOString().split('T')[0]
+            });
         }
         return result;
     }, []);
 
-    const handleWeekSelect = (weekStr: string) => {
-        if (selectedWeek === weekStr) {
+    const handleWeekSelect = (weekId: string, start: string, end: string) => {
+        if (selectedWeek === weekId) {
             setSelectedWeek(null);
+            // Reset to default (current month) or let user pick
             handleFilterChange('filtroDataInicio', { dataInicial: null, dataFinal: null });
             return;
         }
 
-        setSelectedWeek(weekStr);
-
-        // Parse week string (YYYY-Www) to dates
-        const [year, week] = weekStr.split('-W').map(Number);
-
-        // Simple calculation for ISO week start (Monday)
-        const simple = new Date(year, 0, 1 + (week - 1) * 7);
-        const dayOfWeek = simple.getDay();
-        const isoWeekStart = simple;
-        if (dayOfWeek <= 4)
-            isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
-        else
-            isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
-
-        const start = isoWeekStart;
-        const end = new Date(start);
-        end.setDate(end.getDate() + 6);
-
+        setSelectedWeek(weekId);
         handleFilterChange('filtroDataInicio', {
-            dataInicial: start.toISOString().split('T')[0],
-            dataFinal: end.toISOString().split('T')[0]
+            dataInicial: start,
+            dataFinal: end
         });
     };
 
@@ -116,37 +126,57 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
                     {/* Filtro de Semanas */}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Filtrar por Semana
+                            Filtrar por Semana (Últimas 12)
                         </label>
                         <div className="flex flex-wrap gap-2">
                             {weeks.map((week) => (
                                 <button
-                                    key={week}
-                                    onClick={() => handleWeekSelect(week)}
+                                    key={week.id}
+                                    onClick={() => handleWeekSelect(week.id, week.start, week.end)}
                                     className={`
-                                        px-3 py-1.5 text-sm rounded-md border transition-colors
-                                        ${selectedWeek === week
-                                            ? 'bg-blue-600 text-white border-blue-600'
-                                            : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                        flex flex-col items-center justify-center px-3 py-2 rounded-md border transition-all min-w-[100px]
+                                        ${selectedWeek === week.id
+                                            ? 'bg-blue-600 text-white border-blue-600 shadow-md transform scale-105'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
                                         }
                                     `}
                                 >
-                                    {week}
+                                    <span className="text-sm font-bold">{week.label}</span>
+                                    <span className={`text-[10px] ${selectedWeek === week.id ? 'text-blue-100' : 'text-slate-400'}`}>
+                                        {week.subLabel}
+                                    </span>
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <MarketingDateFilterComponent
-                            label="Filtro de Data Início"
-                            filter={filters.filtroDataInicio}
-                            onFilterChange={(filter) => {
-                                setSelectedWeek(null); // Clear week selection if manual date is picked
-                                handleFilterChange('filtroDataInicio', filter);
-                            }}
-                        />
-                    </div>
+                    {/* Filtro Manual (Escondido se semana selecionada) */}
+                    {!selectedWeek && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
+                            <MarketingDateFilterComponent
+                                label="Filtro de Data Início (Personalizado)"
+                                filter={filters.filtroDataInicio}
+                                onFilterChange={(filter) => {
+                                    handleFilterChange('filtroDataInicio', filter);
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {selectedWeek && (
+                        <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 p-3 rounded-lg border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300 animate-fade-in">
+                            <span>📅 Filtro ativo: <strong>{weeks.find(w => w.id === selectedWeek)?.label}</strong> ({weeks.find(w => w.id === selectedWeek)?.subLabel})</span>
+                            <button
+                                onClick={() => {
+                                    setSelectedWeek(null);
+                                    handleFilterChange('filtroDataInicio', { dataInicial: null, dataFinal: null });
+                                }}
+                                className="ml-auto underline hover:text-blue-800 dark:hover:text-blue-200"
+                            >
+                                Limpar filtro e usar datas personalizadas
+                            </button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
