@@ -247,12 +247,20 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     p_semana: semana,
     p_semanas: filters.semanas && filters.semanas.length > 0 ? filters.semanas.map(Number).filter(n => !isNaN(n)) : null,
     p_praca: praca,
-    p_sub_praca: subPraca,
-    p_origem: origem,
-    p_turno: turno,
-    p_sub_pracas: filters.subPracas && filters.subPracas.length > 0 ? filters.subPracas : null,
-    p_origens: filters.origens && filters.origens.length > 0 ? filters.origens : null,
-    p_turnos: filters.turnos && filters.turnos.length > 0 ? filters.turnos : null,
+    // Usar NULL para parâmetros de texto que podem conter vírgulas, forçando o uso dos arrays
+    p_sub_praca: null,
+    p_origem: null,
+    p_turno: null,
+    // Priorizar arrays e converter valores singulares para array
+    p_sub_pracas: filters.subPracas && filters.subPracas.length > 0
+      ? filters.subPracas.slice(0, MAX_ARRAY_SIZE)
+      : (filters.subPraca ? [filters.subPraca.substring(0, 100)] : null),
+    p_origens: filters.origens && filters.origens.length > 0
+      ? filters.origens.slice(0, MAX_ARRAY_SIZE)
+      : (filters.origem ? [filters.origem.substring(0, 100)] : null),
+    p_turnos: filters.turnos && filters.turnos.length > 0
+      ? filters.turnos.slice(0, MAX_ARRAY_SIZE)
+      : (filters.turno ? [filters.turno.substring(0, 100)] : null),
     p_filtro_modo: filters.filtroModo || 'ano_semana',
     p_data_inicial: dataInicial,
     p_data_final: dataFinal,
