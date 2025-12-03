@@ -27,3 +27,17 @@ export const CIDADES = [
   'São Bernardo',
 ] as const;
 
+/**
+ * Mapeamento de nomes de exibição para valores do banco de dados
+ */
+export const CITY_DB_MAPPING: Record<string, string> = {
+  'São Paulo 2.0': 'SAO PAULO',
+  'Salvador 2.0': 'SALVADOR',
+  'Guarulhos 2.0': 'GUARULHOS',
+  'Manaus 2.0': 'MANAUS',
+  'Sorocaba 2.0': 'SOROCABA',
+  'Taboão da Serra e Embu das Artes 2.0': 'TABOAO DA SERRA',
+  'Santo André': 'SANTO ANDRÉ',
+  'São Bernardo': 'SÃO BERNARDO',
+};
+
