@@ -73,7 +73,7 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
         }
 
         fetchData();
-    }, [dataInicial, dataFinal, organizationId]);
+    }, [dataInicial, dataFinal, organizationId, praca]);
 
     return { data, loading, error };
 }
