@@ -3,7 +3,7 @@
  * Separa lógica de busca de dados principais (totais, aderências)
  */
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import {
   Totals,
@@ -12,12 +12,12 @@ import {
   AderenciaTurno,
   AderenciaSubPraca,
   AderenciaOrigem,
-  DashboardResumoData,
   DimensoesDashboard,
 } from '@/types';
-import { DELAYS } from '@/constants/config';
 import { transformDashboardData, createEmptyDashboardData } from '@/utils/dashboard/transformers';
 import { useDashboardDataFetcher } from './useDashboardDataFetcher';
+import { useDashboardCache } from './useDashboardCache';
+import { DELAYS } from '@/constants/config';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -45,12 +45,14 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
 
   const { fetchDashboardData, loading, error } = useDashboardDataFetcher({ filterPayload, onError });
 
-  const cacheKeyRef = useRef<string>('');
-  const cachedDataRef = useRef<DashboardResumoData | null>(null);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const previousPayloadRef = useRef<string>('');
-  const isFirstExecutionRef = useRef<boolean>(true);
-  const pendingPayloadKeyRef = useRef<string>('');
+  const {
+    checkCache,
+    updateCache,
+    clearCache,
+    previousPayloadRef,
+    isFirstExecutionRef,
+    pendingPayloadKeyRef
+  } = useDashboardCache();
 
   // Criar uma string estável do payload para usar como dependência
   const payloadKey = useMemo(() => JSON.stringify(filterPayload), [
@@ -72,13 +74,6 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       return;
     }
 
-    if (pendingPayloadKeyRef.current === payloadKey && debounceRef.current) return;
-
-    if (debounceRef.current && previousPayloadRef.current !== '' && pendingPayloadKeyRef.current !== payloadKey) {
-      clearTimeout(debounceRef.current);
-      debounceRef.current = null;
-    }
-
     if (IS_DEV) {
       safeLog.info('[useDashboardMainData] useEffect acionado com payload:', {
         payloadKey,
@@ -89,26 +84,21 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     const hasValidFilters = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
       (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
 
-    const shouldFetch = true;
-
     // Se o payload anterior era inválido e agora é válido, limpar cache
     const previousPayloadWasInvalid = previousPayloadRef.current &&
       (!previousPayloadRef.current.includes('"p_ano":') || previousPayloadRef.current.includes('"p_ano":null')) &&
       (!previousPayloadRef.current.includes('"p_data_inicial":') || previousPayloadRef.current.includes('"p_data_inicial":null'));
 
     if (previousPayloadWasInvalid && hasValidFilters) {
-      if (IS_DEV) safeLog.info('[useDashboardMainData] Limpando cache - payload mudou de inválido para válido');
-      cacheKeyRef.current = '';
-      cachedDataRef.current = null;
+      clearCache();
     }
 
     pendingPayloadKeyRef.current = payloadKey;
 
     // Verificar cache
-    if (shouldFetch && cacheKeyRef.current === payloadKey && cachedDataRef.current) {
-      if (IS_DEV) safeLog.info('[useDashboardMainData] Usando dados do cache');
-
-      const processedData = transformDashboardData(cachedDataRef.current);
+    const cachedData = checkCache(payloadKey);
+    if (cachedData) {
+      const processedData = transformDashboardData(cachedData);
 
       setTotals(processedData.totals);
       setAderenciaSemanal(processedData.aderencia_semanal);
@@ -128,7 +118,6 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     const currentPayloadKey = payloadKey;
 
     const timeoutId = setTimeout(async () => {
-      if (debounceRef.current !== timeoutId) return;
       if (JSON.stringify(currentPayload) !== currentPayloadKey) return;
       if (pendingPayloadKeyRef.current !== currentPayloadKey) return;
 
@@ -145,8 +134,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
           ? '__first_execution_dimensions__'
           : currentPayloadKey;
 
-        cachedDataRef.current = data;
-        cacheKeyRef.current = cacheKeyToUse;
+        updateCache(cacheKeyToUse, data);
 
         const processedData = transformDashboardData(data);
 
@@ -175,17 +163,10 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
         previousPayloadRef.current = currentPayloadKey;
         isFirstExecutionRef.current = false;
       }
-
-      if (debounceRef.current === timeoutId) debounceRef.current = null;
     }, DELAYS.DEBOUNCE);
 
-    debounceRef.current = timeoutId;
-
     return () => {
-      if (debounceRef.current && debounceRef.current === timeoutId) {
-        clearTimeout(debounceRef.current);
-        debounceRef.current = null;
-      }
+      clearTimeout(timeoutId);
     };
   }, [payloadKey, onError, fetchDashboardData]);
 
