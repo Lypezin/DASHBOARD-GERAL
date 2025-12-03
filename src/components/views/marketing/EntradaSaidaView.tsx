@@ -31,10 +31,11 @@ interface EntradaSaidaViewProps {
     dataInicial: string | null;
     dataFinal: string | null;
     organizationId?: string;
+    praca?: string | null;
 }
 
-export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial, dataFinal, organizationId }) => {
-    const { data, loading, error } = useEntradaSaidaData({ dataInicial, dataFinal, organizationId });
+export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial, dataFinal, organizationId, praca }) => {
+    const { data, loading, error } = useEntradaSaidaData({ dataInicial, dataFinal, organizationId, praca });
 
     const chartData = useMemo(() => {
         return {
@@ -181,8 +182,8 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                                         {weekLabel}
                                     </span>
                                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${item.saldo >= 0
-                                            ? 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
-                                            : 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800'
+                                        ? 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
+                                        : 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800'
                                         }`}>
                                         {item.saldo > 0 ? '+' : ''}{item.saldo}
                                     </span>

@@ -13,6 +13,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
+import { CIDADES } from '@/constants/marketing';
+
 const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView() {
     const {
         loading,
@@ -23,6 +25,7 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
 
     const { user } = useAuth();
     const [selectedWeek, setSelectedWeek] = React.useState<string | null>(null);
+    const [selectedPraca, setSelectedPraca] = React.useState<string | null>(null);
 
     // Gerar semanas do ano atual (da semana 1 até a atual)
     const weeks = React.useMemo(() => {
@@ -184,47 +187,72 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
 
     return (
         <div className="space-y-6 animate-fade-in pb-8">
-            {/* Filtros de Data - Apenas Data Início */}
+            {/* Filtros de Data e Praça */}
             <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
                 <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-2">
                         <Filter className="h-4 w-4 text-slate-500" />
                         <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-200">
-                            Filtros de Data
+                            Filtros
                         </CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent className="pt-4 space-y-6">
-                    {/* Filtro de Semanas */}
-                    <div className="w-full sm:w-72">
-                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Filtrar por Semana
-                        </label>
-                        <Select
-                            value={selectedWeek || "all"}
-                            onValueChange={(value) => {
-                                if (value === "all") {
-                                    handleWeekSelect(null, '', '');
-                                } else {
-                                    const week = weeks.find(w => w.id === value);
-                                    if (week) {
-                                        handleWeekSelect(week.id, week.start, week.end);
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Filtro de Semanas */}
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Filtrar por Semana
+                            </label>
+                            <Select
+                                value={selectedWeek || "all"}
+                                onValueChange={(value) => {
+                                    if (value === "all") {
+                                        handleWeekSelect(null, '', '');
+                                    } else {
+                                        const week = weeks.find(w => w.id === value);
+                                        if (week) {
+                                            handleWeekSelect(week.id, week.start, week.end);
+                                        }
                                     }
-                                }
-                            }}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Selecione uma semana" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todas as semanas (Personalizado)</SelectItem>
-                                {weeks.map((week) => (
-                                    <SelectItem key={week.id} value={week.id}>
-                                        {week.label} ({week.subLabel})
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                                }}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione uma semana" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todas as semanas (Personalizado)</SelectItem>
+                                    {weeks.map((week) => (
+                                        <SelectItem key={week.id} value={week.id}>
+                                            {week.label} ({week.subLabel})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Filtro de Praça */}
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Filtrar por Praça
+                            </label>
+                            <Select
+                                value={selectedPraca || "all"}
+                                onValueChange={(value) => setSelectedPraca(value === "all" ? null : value)}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Todas as praças" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todas as praças</SelectItem>
+                                    {CIDADES.map((cidade) => (
+                                        <SelectItem key={cidade} value={cidade}>
+                                            {cidade}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     {/* Filtro Manual (Escondido se semana selecionada) */}
@@ -240,16 +268,27 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
                         </div>
                     )}
 
-                    {selectedWeek && (
-                        <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 p-3 rounded-lg border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300 animate-fade-in">
-                            <span>📅 Filtro ativo: <strong>{weeks.find(w => w.id === selectedWeek)?.label}</strong> ({weeks.find(w => w.id === selectedWeek)?.subLabel})</span>
+                    {(selectedWeek || selectedPraca) && (
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-blue-600 bg-blue-50 p-3 rounded-lg border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300 animate-fade-in">
+                            <span>🔍 Filtros ativos:</span>
+                            {selectedWeek && (
+                                <span className="font-semibold bg-white/50 px-2 py-0.5 rounded dark:bg-black/20">
+                                    {weeks.find(w => w.id === selectedWeek)?.label}
+                                </span>
+                            )}
+                            {selectedPraca && (
+                                <span className="font-semibold bg-white/50 px-2 py-0.5 rounded dark:bg-black/20">
+                                    {selectedPraca}
+                                </span>
+                            )}
                             <button
                                 onClick={() => {
                                     handleWeekSelect(null, '', '');
+                                    setSelectedPraca(null);
                                 }}
                                 className="ml-auto underline hover:text-blue-800 dark:hover:text-blue-200"
                             >
-                                Limpar filtro
+                                Limpar filtros
                             </button>
                         </div>
                     )}
@@ -261,6 +300,7 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
                 dataInicial={filters.filtroDataInicio.dataInicial}
                 dataFinal={filters.filtroDataInicio.dataFinal}
                 organizationId={user?.organization_id || undefined}
+                praca={selectedPraca}
             />
         </div>
     );

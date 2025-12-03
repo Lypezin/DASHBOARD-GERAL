@@ -14,9 +14,10 @@ interface UseEntradaSaidaDataProps {
     dataInicial: string | null;
     dataFinal: string | null;
     organizationId?: string;
+    praca?: string | null;
 }
 
-export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId }: UseEntradaSaidaDataProps) {
+export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, praca }: UseEntradaSaidaDataProps) {
     const [data, setData] = useState<FluxoEntregadores[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -48,7 +49,8 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId }: 
                 const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('get_fluxo_entregadores', {
                     p_data_inicial: start,
                     p_data_final: end,
-                    p_organization_id: organizationId
+                    p_organization_id: organizationId,
+                    p_praca: praca || null
                 }, {
                     timeout: RPC_TIMEOUTS.LONG,
                     validateParams: true
