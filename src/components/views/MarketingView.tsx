@@ -5,10 +5,11 @@ import MarketingDashboardView from './MarketingDashboardView';
 import ResultadosView from './ResultadosView';
 import ValoresCidadeView from './ValoresCidadeView';
 import EntregadoresView from './EntregadoresView';
+import MarketingEntradaSaidaView from './marketing/MarketingEntradaSaidaView';
 import TabButton from '@/components/TabButton';
 
 const MarketingView = React.memo(function MarketingView() {
-  const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'resultados' | 'valores-cidade' | 'entregadores'>('dashboard');
+  const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'resultados' | 'valores-cidade' | 'entregadores' | 'entrada-saida'>('dashboard');
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -43,6 +44,11 @@ const MarketingView = React.memo(function MarketingView() {
             active={activeSubTab === 'entregadores'}
             onClick={() => setActiveSubTab('entregadores')}
           />
+          <TabButton
+            label="Entrada/Saída"
+            active={activeSubTab === 'entrada-saida'}
+            onClick={() => setActiveSubTab('entrada-saida')}
+          />
         </div>
       </div>
 
@@ -51,6 +57,7 @@ const MarketingView = React.memo(function MarketingView() {
       {activeSubTab === 'resultados' && <ResultadosView />}
       {activeSubTab === 'valores-cidade' && <ValoresCidadeView />}
       {activeSubTab === 'entregadores' && <EntregadoresView />}
+      {activeSubTab === 'entrada-saida' && <MarketingEntradaSaidaView />}
     </div>
   );
 });
