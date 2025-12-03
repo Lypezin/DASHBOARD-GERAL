@@ -164,44 +164,51 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                 </div>
             </div>
 
+            {/* Detalhamento Semanal (Cards) */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Detalhamento Semanal</h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                    {[...data].reverse().map((item) => {
+                        // Format week label: "2025-W16" -> "Semana 16"
+                        const weekLabel = item.semana.replace(/(\d{4})-W(\d+)/, 'Semana $2');
+
+                        return (
+                            <div key={item.semana} className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+                                <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent opacity-0 transition-opacity group-hover:opacity-100 dark:via-slate-700"></div>
+
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                        {weekLabel}
+                                    </span>
+                                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${item.saldo >= 0
+                                            ? 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
+                                            : 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800'
+                                        }`}>
+                                        {item.saldo > 0 ? '+' : ''}{item.saldo}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="flex flex-col justify-center rounded-lg bg-emerald-50/50 p-2.5 dark:bg-emerald-900/10 border border-emerald-100/50 dark:border-emerald-800/30">
+                                        <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600/70 dark:text-emerald-400/70">Entradas</p>
+                                        <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400">{item.entradas}</p>
+                                    </div>
+                                    <div className="flex flex-col justify-center rounded-lg bg-rose-50/50 p-2.5 dark:bg-rose-900/10 border border-rose-100/50 dark:border-rose-800/30">
+                                        <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-600/70 dark:text-rose-400/70">Saídas</p>
+                                        <p className="text-xl font-bold text-rose-700 dark:text-rose-400">{item.saidas}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
             {/* Gráfico */}
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                 <h3 className="mb-6 text-lg font-semibold text-slate-900 dark:text-white">Fluxo Semanal</h3>
                 <div className="h-[400px] w-full">
                     <Bar data={chartData as any} options={options} />
-                </div>
-            </div>
-
-            {/* Detalhamento Semanal (Cards) */}
-            <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Detalhamento Semanal</h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {[...data].reverse().map((item) => (
-                        <div key={item.semana} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                    {item.semana}
-                                </span>
-                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${item.saldo >= 0
-                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                                        : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
-                                    }`}>
-                                    Saldo: {item.saldo > 0 ? '+' : ''}{item.saldo}
-                                </span>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2 mt-3">
-                                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-2 rounded-lg">
-                                    <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80">Entradas</p>
-                                    <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{item.entradas}</p>
-                                </div>
-                                <div className="bg-rose-50 dark:bg-rose-900/10 p-2 rounded-lg">
-                                    <p className="text-xs text-rose-600/80 dark:text-rose-400/80">Saídas</p>
-                                    <p className="text-lg font-bold text-rose-700 dark:text-rose-400">{item.saidas}</p>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
                 </div>
             </div>
         </div>
