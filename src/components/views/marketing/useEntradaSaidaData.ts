@@ -53,7 +53,8 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
             const dbPraca = praca ? CITY_DB_MAPPING[praca] || praca : null;
 
             try {
-                const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('listar_fluxo_entregadores', {
+                // Use JSON-returning function (workaround for PostgREST TABLE return issue)
+                const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('obter_fluxo_entregadores', {
                     p_data_inicial: start,
                     p_data_final: end,
                     p_organization_id: organizationId,
@@ -65,7 +66,9 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
 
                 if (rpcError) throw rpcError;
 
-                setData(rpcData || []);
+                // Parse result - JSON function returns the array directly
+                const parsedData = Array.isArray(rpcData) ? rpcData : (rpcData || []);
+                setData(parsedData);
             } catch (err: any) {
                 safeLog.error('Erro ao buscar fluxo de entregadores:', err);
                 setError(err.message || 'Erro ao carregar dados.');
