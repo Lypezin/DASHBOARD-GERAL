@@ -53,7 +53,7 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
             const dbPraca = praca ? CITY_DB_MAPPING[praca] || praca : null;
 
             try {
-                const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('get_fluxo_entregadores', {
+                const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('listar_fluxo_entregadores', {
                     p_data_inicial: start,
                     p_data_final: end,
                     p_organization_id: organizationId,
