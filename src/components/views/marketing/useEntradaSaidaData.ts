@@ -48,12 +48,6 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
             // Mapear nome da praça para o valor do banco
             const dbPraca = praca ? CITY_DB_MAPPING[praca] || praca : null;
 
-            console.log('DEBUG EntradaSaida:', {
-                originalPraca: praca,
-                mappedPraca: dbPraca,
-                mapping: CITY_DB_MAPPING[praca || '']
-            });
-
             try {
                 // Use function with date parameters (matches working functions pattern)
                 const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('get_fluxo_semanal', {
