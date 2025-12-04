@@ -12,8 +12,6 @@ interface FluxoEntregadores {
     nomes_saidas: string[];
 }
 
-import { CITY_DB_MAPPING } from '@/constants/marketing';
-
 interface UseEntradaSaidaDataProps {
     dataInicial: string | null;
     dataFinal: string | null;
@@ -32,33 +30,26 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                 return;
             }
 
-            // Se não houver datas, usar o mês atual como padrão
+            // Se não houver datas, usar o ano atual como padrão
             let start = dataInicial;
             let end = dataFinal;
 
             if (!start || !end) {
                 const now = new Date();
-                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-                // Formato YYYY-MM-DD
+                const firstDay = new Date(now.getFullYear(), 0, 1);
                 start = firstDay.toISOString().split('T')[0];
-                end = lastDay.toISOString().split('T')[0];
+                end = now.toISOString().split('T')[0];
             }
 
             setLoading(true);
             setError(null);
 
-            // Mapear nome da praça para o valor do banco
-            const dbPraca = praca ? CITY_DB_MAPPING[praca] || praca : null;
-
             try {
-                // Use JSON-returning function (workaround for PostgREST TABLE return issue)
-                const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('obter_fluxo_entregadores', {
+                // Use function with date parameters (matches working functions pattern)
+                const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('get_fluxo_semanal', {
                     p_data_inicial: start,
                     p_data_final: end,
-                    p_organization_id: organizationId,
-                    p_praca: dbPraca
+                    p_organization_id: organizationId
                 }, {
                     timeout: RPC_TIMEOUTS.LONG,
                     validateParams: true
