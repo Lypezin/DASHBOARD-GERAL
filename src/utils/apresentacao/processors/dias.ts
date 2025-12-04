@@ -15,8 +15,12 @@ export const processarDias = (dadosBasicos: DadosBasicos) => {
     const { semana1, semana2 } = dadosBasicos;
     if (!semana1 || !semana2) return { semana1Dias: [], semana2Dias: [] };
 
+    // Use aderencia_dia (main) with fallback to dia (alias)
+    const diasSemana1 = semana1.aderencia_dia || semana1.dia || [];
+    const diasSemana2 = semana2.aderencia_dia || semana2.dia || [];
+
     const semana1Dias = diasOrdem.map((dia) => {
-        const info = findDayData(dia, semana1.dia) || ({} as any);
+        const info = findDayData(dia, diasSemana1) || ({} as any);
         const horas = info?.segundos_realizados
             ? info.segundos_realizados / 3600
             : converterHorasParaDecimal(info?.horas_entregues || '0');
@@ -29,8 +33,8 @@ export const processarDias = (dadosBasicos: DadosBasicos) => {
     });
 
     const semana2Dias = diasOrdem.map((dia) => {
-        const info1 = findDayData(dia, semana1.dia) || ({} as any);
-        const info2 = findDayData(dia, semana2.dia) || ({} as any);
+        const info1 = findDayData(dia, diasSemana1) || ({} as any);
+        const info2 = findDayData(dia, diasSemana2) || ({} as any);
 
         const horas1 = info1?.segundos_realizados
             ? info1.segundos_realizados / 3600
