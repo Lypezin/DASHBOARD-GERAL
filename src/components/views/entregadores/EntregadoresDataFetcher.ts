@@ -212,31 +212,18 @@ export async function fetchEntregadores(
   fetchEntregadoresFallbackFn: () => Promise<EntregadorMarketing[]>
 ): Promise<EntregadorMarketing[]> {
   try {
-    // Preparar parâmetros do filtro rodou_dia, data início e cidade
-    const params: any = {};
-
-    if (filtroRodouDia.dataInicial || filtroRodouDia.dataFinal) {
-      params.rodou_dia_inicial = filtroRodouDia.dataInicial || null;
-      params.rodou_dia_final = filtroRodouDia.dataFinal || null;
-    }
-
-    if (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) {
-      params.data_inicio_inicial = filtroDataInicio.dataInicial || null;
-      params.data_inicio_final = filtroDataInicio.dataFinal || null;
-    }
-
-    if (cidadeSelecionada) {
-      params.cidade = cidadeSelecionada;
-    }
-
     // Obter organization_id do usuário atual
     const { getCurrentUserOrganizationId } = await import('@/utils/organizationHelpers');
     const organizationId = await getCurrentUserOrganizationId();
 
-    // Sempre passar um objeto, mesmo que vazio, para evitar problemas com undefined
-    const finalParams = {
-      ...params,
-      p_organization_id: organizationId,
+    // Preparar parâmetros do filtro rodou_dia, data início e cidade
+    const params: any = {
+      p_organization_id: organizationId || null, // Garantir que seja null se undefined
+      rodou_dia_inicial: filtroRodouDia.dataInicial || null,
+      rodou_dia_final: filtroRodouDia.dataFinal || null,
+      data_inicio_inicial: filtroDataInicio.dataInicial || null,
+      data_inicio_final: filtroDataInicio.dataFinal || null,
+      cidade: cidadeSelecionada || null
     };
 
     // Usar função RPC para buscar entregadores com dados agregados
@@ -244,7 +231,11 @@ export async function fetchEntregadores(
     const hasMultipleFilters = (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) && cidadeSelecionada;
     const timeoutDuration = hasMultipleFilters ? 60000 : 30000;
 
-    const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', finalParams, {
+    if (IS_DEV) {
+      safeLog.info('Chamando get_entregadores_marketing com params:', params);
+    }
+
+    const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', params, {
       timeout: timeoutDuration,
       validateParams: false
     });
@@ -256,17 +247,19 @@ export async function fetchEntregadores(
       const is404 = errorCode === 'PGRST116' || errorCode === '42883' ||
         errorCode === 'PGRST204' ||
         errorMessage.includes('404') ||
-        errorMessage.includes('not found');
+        errorMessage.includes('not found') ||
+        errorMessage.includes('function') && errorMessage.includes('does not exist');
       const isTimeout = errorCode === 'TIMEOUT' || errorMessage.includes('timeout') || errorMessage.includes('demorou muito');
 
       if (is404 || isTimeout) {
         // Função RPC não existe ou deu timeout, usar fallback
         if (IS_DEV) {
-          safeLog.warn(`Função RPC get_entregadores_marketing ${isTimeout ? 'deu timeout' : 'não encontrada'}, usando fallback`);
+          safeLog.warn(`Função RPC get_entregadores_marketing ${isTimeout ? 'deu timeout' : 'não encontrada/erro'}, usando fallback. Erro: ${errorMessage}`);
         }
         return await fetchEntregadoresFallbackFn();
       }
 
+      safeLog.error('Erro RPC get_entregadores_marketing:', rpcError);
       throw rpcError;
     }
 
