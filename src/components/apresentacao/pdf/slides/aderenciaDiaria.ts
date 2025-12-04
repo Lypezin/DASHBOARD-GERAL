@@ -1,8 +1,8 @@
 
-import { COR_TEXTO, COR_VERDE, COR_VERMELHO, COR_PRIMARIA, COR_CINZA_CLARO, COR_SUBTITULO, COR_BORDA } from '../constants';
+import { COR_TEXTO, COR_VERDE, COR_VERMELHO, COR_PRIMARIA, COR_CINZA_CLARO, COR_SUBTITULO, COR_BORDA, BORDA_RAIO_MEDIO } from '../constants';
 import { criarSlideComLayout, criarGraficoCircular } from '../helpers';
 
-// Função para criar slide de aderência diária
+// Função para criar slide de aderência diária - Design Premium
 export const criarSlideAderenciaDiaria = (
   numeroSemana1: string,
   numeroSemana2: string,
@@ -32,59 +32,67 @@ export const criarSlideAderenciaDiaria = (
       diferencaAderenciaPositiva: boolean;
     }
   ) => {
-    // Gráfico para cards diários - otimizado para altura
-    const grafico = criarGraficoCircular(dia.aderencia, 60, 5, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
+    // Gráfico para cards diários - otimizado
+    const grafico = criarGraficoCircular(dia.aderencia, 65, 6, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
+
     return {
       width: '*',
       stack: [
+        // Nome do dia
         {
           text: dia.sigla,
-          fontSize: 12,
+          fontSize: 13,
           bold: true,
           color: COR_TEXTO,
           alignment: 'center',
-          margin: [0, 0, 0, 4],
+          margin: [0, 8, 0, 8],
+          characterSpacing: 0.5,
         },
+        // Gráfico circular
         {
           svg: grafico,
-          width: 60,
+          width: 65,
           alignment: 'center',
-          margin: [0, 0, 0, 4],
+          margin: [0, 0, 0, 8],
         },
+        // Horas entregues
         {
           stack: [
             {
-              text: 'Entregue',
-              fontSize: 9,
+              text: 'ENTREGUE',
+              fontSize: 8,
               color: COR_SUBTITULO,
               alignment: 'center',
-              margin: [0, 0, 0, 1],
+              bold: true,
+              characterSpacing: 0.3,
+              margin: [0, 0, 0, 3],
             },
             {
               text: dia.horasEntregues,
-              fontSize: 10,
+              fontSize: 11,
               bold: true,
               color: COR_VERDE,
               alignment: 'center',
             },
           ],
           fillColor: '#ffffff',
-          borderRadius: 4,
-          padding: [4, 3],
-          margin: [2, 0, 2, 0],
-          border: [true, true, true, true],
-          borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+          borderRadius: 6,
+          padding: [6, 5],
+          margin: [4, 0, 4, 4],
         },
+        // Diferenças (se existirem)
         ...(temDiferencas && diferencas
           ? [
             {
               stack: [
                 {
-                  text: 'Diferenças',
-                  fontSize: 9,
+                  text: 'VARIAÇÃO',
+                  fontSize: 8,
                   color: COR_SUBTITULO,
                   alignment: 'center',
-                  margin: [0, 0, 0, 1],
+                  bold: true,
+                  characterSpacing: 0.3,
+                  margin: [0, 0, 0, 4],
                 },
                 {
                   text: diferencas.diferencaHoras,
@@ -92,7 +100,7 @@ export const criarSlideAderenciaDiaria = (
                   bold: true,
                   color: diferencas.diferencaHorasPositiva ? COR_VERDE : COR_VERMELHO,
                   alignment: 'center',
-                  margin: [0, 0, 0, 1],
+                  margin: [0, 0, 0, 2],
                 },
                 {
                   text: diferencas.diferencaPercentualHoras,
@@ -100,55 +108,86 @@ export const criarSlideAderenciaDiaria = (
                   bold: true,
                   color: diferencas.diferencaPercentualHorasPositiva ? COR_VERDE : COR_VERMELHO,
                   alignment: 'center',
-                  margin: [0, 0, 0, 1],
-                },
-                {
-                  text: diferencas.diferencaAderencia,
-                  fontSize: 8,
-                  bold: true,
-                  color: diferencas.diferencaAderenciaPositiva ? COR_VERDE : COR_VERMELHO,
-                  alignment: 'center',
                 },
               ],
               fillColor: '#ffffff',
-              borderRadius: 4,
-              padding: [4, 3],
-              margin: [2, 2, 2, 0],
-              border: [true, true, true, true],
-              borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+              borderRadius: 6,
+              padding: [6, 5],
+              margin: [4, 0, 4, 6],
             },
           ]
-          : []),
+          : [{ text: '', margin: [0, 0, 0, 6] }]),
       ],
       fillColor: COR_CINZA_CLARO,
-      borderRadius: 8,
-      padding: [6, 6],
-      margin: [2, 0, 2, 0],
+      borderRadius: BORDA_RAIO_MEDIO,
+      margin: [3, 0],
     };
   };
 
   const conteudo = {
     stack: [
+      // Semana 1
       {
-        text: `SEMANA ${numeroSemana1}`,
-        fontSize: 16,
-        bold: true,
-        color: COR_PRIMARIA,
-        alignment: 'left',
-        margin: [0, 0, 0, 8],
+        columns: [
+          {
+            width: 'auto',
+            text: `SEMANA ${numeroSemana1}`,
+            fontSize: 14,
+            bold: true,
+            color: COR_PRIMARIA,
+            characterSpacing: 0.5,
+            margin: [0, 5, 0, 0],
+          },
+          {
+            width: '*',
+            canvas: [
+              {
+                type: 'line',
+                x1: 10,
+                y1: 10,
+                x2: 700,
+                y2: 10,
+                lineWidth: 1,
+                lineColor: '#e2e8f0',
+              },
+            ],
+          },
+        ],
+        margin: [0, 0, 0, 12],
       },
       {
         columns: semana1Dias.map((dia) => criarCardDia(dia)),
-        columnGap: 8,
-        margin: [0, 0, 0, 20],
+        columnGap: 6,
+        margin: [0, 0, 0, 25],
       },
+      // Semana 2
       {
-        text: `SEMANA ${numeroSemana2}`,
-        fontSize: 16,
-        bold: true,
-        color: COR_PRIMARIA,
-        alignment: 'left',
-        margin: [0, 0, 0, 8],
+        columns: [
+          {
+            width: 'auto',
+            text: `SEMANA ${numeroSemana2}`,
+            fontSize: 14,
+            bold: true,
+            color: COR_PRIMARIA,
+            characterSpacing: 0.5,
+            margin: [0, 5, 0, 0],
+          },
+          {
+            width: '*',
+            canvas: [
+              {
+                type: 'line',
+                x1: 10,
+                y1: 10,
+                x2: 700,
+                y2: 10,
+                lineWidth: 1,
+                lineColor: '#e2e8f0',
+              },
+            ],
+          },
+        ],
+        margin: [0, 0, 0, 12],
       },
       {
         columns: semana2Dias.map((dia) =>
@@ -161,8 +200,7 @@ export const criarSlideAderenciaDiaria = (
             diferencaAderenciaPositiva: dia.diferencaAderenciaPositiva,
           })
         ),
-        columnGap: 8,
-        margin: [0, 0, 0, 0],
+        columnGap: 6,
       },
     ],
   };

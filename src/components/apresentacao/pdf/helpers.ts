@@ -1,3 +1,4 @@
+
 import {
   A4_LANDSCAPE_HEIGHT,
   A4_LANDSCAPE_WIDTH,
@@ -7,6 +8,8 @@ import {
   COR_TEXTO,
   COR_SUBTITULO,
   MARGEM_PADRAO,
+  FONTE_TITULO,
+  FONTE_SUBTITULO,
 } from './constants';
 
 // Função para criar retângulo de fundo (Azul para capa, Branco para outros)
@@ -24,7 +27,7 @@ const criarRetanguloFundo = (isCapa: boolean = false) => ({
   absolutePosition: { x: 0, y: 0 },
 });
 
-// Cabeçalho padrão para slides de conteúdo
+// Cabeçalho padrão para slides de conteúdo - Design Premium
 const criarHeader = (titulo: string, subtitulo?: string) => {
   return {
     stack: [
@@ -33,16 +36,17 @@ const criarHeader = (titulo: string, subtitulo?: string) => {
           {
             text: titulo.toUpperCase(),
             color: COR_PRIMARIA,
-            fontSize: 24,
+            fontSize: FONTE_TITULO,
             bold: true,
             width: '*',
+            characterSpacing: 1,
           },
           subtitulo ? {
             text: subtitulo,
             color: COR_SUBTITULO,
-            fontSize: 14,
+            fontSize: 13,
             alignment: 'right',
-            margin: [0, 8, 0, 0],
+            margin: [0, 6, 0, 0],
             width: 'auto',
           } : {},
         ],
@@ -55,20 +59,24 @@ const criarHeader = (titulo: string, subtitulo?: string) => {
             y1: 0,
             x2: A4_LANDSCAPE_WIDTH - (MARGEM_PADRAO * 2),
             y2: 0,
-            lineWidth: 2,
+            lineWidth: 3,
             lineColor: COR_PRIMARIA,
           },
         ],
-        margin: [0, 10, 0, 20],
+        margin: [0, 12, 0, 20],
       },
     ],
     margin: [MARGEM_PADRAO, MARGEM_PADRAO, MARGEM_PADRAO, 0],
   };
 };
 
-// Rodapé padrão com data e paginação
+// Rodapé padrão com data e paginação - Design Premium
 const criarFooter = (numeroPagina?: number, totalPaginas?: number) => {
-  const dataAtual = new Date().toLocaleDateString('pt-BR');
+  const dataAtual = new Date().toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  });
 
   return {
     stack: [
@@ -84,7 +92,7 @@ const criarFooter = (numeroPagina?: number, totalPaginas?: number) => {
             lineColor: '#e2e8f0',
           },
         ],
-        margin: [0, 0, 0, 10],
+        margin: [0, 0, 0, 12],
       },
       {
         columns: [
@@ -93,17 +101,19 @@ const criarFooter = (numeroPagina?: number, totalPaginas?: number) => {
             color: '#94a3b8',
             fontSize: 9,
             width: '*',
+            italics: true,
           },
           {
             text: dataAtual,
-            color: '#94a3b8',
+            color: '#64748b',
             fontSize: 9,
             width: 'auto',
             alignment: 'center',
+            bold: true,
           },
           {
             text: numeroPagina && totalPaginas ? `Página ${numeroPagina} de ${totalPaginas}` : '',
-            color: '#94a3b8',
+            color: '#64748b',
             fontSize: 9,
             width: '*',
             alignment: 'right',
@@ -111,7 +121,7 @@ const criarFooter = (numeroPagina?: number, totalPaginas?: number) => {
         ],
       },
     ],
-    absolutePosition: { x: MARGEM_PADRAO, y: A4_LANDSCAPE_HEIGHT - 40 },
+    absolutePosition: { x: MARGEM_PADRAO, y: A4_LANDSCAPE_HEIGHT - 45 },
   };
 };
 
@@ -139,19 +149,19 @@ export const criarSlideComLayout = (
       titulo ? criarHeader(titulo, subtitulo) : {},
       {
         stack: [conteudo],
-        margin: [MARGEM_PADRAO, 0, MARGEM_PADRAO, 0], // Margem lateral para o conteúdo
+        margin: [MARGEM_PADRAO, 0, MARGEM_PADRAO, 0],
       },
       criarFooter(numeroPagina, totalPaginas),
     ],
   };
 };
 
-// Mantendo compatibilidade com código antigo, mas redirecionando
+// Mantendo compatibilidade com código antigo
 export const adicionarBackgroundAoSlide = (conteudo: any) => {
   return criarSlideComLayout(conteudo, undefined, undefined, true);
 };
 
-// Função para criar gráfico circular como SVG (Atualizada para cores flexíveis)
+// Função para criar gráfico circular como SVG - Design Premium
 export const criarGraficoCircular = (
   porcentagem: number,
   tamanho: number = 150,
@@ -165,8 +175,12 @@ export const criarGraficoCircular = (
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (porcentagem / 100) * circumference;
 
+  // Tamanho da fonte proporcional
+  const fontSize = tamanho > 200 ? 48 : tamanho > 140 ? 28 : tamanho > 100 ? 22 : 16;
+
   return `
     <svg width="${tamanho}" height="${tamanho}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Barra de fundo -->
       <circle
         cx="${center}"
         cy="${center}"
@@ -175,6 +189,7 @@ export const criarGraficoCircular = (
         stroke="${corFundoBarra}"
         stroke-width="${strokeWidth}"
       />
+      <!-- Barra de progresso -->
       <circle
         cx="${center}"
         cy="${center}"
@@ -187,15 +202,16 @@ export const criarGraficoCircular = (
         transform="rotate(-90 ${center} ${center})"
         stroke-linecap="round"
       />
+      <!-- Texto percentual -->
       <text
         x="${center}"
-        y="${center + (tamanho > 200 ? 8 : tamanho > 100 ? 4 : 2)}"
+        y="${center + fontSize * 0.35}"
         text-anchor="middle"
         dominant-baseline="middle"
         fill="${corTexto}"
-        font-size="${tamanho > 200 ? 56 : tamanho > 100 ? 24 : 18}"
+        font-size="${fontSize}"
         font-weight="bold"
-        font-family="Arial, sans-serif"
+        font-family="Arial, Helvetica, sans-serif"
       >${porcentagem.toFixed(1)}%</text>
     </svg>
   `;

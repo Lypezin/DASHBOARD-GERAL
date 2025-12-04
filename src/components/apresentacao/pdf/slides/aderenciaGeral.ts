@@ -1,12 +1,16 @@
 
 import {
-  COR_AZUL_CLARO,
   COR_TEXTO,
   COR_SUBTITULO,
   COR_VERDE,
   COR_VERMELHO,
   COR_PRIMARIA,
   COR_CINZA_CLARO,
+  COR_BORDA,
+  FONTE_TITULO,
+  FONTE_SUBTITULO,
+  FONTE_CORPO,
+  BORDA_RAIO_GRANDE,
 } from '../constants';
 import { criarSlideComLayout, criarGraficoCircular } from '../helpers';
 
@@ -15,11 +19,12 @@ export const criarSlideAderenciaGeral = (
   semana2: { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string },
   variacao: { horasDiferenca: string; horasPercentual: string; positiva: boolean }
 ): any => {
-  // Gráficos circulares adaptados para fundo branco
+  // Gráficos circulares maiores com visual premium
+  const graficoSize = 180;
   const grafico1 = criarGraficoCircular(
     semana1.aderencia,
-    160,
-    16,
+    graficoSize,
+    18,
     COR_TEXTO,
     COR_PRIMARIA,
     '#e2e8f0'
@@ -27,142 +32,143 @@ export const criarSlideAderenciaGeral = (
 
   const grafico2 = criarGraficoCircular(
     semana2.aderencia,
-    160,
-    16,
+    graficoSize,
+    18,
     COR_TEXTO,
     COR_PRIMARIA,
     '#e2e8f0'
   );
 
+  // Card estilizado para cada semana
+  const criarCardSemana = (
+    semana: typeof semana1,
+    grafico: string,
+    isSecondWeek: boolean = false
+  ) => ({
+    width: '*',
+    stack: [
+      // Header do card
+      {
+        text: `SEMANA ${semana.numeroSemana}`,
+        fontSize: FONTE_TITULO,
+        bold: true,
+        color: COR_TEXTO,
+        alignment: 'center',
+        margin: [0, 20, 0, 25],
+        characterSpacing: 1,
+      },
+      // Gráfico centralizado
+      {
+        svg: grafico,
+        width: graficoSize,
+        alignment: 'center',
+        margin: [0, 0, 0, 25],
+      },
+      // Métricas em layout elegante
+      {
+        columns: [
+          {
+            width: '*',
+            stack: [
+              {
+                text: 'PLANEJADO',
+                color: COR_SUBTITULO,
+                fontSize: 10,
+                alignment: 'center',
+                bold: true,
+                characterSpacing: 0.5,
+                margin: [0, 0, 0, 6],
+              },
+              {
+                text: semana.horasPlanejadas,
+                color: COR_TEXTO,
+                fontSize: 18,
+                bold: true,
+                alignment: 'center',
+              },
+            ],
+          },
+          {
+            width: '*',
+            stack: [
+              {
+                text: 'ENTREGUE',
+                color: COR_SUBTITULO,
+                fontSize: 10,
+                alignment: 'center',
+                bold: true,
+                characterSpacing: 0.5,
+                margin: [0, 0, 0, 6],
+              },
+              {
+                text: semana.horasEntregues,
+                color: COR_VERDE,
+                fontSize: 18,
+                bold: true,
+                alignment: 'center',
+              },
+            ],
+          },
+        ],
+        margin: [15, 0, 15, 20],
+      },
+    ],
+    fillColor: COR_CINZA_CLARO,
+    borderRadius: BORDA_RAIO_GRANDE,
+  });
+
   const conteudo = {
     columns: [
       // Semana 1
-      {
-        width: '*',
-        stack: [
-          {
-            text: `SEMANA ${semana1.numeroSemana}`,
-            fontSize: 20,
-            bold: true,
-            color: COR_TEXTO,
-            alignment: 'center',
-            margin: [0, 0, 0, 20],
-          },
-          {
-            svg: grafico1,
-            width: 160,
-            alignment: 'center',
-            margin: [0, 0, 0, 20],
-          },
-          {
-            layout: 'noBorders',
-            table: {
-              widths: ['*', '*'],
-              body: [
-                [
-                  { text: 'Planejado', color: COR_SUBTITULO, fontSize: 12, alignment: 'center' },
-                  { text: 'Entregue', color: COR_SUBTITULO, fontSize: 12, alignment: 'center' }
-                ],
-                [
-                  { text: semana1.horasPlanejadas, color: COR_TEXTO, fontSize: 16, bold: true, alignment: 'center', margin: [0, 5, 0, 0] },
-                  { text: semana1.horasEntregues, color: COR_VERDE, fontSize: 16, bold: true, alignment: 'center', margin: [0, 5, 0, 0] }
-                ]
-              ]
-            },
-            margin: [20, 0, 20, 0]
-          }
-        ],
-        fillColor: COR_CINZA_CLARO,
-        borderRadius: 8,
-        padding: [0, 20, 0, 20],
-      },
+      criarCardSemana(semana1, grafico1),
 
-      // Coluna central - Variação
+      // Coluna central - Variação com destaque
       {
-        width: 'auto',
+        width: 140,
         stack: [
+          { text: '', margin: [0, 70, 0, 0] },
           {
-            text: 'Variação',
-            fontSize: 14,
+            text: 'VARIAÇÃO',
+            fontSize: 11,
             color: COR_SUBTITULO,
             alignment: 'center',
-            margin: [0, 60, 0, 10],
+            bold: true,
+            characterSpacing: 1,
+            margin: [0, 0, 0, 15],
           },
+          // Valor principal
           {
             text: variacao.horasDiferenca,
-            fontSize: 24,
+            fontSize: 26,
             bold: true,
             color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
             alignment: 'center',
-            margin: [0, 0, 0, 5],
+            margin: [0, 0, 0, 8],
           },
+          // Percentual
           {
             text: variacao.horasPercentual,
-            fontSize: 18,
+            fontSize: 20,
             bold: true,
             color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
             alignment: 'center',
+            margin: [0, 0, 0, 15],
           },
+          // Indicador visual
           {
-            canvas: [
-              {
-                type: 'line',
-                x1: 0, y1: 0,
-                x2: 100, y2: 0,
-                lineWidth: 1,
-                lineColor: '#e2e8f0',
-              }
-            ],
-            margin: [0, 20, 0, 0],
-            alignment: 'center'
-          }
+            text: variacao.positiva ? '▲' : '▼',
+            fontSize: 24,
+            color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
+            alignment: 'center',
+          },
         ],
-        margin: [20, 0, 20, 0],
       },
 
       // Semana 2
-      {
-        width: '*',
-        stack: [
-          {
-            text: `SEMANA ${semana2.numeroSemana}`,
-            fontSize: 20,
-            bold: true,
-            color: COR_TEXTO,
-            alignment: 'center',
-            margin: [0, 0, 0, 20],
-          },
-          {
-            svg: grafico2,
-            width: 160,
-            alignment: 'center',
-            margin: [0, 0, 0, 20],
-          },
-          {
-            layout: 'noBorders',
-            table: {
-              widths: ['*', '*'],
-              body: [
-                [
-                  { text: 'Planejado', color: COR_SUBTITULO, fontSize: 12, alignment: 'center' },
-                  { text: 'Entregue', color: COR_SUBTITULO, fontSize: 12, alignment: 'center' }
-                ],
-                [
-                  { text: semana2.horasPlanejadas, color: COR_TEXTO, fontSize: 16, bold: true, alignment: 'center', margin: [0, 5, 0, 0] },
-                  { text: semana2.horasEntregues, color: COR_VERDE, fontSize: 16, bold: true, alignment: 'center', margin: [0, 5, 0, 0] }
-                ]
-              ]
-            },
-            margin: [20, 0, 20, 0]
-          }
-        ],
-        fillColor: COR_CINZA_CLARO,
-        borderRadius: 8,
-        padding: [0, 20, 0, 20],
-      },
+      criarCardSemana(semana2, grafico2, true),
     ],
-    columnGap: 20,
-    margin: [0, 20, 0, 0],
+    columnGap: 30,
+    margin: [0, 10, 0, 0],
   };
 
   return criarSlideComLayout(

@@ -1,17 +1,16 @@
 
 import {
-  COR_AZUL_CLARO,
   COR_TEXTO,
   COR_SUBTITULO,
   COR_VERDE,
   COR_VERMELHO,
   COR_PRIMARIA,
   COR_CINZA_CLARO,
-  COR_BORDA,
+  BORDA_RAIO_GRANDE,
 } from '../constants';
 import { criarSlideComLayout, criarGraficoCircular } from '../helpers';
 
-// Função para criar slide de turnos
+// Função para criar slide de turnos - Design Premium
 export const criarSlideTurnos = (
   numeroSemana1: string,
   numeroSemana2: string,
@@ -25,21 +24,24 @@ export const criarSlideTurnos = (
   }>
 ): any => {
   const criarCardTurno = (turno: typeof itens[0]) => {
-    // Gráficos para turnos - otimizados para 2 por página
-    const grafico1 = criarGraficoCircular(turno.semana1.aderencia, 140, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
-    const grafico2 = criarGraficoCircular(turno.semana2.aderencia, 140, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
+    const graficoSize = 150;
+    const grafico1 = criarGraficoCircular(turno.semana1.aderencia, graficoSize, 14, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
+    const grafico2 = criarGraficoCircular(turno.semana2.aderencia, graficoSize, 14, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
 
     return {
       width: '*',
       stack: [
+        // Nome do turno
         {
           text: turno.nome,
           fontSize: 22,
           bold: true,
           color: COR_TEXTO,
           alignment: 'center',
-          margin: [0, 0, 0, 15],
+          margin: [0, 15, 0, 20],
+          characterSpacing: 0.5,
         },
+        // Gráficos lado a lado
         {
           columns: [
             {
@@ -47,40 +49,33 @@ export const criarSlideTurnos = (
               stack: [
                 {
                   text: `SEMANA ${numeroSemana1}`,
-                  fontSize: 14,
+                  fontSize: 12,
                   bold: true,
                   color: COR_SUBTITULO,
                   alignment: 'center',
-                  margin: [0, 0, 0, 8],
+                  characterSpacing: 0.5,
+                  margin: [0, 0, 0, 12],
                 },
                 {
                   svg: grafico1,
-                  width: 140,
+                  width: graficoSize,
                   alignment: 'center',
-                  margin: [0, 0, 0, 10],
+                  margin: [0, 0, 0, 12],
                 },
                 {
-                  stack: [
-                    {
-                      text: 'Horas Entregues',
-                      fontSize: 12,
-                      color: COR_SUBTITULO,
-                      alignment: 'center',
-                      margin: [0, 0, 0, 2],
-                    },
-                    {
-                      text: turno.semana1.horasEntregues,
-                      fontSize: 16,
-                      bold: true,
-                      color: COR_VERDE,
-                      alignment: 'center',
-                    },
-                  ],
-                  fillColor: '#ffffff',
-                  borderRadius: 6,
-                  padding: [8, 6],
-                  border: [true, true, true, true],
-                  borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+                  text: 'ENTREGUE',
+                  fontSize: 9,
+                  color: COR_SUBTITULO,
+                  alignment: 'center',
+                  bold: true,
+                  margin: [0, 0, 0, 4],
+                },
+                {
+                  text: turno.semana1.horasEntregues,
+                  fontSize: 16,
+                  bold: true,
+                  color: COR_VERDE,
+                  alignment: 'center',
                 },
               ],
             },
@@ -89,57 +84,53 @@ export const criarSlideTurnos = (
               stack: [
                 {
                   text: `SEMANA ${numeroSemana2}`,
-                  fontSize: 14,
+                  fontSize: 12,
                   bold: true,
                   color: COR_SUBTITULO,
                   alignment: 'center',
-                  margin: [0, 0, 0, 8],
+                  characterSpacing: 0.5,
+                  margin: [0, 0, 0, 12],
                 },
                 {
                   svg: grafico2,
-                  width: 140,
+                  width: graficoSize,
                   alignment: 'center',
-                  margin: [0, 0, 0, 10],
+                  margin: [0, 0, 0, 12],
                 },
                 {
-                  stack: [
-                    {
-                      text: 'Horas Entregues',
-                      fontSize: 12,
-                      color: COR_SUBTITULO,
-                      alignment: 'center',
-                      margin: [0, 0, 0, 2],
-                    },
-                    {
-                      text: turno.semana2.horasEntregues,
-                      fontSize: 16,
-                      bold: true,
-                      color: COR_VERDE,
-                      alignment: 'center',
-                    },
-                  ],
-                  fillColor: '#ffffff',
-                  borderRadius: 6,
-                  padding: [8, 6],
-                  border: [true, true, true, true],
-                  borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+                  text: 'ENTREGUE',
+                  fontSize: 9,
+                  color: COR_SUBTITULO,
+                  alignment: 'center',
+                  bold: true,
+                  margin: [0, 0, 0, 4],
+                },
+                {
+                  text: turno.semana2.horasEntregues,
+                  fontSize: 16,
+                  bold: true,
+                  color: COR_VERDE,
+                  alignment: 'center',
                 },
               ],
             },
           ],
-          columnGap: 15,
-          margin: [0, 0, 0, 15],
+          columnGap: 20,
+          margin: [0, 0, 0, 20],
         },
+        // Variações em badges elegantes
         {
           columns: turno.variacoes.map((variacao) => ({
             width: '*',
             stack: [
               {
-                text: variacao.label,
-                fontSize: 12,
+                text: variacao.label.toUpperCase(),
+                fontSize: 9,
                 color: COR_SUBTITULO,
                 alignment: 'center',
-                margin: [0, 0, 0, 2],
+                bold: true,
+                characterSpacing: 0.3,
+                margin: [0, 0, 0, 5],
               },
               {
                 text: variacao.valor,
@@ -150,26 +141,23 @@ export const criarSlideTurnos = (
               },
             ],
             fillColor: '#ffffff',
-            borderRadius: 6,
-            padding: [8, 6],
-            margin: [3, 0, 3, 0],
-            border: [true, true, true, true],
-            borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+            borderRadius: 8,
+            padding: [10, 8],
+            margin: [4, 0],
           })),
-          columnGap: 10,
+          columnGap: 12,
         },
       ],
       fillColor: COR_CINZA_CLARO,
-      borderRadius: 12,
-      padding: [16, 14],
-      margin: [8, 0, 8, 0],
+      borderRadius: BORDA_RAIO_GRANDE,
+      padding: [20, 15],
     };
   };
 
   const conteudo = {
     columns: itens.map((turno) => criarCardTurno(turno)),
-    columnGap: 20,
-    margin: [0, 20, 0, 0],
+    columnGap: 30,
+    margin: [0, 15, 0, 0],
   };
 
   return criarSlideComLayout(

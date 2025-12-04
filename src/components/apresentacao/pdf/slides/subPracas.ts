@@ -1,6 +1,5 @@
 
 import {
-  COR_AZUL_CLARO,
   COR_TEXTO,
   COR_SUBTITULO,
   COR_VERDE,
@@ -8,10 +7,15 @@ import {
   COR_PRIMARIA,
   COR_CINZA_CLARO,
   COR_BORDA,
+  FONTE_TITULO,
+  FONTE_SUBTITULO,
+  FONTE_CORPO,
+  BORDA_RAIO_GRANDE,
+  BORDA_RAIO_MEDIO,
 } from '../constants';
 import { criarSlideComLayout, criarGraficoCircular } from '../helpers';
 
-// Função para criar slide de sub-praças (agora genérica para aceitar título)
+// Função para criar slide de sub-praças com design premium
 export const criarSlideSubPracas = (
   numeroSemana1: string,
   numeroSemana2: string,
@@ -27,45 +31,57 @@ export const criarSlideSubPracas = (
   titulo: string = 'Sub-Praças'
 ): any => {
   const criarCardSubPraca = (item: typeof itens[0]) => {
-    // Gráficos para sub-praças - compactados para caber em 1 página
-    const grafico1 = criarGraficoCircular(item.semana1.aderencia, 120, 10, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
-    const grafico2 = criarGraficoCircular(item.semana2.aderencia, 120, 10, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
+    // Gráficos otimizados para 2 cards por página
+    const graficoSize = 140;
+    const grafico1 = criarGraficoCircular(item.semana1.aderencia, graficoSize, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
+    const grafico2 = criarGraficoCircular(item.semana2.aderencia, graficoSize, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
 
     return {
       width: '*',
       stack: [
+        // Nome da sub-praça
         {
           text: item.nome,
-          fontSize: 18,
+          fontSize: 20,
           bold: true,
           color: COR_TEXTO,
           alignment: 'center',
-          margin: [0, 0, 0, 10],
+          margin: [0, 15, 0, 15],
+          characterSpacing: 0.5,
         },
+        // Badge de horas planejadas
         {
-          stack: [
+          columns: [
+            { width: '*', text: '' },
             {
-              text: 'Planejado',
-              fontSize: 12,
-              color: COR_SUBTITULO,
-              alignment: 'center',
-              margin: [0, 0, 0, 2],
+              width: 'auto',
+              stack: [
+                {
+                  text: 'PLANEJADO',
+                  fontSize: 9,
+                  color: COR_SUBTITULO,
+                  alignment: 'center',
+                  bold: true,
+                  characterSpacing: 0.5,
+                },
+                {
+                  text: item.horasPlanejadas,
+                  fontSize: 16,
+                  bold: true,
+                  color: COR_PRIMARIA,
+                  alignment: 'center',
+                  margin: [0, 4, 0, 0],
+                },
+              ],
+              fillColor: '#ffffff',
+              borderRadius: 6,
+              padding: [15, 8],
             },
-            {
-              text: item.horasPlanejadas,
-              fontSize: 16,
-              bold: true,
-              color: COR_PRIMARIA,
-              alignment: 'center',
-            },
+            { width: '*', text: '' },
           ],
-          fillColor: '#ffffff',
-          borderRadius: 6,
-          padding: [8, 6],
-          margin: [0, 0, 0, 12],
-          border: [true, true, true, true],
-          borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+          margin: [0, 0, 0, 20],
         },
+        // Gráficos lado a lado
         {
           columns: [
             {
@@ -73,35 +89,32 @@ export const criarSlideSubPracas = (
               stack: [
                 {
                   text: `SEMANA ${numeroSemana1}`,
-                  fontSize: 12,
+                  fontSize: 11,
                   bold: true,
                   color: COR_SUBTITULO,
                   alignment: 'center',
-                  margin: [0, 0, 0, 8],
+                  characterSpacing: 0.5,
+                  margin: [0, 0, 0, 10],
                 },
                 {
                   svg: grafico1,
-                  width: 120,
+                  width: graficoSize,
                   alignment: 'center',
-                  margin: [0, 0, 0, 8],
+                  margin: [0, 0, 0, 10],
                 },
                 {
-                  stack: [
-                    {
-                      text: 'Entregue',
-                      fontSize: 11,
-                      color: COR_SUBTITULO,
-                      alignment: 'center',
-                      margin: [0, 0, 0, 2],
-                    },
-                    {
-                      text: item.semana1.horasEntregues,
-                      fontSize: 14,
-                      bold: true,
-                      color: COR_VERDE,
-                      alignment: 'center',
-                    },
-                  ],
+                  text: 'ENTREGUE',
+                  fontSize: 9,
+                  color: COR_SUBTITULO,
+                  alignment: 'center',
+                  margin: [0, 0, 0, 4],
+                },
+                {
+                  text: item.semana1.horasEntregues,
+                  fontSize: 15,
+                  bold: true,
+                  color: COR_VERDE,
+                  alignment: 'center',
                 },
               ],
             },
@@ -110,80 +123,79 @@ export const criarSlideSubPracas = (
               stack: [
                 {
                   text: `SEMANA ${numeroSemana2}`,
-                  fontSize: 12,
+                  fontSize: 11,
                   bold: true,
                   color: COR_SUBTITULO,
                   alignment: 'center',
-                  margin: [0, 0, 0, 8],
+                  characterSpacing: 0.5,
+                  margin: [0, 0, 0, 10],
                 },
                 {
                   svg: grafico2,
-                  width: 120,
+                  width: graficoSize,
                   alignment: 'center',
-                  margin: [0, 0, 0, 8],
+                  margin: [0, 0, 0, 10],
                 },
                 {
-                  stack: [
-                    {
-                      text: 'Entregue',
-                      fontSize: 11,
-                      color: COR_SUBTITULO,
-                      alignment: 'center',
-                      margin: [0, 0, 0, 2],
-                    },
-                    {
-                      text: item.semana2.horasEntregues,
-                      fontSize: 14,
-                      bold: true,
-                      color: COR_VERDE,
-                      alignment: 'center',
-                    },
-                  ],
+                  text: 'ENTREGUE',
+                  fontSize: 9,
+                  color: COR_SUBTITULO,
+                  alignment: 'center',
+                  margin: [0, 0, 0, 4],
+                },
+                {
+                  text: item.semana2.horasEntregues,
+                  fontSize: 15,
+                  bold: true,
+                  color: COR_VERDE,
+                  alignment: 'center',
                 },
               ],
             },
           ],
-          columnGap: 10,
-          margin: [0, 0, 0, 12],
+          columnGap: 15,
+          margin: [0, 0, 0, 20],
         },
+        // Variações em badges horizontais
         {
           columns: item.variacoes.map((variacao) => ({
             width: '*',
             stack: [
               {
-                text: variacao.label,
-                fontSize: 10,
+                text: variacao.label.toUpperCase(),
+                fontSize: 8,
                 color: COR_SUBTITULO,
                 alignment: 'center',
-                margin: [0, 0, 0, 2],
+                bold: true,
+                characterSpacing: 0.3,
+                margin: [0, 0, 0, 4],
               },
               {
                 text: variacao.valor,
-                fontSize: 12,
+                fontSize: 13,
                 bold: true,
                 color: variacao.positivo ? COR_VERDE : COR_VERMELHO,
                 alignment: 'center',
               },
             ],
             fillColor: '#ffffff',
-            borderRadius: 4,
-            padding: [6, 4],
-            margin: [2, 0, 2, 0],
+            borderRadius: 6,
+            padding: [8, 6],
+            margin: [2, 0],
           })),
-          columnGap: 6,
+          columnGap: 8,
         },
       ],
       fillColor: COR_CINZA_CLARO,
-      borderRadius: 12,
-      padding: [16, 14],
-      margin: [0, 0, 0, 0],
+      borderRadius: BORDA_RAIO_GRANDE,
+      padding: [20, 15],
     };
   };
 
   const conteudo = {
     columns: itens.map((item) => criarCardSubPraca(item)),
-    columnGap: 20,
-    margin: [0, 20, 0, 0],
+    columnGap: 30,
+    margin: [0, 15, 0, 0],
   };
 
   return criarSlideComLayout(

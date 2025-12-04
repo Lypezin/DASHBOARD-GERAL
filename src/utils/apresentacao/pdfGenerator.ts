@@ -16,7 +16,7 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 
 const SUB_PRACAS_PER_PAGE = 2;
 const TURNOS_PER_PAGE = 2;
-const ORIGENS_PER_PAGE = 4;
+const ORIGENS_PER_PAGE = 2;
 
 export const prepararSlidesPDF = (
   dadosProcessados: DadosProcessados,
@@ -97,7 +97,7 @@ export const gerarPDF = async (
     safeLog.info('🔵 gerarPDF chamado');
     safeLog.info('📊 slidesPDFData.length:', { length: slidesPDFData.length });
   }
-  
+
   if (slidesPDFData.length === 0) {
     alert('Não há dados suficientes para gerar o PDF.');
     return;
@@ -167,38 +167,38 @@ export const gerarPDF = async (
     if (IS_DEV) {
       safeLog.info('💾 PDF criado, iniciando download...');
     }
-    
+
     const fileName = `Relatorio_Semanas_${numeroSemana1}_${numeroSemana2}.pdf`;
-    
+
     // Usar getBlob para garantir que o download funcione
     pdfDoc.getBlob((blob: Blob) => {
       if (IS_DEV) {
         safeLog.info('📦 Blob criado:', { size: blob.size });
       }
-      
+
       if (!blob || blob.size === 0) {
         throw new Error('PDF gerado está vazio');
       }
-      
+
       // Criar URL do blob
       const url = URL.createObjectURL(blob);
       if (IS_DEV) {
         safeLog.info('🔗 URL criada:', { url });
       }
-      
+
       // Criar link de download
       const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
       link.style.display = 'none';
-      
+
       // Adicionar ao DOM, clicar e remover
       document.body.appendChild(link);
       if (IS_DEV) {
         safeLog.info('🖱️ Clicando no link de download...');
       }
       link.click();
-      
+
       // Limpar após um pequeno delay
       setTimeout(() => {
         document.body.removeChild(link);
