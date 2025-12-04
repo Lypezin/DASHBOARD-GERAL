@@ -9,7 +9,7 @@ import { CacheEntry, isCacheValid, createCacheEntry } from '@/types/cache';
 import { CACHE } from '@/constants/config';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-const SESSION_STORAGE_PREFIX = 'dashboard_cache_';
+const SESSION_STORAGE_PREFIX = 'dashboard_cache_v2_';
 const MAX_SESSION_STORAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
 interface UseCacheOptions<T> {
@@ -24,16 +24,16 @@ interface UseCacheOptions<T> {
  */
 function getFromSessionStorage<T>(key: string, ttl: number): T | null {
   if (typeof window === 'undefined') return null;
-  
+
   try {
     const stored = sessionStorage.getItem(`${SESSION_STORAGE_PREFIX}${key}`);
     if (!stored) return null;
-    
+
     const entry: CacheEntry<T> = JSON.parse(stored);
     if (isCacheValid(entry, ttl)) {
       return entry.data;
     }
-    
+
     // Remover se expirado
     sessionStorage.removeItem(`${SESSION_STORAGE_PREFIX}${key}`);
     return null;
@@ -50,11 +50,11 @@ function getFromSessionStorage<T>(key: string, ttl: number): T | null {
  */
 function setToSessionStorage<T>(key: string, data: T, ttl: number): void {
   if (typeof window === 'undefined') return;
-  
+
   try {
     const entry = createCacheEntry(data, ttl);
     const serialized = JSON.stringify(entry);
-    
+
     // Verificar tamanho antes de salvar
     const currentSize = new Blob([serialized]).size;
     if (currentSize > MAX_SESSION_STORAGE_SIZE) {
@@ -63,10 +63,10 @@ function setToSessionStorage<T>(key: string, data: T, ttl: number): void {
       }
       return;
     }
-    
+
     // Limpar entradas antigas se necessário
     cleanupSessionStorage();
-    
+
     sessionStorage.setItem(`${SESSION_STORAGE_PREFIX}${key}`, serialized);
   } catch (error) {
     if (IS_DEV) {
@@ -90,7 +90,7 @@ function setToSessionStorage<T>(key: string, data: T, ttl: number): void {
  */
 function cleanupSessionStorage(): void {
   if (typeof window === 'undefined') return;
-  
+
   try {
     const keysToRemove: string[] = [];
     for (let i = 0; i < sessionStorage.length; i++) {
@@ -109,7 +109,7 @@ function cleanupSessionStorage(): void {
         }
       }
     }
-    
+
     keysToRemove.forEach(key => sessionStorage.removeItem(key));
   } catch (error) {
     if (IS_DEV) {
@@ -130,13 +130,13 @@ export function useCache<T>(options: UseCacheOptions<T>) {
    */
   const getCached = (params: any): T | null => {
     const key = getCacheKey(params);
-    
+
     // Tentar memória primeiro (mais rápido)
     const cached = cacheRef.current.get(key);
     if (cached && isCacheValid(cached, ttl)) {
       return cached.data;
     }
-    
+
     // Tentar sessionStorage
     const sessionData = getFromSessionStorage<T>(key, ttl);
     if (sessionData !== null) {
@@ -153,10 +153,10 @@ export function useCache<T>(options: UseCacheOptions<T>) {
    */
   const setCached = (params: any, data: T): void => {
     const key = getCacheKey(params);
-    
+
     // Salvar na memória
     cacheRef.current.set(key, createCacheEntry(data, ttl));
-    
+
     // Salvar no sessionStorage (persistência entre recarregamentos)
     setToSessionStorage(key, data, ttl);
   };
