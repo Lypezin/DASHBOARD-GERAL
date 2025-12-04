@@ -31,8 +31,8 @@ export const criarSlideSubPracas = (
   titulo: string = 'Sub-Praças'
 ): any => {
   const criarCardSubPraca = (item: typeof itens[0]) => {
-    // Gráficos otimizados para 2 cards por página
-    const graficoSize = 140;
+    // Gráficos otimizados para 2 cards por página (Reduzido para evitar overflow)
+    const graficoSize = 120;
     const grafico1 = criarGraficoCircular(item.semana1.aderencia, graficoSize, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
     const grafico2 = criarGraficoCircular(item.semana2.aderencia, graficoSize, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
 

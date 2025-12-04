@@ -154,12 +154,21 @@ export const criarSlideAderenciaGeral = (
             alignment: 'center',
             margin: [0, 0, 0, 15],
           },
-          // Indicador visual
+          // Indicador visual (Seta desenhada com canvas para compatibilidade)
           {
-            text: variacao.positiva ? '▲' : '▼',
-            fontSize: 24,
-            color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
+            canvas: [
+              {
+                type: 'polyline',
+                lineWidth: 0,
+                closePath: true,
+                points: variacao.positiva
+                  ? [{ x: 0, y: 20 }, { x: 12, y: 0 }, { x: 24, y: 20 }] // Seta para cima
+                  : [{ x: 0, y: 0 }, { x: 12, y: 20 }, { x: 24, y: 0 }], // Seta para baixo
+                color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
+              }
+            ],
             alignment: 'center',
+            margin: [0, 0, 0, 0],
           },
         ],
       },

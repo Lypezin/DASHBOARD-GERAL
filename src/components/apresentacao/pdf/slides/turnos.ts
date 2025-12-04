@@ -24,7 +24,7 @@ export const criarSlideTurnos = (
   }>
 ): any => {
   const criarCardTurno = (turno: typeof itens[0]) => {
-    const graficoSize = 150;
+    const graficoSize = 120;
     const grafico1 = criarGraficoCircular(turno.semana1.aderencia, graficoSize, 14, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
     const grafico2 = criarGraficoCircular(turno.semana2.aderencia, graficoSize, 14, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
 
