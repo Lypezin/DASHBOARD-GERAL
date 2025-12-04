@@ -85,7 +85,7 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-                            {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar)}
+                            {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar || '0')}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
                             Total de horas escaladas
@@ -104,7 +104,7 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-                            {formatarHorasParaHMS(aderenciaGeral.horas_entregues)}
+                            {formatarHorasParaHMS(aderenciaGeral.horas_entregues || '0')}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
                             Total de horas realizadas

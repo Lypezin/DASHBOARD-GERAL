@@ -106,8 +106,8 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
                                     </div>
 
                                     <div className="flex justify-between text-[10px] text-muted-foreground">
-                                        <span>{formatarHorasParaHMS(dia.horas_entregues)}</span>
-                                        <span>/ {formatarHorasParaHMS(dia.horas_a_entregar)}</span>
+                                        <span>{formatarHorasParaHMS(dia.horas_entregues || '0')}</span>
+                                        <span>/ {formatarHorasParaHMS(dia.horas_a_entregar || '0')}</span>
                                     </div>
                                 </div>
                             </CardContent>
