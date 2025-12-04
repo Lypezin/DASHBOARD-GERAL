@@ -13,9 +13,19 @@ import {
     Legend,
     Filler,
 } from 'chart.js';
-import { ArrowDownRight, ArrowUpRight, TrendingUp, TrendingDown, Activity, BarChart3 } from 'lucide-react';
-import { EntradaSaidaTable } from './EntradaSaidaTable';
+import { ArrowDownRight, ArrowUpRight, TrendingUp, TrendingDown, Activity, BarChart3, Eye, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 ChartJS.register(
     CategoryScale,
@@ -179,7 +189,20 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
     }, [data]);
 
     const saldo = totals.entradas - totals.saidas;
-    const taxaCrescimento = totals.saidas > 0 ? ((totals.entradas / totals.saidas - 1) * 100).toFixed(1) : 0;
+    const taxaCrescimento = totals.saidas > 0 ? ((totals.entradas / totals.saidas - 1) * 100).toFixed(1) : (totals.entradas > 0 ? 100 : 0);
+
+    // Ordenar dados por semana (mais recente primeiro)
+    const sortedWeeklyData = useMemo(() => {
+        return [...data].sort((a, b) => b.semana.localeCompare(a.semana));
+    }, [data]);
+
+    const formatWeekLabel = (semana: string) => {
+        const match = semana.match(/^(\d{4})-W(\d+)$/);
+        if (match) {
+            return `Semana ${match[2]}`;
+        }
+        return semana.replace(/^(\d{2})(\d{2})-W(\d+)$/, 'Semana $3');
+    };
 
     if (loading) {
         return (
@@ -294,7 +317,165 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                 </div>
             </div>
 
-            {/* Gráfico */}
+            {/* Cards Semanais */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-indigo-500" />
+                        Detalhamento por Semana
+                    </h3>
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                        {data.length} semanas
+                    </Badge>
+                </div>
+
+                {sortedWeeklyData.length === 0 ? (
+                    <div className="text-center py-12 px-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <div className="mx-auto h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                            <Calendar className="h-6 w-6 text-slate-400" />
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-400">Nenhum dado encontrado para o período selecionado.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {sortedWeeklyData.map((item, index) => (
+                            <div
+                                key={item.semana}
+                                className={`relative overflow-hidden rounded-2xl border bg-white dark:bg-slate-900 p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${index === 0
+                                        ? 'border-indigo-200 dark:border-indigo-800 shadow-md shadow-indigo-100 dark:shadow-none'
+                                        : 'border-slate-200 dark:border-slate-800 shadow-sm'
+                                    }`}
+                            >
+                                {index === 0 && (
+                                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                                )}
+
+                                {/* Header do Card */}
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${index === 0
+                                                ? 'bg-indigo-100 dark:bg-indigo-900/40'
+                                                : 'bg-slate-100 dark:bg-slate-800'
+                                            }`}>
+                                            <Calendar className={`h-4 w-4 ${index === 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'
+                                                }`} />
+                                        </div>
+                                        <div>
+                                            <p className={`font-semibold text-sm ${index === 0 ? 'text-indigo-900 dark:text-indigo-100' : 'text-slate-900 dark:text-slate-100'
+                                                }`}>
+                                                {formatWeekLabel(item.semana)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {index === 0 && (
+                                        <Badge className="bg-indigo-100 text-indigo-700 border-0 dark:bg-indigo-900/40 dark:text-indigo-300 text-[10px] px-2">
+                                            Atual
+                                        </Badge>
+                                    )}
+                                </div>
+
+                                {/* Métricas */}
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 p-3 text-center">
+                                        <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600/70 dark:text-emerald-400/70 mb-1">Entradas</p>
+                                        <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">+{item.entradas}</p>
+                                    </div>
+                                    <div className="rounded-xl bg-rose-50 dark:bg-rose-900/20 p-3 text-center">
+                                        <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-600/70 dark:text-rose-400/70 mb-1">Saídas</p>
+                                        <p className="text-xl font-bold text-rose-700 dark:text-rose-400 tabular-nums">-{item.saidas}</p>
+                                    </div>
+                                </div>
+
+                                {/* Saldo e Ações */}
+                                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                                    <Badge
+                                        className={`text-sm font-semibold px-3 py-1 border-0 tabular-nums ${item.saldo >= 0
+                                                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
+                                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                                            }`}
+                                    >
+                                        Saldo: {item.saldo > 0 ? '+' : ''}{item.saldo}
+                                    </Badge>
+
+                                    <div className="flex gap-1">
+                                        {item.entradas > 0 && (
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-7 w-7 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
+                                                    >
+                                                        <Eye className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="max-w-md">
+                                                    <DialogHeader>
+                                                        <DialogTitle className="flex items-center gap-2 text-emerald-600">
+                                                            <ArrowUpRight className="h-5 w-5" />
+                                                            Entradas - {formatWeekLabel(item.semana)}
+                                                        </DialogTitle>
+                                                        <DialogDescription>
+                                                            {item.entradas} novos entregadores ativos nesta semana.
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <ScrollArea className="h-[300px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
+                                                        <ul className="space-y-2">
+                                                            {item.nomes_entradas.map((nome, idx) => (
+                                                                <li key={idx} className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 py-2 px-3 rounded-lg bg-white dark:bg-slate-800 shadow-sm">
+                                                                    <div className="h-2 w-2 rounded-full bg-emerald-500 flex-shrink-0"></div>
+                                                                    <span className="truncate">{nome}</span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </ScrollArea>
+                                                </DialogContent>
+                                            </Dialog>
+                                        )}
+
+                                        {item.saidas > 0 && (
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-7 w-7 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/20"
+                                                    >
+                                                        <Eye className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="max-w-md">
+                                                    <DialogHeader>
+                                                        <DialogTitle className="flex items-center gap-2 text-rose-600">
+                                                            <ArrowDownRight className="h-5 w-5" />
+                                                            Saídas - {formatWeekLabel(item.semana)}
+                                                        </DialogTitle>
+                                                        <DialogDescription>
+                                                            {item.saidas} entregadores ficaram inativos nesta semana.
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <ScrollArea className="h-[300px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
+                                                        <ul className="space-y-2">
+                                                            {item.nomes_saidas.map((nome, idx) => (
+                                                                <li key={idx} className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 py-2 px-3 rounded-lg bg-white dark:bg-slate-800 shadow-sm">
+                                                                    <div className="h-2 w-2 rounded-full bg-rose-500 flex-shrink-0"></div>
+                                                                    <span className="truncate">{nome}</span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </ScrollArea>
+                                                </DialogContent>
+                                            </Dialog>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Gráfico (Agora no final) */}
             <Card className="overflow-hidden border-0 shadow-xl shadow-slate-200/50 dark:shadow-none dark:border dark:border-slate-800">
                 <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center justify-between">
@@ -315,9 +496,6 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                     </div>
                 </CardContent>
             </Card>
-
-            {/* Tabela */}
-            <EntradaSaidaTable data={data} />
         </div>
     );
 };
