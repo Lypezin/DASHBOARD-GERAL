@@ -13,15 +13,19 @@ export interface Totals {
 
 export interface AderenciaSemanal {
   semana: string;
-  horas_a_entregar: string;
-  horas_entregues: string;
+  horas_a_entregar?: string;
+  horas_entregues?: string;
+  segundos_planejados?: number;
+  segundos_realizados?: number;
   aderencia_percentual: number;
 }
 
 export interface AderenciaDia {
   data?: string; // Data do período (YYYY-MM-DD) - Opcional pois pode vir agrupado por dia da semana
-  horas_a_entregar: string;
-  horas_entregues: string;
+  horas_a_entregar?: string;
+  horas_entregues?: string;
+  segundos_planejados?: number;
+  segundos_realizados?: number;
   aderencia_percentual: number;
   corridas_ofertadas?: number;
   corridas_aceitas?: number;
@@ -37,8 +41,10 @@ export interface AderenciaDia {
 
 export interface AderenciaTurno {
   turno: string; // Nome do turno/período
-  horas_a_entregar: string;
-  horas_entregues: string;
+  horas_a_entregar?: string;
+  horas_entregues?: string;
+  segundos_planejados?: number;
+  segundos_realizados?: number;
   aderencia_percentual: number;
   corridas_ofertadas?: number;
   corridas_aceitas?: number;
@@ -50,8 +56,10 @@ export interface AderenciaTurno {
 
 export interface AderenciaSubPraca {
   sub_praca: string;
-  horas_a_entregar: string;
-  horas_entregues: string;
+  horas_a_entregar?: string;
+  horas_entregues?: string;
+  segundos_planejados?: number;
+  segundos_realizados?: number;
   aderencia_percentual: number;
   corridas_ofertadas?: number;
   corridas_aceitas?: number;
@@ -63,8 +71,10 @@ export interface AderenciaSubPraca {
 
 export interface AderenciaOrigem {
   origem: string;
-  horas_a_entregar: string;
-  horas_entregues: string;
+  horas_a_entregar?: string;
+  horas_entregues?: string;
+  segundos_planejados?: number;
+  segundos_realizados?: number;
   aderencia_percentual: number;
   corridas_ofertadas?: number;
   corridas_aceitas?: number;

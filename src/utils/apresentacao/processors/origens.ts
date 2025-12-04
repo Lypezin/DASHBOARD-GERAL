@@ -29,11 +29,21 @@ export const processarOrigens = (dadosBasicos: DadosBasicos) => {
     return todasOrigens.map((origemNome) => {
         const origemSemana1 = origensSemana1Map.get(origemNome) || ({} as any);
         const origemSemana2 = origensSemana2Map.get(origemNome) || ({} as any);
-        const horasPlanejadasBase = converterHorasParaDecimal(
-            origemSemana1?.horas_a_entregar || origemSemana2?.horas_a_entregar || '0'
-        );
-        const horasSem1 = converterHorasParaDecimal(origemSemana1?.horas_entregues || '0');
-        const horasSem2 = converterHorasParaDecimal(origemSemana2?.horas_entregues || '0');
+        const horasPlanejadasBase = origemSemana1?.segundos_planejados
+            ? origemSemana1.segundos_planejados / 3600
+            : origemSemana2?.segundos_planejados
+                ? origemSemana2.segundos_planejados / 3600
+                : converterHorasParaDecimal(
+                    origemSemana1?.horas_a_entregar || origemSemana2?.horas_a_entregar || '0'
+                );
+
+        const horasSem1 = origemSemana1?.segundos_realizados
+            ? origemSemana1.segundos_realizados / 3600
+            : converterHorasParaDecimal(origemSemana1?.horas_entregues || '0');
+
+        const horasSem2 = origemSemana2?.segundos_realizados
+            ? origemSemana2.segundos_realizados / 3600
+            : converterHorasParaDecimal(origemSemana2?.horas_entregues || '0');
         const aderenciaSem1 = origemSemana1?.aderencia_percentual || 0;
         const aderenciaSem2 = origemSemana2?.aderencia_percentual || 0;
 

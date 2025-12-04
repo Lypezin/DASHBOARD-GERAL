@@ -57,9 +57,17 @@ export const processarDadosBasicos = (
         periodoSemana2: calcularPeriodoSemana(numSem2),
         aderencia1: sem1?.aderencia_semanal?.[0]?.aderencia_percentual || 0,
         aderencia2: sem2?.aderencia_semanal?.[0]?.aderencia_percentual || 0,
-        horasEntregues1: converterHorasParaDecimal(sem1?.aderencia_semanal?.[0]?.horas_entregues || '0'),
-        horasEntregues2: converterHorasParaDecimal(sem2?.aderencia_semanal?.[0]?.horas_entregues || '0'),
-        horasPlanejadas1: converterHorasParaDecimal(sem1?.aderencia_semanal?.[0]?.horas_a_entregar || '0'),
-        horasPlanejadas2: converterHorasParaDecimal(sem2?.aderencia_semanal?.[0]?.horas_a_entregar || '0'),
+        horasEntregues1: sem1?.aderencia_semanal?.[0]?.segundos_realizados
+            ? sem1.aderencia_semanal[0].segundos_realizados / 3600
+            : converterHorasParaDecimal(sem1?.aderencia_semanal?.[0]?.horas_entregues || '0'),
+        horasEntregues2: sem2?.aderencia_semanal?.[0]?.segundos_realizados
+            ? sem2.aderencia_semanal[0].segundos_realizados / 3600
+            : converterHorasParaDecimal(sem2?.aderencia_semanal?.[0]?.horas_entregues || '0'),
+        horasPlanejadas1: sem1?.aderencia_semanal?.[0]?.segundos_planejados
+            ? sem1.aderencia_semanal[0].segundos_planejados / 3600
+            : converterHorasParaDecimal(sem1?.aderencia_semanal?.[0]?.horas_a_entregar || '0'),
+        horasPlanejadas2: sem2?.aderencia_semanal?.[0]?.segundos_planejados
+            ? sem2.aderencia_semanal[0].segundos_planejados / 3600
+            : converterHorasParaDecimal(sem2?.aderencia_semanal?.[0]?.horas_a_entregar || '0'),
     };
 };

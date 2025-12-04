@@ -18,7 +18,9 @@ export const processarDias = (dadosBasicos: DadosBasicos) => {
 
     const semana1Dias = diasOrdem.map((dia) => {
         const info = diasSemana1Map.get(dia) || ({} as any);
-        const horas = converterHorasParaDecimal(info?.horas_entregues || '0');
+        const horas = info?.segundos_realizados
+            ? info.segundos_realizados / 3600
+            : converterHorasParaDecimal(info?.horas_entregues || '0');
         return {
             nome: dia,
             sigla: siglaDia(dia),
@@ -30,8 +32,15 @@ export const processarDias = (dadosBasicos: DadosBasicos) => {
     const semana2Dias = diasOrdem.map((dia) => {
         const info1 = diasSemana1Map.get(dia) || ({} as any);
         const info2 = diasSemana2Map.get(dia) || ({} as any);
-        const horas1 = converterHorasParaDecimal(info1?.horas_entregues || '0');
-        const horas2 = converterHorasParaDecimal(info2?.horas_entregues || '0');
+
+        const horas1 = info1?.segundos_realizados
+            ? info1.segundos_realizados / 3600
+            : converterHorasParaDecimal(info1?.horas_entregues || '0');
+
+        const horas2 = info2?.segundos_realizados
+            ? info2.segundos_realizados / 3600
+            : converterHorasParaDecimal(info2?.horas_entregues || '0');
+
         const aderencia1Dia = info1?.aderencia_percentual || 0;
         const aderencia2Dia = info2?.aderencia_percentual || 0;
         return {

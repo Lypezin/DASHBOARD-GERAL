@@ -29,11 +29,21 @@ export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
     return todasSubPracas.map((nome) => {
         const itemSemana1 = subPracasSemana1Map.get(nome) || ({} as any);
         const itemSemana2 = subPracasSemana2Map.get(nome) || ({} as any);
-        const horasPlanejadasBase = converterHorasParaDecimal(
-            itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0'
-        );
-        const horasSem1 = converterHorasParaDecimal(itemSemana1?.horas_entregues || '0');
-        const horasSem2 = converterHorasParaDecimal(itemSemana2?.horas_entregues || '0');
+        const horasPlanejadasBase = itemSemana1?.segundos_planejados
+            ? itemSemana1.segundos_planejados / 3600
+            : itemSemana2?.segundos_planejados
+                ? itemSemana2.segundos_planejados / 3600
+                : converterHorasParaDecimal(
+                    itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0'
+                );
+
+        const horasSem1 = itemSemana1?.segundos_realizados
+            ? itemSemana1.segundos_realizados / 3600
+            : converterHorasParaDecimal(itemSemana1?.horas_entregues || '0');
+
+        const horasSem2 = itemSemana2?.segundos_realizados
+            ? itemSemana2.segundos_realizados / 3600
+            : converterHorasParaDecimal(itemSemana2?.horas_entregues || '0');
         const aderenciaSem1 = itemSemana1?.aderencia_percentual || 0;
         const aderenciaSem2 = itemSemana2?.aderencia_percentual || 0;
 

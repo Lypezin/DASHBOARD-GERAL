@@ -29,8 +29,13 @@ export const processarTurnos = (dadosBasicos: DadosBasicos) => {
     return todosTurnos.map((nomeTurno) => {
         const turnoSemana1 = turnosSemana1Map.get(nomeTurno) || ({} as any);
         const turnoSemana2 = turnosSemana2Map.get(nomeTurno) || ({} as any);
-        const horasSem1 = converterHorasParaDecimal(turnoSemana1?.horas_entregues || '0');
-        const horasSem2 = converterHorasParaDecimal(turnoSemana2?.horas_entregues || '0');
+        const horasSem1 = turnoSemana1?.segundos_realizados
+            ? turnoSemana1.segundos_realizados / 3600
+            : converterHorasParaDecimal(turnoSemana1?.horas_entregues || '0');
+
+        const horasSem2 = turnoSemana2?.segundos_realizados
+            ? turnoSemana2.segundos_realizados / 3600
+            : converterHorasParaDecimal(turnoSemana2?.horas_entregues || '0');
         const aderenciaSem1 = turnoSemana1?.aderencia_percentual || 0;
         const aderenciaSem2 = turnoSemana2?.aderencia_percentual || 0;
 
