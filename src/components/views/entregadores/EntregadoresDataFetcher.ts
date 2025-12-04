@@ -214,11 +214,20 @@ export async function fetchEntregadores(
   try {
     // Obter organization_id do usuário atual
     const { getCurrentUserOrganizationId } = await import('@/utils/organizationHelpers');
-    const organizationId = await getCurrentUserOrganizationId();
+    let organizationId = await getCurrentUserOrganizationId();
+
+    if (IS_DEV) {
+      safeLog.info('Organization ID obtido:', organizationId);
+    }
+
+    // Sanitize organizationId: convert empty string to null
+    if (organizationId === '') {
+      organizationId = null;
+    }
 
     // Preparar parâmetros do filtro rodou_dia, data início e cidade
     const params: any = {
-      p_organization_id: organizationId || null, // Garantir que seja null se undefined
+      p_organization_id: organizationId, // Já tratado para ser string válida ou null
       rodou_dia_inicial: filtroRodouDia.dataInicial || null,
       rodou_dia_final: filtroRodouDia.dataFinal || null,
       data_inicio_inicial: filtroDataInicio.dataInicial || null,
@@ -232,7 +241,7 @@ export async function fetchEntregadores(
     const timeoutDuration = hasMultipleFilters ? 60000 : 30000;
 
     if (IS_DEV) {
-      safeLog.info('Chamando get_entregadores_marketing com params:', params);
+      safeLog.info('Chamando get_entregadores_marketing com params:', JSON.stringify(params));
     }
 
     const { data, error: rpcError } = await safeRpc<EntregadorMarketing[]>('get_entregadores_marketing', params, {
@@ -241,6 +250,15 @@ export async function fetchEntregadores(
     });
 
     if (rpcError) {
+      // Log detalhado do erro para debug
+      console.error('❌ ERRO CRÍTICO get_entregadores_marketing:', {
+        erro: rpcError,
+        params: params,
+        mensagem: (rpcError as any)?.message,
+        codigo: (rpcError as any)?.code,
+        detalhes: (rpcError as any)?.details
+      });
+
       // Se a função RPC não existir ou der timeout, fazer fallback para query direta
       const errorCode = (rpcError as any)?.code || '';
       const errorMessage = String((rpcError as any)?.message || '');
@@ -264,6 +282,7 @@ export async function fetchEntregadores(
     }
 
     if (!data || !Array.isArray(data)) {
+      if (IS_DEV) safeLog.warn('Dados inválidos retornados:', data);
       return [];
     }
 
@@ -273,6 +292,7 @@ export async function fetchEntregadores(
 
     return data;
   } catch (err: any) {
+    console.error('❌ ERRO GERAL fetchEntregadores:', err);
     safeLog.error('Erro ao buscar entregadores:', err);
     throw err;
   }
