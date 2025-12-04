@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { RPC_TIMEOUTS } from '@/constants/config';
 import { safeLog } from '@/lib/errorHandler';
+import { CITY_DB_MAPPING } from '@/constants/marketing';
 
 interface FluxoEntregadores {
     semana: string;
@@ -44,13 +45,22 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
             setLoading(true);
             setError(null);
 
+            // Mapear nome da praça para o valor do banco
+            const dbPraca = praca ? CITY_DB_MAPPING[praca] || praca : null;
+
+            console.log('DEBUG EntradaSaida:', {
+                originalPraca: praca,
+                mappedPraca: dbPraca,
+                mapping: CITY_DB_MAPPING[praca || '']
+            });
+
             try {
                 // Use function with date parameters (matches working functions pattern)
                 const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('get_fluxo_semanal', {
                     p_data_inicial: start,
                     p_data_final: end,
                     p_organization_id: organizationId,
-                    p_praca: praca || null
+                    p_praca: dbPraca
                 }, {
                     timeout: RPC_TIMEOUTS.LONG,
                     validateParams: true
