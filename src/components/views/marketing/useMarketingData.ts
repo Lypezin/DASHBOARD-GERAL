@@ -28,22 +28,10 @@ export function useMarketingData() {
 
     const fetchTotals = useCallback(async () => {
         try {
-            // Se não houver filtro, usar o mês atual como padrão
-            const hasFilter =
-                filters.filtroEnviados.dataInicial ||
-                filters.filtroLiberacao.dataInicial ||
-                filters.filtroRodouDia.dataInicial;
-
-            let defaultStart = null;
-            let defaultEnd = null;
-
-            if (!hasFilter) {
-                const now = new Date();
-                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                defaultStart = firstDay.toISOString().split('T')[0];
-                defaultEnd = lastDay.toISOString().split('T')[0];
-            }
+            // Se não houver filtro, não definir padrão (null = todo o período)
+            // Isso permite ver o total geral quando nenhum filtro está aplicado
+            const defaultStart = null;
+            const defaultEnd = null;
 
             // Obter organization_id do usuário atual
             const organizationId = await getCurrentUserOrganizationId();
@@ -137,22 +125,10 @@ export function useMarketingData() {
 
     const fetchCitiesData = useCallback(async () => {
         try {
-            // Se não houver filtro, usar o mês atual como padrão
-            const hasFilter =
-                filters.filtroEnviados.dataInicial ||
-                filters.filtroLiberacao.dataInicial ||
-                filters.filtroRodouDia.dataInicial;
-
-            let defaultStart = null;
-            let defaultEnd = null;
-
-            if (!hasFilter) {
-                const now = new Date();
-                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                defaultStart = firstDay.toISOString().split('T')[0];
-                defaultEnd = lastDay.toISOString().split('T')[0];
-            }
+            // Se não houver filtro, não definir padrão (null = todo o período)
+            // Isso permite ver o total geral quando nenhum filtro está aplicado
+            const defaultStart = null;
+            const defaultEnd = null;
 
             // Obter organization_id do usuário atual
             const organizationId = await getCurrentUserOrganizationId();

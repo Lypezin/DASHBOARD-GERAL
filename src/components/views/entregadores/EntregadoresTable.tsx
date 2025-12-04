@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Users, ArrowUpDown, ArrowUp, ArrowDown, Clock, MapPin } from 'lucide-react';
 import { EntregadorMarketing } from '@/types';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface EntregadoresTableProps {
   entregadores: EntregadorMarketing[];
@@ -26,160 +28,174 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
   const getSortIcon = (field: keyof EntregadorMarketing | 'rodando') => {
     if (sortField !== field) return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400 inline" />;
     return sortDirection === 'asc' ?
-      <ArrowUp className="ml-1 h-3 w-3 text-purple-900 dark:text-purple-100 inline" /> :
-      <ArrowDown className="ml-1 h-3 w-3 text-purple-900 dark:text-purple-100 inline" />;
+      <ArrowUp className="ml-1 h-3 w-3 text-slate-900 dark:text-white inline" /> :
+      <ArrowDown className="ml-1 h-3 w-3 text-slate-900 dark:text-white inline" />;
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
-            <tr>
-              <th
-                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
-                onClick={() => onSort('id_entregador')}
-              >
-                ID {getSortIcon('id_entregador')}
-              </th>
-              <th
-                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+    <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+      <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+            <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          </div>
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+              Lista de Entregadores
+            </CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400">
+              Detalhamento de performance e status dos entregadores
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-0">
+        <div className="overflow-hidden">
+          {/* Cabeçalho fixo */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+            <div className="grid grid-cols-10 gap-4 px-6 py-3 min-w-[1200px]">
+              <div
+                className="cursor-pointer text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1 col-span-2"
                 onClick={() => onSort('nome')}
               >
-                Nome {getSortIcon('nome')}
-              </th>
-              <th
-                className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                Nome / ID {getSortIcon('nome')}
+              </div>
+              <div
+                className="cursor-pointer text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1"
                 onClick={() => onSort('regiao_atuacao')}
               >
                 Cidade {getSortIcon('regiao_atuacao')}
-              </th>
-              <th
-                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+              </div>
+              <div
+                className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
                 onClick={() => onSort('total_ofertadas')}
               >
                 Ofertadas {getSortIcon('total_ofertadas')}
-              </th>
-              <th
-                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+              </div>
+              <div
+                className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
                 onClick={() => onSort('total_aceitas')}
               >
                 Aceitas {getSortIcon('total_aceitas')}
-              </th>
-              <th
-                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+              </div>
+              <div
+                className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
                 onClick={() => onSort('total_completadas')}
               >
                 Completadas {getSortIcon('total_completadas')}
-              </th>
-              <th
-                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+              </div>
+              <div
+                className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
                 onClick={() => onSort('total_rejeitadas')}
               >
                 Rejeitadas {getSortIcon('total_rejeitadas')}
-              </th>
-              <th
-                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+              </div>
+              <div
+                className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
                 onClick={() => onSort('total_segundos')}
               >
                 Horas {getSortIcon('total_segundos')}
-              </th>
-              <th
-                className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+              </div>
+              <div
+                className="cursor-pointer text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1"
                 onClick={() => onSort('dias_sem_rodar')}
               >
-                Dias sem Rodar {getSortIcon('dias_sem_rodar')}
-              </th>
-              <th
-                className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-100 cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50 transition-colors"
+                Dias s/ Rodar {getSortIcon('dias_sem_rodar')}
+              </div>
+              <div
+                className="cursor-pointer text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1"
                 onClick={() => onSort('rodando')}
               >
-                Rodando {getSortIcon('rodando')}
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-            {entregadores.map((entregador) => {
-              const estaRodando = entregador.total_completadas > 30;
-              return (
-                <tr
-                  key={entregador.id_entregador}
-                  className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-mono text-slate-600 dark:text-slate-400">
-                      {entregador.id_entregador.substring(0, 8)}...
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-slate-900 dark:text-white">
-                      {entregador.nome}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                Status {getSortIcon('rodando')}
+              </div>
+            </div>
+          </div>
+
+          {/* Lista com scroll */}
+          <div className="max-h-[600px] overflow-y-auto overflow-x-auto">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {entregadores.map((entregador) => {
+                const estaRodando = entregador.total_completadas > 30; // Lógica simplificada baseada no original
+
+                return (
+                  <div
+                    key={entregador.id_entregador}
+                    className="grid grid-cols-10 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[1200px]"
+                  >
+                    <div className="col-span-2">
+                      <div className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                        {entregador.nome}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate flex items-center gap-1">
+                        {entregador.id_entregador.substring(0, 8)}...
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400">
+                      <MapPin className="h-3 w-3" />
                       {entregador.regiao_atuacao || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                    </div>
+
+                    <div className="text-right text-sm text-slate-600 dark:text-slate-400 font-mono">
                       {entregador.total_ofertadas.toLocaleString('pt-BR')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                    </div>
+
+                    <div className="text-right text-sm text-emerald-600 dark:text-emerald-400 font-mono font-medium">
                       {entregador.total_aceitas.toLocaleString('pt-BR')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                    </div>
+
+                    <div className="text-right text-sm text-blue-600 dark:text-blue-400 font-mono font-medium">
                       {entregador.total_completadas.toLocaleString('pt-BR')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">
+                    </div>
+
+                    <div className="text-right text-sm text-rose-600 dark:text-rose-400 font-mono font-medium">
                       {entregador.total_rejeitadas.toLocaleString('pt-BR')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                    </div>
+
+                    <div className="text-right text-sm text-indigo-600 dark:text-indigo-400 font-mono flex items-center justify-end gap-1">
+                      <Clock className="h-3 w-3" />
                       {formatarSegundosParaHoras(entregador.total_segundos || 0)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <span className={`text-sm font-semibold ${entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
-                      ? 'text-slate-400 dark:text-slate-500'
-                      : entregador.dias_sem_rodar === 0
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : entregador.dias_sem_rodar <= 3
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}>
-                      {entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
-                        ? 'N/A'
-                        : entregador.dias_sem_rodar === 0
-                          ? 'Hoje'
-                          : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`
-                      }
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <span className={`text-sm font-semibold ${estaRodando
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-400 dark:text-slate-500'
-                      }`}>
-                      {estaRodando ? 'SIM' : 'NÃO'}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                    </div>
+
+                    <div className="text-center">
+                      <Badge
+                        variant="outline"
+                        className={`font-medium ${entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
+                            ? 'text-slate-500 border-slate-200 bg-slate-50'
+                            : entregador.dias_sem_rodar === 0
+                              ? 'text-emerald-600 border-emerald-200 bg-emerald-50'
+                              : entregador.dias_sem_rodar <= 3
+                                ? 'text-amber-600 border-amber-200 bg-amber-50'
+                                : 'text-rose-600 border-rose-200 bg-rose-50'
+                          }`}
+                      >
+                        {entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
+                          ? 'N/A'
+                          : entregador.dias_sem_rodar === 0
+                            ? 'Hoje'
+                            : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`
+                        }
+                      </Badge>
+                    </div>
+
+                    <div className="text-center">
+                      <Badge
+                        variant={estaRodando ? "default" : "secondary"}
+                        className={estaRodando ? "bg-emerald-500 hover:bg-emerald-600" : ""}
+                      >
+                        {estaRodando ? 'Rodando' : 'Parado'}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 });
 
 EntregadoresTable.displayName = 'EntregadoresTable';
-
