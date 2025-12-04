@@ -16,7 +16,7 @@ export const slideDimensionsStyle: CSSProperties = {
 };
 
 export const slideBaseClass =
-  'slide bg-gradient-to-br from-blue-600 to-blue-800 text-white absolute inset-0';
+  'slide bg-white text-slate-900 absolute inset-0';
 
 export const slideTransitionStyle: CSSProperties = {
   transition: 'opacity 0.3s ease-in-out',

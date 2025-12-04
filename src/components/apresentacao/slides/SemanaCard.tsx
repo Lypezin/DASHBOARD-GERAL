@@ -21,7 +21,7 @@ const buildCircleDasharray = (valor: number) => {
 export const SemanaCard: React.FC<SemanaCardProps> = ({ semana }) => {
     return (
         <div className="flex flex-col items-center gap-3 flex-1" style={{ overflow: 'visible' }}>
-            <h3 className="text-[1.5rem] font-semibold uppercase tracking-wide text-center">
+            <h3 className="text-[1.5rem] font-semibold uppercase tracking-wide text-center text-slate-900">
                 SEMANA {semana.numeroSemana}
             </h3>
 
@@ -50,7 +50,7 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana }) => {
                         cx="150"
                         cy="150"
                         r="125"
-                        stroke="rgba(255,255,255,0.25)"
+                        stroke="#e2e8f0"
                         strokeWidth="16"
                         fill="none"
                     />
@@ -58,7 +58,7 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana }) => {
                         cx="150"
                         cy="150"
                         r="125"
-                        stroke="#ffffff"
+                        stroke="#2563eb"
                         strokeWidth="16"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
@@ -78,6 +78,7 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana }) => {
                     }}
                 >
                     <span
+                        className="text-slate-900"
                         style={{
                             ...buildCircleTextStyle(semana.aderencia, 1.8, 1.0),
                             display: 'flex',
@@ -95,23 +96,23 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana }) => {
             </div>
 
             <div className="w-full max-w-[280px] space-y-1.5" style={{ overflow: 'visible' }}>
-                <div className="rounded-lg bg-white/15 px-3 py-2 flex flex-col items-center gap-1 text-center" style={{ overflow: 'visible' }}>
-                    <span className="text-[1rem] font-medium opacity-85">
+                <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 flex flex-col items-center gap-1 text-center" style={{ overflow: 'visible' }}>
+                    <span className="text-[1rem] font-medium text-slate-500">
                         Planejado
                     </span>
                     <span
-                        className="font-bold text-blue-200"
+                        className="font-bold text-blue-600"
                         style={buildTimeTextStyle(semana.horasPlanejadas, 1.25)}
                     >
                         {semana.horasPlanejadas}
                     </span>
                 </div>
-                <div className="rounded-lg bg-white/15 px-3 py-2 flex flex-col items-center gap-1 text-center" style={{ overflow: 'visible' }}>
-                    <span className="text-[1rem] font-medium opacity-85">
+                <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 flex flex-col items-center gap-1 text-center" style={{ overflow: 'visible' }}>
+                    <span className="text-[1rem] font-medium text-slate-500">
                         Entregue
                     </span>
                     <span
-                        className="font-bold text-emerald-200"
+                        className="font-bold text-emerald-600"
                         style={buildTimeTextStyle(semana.horasEntregues, 1.15)}
                     >
                         {semana.horasEntregues}

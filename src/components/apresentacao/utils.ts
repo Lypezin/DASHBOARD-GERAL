@@ -26,10 +26,10 @@ export const buildCircleTextStyle = (
   const safeValue = Number.isFinite(value) ? Math.abs(value) : 0;
   const valueString = safeValue.toFixed(1);
   const totalLength = valueString.length; // Inclui o ponto decimal
-  
+
   // Algoritmo EXTREMAMENTE CONSERVADOR - garantia 100%
   let fontSize = baseFontRem;
-  
+
   // Redução EXTREMAMENTE agressiva para garantir que NUNCA saia
   if (totalLength >= 6) {        // Ex: "100.0%" = 6 chars
     fontSize = baseFontRem * 0.30; // 70% menor
@@ -42,7 +42,7 @@ export const buildCircleTextStyle = (
   } else {                       // Ex: "9%" = 2 chars
     fontSize = baseFontRem * 0.70; // 30% menor
   }
-  
+
   // Garantir tamanho mínimo legível
   fontSize = Math.max(minimumFontRem, fontSize);
 
@@ -59,7 +59,7 @@ export const buildCircleTextStyle = (
     height: '75%', // Ainda mais reduzido
     fontFamily: 'Inter, Arial, sans-serif',
     fontWeight: '900',
-    color: '#ffffff',
+    color: 'inherit',
     WebkitFontSmoothing: 'antialiased',
     MozOsxFontSmoothing: 'grayscale',
     textRendering: 'optimizeLegibility',
@@ -106,31 +106,31 @@ export const formatSignedPercent = (value: number): string => {
  */
 export const formatCompactTime = (timeString: string): string => {
   if (!timeString || typeof timeString !== 'string') return '0h';
-  
+
   const parts = timeString.split(':');
   if (parts.length < 2) return timeString;
-  
+
   const hours = parseInt(parts[0], 10);
   const minutes = parseInt(parts[1], 10);
-  
+
   if (isNaN(hours)) return timeString;
-  
+
   // Se as horas são muito grandes (> 9999), use notação compacta com separador de milhar
   if (hours > 9999) {
     const hoursFormatted = new Intl.NumberFormat('pt-BR').format(hours);
     return `${hoursFormatted}h`;
   }
-  
+
   // Se as horas são grandes (> 999), mostre apenas horas
   if (hours > 999) {
     return `${hours}h`;
   }
-  
+
   // Para valores normais, mostre horas e minutos se relevante
   if (minutes > 0 && hours < 100) {
     return `${hours}h${minutes.toString().padStart(2, '0')}`;
   }
-  
+
   return `${hours}h`;
 };
 
@@ -148,7 +148,7 @@ export const buildTimeTextStyle = (
   baseFontRem: number = 2.8
 ): CSSProperties => {
   const length = timeString?.length || 0;
-  
+
   // Redução progressiva mais suave
   let fontSize = baseFontRem;
   if (length > 12) {
@@ -160,7 +160,7 @@ export const buildTimeTextStyle = (
   } else if (length > 6) {
     fontSize = baseFontRem * 0.92;
   }
-  
+
   return {
     fontSize: `${fontSize}rem`,
     lineHeight: '1.2',

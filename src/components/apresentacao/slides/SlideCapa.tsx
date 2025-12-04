@@ -25,7 +25,7 @@ const SlideCapa: React.FC<SlideCapaProps> = React.memo(({
   return (
     <SlideWrapper
       isVisible={isVisible}
-      className="flex items-center justify-center"
+      className="flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800 text-white"
       style={{ padding: '60px 80px', overflow: 'visible' }}
     >
       <div className="flex-1 text-center space-y-10">
