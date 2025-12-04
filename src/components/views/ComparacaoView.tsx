@@ -101,7 +101,9 @@ const ComparacaoView = React.memo(function ComparacaoView({
   const origensDisponiveis = useMemo(() => {
     const conjunto = new Set<string>();
     dadosComparacao.forEach((dados) => {
-      dados?.origem?.forEach((item) => {
+      // Use aderencia_origem (main) with fallback to origem (alias)
+      const origens = dados?.aderencia_origem || dados?.origem || [];
+      origens.forEach((item) => {
         const nome = item?.origem?.trim();
         if (nome) {
           conjunto.add(nome);

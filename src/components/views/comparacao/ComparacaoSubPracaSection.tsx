@@ -21,7 +21,8 @@ export const ComparacaoSubPracaSection: React.FC<ComparacaoSubPracaSectionProps>
   viewMode,
   onViewModeChange,
 }) => {
-  if (!dadosComparacao.some(d => d.sub_praca && d.sub_praca.length > 0)) {
+  // Use aderencia_sub_praca (main) with fallback to sub_praca (alias)
+  if (!dadosComparacao.some(d => (d.aderencia_sub_praca && d.aderencia_sub_praca.length > 0) || (d.sub_praca && d.sub_praca.length > 0))) {
     return null;
   }
 
@@ -72,7 +73,7 @@ export const ComparacaoSubPracaSection: React.FC<ComparacaoSubPracaSectionProps>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {Array.from(new Set(dadosComparacao.flatMap(d => d.sub_praca?.map(sp => sp.sub_praca) ?? []))).map((subPraca) => (
+                {Array.from(new Set(dadosComparacao.flatMap(d => (d.aderencia_sub_praca || d.sub_praca || []).map(sp => sp.sub_praca)))).map((subPraca) => (
                   <React.Fragment key={subPraca}>
                     <tr className="bg-purple-50/50 dark:bg-purple-900/10">
                       <td colSpan={semanasSelecionadas.length * 2} className="px-6 py-3 font-semibold text-purple-900 dark:text-purple-100 flex items-center gap-2">

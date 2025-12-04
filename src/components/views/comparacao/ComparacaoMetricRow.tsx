@@ -34,14 +34,14 @@ export const ComparacaoMetricRow: React.FC<ComparacaoMetricRowProps> = ({
                 </div>
             </td>
             {dadosComparacao.map((dados, idx) => {
-                const subPracaData = dados.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                const subPracaData = (dados.aderencia_sub_praca || dados.sub_praca)?.find(sp => sp.sub_praca === subPraca);
                 const rawValue = subPracaData ? getValue(subPracaData) : 0;
 
                 let variacao: number | null = null;
 
                 if (idx > 0 && showVariation) {
                     const dadosAnterior = dadosComparacao[idx - 1];
-                    const subPracaDataAnterior = dadosAnterior.sub_praca?.find(sp => sp.sub_praca === subPraca);
+                    const subPracaDataAnterior = (dadosAnterior.aderencia_sub_praca || dadosAnterior.sub_praca)?.find(sp => sp.sub_praca === subPraca);
                     const rawValueAnterior = subPracaDataAnterior ? getValue(subPracaDataAnterior) : 0;
 
                     const currentNum = typeof rawValue === 'number' ? rawValue : 0;

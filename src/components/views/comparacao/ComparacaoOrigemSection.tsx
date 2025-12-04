@@ -123,8 +123,9 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
                             </div>
                           </td>
                           {dadosComparacao.map((dados, idx) => {
+                            // Use aderencia_origem (main) with fallback to origem (alias)
                             const origemAtual =
-                              dados.origem?.find((item) => (item.origem || '').trim() === origem) || ({} as any);
+                              (dados.aderencia_origem || dados.origem)?.find((item) => (item.origem || '').trim() === origem) || ({} as any);
                             const valorAtual = Number(
                               origemAtual?.[metrica.key as keyof typeof origemAtual] ?? 0
                             );
@@ -132,7 +133,7 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
                             if (idx > 0) {
                               const dadosAnterior = dadosComparacao[idx - 1];
                               const origemAnterior =
-                                dadosAnterior.origem?.find((item) => (item.origem || '').trim() === origem) ||
+                                (dadosAnterior.aderencia_origem || dadosAnterior.origem)?.find((item) => (item.origem || '').trim() === origem) ||
                                 ({} as any);
                               const valorAnterior = Number(
                                 origemAnterior?.[metrica.key as keyof typeof origemAnterior] ?? 0
