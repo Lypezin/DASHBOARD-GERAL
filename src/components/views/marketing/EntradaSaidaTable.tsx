@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,7 +11,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowDownRight, ArrowUpRight, Calendar, Users, Eye } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Calendar, Eye, List } from 'lucide-react';
 
 interface FluxoEntregadores {
     semana: string;
@@ -27,67 +27,100 @@ interface EntradaSaidaTableProps {
 }
 
 export function EntradaSaidaTable({ data }: EntradaSaidaTableProps) {
-    // Ordenar por semana decrescente (mais recente primeiro)
     const sortedData = [...data].sort((a, b) => b.semana.localeCompare(a.semana));
 
     const formatWeekLabel = (semana: string) => {
-        return semana.replace(/^(\d{2})(\d{2})-W(\d+)$/, 'Semana $3/$2');
+        const match = semana.match(/^(\d{4})-W(\d+)$/);
+        if (match) {
+            return `Semana ${match[2]}`;
+        }
+        return semana.replace(/^(\d{2})(\d{2})-W(\d+)$/, 'Semana $3');
+    };
+
+    const getWeekYear = (semana: string) => {
+        const match = semana.match(/^(\d{4})-W/);
+        return match ? match[1] : '';
     };
 
     return (
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-            <CardHeader className="pb-2 border-b border-slate-100 dark:border-slate-800">
+        <Card className="overflow-hidden border-0 shadow-xl shadow-slate-200/50 dark:shadow-none dark:border dark:border-slate-800">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                        Detalhamento Semanal
-                    </CardTitle>
-                    <Badge variant="outline" className="text-slate-500">
-                        {data.length} registros
+                    <div>
+                        <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <List className="h-5 w-5 text-indigo-500" />
+                            Histórico Detalhado
+                        </CardTitle>
+                        <CardDescription className="mt-1 text-slate-500">
+                            Visualize e explore os dados semana a semana
+                        </CardDescription>
+                    </div>
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                        {data.length} semanas
                     </Badge>
                 </div>
-
-                {/* Cabeçalho da Tabela (Visual) */}
-                <div className="hidden md:grid grid-cols-12 gap-4 mt-4 px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    <div className="col-span-3">Semana</div>
-                    <div className="col-span-3 text-center">Entradas (Novos)</div>
-                    <div className="col-span-3 text-center">Saídas (Churn)</div>
-                    <div className="col-span-3 text-right">Saldo Líquido</div>
-                </div>
             </CardHeader>
-            <CardContent className="pt-4 space-y-3">
-                {sortedData.length === 0 ? (
-                    <div className="text-center py-8 text-slate-500">
-                        Nenhum dado encontrado para o período selecionado.
-                    </div>
-                ) : (
-                    sortedData.map((item) => (
-                        <div
-                            key={item.semana}
-                            className="group relative overflow-hidden rounded-lg border border-slate-200 bg-white p-3 transition-all hover:shadow-md hover:border-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-800"
-                        >
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                                {/* Coluna Semana */}
+
+            <CardContent className="p-0 bg-white dark:bg-slate-900">
+                {/* Header da tabela */}
+                <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                    <div className="col-span-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Período</div>
+                    <div className="col-span-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Entradas</div>
+                    <div className="col-span-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Saídas</div>
+                    <div className="col-span-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Resultado</div>
+                </div>
+
+                {/* Linhas */}
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {sortedData.length === 0 ? (
+                        <div className="text-center py-12 px-6">
+                            <div className="mx-auto h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                                <Calendar className="h-6 w-6 text-slate-400" />
+                            </div>
+                            <p className="text-slate-500 dark:text-slate-400">Nenhum dado encontrado para o período selecionado.</p>
+                        </div>
+                    ) : (
+                        sortedData.map((item, index) => (
+                            <div
+                                key={item.semana}
+                                className={`group grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/30 ${index === 0 ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''
+                                    }`}
+                            >
+                                {/* Período */}
                                 <div className="col-span-3 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-900">
-                                        <Calendar className="h-5 w-5 text-slate-500" />
+                                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${index === 0
+                                            ? 'bg-indigo-100 dark:bg-indigo-900/40'
+                                            : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'
+                                        }`}>
+                                        <Calendar className={`h-5 w-5 ${index === 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'
+                                            }`} />
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-slate-900 dark:text-slate-100">
+                                        <p className={`font-semibold ${index === 0 ? 'text-indigo-900 dark:text-indigo-100' : 'text-slate-900 dark:text-slate-100'
+                                            }`}>
                                             {formatWeekLabel(item.semana)}
                                         </p>
                                         <p className="text-xs text-slate-500">
-                                            {item.semana}
+                                            {getWeekYear(item.semana)}
                                         </p>
                                     </div>
+                                    {index === 0 && (
+                                        <Badge className="ml-2 bg-indigo-100 text-indigo-700 border-0 dark:bg-indigo-900/40 dark:text-indigo-300 text-[10px] px-1.5">
+                                            Mais recente
+                                        </Badge>
+                                    )}
                                 </div>
 
-                                {/* Coluna Entradas */}
-                                <div className="col-span-3 flex flex-col md:items-center justify-center">
-                                    <div className="flex items-center gap-2 mb-1 md:mb-0">
+                                {/* Entradas */}
+                                <div className="col-span-3 flex flex-col items-start md:items-center justify-center gap-1">
+                                    <div className="flex items-center gap-2">
                                         <span className="md:hidden text-sm text-slate-500">Entradas:</span>
-                                        <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                                            +{item.entradas}
-                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
+                                            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                                                +{item.entradas}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     {item.entradas > 0 && (
@@ -96,9 +129,9 @@ export function EntradaSaidaTable({ data }: EntradaSaidaTableProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="h-6 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20 px-2"
+                                                    className="h-7 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20 px-2 gap-1"
                                                 >
-                                                    <Eye className="h-3 w-3 mr-1" /> Ver nomes
+                                                    <Eye className="h-3.5 w-3.5" /> Ver lista
                                                 </Button>
                                             </DialogTrigger>
                                             <DialogContent className="max-w-md">
@@ -108,15 +141,15 @@ export function EntradaSaidaTable({ data }: EntradaSaidaTableProps) {
                                                         Entradas - {formatWeekLabel(item.semana)}
                                                     </DialogTitle>
                                                     <DialogDescription>
-                                                        Lista de {item.entradas} novos entregadores ativos nesta semana.
+                                                        {item.entradas} novos entregadores ativos nesta semana.
                                                     </DialogDescription>
                                                 </DialogHeader>
-                                                <ScrollArea className="h-[300px] w-full rounded-md border p-4 bg-slate-50 dark:bg-slate-900">
+                                                <ScrollArea className="h-[300px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
                                                     <ul className="space-y-2">
                                                         {item.nomes_entradas.map((nome, idx) => (
-                                                            <li key={idx} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 pb-1 last:border-0">
-                                                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
-                                                                {nome}
+                                                            <li key={idx} className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 py-2 px-3 rounded-lg bg-white dark:bg-slate-800 shadow-sm">
+                                                                <div className="h-2 w-2 rounded-full bg-emerald-500 flex-shrink-0"></div>
+                                                                <span className="truncate">{nome}</span>
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -126,13 +159,16 @@ export function EntradaSaidaTable({ data }: EntradaSaidaTableProps) {
                                     )}
                                 </div>
 
-                                {/* Coluna Saídas */}
-                                <div className="col-span-3 flex flex-col md:items-center justify-center">
-                                    <div className="flex items-center gap-2 mb-1 md:mb-0">
+                                {/* Saídas */}
+                                <div className="col-span-3 flex flex-col items-start md:items-center justify-center gap-1">
+                                    <div className="flex items-center gap-2">
                                         <span className="md:hidden text-sm text-slate-500">Saídas:</span>
-                                        <span className="text-lg font-bold text-rose-600 dark:text-rose-400">
-                                            -{item.saidas}
-                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="h-2 w-2 rounded-full bg-rose-500"></div>
+                                            <span className="text-lg font-bold text-rose-600 dark:text-rose-400 tabular-nums">
+                                                -{item.saidas}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     {item.saidas > 0 && (
@@ -141,9 +177,9 @@ export function EntradaSaidaTable({ data }: EntradaSaidaTableProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="h-6 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/20 px-2"
+                                                    className="h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/20 px-2 gap-1"
                                                 >
-                                                    <Eye className="h-3 w-3 mr-1" /> Ver nomes
+                                                    <Eye className="h-3.5 w-3.5" /> Ver lista
                                                 </Button>
                                             </DialogTrigger>
                                             <DialogContent className="max-w-md">
@@ -153,15 +189,15 @@ export function EntradaSaidaTable({ data }: EntradaSaidaTableProps) {
                                                         Saídas - {formatWeekLabel(item.semana)}
                                                     </DialogTitle>
                                                     <DialogDescription>
-                                                        Lista de {item.saidas} entregadores inativos (churn) nesta semana.
+                                                        {item.saidas} entregadores ficaram inativos nesta semana.
                                                     </DialogDescription>
                                                 </DialogHeader>
-                                                <ScrollArea className="h-[300px] w-full rounded-md border p-4 bg-slate-50 dark:bg-slate-900">
+                                                <ScrollArea className="h-[300px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
                                                     <ul className="space-y-2">
                                                         {item.nomes_saidas.map((nome, idx) => (
-                                                            <li key={idx} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 pb-1 last:border-0">
-                                                                <div className="h-1.5 w-1.5 rounded-full bg-rose-500"></div>
-                                                                {nome}
+                                                            <li key={idx} className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 py-2 px-3 rounded-lg bg-white dark:bg-slate-800 shadow-sm">
+                                                                <div className="h-2 w-2 rounded-full bg-rose-500 flex-shrink-0"></div>
+                                                                <span className="truncate">{nome}</span>
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -171,23 +207,22 @@ export function EntradaSaidaTable({ data }: EntradaSaidaTableProps) {
                                     )}
                                 </div>
 
-                                {/* Coluna Saldo */}
+                                {/* Resultado */}
                                 <div className="col-span-3 flex md:justify-end items-center gap-2">
-                                    <span className="md:hidden text-sm text-slate-500">Saldo:</span>
+                                    <span className="md:hidden text-sm text-slate-500">Resultado:</span>
                                     <Badge
-                                        variant="outline"
-                                        className={`text-base px-3 py-1 ${item.saldo >= 0
-                                                ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
-                                                : 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800'
+                                        className={`text-sm font-semibold px-3 py-1 border-0 tabular-nums ${item.saldo >= 0
+                                                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
+                                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
                                             }`}
                                     >
                                         {item.saldo > 0 ? '+' : ''}{item.saldo}
                                     </Badge>
                                 </div>
                             </div>
-                        </div>
-                    ))
-                )}
+                        ))
+                    )}
+                </div>
             </CardContent>
         </Card>
     );
