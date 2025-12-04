@@ -11,8 +11,9 @@ export const processarOrigens = (dadosBasicos: DadosBasicos) => {
     const { semana1, semana2 } = dadosBasicos;
     if (!semana1 || !semana2) return [];
 
-    const origensSemana1 = semana1.origem || [];
-    const origensSemana2 = semana2.origem || [];
+    // Use aderencia_origem (main) with fallback to origem (alias)
+    const origensSemana1 = semana1.aderencia_origem || semana1.origem || [];
+    const origensSemana2 = semana2.aderencia_origem || semana2.origem || [];
     const origensSemana1Map = new Map(
         origensSemana1.map((item) => [(item.origem || '').trim(), item])
     );

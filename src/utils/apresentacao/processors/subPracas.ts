@@ -11,8 +11,9 @@ export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
     const { semana1, semana2 } = dadosBasicos;
     if (!semana1 || !semana2) return [];
 
-    const subPracasSemana1 = semana1.sub_praca || [];
-    const subPracasSemana2 = semana2.sub_praca || [];
+    // Use aderencia_sub_praca (main) with fallback to sub_praca (alias)
+    const subPracasSemana1 = semana1.aderencia_sub_praca || semana1.sub_praca || [];
+    const subPracasSemana2 = semana2.aderencia_sub_praca || semana2.sub_praca || [];
     const subPracasSemana1Map = new Map(
         subPracasSemana1.map((item) => [(item.sub_praca || '').trim(), item])
     );

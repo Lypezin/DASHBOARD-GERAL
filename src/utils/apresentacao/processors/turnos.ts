@@ -11,8 +11,9 @@ export const processarTurnos = (dadosBasicos: DadosBasicos) => {
     const { semana1, semana2 } = dadosBasicos;
     if (!semana1 || !semana2) return [];
 
-    const turnosSemana1 = semana1.turno || [];
-    const turnosSemana2 = semana2.turno || [];
+    // Use aderencia_turno (main) with fallback to turno (alias)
+    const turnosSemana1 = semana1.aderencia_turno || semana1.turno || [];
+    const turnosSemana2 = semana2.aderencia_turno || semana2.turno || [];
     const turnosSemana1Map = new Map(
         turnosSemana1.map((turno) => [(turno.turno || '').trim(), turno])
     );
