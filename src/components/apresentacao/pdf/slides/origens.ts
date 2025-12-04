@@ -15,6 +15,6 @@ export const criarSlideOrigens = (
     variacoes: Array<{ label: string; valor: string; positivo: boolean }>;
   }>
 ): any => {
-  // Reutilizar a mesma estrutura de sub-praças
-  return criarSlideSubPracas(numeroSemana1, numeroSemana2, paginaAtual, totalPaginas, itens);
+  // Reutilizar a mesma estrutura de sub-praças, mas com título "Origens"
+  return criarSlideSubPracas(numeroSemana1, numeroSemana2, paginaAtual, totalPaginas, itens, 'Origens');
 };

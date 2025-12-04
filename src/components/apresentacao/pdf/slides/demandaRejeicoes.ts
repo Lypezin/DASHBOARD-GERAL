@@ -4,8 +4,12 @@ import {
   COR_TEXTO,
   COR_VERDE,
   COR_VERMELHO,
+  COR_PRIMARIA,
+  COR_CINZA_CLARO,
+  COR_SUBTITULO,
+  COR_BORDA,
 } from '../constants';
-import { adicionarBackgroundAoSlide } from '../utils';
+import { criarSlideComLayout } from '../helpers';
 
 // Função para criar slide de demanda/rejeições
 export const criarSlideDemandaRejeicoes = (
@@ -23,150 +27,141 @@ export const criarSlideDemandaRejeicoes = (
   }>
 ): any => {
   // Layout com 3 colunas: Semana 1 | Variações | Semana 2
-  
+
   const conteudo = {
-    stack: [
+    columns: [
+      // Coluna Semana 1
       {
-        text: 'DEMANDA E REJEIÇÕES',
-        fontSize: 48,
-        bold: true,
-        color: COR_TEXTO,
-        alignment: 'center',
-        margin: [0, 18, 0, 10],
-      },
-      {
-        text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
-        fontSize: 26,
-        color: '#e5e7eb',
-        alignment: 'center',
-        margin: [0, 0, 0, 22],
-      },
-      {
-        columns: [
-          // Coluna Semana 1
+        width: '*',
+        stack: [
           {
-            width: '*',
+            text: `SEMANA ${numeroSemana1}`,
+            fontSize: 18,
+            bold: true,
+            color: COR_PRIMARIA,
+            alignment: 'center',
+            margin: [0, 0, 0, 15],
+          },
+          ...itens.map((item) => ({
             stack: [
               {
-                text: `SEMANA ${numeroSemana1}`,
+                text: item.label,
+                fontSize: 14,
+                bold: true,
+                color: COR_SUBTITULO,
+                alignment: 'center',
+                margin: [0, 0, 0, 5],
+              },
+              {
+                text: item.semana1Valor,
                 fontSize: 24,
                 bold: true,
                 color: COR_TEXTO,
                 alignment: 'center',
-                margin: [0, 0, 0, 15],
               },
-              ...itens.map((item) => ({
-                stack: [
-                  {
-                    text: item.label,
-                    fontSize: 16,
-                    bold: true,
-                    color: '#e5e7eb',
-                    alignment: 'center',
-                    margin: [0, 0, 0, 5],
-                  },
-                  {
-                    text: item.semana1Valor,
-                    fontSize: 32,
-                    bold: true,
-                    color: COR_AZUL_CLARO,
-                    alignment: 'center',
-                  },
-                ],
-                fillColor: [255, 255, 255, 0.12],
-                borderRadius: 10,
-                padding: [12, 10],
-                margin: [0, 0, 0, 10],
-              })),
             ],
-          },
-          // Coluna Variações (Centro)
-          {
-            width: 'auto',
-            stack: [
-              {
-                text: 'VARIAÇÕES',
-                fontSize: 24,
-                bold: true,
-                color: COR_TEXTO,
-                alignment: 'center',
-                margin: [0, 0, 0, 15],
-              },
-              ...itens.map((item) => ({
-                stack: [
-                  {
-                    text: item.label,
-                    fontSize: 12,
-                    color: '#d1d5db',
-                    alignment: 'center',
-                    margin: [0, 0, 0, 4],
-                  },
-                  {
-                    text: item.variacaoValor,
-                    fontSize: 24,
-                    bold: true,
-                    color: item.variacaoPositiva ? COR_VERDE : COR_VERMELHO,
-                    alignment: 'center',
-                    margin: [0, 0, 0, 3],
-                  },
-                  {
-                    text: item.variacaoPercentual,
-                    fontSize: 18,
-                    bold: true,
-                    color: item.variacaoPercentualPositiva ? COR_VERDE : COR_VERMELHO,
-                    alignment: 'center',
-                  },
-                ],
-                fillColor: [255, 255, 255, 0.10],
-                borderRadius: 10,
-                padding: [15, 10],
-                margin: [0, 0, 0, 10],
-              })),
-            ],
-          },
-          // Coluna Semana 2
-          {
-            width: '*',
-            stack: [
-              {
-                text: `SEMANA ${numeroSemana2}`,
-                fontSize: 24,
-                bold: true,
-                color: COR_TEXTO,
-                alignment: 'center',
-                margin: [0, 0, 0, 15],
-              },
-              ...itens.map((item) => ({
-                stack: [
-                  {
-                    text: item.label,
-                    fontSize: 16,
-                    bold: true,
-                    color: '#e5e7eb',
-                    alignment: 'center',
-                    margin: [0, 0, 0, 5],
-                  },
-                  {
-                    text: item.semana2Valor,
-                    fontSize: 32,
-                    bold: true,
-                    color: COR_AZUL_CLARO,
-                    alignment: 'center',
-                  },
-                ],
-                fillColor: [255, 255, 255, 0.12],
-                borderRadius: 10,
-                padding: [12, 10],
-                margin: [0, 0, 0, 10],
-              })),
-            ],
-          },
+            fillColor: COR_CINZA_CLARO,
+            borderRadius: 8,
+            padding: [12, 10],
+            margin: [0, 0, 0, 10],
+            border: [true, true, true, true],
+            borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+          })),
         ],
-        columnGap: 18,
-        margin: [12, 0, 12, 0],
+      },
+      // Coluna Variações (Centro)
+      {
+        width: 'auto',
+        stack: [
+          {
+            text: 'VARIAÇÕES',
+            fontSize: 18,
+            bold: true,
+            color: COR_PRIMARIA,
+            alignment: 'center',
+            margin: [0, 0, 0, 15],
+          },
+          ...itens.map((item) => ({
+            stack: [
+              {
+                text: item.label,
+                fontSize: 12,
+                color: COR_SUBTITULO,
+                alignment: 'center',
+                margin: [0, 0, 0, 4],
+              },
+              {
+                text: item.variacaoValor,
+                fontSize: 20,
+                bold: true,
+                color: item.variacaoPositiva ? COR_VERDE : COR_VERMELHO,
+                alignment: 'center',
+                margin: [0, 0, 0, 3],
+              },
+              {
+                text: item.variacaoPercentual,
+                fontSize: 16,
+                bold: true,
+                color: item.variacaoPercentualPositiva ? COR_VERDE : COR_VERMELHO,
+                alignment: 'center',
+              },
+            ],
+            fillColor: '#ffffff',
+            borderRadius: 8,
+            padding: [12, 10],
+            margin: [0, 0, 0, 10],
+            border: [true, true, true, true],
+            borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+          })),
+        ],
+      },
+      // Coluna Semana 2
+      {
+        width: '*',
+        stack: [
+          {
+            text: `SEMANA ${numeroSemana2}`,
+            fontSize: 18,
+            bold: true,
+            color: COR_PRIMARIA,
+            alignment: 'center',
+            margin: [0, 0, 0, 15],
+          },
+          ...itens.map((item) => ({
+            stack: [
+              {
+                text: item.label,
+                fontSize: 14,
+                bold: true,
+                color: COR_SUBTITULO,
+                alignment: 'center',
+                margin: [0, 0, 0, 5],
+              },
+              {
+                text: item.semana2Valor,
+                fontSize: 24,
+                bold: true,
+                color: COR_TEXTO,
+                alignment: 'center',
+              },
+            ],
+            fillColor: COR_CINZA_CLARO,
+            borderRadius: 8,
+            padding: [12, 10],
+            margin: [0, 0, 0, 10],
+            border: [true, true, true, true],
+            borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+          })),
+        ],
       },
     ],
+    columnGap: 18,
+    margin: [0, 20, 0, 0],
   };
-  
-  return adicionarBackgroundAoSlide(conteudo);
+
+  return criarSlideComLayout(
+    conteudo,
+    'Demanda e Rejeições',
+    `Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`
+  );
 };

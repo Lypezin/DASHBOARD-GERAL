@@ -1,6 +1,6 @@
 
-import { COR_TEXTO, COR_VERDE, COR_VERMELHO } from '../constants';
-import { adicionarBackgroundAoSlide, criarGraficoCircular } from '../utils';
+import { COR_TEXTO, COR_VERDE, COR_VERMELHO, COR_PRIMARIA, COR_CINZA_CLARO, COR_SUBTITULO, COR_BORDA } from '../constants';
+import { criarSlideComLayout, criarGraficoCircular } from '../helpers';
 
 // Função para criar slide de aderência diária
 export const criarSlideAderenciaDiaria = (
@@ -33,132 +33,121 @@ export const criarSlideAderenciaDiaria = (
     }
   ) => {
     // Gráfico para cards diários - otimizado para altura
-    const grafico = criarGraficoCircular(dia.aderencia, 72, 6);
+    const grafico = criarGraficoCircular(dia.aderencia, 60, 5, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
     return {
       width: '*',
       stack: [
         {
           text: dia.sigla,
-          fontSize: 14,
+          fontSize: 12,
           bold: true,
-          color: '#e5e7eb',
+          color: COR_TEXTO,
           alignment: 'center',
           margin: [0, 0, 0, 4],
         },
         {
           svg: grafico,
-          width: 72,
+          width: 60,
           alignment: 'center',
           margin: [0, 0, 0, 4],
         },
         {
           stack: [
             {
-              text: 'Horas Entregues',
-              fontSize: 10,
-              color: '#e5e7eb',
+              text: 'Entregue',
+              fontSize: 9,
+              color: COR_SUBTITULO,
               alignment: 'center',
               margin: [0, 0, 0, 1],
             },
             {
               text: dia.horasEntregues,
-              fontSize: 11,
+              fontSize: 10,
               bold: true,
               color: COR_VERDE,
               alignment: 'center',
             },
           ],
-          fillColor: [255, 255, 255, 0.10],
-          borderRadius: 5,
+          fillColor: '#ffffff',
+          borderRadius: 4,
           padding: [4, 3],
           margin: [2, 0, 2, 0],
+          border: [true, true, true, true],
+          borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
         },
         ...(temDiferencas && diferencas
           ? [
-              {
-                stack: [
-                  {
-                    text: 'Diferenças',
-                    fontSize: 10,
-                    color: '#f3f4f6',
-                    alignment: 'center',
-                    margin: [0, 0, 0, 1],
-                  },
-                  {
-                    text: diferencas.diferencaHoras,
-                    fontSize: 12,
-                    bold: true,
-                    color: diferencas.diferencaHorasPositiva ? COR_VERDE : COR_VERMELHO,
-                    alignment: 'center',
-                    margin: [0, 0, 0, 1],
-                  },
-                  {
-                    text: diferencas.diferencaPercentualHoras,
-                    fontSize: 10,
-                    bold: true,
-                    color: diferencas.diferencaPercentualHorasPositiva ? COR_VERDE : COR_VERMELHO,
-                    alignment: 'center',
-                    margin: [0, 0, 0, 1],
-                  },
-                  {
-                    text: diferencas.diferencaAderencia,
-                    fontSize: 9,
-                    bold: true,
-                    color: diferencas.diferencaAderenciaPositiva ? COR_VERDE : COR_VERMELHO,
-                    alignment: 'center',
-                  },
-                ],
-                fillColor: [255, 255, 255, 0.10],
-                borderRadius: 5,
-                padding: [4, 3],
-                margin: [2, 2, 2, 0],
-              },
-            ]
+            {
+              stack: [
+                {
+                  text: 'Diferenças',
+                  fontSize: 9,
+                  color: COR_SUBTITULO,
+                  alignment: 'center',
+                  margin: [0, 0, 0, 1],
+                },
+                {
+                  text: diferencas.diferencaHoras,
+                  fontSize: 10,
+                  bold: true,
+                  color: diferencas.diferencaHorasPositiva ? COR_VERDE : COR_VERMELHO,
+                  alignment: 'center',
+                  margin: [0, 0, 0, 1],
+                },
+                {
+                  text: diferencas.diferencaPercentualHoras,
+                  fontSize: 9,
+                  bold: true,
+                  color: diferencas.diferencaPercentualHorasPositiva ? COR_VERDE : COR_VERMELHO,
+                  alignment: 'center',
+                  margin: [0, 0, 0, 1],
+                },
+                {
+                  text: diferencas.diferencaAderencia,
+                  fontSize: 8,
+                  bold: true,
+                  color: diferencas.diferencaAderenciaPositiva ? COR_VERDE : COR_VERMELHO,
+                  alignment: 'center',
+                },
+              ],
+              fillColor: '#ffffff',
+              borderRadius: 4,
+              padding: [4, 3],
+              margin: [2, 2, 2, 0],
+              border: [true, true, true, true],
+              borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+            },
+          ]
           : []),
       ],
-      fillColor: [255, 255, 255, 0.12],
+      fillColor: COR_CINZA_CLARO,
       borderRadius: 8,
-      padding: [4, 4],
-      margin: [1, 0, 1, 0],
+      padding: [6, 6],
+      margin: [2, 0, 2, 0],
     };
   };
 
   const conteudo = {
     stack: [
       {
-        text: 'ADERÊNCIA DIÁRIA',
-        fontSize: 40,
-        bold: true,
-        color: COR_TEXTO,
-        alignment: 'center',
-        margin: [0, 15, 0, 5],
-      },
-      {
-        text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
-        fontSize: 24,
-        color: '#e5e7eb',
-        alignment: 'center',
-        margin: [0, 0, 0, 12],
-      },
-      {
         text: `SEMANA ${numeroSemana1}`,
-        fontSize: 17,
+        fontSize: 16,
         bold: true,
-        color: COR_TEXTO,
-        alignment: 'center',
+        color: COR_PRIMARIA,
+        alignment: 'left',
         margin: [0, 0, 0, 8],
       },
       {
         columns: semana1Dias.map((dia) => criarCardDia(dia)),
-        columnGap: 5,
-        margin: [8, 0, 8, 12],
+        columnGap: 8,
+        margin: [0, 0, 0, 20],
       },
       {
         text: `SEMANA ${numeroSemana2}`,
-        fontSize: 17,
+        fontSize: 16,
         bold: true,
-        color: COR_TEXTO,
-        alignment: 'center',
+        color: COR_PRIMARIA,
+        alignment: 'left',
         margin: [0, 0, 0, 8],
       },
       {
@@ -172,11 +161,15 @@ export const criarSlideAderenciaDiaria = (
             diferencaAderenciaPositiva: dia.diferencaAderenciaPositiva,
           })
         ),
-        columnGap: 5,
-        margin: [8, 0, 8, 0],
+        columnGap: 8,
+        margin: [0, 0, 0, 0],
       },
     ],
   };
-  
-  return adicionarBackgroundAoSlide(conteudo);
+
+  return criarSlideComLayout(
+    conteudo,
+    'Aderência Diária',
+    `Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`
+  );
 };

@@ -1,6 +1,15 @@
 
-import { COR_TEXTO, COR_VERDE, COR_VERMELHO } from '../constants';
-import { adicionarBackgroundAoSlide, criarGraficoCircular } from '../utils';
+import {
+  COR_AZUL_CLARO,
+  COR_TEXTO,
+  COR_SUBTITULO,
+  COR_VERDE,
+  COR_VERMELHO,
+  COR_PRIMARIA,
+  COR_CINZA_CLARO,
+  COR_BORDA,
+} from '../constants';
+import { criarSlideComLayout, criarGraficoCircular } from '../helpers';
 
 // Função para criar slide de turnos
 export const criarSlideTurnos = (
@@ -17,175 +26,158 @@ export const criarSlideTurnos = (
 ): any => {
   const criarCardTurno = (turno: typeof itens[0]) => {
     // Gráficos para turnos - otimizados para 2 por página
-    const grafico1 = criarGraficoCircular(turno.semana1.aderencia, 160, 14);
-    const grafico2 = criarGraficoCircular(turno.semana2.aderencia, 160, 14);
+    const grafico1 = criarGraficoCircular(turno.semana1.aderencia, 140, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
+    const grafico2 = criarGraficoCircular(turno.semana2.aderencia, 140, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
 
     return {
       width: '*',
       stack: [
         {
           text: turno.nome,
-          fontSize: 26,
+          fontSize: 22,
           bold: true,
           color: COR_TEXTO,
           alignment: 'center',
-          margin: [0, 0, 0, 18],
+          margin: [0, 0, 0, 15],
         },
-      {
-        columns: [
-          {
-            width: '*',
-            stack: [
-              {
-                text: `SEMANA ${numeroSemana1}`,
-                fontSize: 18,
-                bold: true,
-                color: '#e5e7eb',
-                alignment: 'center',
-                margin: [0, 0, 0, 10],
-              },
-              {
-                svg: grafico1,
-                width: 160,
-                alignment: 'center',
-                margin: [0, 0, 0, 12],
-              },
-              {
-                stack: [
-                  {
-                    text: 'Horas Entregues',
-                    fontSize: 15,
-                    color: '#f3f4f6',
-                    alignment: 'center',
-                    margin: [0, 0, 0, 4],
-                  },
-                  {
-                    text: turno.semana1.horasEntregues,
-                    fontSize: 20,
-                    bold: true,
-                    color: COR_VERDE,
-                    alignment: 'center',
-                  },
-                ],
-                fillColor: [255, 255, 255, 0.10],
-                borderRadius: 10,
-                padding: [12, 10],
-              },
-            ],
-          },
-          {
-            width: '*',
-            stack: [
-              {
-                text: `SEMANA ${numeroSemana2}`,
-                fontSize: 18,
-                bold: true,
-                color: '#e5e7eb',
-                alignment: 'center',
-                margin: [0, 0, 0, 10],
-              },
-              {
-                svg: grafico2,
-                width: 160,
-                alignment: 'center',
-                margin: [0, 0, 0, 12],
-              },
-              {
-                stack: [
-                  {
-                    text: 'Horas Entregues',
-                    fontSize: 15,
-                    color: '#f3f4f6',
-                    alignment: 'center',
-                    margin: [0, 0, 0, 4],
-                  },
-                  {
-                    text: turno.semana2.horasEntregues,
-                    fontSize: 20,
-                    bold: true,
-                    color: COR_VERDE,
-                    alignment: 'center',
-                  },
-                ],
-                fillColor: [255, 255, 255, 0.10],
-                borderRadius: 10,
-                padding: [12, 10],
-              },
-            ],
-          },
-        ],
-        columnGap: 15,
-        margin: [0, 0, 0, 15],
-      },
+        {
+          columns: [
+            {
+              width: '*',
+              stack: [
+                {
+                  text: `SEMANA ${numeroSemana1}`,
+                  fontSize: 14,
+                  bold: true,
+                  color: COR_SUBTITULO,
+                  alignment: 'center',
+                  margin: [0, 0, 0, 8],
+                },
+                {
+                  svg: grafico1,
+                  width: 140,
+                  alignment: 'center',
+                  margin: [0, 0, 0, 10],
+                },
+                {
+                  stack: [
+                    {
+                      text: 'Horas Entregues',
+                      fontSize: 12,
+                      color: COR_SUBTITULO,
+                      alignment: 'center',
+                      margin: [0, 0, 0, 2],
+                    },
+                    {
+                      text: turno.semana1.horasEntregues,
+                      fontSize: 16,
+                      bold: true,
+                      color: COR_VERDE,
+                      alignment: 'center',
+                    },
+                  ],
+                  fillColor: '#ffffff',
+                  borderRadius: 6,
+                  padding: [8, 6],
+                  border: [true, true, true, true],
+                  borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+                },
+              ],
+            },
+            {
+              width: '*',
+              stack: [
+                {
+                  text: `SEMANA ${numeroSemana2}`,
+                  fontSize: 14,
+                  bold: true,
+                  color: COR_SUBTITULO,
+                  alignment: 'center',
+                  margin: [0, 0, 0, 8],
+                },
+                {
+                  svg: grafico2,
+                  width: 140,
+                  alignment: 'center',
+                  margin: [0, 0, 0, 10],
+                },
+                {
+                  stack: [
+                    {
+                      text: 'Horas Entregues',
+                      fontSize: 12,
+                      color: COR_SUBTITULO,
+                      alignment: 'center',
+                      margin: [0, 0, 0, 2],
+                    },
+                    {
+                      text: turno.semana2.horasEntregues,
+                      fontSize: 16,
+                      bold: true,
+                      color: COR_VERDE,
+                      alignment: 'center',
+                    },
+                  ],
+                  fillColor: '#ffffff',
+                  borderRadius: 6,
+                  padding: [8, 6],
+                  border: [true, true, true, true],
+                  borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
+                },
+              ],
+            },
+          ],
+          columnGap: 15,
+          margin: [0, 0, 0, 15],
+        },
         {
           columns: turno.variacoes.map((variacao) => ({
             width: '*',
             stack: [
               {
                 text: variacao.label,
-                fontSize: 14,
-                color: '#d1d5db',
+                fontSize: 12,
+                color: COR_SUBTITULO,
                 alignment: 'center',
-                margin: [0, 0, 0, 3],
+                margin: [0, 0, 0, 2],
               },
               {
                 text: variacao.valor,
-                fontSize: 17,
+                fontSize: 14,
                 bold: true,
                 color: variacao.positivo ? COR_VERDE : COR_VERMELHO,
                 alignment: 'center',
               },
             ],
-            fillColor: [255, 255, 255, 0.10],
-            borderRadius: 8,
-            padding: [10, 8],
+            fillColor: '#ffffff',
+            borderRadius: 6,
+            padding: [8, 6],
             margin: [3, 0, 3, 0],
+            border: [true, true, true, true],
+            borderColor: [COR_BORDA, COR_BORDA, COR_BORDA, COR_BORDA],
           })),
           columnGap: 10,
         },
       ],
-      fillColor: [255, 255, 255, 0.15],
-      borderRadius: 16,
-      padding: [20, 18],
+      fillColor: COR_CINZA_CLARO,
+      borderRadius: 12,
+      padding: [16, 14],
       margin: [8, 0, 8, 0],
     };
   };
 
   const conteudo = {
-    stack: [
-      {
-        text: 'ADERÊNCIA POR TURNO',
-        fontSize: 46,
-        bold: true,
-        color: COR_TEXTO,
-        alignment: 'center',
-        margin: [0, 20, 0, 8],
-      },
-      {
-        text: `SEMANAS ${numeroSemana1} & ${numeroSemana2}`,
-        fontSize: 26,
-        color: '#e5e7eb',
-        alignment: 'center',
-        margin: [0, 0, 0, 8],
-      },
-      ...(totalPaginas > 1
-        ? [
-            {
-              text: `Página ${paginaAtual} de ${totalPaginas}`,
-              fontSize: 18,
-              color: '#e5e7eb',
-              alignment: 'center',
-              margin: [0, 0, 0, 20],
-            },
-          ]
-        : [{ text: '', margin: [0, 0, 0, 20] }]),
-      {
-        columns: itens.map((turno) => criarCardTurno(turno)),
-        columnGap: 20,
-        margin: [20, 0, 20, 0],
-      },
-    ],
+    columns: itens.map((turno) => criarCardTurno(turno)),
+    columnGap: 20,
+    margin: [0, 20, 0, 0],
   };
-  
-  return adicionarBackgroundAoSlide(conteudo);
+
+  return criarSlideComLayout(
+    conteudo,
+    'Aderência por Turno',
+    `Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`,
+    false,
+    paginaAtual,
+    totalPaginas
+  );
 };
