@@ -49,7 +49,8 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                 const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('get_fluxo_semanal', {
                     p_data_inicial: start,
                     p_data_final: end,
-                    p_organization_id: organizationId
+                    p_organization_id: organizationId,
+                    p_praca: praca || null
                 }, {
                     timeout: RPC_TIMEOUTS.LONG,
                     validateParams: true
