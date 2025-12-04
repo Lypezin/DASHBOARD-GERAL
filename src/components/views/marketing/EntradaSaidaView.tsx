@@ -139,7 +139,13 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                             label += ': ';
                         }
                         if (context.parsed.y !== null) {
-                            label += Math.abs(context.parsed.y);
+                            // Para Saídas, mostrar valor absoluto (pois plotamos negativo)
+                            if (context.dataset.label === 'Saídas') {
+                                label += Math.abs(context.parsed.y);
+                            } else {
+                                // Para Saldo e Entradas, mostrar valor real (pode ser negativo)
+                                label += context.parsed.y;
+                            }
                         }
                         return label;
                     }
@@ -270,8 +276,8 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
 
                 {/* Card Saldo */}
                 <div className={`group relative overflow-hidden rounded-2xl p-5 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 ${saldo >= 0
-                        ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-indigo-500/20 hover:shadow-indigo-500/30'
-                        : 'bg-gradient-to-br from-amber-500 to-amber-600 shadow-amber-500/20 hover:shadow-amber-500/30'
+                    ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-indigo-500/20 hover:shadow-indigo-500/30'
+                    : 'bg-gradient-to-br from-amber-500 to-amber-600 shadow-amber-500/20 hover:shadow-amber-500/30'
                     }`}>
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
                     <div className="relative">
@@ -342,8 +348,8 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                             <div
                                 key={item.semana}
                                 className={`relative overflow-hidden rounded-2xl border bg-white dark:bg-slate-900 p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${index === 0
-                                        ? 'border-indigo-200 dark:border-indigo-800 shadow-md shadow-indigo-100 dark:shadow-none'
-                                        : 'border-slate-200 dark:border-slate-800 shadow-sm'
+                                    ? 'border-indigo-200 dark:border-indigo-800 shadow-md shadow-indigo-100 dark:shadow-none'
+                                    : 'border-slate-200 dark:border-slate-800 shadow-sm'
                                     }`}
                             >
                                 {index === 0 && (
@@ -354,8 +360,8 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-2">
                                         <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${index === 0
-                                                ? 'bg-indigo-100 dark:bg-indigo-900/40'
-                                                : 'bg-slate-100 dark:bg-slate-800'
+                                            ? 'bg-indigo-100 dark:bg-indigo-900/40'
+                                            : 'bg-slate-100 dark:bg-slate-800'
                                             }`}>
                                             <Calendar className={`h-4 w-4 ${index === 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'
                                                 }`} />
@@ -390,8 +396,8 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                                 <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
                                     <Badge
                                         className={`text-sm font-semibold px-3 py-1 border-0 tabular-nums ${item.saldo >= 0
-                                                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
-                                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                                            ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
+                                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
                                             }`}
                                     >
                                         Saldo: {item.saldo > 0 ? '+' : ''}{item.saldo}
