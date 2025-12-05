@@ -48,7 +48,7 @@ export function createFlexibleColumnMapping(
   requiredColumns: string[]
 ): { [key: string]: string } {
   const columnMapping: { [key: string]: string } = {};
-  
+
   for (const excelCol of requiredColumns) {
     const normalizedRequired = excelCol.toLowerCase().trim();
     const foundCol = availableColumns.find(
@@ -60,7 +60,7 @@ export function createFlexibleColumnMapping(
       columnMapping[excelCol] = excelCol; // Tentar usar o nome original mesmo assim
     }
   }
-  
+
   return columnMapping;
 }
 
@@ -82,23 +82,23 @@ export async function processExcelData(
   safeLog.info('Lendo arquivo...');
   const arrayBuffer = await file.arrayBuffer();
   safeLog.info('Arquivo lido, tamanho:', { size: arrayBuffer.byteLength });
-  
+
   safeLog.info('Lendo workbook Excel...');
   const workbook = XLSX.read(arrayBuffer, { raw: true });
   safeLog.info('Sheets disponíveis:', { sheets: workbook.SheetNames });
-  
+
   if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
     throw new Error('A planilha não contém nenhuma aba');
   }
-  
+
   const sheetName = workbook.SheetNames[0];
   safeLog.info('Usando sheet:', { sheetName });
-  
+
   const worksheet = workbook.Sheets[sheetName];
   if (!worksheet) {
     throw new Error(`A aba "${sheetName}" está vazia ou inválida`);
   }
-  
+
   safeLog.info('Convertendo para JSON...');
   const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
   safeLog.info(`Total de linhas lidas: ${rawData.length}`);
@@ -106,7 +106,7 @@ export async function processExcelData(
   if (!rawData || rawData.length === 0) {
     throw new Error('A planilha está vazia ou não contém dados válidos');
   }
-  
+
   if (IS_DEV) {
     safeLog.info('Primeira linha de exemplo:', rawData[0]);
   }
@@ -115,15 +115,15 @@ export async function processExcelData(
   const firstRow = rawData[0] as Record<string, unknown>;
   const availableColumns = Object.keys(firstRow || {});
   const requiredColumns = Object.keys(columnMap);
-  
+
   // Criar mapeamento flexível
   const columnMapping = createFlexibleColumnMapping(availableColumns, requiredColumns);
-  
+
   const missingColumns = requiredColumns.filter(col => {
     const mappedCol = columnMapping[col];
     return !availableColumns.includes(mappedCol);
   });
-  
+
   if (missingColumns.length > 0) {
     safeLog.warn('Colunas não encontradas na planilha:', missingColumns);
     safeLog.info('Colunas disponíveis na planilha:', availableColumns);
@@ -131,11 +131,11 @@ export async function processExcelData(
   }
 
   // Processar e sanitizar dados
-      const sanitizedData = (rawData as Record<string, unknown>[])
-        .map((row: Record<string, unknown>, rowIndex: number) => {
+  const sanitizedData = (rawData as Record<string, unknown>[])
+    .map((row: Record<string, unknown>, rowIndex: number) => {
       try {
         const sanitized: Record<string, unknown> = {};
-        
+
         for (const excelCol in columnMap) {
           const dbCol = columnMap[excelCol];
           const actualColName = columnMapping[excelCol] || excelCol;
@@ -256,10 +256,34 @@ export const commonTransformers = {
     if (value === null || value === undefined || value === '') {
       throw new Error('Valor numérico não pode ser vazio');
     }
-    const numValue = typeof value === 'string' 
-      ? parseFloat(value.replace(',', '.').replace(/[^\d.-]/g, ''))
-      : Number(value);
-    
+
+    if (typeof value === 'number') return value;
+
+    const strValue = String(value).trim();
+
+    // Remover símbolos de moeda e espaços
+    let cleanValue = strValue.replace(/[R$\s]/g, '');
+
+    // Lógica para detectar formato BR (1.234,56) vs US (1,234.56)
+    if (cleanValue.includes(',') && cleanValue.includes('.')) {
+      // Formato misto. Assumir ponto como milhar se aparecer antes da vírgula
+      if (cleanValue.indexOf('.') < cleanValue.indexOf(',')) {
+        // Formato BR: 1.234,56 -> 1234.56
+        cleanValue = cleanValue.replace(/\./g, '').replace(',', '.');
+      } else {
+        // Formato US: 1,234.56 -> 1234.56
+        cleanValue = cleanValue.replace(/,/g, '');
+      }
+    } else if (cleanValue.includes(',')) {
+      // Apenas vírgula: Assumir separador decimal (BR)
+      cleanValue = cleanValue.replace(',', '.');
+    }
+
+    // Remover quaisquer outros caracteres não numéricos (exceto ponto e menos)
+    cleanValue = cleanValue.replace(/[^\d.-]/g, '');
+
+    const numValue = parseFloat(cleanValue);
+
     if (isNaN(numValue)) {
       throw new Error(`Valor inválido: ${value}`);
     }

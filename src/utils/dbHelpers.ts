@@ -52,8 +52,11 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
   for (let i = 0; i < totalRows; i += batchSize) {
     let batch = data.slice(i, i + batchSize);
 
-    // Injetar organization_id se fornecido
-    if (organizationId) {
+    // Regex para validar UUID
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    // Injetar organization_id se fornecido e for um UUID válido
+    if (organizationId && UUID_REGEX.test(organizationId)) {
       batch = batch.map(item => ({
         ...item,
         organization_id: organizationId
