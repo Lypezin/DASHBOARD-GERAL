@@ -22,7 +22,7 @@ interface ApresentacaoPreviewProps {
 // A4 Landscape dimensions in mm
 const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
-const SCALE_FACTOR = 1.3; // Reduced for faster generation while maintaining good quality
+const SCALE_FACTOR = 1.15; // Optimized for speed with 33+ slides while maintaining quality
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   slides,
@@ -114,6 +114,11 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
             imageTimeout: 0,
             windowWidth: SLIDE_WIDTH,
             windowHeight: SLIDE_HEIGHT,
+            onclone: (clonedDoc: Document) => {
+              // Remove any hidden elements to speed up rendering
+              const hiddenElements = clonedDoc.querySelectorAll('[style*="display: none"], [style*="visibility: hidden"]');
+              hiddenElements.forEach((el: Element) => el.remove());
+            },
           });
 
           // Add page (except for first slide)

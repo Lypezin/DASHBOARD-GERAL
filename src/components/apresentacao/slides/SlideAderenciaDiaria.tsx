@@ -168,25 +168,25 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
         </div>
 
         {/* Summary comparison row */}
-        <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-xl border border-slate-200 p-4">
-          <div className="grid grid-cols-7 gap-3">
+        <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-xl border border-slate-200 p-3">
+          <div className="grid grid-cols-7 gap-2">
             {semana2Dias.map((dia) => (
               <div key={`summary-${dia.sigla}`} className="text-center">
-                <span className="text-sm font-medium text-slate-500 block mb-1.5">{dia.sigla}</span>
-                <div className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold ${dia.diferencaPercentualHorasPositiva
+                <span className="text-xs font-medium text-slate-500 block mb-1">{dia.sigla}</span>
+                <div className={`inline-flex items-center gap-0.5 px-2 py-1 rounded-full text-xs font-bold ${dia.diferencaPercentualHorasPositiva
                   ? 'bg-emerald-100 text-emerald-700'
                   : 'bg-rose-100 text-rose-700'
                   }`}>
                   {dia.diferencaPercentualHorasPositiva ? (
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 4l-8 8h5v8h6v-8h5z" />
                     </svg>
                   ) : (
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 20l8-8h-5V4H9v8H4z" />
                     </svg>
                   )}
-                  {dia.diferencaPercentualHoras}
+                  <span className="truncate">{dia.diferencaPercentualHoras}</span>
                 </div>
               </div>
             ))}
