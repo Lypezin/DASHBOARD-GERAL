@@ -115,7 +115,11 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
                                 icon={<Calendar className="h-4 w-4 text-amber-500" />}
                                 dadosComparacao={dadosComparacao}
                                 subPraca={subPraca}
-                                getValue={(d) => d.horas_a_entregar ?? 0}
+                                getValue={(d) => {
+                                    // Fallback to seconds if pre-formatted string is missing or zeroed
+                                    if (d.horas_a_entregar && d.horas_a_entregar !== '00:00:00') return d.horas_a_entregar;
+                                    return (d.segundos_planejados || 0) / 3600;
+                                }}
                                 formatValue={(v) => formatarHorasParaHMS(v)}
                                 valueClassName="font-mono text-amber-600 dark:text-amber-400"
                                 showVariation={false}
@@ -126,7 +130,11 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
                                 icon={<Clock className="h-4 w-4 text-blue-500" />}
                                 dadosComparacao={dadosComparacao}
                                 subPraca={subPraca}
-                                getValue={(d) => d.horas_entregues ?? 0}
+                                getValue={(d) => {
+                                    // Fallback to seconds if pre-formatted string is missing or zeroed
+                                    if (d.horas_entregues && d.horas_entregues !== '00:00:00') return d.horas_entregues;
+                                    return (d.segundos_realizados || 0) / 3600;
+                                }}
                                 formatValue={(v) => formatarHorasParaHMS(v)}
                                 valueClassName="font-mono text-blue-600 dark:text-blue-400"
                                 showVariation={false}
