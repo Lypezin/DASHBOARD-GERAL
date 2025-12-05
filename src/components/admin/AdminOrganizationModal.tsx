@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Organization, OrganizationFormData } from '@/hooks/useOrganizations';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +10,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Building2, Plus, AlertCircle } from 'lucide-react';
+import { Building2, Plus } from 'lucide-react';
+import { AdminOrganizationForm } from './AdminOrganizationForm';
 
 interface AdminOrganizationModalProps {
   organization: Organization | null;
@@ -129,61 +128,13 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
           </div>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Nome da Organização *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => {
-                setFormData(prev => ({ ...prev, name: e.target.value }));
-                handleSlugChange(e.target.value);
-              }}
-              placeholder="Ex: Empresa XYZ"
-              disabled={saving || isLoading}
-              required
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="slug">Slug *</Label>
-            <Input
-              id="slug"
-              value={formData.slug}
-              onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value.toLowerCase() }))}
-              placeholder="empresa-xyz"
-              disabled={saving || isLoading}
-              required
-            />
-            <p className="text-[10px] text-muted-foreground">
-              Identificador único (apenas letras minúsculas, números e hífens)
-            </p>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="max_users">Limite de Usuários *</Label>
-            <Input
-              id="max_users"
-              type="number"
-              min="1"
-              max="1000"
-              value={formData.max_users}
-              onChange={(e) => setFormData(prev => ({ ...prev, max_users: parseInt(e.target.value) || 10 }))}
-              disabled={saving || isLoading}
-              required
-            />
-            <p className="text-[10px] text-muted-foreground">
-              Número máximo de colaboradores permitidos
-            </p>
-          </div>
-
-          {error && (
-            <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              {error}
-            </div>
-          )}
-        </div>
+        <AdminOrganizationForm
+          formData={formData}
+          setFormData={setFormData}
+          handleSlugChange={handleSlugChange}
+          disabled={saving || isLoading}
+          error={error}
+        />
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving || isLoading}>
