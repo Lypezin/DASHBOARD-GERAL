@@ -25,7 +25,6 @@ const SlideCapa: React.FC<SlideCapaProps> = React.memo(({
   return (
     <SlideWrapper
       isVisible={isVisible}
-      hideDecorations={true}
       className="flex items-center justify-center"
       style={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #1e40af 70%, #3b82f6 100%)',
