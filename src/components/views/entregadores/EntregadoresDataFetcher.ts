@@ -89,8 +89,25 @@ export async function fetchEntregadoresFallback(
       promises.push(corridasQuery);
     }
 
-    // Executar queries em paralelo com limite de concorrência (opcional, aqui Promise.all direto pois são poucos batches geralmente)
-    const results = await Promise.all(promises);
+    // Executar queries em paralelo com limite de concorrência para evitar travamentos
+    const CONCURRENCY_LIMIT = 3; // Máximo de 3 requisições simultâneas
+    const results = [];
+
+    for (let i = 0; i < promises.length; i += CONCURRENCY_LIMIT) {
+      const chunk = promises.slice(i, i + CONCURRENCY_LIMIT);
+
+      if (IS_DEV) {
+        safeLog.info(`Processando lote ${Math.floor(i / CONCURRENCY_LIMIT) + 1} de ${Math.ceil(promises.length / CONCURRENCY_LIMIT)}`);
+      }
+
+      const chunkResults = await Promise.all(chunk);
+      results.push(...chunkResults);
+
+      // Pequeno delay para liberar event loop
+      if (i + CONCURRENCY_LIMIT < promises.length) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    }
 
     for (const result of results) {
       const { data: batchData, error: batchError } = result;
