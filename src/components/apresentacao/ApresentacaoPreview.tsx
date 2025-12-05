@@ -22,7 +22,7 @@ interface ApresentacaoPreviewProps {
 // A4 Landscape dimensions in mm
 const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
-const SCALE_FACTOR = 2;
+const SCALE_FACTOR = 1.5; // Reduced from 2 to 1.5 for performance
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   slides,
@@ -40,6 +40,10 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   const [previewScale, setPreviewScale] = useState(0.5);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
+
+  // State to control which slide is currently being rendered for capture
+  // null means no capture is in progress
+  const [capturingIndex, setCapturingIndex] = useState<number | null>(null);
 
   const calculateScale = useCallback(() => {
     if (previewContainerRef.current && contentRef.current) {
@@ -67,9 +71,9 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   const totalSlides = slides.length;
   const slideAtualExibicao = totalSlides > 0 ? currentSlide + 1 : 0;
 
-  // Generate PDF using html2canvas
+  // Generate PDF using html2canvas with sequential rendering
   const handleGeneratePDF = async () => {
-    if (slides.length === 0 || !captureContainerRef.current) return;
+    if (slides.length === 0) return;
 
     setIsGenerating(true);
     setGeneratingProgress({ current: 0, total: slides.length });
@@ -81,34 +85,45 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
         format: 'a4',
       });
 
-      const slideElements = captureContainerRef.current.querySelectorAll('.slide-for-capture');
-
-      for (let i = 0; i < slideElements.length; i++) {
+      for (let i = 0; i < slides.length; i++) {
         setGeneratingProgress({ current: i + 1, total: slides.length });
 
-        const slideElement = slideElements[i] as HTMLElement;
+        // Set the slide to be rendered in the hidden container
+        setCapturingIndex(i);
 
-        // Capture slide with html2canvas
-        const canvas = await html2canvas(slideElement, {
-          scale: SCALE_FACTOR,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          width: SLIDE_WIDTH,
-          height: SLIDE_HEIGHT,
-          logging: false,
-        });
+        // Wait for React to render the slide
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Add page (except for first slide)
-        if (i > 0) {
-          pdf.addPage();
+        const captureElement = captureContainerRef.current;
+        if (!captureElement) continue;
+
+        // Find the specific slide element inside the container
+        // Since we only render one slide at a time now, it should be the first child
+        const slideElement = captureElement.firstElementChild as HTMLElement;
+
+        if (slideElement) {
+          // Capture slide with html2canvas
+          const canvas = await html2canvas(slideElement, {
+            scale: SCALE_FACTOR,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: SLIDE_WIDTH,
+            height: SLIDE_HEIGHT,
+            logging: false,
+          });
+
+          // Add page (except for first slide)
+          if (i > 0) {
+            pdf.addPage();
+          }
+
+          // Add image to PDF
+          const imgData = canvas.toDataURL('image/jpeg', 0.90); // Slightly reduced quality for speed
+          pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
         }
 
-        // Add image to PDF
-        const imgData = canvas.toDataURL('image/jpeg', 0.92);
-        pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
-
-        // Small delay to allow UI updates
+        // Small delay to allow UI updates and GC
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
 
@@ -121,6 +136,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
     } finally {
       setIsGenerating(false);
       setGeneratingProgress({ current: 0, total: 0 });
+      setCapturingIndex(null); // Reset capture state
     }
   };
 
@@ -153,7 +169,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
         }
       `}</style>
 
-      {/* Hidden container for PDF capture - renders ALL slides at full size */}
+      {/* Hidden container for PDF capture - renders ONLY the active slide being captured */}
       <div
         ref={captureContainerRef}
         style={{
@@ -161,26 +177,27 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
           left: '-9999px',
           top: 0,
           width: SLIDE_WIDTH,
-          height: SLIDE_HEIGHT * slides.length,
+          height: SLIDE_HEIGHT,
           overflow: 'hidden',
           pointerEvents: 'none',
         }}
         aria-hidden="true"
       >
-        {slides.map((slide) => (
+        {capturingIndex !== null && slides[capturingIndex] && (
           <div
-            key={`capture-${slide.key}`}
+            key={`capture-${slides[capturingIndex].key}`}
             className="slide-for-capture"
             style={{
               width: SLIDE_WIDTH,
               height: SLIDE_HEIGHT,
               position: 'relative',
               overflow: 'hidden',
+              backgroundColor: 'white', // Ensure white background
             }}
           >
-            {slide.render(true)}
+            {slides[capturingIndex].render(true)}
           </div>
-        ))}
+        )}
       </div>
 
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">

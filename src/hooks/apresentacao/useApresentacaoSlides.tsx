@@ -12,9 +12,9 @@ import SlideTurnos from '@/components/apresentacao/slides/SlideTurnos';
 import SlideDemandaRejeicoes from '@/components/apresentacao/slides/SlideDemandaRejeicoes';
 import SlideOrigem from '@/components/apresentacao/slides/SlideOrigem';
 
-const SUB_PRACAS_PER_PAGE = 2;
-const TURNOS_PER_PAGE = 2;
-const ORIGENS_PER_PAGE = 4;
+const SUB_PRACAS_PER_PAGE = 4;
+const TURNOS_PER_PAGE = 3;
+const ORIGENS_PER_PAGE = 6;
 
 export const useApresentacaoSlides = (
   dadosProcessados: DadosProcessados | null,

@@ -14,7 +14,7 @@ const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
 
 // Scale factor for high quality (2x for retina-like quality)
-const SCALE_FACTOR = 2;
+const SCALE_FACTOR = 1.5;
 
 interface SlideForCapture {
     key: string;
