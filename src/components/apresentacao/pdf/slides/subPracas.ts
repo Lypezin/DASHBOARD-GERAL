@@ -6,14 +6,9 @@ import {
   COR_VERMELHO,
   COR_PRIMARIA,
   COR_CINZA_CLARO,
-  COR_BORDA,
-  FONTE_TITULO,
-  FONTE_SUBTITULO,
-  FONTE_CORPO,
   BORDA_RAIO_GRANDE,
-  BORDA_RAIO_MEDIO,
 } from '../constants';
-import { criarSlideComLayout, criarGraficoCircular, criarSetaParaCima, criarSetaParaBaixo } from '../helpers';
+import { criarSlideComLayout, criarGraficoCircular, obterSeta } from '../helpers';
 
 // Função para criar slide de sub-praças com design premium
 export const criarSlideSubPracas = (
@@ -31,7 +26,6 @@ export const criarSlideSubPracas = (
   titulo: string = 'Sub-Praças'
 ): any => {
   const criarCardSubPraca = (item: typeof itens[0]) => {
-    // Gráficos otimizados para 2 cards por página (Reduzido para evitar overflow)
     const graficoSize = 120;
     const grafico1 = criarGraficoCircular(item.semana1.aderencia, graficoSize, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
     const grafico2 = criarGraficoCircular(item.semana2.aderencia, graficoSize, 12, COR_TEXTO, COR_PRIMARIA, '#e2e8f0');
@@ -156,7 +150,7 @@ export const criarSlideSubPracas = (
           columnGap: 15,
           margin: [0, 0, 0, 20],
         },
-        // Variações em badges horizontais com setas
+        // Variações em badges horizontais com setas Unicode
         {
           columns: item.variacoes.map((variacao) => ({
             width: '*',
@@ -170,26 +164,13 @@ export const criarSlideSubPracas = (
                 characterSpacing: 0.3,
                 margin: [0, 0, 0, 4],
               },
-              // Valor com seta
+              // Valor com seta Unicode
               {
-                columns: [
-                  { width: '*', text: '' },
-                  {
-                    width: 'auto',
-                    svg: variacao.positivo
-                      ? criarSetaParaCima(10, COR_VERDE)
-                      : criarSetaParaBaixo(10, COR_VERMELHO),
-                    margin: [0, 0, 2, 0],
-                  },
-                  {
-                    width: 'auto',
-                    text: variacao.valor,
-                    fontSize: 13,
-                    bold: true,
-                    color: variacao.positivo ? COR_VERDE : COR_VERMELHO,
-                  },
-                  { width: '*', text: '' },
-                ],
+                text: `${obterSeta(variacao.positivo)} ${variacao.valor}`,
+                fontSize: 13,
+                bold: true,
+                color: variacao.positivo ? COR_VERDE : COR_VERMELHO,
+                alignment: 'center',
               },
             ],
             fillColor: variacao.positivo ? '#ecfdf5' : '#fef2f2',

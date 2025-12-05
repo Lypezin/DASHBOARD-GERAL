@@ -216,40 +216,23 @@ export const criarGraficoCircular = (
   `;
 };
 
-// Função para criar seta para cima (positivo) - formato compatível com pdfmake
-export const criarSetaParaCima = (tamanho: number = 12, cor: string = '#10b981'): string => {
-  // Triângulo simples apontando para cima
-  const w = tamanho;
-  const h = tamanho;
-  const halfW = w / 2;
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><polygon points="${halfW},0 ${w},${h} 0,${h}" fill="${cor}"/></svg>`;
+// Caractere de seta para cima (compatível com pdfmake)
+export const SETA_CIMA = '▲';
+
+// Caractere de seta para baixo (compatível com pdfmake)
+export const SETA_BAIXO = '▼';
+
+// Função para obter seta baseada no valor positivo/negativo
+export const obterSeta = (positivo: boolean): string => {
+  return positivo ? SETA_CIMA : SETA_BAIXO;
 };
 
-// Função para criar seta para baixo (negativo) - formato compatível com pdfmake
-export const criarSetaParaBaixo = (tamanho: number = 12, cor: string = '#ef4444'): string => {
-  // Triângulo simples apontando para baixo
-  const w = tamanho;
-  const h = tamanho;
-  const halfW = w / 2;
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><polygon points="0,0 ${w},0 ${halfW},${h}" fill="${cor}"/></svg>`;
-};
-
-// Função para criar indicador de variação com seta
-export const criarIndicadorVariacao = (
+// Função para criar texto com seta
+export const criarTextoComSeta = (
   valor: string,
-  positivo: boolean,
-  tamanhoSeta: number = 12
-): { svg: string; text: string; color: string } => {
-  const cor = positivo ? '#10b981' : '#ef4444';
-  const svg = positivo
-    ? criarSetaParaCima(tamanhoSeta, cor)
-    : criarSetaParaBaixo(tamanhoSeta, cor);
-
-  return {
-    svg,
-    text: valor,
-    color: cor,
-  };
+  positivo: boolean
+): string => {
+  const seta = obterSeta(positivo);
+  return `${seta} ${valor}`;
 };
-
 

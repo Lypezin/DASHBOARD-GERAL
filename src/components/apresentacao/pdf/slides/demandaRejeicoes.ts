@@ -8,7 +8,7 @@ import {
   COR_SUBTITULO,
   BORDA_RAIO_GRANDE,
 } from '../constants';
-import { criarSlideComLayout, criarSetaParaCima, criarSetaParaBaixo } from '../helpers';
+import { criarSlideComLayout, obterSeta } from '../helpers';
 
 // Função para criar slide de demanda/rejeições - Design Premium
 export const criarSlideDemandaRejeicoes = (
@@ -61,48 +61,22 @@ export const criarSlideDemandaRejeicoes = (
         characterSpacing: 0.5,
         margin: [0, 0, 0, 6],
       },
-      // Valor com seta
+      // Valor com seta Unicode
       {
-        columns: [
-          { width: '*', text: '' },
-          {
-            width: 'auto',
-            svg: item.variacaoPositiva
-              ? criarSetaParaCima(16, COR_VERDE)
-              : criarSetaParaBaixo(16, COR_VERMELHO),
-            margin: [0, 0, 4, 0],
-          },
-          {
-            width: 'auto',
-            text: item.variacaoValor,
-            fontSize: 22,
-            bold: true,
-            color: item.variacaoPositiva ? COR_VERDE : COR_VERMELHO,
-          },
-          { width: '*', text: '' },
-        ],
+        text: `${obterSeta(item.variacaoPositiva)} ${item.variacaoValor}`,
+        fontSize: 22,
+        bold: true,
+        color: item.variacaoPositiva ? COR_VERDE : COR_VERMELHO,
+        alignment: 'center',
         margin: [0, 0, 0, 4],
       },
-      // Percentual com seta
+      // Percentual com seta Unicode
       {
-        columns: [
-          { width: '*', text: '' },
-          {
-            width: 'auto',
-            svg: item.variacaoPercentualPositiva
-              ? criarSetaParaCima(12, COR_VERDE)
-              : criarSetaParaBaixo(12, COR_VERMELHO),
-            margin: [0, 0, 3, 0],
-          },
-          {
-            width: 'auto',
-            text: item.variacaoPercentual,
-            fontSize: 16,
-            bold: true,
-            color: item.variacaoPercentualPositiva ? COR_VERDE : COR_VERMELHO,
-          },
-          { width: '*', text: '' },
-        ],
+        text: `${obterSeta(item.variacaoPercentualPositiva)} ${item.variacaoPercentual}`,
+        fontSize: 16,
+        bold: true,
+        color: item.variacaoPercentualPositiva ? COR_VERDE : COR_VERMELHO,
+        alignment: 'center',
       },
     ],
     fillColor: item.variacaoPositiva ? '#ecfdf5' : '#fef2f2',

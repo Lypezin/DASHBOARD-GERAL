@@ -9,7 +9,7 @@ import {
   FONTE_TITULO,
   BORDA_RAIO_GRANDE,
 } from '../constants';
-import { criarSlideComLayout, criarGraficoCircular, criarSetaParaCima, criarSetaParaBaixo } from '../helpers';
+import { criarSlideComLayout, criarGraficoCircular, obterSeta } from '../helpers';
 
 export const criarSlideAderenciaGeral = (
   semana1: { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string },
@@ -133,14 +133,14 @@ export const criarSlideAderenciaGeral = (
             characterSpacing: 1,
             margin: [0, 0, 0, 12],
           },
-          // Seta SVG grande
+          // Seta Unicode grande
           {
-            svg: variacao.positiva
-              ? criarSetaParaCima(32, COR_VERDE)
-              : criarSetaParaBaixo(32, COR_VERMELHO),
-            width: 32,
+            text: obterSeta(variacao.positiva),
+            fontSize: 32,
+            color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
             alignment: 'center',
-            margin: [0, 0, 0, 10],
+            bold: true,
+            margin: [0, 0, 0, 8],
           },
           // Valor principal
           {
@@ -151,26 +151,13 @@ export const criarSlideAderenciaGeral = (
             alignment: 'center',
             margin: [0, 0, 0, 8],
           },
-          // Percentual com seta pequena
+          // Percentual com seta
           {
-            columns: [
-              { width: '*', text: '' },
-              {
-                width: 'auto',
-                svg: variacao.positiva
-                  ? criarSetaParaCima(14, COR_VERDE)
-                  : criarSetaParaBaixo(14, COR_VERMELHO),
-                margin: [0, 0, 4, 0],
-              },
-              {
-                width: 'auto',
-                text: variacao.horasPercentual,
-                fontSize: 18,
-                bold: true,
-                color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
-              },
-              { width: '*', text: '' },
-            ],
+            text: `${obterSeta(variacao.positiva)} ${variacao.horasPercentual}`,
+            fontSize: 18,
+            bold: true,
+            color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
+            alignment: 'center',
             margin: [0, 0, 0, 15],
           },
         ],

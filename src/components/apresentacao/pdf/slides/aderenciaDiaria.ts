@@ -1,6 +1,6 @@
 
-import { COR_TEXTO, COR_VERDE, COR_VERMELHO, COR_PRIMARIA, COR_CINZA_CLARO, COR_SUBTITULO, COR_BORDA, BORDA_RAIO_MEDIO } from '../constants';
-import { criarSlideComLayout, criarGraficoCircular, criarSetaParaCima, criarSetaParaBaixo } from '../helpers';
+import { COR_TEXTO, COR_VERDE, COR_VERMELHO, COR_PRIMARIA, COR_CINZA_CLARO, COR_SUBTITULO, BORDA_RAIO_MEDIO } from '../constants';
+import { criarSlideComLayout, criarGraficoCircular, obterSeta } from '../helpers';
 
 // Função para criar slide de aderência diária - Design Premium
 export const criarSlideAderenciaDiaria = (
@@ -80,7 +80,7 @@ export const criarSlideAderenciaDiaria = (
           padding: [6, 5],
           margin: [4, 0, 4, 4],
         },
-        // Diferenças (se existirem) com setas
+        // Diferenças (se existirem) com setas Unicode
         ...(temDiferencas && diferencas
           ? [
             {
@@ -96,46 +96,20 @@ export const criarSlideAderenciaDiaria = (
                 },
                 // Seta + Valor de horas
                 {
-                  columns: [
-                    { width: '*', text: '' },
-                    {
-                      width: 'auto',
-                      svg: diferencas.diferencaHorasPositiva
-                        ? criarSetaParaCima(10, COR_VERDE)
-                        : criarSetaParaBaixo(10, COR_VERMELHO),
-                      margin: [0, 0, 2, 0],
-                    },
-                    {
-                      width: 'auto',
-                      text: diferencas.diferencaHoras,
-                      fontSize: 10,
-                      bold: true,
-                      color: diferencas.diferencaHorasPositiva ? COR_VERDE : COR_VERMELHO,
-                    },
-                    { width: '*', text: '' },
-                  ],
+                  text: `${obterSeta(diferencas.diferencaHorasPositiva)} ${diferencas.diferencaHoras}`,
+                  fontSize: 10,
+                  bold: true,
+                  color: diferencas.diferencaHorasPositiva ? COR_VERDE : COR_VERMELHO,
+                  alignment: 'center',
                   margin: [0, 0, 0, 2],
                 },
                 // Seta + Percentual
                 {
-                  columns: [
-                    { width: '*', text: '' },
-                    {
-                      width: 'auto',
-                      svg: diferencas.diferencaPercentualHorasPositiva
-                        ? criarSetaParaCima(8, COR_VERDE)
-                        : criarSetaParaBaixo(8, COR_VERMELHO),
-                      margin: [0, 0, 2, 0],
-                    },
-                    {
-                      width: 'auto',
-                      text: diferencas.diferencaPercentualHoras,
-                      fontSize: 9,
-                      bold: true,
-                      color: diferencas.diferencaPercentualHorasPositiva ? COR_VERDE : COR_VERMELHO,
-                    },
-                    { width: '*', text: '' },
-                  ],
+                  text: `${obterSeta(diferencas.diferencaPercentualHorasPositiva)} ${diferencas.diferencaPercentualHoras}`,
+                  fontSize: 9,
+                  bold: true,
+                  color: diferencas.diferencaPercentualHorasPositiva ? COR_VERDE : COR_VERMELHO,
+                  alignment: 'center',
                 },
               ],
               fillColor: diferencas.diferencaPercentualHorasPositiva ? '#ecfdf5' : '#fef2f2',
