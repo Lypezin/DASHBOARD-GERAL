@@ -262,11 +262,14 @@ export async function fetchEntregadores(
       // Se a função RPC não existir ou der timeout, fazer fallback para query direta
       const errorCode = (rpcError as any)?.code || '';
       const errorMessage = String((rpcError as any)?.message || '');
+      // Detectar erros de função não encontrada - inclui códigos originais E sanitizados
+      // rpcWrapper.ts sanitiza erros 400/404 para códigos genéricos ('400', '404')
       const is404 = errorCode === 'PGRST116' || errorCode === '42883' ||
-        errorCode === 'PGRST204' ||
+        errorCode === 'PGRST204' || errorCode === '400' || errorCode === '404' ||
         errorMessage.includes('404') ||
         errorMessage.includes('not found') ||
-        errorMessage.includes('function') && errorMessage.includes('does not exist');
+        errorMessage.includes('Requisição inválida') ||
+        (errorMessage.includes('function') && errorMessage.includes('does not exist'));
       const isTimeout = errorCode === 'TIMEOUT' || errorMessage.includes('timeout') || errorMessage.includes('demorou muito');
 
       if (is404 || isTimeout) {

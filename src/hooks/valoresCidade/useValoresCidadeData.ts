@@ -4,6 +4,8 @@ import { safeLog } from '@/lib/errorHandler';
 import { ValoresCidadeDateFilter, ValoresCidadePorCidade, MarketingDateFilter } from '@/types';
 import { buildDateFilterQuery, ensureMarketingDateFilter } from '@/utils/marketingQueries';
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 const cidadeToRegiao: { [key: string]: string } = {
   'SÃO PAULO': 'São Paulo 2.0',
   'MANAUS': 'Manaus 2.0',
@@ -34,6 +36,13 @@ export const useValoresCidadeData = (
       // Garantir filtro de data obrigatório
       const safeFilter = ensureMarketingDateFilter(filter);
 
+      if (IS_DEV) {
+        safeLog.info('[useValoresCidadeData] Buscando dados_valores_cidade com filtro:', {
+          dataInicial: safeFilter.dataInicial,
+          dataFinal: safeFilter.dataFinal,
+        });
+      }
+
       let query = supabase
         .from('dados_valores_cidade')
         .select('cidade, valor');
@@ -47,6 +56,15 @@ export const useValoresCidadeData = (
 
       const { data, error: queryError } = await query;
 
+      if (IS_DEV) {
+        safeLog.info('[useValoresCidadeData] Resultado da query:', {
+          dataLength: data?.length || 0,
+          hasError: !!queryError,
+          errorMessage: queryError?.message,
+          primeirasTresLinhas: data?.slice(0, 3),
+        });
+      }
+
       if (queryError) {
         throw new Error(`Erro ao buscar dados: ${queryError.message}`);
       }
@@ -57,7 +75,7 @@ export const useValoresCidadeData = (
         data.forEach((row: any) => {
           const cidade = row.cidade || 'Não especificada';
           const valor = Number(row.valor) || 0;
-          
+
           if (cidadeMap.has(cidade)) {
             cidadeMap.set(cidade, cidadeMap.get(cidade)! + valor);
           } else {
@@ -116,7 +134,7 @@ export const useValoresCidadeData = (
 
           liberadosQuery = buildDateFilterQuery(liberadosQuery, 'data_envio', filterEnviados);
           liberadosQuery = liberadosQuery.eq('status', 'Liberado');
-          
+
           if (cidadeNome === 'ABC') {
             liberadosQuery = liberadosQuery.eq('regiao_atuacao', 'ABC 2.0');
           } else {
@@ -146,9 +164,9 @@ export const useValoresCidadeData = (
 
       const totalValorEnviados = Array.from(valoresEnviadosPorCidade.values()).reduce((sum, val) => sum + val, 0);
       const cidadesComValores = Array.from(valoresEnviadosPorCidade.keys());
-      
+
       let totalLiberados = 0;
-      
+
       for (const cidadeNome of cidadesComValores) {
         const cidadeUpper = cidadeNome.toUpperCase();
         const regiaoAtuacao = cidadeToRegiao[cidadeUpper] || cidadeNome;
@@ -159,7 +177,7 @@ export const useValoresCidadeData = (
 
         liberadosQuery = buildDateFilterQuery(liberadosQuery, 'data_envio', filterEnviados);
         liberadosQuery = liberadosQuery.eq('status', 'Liberado');
-        
+
         if (cidadeUpper === 'ABC') {
           liberadosQuery = liberadosQuery.eq('regiao_atuacao', 'ABC 2.0');
         } else {
