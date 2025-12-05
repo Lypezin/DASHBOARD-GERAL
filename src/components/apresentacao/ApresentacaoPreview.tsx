@@ -91,18 +91,20 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
         // Set the slide to be rendered in the hidden container
         setCapturingIndex(i);
 
-        // Wait for React to render the slide
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait for React to render the slide using requestAnimationFrame for better performance
+        await new Promise(resolve => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve(undefined));
+          });
+        });
 
         const captureElement = captureContainerRef.current;
         if (!captureElement) continue;
 
-        // Find the specific slide element inside the container
-        // Since we only render one slide at a time now, it should be the first child
         const slideElement = captureElement.firstElementChild as HTMLElement;
 
         if (slideElement) {
-          // Capture slide with html2canvas
+          // Capture slide with optimized html2canvas settings
           const canvas = await html2canvas(slideElement, {
             scale: SCALE_FACTOR,
             useCORS: true,
@@ -111,6 +113,8 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
             width: SLIDE_WIDTH,
             height: SLIDE_HEIGHT,
             logging: false,
+            imageTimeout: 0, // Disable image loading timeout
+            removeContainer: true, // Cleanup after capture
           });
 
           // Add page (except for first slide)
@@ -118,13 +122,10 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
             pdf.addPage();
           }
 
-          // Add image to PDF
-          const imgData = canvas.toDataURL('image/jpeg', 0.90); // Slightly reduced quality for speed
-          pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+          // Add image to PDF using PNG for faster encoding (no compression)
+          const imgData = canvas.toDataURL('image/png');
+          pdf.addImage(imgData, 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
         }
-
-        // Small delay to allow UI updates and GC
-        await new Promise((resolve) => setTimeout(resolve, 50));
       }
 
       // Download PDF
