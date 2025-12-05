@@ -22,7 +22,7 @@ interface ApresentacaoPreviewProps {
 // A4 Landscape dimensions in mm
 const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
-const SCALE_FACTOR = 1.2; // Reduced from 1.5 for faster generation and smaller file size
+const SCALE_FACTOR = 1.5; // Good balance of quality and file size
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   slides,

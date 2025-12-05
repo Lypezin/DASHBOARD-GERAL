@@ -6,7 +6,6 @@ interface SlideWrapperProps {
   children: React.ReactNode;
   className?: string;
   style?: CSSProperties;
-  hideDecorations?: boolean;
 }
 
 const SlideWrapper: React.FC<SlideWrapperProps> = ({
@@ -14,7 +13,6 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   children,
   className = '',
   style = {},
-  hideDecorations = false,
 }) => {
   return (
     <div
@@ -29,31 +27,14 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
         position: 'absolute',
         top: 0,
         left: 0,
+        backgroundColor: '#ffffff',
         ...slideTransitionStyle,
         ...style,
       }}
     >
-      {/* Subtle decorative background elements */}
-      {!hideDecorations && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-          {/* Top-left gradient corner */}
-          <div className="absolute -top-20 -left-20 w-40 h-40 bg-gradient-to-br from-blue-100/30 to-transparent rounded-full blur-3xl" />
-          {/* Bottom-right gradient corner */}
-          <div className="absolute -bottom-16 -right-16 w-32 h-32 bg-gradient-to-tl from-indigo-100/20 to-transparent rounded-full blur-3xl" />
-          {/* Subtle top line */}
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-slate-200/50 to-transparent" />
-          {/* Subtle bottom line */}
-          <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-slate-200/50 to-transparent" />
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="relative flex-1 flex flex-col" style={{ zIndex: 1 }}>
-        {children}
-      </div>
+      {children}
     </div>
   );
 };
 
 export default SlideWrapper;
-
