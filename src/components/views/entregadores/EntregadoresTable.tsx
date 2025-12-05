@@ -116,7 +116,19 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
           <div className="max-h-[600px] overflow-y-auto overflow-x-auto">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {entregadores.map((entregador) => {
-                const estaRodando = entregador.total_completadas > 30; // Lógica simplificada baseada no original
+                // Lógica de status: usar campo do banco se existir, senão fallback para regra de completadas
+                let statusTexto = 'Não';
+                let isRodando = false;
+
+                if (entregador.rodando) {
+                  // Se vier do banco (Sim/Não)
+                  isRodando = entregador.rodando === 'Sim';
+                  statusTexto = isRodando ? 'Rodando' : 'Não';
+                } else {
+                  // Fallback
+                  isRodando = entregador.total_completadas > 30;
+                  statusTexto = isRodando ? 'Rodando' : 'Não';
+                }
 
                 return (
                   <div
@@ -162,12 +174,12 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
                       <Badge
                         variant="outline"
                         className={`font-medium ${entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
-                            ? 'text-slate-500 border-slate-200 bg-slate-50'
-                            : entregador.dias_sem_rodar === 0
-                              ? 'text-emerald-600 border-emerald-200 bg-emerald-50'
-                              : entregador.dias_sem_rodar <= 3
-                                ? 'text-amber-600 border-amber-200 bg-amber-50'
-                                : 'text-rose-600 border-rose-200 bg-rose-50'
+                          ? 'text-slate-500 border-slate-200 bg-slate-50'
+                          : entregador.dias_sem_rodar === 0
+                            ? 'text-emerald-600 border-emerald-200 bg-emerald-50'
+                            : entregador.dias_sem_rodar <= 3
+                              ? 'text-amber-600 border-amber-200 bg-amber-50'
+                              : 'text-rose-600 border-rose-200 bg-rose-50'
                           }`}
                       >
                         {entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
@@ -181,10 +193,10 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
 
                     <div className="text-center">
                       <Badge
-                        variant={estaRodando ? "default" : "secondary"}
-                        className={estaRodando ? "bg-emerald-500 hover:bg-emerald-600" : ""}
+                        variant={isRodando ? "default" : "secondary"}
+                        className={isRodando ? "bg-emerald-500 hover:bg-emerald-600" : ""}
                       >
-                        {estaRodando ? 'Rodando' : 'Parado'}
+                        {statusTexto}
                       </Badge>
                     </div>
                   </div>

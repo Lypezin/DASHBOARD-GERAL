@@ -16,7 +16,7 @@ export async function fetchEntregadoresFallback(
     // Primeiro, buscar IDs únicos de entregadores do marketing
     let entregadoresQuery = supabase
       .from('dados_marketing')
-      .select('id_entregador, nome, regiao_atuacao')
+      .select('id_entregador, nome, regiao_atuacao, rodando')
       .not('id_entregador', 'is', null);
 
     // Aplicar filtro de cidade se especificado
@@ -208,6 +208,7 @@ export async function fetchEntregadoresFallback(
         ultima_data: ultimaData,
         dias_sem_rodar: diasSemRodar,
         regiao_atuacao: entregador.regiao_atuacao || null,
+        rodando: entregador.rodando || null,
       });
     }
 

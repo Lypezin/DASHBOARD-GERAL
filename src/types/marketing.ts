@@ -57,6 +57,7 @@ export interface EntregadorMarketing {
   ultima_data: string | null;
   dias_sem_rodar: number | null;
   regiao_atuacao: string | null;
+  rodando: string | null;
 }
 
 export interface AtendenteCidadeData {
