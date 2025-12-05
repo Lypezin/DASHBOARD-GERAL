@@ -8,7 +8,7 @@ import {
   COR_CINZA_CLARO,
   BORDA_RAIO_GRANDE,
 } from '../constants';
-import { criarSlideComLayout, criarGraficoCircular } from '../helpers';
+import { criarSlideComLayout, criarGraficoCircular, criarSetaParaCima, criarSetaParaBaixo } from '../helpers';
 
 // Função para criar slide de turnos - Design Premium
 export const criarSlideTurnos = (
@@ -118,7 +118,7 @@ export const criarSlideTurnos = (
           columnGap: 20,
           margin: [0, 0, 0, 20],
         },
-        // Variações em badges elegantes
+        // Variações em badges elegantes com setas
         {
           columns: turno.variacoes.map((variacao) => ({
             width: '*',
@@ -132,15 +132,29 @@ export const criarSlideTurnos = (
                 characterSpacing: 0.3,
                 margin: [0, 0, 0, 5],
               },
+              // Valor com seta
               {
-                text: variacao.valor,
-                fontSize: 14,
-                bold: true,
-                color: variacao.positivo ? COR_VERDE : COR_VERMELHO,
-                alignment: 'center',
+                columns: [
+                  { width: '*', text: '' },
+                  {
+                    width: 'auto',
+                    svg: variacao.positivo
+                      ? criarSetaParaCima(11, COR_VERDE)
+                      : criarSetaParaBaixo(11, COR_VERMELHO),
+                    margin: [0, 0, 3, 0],
+                  },
+                  {
+                    width: 'auto',
+                    text: variacao.valor,
+                    fontSize: 14,
+                    bold: true,
+                    color: variacao.positivo ? COR_VERDE : COR_VERMELHO,
+                  },
+                  { width: '*', text: '' },
+                ],
               },
             ],
-            fillColor: '#ffffff',
+            fillColor: variacao.positivo ? '#ecfdf5' : '#fef2f2',
             borderRadius: 8,
             padding: [10, 8],
             margin: [4, 0],

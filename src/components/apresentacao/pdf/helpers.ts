@@ -161,7 +161,6 @@ export const adicionarBackgroundAoSlide = (conteudo: any) => {
   return criarSlideComLayout(conteudo, undefined, undefined, true);
 };
 
-// Função para criar gráfico circular como SVG - Design Premium
 export const criarGraficoCircular = (
   porcentagem: number,
   tamanho: number = 150,
@@ -216,3 +215,36 @@ export const criarGraficoCircular = (
     </svg>
   `;
 };
+
+// Função para criar seta para cima (positivo)
+export const criarSetaParaCima = (tamanho: number = 12, cor: string = '#10b981'): string => {
+  return `<svg width="${tamanho}" height="${tamanho}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 4l-8 8h5v8h6v-8h5z" fill="${cor}"/>
+  </svg>`;
+};
+
+// Função para criar seta para baixo (negativo)
+export const criarSetaParaBaixo = (tamanho: number = 12, cor: string = '#ef4444'): string => {
+  return `<svg width="${tamanho}" height="${tamanho}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 20l8-8h-5V4H9v8H4z" fill="${cor}"/>
+  </svg>`;
+};
+
+// Função para criar indicador de variação com seta
+export const criarIndicadorVariacao = (
+  valor: string,
+  positivo: boolean,
+  tamanhoSeta: number = 12
+): { svg: string; text: string; color: string } => {
+  const cor = positivo ? '#10b981' : '#ef4444';
+  const svg = positivo
+    ? criarSetaParaCima(tamanhoSeta, cor)
+    : criarSetaParaBaixo(tamanhoSeta, cor);
+
+  return {
+    svg,
+    text: valor,
+    color: cor,
+  };
+};
+

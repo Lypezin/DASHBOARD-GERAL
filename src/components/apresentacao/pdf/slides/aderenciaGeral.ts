@@ -6,13 +6,10 @@ import {
   COR_VERMELHO,
   COR_PRIMARIA,
   COR_CINZA_CLARO,
-  COR_BORDA,
   FONTE_TITULO,
-  FONTE_SUBTITULO,
-  FONTE_CORPO,
   BORDA_RAIO_GRANDE,
 } from '../constants';
-import { criarSlideComLayout, criarGraficoCircular } from '../helpers';
+import { criarSlideComLayout, criarGraficoCircular, criarSetaParaCima, criarSetaParaBaixo } from '../helpers';
 
 export const criarSlideAderenciaGeral = (
   semana1: { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string },
@@ -124,9 +121,9 @@ export const criarSlideAderenciaGeral = (
 
       // Coluna central - Variação com destaque
       {
-        width: 140,
+        width: 160,
         stack: [
-          { text: '', margin: [0, 70, 0, 0] },
+          { text: '', margin: [0, 50, 0, 0] },
           {
             text: 'VARIAÇÃO',
             fontSize: 11,
@@ -134,43 +131,52 @@ export const criarSlideAderenciaGeral = (
             alignment: 'center',
             bold: true,
             characterSpacing: 1,
-            margin: [0, 0, 0, 15],
+            margin: [0, 0, 0, 12],
+          },
+          // Seta SVG grande
+          {
+            svg: variacao.positiva
+              ? criarSetaParaCima(32, COR_VERDE)
+              : criarSetaParaBaixo(32, COR_VERMELHO),
+            width: 32,
+            alignment: 'center',
+            margin: [0, 0, 0, 10],
           },
           // Valor principal
           {
             text: variacao.horasDiferenca,
-            fontSize: 26,
+            fontSize: 24,
             bold: true,
             color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
             alignment: 'center',
             margin: [0, 0, 0, 8],
           },
-          // Percentual
+          // Percentual com seta pequena
           {
-            text: variacao.horasPercentual,
-            fontSize: 20,
-            bold: true,
-            color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
-            alignment: 'center',
+            columns: [
+              { width: '*', text: '' },
+              {
+                width: 'auto',
+                svg: variacao.positiva
+                  ? criarSetaParaCima(14, COR_VERDE)
+                  : criarSetaParaBaixo(14, COR_VERMELHO),
+                margin: [0, 0, 4, 0],
+              },
+              {
+                width: 'auto',
+                text: variacao.horasPercentual,
+                fontSize: 18,
+                bold: true,
+                color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
+              },
+              { width: '*', text: '' },
+            ],
             margin: [0, 0, 0, 15],
           },
-          // Indicador visual (Seta desenhada com canvas para compatibilidade)
-          {
-            canvas: [
-              {
-                type: 'polyline',
-                lineWidth: 0,
-                closePath: true,
-                points: variacao.positiva
-                  ? [{ x: 0, y: 20 }, { x: 12, y: 0 }, { x: 24, y: 20 }] // Seta para cima
-                  : [{ x: 0, y: 0 }, { x: 12, y: 20 }, { x: 24, y: 0 }], // Seta para baixo
-                color: variacao.positiva ? COR_VERDE : COR_VERMELHO,
-              }
-            ],
-            alignment: 'center',
-            margin: [0, 0, 0, 0],
-          },
         ],
+        fillColor: variacao.positiva ? '#ecfdf5' : '#fef2f2',
+        borderRadius: 12,
+        padding: [10, 15],
       },
 
       // Semana 2

@@ -13,7 +13,7 @@ import {
   BORDA_RAIO_GRANDE,
   BORDA_RAIO_MEDIO,
 } from '../constants';
-import { criarSlideComLayout, criarGraficoCircular } from '../helpers';
+import { criarSlideComLayout, criarGraficoCircular, criarSetaParaCima, criarSetaParaBaixo } from '../helpers';
 
 // Função para criar slide de sub-praças com design premium
 export const criarSlideSubPracas = (
@@ -156,7 +156,7 @@ export const criarSlideSubPracas = (
           columnGap: 15,
           margin: [0, 0, 0, 20],
         },
-        // Variações em badges horizontais
+        // Variações em badges horizontais com setas
         {
           columns: item.variacoes.map((variacao) => ({
             width: '*',
@@ -170,15 +170,29 @@ export const criarSlideSubPracas = (
                 characterSpacing: 0.3,
                 margin: [0, 0, 0, 4],
               },
+              // Valor com seta
               {
-                text: variacao.valor,
-                fontSize: 13,
-                bold: true,
-                color: variacao.positivo ? COR_VERDE : COR_VERMELHO,
-                alignment: 'center',
+                columns: [
+                  { width: '*', text: '' },
+                  {
+                    width: 'auto',
+                    svg: variacao.positivo
+                      ? criarSetaParaCima(10, COR_VERDE)
+                      : criarSetaParaBaixo(10, COR_VERMELHO),
+                    margin: [0, 0, 2, 0],
+                  },
+                  {
+                    width: 'auto',
+                    text: variacao.valor,
+                    fontSize: 13,
+                    bold: true,
+                    color: variacao.positivo ? COR_VERDE : COR_VERMELHO,
+                  },
+                  { width: '*', text: '' },
+                ],
               },
             ],
-            fillColor: '#ffffff',
+            fillColor: variacao.positivo ? '#ecfdf5' : '#fef2f2',
             borderRadius: 6,
             padding: [8, 6],
             margin: [2, 0],
