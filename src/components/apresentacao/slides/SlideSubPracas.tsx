@@ -33,9 +33,30 @@ interface SlideSubPracasProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 88; // r = 88 (ajustado para container maior)
+  const circumference = 2 * Math.PI * 70;
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
+
+// Arrow indicator component
+const VariationBadge: React.FC<{ label: string; value: string; positive: boolean }> = ({ label, value, positive }) => (
+  <div className={`rounded-lg px-2 py-1.5 text-center flex flex-col items-center justify-center gap-0.5 ${positive ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'
+    }`}>
+    <p className="text-[0.625rem] font-medium text-slate-600 leading-tight">{label}</p>
+    <div className={`flex items-center gap-0.5 font-bold text-[0.75rem] leading-tight ${positive ? 'text-emerald-600' : 'text-rose-600'
+      }`}>
+      {positive ? (
+        <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 4l-8 8h5v8h6v-8h5z" />
+        </svg>
+      ) : (
+        <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 20l8-8h-5V4H9v8H4z" />
+        </svg>
+      )}
+      <span style={buildTimeTextStyle(value, 0.75)}>{value}</span>
+    </div>
+  </div>
+);
 
 const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
   isVisible,
@@ -46,89 +67,83 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
   itens,
 }) => {
   return (
-    <SlideWrapper
-      isVisible={isVisible}
-      style={{ padding: '35px 45px', overflow: 'visible' }}
-    >
-      <header className="text-center mb-5">
-        <h2 className="text-[2.5rem] font-black leading-none tracking-wider mb-1.5 text-blue-600">SUB-PRAÇAS</h2>
-        <p className="text-[1.5rem] font-light text-slate-500 mb-1">
-          SEMANAS {numeroSemana1} &amp; {numeroSemana2}
+    <SlideWrapper isVisible={isVisible} style={{ padding: '28px 36px' }}>
+      {/* Header */}
+      <header className="text-center mb-4">
+        <div className="inline-block">
+          <h2 className="text-[2rem] font-black tracking-wider text-blue-600 leading-none">
+            SUB-PRAÇAS
+          </h2>
+          <div className="h-1 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 rounded-full mt-2" />
+        </div>
+        <p className="text-[1rem] font-light text-slate-500 mt-2">
+          Comparativo Semanas {numeroSemana1} vs {numeroSemana2}
         </p>
         {totalPaginas > 1 && (
-          <p className="text-[1rem] font-medium opacity-75 text-slate-400">
+          <p className="text-[0.875rem] font-medium text-slate-400 mt-1">
             Página {paginaAtual} de {totalPaginas}
           </p>
         )}
       </header>
 
-      <div className="grid grid-cols-2 gap-x-5 gap-y-4 flex-1" style={{ overflow: 'visible' }}>
+      {/* Cards Grid */}
+      <div className="grid grid-cols-2 gap-4 flex-1">
         {itens.map((item) => (
           <div
             key={item.nome}
-            className="relative flex flex-col items-center gap-4 rounded-[14px] bg-slate-50 border border-slate-200 px-4 py-4"
-            style={{ overflow: 'visible' }}
+            className="relative flex flex-col rounded-xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 p-3 shadow-sm"
           >
-            <div className="text-center space-y-2 w-full max-w-[350px] mx-auto" style={{ overflow: 'visible' }}>
-              <h3 className="text-[22px] font-semibold uppercase tracking-wide leading-tight text-slate-900">
+            {/* Header with name and planned hours */}
+            <div className="text-center mb-3">
+              <h3 className="text-[1.125rem] font-bold uppercase tracking-wide text-slate-800 mb-2">
                 {item.nome}
               </h3>
-              <div className="rounded-[8px] bg-white border border-slate-200 px-3 py-2 flex flex-col items-center gap-1" style={{ overflow: 'visible' }}>
-                <span className="text-[15px] font-medium text-slate-500">
-                  Planejado
-                </span>
-                <span
-                  className="text-[20px] font-bold text-blue-600"
-                  style={buildTimeTextStyle(item.horasPlanejadas, 1.25)}
-                >
+              <div className="inline-block rounded-lg bg-blue-50 border border-blue-200 px-3 py-1.5">
+                <span className="text-[0.75rem] font-medium text-blue-600 block">Planejado</span>
+                <span className="text-[1rem] font-bold text-blue-700" style={buildTimeTextStyle(item.horasPlanejadas, 1)}>
                   {item.horasPlanejadas}
                 </span>
               </div>
             </div>
 
-            <div className="flex w-full items-center justify-between gap-3" style={{ overflow: 'visible' }}>
+            {/* Week comparison */}
+            <div className="flex items-start justify-between gap-3 flex-1">
               {[item.semana1, item.semana2].map((semana, index) => (
-                <div key={index} className="flex flex-col items-center gap-2 flex-1" style={{ overflow: 'visible' }}>
-                  <span className="text-[16px] font-bold text-center text-slate-500">
-                    SEMANA {index === 0 ? numeroSemana1 : numeroSemana2}
+                <div key={index} className="flex flex-col items-center gap-2 flex-1">
+                  <span className={`text-[0.75rem] font-bold text-center px-2 py-0.5 rounded-full ${index === 0 ? 'bg-slate-200 text-slate-700' : 'bg-blue-600 text-white'
+                    }`}>
+                    SEM {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
-                  <div
-                    className="relative flex items-center justify-center"
-                    style={{
-                      width: '140px',
-                      height: '140px',
-                      overflow: 'visible',
-                    }}
-                  >
-                    <svg
-                      className="absolute inset-0"
-                      viewBox="0 0 200 200"
-                      style={{ transform: 'rotate(-90deg)' }}
-                    >
-                      <circle cx="100" cy="100" r="88" stroke="#e2e8f0" strokeWidth="12" fill="none" />
+
+                  {/* Progress circle */}
+                  <div className="relative flex items-center justify-center" style={{ width: '100px', height: '100px' }}>
+                    <svg className="absolute inset-0" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx="80" cy="80" r="70" stroke="#e2e8f0" strokeWidth="10" fill="none" />
                       <circle
-                        cx="100"
-                        cy="100"
-                        r="88"
+                        cx="80"
+                        cy="80"
+                        r="70"
                         stroke="#2563eb"
-                        strokeWidth="12"
+                        strokeWidth="10"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
                         strokeLinecap="round"
                       />
                     </svg>
                     <span
-                      style={buildCircleTextStyle(semana.aderencia, 1.6, 0.9)}
-                      className="flex items-center justify-center w-full h-full text-center text-slate-900"
+                      style={buildCircleTextStyle(semana.aderencia, 1.2, 0.8)}
+                      className="text-slate-900 font-black"
                     >
                       {semana.aderencia.toFixed(1)}%
                     </span>
                   </div>
-                  <div className="rounded-[8px] bg-white border border-slate-200 px-3 py-2 w-full flex flex-col items-center gap-1" style={{ overflow: 'visible' }}>
-                    <span className="text-[13px] font-medium text-slate-500">Horas Entregues</span>
+
+                  {/* Hours delivered */}
+                  <div className="rounded-lg bg-white border border-slate-200 px-2 py-1.5 w-full text-center">
+                    <span className="text-[0.625rem] font-medium text-slate-500 block">Entregue</span>
                     <span
-                      className="font-semibold text-emerald-600 text-center"
-                      style={buildTimeTextStyle(semana.horasEntregues, 1.0625)}
+                      className="font-bold text-emerald-600"
+                      style={buildTimeTextStyle(semana.horasEntregues, 0.875)}
                     >
                       {semana.horasEntregues}
                     </span>
@@ -137,21 +152,15 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-2 w-full mt-auto" style={{ overflow: 'visible' }}>
+            {/* Variations */}
+            <div className="grid grid-cols-3 gap-1.5 mt-3">
               {item.variacoes.map((variacao) => (
-                <div
+                <VariationBadge
                   key={variacao.label}
-                  className="rounded-[7px] bg-white border border-slate-200 px-2 py-2 text-center flex flex-col items-center justify-center gap-0.5"
-                  style={{ overflow: 'visible' }}
-                >
-                  <p className="text-[12px] font-medium text-slate-500 leading-tight">{variacao.label}</p>
-                  <p
-                    className={`font-bold leading-tight ${variacao.positivo ? 'text-emerald-600' : 'text-rose-600'}`}
-                    style={buildTimeTextStyle(variacao.valor, 0.9375)}
-                  >
-                    {variacao.valor}
-                  </p>
-                </div>
+                  label={variacao.label}
+                  value={variacao.valor}
+                  positive={variacao.positivo}
+                />
               ))}
             </div>
           </div>
@@ -162,4 +171,3 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
 };
 
 export default SlideSubPracas;
-

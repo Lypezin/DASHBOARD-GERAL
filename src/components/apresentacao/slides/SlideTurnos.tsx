@@ -31,9 +31,30 @@ interface SlideTurnosProps {
 
 const buildCircleDasharray = (valor: number) => {
   const clamped = Math.max(0, Math.min(100, valor));
-  const circumference = 2 * Math.PI * 73; // r = 73 (ajustado para container maior)
+  const circumference = 2 * Math.PI * 60;
   return `${(clamped / 100) * circumference} ${circumference}`;
 };
+
+// Arrow indicator component
+const VariationBadge: React.FC<{ label: string; value: string; positive: boolean }> = ({ label, value, positive }) => (
+  <div className={`rounded-lg px-2 py-1.5 text-center flex flex-col items-center justify-center gap-0.5 ${positive ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'
+    }`}>
+    <p className="text-[0.625rem] font-medium text-slate-600 leading-tight">{label}</p>
+    <div className={`flex items-center gap-0.5 font-bold text-[0.75rem] leading-tight ${positive ? 'text-emerald-600' : 'text-rose-600'
+      }`}>
+      {positive ? (
+        <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 4l-8 8h5v8h6v-8h5z" />
+        </svg>
+      ) : (
+        <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 20l8-8h-5V4H9v8H4z" />
+        </svg>
+      )}
+      <span style={buildTimeTextStyle(value, 0.75)}>{value}</span>
+    </div>
+  </div>
+);
 
 const SlideTurnos: React.FC<SlideTurnosProps> = ({
   isVisible,
@@ -44,73 +65,75 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
   itens,
 }) => {
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '35px 45px', overflow: 'visible' }}>
-      <header className="text-center mb-5">
-        <h2 className="text-[2.5rem] font-black leading-none tracking-wider mb-1.5 text-blue-600">ADERÊNCIA POR TURNO</h2>
-        <p className="text-[1.5rem] font-light text-slate-500 mb-1">
-          SEMANAS {numeroSemana1} &amp; {numeroSemana2}
+    <SlideWrapper isVisible={isVisible} style={{ padding: '28px 36px' }}>
+      {/* Header */}
+      <header className="text-center mb-4">
+        <div className="inline-block">
+          <h2 className="text-[2rem] font-black tracking-wider text-blue-600 leading-none">
+            ADERÊNCIA POR TURNO
+          </h2>
+          <div className="h-1 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 rounded-full mt-2" />
+        </div>
+        <p className="text-[1rem] font-light text-slate-500 mt-2">
+          Comparativo Semanas {numeroSemana1} vs {numeroSemana2}
         </p>
         {totalPaginas > 1 && (
-          <p className="text-[1rem] font-medium opacity-75 text-slate-400">
+          <p className="text-[0.875rem] font-medium text-slate-400 mt-1">
             Página {paginaAtual} de {totalPaginas}
           </p>
         )}
       </header>
 
-      <div className="grid grid-cols-2 gap-5 flex-1" style={{ overflow: 'visible' }}>
+      {/* Cards Grid */}
+      <div className="grid grid-cols-2 gap-4 flex-1">
         {itens.map((turno) => (
           <div
             key={turno.nome}
-            className="rounded-[16px] bg-slate-50 border border-slate-200 px-5 py-5 flex flex-col gap-4"
-            style={{ overflow: 'visible' }}
+            className="rounded-xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 p-4 flex flex-col shadow-sm"
           >
-            <div className="text-center" style={{ overflow: 'visible' }}>
-              <h3 className="text-[26px] font-semibold uppercase tracking-wide leading-tight text-slate-900">{turno.nome}</h3>
-            </div>
+            {/* Turno name */}
+            <h3 className="text-[1.25rem] font-bold uppercase tracking-wide text-slate-800 text-center mb-3">
+              {turno.nome}
+            </h3>
 
-            <div className="flex items-center justify-between gap-4" style={{ overflow: 'visible' }}>
+            {/* Week comparison */}
+            <div className="flex items-start justify-between gap-4 flex-1">
               {[turno.semana1, turno.semana2].map((semana, index) => (
-                <div key={index} className="flex flex-col items-center gap-3 flex-1" style={{ overflow: 'visible' }}>
-                  <span className="text-[18px] font-bold text-center text-slate-500">
+                <div key={index} className="flex flex-col items-center gap-2 flex-1">
+                  <span className={`text-[0.75rem] font-bold text-center px-3 py-1 rounded-full ${index === 0 ? 'bg-slate-200 text-slate-700' : 'bg-blue-600 text-white'
+                    }`}>
                     SEMANA {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
-                  <div
-                    className="relative flex items-center justify-center"
-                    style={{
-                      width: '160px',
-                      height: '160px',
-                      overflow: 'visible',
-                    }}
-                  >
-                    <svg
-                      className="absolute inset-0"
-                      viewBox="0 0 160 160"
-                      style={{ transform: 'rotate(-90deg)' }}
-                    >
-                      <circle cx="80" cy="80" r="73" stroke="#e2e8f0" strokeWidth="14" fill="none" />
+
+                  {/* Progress circle */}
+                  <div className="relative flex items-center justify-center" style={{ width: '120px', height: '120px' }}>
+                    <svg className="absolute inset-0" viewBox="0 0 140 140" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx="70" cy="70" r="60" stroke="#e2e8f0" strokeWidth="10" fill="none" />
                       <circle
-                        cx="80"
-                        cy="80"
-                        r="73"
+                        cx="70"
+                        cy="70"
+                        r="60"
                         stroke="#2563eb"
-                        strokeWidth="14"
+                        strokeWidth="10"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(semana.aderencia)}
                         strokeLinecap="round"
                       />
                     </svg>
                     <span
-                      style={buildCircleTextStyle(semana.aderencia, 1.8, 1.0)}
-                      className="flex items-center justify-center w-full h-full text-center text-slate-900"
+                      style={buildCircleTextStyle(semana.aderencia, 1.4, 0.9)}
+                      className="text-slate-900 font-black"
                     >
                       {semana.aderencia.toFixed(1)}%
                     </span>
                   </div>
-                  <div className="rounded-[10px] bg-white border border-slate-200 px-3 py-2.5 w-full flex flex-col items-center gap-1" style={{ overflow: 'visible' }}>
-                    <span className="text-[15px] font-medium text-slate-500">Horas Entregues</span>
+
+                  {/* Hours delivered */}
+                  <div className="rounded-lg bg-white border border-slate-200 px-3 py-2 w-full text-center">
+                    <span className="text-[0.75rem] font-medium text-slate-500 block">Horas Entregues</span>
                     <span
-                      className="font-bold text-emerald-600 text-center"
-                      style={buildTimeTextStyle(semana.horasEntregues, 1.25)}
+                      className="font-bold text-emerald-600"
+                      style={buildTimeTextStyle(semana.horasEntregues, 1)}
                     >
                       {semana.horasEntregues}
                     </span>
@@ -119,17 +142,15 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-2.5 mt-auto" style={{ overflow: 'visible' }}>
+            {/* Variations */}
+            <div className="grid grid-cols-3 gap-2 mt-3">
               {turno.variacoes.map((variacao) => (
-                <div key={variacao.label} className="rounded-[8px] bg-white border border-slate-200 px-3 py-2.5 text-center flex flex-col items-center justify-center gap-1" style={{ overflow: 'visible' }}>
-                  <p className="text-[14px] font-medium text-slate-500 leading-tight">{variacao.label}</p>
-                  <p
-                    className={`font-bold leading-tight ${variacao.positivo ? 'text-emerald-600' : 'text-rose-600'}`}
-                    style={buildTimeTextStyle(variacao.valor, 1.0625)}
-                  >
-                    {variacao.valor}
-                  </p>
-                </div>
+                <VariationBadge
+                  key={variacao.label}
+                  label={variacao.label}
+                  value={variacao.valor}
+                  positive={variacao.positivo}
+                />
               ))}
             </div>
           </div>
@@ -140,4 +161,3 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
 };
 
 export default SlideTurnos;
-
