@@ -22,7 +22,7 @@ interface ApresentacaoPreviewProps {
 // A4 Landscape dimensions in mm
 const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
-const SCALE_FACTOR = 1.5; // Reduced from 2 to 1.5 for performance
+const SCALE_FACTOR = 1.2; // Reduced from 1.5 for faster generation and smaller file size
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   slides,
@@ -104,7 +104,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
         const slideElement = captureElement.firstElementChild as HTMLElement;
 
         if (slideElement) {
-          // Capture slide with optimized html2canvas settings
+          // Capture slide with optimized html2canvas settings for speed
           const canvas = await html2canvas(slideElement, {
             scale: SCALE_FACTOR,
             useCORS: true,
@@ -113,8 +113,9 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
             width: SLIDE_WIDTH,
             height: SLIDE_HEIGHT,
             logging: false,
-            imageTimeout: 0, // Disable image loading timeout
-            removeContainer: true, // Cleanup after capture
+            imageTimeout: 0,
+            windowWidth: SLIDE_WIDTH,
+            windowHeight: SLIDE_HEIGHT,
           });
 
           // Add page (except for first slide)
@@ -122,9 +123,9 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
             pdf.addPage();
           }
 
-          // Add image to PDF using PNG for faster encoding (no compression)
-          const imgData = canvas.toDataURL('image/png');
-          pdf.addImage(imgData, 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+          // Add image to PDF using JPEG with 80% quality for small file size
+          const imgData = canvas.toDataURL('image/jpeg', 0.8);
+          pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
         }
       }
 

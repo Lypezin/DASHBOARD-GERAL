@@ -106,26 +106,25 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                   </span>
 
                   {/* Progress circle */}
-                  <div className="relative flex items-center justify-center" style={{ width: '85px', height: '85px' }}>
-                    <svg className="absolute inset-0" viewBox="0 0 140 140" style={{ transform: 'rotate(-90deg)' }}>
-                      <circle cx="70" cy="70" r="60" stroke="#e2e8f0" strokeWidth="8" fill="none" />
+                  <div className="relative w-[80px] h-[80px]">
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx="50" cy="50" r="42" stroke="#e2e8f0" strokeWidth="6" fill="none" />
                       <circle
-                        cx="70"
-                        cy="70"
-                        r="60"
+                        cx="50"
+                        cy="50"
+                        r="42"
                         stroke="#2563eb"
-                        strokeWidth="8"
+                        strokeWidth="6"
                         fill="none"
-                        strokeDasharray={buildCircleDasharray(semana.aderencia)}
+                        strokeDasharray={`${(Math.min(100, Math.max(0, semana.aderencia)) / 100) * 2 * Math.PI * 42} ${2 * Math.PI * 42}`}
                         strokeLinecap="round"
                       />
                     </svg>
-                    <span
-                      style={buildCircleTextStyle(semana.aderencia, 1.1, 0.75)}
-                      className="text-slate-900 font-black"
-                    >
-                      {semana.aderencia.toFixed(1)}%
-                    </span>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-slate-900 font-black text-[0.9rem] leading-none">
+                        {semana.aderencia.toFixed(1)}%
+                      </span>
+                    </div>
                   </div>
 
                   {/* Hours delivered */}

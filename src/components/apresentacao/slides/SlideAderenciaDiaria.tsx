@@ -67,14 +67,13 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
     return (
       <div key={`${semanaLabel}-${dia.sigla}`} className="rounded-lg bg-slate-50 border border-slate-200 p-1.5 flex flex-col items-center gap-1">
         <span className="text-[0.75rem] font-bold text-slate-600 uppercase tracking-wide">{dia.sigla}</span>
-        
+
         {/* Progress circle */}
-        <div className="relative flex items-center justify-center" style={{ width: '56px', height: '56px' }}>
+        <div className="relative w-[56px] h-[56px]">
           <svg
-            className="absolute"
-            style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}
+            className="absolute inset-0 w-full h-full"
+            style={{ transform: 'rotate(-90deg)' }}
             viewBox="0 0 100 100"
-            preserveAspectRatio="xMidYMid meet"
           >
             <circle cx="50" cy="50" r="45" stroke="#e2e8f0" strokeWidth="6" fill="none" />
             <circle
@@ -88,12 +87,11 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
               strokeLinecap="round"
             />
           </svg>
-          <span
-            className="text-slate-900 font-black"
-            style={{ fontSize: '0.75rem', lineHeight: 1 }}
-          >
-            {dia.aderencia.toFixed(1)}%
-          </span>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-slate-900 font-black text-[0.75rem] leading-none">
+              {dia.aderencia.toFixed(1)}%
+            </span>
+          </div>
         </div>
 
         {/* Hours delivered */}
@@ -198,11 +196,10 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
             {semana2Dias.map((dia) => (
               <div key={`summary-${dia.sigla}`} className="text-center">
                 <span className="text-[0.625rem] font-medium text-slate-500 block mb-1">{dia.sigla}</span>
-                <div className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${
-                  dia.diferencaPercentualHorasPositiva 
-                    ? 'bg-emerald-100 text-emerald-700' 
+                <div className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${dia.diferencaPercentualHorasPositiva
+                    ? 'bg-emerald-100 text-emerald-700'
                     : 'bg-rose-100 text-rose-700'
-                }`}>
+                  }`}>
                   {dia.diferencaPercentualHorasPositiva ? (
                     <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 4l-8 8h5v8h6v-8h5z" />
