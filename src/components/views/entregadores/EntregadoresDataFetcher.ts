@@ -60,16 +60,17 @@ export async function fetchEntregadoresFallback(
     validateDateFilter(payload, 'fetchEntregadoresFallback (Marketing)');
     const safePayload = ensureDateFilter(payload);
 
-    // OTIMIZAÇÃO: Buscar em lotes para evitar atingir o limite de query ou timeout
-    const BATCH_SIZE = 50;
+    // OTIMIZAÇÃO: Buscar em lotes PARALELOS para evitar timeout e melhorar performance
+    const BATCH_SIZE = 100; // Aumentado para 100
     const todasCorridas: any[] = [];
+    const promises = [];
 
     for (let i = 0; i < idsEntregadores.length; i += BATCH_SIZE) {
       const batchIds = idsEntregadores.slice(i, i + BATCH_SIZE);
 
       let corridasQuery = supabase
         .from('dados_corridas')
-        .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo')
+        .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo, tempo_disponivel_escalado_segundos')
         .in('id_da_pessoa_entregadora', batchIds);
 
       // Aplicar filtro de data (usando payload seguro)
@@ -80,23 +81,28 @@ export async function fetchEntregadoresFallback(
         corridasQuery = corridasQuery.lte('data_do_periodo', safePayload.p_data_final);
       }
 
-      // Limitar query para evitar sobrecarga, mas alto o suficiente para o lote
+      // Limitar query para evitar sobrecarga
       corridasQuery = corridasQuery.limit(QUERY_LIMITS.AGGREGATION_MAX);
 
-      const { data: batchData, error: batchError } = await corridasQuery;
+      promises.push(corridasQuery);
+    }
 
+    // Executar queries em paralelo com limite de concorrência (opcional, aqui Promise.all direto pois são poucos batches geralmente)
+    const results = await Promise.all(promises);
+
+    for (const result of results) {
+      const { data: batchData, error: batchError } = result;
       if (batchError) {
-        safeLog.error(`Erro ao buscar lote ${i} de corridas:`, batchError);
-        continue; // Tentar próximo lote em vez de falhar tudo
+        safeLog.error('Erro ao buscar lote de corridas:', batchError);
+        continue;
       }
-
       if (batchData) {
         todasCorridas.push(...batchData);
       }
     }
 
     // Criar mapa de entregadores para lookup rápido
-    const entregadoresMap = new Map(entregadoresIds.map(e => [e.id_entregador, e]));
+    // const entregadoresMap = new Map(entregadoresIds.map(e => [e.id_entregador, e])); // Não usado
 
     // Agregar dados por entregador em memória
     const corridasPorEntregador = new Map<string, typeof todasCorridas>();
@@ -121,19 +127,27 @@ export async function fetchEntregadoresFallback(
 
       const corridasData = corridasPorEntregador.get(entregador.id_entregador) || [];
 
-      // Se não há corridas, pular este entregador
-      if (corridasData.length === 0) {
-        continue;
-      }
+      // CORREÇÃO: Mostrar entregador mesmo sem corridas (LEFT JOIN behavior)
+      // if (corridasData.length === 0) { continue; }
 
       // Aplicar filtro de data início se especificado - verificar primeira data
-      if (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) {
+      // Se não tem corridas, não tem como filtrar por data da primeira corrida, então incluímos (ou excluímos? LEFT JOIN inclui)
+      // Se o filtro de data início é estrito ("entregadores que começaram a rodar a partir de X"), então quem não rodou não entra.
+      // Mas o filtro de "rodou_dia" já foi aplicado na query de corridas.
+      // O filtro "data_inicio" (primeira corrida) é mais complexo.
+      // Se o usuário quer "novos entregadores", quem nunca rodou não é "novo que começou agora", é "nunca rodou".
+      // Vamos manter a lógica: se tem filtro de data de início, precisa ter dados para validar.
+
+      if ((filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) && corridasData.length > 0) {
         const primeiraData = corridasData
           .map(c => c.data_do_periodo)
           .filter((d): d is string => d != null)
           .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
 
         if (!primeiraData) {
+          // Se tem filtro de data de início mas não tem data, ignorar se a lógica for estrita.
+          // Mas se queremos mostrar todos, talvez devêssemos manter? 
+          // Por enquanto, manter comportamento anterior para filtro de data de início:
           continue;
         }
 
@@ -146,6 +160,9 @@ export async function fetchEntregadoresFallback(
         if (dataFim && primeiraData > dataFim) {
           continue;
         }
+      } else if ((filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) && corridasData.length === 0) {
+        // Se tem filtro de "data de início" (novos entregadores) e o cara não tem corridas, ele não "começou" no período.
+        continue;
       }
 
       // Agregar dados
@@ -153,6 +170,9 @@ export async function fetchEntregadoresFallback(
       const total_aceitas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_aceitas || 0), 0);
       const total_completadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_completadas || 0), 0);
       const total_rejeitadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_rejeitadas || 0), 0);
+
+      // Calcular total de segundos (horas)
+      const total_segundos = corridasData.reduce((sum, c) => sum + (Number(c.tempo_disponivel_escalado_segundos) || 0), 0);
 
       // Calcular última data e dias sem rodar
       let ultimaData: string | null = null;
@@ -184,7 +204,7 @@ export async function fetchEntregadoresFallback(
         total_aceitas,
         total_completadas,
         total_rejeitadas,
-        total_segundos: 0, // Fallback não calcula horas
+        total_segundos: total_segundos, // Agora calculado corretamente
         ultima_data: ultimaData,
         dias_sem_rodar: diasSemRodar,
         regiao_atuacao: entregador.regiao_atuacao || null,
@@ -195,7 +215,7 @@ export async function fetchEntregadoresFallback(
     entregadoresComDados.sort((a, b) => a.nome.localeCompare(b.nome));
 
     if (IS_DEV) {
-      safeLog.info(`✅ ${entregadoresComDados.length} entregador(es) encontrado(s) (fallback)`);
+      safeLog.info(`✅ ${entregadoresComDados.length} entregador(es) encontrado(s) (fallback otimizado)`);
     }
 
     return entregadoresComDados;
