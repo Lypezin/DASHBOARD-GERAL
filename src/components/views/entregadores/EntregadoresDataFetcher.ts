@@ -3,23 +3,24 @@ import { EntregadorMarketing, MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { QUERY_LIMITS } from '@/constants/config';
-import { ensureDateFilter, validateDateFilter } from '@/utils/queryOptimization';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function fetchEntregadoresFallback(
   filtroDataInicio: MarketingDateFilter,
-  cidadeSelecionada: string
+  filtroRodouDia: MarketingDateFilter,
+  cidadeSelecionada: string,
+  searchTerm: string = ''
 ): Promise<EntregadorMarketing[]> {
   try {
     // Fallback: buscar entregadores que aparecem em ambas as tabelas
-    // Primeiro, buscar IDs únicos de entregadores do marketing
+    // OTIMIZAÇÃO: Filtrar dados_marketing PRIMEIRO para reduzir o dataset
     let entregadoresQuery = supabase
       .from('dados_marketing')
       .select('id_entregador, nome, regiao_atuacao, rodando, rodou_dia')
       .not('id_entregador', 'is', null);
 
-    // Aplicar filtro de cidade se especificado
+    // Aplicar filtro de cidade
     if (cidadeSelecionada) {
       if (cidadeSelecionada === 'Santo André') {
         entregadoresQuery = entregadoresQuery
@@ -33,6 +34,18 @@ export async function fetchEntregadoresFallback(
         entregadoresQuery = entregadoresQuery.eq('regiao_atuacao', cidadeSelecionada);
       }
     }
+
+    // Aplicar filtro de pesquisa (Server-side)
+    if (searchTerm) {
+      // Pesquisar por nome ou ID
+      entregadoresQuery = entregadoresQuery.or(`nome.ilike.%${searchTerm}%,id_entregador.eq.${searchTerm}`);
+    }
+
+    // Aplicar filtro de Rodou Dia (usando a coluna rodou_dia da tabela de marketing)
+    if (filtroRodouDia.dataInicial) {
+      entregadoresQuery = entregadoresQuery.gte('rodou_dia', filtroRodouDia.dataInicial);
+    }
+    // Não aplicamos lte no rodou_dia para não excluir quem rodou depois (mas também no período)
 
     const { data: entregadoresIds, error: idsError } = await entregadoresQuery;
 
@@ -51,21 +64,12 @@ export async function fetchEntregadoresFallback(
       return [];
     }
 
-    // ⚠️ OTIMIZAÇÃO DISK IO: Garantir filtro de data para evitar scan completo
-    // Converter filtro para formato de payload
-    const payload = {
-      p_data_inicial: filtroDataInicio.dataInicial,
-      p_data_final: filtroDataInicio.dataFinal,
-    };
-    // Apenas validar para log, mas NÃO forçar filtro padrão para permitir visualização "Todo o período"
-    // O limite de linhas (QUERY_LIMITS.AGGREGATION_MAX) e o BATCH_SIZE protegem o banco
-    validateDateFilter(payload, 'fetchEntregadoresFallback (Marketing)');
-    const safePayload = payload;
-
     // OTIMIZAÇÃO: Buscar em lotes PARALELOS para evitar timeout e melhorar performance
-    const BATCH_SIZE = 100; // Aumentado para 100
+    const BATCH_SIZE = 100;
     const todasCorridas: any[] = [];
     const promises = [];
+
+    // NÃO aplicamos filtro de data na query de corridas para poder calcular "Data Inicio" (Primeira Corrida) corretamente.
 
     for (let i = 0; i < idsEntregadores.length; i += BATCH_SIZE) {
       const batchIds = idsEntregadores.slice(i, i + BATCH_SIZE);
@@ -75,22 +79,14 @@ export async function fetchEntregadoresFallback(
         .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo, tempo_disponivel_escalado_segundos')
         .in('id_da_pessoa_entregadora', batchIds);
 
-      // Aplicar filtro de data (usando payload seguro)
-      if (safePayload.p_data_inicial) {
-        corridasQuery = corridasQuery.gte('data_do_periodo', safePayload.p_data_inicial);
-      }
-      if (safePayload.p_data_final) {
-        corridasQuery = corridasQuery.lte('data_do_periodo', safePayload.p_data_final);
-      }
-
-      // Limitar query para evitar sobrecarga
+      // Limitar query para evitar sobrecarga (mas alto o suficiente para pegar histórico)
       corridasQuery = corridasQuery.limit(QUERY_LIMITS.AGGREGATION_MAX);
 
       promises.push(corridasQuery);
     }
 
     // Executar queries em paralelo com limite de concorrência para evitar travamentos
-    const CONCURRENCY_LIMIT = 3; // Máximo de 3 requisições simultâneas
+    const CONCURRENCY_LIMIT = 3;
     const results = [];
 
     for (let i = 0; i < promises.length; i += CONCURRENCY_LIMIT) {
@@ -103,7 +99,6 @@ export async function fetchEntregadoresFallback(
       const chunkResults = await Promise.all(chunk);
       results.push(...chunkResults);
 
-      // Pequeno delay para liberar event loop
       if (i + CONCURRENCY_LIMIT < promises.length) {
         await new Promise(resolve => setTimeout(resolve, 50));
       }
@@ -119,9 +114,6 @@ export async function fetchEntregadoresFallback(
         todasCorridas.push(...batchData);
       }
     }
-
-    // Criar mapa de entregadores para lookup rápido
-    // const entregadoresMap = new Map(entregadoresIds.map(e => [e.id_entregador, e])); // Não usado
 
     // Agregar dados por entregador em memória
     const corridasPorEntregador = new Map<string, typeof todasCorridas>();
@@ -144,68 +136,59 @@ export async function fetchEntregadoresFallback(
     for (const entregador of entregadoresIds) {
       if (!entregador.id_entregador) continue;
 
-      const corridasData = corridasPorEntregador.get(entregador.id_entregador) || [];
+      const todasCorridasEntregador = corridasPorEntregador.get(entregador.id_entregador) || [];
 
-      // CORREÇÃO: Mostrar entregador mesmo sem corridas (LEFT JOIN behavior)
-      // if (corridasData.length === 0) { continue; }
-
-      // Aplicar filtro de data início se especificado - verificar primeira data
-      // Se não tem corridas, não tem como filtrar por data da primeira corrida, então incluímos (ou excluímos? LEFT JOIN inclui)
-      // Se o filtro de data início é estrito ("entregadores que começaram a rodar a partir de X"), então quem não rodou não entra.
-      // Mas o filtro de "rodou_dia" já foi aplicado na query de corridas.
-      // O filtro "data_inicio" (primeira corrida) é mais complexo.
-      // Se o usuário quer "novos entregadores", quem nunca rodou não é "novo que começou agora", é "nunca rodou".
-      // Vamos manter a lógica: se tem filtro de data de início, precisa ter dados para validar.
-
-      if ((filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) && corridasData.length > 0) {
-        const primeiraData = corridasData
+      // Calcular Primeira Data (Data Inicio) com base em TODO o histórico
+      let primeiraData: string | null = null;
+      if (todasCorridasEntregador.length > 0) {
+        const datasOrdenadas = todasCorridasEntregador
           .map(c => c.data_do_periodo)
           .filter((d): d is string => d != null)
-          .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
+          .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
-        if (!primeiraData) {
-          // Se tem filtro de data de início mas não tem data, ignorar se a lógica for estrita.
-          // Mas se queremos mostrar todos, talvez devêssemos manter? 
-          // Por enquanto, manter comportamento anterior para filtro de data de início:
-          continue;
+        if (datasOrdenadas.length > 0) {
+          primeiraData = datasOrdenadas[0];
         }
-
-        const dataInicio = filtroDataInicio.dataInicial;
-        const dataFim = filtroDataInicio.dataFinal;
-
-        if (dataInicio && primeiraData < dataInicio) {
-          continue;
-        }
-        if (dataFim && primeiraData > dataFim) {
-          continue;
-        }
-      } else if ((filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) && corridasData.length === 0) {
-        // Se tem filtro de "data de início" (novos entregadores) e o cara não tem corridas, ele não "começou" no período.
-        continue;
       }
 
-      // Agregar dados
-      const total_ofertadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_ofertadas || 0), 0);
-      const total_aceitas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_aceitas || 0), 0);
-      const total_completadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_completadas || 0), 0);
-      const total_rejeitadas = corridasData.reduce((sum, c) => sum + (c.numero_de_corridas_rejeitadas || 0), 0);
+      // Aplicar Filtro de Data Inicio (Primeira Data)
+      if (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) {
+        if (!primeiraData) continue; // Se não tem data, não entra no filtro
 
-      // Calcular total de segundos (horas)
-      const total_segundos = corridasData.reduce((sum, c) => sum + (Number(c.tempo_disponivel_escalado_segundos) || 0), 0);
+        if (filtroDataInicio.dataInicial && primeiraData < filtroDataInicio.dataInicial) continue;
+        if (filtroDataInicio.dataFinal && primeiraData > filtroDataInicio.dataFinal) continue;
+      }
 
-      // Calcular última data e dias sem rodar
-      // Priorizar rodou_dia da tabela de marketing, mas verificar se há dados mais recentes nas corridas
+      // Filtrar corridas para cálculo de métricas (baseado no Filtro Rodou Dia)
+      let corridasParaMetricas = todasCorridasEntregador;
+
+      if (filtroRodouDia.dataInicial || filtroRodouDia.dataFinal) {
+        corridasParaMetricas = todasCorridasEntregador.filter(c => {
+          if (!c.data_do_periodo) return false;
+          if (filtroRodouDia.dataInicial && c.data_do_periodo < filtroRodouDia.dataInicial) return false;
+          if (filtroRodouDia.dataFinal && c.data_do_periodo > filtroRodouDia.dataFinal) return false;
+          return true;
+        });
+      }
+
+      // Agregar métricas
+      const total_ofertadas = corridasParaMetricas.reduce((sum, c) => sum + (c.numero_de_corridas_ofertadas || 0), 0);
+      const total_aceitas = corridasParaMetricas.reduce((sum, c) => sum + (c.numero_de_corridas_aceitas || 0), 0);
+      const total_completadas = corridasParaMetricas.reduce((sum, c) => sum + (c.numero_de_corridas_completadas || 0), 0);
+      const total_rejeitadas = corridasParaMetricas.reduce((sum, c) => sum + (c.numero_de_corridas_rejeitadas || 0), 0);
+      const total_segundos = corridasParaMetricas.reduce((sum, c) => sum + (Number(c.tempo_disponivel_escalado_segundos) || 0), 0);
+
+      // Calcular última data e dias sem rodar (usando rodou_dia ou histórico completo)
       let ultimaData: string | null = entregador.rodou_dia || null;
 
-      if (corridasData.length > 0) {
-        const datas = corridasData
+      if (todasCorridasEntregador.length > 0) {
+        const datasRecentes = todasCorridasEntregador
           .map(c => c.data_do_periodo)
           .filter((d): d is string => d != null)
           .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
-        if (datas.length > 0) {
-          const ultimaCorrida = datas[0];
-          // Se a data da corrida for mais recente que rodou_dia (ou se rodou_dia for null), usar ela
+        if (datasRecentes.length > 0) {
+          const ultimaCorrida = datasRecentes[0];
           if (ultimaCorrida && (!ultimaData || new Date(ultimaCorrida) > new Date(ultimaData))) {
             ultimaData = ultimaCorrida;
           }
@@ -216,15 +199,12 @@ export async function fetchEntregadoresFallback(
       if (ultimaData) {
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);
-
-        // Ajustar timezone para evitar problemas de data
         const ultimaDataParts = ultimaData.split('-');
         const ultimaDataObj = new Date(
           Number(ultimaDataParts[0]),
           Number(ultimaDataParts[1]) - 1,
           Number(ultimaDataParts[2])
         );
-
         const diffTime = hoje.getTime() - ultimaDataObj.getTime();
         diasSemRodar = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       }
@@ -236,7 +216,7 @@ export async function fetchEntregadoresFallback(
         total_aceitas,
         total_completadas,
         total_rejeitadas,
-        total_segundos: total_segundos, // Agora calculado corretamente
+        total_segundos,
         ultima_data: ultimaData,
         dias_sem_rodar: diasSemRodar,
         regiao_atuacao: entregador.regiao_atuacao || null,
@@ -262,7 +242,8 @@ export async function fetchEntregadores(
   filtroRodouDia: MarketingDateFilter,
   filtroDataInicio: MarketingDateFilter,
   cidadeSelecionada: string,
-  fetchEntregadoresFallbackFn: () => Promise<EntregadorMarketing[]>
+  fetchEntregadoresFallbackFn: () => Promise<EntregadorMarketing[]>,
+  searchTerm: string = ''
 ): Promise<EntregadorMarketing[]> {
   try {
     // Obter organization_id do usuário atual
@@ -355,4 +336,3 @@ export async function fetchEntregadores(
     throw err;
   }
 }
-

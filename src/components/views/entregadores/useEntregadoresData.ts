@@ -21,11 +21,22 @@ export function useEntregadoresData() {
     });
     const [cidadeSelecionada, setCidadeSelecionada] = useState<string>('');
 
+    // Debounce para search term
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 500); // 500ms delay
+
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
     const fetchEntregadoresFallbackFn = useCallback(async () => {
-        const data = await fetchEntregadoresFallback(filtroDataInicio, cidadeSelecionada);
+        const data = await fetchEntregadoresFallback(filtroDataInicio, filtroRodouDia, cidadeSelecionada, debouncedSearchTerm);
         setEntregadores(data);
         return data;
-    }, [filtroDataInicio, cidadeSelecionada]);
+    }, [filtroDataInicio, filtroRodouDia, cidadeSelecionada, debouncedSearchTerm]);
 
     const fetchEntregadoresFn = useCallback(async () => {
         try {
@@ -36,7 +47,8 @@ export function useEntregadoresData() {
                 filtroRodouDia,
                 filtroDataInicio,
                 cidadeSelecionada,
-                fetchEntregadoresFallbackFn
+                fetchEntregadoresFallbackFn,
+                debouncedSearchTerm
             );
 
             setEntregadores(data);
@@ -46,7 +58,7 @@ export function useEntregadoresData() {
         } finally {
             setLoading(false);
         }
-    }, [filtroRodouDia, filtroDataInicio, cidadeSelecionada, fetchEntregadoresFallbackFn]);
+    }, [filtroRodouDia, filtroDataInicio, cidadeSelecionada, fetchEntregadoresFallbackFn, debouncedSearchTerm]);
 
     useEffect(() => {
         // Este componente é usado apenas no Marketing, sempre buscar dados
