@@ -16,7 +16,7 @@ export async function fetchEntregadoresFallback(
     // Primeiro, buscar IDs únicos de entregadores do marketing
     let entregadoresQuery = supabase
       .from('dados_marketing')
-      .select('id_entregador, nome, regiao_atuacao, rodando')
+      .select('id_entregador, nome, regiao_atuacao, rodando, rodou_dia')
       .not('id_entregador', 'is', null);
 
     // Aplicar filtro de cidade se especificado
@@ -175,8 +175,8 @@ export async function fetchEntregadoresFallback(
       const total_segundos = corridasData.reduce((sum, c) => sum + (Number(c.tempo_disponivel_escalado_segundos) || 0), 0);
 
       // Calcular última data e dias sem rodar
-      let ultimaData: string | null = null;
-      let diasSemRodar: number | null = null;
+      // Priorizar rodou_dia da tabela de marketing, mas verificar se há dados mais recentes nas corridas
+      let ultimaData: string | null = entregador.rodou_dia || null;
 
       if (corridasData.length > 0) {
         const datas = corridasData
@@ -185,16 +185,29 @@ export async function fetchEntregadoresFallback(
           .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
         if (datas.length > 0) {
-          ultimaData = datas[0];
-          if (ultimaData) {
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-            const ultimaDataObj = new Date(ultimaData);
-            ultimaDataObj.setHours(0, 0, 0, 0);
-            const diffTime = hoje.getTime() - ultimaDataObj.getTime();
-            diasSemRodar = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          const ultimaCorrida = datas[0];
+          // Se a data da corrida for mais recente que rodou_dia (ou se rodou_dia for null), usar ela
+          if (ultimaCorrida && (!ultimaData || new Date(ultimaCorrida) > new Date(ultimaData))) {
+            ultimaData = ultimaCorrida;
           }
         }
+      }
+
+      let diasSemRodar: number | null = null;
+      if (ultimaData) {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        // Ajustar timezone para evitar problemas de data
+        const ultimaDataParts = ultimaData.split('-');
+        const ultimaDataObj = new Date(
+          Number(ultimaDataParts[0]),
+          Number(ultimaDataParts[1]) - 1,
+          Number(ultimaDataParts[2])
+        );
+
+        const diffTime = hoje.getTime() - ultimaDataObj.getTime();
+        diasSemRodar = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       }
 
       entregadoresComDados.push({
