@@ -265,7 +265,8 @@ export async function fetchEntregadores(
       // Detectar erros de função não encontrada - inclui códigos originais E sanitizados
       // rpcWrapper.ts sanitiza erros 400/404 para códigos genéricos ('400', '404')
       const is404 = errorCode === 'PGRST116' || errorCode === '42883' ||
-        errorCode === 'PGRST204' || errorCode === '400' || errorCode === '404' ||
+        errorCode === 'PGRST204' || errorCode === 'PGRST203' ||
+        errorCode === '400' || errorCode === '404' ||
         errorMessage.includes('404') ||
         errorMessage.includes('not found') ||
         errorMessage.includes('Requisição inválida') ||
