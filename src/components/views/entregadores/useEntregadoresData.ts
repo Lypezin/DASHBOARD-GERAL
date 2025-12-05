@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { EntregadorMarketing, MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { formatarHorasParaHMS } from '@/utils/formatters';
-import { fetchEntregadores, fetchEntregadoresFallback } from './EntregadoresDataFetcher';
+import { fetchEntregadores } from './EntregadoresDataFetcher';
+import { fetchEntregadoresFallback } from './EntregadoresFallbackFetcher';
 
 export function useEntregadoresData() {
     const [entregadores, setEntregadores] = useState<EntregadorMarketing[]>([]);
