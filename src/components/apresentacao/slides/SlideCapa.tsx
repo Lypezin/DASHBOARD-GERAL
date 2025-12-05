@@ -65,15 +65,11 @@ const SlideCapa: React.FC<SlideCapaProps> = React.memo(({
         </div>
 
         {/* Main title */}
-        <h1 className="text-[3.5rem] font-black leading-none tracking-tight mb-2">
-          <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-lg">
-            RELATÓRIO DE
-          </span>
+        <h1 className="text-[3.5rem] font-black leading-none tracking-tight mb-2 text-white drop-shadow-lg">
+          RELATÓRIO DE
         </h1>
-        <h1 className="text-[4rem] font-black leading-none tracking-tight">
-          <span className="bg-gradient-to-r from-blue-200 via-white to-blue-200 bg-clip-text text-transparent drop-shadow-lg">
-            RESULTADOS
-          </span>
+        <h1 className="text-[4rem] font-black leading-none tracking-tight text-white drop-shadow-lg">
+          RESULTADOS
         </h1>
 
         {/* Decorative divider */}

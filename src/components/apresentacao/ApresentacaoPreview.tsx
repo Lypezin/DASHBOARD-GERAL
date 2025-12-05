@@ -153,19 +153,6 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
           text-rendering: optimizeLegibility !important;
           box-sizing: border-box !important;
         }
-        .slide .absolute {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-        }
-        .slide span {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          text-align: center !important;
-          word-break: break-word !important;
-          white-space: normal !important;
-        }
         .slide-for-capture {
           font-family: Inter, Arial, sans-serif !important;
         }
