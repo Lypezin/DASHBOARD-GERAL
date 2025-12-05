@@ -1,11 +1,12 @@
 
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from './constants';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, FileDown, X, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface ApresentacaoPreviewProps {
   slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
@@ -13,10 +14,15 @@ interface ApresentacaoPreviewProps {
   onSlideChange: (index: number) => void;
   onNext: () => void;
   onPrev: () => void;
-  onGeneratePDF: () => void;
-  isGenerating: boolean;
   onClose: () => void;
+  numeroSemana1: string;
+  numeroSemana2: string;
 }
+
+// A4 Landscape dimensions in mm
+const A4_WIDTH_MM = 297;
+const A4_HEIGHT_MM = 210;
+const SCALE_FACTOR = 2;
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   slides,
@@ -24,13 +30,16 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   onSlideChange,
   onNext,
   onPrev,
-  onGeneratePDF,
-  isGenerating,
   onClose,
+  numeroSemana1,
+  numeroSemana2,
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const captureContainerRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(0.5);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
 
   const calculateScale = useCallback(() => {
     if (previewContainerRef.current && contentRef.current) {
@@ -58,6 +67,63 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   const totalSlides = slides.length;
   const slideAtualExibicao = totalSlides > 0 ? currentSlide + 1 : 0;
 
+  // Generate PDF using html2canvas
+  const handleGeneratePDF = async () => {
+    if (slides.length === 0 || !captureContainerRef.current) return;
+
+    setIsGenerating(true);
+    setGeneratingProgress({ current: 0, total: slides.length });
+
+    try {
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const slideElements = captureContainerRef.current.querySelectorAll('.slide-for-capture');
+
+      for (let i = 0; i < slideElements.length; i++) {
+        setGeneratingProgress({ current: i + 1, total: slides.length });
+
+        const slideElement = slideElements[i] as HTMLElement;
+
+        // Capture slide with html2canvas
+        const canvas = await html2canvas(slideElement, {
+          scale: SCALE_FACTOR,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: SLIDE_WIDTH,
+          height: SLIDE_HEIGHT,
+          logging: false,
+        });
+
+        // Add page (except for first slide)
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Add image to PDF
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+        pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+
+        // Small delay to allow UI updates
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+
+      // Download PDF
+      const filename = `Comparativo_Semana${numeroSemana1}_vs_Semana${numeroSemana2}.pdf`;
+      pdf.save(filename);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      alert('Erro ao gerar PDF. Tente novamente.');
+    } finally {
+      setIsGenerating(false);
+      setGeneratingProgress({ current: 0, total: 0 });
+    }
+  };
+
   return (
     <>
       {/* CSS Global para sincronizar preview com PDF */}
@@ -82,7 +148,40 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
           word-break: break-word !important;
           white-space: normal !important;
         }
+        .slide-for-capture {
+          font-family: Inter, Arial, sans-serif !important;
+        }
       `}</style>
+
+      {/* Hidden container for PDF capture - renders ALL slides at full size */}
+      <div
+        ref={captureContainerRef}
+        style={{
+          position: 'fixed',
+          left: '-9999px',
+          top: 0,
+          width: SLIDE_WIDTH,
+          height: SLIDE_HEIGHT * slides.length,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+        }}
+        aria-hidden="true"
+      >
+        {slides.map((slide) => (
+          <div
+            key={`capture-${slide.key}`}
+            className="slide-for-capture"
+            style={{
+              width: SLIDE_WIDTH,
+              height: SLIDE_HEIGHT,
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {slide.render(true)}
+          </div>
+        ))}
+      </div>
 
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
         <Card className="w-full max-w-6xl h-[95vh] flex flex-col overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl">
@@ -116,7 +215,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
 
               <Button
-                onClick={onGeneratePDF}
+                onClick={handleGeneratePDF}
                 disabled={totalSlides === 0 || isGenerating}
                 className="bg-blue-600 hover:bg-blue-700 text-white min-w-[140px]"
               >
@@ -183,7 +282,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
         </Card>
       </div>
 
-      {/* Overlay de carregamento */}
+      {/* Overlay de carregamento com progresso */}
       {isGenerating && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] animate-in fade-in duration-200">
           <Card className="p-8 shadow-2xl flex flex-col items-center gap-6 max-w-sm mx-4 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
@@ -196,8 +295,19 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
                 Gerando PDF
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Processando slides e otimizando qualidade...
+                Processando slide {generatingProgress.current} de {generatingProgress.total}...
               </p>
+              {/* Progress bar */}
+              <div className="w-48 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-600 transition-all duration-300"
+                  style={{
+                    width: generatingProgress.total > 0
+                      ? `${(generatingProgress.current / generatingProgress.total) * 100}%`
+                      : '0%'
+                  }}
+                />
+              </div>
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 Aguarde, não feche esta janela
               </p>

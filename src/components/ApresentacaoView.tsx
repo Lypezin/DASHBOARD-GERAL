@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardResumoData } from '@/types';
 import { useApresentacaoData } from '@/hooks/apresentacao/useApresentacaoData';
 import { useApresentacaoSlides } from '@/hooks/apresentacao/useApresentacaoSlides';
-import { prepararSlidesPDF, gerarPDF } from '@/utils/apresentacao/pdfGenerator';
 import { ApresentacaoPreview } from './apresentacao/ApresentacaoPreview';
 
 interface ApresentacaoViewProps {
@@ -20,7 +19,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   pracaSelecionada,
   onClose,
 }) => {
-  const [isGenerating, setIsGenerating] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas);
@@ -43,28 +41,6 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     });
   }, [slides.length]);
 
-  // Preparar dados dos slides para pdfmake
-  const slidesPDFData = useMemo(() => {
-    if (!dadosProcessados) return [];
-    return prepararSlidesPDF(
-      dadosProcessados,
-      numeroSemana1,
-      numeroSemana2,
-      periodoSemana1,
-      periodoSemana2,
-      pracaSelecionada
-    );
-  }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada]);
-
-  const handleGerarPDF = async () => {
-    setIsGenerating(true);
-    try {
-      await gerarPDF(slidesPDFData, numeroSemana1, numeroSemana2);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const goToNextSlide = () => {
     setCurrentSlide((prev) => {
       if (slides.length === 0) return 0;
@@ -86,9 +62,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       onSlideChange={setCurrentSlide}
       onNext={goToNextSlide}
       onPrev={goToPrevSlide}
-      onGeneratePDF={handleGerarPDF}
-      isGenerating={isGenerating}
       onClose={onClose}
+      numeroSemana1={numeroSemana1}
+      numeroSemana2={numeroSemana2}
     />
   );
 };
