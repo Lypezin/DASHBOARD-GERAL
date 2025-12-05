@@ -76,8 +76,14 @@ export function useEntregadoresData() {
 
         return [...filtered].sort((a, b) => {
             if (sortField === 'rodando') {
-                const rodandoA = (a.total_completadas || 0) > 30;
-                const rodandoB = (b.total_completadas || 0) > 30;
+                // Usar campo do banco se existir, senão fallback
+                const getRodandoValue = (e: EntregadorMarketing) => {
+                    if (e.rodando) return e.rodando === 'Sim';
+                    return (e.total_completadas || 0) > 30;
+                };
+
+                const rodandoA = getRodandoValue(a);
+                const rodandoB = getRodandoValue(b);
 
                 if (rodandoA === rodandoB) return 0;
 
