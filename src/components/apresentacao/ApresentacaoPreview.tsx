@@ -22,7 +22,7 @@ interface ApresentacaoPreviewProps {
 // A4 Landscape dimensions in mm
 const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
-const SCALE_FACTOR = 1.5; // Good balance of quality and file size
+const SCALE_FACTOR = 1.3; // Reduced for faster generation while maintaining good quality
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   slides,
@@ -91,11 +91,9 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
         // Set the slide to be rendered in the hidden container
         setCapturingIndex(i);
 
-        // Wait for React to render the slide using requestAnimationFrame for better performance
+        // Single requestAnimationFrame for faster rendering
         await new Promise(resolve => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => resolve(undefined));
-          });
+          requestAnimationFrame(() => resolve(undefined));
         });
 
         const captureElement = captureContainerRef.current;
