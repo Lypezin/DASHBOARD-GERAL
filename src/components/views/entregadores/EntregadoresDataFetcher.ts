@@ -57,8 +57,10 @@ export async function fetchEntregadoresFallback(
       p_data_inicial: filtroDataInicio.dataInicial,
       p_data_final: filtroDataInicio.dataFinal,
     };
+    // Apenas validar para log, mas NÃO forçar filtro padrão para permitir visualização "Todo o período"
+    // O limite de linhas (QUERY_LIMITS.AGGREGATION_MAX) e o BATCH_SIZE protegem o banco
     validateDateFilter(payload, 'fetchEntregadoresFallback (Marketing)');
-    const safePayload = ensureDateFilter(payload);
+    const safePayload = payload;
 
     // OTIMIZAÇÃO: Buscar em lotes PARALELOS para evitar timeout e melhorar performance
     const BATCH_SIZE = 100; // Aumentado para 100
