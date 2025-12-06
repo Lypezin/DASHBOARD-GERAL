@@ -38,19 +38,19 @@ const buildCircleDasharray = (valor: number, radius: number) => {
 
 // Compact variation badge for inline use
 const VariationBadge: React.FC<{ label: string; value: string; positive: boolean }> = ({ label, value, positive }) => (
-  <div className={`flex-1 rounded-lg py-2 px-1 text-center ${positive ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'}`}>
-    <p className="text-[0.6rem] font-semibold text-slate-500 uppercase tracking-wide mb-0.5">{label}</p>
-    <div className={`flex items-center justify-center gap-0.5 font-bold text-sm ${positive ? 'text-emerald-600' : 'text-rose-600'}`}>
+  <div className={`flex-1 rounded-lg py-1.5 px-1 text-center ${positive ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'}`}>
+    <p className="text-[0.55rem] font-semibold text-slate-500 uppercase tracking-wide mb-0.5 leading-tight">{label}</p>
+    <div className={`flex items-center justify-center gap-0.5 font-bold text-xs ${positive ? 'text-emerald-600' : 'text-rose-600'}`}>
       {positive ? (
-        <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 4l-8 8h5v8h6v-8h5z" />
         </svg>
       ) : (
-        <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 20l8-8h-5V4H9v8H4z" />
         </svg>
       )}
-      <span style={buildTimeTextStyle(value, 0.85)}>{value}</span>
+      <span className="text-[0.7rem] leading-none" style={buildTimeTextStyle(value, 0.7)}>{value}</span>
     </div>
   </div>
 );
