@@ -13,8 +13,8 @@ import SlideDemandaRejeicoes from '@/components/apresentacao/slides/SlideDemanda
 import SlideOrigem from '@/components/apresentacao/slides/SlideOrigem';
 
 const SUB_PRACAS_PER_PAGE = 4;
-const TURNOS_PER_PAGE = 3;
-const ORIGENS_PER_PAGE = 6;
+const TURNOS_PER_PAGE = 2; // Reduced from 3 to 2 for larger display
+const ORIGENS_PER_PAGE = 3; // Reduced from 6 to 3 for larger display
 
 export const useApresentacaoSlides = (
   dadosProcessados: DadosProcessados | null,
