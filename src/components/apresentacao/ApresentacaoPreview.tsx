@@ -85,15 +85,22 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
         format: 'a4',
       });
 
+      // Hide the preview container during capture to avoid interference
+      if (contentRef.current) {
+        contentRef.current.style.visibility = 'hidden';
+      }
+
       for (let i = 0; i < slides.length; i++) {
         setGeneratingProgress({ current: i + 1, total: slides.length });
 
         // Set the slide to be rendered in the hidden container
         setCapturingIndex(i);
 
-        // Single requestAnimationFrame for faster rendering
+        // Wait for React to render the slide
         await new Promise(resolve => {
-          requestAnimationFrame(() => resolve(undefined));
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve(undefined));
+          });
         });
 
         const captureElement = captureContainerRef.current;
@@ -139,6 +146,10 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
       console.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF. Tente novamente.');
     } finally {
+      // Restore preview visibility
+      if (contentRef.current) {
+        contentRef.current.style.visibility = 'visible';
+      }
       setIsGenerating(false);
       setGeneratingProgress({ current: 0, total: 0 });
       setCapturingIndex(null); // Reset capture state

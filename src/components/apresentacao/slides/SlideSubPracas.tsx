@@ -68,9 +68,9 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
   itens,
 }) => {
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '20px 36px' }}>
+    <SlideWrapper isVisible={isVisible} style={{ padding: '24px 40px' }}>
       {/* Header */}
-      <header className="text-center mb-4">
+      <header className="text-center mb-5">
         <div className="inline-block">
           <h2 className="text-[2.25rem] font-black tracking-wider text-blue-600 leading-none">
             SUB-PRAÇAS
@@ -88,36 +88,46 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
       </header>
 
       {/* Cards Grid - 2x2 layout with better spacing */}
-      <div className="grid grid-cols-2 gap-5 flex-1 content-center">
+      <div className="grid grid-cols-2 gap-6 flex-1 content-center">
         {itens.map((item) => (
           <div
             key={item.nome}
-            className="flex flex-col rounded-xl bg-white border border-slate-200 p-4 shadow-sm"
+            className="flex flex-col rounded-xl bg-white border border-slate-200 p-5 shadow-sm"
           >
             {/* Header with name and planned hours */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold uppercase tracking-wide text-slate-800 truncate max-w-[65%]">
+            <div className="flex items-center justify-between mb-4 gap-3">
+              <h3
+                className="text-base font-bold uppercase tracking-wide text-slate-800 flex-1 overflow-hidden"
+                style={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  lineHeight: '1.3',
+                  maxHeight: '2.6em'
+                }}
+                title={item.nome}
+              >
                 {item.nome}
               </h3>
-              <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-1.5">
+              <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-center flex-shrink-0">
                 <span className="text-[0.7rem] font-medium text-blue-600 block leading-tight">Planejado</span>
-                <span className="text-base font-bold text-blue-700 leading-tight" style={buildTimeTextStyle(item.horasPlanejadas, 1)}>
+                <span className="text-sm font-bold text-blue-700 leading-tight block" style={buildTimeTextStyle(item.horasPlanejadas, 0.875)}>
                   {item.horasPlanejadas}
                 </span>
               </div>
             </div>
 
-            {/* Week comparison - larger circles */}
-            <div className="flex items-center justify-around gap-4 mb-4">
+            {/* Week comparison - centered circles */}
+            <div className="flex items-center justify-center gap-8 mb-4">
               {[item.semana1, item.semana2].map((semana, index) => (
                 <div key={index} className="flex flex-col items-center gap-2">
-                  <span className={`text-sm font-bold text-center px-3 py-1 rounded-full ${index === 0 ? 'bg-slate-200 text-slate-700' : 'bg-blue-600 text-white'
+                  <span className={`text-xs font-bold text-center px-3 py-1 rounded-full ${index === 0 ? 'bg-slate-200 text-slate-700' : 'bg-blue-600 text-white'
                     }`}>
                     SEM {index === 0 ? numeroSemana1 : numeroSemana2}
                   </span>
 
-                  {/* Progress circle - larger */}
-                  <div className="relative w-[110px] h-[110px]">
+                  {/* Progress circle */}
+                  <div className="relative w-[100px] h-[100px]">
                     <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                       <circle cx="50" cy="50" r="42" stroke="#e2e8f0" strokeWidth="8" fill="none" />
                       <circle
@@ -132,18 +142,18 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-slate-900 font-black text-xl leading-none">
+                      <span className="text-slate-900 font-black text-lg leading-none">
                         {semana.aderencia.toFixed(1)}%
                       </span>
                     </div>
                   </div>
 
-                  {/* Hours delivered */}
-                  <div className="rounded-lg bg-white border border-slate-200 px-3 py-1.5 w-full text-center">
+                  {/* Hours delivered - centered */}
+                  <div className="rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-center min-w-[110px]">
                     <span className="text-[0.65rem] font-medium text-slate-500 block">Entregue</span>
                     <span
-                      className="font-bold text-emerald-600"
-                      style={buildTimeTextStyle(semana.horasEntregues, 0.95)}
+                      className="font-bold text-emerald-600 block text-center"
+                      style={buildTimeTextStyle(semana.horasEntregues, 0.85)}
                     >
                       {semana.horasEntregues}
                     </span>
@@ -152,7 +162,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
               ))}
             </div>
 
-            {/* Variations */}
+            {/* Variations - centered */}
             <div className="grid grid-cols-3 gap-2">
               {item.variacoes.map((variacao) => (
                 <VariationBadge
