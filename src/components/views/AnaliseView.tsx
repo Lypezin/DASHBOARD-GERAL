@@ -39,6 +39,11 @@ const AnaliseView = React.memo(function AnaliseView({
 
   const handleTableChange = useCallback((table: TableType) => setActiveTable(table), []);
 
+  // Calcular total de horas (soma dos segundos realizados convertidos para horas)
+  const totalHoras = React.useMemo(() => {
+    return aderenciaDia.reduce((acc, curr) => acc + (curr.segundos_realizados || 0), 0) / 3600;
+  }, [aderenciaDia]);
+
   return (
     <div className="space-y-6 animate-fade-in">
       <AnaliseMetricCards
@@ -46,6 +51,7 @@ const AnaliseView = React.memo(function AnaliseView({
         taxaAceitacao={taxaAceitacao}
         taxaCompletude={taxaCompletude}
         taxaRejeicao={taxaRejeicao}
+        totalHorasEntregues={totalHoras}
       />
 
       {/* Análise Detalhada - Tabelas */}

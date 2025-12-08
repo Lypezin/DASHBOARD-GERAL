@@ -8,16 +8,34 @@ interface AnaliseMetricCardsProps {
     taxaAceitacao: number;
     taxaCompletude: number;
     taxaRejeicao: number;
+    totalHorasEntregues: number;
 }
 
 export const AnaliseMetricCards: React.FC<AnaliseMetricCardsProps> = ({
     totals,
     taxaAceitacao,
     taxaCompletude,
-    taxaRejeicao
+    taxaRejeicao,
+    totalHorasEntregues
 }) => {
     return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Horas Entregues */}
+            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Horas Entregues</CardTitle>
+                    <div className="h-4 w-4 text-orange-500 font-bold">H</div>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                        {Math.floor(totalHorasEntregues).toLocaleString('pt-BR')}h
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Total de horas realizadas
+                    </p>
+                </CardContent>
+            </Card>
+
             {/* Ofertadas */}
             <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
