@@ -9,6 +9,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useTabData } from '@/hooks/useTabData';
 import { useTabDataMapper } from '@/hooks/useTabDataMapper';
+import { useDashboardKeys } from '@/hooks/dashboard/useDashboardKeys';
 import { useUserActivity } from '@/hooks/useUserActivity';
 import { registerChartJS } from '@/lib/chartConfig';
 import { safeLog } from '@/lib/errorHandler';
@@ -107,66 +108,9 @@ export function useDashboardPage() {
     setAnoEvolucao
   });
 
-  // Criar uma string estável dos filtros para usar como dependência
-  const filtersKey = useMemo(() => {
-    return JSON.stringify({
-      ano: filters.ano,
-      semana: filters.semana,
-      praca: filters.praca,
-      subPraca: filters.subPraca,
-      origem: filters.origem,
-      turno: filters.turno,
-      // Incluir arrays de filtros múltiplos
-      subPracas: filters.subPracas,
-      origens: filters.origens,
-      turnos: filters.turnos,
-      semanas: filters.semanas,
-      filtroModo: filters.filtroModo,
-      dataInicial: filters.dataInicial,
-      dataFinal: filters.dataFinal,
-    });
-  }, [
-    filters.ano,
-    filters.semana,
-    filters.praca,
-    filters.subPraca,
-    filters.origem,
-    filters.turno,
-    // Incluir arrays como dependências (usar JSON.stringify para comparação profunda)
-    JSON.stringify(filters.subPracas),
-    JSON.stringify(filters.origens),
-    JSON.stringify(filters.turnos),
-    JSON.stringify(filters.semanas),
-    filters.filtroModo,
-    filters.dataInicial,
-    filters.dataFinal,
-  ]);
+  // Reutilizar lógica centralizada de chaves e payload
+  const { filterPayload } = useDashboardKeys(filters, currentUser);
 
-  const currentUserKey = useMemo(() => {
-    return currentUser ? JSON.stringify({
-      is_admin: currentUser.is_admin,
-      assigned_pracas: currentUser.assigned_pracas,
-    }) : 'null';
-  }, [currentUser?.is_admin, currentUser?.assigned_pracas]);
-
-  // Memoizar filterPayload
-  const filterPayload = useMemo(() => {
-    if (IS_DEV) {
-      safeLog.info('[DashboardPage] Gerando filterPayload com:', {
-        filters,
-        filtersAno: filters.ano,
-        filtersSemana: filters.semana,
-        currentUser: currentUser ? { is_admin: currentUser.is_admin, hasAssignedPracas: currentUser.assigned_pracas.length > 0 } : null,
-      });
-    }
-    try {
-      const payload = buildFilterPayload(filters, currentUser);
-      return payload;
-    } catch (error) {
-      safeLog.error('[DashboardPage] Erro ao gerar filterPayload:', error);
-      throw error;
-    }
-  }, [filtersKey, currentUserKey, filters, currentUser]);
 
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
