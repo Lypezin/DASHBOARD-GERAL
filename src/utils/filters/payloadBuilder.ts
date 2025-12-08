@@ -82,10 +82,13 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
 
     const organizationId = currentUser?.organization_id || null;
 
+    const semanasFiltered = filters.semanas?.map(Number).filter(n => !isNaN(n));
+    const p_semanas = (semanasFiltered && semanasFiltered.length > 0) ? semanasFiltered : null;
+
     return {
         p_ano: ano,
         p_semana: semana,
-        p_semanas: filters.semanas?.map(Number).filter(n => !isNaN(n)) || null,
+        p_semanas,
         p_praca: praca,
         p_sub_praca: null,
         p_origem: null,

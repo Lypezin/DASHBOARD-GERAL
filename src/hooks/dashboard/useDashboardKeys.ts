@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Filters, CurrentUser } from '@/types';
-import { buildFilterPayload } from '@/utils/helpers';
+import { buildFilterPayload } from '@/utils/filters/payloadBuilder';
 import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';

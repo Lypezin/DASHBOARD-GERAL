@@ -54,7 +54,7 @@ export function useDashboardDataEffect({
             return;
         }
 
-        if (IS_DEV) {
+        if (true) { // IS_DEV override for debugging
             safeLog.info('[useDashboardDataEffect] useEffect acionado com payload:', {
                 payloadKey,
                 previousPayload: previousPayloadRef.current,
@@ -107,7 +107,9 @@ export function useDashboardDataEffect({
 
             if (IS_DEV) safeLog.info('[useDashboardDataEffect] Iniciando fetch com payload válido:', currentPayload);
 
+            console.log('[DEBUG] Calling fetchDashboardData with:', currentPayload);
             const data = await fetchDashboardData(currentPayload);
+            console.log('[DEBUG] fetchDashboardData returned:', data ? 'Data Present' : 'Null/Empty', data);
 
             if (data) {
                 const cacheKeyToUse = isFirstExecutionInTimeout && !hasValidFiltersInTimeout
