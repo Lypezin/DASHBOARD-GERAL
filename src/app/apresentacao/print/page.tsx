@@ -10,6 +10,8 @@ import SlideOrigem from '@/components/apresentacao/slides/SlideOrigem';
 import { parsePrintParams, createFilterPayload, generatePrintStyles } from '@/utils/apresentacao/printPageHelpers';
 import { processPrintData } from '@/utils/apresentacao/printDataProcessor';
 
+import { createClient } from '@/utils/supabase/server';
+
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
@@ -36,15 +38,20 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   const { praca, ano1, ano2, semanaNum1, semanaNum2, numeroSemana1, numeroSemana2 } = params;
 
-  // Buscar os dois conjuntos de dados via RPC
+  // Inicializar cliente Supabase Server com cookies
+  const supabase = createClient();
+
+  // Buscar os dois conjuntos de dados via RPC com cliente autenticado
   const [semana1Result, semana2Result] = await Promise.all([
     safeRpc<DashboardResumoData>('dashboard_resumo', createFilterPayload(ano1, semanaNum1, praca), {
       timeout: 30000,
-      validateParams: true
+      validateParams: true,
+      client: supabase
     }),
     safeRpc<DashboardResumoData>('dashboard_resumo', createFilterPayload(ano2, semanaNum2, praca), {
       timeout: 30000,
-      validateParams: true
+      validateParams: true,
+      client: supabase
     }),
   ]);
 

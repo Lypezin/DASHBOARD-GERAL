@@ -12,7 +12,7 @@ export async function safeRpc<T = unknown>(
   params: RpcParams = {},
   options: RpcOptions = {}
 ): Promise<RpcResult<T>> {
-  const { timeout = DEFAULT_TIMEOUT, validateParams = true } = options;
+  const { timeout = DEFAULT_TIMEOUT, validateParams = true, client } = options;
 
   const rateLimit = rpcRateLimiter();
   if (!rateLimit.allowed) {
@@ -28,5 +28,5 @@ export async function safeRpc<T = unknown>(
   const normalized = normalizeParams(params);
   const finalParams = validateAndSanitize(normalized, functionName, validateParams);
 
-  return executeRpcRequest<T>(functionName, finalParams, timeout);
+  return executeRpcRequest<T>(functionName, finalParams, timeout, client);
 }

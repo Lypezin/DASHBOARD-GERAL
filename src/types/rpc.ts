@@ -3,6 +3,8 @@
  * Centralizados para melhor type safety e reutilização
  */
 
+import { SupabaseClient } from '@supabase/supabase-js';
+
 /**
  * Estrutura de erro retornada pelo Supabase RPC
  */
@@ -34,7 +36,9 @@ export interface RpcResult<T = unknown> {
 export interface RpcOptions {
   timeout?: number;
   validateParams?: boolean;
+  client?: SupabaseClient;
 }
+
 
 /**
  * Tipo para parâmetros sanitizados de RPC

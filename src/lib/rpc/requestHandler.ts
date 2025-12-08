@@ -1,17 +1,19 @@
 import { supabase } from '@/lib/supabaseClient';
 import { RpcResult, RpcError } from '@/types/rpc';
 import { sanitizeError } from '@/lib/rpcUtils';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 export async function executeRpcRequest<T>(
     functionName: string,
     params: any,
-    timeout: number
+    timeout: number,
+    client: SupabaseClient = supabase
 ): Promise<RpcResult<T>> {
     let rpcPromise: Promise<any>;
     try {
         rpcPromise = params === undefined
-            ? (supabase.rpc as any)(functionName)
-            : supabase.rpc(functionName, params);
+            ? (client.rpc as any)(functionName)
+            : client.rpc(functionName, params);
 
         if (!rpcPromise || typeof rpcPromise.then !== 'function') {
             return { data: null, error: { message: 'Erro criação RPC', code: 'RPC_CREATION_ERROR' } };
