@@ -6,8 +6,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { syncOrganizationIdToMetadata } from '@/utils/organizationHelpers';
+import { checkSupabaseMock, fetchUserProfileWithRetry, isTemporaryError } from '@/utils/auth/headerAuthHelpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -33,32 +33,12 @@ export function useHeaderAuth() {
     try {
       setIsLoading(true);
 
-      // Verificar se cliente Supabase está usando mock
-      try {
-        const runtimeUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        if (IS_DEV) {
-          safeLog.info('[Header] Verificando variáveis Supabase:', {
-            hasUrl: !!runtimeUrl,
-            isPlaceholder: runtimeUrl?.includes('placeholder')
-          });
-        }
+      // 1. Verificar Mock
+      await checkSupabaseMock();
 
-        if (runtimeUrl?.includes('placeholder.supabase.co') && typeof (supabase as any)._recreate === 'function') {
-          if (IS_DEV) {
-            safeLog.warn('[Header] Cliente Supabase está usando mock, tentando recriar...');
-          }
-          (supabase as any)._recreate();
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      } catch (clientErr) {
-        if (IS_DEV) {
-          safeLog.warn('[Header] Erro ao verificar cliente Supabase:', clientErr);
-        }
-      }
-
+      // 2. Verificar Sessão Auth
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
-      // Log para debug do loop
       if (IS_DEV) {
         console.log('[HeaderAuth] Check:', {
           pathname,
@@ -71,7 +51,6 @@ export function useHeaderAuth() {
         setHasTriedAuth(true);
         setIsLoading(false);
 
-        // Proteção contra loop
         if (pathname !== '/login' && pathname !== '/registro') {
           if (IS_DEV) console.log('[HeaderAuth] Redirecting to login from:', pathname);
           router.push('/login');
@@ -81,59 +60,19 @@ export function useHeaderAuth() {
         return;
       }
 
-      // Se estiver na página de login/registro e já estiver autenticado,
-      // deixar o middleware ou a própria página lidar com o redirecionamento
       if (pathname === '/login' || pathname === '/registro') {
         setHasTriedAuth(true);
         setIsLoading(false);
-        // Buscar perfil apenas para mostrar no header se necessário, mas não bloquear
       }
 
       setHasTriedAuth(true);
 
-      // Buscar perfil com retry
-      let profile: UserProfile | null = null;
-      let profileError: any = null;
+      // 3. Buscar Perfil (agora com lógica extraída)
+      const { profile, error: profileError } = await fetchUserProfileWithRetry();
 
-      try {
-        const result = await safeRpc<UserProfile>('get_current_user_profile', {}, {
-          timeout: 10000,
-          validateParams: false
-        });
-        profile = result.data;
-        profileError = result.error;
-      } catch (err) {
-        profileError = err;
-        if (IS_DEV) safeLog.warn('Erro ao buscar perfil (primeira tentativa):', err);
-      }
-
-      // Retry uma vez após 1 segundo
-      if (profileError && !profile) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        try {
-          const retryResult = await safeRpc<UserProfile>('get_current_user_profile', {}, {
-            timeout: 10000,
-            validateParams: false
-          });
-          profile = retryResult.data;
-          profileError = retryResult.error;
-        } catch (retryErr) {
-          profileError = retryErr;
-        }
-      }
-
-      // Verificar se é erro temporário
+      // 4. Tratar Erros de Perfil
       if (profileError) {
-        const errorCode = (profileError as any)?.code || '';
-        const errorMessage = String((profileError as any)?.message || '');
-        const isTemporaryError = errorCode === 'TIMEOUT' ||
-          errorMessage.includes('timeout') ||
-          errorMessage.includes('network') ||
-          errorCode === 'PGRST301' ||
-          errorMessage.includes('placeholder.supabase.co') ||
-          errorMessage.includes('ERR_NAME_NOT_RESOLVED');
-
-        if (isTemporaryError) {
+        if (isTemporaryError(profileError)) {
           if (IS_DEV) safeLog.warn('[Header] Erro temporário ao buscar perfil, mostrando header sem perfil:', profileError);
           setIsLoading(false);
           return;
@@ -144,7 +83,7 @@ export function useHeaderAuth() {
         return;
       }
 
-      // Verificar se usuário está aprovado
+      // 5. Verificar Aprovação
       if (!profile?.is_approved) {
         if (IS_DEV) safeLog.warn('[Header] Usuário não aprovado');
         setIsLoading(false);
@@ -152,14 +91,13 @@ export function useHeaderAuth() {
         return;
       }
 
-      // Tudo OK - definir usuário
+      // 6. Sucesso
       setUser(profile);
 
-      // Sincronizar organization_id para user_metadata (não bloqueante)
+      // 7. Sincronizar (não bloqueante)
       try {
         await syncOrganizationIdToMetadata();
       } catch (err) {
-        // Não bloquear se sincronização falhar
         if (IS_DEV) {
           safeLog.warn('[Header] Erro ao sincronizar organization_id (não bloqueante):', err);
         }
@@ -177,7 +115,6 @@ export function useHeaderAuth() {
   }, [pathname, router]);
 
   useEffect(() => {
-    // Timeout crítico: após 3 segundos, mostrar header mesmo sem usuário
     loadingTimeoutRef.current = setTimeout(() => {
       if (isLoading) {
         if (IS_DEV) {

@@ -21,6 +21,12 @@ export interface OrganizationFormData {
   max_users: number;
 }
 
+export interface OrganizationOperationResult {
+  success: boolean;
+  error?: string;
+  id?: string;
+}
+
 export function useOrganizations() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +59,7 @@ export function useOrganizations() {
     }
   }, []);
 
-  const createOrganization = useCallback(async (formData: OrganizationFormData): Promise<{ success: boolean; error?: string; id?: string }> => {
+  const createOrganization = useCallback(async (formData: OrganizationFormData): Promise<OrganizationOperationResult> => { // Updated return type
     try {
       const { data, error: rpcError } = await safeRpc<string>('create_organization', {
         p_name: formData.name.trim(),
@@ -82,7 +88,7 @@ export function useOrganizations() {
   const updateOrganization = useCallback(async (
     id: string,
     updates: Partial<OrganizationFormData & { is_active?: boolean }>
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<OrganizationOperationResult> => { // Updated return type
     try {
       const { error: rpcError } = await safeRpc<boolean>('update_organization', {
         p_id: id,

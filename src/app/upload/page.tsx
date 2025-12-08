@@ -8,8 +8,8 @@ import { UploadHeader } from '@/components/upload/UploadHeader';
 import { useUploadAuth } from '@/hooks/useUploadAuth';
 import { useCorridasUpload } from '@/hooks/useCorridasUpload';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useGenericUploadState } from '@/hooks/upload/useGenericUploadState';
 import { useOrganizationSelection } from '@/hooks/useOrganizationSelection';
-import { validateFile } from '@/utils/fileValidation';
 import {
   COLUMN_MAP,
   MARKETING_COLUMN_MAP,
@@ -21,9 +21,11 @@ import { BarChart2, Megaphone, DollarSign } from 'lucide-react';
 
 export default function UploadPage() {
   const { loading, isAuthorized, user } = useUploadAuth();
-  const [marketingFiles, setMarketingFiles] = useState<File[]>([]);
-  const [valoresCidadeFiles, setValoresCidadeFiles] = useState<File[]>([]);
   const [showRetry, setShowRetry] = useState(false);
+
+  // Generic State Hooks
+  const marketingState = useGenericUploadState();
+  const valoresCidadeState = useGenericUploadState();
 
   // Hook para seleção de organização
   const {
@@ -80,65 +82,17 @@ export default function UploadPage() {
     organizationId: selectedOrgId
   });
 
-  const handleMarketingFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    const validFiles: File[] = [];
-
-    for (const file of selectedFiles) {
-      const validation = await validateFile(file, marketingFiles.length);
-      if (validation.valid) {
-        validFiles.push(file);
-      }
-    }
-
-    if (validFiles.length > 0) {
-      setMarketingFiles(prev => [...prev, ...validFiles]);
-    }
-  };
-
-  const removeMarketingFile = (index: number) => {
-    setMarketingFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleValoresCidadeFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    const validFiles: File[] = [];
-
-    for (const file of selectedFiles) {
-      const validation = await validateFile(file, valoresCidadeFiles.length);
-      if (validation.valid) {
-        validFiles.push(file);
-      }
-    }
-
-    if (validFiles.length > 0) {
-      setValoresCidadeFiles(prev => [...prev, ...validFiles]);
-    }
-  };
-
-  const removeValoresCidadeFile = (index: number) => {
-    setValoresCidadeFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
   const handleMarketingUpload = async () => {
-    await marketingUpload.uploadFiles(marketingFiles);
+    await marketingUpload.uploadFiles(marketingState.files);
     if (!marketingUpload.uploading) {
-      setMarketingFiles([]);
-      const marketingFileInput = document.querySelector(
-        'input[type="file"][data-marketing="true"]'
-      ) as HTMLInputElement;
-      if (marketingFileInput) marketingFileInput.value = '';
+      marketingState.clearFiles('marketing');
     }
   };
 
   const handleValoresCidadeUpload = async () => {
-    await valoresCidadeUpload.uploadFiles(valoresCidadeFiles);
+    await valoresCidadeUpload.uploadFiles(valoresCidadeState.files);
     if (!valoresCidadeUpload.uploading) {
-      setValoresCidadeFiles([]);
-      const valoresCidadeFileInput = document.querySelector(
-        'input[type="file"][data-valores-cidade="true"]'
-      ) as HTMLInputElement;
-      if (valoresCidadeFileInput) valoresCidadeFileInput.value = '';
+      valoresCidadeState.clearFiles('valores-cidade');
     }
   };
 
@@ -197,9 +151,9 @@ export default function UploadPage() {
               title="Marketing"
               description="Upload de dados de Marketing"
               icon={<Megaphone className="h-6 w-6" />}
-              files={marketingFiles}
-              onFileChange={handleMarketingFileChange}
-              onRemoveFile={removeMarketingFile}
+              files={marketingState.files}
+              onFileChange={marketingState.handleFileChange}
+              onRemoveFile={marketingState.removeFile}
               onUpload={handleMarketingUpload}
               uploading={marketingUpload.uploading}
               progress={marketingUpload.progress}
@@ -220,9 +174,9 @@ export default function UploadPage() {
               title="Valores por Cidade"
               description="Upload de valores por cidade"
               icon={<DollarSign className="h-6 w-6" />}
-              files={valoresCidadeFiles}
-              onFileChange={handleValoresCidadeFileChange}
-              onRemoveFile={removeValoresCidadeFile}
+              files={valoresCidadeState.files}
+              onFileChange={valoresCidadeState.handleFileChange}
+              onRemoveFile={valoresCidadeState.removeFile}
               onUpload={handleValoresCidadeUpload}
               uploading={valoresCidadeUpload.uploading}
               progress={valoresCidadeUpload.progress}
