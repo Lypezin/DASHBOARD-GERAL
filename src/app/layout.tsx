@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 import { ThemeProviderWrapper } from "@/components/ThemeProviderWrapper";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   display: 'swap',
   variable: '--font-inter',
@@ -36,8 +36,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="scroll-smooth" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
+        import {ChunkReloadListener} from "@/components/ChunkReloadListener";
+
+        // ... inside RootLayout ...
         <ThemeProviderWrapper>
           <OrganizationProvider>
+            <ChunkReloadListener />
             <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
               <Header />
               <main className="flex-1 transition-all duration-300">{children}</main>
