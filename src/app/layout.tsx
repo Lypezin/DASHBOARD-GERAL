@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { ThemeProviderWrapper } from "@/components/ThemeProviderWrapper";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
+import { ChunkReloadListener } from "@/components/ChunkReloadListener";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,9 +37,6 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="scroll-smooth" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
-        import {ChunkReloadListener} from "@/components/ChunkReloadListener";
-
-        // ... inside RootLayout ...
         <ThemeProviderWrapper>
           <OrganizationProvider>
             <ChunkReloadListener />
