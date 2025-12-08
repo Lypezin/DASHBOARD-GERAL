@@ -1,10 +1,10 @@
 import React, { useMemo, useEffect } from 'react';
 import { Filters, FilterOption, CurrentUser } from '@/types';
-import FiltroSelect from './FiltroSelect';
-import FiltroMultiSelect from './FiltroMultiSelect';
-import FiltroDateRange from './FiltroDateRange';
 import { safeLog } from '@/lib/errorHandler';
 import { useFiltroBar } from '@/hooks/useFiltroBar';
+import { FilterModeSwitch } from './dashboard/filters/FilterModeSwitch';
+import { FilterPrimarySection } from './dashboard/filters/FilterPrimarySection';
+import { FilterSecondarySection } from './dashboard/filters/FilterSecondarySection';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -37,16 +37,10 @@ const FiltroBar = React.memo(function FiltroBar({
     shouldDisablePracaFilter,
   } = useFiltroBar({ filters, setFilters, currentUser });
 
-  // Log para debug (apenas em desenvolvimento)
   useEffect(() => {
     if (IS_DEV) {
       safeLog.info('[FiltroBar] Filters recebidos:', {
         filtroModo: filters?.filtroModo,
-        dataInicial: filters?.dataInicial,
-        dataFinal: filters?.dataFinal,
-        ano: filters?.ano,
-        semana: filters?.semana,
-        hasFiltroModo: 'filtroModo' in (filters || {}),
         filtersKeys: filters ? Object.keys(filters) : 'filters is null/undefined',
       });
     }
@@ -58,143 +52,50 @@ const FiltroBar = React.memo(function FiltroBar({
 
   const semanasOptions = useMemo(() => {
     return semanas
-      .filter(sem => sem && sem !== '' && sem !== 'NaN')  // Filtrar valores vazios ou inválidos
+      .filter(sem => sem && sem !== '' && sem !== 'NaN')
       .map((sem) => {
         let weekNumber = sem;
         if (sem.includes('-W')) {
           weekNumber = sem.split('-W')[1];
         }
-        // Remover zeros à esquerda para garantir match com o filtro (que é number)
         const parsed = parseInt(weekNumber, 10);
-        if (isNaN(parsed)) {
-          return null; // Ignorar valores inválidos
-        }
+        if (isNaN(parsed)) return null;
         const normalizedWeek = String(parsed);
         return { value: normalizedWeek, label: `Semana ${normalizedWeek}` };
       })
-      .filter((opt): opt is { value: string; label: string } => opt !== null); // Remover nulls com Type Guard
+      .filter((opt): opt is { value: string; label: string } => opt !== null);
   }, [semanas]);
 
   const isModoIntervalo = filters?.filtroModo === 'intervalo';
 
-  // Log para debug (apenas em desenvolvimento)
-  useEffect(() => {
-    if (IS_DEV) {
-      safeLog.info('[FiltroBar] Estado do modo:', {
-        isModoIntervalo,
-        filtroModo: filters?.filtroModo,
-        dataInicial: filters?.dataInicial,
-        dataFinal: filters?.dataFinal,
-      });
-    }
-  }, [isModoIntervalo, filters?.filtroModo, filters?.dataInicial, filters?.dataFinal]);
-
   return (
     <div className="space-y-4 relative z-10">
-      {/* Switch para alternar entre modos */}
-      <div className="flex items-center justify-center sm:justify-start gap-3 pb-3 border-b border-slate-200 dark:border-slate-700">
-        <span className={`text-sm font-medium ${!isModoIntervalo ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>
-          Ano/Semana
-        </span>
-        <button
-          type="button"
-          onClick={handleToggleModo}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isModoIntervalo ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
-            }`}
-          role="switch"
-          aria-checked={isModoIntervalo}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isModoIntervalo ? 'translate-x-6' : 'translate-x-1'
-              }`}
-          />
-        </button>
-        <span className={`text-sm font-medium ${isModoIntervalo ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>
-          Intervalo de Datas
-        </span>
-      </div>
+      <FilterModeSwitch
+        isModoIntervalo={isModoIntervalo}
+        onToggle={handleToggleModo}
+      />
 
       {/* Filtros em linha horizontal */}
       <div className="flex flex-wrap items-end gap-4">
-        {/* Filtros de Ano/Semana ou Intervalo de Datas */}
-        {isModoIntervalo ? (
-          <div className="flex items-end gap-4 flex-auto min-w-[520px]">
-            <FiltroDateRange
-              dataInicial={filters?.dataInicial ?? null}
-              dataFinal={filters?.dataFinal ?? null}
-              onDataInicialChange={(data) => {
-                setFilters(prev => {
-                  if (!prev) return prev;
-                  // Garantir que o modo está como 'intervalo' quando há data
-                  const newFilters = { ...prev, dataInicial: data };
-                  if (data && prev.filtroModo !== 'intervalo') {
-                    newFilters.filtroModo = 'intervalo';
-                  }
-                  return newFilters;
-                });
-              }}
-              onDataFinalChange={(data) => {
-                setFilters(prev => {
-                  if (!prev) return prev;
-                  // Garantir que o modo está como 'intervalo' quando há data
-                  const newFilters = { ...prev, dataFinal: data };
-                  if (data && prev.filtroModo !== 'intervalo') {
-                    newFilters.filtroModo = 'intervalo';
-                  }
-                  return newFilters;
-                });
-              }}
-              onApply={() => {
-                // Garantir que o modo está como 'intervalo' quando filtro é aplicado
-                setFilters(prev => {
-                  if (!prev) return prev;
-                  if (prev.filtroModo !== 'intervalo' && (prev.dataInicial || prev.dataFinal)) {
-                    return { ...prev, filtroModo: 'intervalo' };
-                  }
-                  return prev;
-                });
-              }}
-            />
-          </div>
-        ) : (
-          <>
-            <div className="flex-1 min-w-[120px] max-w-[200px]">
-              <FiltroSelect label="Ano" value={filters.ano !== null ? String(filters.ano) : ''} options={anosOptions} placeholder="Todos" onChange={(value) => handleChange('ano', value)} />
-            </div>
-            <div className="flex-1 min-w-[150px] max-w-[250px]">
-              <FiltroSelect
-                label="Semana"
-                value={filters.semana !== null ? String(filters.semana) : ''}
-                options={semanasOptions}
-                placeholder="Todas"
-                onChange={(value) => {
-                  setFilters(prev => {
-                    const newSemana = value ? parseInt(value, 10) : null;
-                    return {
-                      ...prev,
-                      semana: newSemana,
-                      semanas: newSemana ? [newSemana] : []
-                    };
-                  });
-                }}
-              />
-            </div>
-          </>
-        )}
+        <FilterPrimarySection
+          isModoIntervalo={isModoIntervalo}
+          filters={filters}
+          setFilters={setFilters}
+          anosOptions={anosOptions}
+          semanasOptions={semanasOptions}
+          handleChange={handleChange}
+        />
 
-        {/* Outros filtros (sempre visíveis) */}
-        <div className="flex-1 min-w-[150px] max-w-[250px]">
-          <FiltroSelect label="Praça" value={filters.praca ?? ''} options={pracas} placeholder="Todas" onChange={(value) => handleChange('praca', value)} disabled={shouldDisablePracaFilter} />
-        </div>
-        <div className="flex-1 min-w-[150px] max-w-[250px]">
-          <FiltroMultiSelect label="Sub praça" selected={filters.subPracas || []} options={subPracas} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPracas: values }))} />
-        </div>
-        <div className="flex-1 min-w-[150px] max-w-[250px]">
-          <FiltroMultiSelect label="Origem" selected={filters.origens || []} options={origens} placeholder="Todas" onSelectionChange={(values) => setFilters(prev => ({ ...prev, origens: values }))} />
-        </div>
-        <div className="flex-1 min-w-[150px] max-w-[250px]">
-          <FiltroMultiSelect label="Turno" selected={filters.turnos || []} options={turnos} placeholder="Todos" onSelectionChange={(values) => setFilters(prev => ({ ...prev, turnos: values }))} />
-        </div>
+        <FilterSecondarySection
+          filters={filters}
+          setFilters={setFilters}
+          pracas={pracas}
+          subPracas={subPracas}
+          origens={origens}
+          turnos={turnos}
+          handleChange={handleChange}
+          shouldDisablePracaFilter={shouldDisablePracaFilter}
+        />
 
         {/* Botão Limpar Filtros */}
         {hasActiveFilters && (

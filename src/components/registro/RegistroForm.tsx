@@ -5,13 +5,11 @@
 
 import React, { useCallback } from 'react';
 import Link from 'next/link';
-import { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
 import { usePasswordStrength } from '@/hooks/registro/useRegistroValidation';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { RegistroFormInputs } from './components/RegistroFormInputs';
 
 interface RegistroFormProps {
   fullName: string;
@@ -81,107 +79,23 @@ export const RegistroForm = React.memo(function RegistroForm({
       )}
 
       <form onSubmit={onSubmit} className="space-y-5">
-        {/* Full Name Field */}
-        <div className="space-y-2">
-          <Label htmlFor="fullName">Nome Completo</Label>
-          <div className="relative">
-            <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-            <Input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={handleFullNameChange}
-              required
-              className="pl-9"
-              placeholder="João da Silva"
-              disabled={loading}
-            />
-          </div>
-        </div>
+        <RegistroFormInputs
+          fullName={fullName}
+          email={email}
+          password={password}
+          confirmPassword={confirmPassword}
+          showPassword={showPassword}
+          showConfirmPassword={showConfirmPassword}
+          loading={loading}
+          passwordStrength={passwordStrength}
+          onFullNameChange={handleFullNameChange}
+          onEmailChange={handleEmailChange}
+          onPasswordChange={handlePasswordChange}
+          onConfirmPasswordChange={handleConfirmPasswordChange}
+          onToggleShowPassword={onToggleShowPassword}
+          onToggleShowConfirmPassword={onToggleShowConfirmPassword}
+        />
 
-        {/* Email Field */}
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={handleEmailChange}
-              required
-              className="pl-9"
-              placeholder="seu@email.com"
-              disabled={loading}
-            />
-          </div>
-        </div>
-
-        {/* Password Field */}
-        <div className="space-y-2">
-          <Label htmlFor="password">Senha</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-            <Input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={handlePasswordChange}
-              required
-              minLength={6}
-              className="pl-9 pr-10"
-              placeholder="••••••••"
-              disabled={loading}
-            />
-            <button
-              type="button"
-              onClick={onToggleShowPassword}
-              className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <PasswordStrengthIndicator
-            password={password}
-            strength={passwordStrength.strength}
-            label={passwordStrength.label}
-            color={passwordStrength.color}
-          />
-        </div>
-
-        {/* Confirm Password Field */}
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-            <Input
-              id="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
-              value={confirmPassword}
-              onChange={handleConfirmPasswordChange}
-              required
-              minLength={6}
-              className="pl-9 pr-10"
-              placeholder="••••••••"
-              disabled={loading}
-            />
-            <button
-              type="button"
-              onClick={onToggleShowConfirmPassword}
-              className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-            >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          {confirmPassword.length > 0 && password !== confirmPassword && (
-            <p className="text-xs font-medium text-rose-500 dark:text-rose-400">As senhas não coincidem</p>
-          )}
-          {confirmPassword.length > 0 && password === confirmPassword && (
-            <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">✓ Senhas coincidem</p>
-          )}
-        </div>
-
-        {/* Submit Button */}
         <Button
           type="submit"
           disabled={loading}
@@ -230,4 +144,3 @@ export const RegistroForm = React.memo(function RegistroForm({
 });
 
 RegistroForm.displayName = 'RegistroForm';
-

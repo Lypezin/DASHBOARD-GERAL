@@ -1,5 +1,6 @@
 import React from 'react';
 import SlideWrapper from '../SlideWrapper';
+import { SlideHeader } from './components/SlideHeader';
 
 interface DemandaMetric {
   label: string;
@@ -26,8 +27,8 @@ const MetricCard: React.FC<{
   variant: 'week1' | 'week2';
 }> = ({ label, value, variant }) => (
   <div className={`rounded-xl px-5 py-4 flex flex-col items-center shadow-sm ${variant === 'week2'
-      ? 'bg-gradient-to-br from-blue-50 to-white border border-blue-200'
-      : 'bg-gradient-to-br from-slate-50 to-white border border-slate-200'
+    ? 'bg-gradient-to-br from-blue-50 to-white border border-blue-200'
+    : 'bg-gradient-to-br from-slate-50 to-white border border-slate-200'
     }`}>
     <span className="text-sm font-semibold text-slate-500 mb-1.5 text-center">
       {label}
@@ -47,8 +48,8 @@ const VariationCard: React.FC<{
   percentualPositiva: boolean;
 }> = ({ label, value, positive, percentual, percentualPositiva }) => (
   <div className={`rounded-xl px-5 py-4 flex flex-col items-center shadow-md ${positive
-      ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-white border border-emerald-300'
-      : 'bg-gradient-to-br from-rose-50 via-rose-100 to-white border border-rose-300'
+    ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-white border border-emerald-300'
+    : 'bg-gradient-to-br from-rose-50 via-rose-100 to-white border border-rose-300'
     }`}>
     <span className="text-sm font-semibold text-slate-500 mb-1.5 text-center">
       {label}
@@ -70,8 +71,8 @@ const VariationCard: React.FC<{
 
     {/* Percentage badge */}
     <div className={`mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${percentualPositiva
-        ? 'bg-emerald-200 text-emerald-800'
-        : 'bg-rose-200 text-rose-800'
+      ? 'bg-emerald-200 text-emerald-800'
+      : 'bg-rose-200 text-rose-800'
       }`}>
       {percentualPositiva ? (
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -95,18 +96,11 @@ const SlideDemandaRejeicoes: React.FC<SlideDemandaRejeicoesProps> = ({
 }) => {
   return (
     <SlideWrapper isVisible={isVisible} style={{ padding: '32px 48px' }}>
-      {/* Header */}
-      <header className="text-center mb-6">
-        <div className="inline-block">
-          <h2 className="text-[2.5rem] font-black tracking-wider text-blue-600 leading-none">
-            DEMANDA E REJEIÇÕES
-          </h2>
-          <div className="h-1.5 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 rounded-full mt-2" />
-        </div>
-        <p className="text-lg font-light text-slate-500 mt-2">
-          Comparativo Semanas {numeroSemana1} vs {numeroSemana2}
-        </p>
-      </header>
+
+      <SlideHeader
+        title="DEMANDA E REJEIÇÕES"
+        subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
+      />
 
       {/* 3 Column Layout */}
       <div className="grid grid-cols-3 gap-6 flex-1">

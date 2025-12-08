@@ -3,8 +3,7 @@
  * Separa lógica de busca de dados principais (totais, aderências)
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import { safeLog } from '@/lib/errorHandler';
+import { useState, useMemo } from 'react';
 import {
   Totals,
   AderenciaSemanal,
@@ -14,12 +13,9 @@ import {
   AderenciaOrigem,
   DimensoesDashboard,
 } from '@/types';
-import { transformDashboardData, createEmptyDashboardData } from '@/utils/dashboard/transformers';
 import { useDashboardDataFetcher } from './useDashboardDataFetcher';
 import { useDashboardCache } from './useDashboardCache';
-import { DELAYS } from '@/constants/config';
-
-const IS_DEV = process.env.NODE_ENV === 'development';
+import { useDashboardDataEffect } from './dashboard/useDashboardDataEffect';
 
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
@@ -65,114 +61,31 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     filterPayload.p_data_inicial,
     filterPayload.p_data_final,
     filterPayload.p_organization_id,
-    // Adicionar dependências de arrays para garantir que mudanças nesses filtros invalidem o cache/payload
     JSON.stringify(filterPayload.p_sub_pracas),
     JSON.stringify(filterPayload.p_origens),
     JSON.stringify(filterPayload.p_turnos),
   ]);
 
-  useEffect(() => {
-    // Evitar processamento se o payload não mudou realmente
-    if (previousPayloadRef.current === payloadKey) {
-      if (IS_DEV) safeLog.info('[useDashboardMainData] Payload não mudou, ignorando');
-      return;
+  // Usar o hook de efeito extraído
+  useDashboardDataEffect({
+    filterPayload,
+    fetchDashboardData,
+    checkCache,
+    updateCache,
+    clearCache,
+    previousPayloadRef,
+    isFirstExecutionRef,
+    pendingPayloadKeyRef,
+    setters: {
+      setTotals,
+      setAderenciaSemanal,
+      setAderenciaDia,
+      setAderenciaTurno,
+      setAderenciaSubPraca,
+      setAderenciaOrigem,
+      setDimensoes
     }
-
-    if (IS_DEV) {
-      safeLog.info('[useDashboardMainData] useEffect acionado com payload:', {
-        payloadKey,
-        previousPayload: previousPayloadRef.current,
-      });
-    }
-
-    const hasValidFilters = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
-      (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
-
-    // Se o payload anterior era inválido e agora é válido, limpar cache
-    const previousPayloadWasInvalid = previousPayloadRef.current &&
-      (!previousPayloadRef.current.includes('"p_ano":') || previousPayloadRef.current.includes('"p_ano":null')) &&
-      (!previousPayloadRef.current.includes('"p_data_inicial":') || previousPayloadRef.current.includes('"p_data_inicial":null'));
-
-    if (previousPayloadWasInvalid && hasValidFilters) {
-      clearCache();
-    }
-
-    pendingPayloadKeyRef.current = payloadKey;
-
-    // Verificar cache
-    const cachedData = checkCache(payloadKey);
-    if (cachedData) {
-      const processedData = transformDashboardData(cachedData);
-
-      setTotals(processedData.totals);
-      setAderenciaSemanal(processedData.aderencia_semanal);
-      setAderenciaDia(processedData.aderencia_dia);
-      setAderenciaTurno(processedData.aderencia_turno);
-      setAderenciaSubPraca(processedData.aderencia_sub_praca);
-      setAderenciaOrigem(processedData.aderencia_origem);
-
-      if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
-
-      previousPayloadRef.current = payloadKey;
-      isFirstExecutionRef.current = false;
-      return;
-    }
-
-    const currentPayload = filterPayload;
-    const currentPayloadKey = payloadKey;
-
-    const timeoutId = setTimeout(async () => {
-      if (JSON.stringify(currentPayload) !== currentPayloadKey) return;
-      if (pendingPayloadKeyRef.current !== currentPayloadKey) return;
-
-      const isFirstExecutionInTimeout = isFirstExecutionRef.current;
-      const hasValidFiltersInTimeout = (currentPayload.p_ano !== null && currentPayload.p_ano !== undefined) ||
-        (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
-
-      if (IS_DEV) safeLog.info('[useDashboardMainData] Iniciando fetch com payload válido:', currentPayload);
-
-      const data = await fetchDashboardData(currentPayload);
-
-      if (data) {
-        const cacheKeyToUse = isFirstExecutionInTimeout && !hasValidFiltersInTimeout
-          ? '__first_execution_dimensions__'
-          : currentPayloadKey;
-
-        updateCache(cacheKeyToUse, data);
-
-        const processedData = transformDashboardData(data);
-
-        setTotals(processedData.totals);
-        setAderenciaSemanal(processedData.aderencia_semanal);
-        setAderenciaDia(processedData.aderencia_dia);
-        setAderenciaTurno(processedData.aderencia_turno);
-        setAderenciaSubPraca(processedData.aderencia_sub_praca);
-        setAderenciaOrigem(processedData.aderencia_origem);
-
-        if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
-
-        previousPayloadRef.current = currentPayloadKey;
-        isFirstExecutionRef.current = false;
-        pendingPayloadKeyRef.current = '';
-      } else {
-        // Handle empty data or error (already handled in fetcher)
-        const emptyData = createEmptyDashboardData();
-        setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
-        setAderenciaSemanal([]);
-        setAderenciaDia([]);
-        setAderenciaTurno([]);
-        setAderenciaSubPraca([]);
-        setAderenciaOrigem([]);
-        setDimensoes(emptyData.dimensoes);
-        previousPayloadRef.current = currentPayloadKey;
-        isFirstExecutionRef.current = false;
-      }
-    }, DELAYS.DEBOUNCE);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [payloadKey, onError, fetchDashboardData]);
+  }, payloadKey);
 
   return {
     totals,

@@ -3,7 +3,7 @@
  * Extraído de src/app/page.tsx para melhor organização
  */
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -13,10 +13,9 @@ import { useUserActivity } from '@/hooks/useUserActivity';
 import { registerChartJS } from '@/lib/chartConfig';
 import { safeLog } from '@/lib/errorHandler';
 import { buildFilterPayload } from '@/utils/helpers';
-import { hasFullCityAccess } from '@/types';
-import { DELAYS } from '@/constants/config';
-import type { Filters, CurrentUser, TabType } from '@/types';
+import type { CurrentUser, TabType } from '@/types';
 import { useDashboardFilters } from './useDashboardFilters';
+import { useEvolutionAutoSelect } from './useEvolutionAutoSelect';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -28,8 +27,9 @@ export function useDashboardPage() {
   });
 
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
 
-  const { filters, setFilters, filtersProtectedRef } = useDashboardFilters();
+  const { filters, setFilters } = useDashboardFilters();
 
   // Log quando o hook é montado
   useEffect(() => {
@@ -46,7 +46,6 @@ export function useDashboardPage() {
     // });
   }, [filters.ano, filters.semana, filters.praca]);
 
-  const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(authUser || null);
   const [chartReady, setChartReady] = useState(false);
 
@@ -76,7 +75,7 @@ export function useDashboardPage() {
     }
   }, []);
 
-  // Dados do dashboard
+  // 1. Obter dados (incluindo anosDisponiveis)
   const {
     totals,
     aderenciaSemanal,
@@ -99,20 +98,14 @@ export function useDashboardPage() {
     aderenciaGeral
   } = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
 
-  // Selecionar automaticamente o ano mais recente se nenhum estiver selecionado
-  // Selecionar automaticamente o ano mais recente se nenhum estiver selecionado ou se o ano selecionado não estiver disponível
-  useEffect(() => {
-    if (anosDisponiveis && anosDisponiveis.length > 0) {
-      const shouldSelect = !filters.ano || !anosDisponiveis.includes(filters.ano);
-
-      if (shouldSelect) {
-        const maxYear = Math.max(...anosDisponiveis);
-        if (IS_DEV) safeLog.info(`[DashboardPage] Definindo ano padrão para: ${maxYear}`);
-        setFilters(prev => ({ ...prev, ano: maxYear }));
-        setAnoEvolucao(maxYear);
-      }
-    }
-  }, [anosDisponiveis, filters.ano]);
+  // 2. Usar o hook de lógica de evolução (não controla estado, apenas side-effects)
+  useEvolutionAutoSelect({
+    filters,
+    setFilters,
+    anosDisponiveis: anosDisponiveis || [],
+    anoEvolucao,
+    setAnoEvolucao
+  });
 
   // Criar uma string estável dos filtros para usar como dependência
   const filtersKey = useMemo(() => {
@@ -154,7 +147,7 @@ export function useDashboardPage() {
       is_admin: currentUser.is_admin,
       assigned_pracas: currentUser.assigned_pracas,
     }) : 'null';
-  }, [currentUser?.is_admin, currentUser?.assigned_pracas?.join(',')]);
+  }, [currentUser?.is_admin, currentUser?.assigned_pracas]);
 
   // Memoizar filterPayload
   const filterPayload = useMemo(() => {
@@ -168,24 +161,12 @@ export function useDashboardPage() {
     }
     try {
       const payload = buildFilterPayload(filters, currentUser);
-
-      if (IS_DEV) {
-        safeLog.info('[DashboardPage] filterPayload gerado com sucesso:', {
-          payload,
-          p_ano: payload.p_ano,
-          p_semana: payload.p_semana,
-          p_data_inicial: payload.p_data_inicial,
-          p_data_final: payload.p_data_final,
-        });
-      }
       return payload;
     } catch (error) {
       safeLog.error('[DashboardPage] Erro ao gerar filterPayload:', error);
       throw error;
     }
-    // Usar apenas as chaves estáveis, não os objetos completos
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtersKey, currentUserKey]);
+  }, [filtersKey, currentUserKey, filters, currentUser]);
 
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
@@ -196,18 +177,6 @@ export function useDashboardPage() {
   });
 
   const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
-
-  // Ajustar automaticamente o ano da evolução
-  useEffect(() => {
-    if (Array.isArray(anosDisponiveis) && anosDisponiveis.length > 0) {
-      if (!anosDisponiveis.includes(anoEvolucao)) {
-        const ultimoAno = anosDisponiveis[anosDisponiveis.length - 1];
-        setAnoEvolucao(ultimoAno);
-      }
-    }
-  }, [anosDisponiveis, anoEvolucao]);
-
-
 
   // Função para mudar de aba
   const handleTabChange = useCallback((tab: TabType) => {
