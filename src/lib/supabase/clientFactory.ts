@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { validateEnvVars, handleMissingEnvVars } from './envValidator';
 
 let supabaseInstance: SupabaseClient | null = null;
@@ -42,15 +43,17 @@ export function getSupabaseClient(): SupabaseClient {
 }
 
 function createNewClient(url: string, key: string) {
-    supabaseInstance = createClient(url, key, {
+    // Usar createBrowserClient do @supabase/ssr para gerenciar cookies automaticamente
+    // Isso é essencial para que o Middleware detecte a sessão
+    supabaseInstance = createBrowserClient(url, key, {
         auth: {
+            flowType: 'pkce',
+            detectSessionInUrl: true,
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: true,
-            storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-            storageKey: 'supabase.auth.token',
-            flowType: 'pkce'
-        }
+        },
+        // O createBrowserClient já configura o storage de cookies automaticamente
+        // Não é necessário passar 'storage' manual
     });
     return supabaseInstance;
 }
