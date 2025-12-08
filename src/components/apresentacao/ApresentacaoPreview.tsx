@@ -1,12 +1,9 @@
-
-
-import React, { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from './constants';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, FileDown, X, Loader2 } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { ApresentacaoControls } from './components/ApresentacaoControls';
+import { ApresentacaoLoadingOverlay } from './components/ApresentacaoLoadingOverlay';
+import { usePresentationPDF } from './hooks/usePresentationPDF';
 
 interface ApresentacaoPreviewProps {
   slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
@@ -18,11 +15,6 @@ interface ApresentacaoPreviewProps {
   numeroSemana1: string;
   numeroSemana2: string;
 }
-
-// A4 Landscape dimensions in mm
-const A4_WIDTH_MM = 297;
-const A4_HEIGHT_MM = 210;
-const SCALE_FACTOR = 1.15; // Optimized for speed with 33+ slides while maintaining quality
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   slides,
@@ -38,12 +30,14 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const captureContainerRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(0.5);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
 
-  // State to control which slide is currently being rendered for capture
-  // null means no capture is in progress
-  const [capturingIndex, setCapturingIndex] = useState<number | null>(null);
+  const { isGenerating, generatingProgress, capturingIndex, generatePDF } = usePresentationPDF({
+    slides,
+    numeroSemana1,
+    numeroSemana2,
+    contentRef,
+    captureContainerRef
+  });
 
   const calculateScale = useCallback(() => {
     if (previewContainerRef.current && contentRef.current) {
@@ -69,92 +63,6 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   }, [calculateScale]);
 
   const totalSlides = slides.length;
-  const slideAtualExibicao = totalSlides > 0 ? currentSlide + 1 : 0;
-
-  // Generate PDF using html2canvas with sequential rendering
-  const handleGeneratePDF = async () => {
-    if (slides.length === 0) return;
-
-    setIsGenerating(true);
-    setGeneratingProgress({ current: 0, total: slides.length });
-
-    try {
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      // Hide the preview container during capture to avoid interference
-      if (contentRef.current) {
-        contentRef.current.style.visibility = 'hidden';
-      }
-
-      for (let i = 0; i < slides.length; i++) {
-        setGeneratingProgress({ current: i + 1, total: slides.length });
-
-        // Set the slide to be rendered in the hidden container
-        setCapturingIndex(i);
-
-        // Wait for React to render the slide
-        await new Promise(resolve => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => resolve(undefined));
-          });
-        });
-
-        const captureElement = captureContainerRef.current;
-        if (!captureElement) continue;
-
-        const slideElement = captureElement.firstElementChild as HTMLElement;
-
-        if (slideElement) {
-          // Capture slide with optimized html2canvas settings for speed
-          const canvas = await html2canvas(slideElement, {
-            scale: SCALE_FACTOR,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            width: SLIDE_WIDTH,
-            height: SLIDE_HEIGHT,
-            logging: false,
-            imageTimeout: 0,
-            windowWidth: SLIDE_WIDTH,
-            windowHeight: SLIDE_HEIGHT,
-            onclone: (clonedDoc: Document) => {
-              // Remove any hidden elements to speed up rendering
-              const hiddenElements = clonedDoc.querySelectorAll('[style*="display: none"], [style*="visibility: hidden"]');
-              hiddenElements.forEach((el: Element) => el.remove());
-            },
-          });
-
-          // Add page (except for first slide)
-          if (i > 0) {
-            pdf.addPage();
-          }
-
-          // Add image to PDF using JPEG with 80% quality for small file size
-          const imgData = canvas.toDataURL('image/jpeg', 0.8);
-          pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
-        }
-      }
-
-      // Download PDF
-      const filename = `Comparativo_Semana${numeroSemana1}_vs_Semana${numeroSemana2}.pdf`;
-      pdf.save(filename);
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      alert('Erro ao gerar PDF. Tente novamente.');
-    } finally {
-      // Restore preview visibility
-      if (contentRef.current) {
-        contentRef.current.style.visibility = 'visible';
-      }
-      setIsGenerating(false);
-      setGeneratingProgress({ current: 0, total: 0 });
-      setCapturingIndex(null); // Reset capture state
-    }
-  };
 
   return (
     <>
@@ -195,7 +103,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
               height: SLIDE_HEIGHT,
               position: 'relative',
               overflow: 'hidden',
-              backgroundColor: 'white', // Ensure white background
+              backgroundColor: 'white',
             }}
           >
             {slides[capturingIndex].render(true)}
@@ -205,63 +113,15 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
 
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
         <Card className="w-full max-w-6xl h-[95vh] flex flex-col overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl">
-          <div className="sticky top-0 bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Preview da Apresentação</h3>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onPrev}
-                  disabled={currentSlide === 0 || totalSlides === 0}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-300 min-w-[3rem] text-center">
-                  {slideAtualExibicao} / {totalSlides}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onNext}
-                  disabled={totalSlides === 0 || currentSlide === totalSlides - 1}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
-
-              <Button
-                onClick={handleGeneratePDF}
-                disabled={totalSlides === 0 || isGenerating}
-                className="bg-blue-600 hover:bg-blue-700 text-white min-w-[140px]"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Gerar PDF
-                  </>
-                )}
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={onClose}
-                className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X className="mr-2 h-4 w-4" />
-                Fechar
-              </Button>
-            </div>
-          </div>
+          <ApresentacaoControls
+            currentSlide={currentSlide}
+            totalSlides={totalSlides}
+            onPrev={onPrev}
+            onNext={onNext}
+            onClose={onClose}
+            onGeneratePDF={generatePDF}
+            isGenerating={isGenerating}
+          />
 
           <div
             ref={previewContainerRef}
@@ -302,40 +162,11 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
         </Card>
       </div>
 
-      {/* Overlay de carregamento com progresso */}
-      {isGenerating && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] animate-in fade-in duration-200">
-          <Card className="p-8 shadow-2xl flex flex-col items-center gap-6 max-w-sm mx-4 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-            <div className="relative">
-              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
-              <Loader2 className="h-12 w-12 text-blue-600 animate-spin relative z-10" />
-            </div>
-            <div className="text-center space-y-2">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                Gerando PDF
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Processando slide {generatingProgress.current} de {generatingProgress.total}...
-              </p>
-              {/* Progress bar */}
-              <div className="w-48 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-600 transition-all duration-300"
-                  style={{
-                    width: generatingProgress.total > 0
-                      ? `${(generatingProgress.current / generatingProgress.total) * 100}%`
-                      : '0%'
-                  }}
-                />
-              </div>
-              <p className="text-xs text-slate-400 dark:text-slate-500">
-                Aguarde, não feche esta janela
-              </p>
-            </div>
-          </Card>
-        </div>
-      )}
+      <ApresentacaoLoadingOverlay
+        isGenerating={isGenerating}
+        current={generatingProgress.current}
+        total={generatingProgress.total}
+      />
     </>
   );
 };
-

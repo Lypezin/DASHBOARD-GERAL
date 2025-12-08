@@ -12,7 +12,7 @@ const nextConfig = {
   reactStrictMode: true,
 
   // Otimizações de build
-  swcMinify: true,
+  // swcMinify: true, // Deprecated in Next.js 13+ (enabled by default)
   output: 'standalone',
 
   // Otimizações de imagens
