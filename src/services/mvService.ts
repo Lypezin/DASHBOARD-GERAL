@@ -12,7 +12,7 @@ export const mvService = {
             'refresh_single_mv_with_progress',
             { mv_name_param: mvName },
             {
-                timeout: 300000, // 5 minutos por MV
+                timeout: 600000, // 10 minutos por MV
                 validateParams: false
             }
         );
