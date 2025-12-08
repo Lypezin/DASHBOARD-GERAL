@@ -34,7 +34,10 @@ export const AnaliseTable = React.memo(function AnaliseTable({
               {labelColumn}
             </th>
             <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
-              Ofertadas
+              Horas Entregues
+            </th>
+            <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
+              Corridas Ofertadas
             </th>
             <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
               Aceitas

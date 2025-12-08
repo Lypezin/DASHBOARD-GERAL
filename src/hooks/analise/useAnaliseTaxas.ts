@@ -10,6 +10,7 @@ export interface AnaliseItem {
   corridas_aceitas?: number | null;
   corridas_rejeitadas?: number | null;
   corridas_completadas?: number | null;
+  horas_entregues?: string | null;
 }
 
 export interface TaxasCalculadas {

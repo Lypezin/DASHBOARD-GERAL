@@ -23,6 +23,9 @@ export const AnaliseTableRow = React.memo(function AnaliseTableRow({
         {item.label}
       </td>
       <td className="px-4 py-3 text-right text-sm text-slate-700 dark:text-slate-300">
+        {item.horas_entregues || '00:00:00'}
+      </td>
+      <td className="px-4 py-3 text-right text-sm text-slate-700 dark:text-slate-300">
         {(item.corridas_ofertadas || 0).toLocaleString('pt-BR')}
       </td>
       <td className="px-4 py-3 text-right text-sm font-semibold text-green-600 dark:text-green-400">
