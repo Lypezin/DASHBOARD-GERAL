@@ -91,31 +91,59 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                             <div className="grid grid-cols-2 gap-3 mb-4">
                                 {/* Entradas */}
                                 <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 p-3 pt-2">
-                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600/70 dark:text-emerald-400/70 mb-1.5 text-center">Entradas</p>
-                                    <div className="flex justify-between items-end border-b border-emerald-200/50 dark:border-emerald-800/30 pb-1 mb-1">
-                                        <span className="text-xs text-emerald-700/70 dark:text-emerald-400/70">Total</span>
-                                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">+{item.entradas_total || item.entradas}</span>
+                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600/70 dark:text-emerald-400/70 mb-2 text-center">Entradas</p>
+
+                                    <div className="space-y-1 mb-2">
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-emerald-700/70 dark:text-emerald-400/70 flex items-center gap-1.5">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
+                                                Mkt
+                                            </span>
+                                            <span className="font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">+{item.entradas_marketing || 0}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-emerald-700/70 dark:text-emerald-400/70 flex items-center gap-1.5">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-300"></div>
+                                                Outros
+                                            </span>
+                                            <span className="font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                                                +{Math.max(0, (item.entradas_total || item.entradas) - (item.entradas_marketing || 0))}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-xs text-emerald-700/70 dark:text-emerald-400/70 flex items-center gap-1">
-                                            Mkt
-                                        </span>
-                                        <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-500 tabular-nums">+{item.entradas_marketing || 0}</span>
+
+                                    <div className="flex justify-between items-end border-t border-emerald-200/50 dark:border-emerald-800/30 pt-1.5">
+                                        <span className="text-[10px] font-bold uppercase text-emerald-800/60 dark:text-emerald-300/60">Total</span>
+                                        <span className="text-base font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">+{item.entradas_total || item.entradas}</span>
                                     </div>
                                 </div>
 
                                 {/* Saídas */}
                                 <div className="rounded-xl bg-rose-50 dark:bg-rose-900/20 p-3 pt-2">
-                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-600/70 dark:text-rose-400/70 mb-1.5 text-center">Saídas</p>
-                                    <div className="flex justify-between items-end border-b border-rose-200/50 dark:border-rose-800/30 pb-1 mb-1">
-                                        <span className="text-xs text-rose-700/70 dark:text-rose-400/70">Total</span>
-                                        <span className="text-lg font-bold text-rose-700 dark:text-rose-400 tabular-nums">-{item.saidas_total || item.saidas}</span>
+                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-600/70 dark:text-rose-400/70 mb-2 text-center">Saídas</p>
+
+                                    <div className="space-y-1 mb-2">
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-rose-700/70 dark:text-rose-400/70 flex items-center gap-1.5">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-rose-500"></div>
+                                                Mkt
+                                            </span>
+                                            <span className="font-semibold text-rose-700 dark:text-rose-400 tabular-nums">-{item.saidas_marketing || 0}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-rose-700/70 dark:text-rose-400/70 flex items-center gap-1.5">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-rose-300"></div>
+                                                Outros
+                                            </span>
+                                            <span className="font-semibold text-rose-700 dark:text-rose-400 tabular-nums">
+                                                -{Math.max(0, (item.saidas_total || item.saidas) - (item.saidas_marketing || 0))}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-xs text-rose-700/70 dark:text-rose-400/70 flex items-center gap-1">
-                                            Mkt
-                                        </span>
-                                        <span className="text-sm font-semibold text-rose-600 dark:text-rose-500 tabular-nums">-{item.saidas_marketing || 0}</span>
+
+                                    <div className="flex justify-between items-end border-t border-rose-200/50 dark:border-rose-800/30 pt-1.5">
+                                        <span className="text-[10px] font-bold uppercase text-rose-800/60 dark:text-rose-300/60">Total</span>
+                                        <span className="text-base font-bold text-rose-700 dark:text-rose-400 tabular-nums">-{item.saidas_total || item.saidas}</span>
                                     </div>
                                 </div>
                             </div>
