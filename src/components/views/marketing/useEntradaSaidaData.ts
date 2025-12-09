@@ -11,15 +11,16 @@ interface FluxoEntregadores {
     saidas: number;
     entradas_total: number;
     entradas_marketing: number;
-    saidas_total: number;
-    saidas_marketing: number;
-    saldo: number;
+    saidas_novos: number;
     nomes_entradas: string[];
     nomes_saidas: string[];
+    nomes_saidas_novos: string[];
     nomes_entradas_marketing: string[];
     nomes_saidas_marketing: string[];
+    nomes_saidas_novos_marketing: string[];
     nomes_entradas_operacional: string[];
     nomes_saidas_operacional: string[];
+    nomes_saidas_novos_operacional: string[];
 }
 
 interface UseEntradaSaidaDataProps {
@@ -59,7 +60,6 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
 
             try {
                 // Fetch Marketing Couriers List to cross-reference
-                // Use direct SELECT instead of RPC to bypass permission issues
                 const { data: marketingData, error: marketingError } = await supabase
                     .from('dados_marketing')
                     .select('nome, id_entregador')
@@ -73,9 +73,6 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                     });
                 }
 
-                // Fetch TOTAL flux (without marketing filter)
-                // Note: assuming the existing RPC returns Total if no marketing filter is applied inside it, or if we can avoid passing marketing flags.
-                // Based on previous analysis, get_fluxo_semanal takes p_praca. We hope it returns ALL couriers.
                 const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('get_fluxo_semanal', {
                     p_data_inicial: start,
                     p_data_final: end,
@@ -93,9 +90,7 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                 const isMarketingCourier = (name: string, marketingSet: Set<string>) => {
                     if (!name) return false;
                     const normalized = name.toLowerCase().trim();
-                    // Direct match
                     if (marketingSet.has(normalized)) return true;
-                    // Partial match check (expensive but safer if names vary)
                     for (const mName of marketingSet) {
                         if (normalized.includes(mName) || mName.includes(normalized)) return true;
                     }
@@ -105,24 +100,34 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                 const processedData = rawData.map(item => {
                     const entradasNames = item.nomes_entradas || [];
                     const saidasNames = item.nomes_saidas || [];
+                    const saidasNovosNames = item.nomes_saidas_novos || [];
 
                     const marketingEntradas = entradasNames.filter(name => isMarketingCourier(name, marketingCourierNames));
                     const marketingSaidas = saidasNames.filter(name => isMarketingCourier(name, marketingCourierNames));
+                    const marketingSaidasNovos = saidasNovosNames.filter(name => isMarketingCourier(name, marketingCourierNames));
 
                     const operacionalEntradas = entradasNames.filter(name => !isMarketingCourier(name, marketingCourierNames));
                     const operacionalSaidas = saidasNames.filter(name => !isMarketingCourier(name, marketingCourierNames));
+                    const operacionalSaidasNovos = saidasNovosNames.filter(name => !isMarketingCourier(name, marketingCourierNames));
 
                     return {
                         ...item,
                         entradas_total: item.entradas,
                         saidas_total: item.saidas,
+                        saidas_novos: item.saidas_novos || 0,
+
                         entradas_marketing: marketingEntradas.length,
                         saidas_marketing: marketingSaidas.length,
+
                         nomes_entradas_marketing: marketingEntradas,
                         nomes_saidas_marketing: marketingSaidas,
+                        nomes_saidas_novos_marketing: marketingSaidasNovos,
+
                         nomes_entradas_operacional: operacionalEntradas,
                         nomes_saidas_operacional: operacionalSaidas,
-                        // Update legacy fields for compatibility
+                        nomes_saidas_novos_operacional: operacionalSaidasNovos,
+
+                        // Legacy
                         entradas: item.entradas,
                         saidas: item.saidas
                     };

@@ -224,7 +224,7 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                                         </Dialog>
                                     )}
 
-                                    {item.saidas > 0 && (
+                                    {(item.saidas > 0 || item.saidas_novos > 0) && (
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <Button
@@ -280,6 +280,43 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                                                                         </li>
                                                                     ))}
                                                                 </ul>
+                                                            </div>
+                                                        )}
+
+                                                        {(item.nomes_saidas_novos_marketing?.length > 0 || item.nomes_saidas_novos_operacional?.length > 0) && (
+                                                            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+                                                                <h4 className="text-xs font-bold uppercase text-amber-600 dark:text-amber-500 mb-3 flex items-center gap-1.5">
+                                                                    <div className="h-1.5 w-1.5 rounded-full bg-amber-500"></div>
+                                                                    Desistências (Novos - não maturados)
+                                                                </h4>
+
+                                                                <div className="space-y-4">
+                                                                    {item.nomes_saidas_novos_marketing?.length > 0 && (
+                                                                        <div>
+                                                                            <h5 className="text-[10px] uppercase font-semibold text-rose-600/70 mb-2 ml-1">Marketing ({item.nomes_saidas_novos_marketing.length})</h5>
+                                                                            <ul className="space-y-1.5">
+                                                                                {item.nomes_saidas_novos_marketing.map((nome: string, idx: number) => (
+                                                                                    <li key={`mkt-nov-out-${idx}`} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 py-1.5 px-3 rounded-md bg-amber-50 dark:bg-amber-900/10 shadow-sm border border-amber-100 dark:border-amber-900/30">
+                                                                                        <span className="truncate">{nome}</span>
+                                                                                    </li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {item.nomes_saidas_novos_operacional?.length > 0 && (
+                                                                        <div>
+                                                                            <h5 className="text-[10px] uppercase font-semibold text-slate-500/70 mb-2 ml-1">Operacional ({item.nomes_saidas_novos_operacional.length})</h5>
+                                                                            <ul className="space-y-1.5">
+                                                                                {item.nomes_saidas_novos_operacional.map((nome: string, idx: number) => (
+                                                                                    <li key={`ops-nov-out-${idx}`} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 py-1.5 px-3 rounded-md bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 border-dashed">
+                                                                                        <span className="truncate">{nome}</span>
+                                                                                    </li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>
