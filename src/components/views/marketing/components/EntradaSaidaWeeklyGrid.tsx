@@ -104,7 +104,7 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                                         <div className="flex justify-between items-center text-xs">
                                             <span className="text-emerald-700/70 dark:text-emerald-400/70 flex items-center gap-1.5">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-300"></div>
-                                                Outros
+                                                Operacional
                                             </span>
                                             <span className="font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
                                                 +{Math.max(0, (item.entradas_total || item.entradas) - (item.entradas_marketing || 0))}
@@ -133,7 +133,7 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                                         <div className="flex justify-between items-center text-xs">
                                             <span className="text-rose-700/70 dark:text-rose-400/70 flex items-center gap-1.5">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-rose-300"></div>
-                                                Outros
+                                                Operacional
                                             </span>
                                             <span className="font-semibold text-rose-700 dark:text-rose-400 tabular-nums">
                                                 -{Math.max(0, (item.saidas_total || item.saidas) - (item.saidas_marketing || 0))}
