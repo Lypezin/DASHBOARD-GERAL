@@ -19,7 +19,9 @@ interface EntradaSaidaWeeklyGridProps {
 export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ data }) => {
     // Ordenar dados por semana (mais recente primeiro)
     const sortedWeeklyData = useMemo(() => {
-        return [...data].sort((a, b) => b.semana.localeCompare(a.semana));
+        // Filter out Week 01 2025 due to cold-start data distortion
+        const filteredData = data.filter(item => item.semana !== '2025-W01');
+        return [...filteredData].sort((a, b) => b.semana.localeCompare(a.semana));
     }, [data]);
 
     const formatWeekLabel = (semana: string) => {
