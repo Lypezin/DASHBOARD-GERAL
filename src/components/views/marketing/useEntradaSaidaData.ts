@@ -11,7 +11,13 @@ interface FluxoEntregadores {
     saidas: number;
     entradas_total: number;
     entradas_marketing: number;
+    entradas_operacional: number;
+    saidas_total: number;
+    saidas_marketing: number;
+    saidas_operacional: number;
     saidas_novos: number;
+    saidas_novos_operacional: number;
+    saldo: number;
     nomes_entradas: string[];
     nomes_saidas: string[];
     nomes_saidas_novos: string[];
