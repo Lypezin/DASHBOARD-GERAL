@@ -10,11 +10,6 @@ const formatarPorcentagem = (valor: number) => {
     return (valor / 100).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 1 });
 };
 
-const formatarNumero = (valor: number | undefined) => {
-    if (valor === undefined || valor === null) return '-';
-    return valor.toLocaleString('pt-BR');
-};
-
 export async function exportarDashboardParaExcel(
     aderenciaGeral: AderenciaSemanal | undefined,
     aderenciaDia: AderenciaDia[],
@@ -28,22 +23,25 @@ export async function exportarDashboardParaExcel(
 
         // 1. Aba: Resumo Geral
         if (aderenciaGeral) {
-            // Converter segundos para horas para exibição
-            const horasRealizadas = formatarHorasParaHMS(aderenciaGeral.segundos_realizados || 0);
-            const horasPlanejadas = formatarHorasParaHMS(aderenciaGeral.segundos_planejados || 0);
+            // Tenta usar as strings prontos (HH:MM:SS) se existirem, senão calcula dos segundos
+            // Isso corrige o problema de vir zerado quando não tem filtro de semana (onde segundos podem não vir, mas a string vem)
+            let horasRealizadas = aderenciaGeral.horas_entregues;
+            if (!horasRealizadas || horasRealizadas === '00:00:00') {
+                horasRealizadas = formatarHorasParaHMS((aderenciaGeral.segundos_realizados || 0) / 3600);
+            }
+
+            let horasPlanejadas = aderenciaGeral.horas_a_entregar;
+            if (!horasPlanejadas || horasPlanejadas === '00:00:00') {
+                horasPlanejadas = formatarHorasParaHMS((aderenciaGeral.segundos_planejados || 0) / 3600);
+            }
 
             const resumoData = [{
                 'Métrica': 'Horas',
                 'Realizado': horasRealizadas,
                 'Planejado': horasPlanejadas,
-                'Aderência': (aderenciaGeral.aderencia_percentual || 0) / 100
+                'Aderência': formatarPorcentagem(aderenciaGeral.aderencia_percentual || 0)
             }];
             const wsResumo = XLSX.utils.json_to_sheet(resumoData);
-
-            // Format Percent Column (Column D, index 3 because sheet is 0-indexed?? No, cell address)
-            // Simplesmente deixamos o número raw e o usuário formata, ou mandamos string. 
-            // Mandando número / 100 para ser % real.
-
             XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo Geral');
         }
 
@@ -52,9 +50,9 @@ export async function exportarDashboardParaExcel(
             const diasData = aderenciaDia.map(d => ({
                 'Dia': d.dia_semana || d.data || 'N/A',
                 'Data': d.data || '-',
-                'Horas Realizadas': formatarHorasParaHMS(d.segundos_realizados || 0),
-                'Horas Planejadas': formatarHorasParaHMS(d.segundos_planejados || 0),
-                'Aderência': (d.aderencia_percentual || 0) / 100,
+                'Horas Realizadas': formatarHorasParaHMS((d.segundos_realizados || 0) / 3600),
+                'Horas Planejadas': formatarHorasParaHMS((d.segundos_planejados || 0) / 3600),
+                'Aderência': formatarPorcentagem(d.aderencia_percentual || 0),
                 'Corridas Completadas': d.corridas_completadas || 0
             }));
             const wsDias = XLSX.utils.json_to_sheet(diasData);
@@ -65,9 +63,9 @@ export async function exportarDashboardParaExcel(
         if (aderenciaTurno && aderenciaTurno.length > 0) {
             const turnoData = aderenciaTurno.map(t => ({
                 'Turno': t.turno,
-                'Horas Realizadas': formatarHorasParaHMS(t.segundos_realizados || 0),
-                'Horas Planejadas': formatarHorasParaHMS(t.segundos_planejados || 0),
-                'Aderência': (t.aderencia_percentual || 0) / 100,
+                'Horas Realizadas': formatarHorasParaHMS((t.segundos_realizados || 0) / 3600),
+                'Horas Planejadas': formatarHorasParaHMS((t.segundos_planejados || 0) / 3600),
+                'Aderência': formatarPorcentagem(t.aderencia_percentual || 0),
                 'Corridas Completadas': t.corridas_completadas || 0
             }));
             const wsTurno = XLSX.utils.json_to_sheet(turnoData);
@@ -78,9 +76,9 @@ export async function exportarDashboardParaExcel(
         if (aderenciaSubPraca && aderenciaSubPraca.length > 0) {
             const subData = aderenciaSubPraca.map(s => ({
                 'Sub-Praça': s.sub_praca,
-                'Horas Realizadas': formatarHorasParaHMS(s.segundos_realizados || 0),
-                'Horas Planejadas': formatarHorasParaHMS(s.segundos_planejados || 0),
-                'Aderência': (s.aderencia_percentual || 0) / 100,
+                'Horas Realizadas': formatarHorasParaHMS((s.segundos_realizados || 0) / 3600),
+                'Horas Planejadas': formatarHorasParaHMS((s.segundos_planejados || 0) / 3600),
+                'Aderência': formatarPorcentagem(s.aderencia_percentual || 0),
                 'Corridas Completadas': s.corridas_completadas || 0
             }));
             const wsSub = XLSX.utils.json_to_sheet(subData);
@@ -91,9 +89,9 @@ export async function exportarDashboardParaExcel(
         if (aderenciaOrigem && aderenciaOrigem.length > 0) {
             const origemData = aderenciaOrigem.map(o => ({
                 'Origem': o.origem,
-                'Horas Realizadas': formatarHorasParaHMS(o.segundos_realizados || 0),
-                'Horas Planejadas': formatarHorasParaHMS(o.segundos_planejados || 0),
-                'Aderência': (o.aderencia_percentual || 0) / 100,
+                'Horas Realizadas': formatarHorasParaHMS((o.segundos_realizados || 0) / 3600),
+                'Horas Planejadas': formatarHorasParaHMS((o.segundos_planejados || 0) / 3600),
+                'Aderência': formatarPorcentagem(o.aderencia_percentual || 0),
                 'Corridas Completadas': o.corridas_completadas || 0
             }));
             const wsOrigem = XLSX.utils.json_to_sheet(origemData);
