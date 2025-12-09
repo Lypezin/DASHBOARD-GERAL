@@ -16,6 +16,10 @@ interface FluxoEntregadores {
     saldo: number;
     nomes_entradas: string[];
     nomes_saidas: string[];
+    nomes_entradas_marketing: string[];
+    nomes_saidas_marketing: string[];
+    nomes_entradas_operacional: string[];
+    nomes_saidas_operacional: string[];
 }
 
 interface UseEntradaSaidaDataProps {
@@ -105,12 +109,19 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                     const marketingEntradas = entradasNames.filter(name => isMarketingCourier(name, marketingCourierNames));
                     const marketingSaidas = saidasNames.filter(name => isMarketingCourier(name, marketingCourierNames));
 
+                    const operacionalEntradas = entradasNames.filter(name => !isMarketingCourier(name, marketingCourierNames));
+                    const operacionalSaidas = saidasNames.filter(name => !isMarketingCourier(name, marketingCourierNames));
+
                     return {
                         ...item,
                         entradas_total: item.entradas,
                         saidas_total: item.saidas,
                         entradas_marketing: marketingEntradas.length,
                         saidas_marketing: marketingSaidas.length,
+                        nomes_entradas_marketing: marketingEntradas,
+                        nomes_saidas_marketing: marketingSaidas,
+                        nomes_entradas_operacional: operacionalEntradas,
+                        nomes_saidas_operacional: operacionalSaidas,
                         // Update legacy fields for compatibility
                         entradas: item.entradas,
                         saidas: item.saidas

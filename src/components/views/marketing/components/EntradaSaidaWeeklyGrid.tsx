@@ -182,14 +182,43 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                                                     </DialogDescription>
                                                 </DialogHeader>
                                                 <ScrollArea className="h-[300px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
-                                                    <ul className="space-y-2">
-                                                        {item.nomes_entradas.map((nome: string, idx: number) => (
-                                                            <li key={idx} className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 py-2 px-3 rounded-lg bg-white dark:bg-slate-800 shadow-sm">
-                                                                <div className="h-2 w-2 rounded-full bg-emerald-500 flex-shrink-0"></div>
-                                                                <span className="truncate">{nome}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
+                                                    <div className="space-y-4">
+                                                        {(!item.nomes_entradas_marketing?.length && !item.nomes_entradas_operacional?.length) && (
+                                                            <div className="text-sm text-slate-500 text-center py-4">Nenhum registro.</div>
+                                                        )}
+
+                                                        {item.nomes_entradas_marketing?.length > 0 && (
+                                                            <div>
+                                                                <h4 className="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-1.5">
+                                                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
+                                                                    Marketing ({item.nomes_entradas_marketing.length})
+                                                                </h4>
+                                                                <ul className="space-y-1.5">
+                                                                    {item.nomes_entradas_marketing.map((nome: string, idx: number) => (
+                                                                        <li key={`mkt-${idx}`} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 py-1.5 px-3 rounded-md bg-white dark:bg-slate-800 shadow-sm border border-emerald-100 dark:border-emerald-900/30">
+                                                                            <span className="truncate">{nome}</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+
+                                                        {item.nomes_entradas_operacional?.length > 0 && (
+                                                            <div>
+                                                                <h4 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                                                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-300"></div>
+                                                                    Operacional ({item.nomes_entradas_operacional.length})
+                                                                </h4>
+                                                                <ul className="space-y-1.5">
+                                                                    {item.nomes_entradas_operacional.map((nome: string, idx: number) => (
+                                                                        <li key={`ops-${idx}`} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 py-1.5 px-3 rounded-md bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                                                            <span className="truncate">{nome}</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </ScrollArea>
                                             </DialogContent>
                                         </Dialog>
@@ -217,14 +246,43 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                                                     </DialogDescription>
                                                 </DialogHeader>
                                                 <ScrollArea className="h-[300px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
-                                                    <ul className="space-y-2">
-                                                        {item.nomes_saidas.map((nome: string, idx: number) => (
-                                                            <li key={idx} className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 py-2 px-3 rounded-lg bg-white dark:bg-slate-800 shadow-sm">
-                                                                <div className="h-2 w-2 rounded-full bg-rose-500 flex-shrink-0"></div>
-                                                                <span className="truncate">{nome}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
+                                                    <div className="space-y-4">
+                                                        {(!item.nomes_saidas_marketing?.length && !item.nomes_saidas_operacional?.length) && (
+                                                            <div className="text-sm text-slate-500 text-center py-4">Nenhum registro.</div>
+                                                        )}
+
+                                                        {item.nomes_saidas_marketing?.length > 0 && (
+                                                            <div>
+                                                                <h4 className="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 mb-2 flex items-center gap-1.5">
+                                                                    <div className="h-1.5 w-1.5 rounded-full bg-rose-500"></div>
+                                                                    Marketing ({item.nomes_saidas_marketing.length})
+                                                                </h4>
+                                                                <ul className="space-y-1.5">
+                                                                    {item.nomes_saidas_marketing.map((nome: string, idx: number) => (
+                                                                        <li key={`mkt-out-${idx}`} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 py-1.5 px-3 rounded-md bg-white dark:bg-slate-800 shadow-sm border border-rose-100 dark:border-rose-900/30">
+                                                                            <span className="truncate">{nome}</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+
+                                                        {item.nomes_saidas_operacional?.length > 0 && (
+                                                            <div>
+                                                                <h4 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                                                                    <div className="h-1.5 w-1.5 rounded-full bg-rose-300"></div>
+                                                                    Operacional ({item.nomes_saidas_operacional.length})
+                                                                </h4>
+                                                                <ul className="space-y-1.5">
+                                                                    {item.nomes_saidas_operacional.map((nome: string, idx: number) => (
+                                                                        <li key={`ops-out-${idx}`} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 py-1.5 px-3 rounded-md bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                                                            <span className="truncate">{nome}</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </ScrollArea>
                                             </DialogContent>
                                         </Dialog>
