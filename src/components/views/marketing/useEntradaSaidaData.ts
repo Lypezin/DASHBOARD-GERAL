@@ -80,15 +80,18 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
 
                         entradas_total: Number(item.entradas_total),
                         entradas_marketing: Number(item.entradas_mkt_count),
+                        entradas_operacional: Number(item.entradas_total) - Number(item.entradas_mkt_count),
                         nomes_entradas_marketing: item.nomes_entradas_mkt || [],
                         nomes_entradas_operacional: item.nomes_entradas_ops || [],
 
                         saidas_total: Number(item.saidas_total),
                         saidas_marketing: Number(item.saidas_mkt_count),
+                        saidas_operacional: Number(item.saidas_total) - Number(item.saidas_mkt_count),
                         nomes_saidas_marketing: item.nomes_saidas_mkt || [],
                         nomes_saidas_operacional: item.nomes_saidas_ops || [],
 
                         saidas_novos: Number(item.saidas_novos_total),
+                        saidas_novos_operacional: Number(item.saidas_novos_total) - (item.nomes_saidas_novos_mkt ? item.nomes_saidas_novos_mkt.length : 0),
                         nomes_saidas_novos_marketing: item.nomes_saidas_novos_mkt || [],
                         nomes_saidas_novos_operacional: item.nomes_saidas_novos_ops || [],
 
