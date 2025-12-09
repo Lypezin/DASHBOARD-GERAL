@@ -89,13 +89,34 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
 
                             {/* Métricas */}
                             <div className="grid grid-cols-2 gap-3 mb-4">
-                                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 p-3 text-center">
-                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600/70 dark:text-emerald-400/70 mb-1">Entradas</p>
-                                    <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">+{item.entradas}</p>
+                                {/* Entradas */}
+                                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 p-3 pt-2">
+                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600/70 dark:text-emerald-400/70 mb-1.5 text-center">Entradas</p>
+                                    <div className="flex justify-between items-end border-b border-emerald-200/50 dark:border-emerald-800/30 pb-1 mb-1">
+                                        <span className="text-xs text-emerald-700/70 dark:text-emerald-400/70">Total</span>
+                                        <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">+{item.entradas_total || item.entradas}</span>
+                                    </div>
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-xs text-emerald-700/70 dark:text-emerald-400/70 flex items-center gap-1">
+                                            Mkt
+                                        </span>
+                                        <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-500 tabular-nums">+{item.entradas_marketing || 0}</span>
+                                    </div>
                                 </div>
-                                <div className="rounded-xl bg-rose-50 dark:bg-rose-900/20 p-3 text-center">
-                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-600/70 dark:text-rose-400/70 mb-1">Saídas</p>
-                                    <p className="text-xl font-bold text-rose-700 dark:text-rose-400 tabular-nums">-{item.saidas}</p>
+
+                                {/* Saídas */}
+                                <div className="rounded-xl bg-rose-50 dark:bg-rose-900/20 p-3 pt-2">
+                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-600/70 dark:text-rose-400/70 mb-1.5 text-center">Saídas</p>
+                                    <div className="flex justify-between items-end border-b border-rose-200/50 dark:border-rose-800/30 pb-1 mb-1">
+                                        <span className="text-xs text-rose-700/70 dark:text-rose-400/70">Total</span>
+                                        <span className="text-lg font-bold text-rose-700 dark:text-rose-400 tabular-nums">-{item.saidas_total || item.saidas}</span>
+                                    </div>
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-xs text-rose-700/70 dark:text-rose-400/70 flex items-center gap-1">
+                                            Mkt
+                                        </span>
+                                        <span className="text-sm font-semibold text-rose-600 dark:text-rose-500 tabular-nums">-{item.saidas_marketing || 0}</span>
+                                    </div>
                                 </div>
                             </div>
 
