@@ -2,11 +2,14 @@
 
 import React, { useState, useMemo } from 'react';
 import { Entregador, EntregadoresData } from '@/types';
-import { Users } from 'lucide-react';
+import { Users, Download } from 'lucide-react';
 import { EntregadoresMainStatsCards } from './entregadores/EntregadoresMainStatsCards';
 import { EntregadoresMainSearch } from './entregadores/EntregadoresMainSearch';
 import { EntregadoresMainTable } from './entregadores/EntregadoresMainTable';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from './entregadores/EntregadoresUtils';
+import { Button } from '@/components/ui/button';
+import { exportarEntregadoresMainParaExcel } from './entregadores/EntregadoresMainExcelExport';
+import { safeLog } from '@/lib/errorHandler';
 
 const EntregadoresMainView = React.memo(function EntregadoresMainView({
   entregadoresData,
@@ -18,6 +21,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   const [sortField, setSortField] = useState<keyof Entregador | 'percentual_aceitas' | 'percentual_completadas'>('aderencia_percentual');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Filtrar e ordenar entregadores
   const sortedEntregadores: Entregador[] = useMemo(() => {
@@ -65,6 +69,17 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     return sorted;
   }, [entregadoresData, searchTerm, sortField, sortDirection]);
 
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      await exportarEntregadoresMainParaExcel(sortedEntregadores);
+    } catch (error) {
+      safeLog.error('Erro export main', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleSort = (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -106,6 +121,26 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Entregadores Operacional
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Performance e aderência da frota
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleExport}
+          disabled={isExporting}
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          {isExporting ? 'Exportando...' : 'Exportar Excel'}
+        </Button>
+      </div>
+
       <EntregadoresMainStatsCards
         totalEntregadores={totalEntregadores}
         aderenciaMedia={aderenciaMedia}
