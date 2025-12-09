@@ -148,6 +148,19 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                                 </div>
                             </div>
 
+                            {/* Novos - Desistências */}
+                            {item.saidas_novos > 0 && (
+                                <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 p-2 mb-4 flex items-center justify-between px-3 border border-amber-100 dark:border-amber-900/30">
+                                    <p className="text-[10px] uppercase font-semibold text-amber-600/80 dark:text-amber-400/80 flex items-center gap-1.5">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-amber-500"></div>
+                                        Desistências (Novos)
+                                    </p>
+                                    <span className="text-xs font-bold text-amber-700 dark:text-amber-400 tabular-nums">
+                                        -{item.saidas_novos}
+                                    </span>
+                                </div>
+                            )}
+
                             {/* Saldo e Ações */}
                             <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
                                 <Badge
