@@ -16,10 +16,10 @@ export async function exportarValoresParaExcel(valoresData: ValoresEntregador[])
         if (valoresData && valoresData.length > 0) {
             const dadosExportacao = valoresData.map(v => ({
                 'ID Entregador': v.id_entregador,
-                'Nome': v.nome,
-                'Valor Total': formatarMoeda(v.valor_total),
-                'Corridas': v.qtd_corridas,
-                'Ticket Médio': formatarMoeda(v.valor_total / (v.qtd_corridas || 1))
+                'Nome': v.nome_entregador,
+                'Valor Total': formatarMoeda(v.total_taxas),
+                'Corridas': v.numero_corridas_aceitas,
+                'Média': formatarMoeda(v.taxa_media)
             }));
 
             const ws = XLSX.utils.json_to_sheet(dadosExportacao);
@@ -30,7 +30,7 @@ export async function exportarValoresParaExcel(valoresData: ValoresEntregador[])
                 { wch: 35 }, // Nome
                 { wch: 15 }, // Valor
                 { wch: 10 }, // Corridas
-                { wch: 15 }  // Ticket Medio
+                { wch: 15 }  // Media
             ];
             ws['!cols'] = colWidths;
 

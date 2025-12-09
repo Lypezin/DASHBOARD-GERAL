@@ -1,4 +1,4 @@
-import { UtrData } from '@/types';
+import { UtrData, UtrGeral } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -18,6 +18,10 @@ const formatarNumero = (valor: number | undefined) => {
     return (valor || 0).toLocaleString('pt-BR');
 };
 
+const formatarDecimal = (valor: number | undefined) => {
+    return (valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 export async function exportarUtrParaExcel(utrData: UtrData): Promise<void> {
     try {
         const XLSX = await loadXLSX();
@@ -27,13 +31,9 @@ export async function exportarUtrParaExcel(utrData: UtrData): Promise<void> {
         if (utrData.geral) {
             const g = utrData.geral;
             const resumoData = [{
-                'Entregas': formatarNumero(g.entregas_totais),
-                'Entregas Ciclo 1': formatarNumero(g.entregas_ciclo_1),
-                'Entregas Ciclo 2': formatarNumero(g.entregas_ciclo_2),
-                'UTR': formatarMoeda(g.utr_total),
-                'UTR Ciclo 1': formatarMoeda(g.utr_ciclo_1),
-                'UTR Ciclo 2': formatarMoeda(g.utr_ciclo_2),
-                'Inflator': formatarPorcentagem(g.inflator)
+                'Tempo Total (h)': formatarDecimal(g.tempo_horas),
+                'Corridas': formatarNumero(g.corridas),
+                'UTR Score': formatarDecimal(g.utr)
             }];
             const wsResumo = XLSX.utils.json_to_sheet(resumoData);
             XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo Geral');
@@ -45,29 +45,25 @@ export async function exportarUtrParaExcel(utrData: UtrData): Promise<void> {
 
             const dadosFormatados = dados.map(item => ({
                 [labelChave]: item[campoChave] || 'N/A',
-                'Entregas': formatarNumero(item.entregas_totais),
-                'Entregas C1': formatarNumero(item.entregas_ciclo_1),
-                'Entregas C2': formatarNumero(item.entregas_ciclo_2),
-                'UTR': formatarMoeda(item.utr_total),
-                'UTR C1': formatarMoeda(item.utr_ciclo_1),
-                'UTR C2': formatarMoeda(item.utr_ciclo_2),
-                'Inflator': formatarPorcentagem(item.inflator)
+                'Tempo Total (h)': formatarDecimal(item.tempo_horas),
+                'Corridas': formatarNumero(item.corridas),
+                'UTR Score': formatarDecimal(item.utr)
             }));
             const ws = XLSX.utils.json_to_sheet(dadosFormatados);
             XLSX.utils.book_append_sheet(wb, ws, nomeAba);
         };
 
         // 2. Aba: Por Praça
-        exportarSecao(utrData.praca || utrData.por_praca, 'Por Praça', 'praca', 'Praça');
+        exportarSecao(utrData.praca || utrData.por_praca || [], 'Por Praça', 'praca', 'Praça');
 
         // 3. Aba: Por Sub-Praça
-        exportarSecao(utrData.sub_praca || utrData.por_sub_praca, 'Por Sub-Praça', 'sub_praca', 'Sub-Praça');
+        exportarSecao(utrData.sub_praca || utrData.por_sub_praca || [], 'Por Sub-Praça', 'sub_praca', 'Sub-Praça');
 
         // 4. Aba: Por Origem
-        exportarSecao(utrData.origem || utrData.por_origem, 'Por Origem', 'origem', 'Origem');
+        exportarSecao(utrData.origem || utrData.por_origem || [], 'Por Origem', 'origem', 'Origem');
 
         // 5. Aba: Por Turno
-        exportarSecao(utrData.turno || utrData.por_turno, 'Por Turno', 'turno', 'Turno');
+        exportarSecao(utrData.turno || utrData.por_turno || [], 'Por Turno', 'turno', 'Turno');
 
 
         // Gerar Nome do Arquivo
