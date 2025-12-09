@@ -51,19 +51,30 @@ export function useManualRefresh() {
 
     const refreshAllMVs = useCallback(async () => {
         setState(p => ({ ...p, refreshing: true, message: '🔄 Preparando...', progress: 0 }));
+        console.log('[ManualRefresh] Starting refreshAllMVs...');
         try {
+            console.log('[ManualRefresh] Calling mvService.getPendingMVs()...');
             const { data, error } = await mvService.getPendingMVs();
-            if (error) throw new Error(error.message);
+            console.log('[ManualRefresh] Result:', { data, error });
+
+            if (error) {
+                console.error('[ManualRefresh] mvService returned error:', error);
+                throw new Error(error.message || 'Falha ao buscar MVs pendentes.');
+            }
 
             const mvs = data && data.length > 0 ? data : [{ mv_name: 'mv_dashboard_resumo', priority: 1 } as unknown as PendingMV];
 
             // Ensure aderencia exists
             if (!mvs.some((m: PendingMV) => m.mv_name === 'mv_aderencia_agregada')) {
+                // Ensure unique
                 mvs.push({ mv_name: 'mv_aderencia_agregada', priority: 1 } as unknown as PendingMV);
             }
 
+            console.log('[ManualRefresh] Final list to refresh:', mvs);
+
             await runBatch(mvs);
         } catch (err: any) {
+            console.error('[ManualRefresh] Catch Block Error:', err);
             setState(p => ({ ...p, refreshing: false, message: `❌ Erro: ${err.message}` }));
             safeLog.error('Erro refresh all:', err);
         }
