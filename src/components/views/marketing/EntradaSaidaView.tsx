@@ -1,9 +1,11 @@
 import React from 'react';
 import { useEntradaSaidaData } from './useEntradaSaidaData';
-import { Activity } from 'lucide-react';
+import { Activity, Download, FileSpreadsheet } from 'lucide-react';
 import { EntradaSaidaStatsCards } from './components/EntradaSaidaStatsCards';
 import { EntradaSaidaWeeklyGrid } from './components/EntradaSaidaWeeklyGrid';
 import { EntradaSaidaChart } from './components/EntradaSaidaChart';
+import { Button } from '@/components/ui/button';
+import * as XLSX from 'xlsx';
 
 interface EntradaSaidaViewProps {
     dataInicial: string | null;
@@ -14,6 +16,32 @@ interface EntradaSaidaViewProps {
 
 export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial, dataFinal, organizationId, praca }) => {
     const { data, loading, error } = useEntradaSaidaData({ dataInicial, dataFinal, organizationId, praca });
+
+    const handleExport = () => {
+        if (!data || data.length === 0) return;
+
+        const formattedData = data.map(item => ({
+            'Semana': item.semana,
+            'Entradas Total': item.entradas_total,
+            'Entradas Mkt': item.entradas_marketing,
+            'Entradas Ops': item.entradas_operacional,
+            'Saídas Total': item.saidas_total,
+            'Saídas Mkt': item.saidas_marketing,
+            'Saídas Ops': item.saidas_operacional,
+            'Saldo': item.saldo,
+            'Desistências Novos': item.saidas_novos,
+            'Saldo Mkt': Number(item.entradas_marketing) - Number(item.saidas_marketing),
+            'Saldo Ops': Number(item.entradas_operacional) - Number(item.saidas_operacional)
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(formattedData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Fluxo Semanal");
+
+        // Generate filename with current date
+        const dateStr = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `fluxo_entregadores_marketing_${dateStr}.xlsx`);
+    };
 
     if (loading) {
         return (
@@ -43,6 +71,17 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
 
     return (
         <div className="space-y-8">
+            <div className="flex justify-end">
+                <Button
+                    onClick={handleExport}
+                    variant="outline"
+                    className="gap-2 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm"
+                >
+                    <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                    Exportar Excel
+                </Button>
+            </div>
+
             <EntradaSaidaStatsCards data={data} />
             <EntradaSaidaWeeklyGrid data={data} />
             <EntradaSaidaChart data={data} />
