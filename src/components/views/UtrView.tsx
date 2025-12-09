@@ -1,15 +1,19 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { UtrData } from '@/types';
 import {
   Building2,
   MapPin,
   Target,
   Clock,
-  Activity
+  Activity,
+  Download
 } from 'lucide-react';
 import { UtrGeral } from './utr/UtrGeral';
 import { UtrSection } from './utr/UtrSection';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
+import { Button } from '@/components/ui/button';
+import { exportarUtrParaExcel } from './utr/UtrExcelExport';
+import { safeLog } from '@/lib/errorHandler';
 
 const UtrView = React.memo(function UtrView({
   utrData,
@@ -18,20 +22,33 @@ const UtrView = React.memo(function UtrView({
   utrData: UtrData | null;
   loading: boolean;
 }) {
+  const [isExporting, setIsExporting] = useState(false);
+
   // Hooks devem ser chamados antes de qualquer early return
   const porPraca = useMemo(() => utrData?.praca || utrData?.por_praca || [], [utrData?.praca, utrData?.por_praca]);
   const porSubPraca = useMemo(() => utrData?.sub_praca || utrData?.por_sub_praca || [], [utrData?.sub_praca, utrData?.por_sub_praca]);
   const porOrigem = useMemo(() => utrData?.origem || utrData?.por_origem || [], [utrData?.origem, utrData?.por_origem]);
   const porTurno = useMemo(() => utrData?.turno || utrData?.por_turno || [], [utrData?.turno, utrData?.por_turno]);
 
-  if (loading) {
-    if (loading) {
-      return (
-        <div className="space-y-6 animate-fade-in">
-          <TableSkeleton rows={6} columns={4} />
-        </div>
-      );
+  const handleExport = useCallback(async () => {
+    if (!utrData) return;
+    try {
+      setIsExporting(true);
+      await exportarUtrParaExcel(utrData);
+    } catch (error) {
+      safeLog.error('Erro no export UTR:', error);
+    } finally {
+      setIsExporting(false);
     }
+  }, [utrData]);
+
+
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <TableSkeleton rows={6} columns={4} />
+      </div>
+    );
   }
 
   if (!utrData || !utrData.geral) {
@@ -46,6 +63,21 @@ const UtrView = React.memo(function UtrView({
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Análise de UTR
+        </h2>
+        <Button
+          variant="outline"
+          onClick={handleExport}
+          disabled={isExporting}
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          {isExporting ? 'Exportando...' : 'Exportar Excel'}
+        </Button>
+      </div>
+
       {/* UTR Geral */}
       <UtrGeral data={utrData.geral} />
 

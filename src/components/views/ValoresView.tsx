@@ -1,13 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { ValoresEntregador } from '@/types';
-import { AlertCircle, DollarSign } from 'lucide-react';
+import { AlertCircle, DollarSign, Download } from 'lucide-react';
 import { ValoresStatsCards } from './valores/ValoresStatsCards';
 import { ValoresTable } from './valores/ValoresTable';
 import { ValoresSearch } from './valores/ValoresSearch';
 import { useValoresData } from './valores/useValoresData';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
+import { Button } from '@/components/ui/button';
+import { exportarValoresParaExcel } from './valores/ValoresExcelExport';
+import { safeLog } from '@/lib/errorHandler';
 
 const ValoresView = React.memo(function ValoresView({
   valoresData,
@@ -16,6 +19,8 @@ const ValoresView = React.memo(function ValoresView({
   valoresData: ValoresEntregador[];
   loading: boolean;
 }) {
+  const [isExporting, setIsExporting] = useState(false);
+
   const {
     sortedValores,
     sortField,
@@ -31,6 +36,17 @@ const ValoresView = React.memo(function ValoresView({
     handleSort,
     formatarReal
   } = useValoresData(valoresData, loading);
+
+  const handleExport = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      await exportarValoresParaExcel(sortedValores);
+    } catch (err) {
+      safeLog.error('Erro export valores', err);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [sortedValores]);
 
   if (loading) {
     return (
@@ -70,6 +86,26 @@ const ValoresView = React.memo(function ValoresView({
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Valores por Entregador
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Acompanhe o repasse de cada entregador
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleExport}
+          disabled={isExporting}
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          {isExporting ? 'Exportando...' : 'Exportar Excel'}
+        </Button>
+      </div>
+
       <ValoresSearch
         searchTerm={searchTerm}
         isSearching={isSearching}
