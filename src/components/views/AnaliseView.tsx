@@ -7,6 +7,10 @@ import { useAnaliseTaxas } from '@/hooks/analise/useAnaliseTaxas';
 import { ListChecks } from 'lucide-react';
 import { useAnaliseTableData } from '@/hooks/analise/useAnaliseTableData';
 import { AnaliseMetricCards } from './analise/components/AnaliseMetricCards';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
+import { exportarAnaliseParaExcel } from './analise/AnaliseExcelExport';
+import { safeLog } from '@/lib/errorHandler';
 
 type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem';
 
@@ -24,6 +28,25 @@ const AnaliseView = React.memo(function AnaliseView({
   aderenciaOrigem: AderenciaOrigem[];
 }) {
   const [activeTable, setActiveTable] = useState<TableType>('dia');
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      await exportarAnaliseParaExcel(
+        totals,
+        aderenciaDia,
+        aderenciaTurno,
+        aderenciaSubPraca,
+        aderenciaOrigem
+      );
+    } catch (error) {
+      safeLog.error('Erro no export:', error);
+      // Opcional: toast error
+    } finally {
+      setIsExporting(false);
+    }
+  }, [totals, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
   // Memoizar cálculos de taxas
   const { taxaAceitacao, taxaCompletude, taxaRejeicao } = useAnaliseTaxas(totals);
@@ -45,7 +68,18 @@ const AnaliseView = React.memo(function AnaliseView({
   }, [aderenciaDia]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-8">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          onClick={handleExport}
+          disabled={isExporting}
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          {isExporting ? 'Exportando...' : 'Exportar Excel'}
+        </Button>
+      </div>
       <AnaliseMetricCards
         totals={totals}
         taxaAceitacao={taxaAceitacao}
