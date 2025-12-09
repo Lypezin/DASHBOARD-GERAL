@@ -4,6 +4,7 @@ import { Activity, Download, FileSpreadsheet } from 'lucide-react';
 import { EntradaSaidaStatsCards } from './components/EntradaSaidaStatsCards';
 import { EntradaSaidaWeeklyGrid } from './components/EntradaSaidaWeeklyGrid';
 import { EntradaSaidaChart } from './components/EntradaSaidaChart';
+import { EntradaSaidaMonthlyChart } from './components/EntradaSaidaMonthlyChart';
 import { Button } from '@/components/ui/button';
 import * as XLSX from 'xlsx';
 
@@ -84,7 +85,10 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
 
             <EntradaSaidaStatsCards data={data} />
             <EntradaSaidaWeeklyGrid data={data} />
-            <EntradaSaidaChart data={data} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <EntradaSaidaChart data={data} />
+                <EntradaSaidaMonthlyChart data={data} />
+            </div>
         </div>
     );
 };
