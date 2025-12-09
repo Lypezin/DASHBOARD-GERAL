@@ -59,21 +59,8 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
             const dbPraca = praca ? CITY_DB_MAPPING[praca] || praca : null;
 
             try {
-                // Fetch Marketing Couriers List to cross-reference
-                const { data: marketingData, error: marketingError } = await supabase
-                    .from('dados_marketing')
-                    .select('nome, id_entregador')
-                    .eq('organization_id', organizationId);
-
-                let marketingCourierNames = new Set<string>();
-
-                if (!marketingError && marketingData) {
-                    marketingData.forEach((m: any) => {
-                        if (m.nome) marketingCourierNames.add(m.nome.toLowerCase().trim());
-                    });
-                }
-
-                const { data: rpcData, error: rpcError } = await safeRpc<FluxoEntregadores[]>('get_fluxo_semanal', {
+                // Fetch FLUXO (RPC now handles Marketing classification by ID internally)
+                const { data: rpcData, error: rpcError } = await safeRpc<any[]>('get_fluxo_semanal', {
                     p_data_inicial: start,
                     p_data_final: end,
                     p_organization_id: organizationId,
@@ -87,49 +74,32 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
 
                 const rawData = Array.isArray(rpcData) ? rpcData : (rpcData || []);
 
-                const isMarketingCourier = (name: string, marketingSet: Set<string>) => {
-                    if (!name) return false;
-                    const normalized = name.toLowerCase().trim();
-                    if (marketingSet.has(normalized)) return true;
-                    for (const mName of marketingSet) {
-                        if (normalized.includes(mName) || mName.includes(normalized)) return true;
-                    }
-                    return false;
-                };
-
                 const processedData = rawData.map(item => {
-                    const entradasNames = item.nomes_entradas || [];
-                    const saidasNames = item.nomes_saidas || [];
-                    const saidasNovosNames = item.nomes_saidas_novos || [];
-
-                    const marketingEntradas = entradasNames.filter(name => isMarketingCourier(name, marketingCourierNames));
-                    const marketingSaidas = saidasNames.filter(name => isMarketingCourier(name, marketingCourierNames));
-                    const marketingSaidasNovos = saidasNovosNames.filter(name => isMarketingCourier(name, marketingCourierNames));
-
-                    const operacionalEntradas = entradasNames.filter(name => !isMarketingCourier(name, marketingCourierNames));
-                    const operacionalSaidas = saidasNames.filter(name => !isMarketingCourier(name, marketingCourierNames));
-                    const operacionalSaidasNovos = saidasNovosNames.filter(name => !isMarketingCourier(name, marketingCourierNames));
-
                     return {
-                        ...item,
-                        entradas_total: item.entradas,
-                        saidas_total: item.saidas,
-                        saidas_novos: item.saidas_novos || 0,
+                        semana: item.semana,
 
-                        entradas_marketing: marketingEntradas.length,
-                        saidas_marketing: marketingSaidas.length,
+                        entradas_total: Number(item.entradas_total),
+                        entradas_marketing: Number(item.entradas_mkt_count),
+                        nomes_entradas_marketing: item.nomes_entradas_mkt || [],
+                        nomes_entradas_operacional: item.nomes_entradas_ops || [],
 
-                        nomes_entradas_marketing: marketingEntradas,
-                        nomes_saidas_marketing: marketingSaidas,
-                        nomes_saidas_novos_marketing: marketingSaidasNovos,
+                        saidas_total: Number(item.saidas_total),
+                        saidas_marketing: Number(item.saidas_mkt_count),
+                        nomes_saidas_marketing: item.nomes_saidas_mkt || [],
+                        nomes_saidas_operacional: item.nomes_saidas_ops || [],
 
-                        nomes_entradas_operacional: operacionalEntradas,
-                        nomes_saidas_operacional: operacionalSaidas,
-                        nomes_saidas_novos_operacional: operacionalSaidasNovos,
+                        saidas_novos: Number(item.saidas_novos_total),
+                        nomes_saidas_novos_marketing: item.nomes_saidas_novos_mkt || [],
+                        nomes_saidas_novos_operacional: item.nomes_saidas_novos_ops || [],
 
-                        // Legacy
-                        entradas: item.entradas,
-                        saidas: item.saidas
+                        saldo: Number(item.saldo),
+
+                        // Legacy compatibility (if needed by other components, though we updated Grid)
+                        entradas: Number(item.entradas_total),
+                        saidas: Number(item.saidas_total),
+                        nomes_entradas: [...(item.nomes_entradas_mkt || []), ...(item.nomes_entradas_ops || [])],
+                        nomes_saidas: [...(item.nomes_saidas_mkt || []), ...(item.nomes_saidas_ops || [])],
+                        nomes_saidas_novos: [...(item.nomes_saidas_novos_mkt || []), ...(item.nomes_saidas_novos_ops || [])]
                     };
                 });
 
