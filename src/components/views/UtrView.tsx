@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { UtrGeral } from './utr/UtrGeral';
 import { UtrSection } from './utr/UtrSection';
+import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 
 const UtrView = React.memo(function UtrView({
   utrData,
@@ -24,14 +25,13 @@ const UtrView = React.memo(function UtrView({
   const porTurno = useMemo(() => utrData?.turno || utrData?.por_turno || [], [utrData?.turno, utrData?.por_turno]);
 
   if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-          <p className="mt-4 text-sm font-medium text-slate-500">Calculando UTR...</p>
+    if (loading) {
+      return (
+        <div className="space-y-6 animate-fade-in">
+          <TableSkeleton rows={6} columns={4} />
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   if (!utrData || !utrData.geral) {

@@ -4,6 +4,7 @@ import React from 'react';
 import { ResultadosFilters } from './resultados/ResultadosFilters';
 import { ResultadosCards } from './resultados/ResultadosCards';
 import { useResultadosData } from './resultados/useResultadosData';
+import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 
 const ResultadosView = React.memo(function ResultadosView() {
   const {
@@ -16,14 +17,13 @@ const ResultadosView = React.memo(function ResultadosView() {
   } = useResultadosData();
 
   if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div>
-          <p className="mt-4 text-lg font-semibold text-purple-700 dark:text-purple-200">Carregando resultados...</p>
+    if (loading) {
+      return (
+        <div className="space-y-6 animate-fade-in">
+          <TableSkeleton rows={8} columns={4} />
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   if (error) {

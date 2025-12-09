@@ -7,6 +7,7 @@ import { ValoresStatsCards } from './valores/ValoresStatsCards';
 import { ValoresTable } from './valores/ValoresTable';
 import { ValoresSearch } from './valores/ValoresSearch';
 import { useValoresData } from './valores/useValoresData';
+import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 
 const ValoresView = React.memo(function ValoresView({
   valoresData,
@@ -33,11 +34,8 @@ const ValoresView = React.memo(function ValoresView({
 
   if (loading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-          <p className="mt-4 text-sm font-medium text-slate-500">Carregando valores...</p>
-        </div>
+      <div className="space-y-6 animate-fade-in">
+        <TableSkeleton rows={10} columns={5} />
       </div>
     );
   }

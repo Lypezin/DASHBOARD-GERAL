@@ -7,6 +7,7 @@ import { EvolucaoFilters } from './evolucao/EvolucaoFilters';
 import { EvolucaoChart } from './evolucao/EvolucaoChart';
 import { EvolucaoStatsCards } from './evolucao/EvolucaoStatsCards';
 import { EvolucaoSkeleton } from './evolucao/EvolucaoSkeleton';
+import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { processEvolucaoData, createChartData } from './evolucao/EvolucaoDataProcessor';
 import { createEvolucaoChartOptions } from './evolucao/EvolucaoChartConfig';
 import { useThemeDetector } from '@/hooks/useThemeDetector';
@@ -78,7 +79,11 @@ const EvolucaoView = React.memo(function EvolucaoView({
 
   // Early return APÓS todos os hooks
   if (loading) {
-    return <EvolucaoSkeleton />;
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <TableSkeleton rows={8} columns={13} />
+      </div>
+    );
   }
 
   return (
