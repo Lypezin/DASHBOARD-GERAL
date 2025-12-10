@@ -5,8 +5,21 @@ import { useAuth } from '@/hooks/useAuth';
 
 export interface MarketingComparisonData {
     semana_iso: string;
+    // Hours
     segundos_ops: number;
     segundos_mkt: number;
+    // Offered
+    ofertadas_ops: number;
+    ofertadas_mkt: number;
+    // Accepted
+    aceitas_ops: number;
+    aceitas_mkt: number;
+    // Completed
+    concluidas_ops: number;
+    concluidas_mkt: number;
+    // Rejected
+    rejeitadas_ops: number;
+    rejeitadas_mkt: number;
 }
 
 export function useMarketingComparacao(

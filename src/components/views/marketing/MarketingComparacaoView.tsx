@@ -47,6 +47,17 @@ function formatDuration(seconds: number): string {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
+// Helper to get week number
+function extractWeekNumber(isoWeek: string) {
+    return isoWeek.split('-W')[1] || isoWeek;
+}
+
+// Helper to calculate percentage
+function calculatePercentage(value: number, total: number) {
+    if (!total || total === 0) return '0%';
+    return `${((value / total) * 100).toFixed(1)}%`;
+}
+
 // Helper to calculate date range from ISO week
 function getDateRangeFromWeek(year: number, week: number) {
     const simple = new Date(year, 0, 1 + (week - 1) * 7);
@@ -131,35 +142,87 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
             ) : (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Horas: Operacional vs Marketing</CardTitle>
-                        <CardDescription>Comparativo semanal de horas logadas</CardDescription>
+                        <CardTitle>Comparativo: Operacional vs Marketing</CardTitle>
+                        <CardDescription>
+                            Análise de volume e funil de corridas por semana
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="rounded-md border border-slate-200 dark:border-slate-800">
+                        <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
                             <Table>
                                 <TableHeader>
+                                    <TableRow className="bg-muted/50">
+                                        <TableHead rowSpan={2} className="w-[100px]">Semana</TableHead>
+                                        <TableHead colSpan={4} className="text-center border-l bg-blue-50/50 dark:bg-blue-900/10">Horas Logadas</TableHead>
+                                        <TableHead colSpan={2} className="text-center border-l">Ofertadas</TableHead>
+                                        <TableHead colSpan={2} className="text-center border-l">Aceitas</TableHead>
+                                        <TableHead colSpan={2} className="text-center border-l">Completas</TableHead>
+                                        <TableHead colSpan={2} className="text-center border-l">Rejeitadas</TableHead>
+                                    </TableRow>
                                     <TableRow>
-                                        <TableHead>Semana</TableHead>
-                                        <TableHead className="text-right">Operacional</TableHead>
-                                        <TableHead className="text-right">Marketing</TableHead>
-                                        <TableHead className="text-right">Total</TableHead>
+                                        {/* Hours Sub-headers */}
+                                        <TableHead className="text-right border-l bg-blue-50/50 dark:bg-blue-900/10 text-xs">Operacional</TableHead>
+                                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-600 font-semibold">Marketing</TableHead>
+                                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-slate-500">% Ops</TableHead>
+                                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-500 font-semibold">% Mkt</TableHead>
+
+                                        {/* Ofertadas Sub-headers */}
+                                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
+                                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+
+                                        {/* Aceitas Sub-headers */}
+                                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
+                                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+
+                                        {/* Completas Sub-headers */}
+                                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
+                                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+
+                                        {/* Rejeitadas Sub-headers */}
+                                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
+                                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {data.map((row) => (
-                                        <TableRow key={row.semana_iso}>
-                                            <TableCell className="font-medium">{row.semana_iso}</TableCell>
-                                            <TableCell className="text-right font-mono">{formatDuration(row.segundos_ops)}</TableCell>
-                                            <TableCell className="text-right font-mono text-purple-600 dark:text-purple-400 font-bold">{formatDuration(row.segundos_mkt)}</TableCell>
-                                            <TableCell className="text-right font-mono text-slate-500">{formatDuration(row.segundos_ops + row.segundos_mkt)}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {data.length === 0 && (
+                                    {data.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="h-24 text-center">
+                                            <TableCell colSpan={13} className="h-24 text-center">
                                                 Nenhum dado encontrado para o período selecionado.
                                             </TableCell>
                                         </TableRow>
+                                    ) : (
+                                        data.map((row) => {
+                                            const totalHours = row.segundos_ops + row.segundos_mkt;
+                                            return (
+                                                <TableRow key={row.semana_iso}>
+                                                    <TableCell className="font-medium whitespace-nowrap">
+                                                        Semana {extractWeekNumber(row.semana_iso)}
+                                                    </TableCell>
+
+                                                    {/* Hours */}
+                                                    <TableCell className="text-right font-mono border-l bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_ops)}</TableCell>
+                                                    <TableCell className="text-right font-mono font-bold text-purple-600 dark:text-purple-400 bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_mkt)}</TableCell>
+                                                    <TableCell className="text-right text-xs text-slate-500 bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_ops, totalHours)}</TableCell>
+                                                    <TableCell className="text-right text-xs text-purple-500 font-semibold bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_mkt, totalHours)}</TableCell>
+
+                                                    {/* Ofertadas */}
+                                                    <TableCell className="text-right border-l">{row.ofertadas_ops.toLocaleString('pt-BR')}</TableCell>
+                                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.ofertadas_mkt.toLocaleString('pt-BR')}</TableCell>
+
+                                                    {/* Aceitas */}
+                                                    <TableCell className="text-right border-l">{row.aceitas_ops.toLocaleString('pt-BR')}</TableCell>
+                                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.aceitas_mkt.toLocaleString('pt-BR')}</TableCell>
+
+                                                    {/* Completas */}
+                                                    <TableCell className="text-right border-l">{row.concluidas_ops.toLocaleString('pt-BR')}</TableCell>
+                                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.concluidas_mkt.toLocaleString('pt-BR')}</TableCell>
+
+                                                    {/* Rejeitadas */}
+                                                    <TableCell className="text-right border-l">{row.rejeitadas_ops.toLocaleString('pt-BR')}</TableCell>
+                                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.rejeitadas_mkt.toLocaleString('pt-BR')}</TableCell>
+                                                </TableRow>
+                                            );
+                                        })
                                     )}
                                 </TableBody>
                             </Table>
