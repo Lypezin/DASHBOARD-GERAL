@@ -119,7 +119,6 @@ export default function DashboardPage() {
                 pracas={pracas}
                 subPracas={subPracas}
                 origens={origens}
-                origens={origens}
                 currentUser={currentUser}
                 filters={filters}
               />

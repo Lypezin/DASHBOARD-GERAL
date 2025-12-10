@@ -26,7 +26,6 @@ import type {
   AderenciaOrigem,
   FilterOption,
   CurrentUser,
-  CurrentUser,
   TabType,
   DashboardFilters,
 } from '@/types';
@@ -63,7 +62,6 @@ interface DashboardViewsRendererProps {
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
-  origens: FilterOption[];
   currentUser: CurrentUser | null;
   filters: DashboardFilters;
 }
@@ -97,7 +95,6 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   semanas,
   pracas,
   subPracas,
-  origens,
   origens,
   currentUser,
   filters,
