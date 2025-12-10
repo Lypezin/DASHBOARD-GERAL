@@ -105,6 +105,7 @@ export default function DashboardPage() {
                                 subPracas={subPracas}
                                 origens={origens}
                                 currentUser={currentUser}
+                                filters={filters}
                             />
                         </main>
                     </div>
