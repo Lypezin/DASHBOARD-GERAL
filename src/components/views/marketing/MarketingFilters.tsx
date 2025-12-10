@@ -116,7 +116,32 @@ export const MarketingFilters = React.memo(function MarketingFilters({
                 </div>
 
                 {/* Filtros principais */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {/* Filtro de Ano */}
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                            Ano
+                        </label>
+                        <Select
+                            value={filters.dataInicial.split('-')[0]}
+                            onValueChange={(year) => {
+                                setFilters(prev => ({
+                                    ...prev,
+                                    dataInicial: `${year}-01-01`,
+                                    dataFinal: `${year}-12-31`
+                                }));
+                            }}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecione o ano" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="2024">2024</SelectItem>
+                                <SelectItem value="2025">2025</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                     {/* Data Inicial */}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
