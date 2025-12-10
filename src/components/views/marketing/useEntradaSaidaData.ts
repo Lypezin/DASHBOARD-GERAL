@@ -113,7 +113,10 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                 });
 
                 // Filter out Week 01 2024 due to cold-start "fake" entries (no 2023 data)
-                const filteredData = processedData.filter(item => item.semana !== '2024-W01');
+                const filteredData = processedData.filter(item => !item.semana.includes('2024-W01'));
+
+                // Debug log to verify filtering (visible in user console if they check)
+                console.log('Processed Data:', processedData.length, 'Filtered Data:', filteredData.length);
 
                 setData(filteredData);
             } catch (err: any) {
