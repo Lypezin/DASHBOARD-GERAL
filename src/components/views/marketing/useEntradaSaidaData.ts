@@ -112,10 +112,7 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                     };
                 });
 
-                // Filter out Week 01 2025 due to cold-start "fake" entries
-                const filteredData = processedData.filter(item => item.semana !== '2025-W01');
-
-                setData(filteredData);
+                setData(processedData);
             } catch (err: any) {
                 safeLog.error('Erro ao buscar fluxo de entregadores:', err);
                 setError(err.message || 'Erro ao carregar dados.');
