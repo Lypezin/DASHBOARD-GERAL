@@ -57,6 +57,7 @@ const MarketingView = React.memo(function MarketingView() {
       {activeSubTab === 'dashboard' && <MarketingDashboardView />}
       {activeSubTab === 'resultados' && <ResultadosView />}
       {activeSubTab === 'valores-cidade' && <ValoresCidadeView />}
+      {activeSubTab === 'entregadores' && <EntregadoresView />}
       {activeSubTab === 'entrada-saida' && <MarketingEntradaSaidaView />}
     </div>
   );
