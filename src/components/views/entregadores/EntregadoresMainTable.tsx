@@ -114,10 +114,10 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                             </div>
                                         </div>
                                         <div className="text-right text-sm text-slate-600 dark:text-slate-400">
-                                            {entregador.corridas_ofertadas.toLocaleString()}
+                                            {(entregador.corridas_ofertadas || 0).toLocaleString()}
                                         </div>
                                         <div className="text-right text-sm text-slate-600 dark:text-slate-400">
-                                            {entregador.corridas_aceitas.toLocaleString()}
+                                            {(entregador.corridas_aceitas || 0).toLocaleString()}
                                         </div>
                                         <div className="text-center">
                                             <Badge variant="outline" className="font-normal">
@@ -125,7 +125,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                             </Badge>
                                         </div>
                                         <div className="text-right text-sm text-slate-600 dark:text-slate-400">
-                                            {entregador.corridas_completadas.toLocaleString()}
+                                            {(entregador.corridas_completadas || 0).toLocaleString()}
                                         </div>
                                         <div className="text-center">
                                             <Badge variant="outline" className="font-normal">
@@ -142,7 +142,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                                         : 'text-rose-600 border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-800'
                                                     }`}
                                             >
-                                                {entregador.aderencia_percentual.toFixed(1)}%
+                                                {(entregador.aderencia_percentual || 0).toFixed(1)}%
                                             </Badge>
                                         </div>
                                     </div>

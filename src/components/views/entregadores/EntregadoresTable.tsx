@@ -150,19 +150,19 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
                     </div>
 
                     <div className="text-right text-sm text-slate-600 dark:text-slate-400 font-mono">
-                      {entregador.total_ofertadas.toLocaleString('pt-BR')}
+                      {(entregador.total_ofertadas || 0).toLocaleString('pt-BR')}
                     </div>
 
                     <div className="text-right text-sm text-emerald-600 dark:text-emerald-400 font-mono font-medium">
-                      {entregador.total_aceitas.toLocaleString('pt-BR')}
+                      {(entregador.total_aceitas || 0).toLocaleString('pt-BR')}
                     </div>
 
                     <div className="text-right text-sm text-blue-600 dark:text-blue-400 font-mono font-medium">
-                      {entregador.total_completadas.toLocaleString('pt-BR')}
+                      {(entregador.total_completadas || 0).toLocaleString('pt-BR')}
                     </div>
 
                     <div className="text-right text-sm text-rose-600 dark:text-rose-400 font-mono font-medium">
-                      {entregador.total_rejeitadas.toLocaleString('pt-BR')}
+                      {(entregador.total_rejeitadas || 0).toLocaleString('pt-BR')}
                     </div>
 
                     <div className="text-right text-sm text-indigo-600 dark:text-indigo-400 font-mono flex items-center justify-end gap-1">
