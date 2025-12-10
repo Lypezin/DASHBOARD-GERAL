@@ -59,7 +59,7 @@ export const VALORES_CIDADE_COLUMN_MAP: { [key: string]: string } = {
 /**
  * Tamanho do lote para inserção no banco de dados
  */
-export const BATCH_SIZE = 500;
+export const BATCH_SIZE = 100;
 
 /**
  * Tamanho máximo do arquivo em bytes (50MB)
