@@ -89,9 +89,9 @@ export const EntregadoresFilters = React.memo(function EntregadoresFilters({
             onFilterChange={onFiltroRodouDiaChange}
           />
 
-          {/* Filtro Data Início */}
+          {/* Filtro Data das Corridas */}
           <MarketingDateFilterComponent
-            label="Data Início"
+            label="Data das Corridas"
             filter={filtroDataInicio}
             onFilterChange={onFiltroDataInicioChange}
           />
