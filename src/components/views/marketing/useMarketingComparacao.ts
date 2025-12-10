@@ -51,7 +51,7 @@ export function useMarketingComparacao(
             const { data: result, error: rpcError } = await safeRpc<MarketingComparisonData[]>(
                 'get_marketing_comparison_weekly',
                 params,
-                { validateParams: false }
+                { validateParams: false, timeout: 60000 }
             );
 
             if (rpcError) {
