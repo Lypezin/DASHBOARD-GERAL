@@ -125,10 +125,13 @@ export const MarketingFilters = React.memo(function MarketingFilters({
                         <Select
                             value={filters.dataInicial.split('-')[0]}
                             onValueChange={(year) => {
+                                const currentYear = new Date().getFullYear().toString();
+                                const today = new Date().toISOString().split('T')[0];
+
                                 setFilters(prev => ({
                                     ...prev,
                                     dataInicial: `${year}-01-01`,
-                                    dataFinal: `${year}-12-31`
+                                    dataFinal: year === currentYear ? today : `${year}-12-31`
                                 }));
                             }}
                         >
