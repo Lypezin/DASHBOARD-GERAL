@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useMarketingComparacao } from './useMarketingComparacao';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Clock, Send, CheckCircle2, XCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DashboardFilters } from '@/types';
 
@@ -121,6 +121,30 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
         praca
     );
 
+    // Calculate totals
+    const totals = useMemo(() => {
+        return data.reduce((acc, row) => ({
+            segundos_ops: acc.segundos_ops + row.segundos_ops,
+            segundos_mkt: acc.segundos_mkt + row.segundos_mkt,
+            ofertadas_ops: acc.ofertadas_ops + row.ofertadas_ops,
+            ofertadas_mkt: acc.ofertadas_mkt + row.ofertadas_mkt,
+            aceitas_ops: acc.aceitas_ops + row.aceitas_ops,
+            aceitas_mkt: acc.aceitas_mkt + row.aceitas_mkt,
+            concluidas_ops: acc.concluidas_ops + row.concluidas_ops,
+            concluidas_mkt: acc.concluidas_mkt + row.concluidas_mkt,
+            rejeitadas_ops: acc.rejeitadas_ops + row.rejeitadas_ops,
+            rejeitadas_mkt: acc.rejeitadas_mkt + row.rejeitadas_mkt,
+        }), {
+            segundos_ops: 0, segundos_mkt: 0,
+            ofertadas_ops: 0, ofertadas_mkt: 0,
+            aceitas_ops: 0, aceitas_mkt: 0,
+            concluidas_ops: 0, concluidas_mkt: 0,
+            rejeitadas_ops: 0, rejeitadas_mkt: 0
+        });
+    }, [data]);
+
+    const totalHours = totals.segundos_ops + totals.segundos_mkt;
+
     // Filter out current week to match other tabs if needed, 
     // or keep it raw. User didn't specify, but usually we filter incomplete weeks.
     // For now, let's show all data returned by the RPC.
@@ -140,95 +164,164 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             ) : (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Comparativo: Operacional vs Marketing</CardTitle>
-                        <CardDescription>
-                            Análise de volume e funil de corridas por semana
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="bg-muted/50">
-                                        <TableHead rowSpan={2} className="w-[100px]">Semana</TableHead>
-                                        <TableHead colSpan={4} className="text-center border-l bg-blue-50/50 dark:bg-blue-900/10">Horas Logadas</TableHead>
-                                        <TableHead colSpan={2} className="text-center border-l">Ofertadas</TableHead>
-                                        <TableHead colSpan={2} className="text-center border-l">Aceitas</TableHead>
-                                        <TableHead colSpan={2} className="text-center border-l">Completas</TableHead>
-                                        <TableHead colSpan={2} className="text-center border-l">Rejeitadas</TableHead>
-                                    </TableRow>
-                                    <TableRow>
-                                        {/* Hours Sub-headers */}
-                                        <TableHead className="text-right border-l bg-blue-50/50 dark:bg-blue-900/10 text-xs">Operacional</TableHead>
-                                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-600 font-semibold">Marketing</TableHead>
-                                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-slate-500">% Ops</TableHead>
-                                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-500 font-semibold">% Mkt</TableHead>
+                <>
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Horas Totais
+                                </CardTitle>
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{formatDuration(totalHours)}</div>
+                                <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center">
+                                    <span className="flex items-center gap-1">Ops: <span className="font-mono">{formatDuration(totals.segundos_ops)}</span></span>
+                                    <span className="text-purple-600 font-semibold flex items-center gap-1">Mkt: <span className="font-mono">{formatDuration(totals.segundos_mkt)}</span></span>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                                        {/* Ofertadas Sub-headers */}
-                                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Corridas Ofertadas
+                                </CardTitle>
+                                <Send className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{(totals.ofertadas_ops + totals.ofertadas_mkt).toLocaleString('pt-BR')}</div>
+                                <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center">
+                                    <span>Ops: {totals.ofertadas_ops.toLocaleString('pt-BR')}</span>
+                                    <span className="text-purple-600 font-semibold">Mkt: {totals.ofertadas_mkt.toLocaleString('pt-BR')}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                                        {/* Aceitas Sub-headers */}
-                                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Corridas Completas
+                                </CardTitle>
+                                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{(totals.concluidas_ops + totals.concluidas_mkt).toLocaleString('pt-BR')}</div>
+                                <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center">
+                                    <span>Ops: {totals.concluidas_ops.toLocaleString('pt-BR')}</span>
+                                    <span className="text-purple-600 font-semibold">Mkt: {totals.concluidas_mkt.toLocaleString('pt-BR')}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                                        {/* Completas Sub-headers */}
-                                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Corridas Rejeitadas
+                                </CardTitle>
+                                <XCircle className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{(totals.rejeitadas_ops + totals.rejeitadas_mkt).toLocaleString('pt-BR')}</div>
+                                <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center">
+                                    <span>Ops: {totals.rejeitadas_ops.toLocaleString('pt-BR')}</span>
+                                    <span className="text-purple-600 font-semibold">Mkt: {totals.rejeitadas_mkt.toLocaleString('pt-BR')}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                                        {/* Rejeitadas Sub-headers */}
-                                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {data.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={13} className="h-24 text-center">
-                                                Nenhum dado encontrado para o período selecionado.
-                                            </TableCell>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Comparativo: Operacional vs Marketing</CardTitle>
+                            <CardDescription>
+                                Análise de volume e funil de corridas por semana
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="bg-muted/50">
+                                            <TableHead rowSpan={2} className="w-[100px]">Semana</TableHead>
+                                            <TableHead colSpan={4} className="text-center border-l bg-blue-50/50 dark:bg-blue-900/10">Horas Logadas</TableHead>
+                                            <TableHead colSpan={2} className="text-center border-l">Ofertadas</TableHead>
+                                            <TableHead colSpan={2} className="text-center border-l">Aceitas</TableHead>
+                                            <TableHead colSpan={2} className="text-center border-l">Completas</TableHead>
+                                            <TableHead colSpan={2} className="text-center border-l">Rejeitadas</TableHead>
                                         </TableRow>
-                                    ) : (
-                                        data.map((row) => {
-                                            const totalHours = row.segundos_ops + row.segundos_mkt;
-                                            return (
-                                                <TableRow key={row.semana_iso}>
-                                                    <TableCell className="font-medium whitespace-nowrap">
-                                                        Semana {extractWeekNumber(row.semana_iso)}
-                                                    </TableCell>
+                                        <TableRow>
+                                            {/* Hours Sub-headers */}
+                                            <TableHead className="text-right border-l bg-blue-50/50 dark:bg-blue-900/10 text-xs">Operacional</TableHead>
+                                            <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-600 font-semibold">Marketing</TableHead>
+                                            <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-slate-500">% Ops</TableHead>
+                                            <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-500 font-semibold">% Mkt</TableHead>
 
-                                                    {/* Hours */}
-                                                    <TableCell className="text-right font-mono border-l bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_ops)}</TableCell>
-                                                    <TableCell className="text-right font-mono font-bold text-purple-600 dark:text-purple-400 bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_mkt)}</TableCell>
-                                                    <TableCell className="text-right text-xs text-slate-500 bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_ops, totalHours)}</TableCell>
-                                                    <TableCell className="text-right text-xs text-purple-500 font-semibold bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_mkt, totalHours)}</TableCell>
+                                            {/* Ofertadas Sub-headers */}
+                                            <TableHead className="text-right border-l text-xs">Ops</TableHead>
+                                            <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
 
-                                                    {/* Ofertadas */}
-                                                    <TableCell className="text-right border-l">{row.ofertadas_ops.toLocaleString('pt-BR')}</TableCell>
-                                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.ofertadas_mkt.toLocaleString('pt-BR')}</TableCell>
+                                            {/* Aceitas Sub-headers */}
+                                            <TableHead className="text-right border-l text-xs">Ops</TableHead>
+                                            <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
 
-                                                    {/* Aceitas */}
-                                                    <TableCell className="text-right border-l">{row.aceitas_ops.toLocaleString('pt-BR')}</TableCell>
-                                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.aceitas_mkt.toLocaleString('pt-BR')}</TableCell>
+                                            {/* Completas Sub-headers */}
+                                            <TableHead className="text-right border-l text-xs">Ops</TableHead>
+                                            <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
 
-                                                    {/* Completas */}
-                                                    <TableCell className="text-right border-l">{row.concluidas_ops.toLocaleString('pt-BR')}</TableCell>
-                                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.concluidas_mkt.toLocaleString('pt-BR')}</TableCell>
+                                            {/* Rejeitadas Sub-headers */}
+                                            <TableHead className="text-right border-l text-xs">Ops</TableHead>
+                                            <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {data.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={13} className="h-24 text-center">
+                                                    Nenhum dado encontrado para o período selecionado.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            data.map((row) => {
+                                                const totalHours = row.segundos_ops + row.segundos_mkt;
+                                                return (
+                                                    <TableRow key={row.semana_iso}>
+                                                        <TableCell className="font-medium whitespace-nowrap">
+                                                            Semana {extractWeekNumber(row.semana_iso)}
+                                                        </TableCell>
 
-                                                    {/* Rejeitadas */}
-                                                    <TableCell className="text-right border-l">{row.rejeitadas_ops.toLocaleString('pt-BR')}</TableCell>
-                                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.rejeitadas_mkt.toLocaleString('pt-BR')}</TableCell>
-                                                </TableRow>
-                                            );
-                                        })
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </CardContent>
-                </Card>
+                                                        {/* Hours */}
+                                                        <TableCell className="text-right font-mono border-l bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_ops)}</TableCell>
+                                                        <TableCell className="text-right font-mono font-bold text-purple-600 dark:text-purple-400 bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_mkt)}</TableCell>
+                                                        <TableCell className="text-right text-xs text-slate-500 bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_ops, totalHours)}</TableCell>
+                                                        <TableCell className="text-right text-xs text-purple-500 font-semibold bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_mkt, totalHours)}</TableCell>
+
+                                                        {/* Ofertadas */}
+                                                        <TableCell className="text-right border-l">{row.ofertadas_ops.toLocaleString('pt-BR')}</TableCell>
+                                                        <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.ofertadas_mkt.toLocaleString('pt-BR')}</TableCell>
+
+                                                        {/* Aceitas */}
+                                                        <TableCell className="text-right border-l">{row.aceitas_ops.toLocaleString('pt-BR')}</TableCell>
+                                                        <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.aceitas_mkt.toLocaleString('pt-BR')}</TableCell>
+
+                                                        {/* Completas */}
+                                                        <TableCell className="text-right border-l">{row.concluidas_ops.toLocaleString('pt-BR')}</TableCell>
+                                                        <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.concluidas_mkt.toLocaleString('pt-BR')}</TableCell>
+
+                                                        {/* Rejeitadas */}
+                                                        <TableCell className="text-right border-l">{row.rejeitadas_ops.toLocaleString('pt-BR')}</TableCell>
+                                                        <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.rejeitadas_mkt.toLocaleString('pt-BR')}</TableCell>
+                                                    </TableRow>
+                                                );
+                                            })
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </>
             )}
         </div>
     );
