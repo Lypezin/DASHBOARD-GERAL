@@ -197,13 +197,7 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
           )}
 
           {activeTab === 'comparacao' && (
-            <ComparacaoView
-              semanas={semanas}
-              pracas={pracas}
-              subPracas={subPracas}
-              origens={origens}
-              currentUser={currentUser}
-            />
+            <ComparacaoView />
           )}
 
           {activeTab === 'marketing' && (
