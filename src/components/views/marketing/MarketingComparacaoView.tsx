@@ -131,7 +131,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView() {
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                     {/* Gráfico de Horas */}
                     <Card>
                         <CardHeader>
@@ -139,7 +139,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView() {
                             <CardDescription>Comparativo semanal de horas logadas</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-[400px]">
+                            <div className="h-[500px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -149,29 +149,6 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView() {
                                         <Legend />
                                         <Bar name="Operacional" dataKey="horas_ops" fill="#64748b" radius={[4, 4, 0, 0]} />
                                         <Bar name="Marketing" dataKey="horas_mkt" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Gráfico de Corridas Ofertadas */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Corridas Ofertadas: Operacional vs Marketing</CardTitle>
-                            <CardDescription>Comparativo semanal de volume de ofertas</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="h-[400px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                                        <XAxis dataKey="semana_iso" tick={{ fontSize: 12 }} />
-                                        <YAxis />
-                                        <Tooltip content={<CustomTooltip />} />
-                                        <Legend />
-                                        <Bar name="Operacional" dataKey="ofertadas_ops" fill="#64748b" radius={[4, 4, 0, 0]} />
-                                        <Bar name="Marketing" dataKey="ofertadas_mkt" fill="#10b981" radius={[4, 4, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
