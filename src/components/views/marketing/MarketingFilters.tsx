@@ -197,8 +197,17 @@ export const MarketingFilters = React.memo(function MarketingFilters({
                     </div>
                 </div>
 
-                {/* Botão Aplicar */}
-                <div className="flex justify-end pt-2">
+                {/* Botões de Ação */}
+                <div className="flex justify-end pt-2 gap-3">
+                    <Button
+                        variant="outline"
+                        onClick={handleClearFilters}
+                        disabled={!hasActiveFilters && !hasPendingChanges}
+                        className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                    >
+                        <X className="h-4 w-4 mr-2" />
+                        Limpar Filtros
+                    </Button>
                     <Button
                         onClick={handleApplyFilters}
                         disabled={!hasPendingChanges}
