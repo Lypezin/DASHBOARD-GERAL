@@ -113,7 +113,26 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                 });
 
                 // Filter out Week 01 2024 due to cold-start "fake" entries (no 2023 data)
-                const filteredData = processedData.filter(item => !item.semana.includes('2024-W01'));
+                let filteredData = processedData.filter(item => !item.semana.includes('2024-W01'));
+
+                // Calculate Current ISO Week to filter it out (avoid incomplete data/false churn)
+                const now = new Date();
+                const target = new Date(now.valueOf());
+                const dayNr = (now.getDay() + 6) % 7;
+                target.setDate(target.getDate() - dayNr + 3);
+                const firstThursday = target.valueOf();
+                target.setMonth(0, 1);
+                if (target.getDay() !== 4) {
+                    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+                }
+                const weekNumber = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
+                const currentYear = now.getFullYear();
+                const currentWeekIso = `${currentYear}-W${weekNumber.toString().padStart(2, '0')}`;
+
+                console.log('Current Week (Hidden):', currentWeekIso);
+
+                // Filter out CURRENT WEEK
+                filteredData = filteredData.filter(item => item.semana !== currentWeekIso);
 
                 // Debug log to verify filtering (visible in user console if they check)
                 console.log('Processed Data:', processedData.length, 'Filtered Data:', filteredData.length);
