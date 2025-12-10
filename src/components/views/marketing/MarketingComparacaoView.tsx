@@ -47,15 +47,52 @@ function formatDuration(seconds: number): string {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
+// Helper to calculate date range from ISO week
+function getDateRangeFromWeek(year: number, week: number) {
+    const simple = new Date(year, 0, 1 + (week - 1) * 7);
+    const dayOfWeek = simple.getDay();
+    const isoWeekStart = simple;
+    if (dayOfWeek <= 4)
+        isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+    else
+        isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+
+    const isoWeekEnd = new Date(isoWeekStart);
+    isoWeekEnd.setDate(isoWeekStart.getDate() + 6);
+
+    return {
+        start: isoWeekStart.toISOString().split('T')[0],
+        end: isoWeekEnd.toISOString().split('T')[0]
+    };
+}
+
 const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ filters }: MarketingComparacaoViewProps) {
     const { user } = useAuth();
 
-    // Determine the date range to use
-    // If 'intervalo' mode, use dataInicial/Final directly.
-    // Use sensible defaults if empty
-    const dataInicial = filters.dataInicial || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
-    const dataFinal = filters.dataFinal || new Date().toISOString().split('T')[0];
-    const praca = filters.praca;
+    // Determine the date range
+    let dataInicial = filters.dataInicial;
+    let dataFinal = filters.dataFinal;
+
+    // If dates are not set (e.g. Ano/Semana mode), calculate from week/year
+    if (!dataInicial || !dataFinal) {
+        if (filters.ano && filters.semana) {
+            const range = getDateRangeFromWeek(filters.ano, filters.semana);
+            dataInicial = range.start;
+            dataFinal = range.end;
+        } else if (filters.ano) {
+            // Whole year if only year is selected (or default to current year jan 1 - dec 31)
+            dataInicial = `${filters.ano}-01-01`;
+            dataFinal = `${filters.ano}-12-31`;
+        } else {
+            // Fallback to current year
+            const year = new Date().getFullYear();
+            dataInicial = `${year}-01-01`;
+            dataFinal = new Date().toISOString().split('T')[0];
+        }
+    }
+
+    // Handle "Todas" or null praca
+    const praca = (filters.praca && filters.praca !== 'Todas') ? filters.praca : null;
 
     const { data, loading, error } = useMarketingComparacao(
         dataInicial,
