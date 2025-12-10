@@ -94,6 +94,15 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
     // Handle "Todas" or null praca
     const praca = (filters.praca && filters.praca !== 'Todas') ? filters.praca : null;
 
+    console.log('MarketingComparacaoView Filter Debug:', {
+        rawFilters: filters,
+        calculated: {
+            dataInicial,
+            dataFinal,
+            praca
+        }
+    });
+
     const { data, loading, error } = useMarketingComparacao(
         dataInicial,
         dataFinal,
