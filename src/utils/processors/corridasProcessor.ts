@@ -9,7 +9,10 @@ import {
   excelSerialToISODate,
   convertSecondsToHHMMSS,
   convertFractionToHHMMSS,
+  convertDDMMYYYYToDate,
 } from '@/utils/uploadHelpers';
+
+/**
 
 /**
  * Processa uma planilha de dados de corridas
@@ -50,6 +53,11 @@ export async function processCorridasFile(file: File): Promise<Record<string, un
             const mm = String(value.getMonth() + 1).padStart(2, '0');
             const dd = String(value.getDate()).padStart(2, '0');
             value = `${yyyy}-${mm}-${dd}`;
+          } else if (typeof value === 'string') {
+            const converted = convertDDMMYYYYToDate(value);
+            if (converted) {
+              value = converted;
+            }
           }
         }
 
