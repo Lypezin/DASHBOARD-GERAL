@@ -61,7 +61,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView() {
     const { data, loading, error } = useMarketingComparacao(
         appliedFilters.dataInicial,
         appliedFilters.dataFinal,
-        user?.organization_id,
+        user?.organization_id || undefined,
         appliedFilters.praca
     );
 
