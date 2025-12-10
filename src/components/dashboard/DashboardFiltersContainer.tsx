@@ -34,7 +34,8 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
   activeTab,
 }: DashboardFiltersContainerProps) {
   // Não mostrar filtros em comparação e marketing
-  if (activeTab === 'comparacao' || activeTab === 'marketing') {
+  // Não mostrar filtros em marketing
+  if (activeTab === 'marketing') {
     return null;
   }
 
