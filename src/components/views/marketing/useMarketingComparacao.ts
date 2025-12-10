@@ -5,8 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 export interface MarketingComparisonData {
     semana_iso: string;
-    horas_ops: number;
-    horas_mkt: number;
+    segundos_ops: number;
+    segundos_mkt: number;
 }
 
 export function useMarketingComparacao(
@@ -37,7 +37,6 @@ export function useMarketingComparacao(
 
             if (rpcError) throw rpcError;
 
-            // Data is already in hours, no processing needed
             setData(result || []);
 
         } catch (err: any) {
