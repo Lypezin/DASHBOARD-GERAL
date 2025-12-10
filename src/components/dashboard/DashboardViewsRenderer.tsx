@@ -26,7 +26,9 @@ import type {
   AderenciaOrigem,
   FilterOption,
   CurrentUser,
+  CurrentUser,
   TabType,
+  DashboardFilters,
 } from '@/types';
 
 interface DashboardViewsRendererProps {
@@ -61,7 +63,9 @@ interface DashboardViewsRendererProps {
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
+  origens: FilterOption[];
   currentUser: CurrentUser | null;
+  filters: DashboardFilters;
 }
 
 const LoadingFallback = () => (
@@ -94,7 +98,9 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   pracas,
   subPracas,
   origens,
+  origens,
   currentUser,
+  filters,
 }: DashboardViewsRendererProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [previousTab, setPreviousTab] = useState(activeTab);
@@ -197,7 +203,7 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
           )}
 
           {activeTab === 'comparacao' && (
-            <ComparacaoView />
+            <ComparacaoView filters={filters} />
           )}
 
           {activeTab === 'marketing' && (

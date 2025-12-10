@@ -16,13 +16,13 @@ export default function DashboardPage() {
     isCheckingAuth,
     isAuthenticated,
     currentUser,
-    
+
     // Tabs e Filtros
     activeTab,
     filters,
     setFilters,
     handleTabChange,
-    
+
     // Dados do Dashboard
     aderenciaGeral,
     aderenciaDia,
@@ -38,21 +38,21 @@ export default function DashboardPage() {
     turnos,
     loading,
     error,
-    
+
     // Dados de Evolução
     evolucaoMensal,
     evolucaoSemanal,
     loadingEvolucao,
     anoSelecionado,
     setAnoEvolucao: setAnoEvolucao,
-    
+
     // Dados de Tabs
     utrData,
     entregadoresData,
     valoresData,
     prioridadeData,
     loadingTabData,
-    
+
     // UI State
     chartReady,
   } = useDashboardPage();
@@ -119,7 +119,9 @@ export default function DashboardPage() {
                 pracas={pracas}
                 subPracas={subPracas}
                 origens={origens}
+                origens={origens}
                 currentUser={currentUser}
+                filters={filters}
               />
             </main>
           </div>

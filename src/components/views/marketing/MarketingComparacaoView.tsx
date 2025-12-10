@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { MarketingFilters } from './MarketingFilters';
 import { useMarketingComparacao } from './useMarketingComparacao';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -27,81 +26,29 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
-const MarketingComparacaoView = React.memo(function MarketingComparacaoView() {
+interface MarketingComparacaoViewProps {
+    filters: DashboardFilters;
+}
+
+const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ filters }: MarketingComparacaoViewProps) {
     const { user } = useAuth();
 
-    // Filtros Locais
-    const [filters, setFilters] = React.useState({
-        dataInicial: '',
-        dataFinal: '',
-        praca: null as string | null
-    });
-
-    const [appliedFilters, setAppliedFilters] = React.useState({
-        dataInicial: '',
-        dataFinal: '',
-        praca: null as string | null
-    });
-
-    // Inicializar filtros com ano atual
-    React.useEffect(() => {
-        const today = new Date();
-        const startYear = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-        const endYear = today.toISOString().split('T')[0];
-
-        const initial = {
-            dataInicial: startYear,
-            dataFinal: endYear,
-            praca: null
-        };
-        setFilters(initial);
-        setAppliedFilters(initial);
-    }, []);
+    // Determine the date range to use
+    // If 'intervalo' mode, use dataInicial/Final directly.
+    // If 'ano_semana' mode, we usually rely on the backend to filter by weeks, 
+    // BUT our RPC expects dates. 
+    // Ideally, the global filter state updates dates even in week mode, or we calculate them.
+    // For now, let's assume dataInicial/Final are populated or default to something sensible.
+    const dataInicial = filters.dataInicial || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+    const dataFinal = filters.dataFinal || new Date().toISOString().split('T')[0];
+    const praca = filters.praca;
 
     const { data, loading, error } = useMarketingComparacao(
-        appliedFilters.dataInicial,
-        appliedFilters.dataFinal,
+        dataInicial,
+        dataFinal,
         user?.organization_id || undefined,
-        appliedFilters.praca
+        praca
     );
-
-    const handleApplyFilters = () => setAppliedFilters(filters);
-
-    const handleClearFilters = () => {
-        const today = new Date();
-        const startYear = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-        const endYear = today.toISOString().split('T')[0];
-        const reset = { dataInicial: startYear, dataFinal: endYear, praca: null };
-        setFilters(reset);
-        setAppliedFilters(reset);
-    };
-
-    const handleQuickFilter = (type: string) => {
-        const today = new Date();
-        let start: Date;
-        switch (type) {
-            case 'week':
-                start = new Date(today);
-                start.setDate(today.getDate() - 7);
-                break;
-            case 'month':
-                start = new Date(today.getFullYear(), today.getMonth(), 1);
-                break;
-            case 'quarter':
-                const quarter = Math.floor(today.getMonth() / 3);
-                start = new Date(today.getFullYear(), quarter * 3, 1);
-                break;
-            case 'year':
-            default:
-                start = new Date(today.getFullYear(), 0, 1);
-                break;
-        }
-        setFilters(prev => ({
-            ...prev,
-            dataInicial: start.toISOString().split('T')[0],
-            dataFinal: today.toISOString().split('T')[0]
-        }));
-    };
 
     // Filter out current week to match other tabs if needed, 
     // or keep it raw. User didn't specify, but usually we filter incomplete weeks.
@@ -109,15 +56,6 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView() {
 
     return (
         <div className="space-y-6 pb-20">
-            <MarketingFilters
-                filters={filters}
-                appliedFilters={appliedFilters}
-                setFilters={setFilters}
-                handleApplyFilters={handleApplyFilters}
-                handleClearFilters={handleClearFilters}
-                handleQuickFilter={handleQuickFilter}
-            />
-
             {error && (
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
