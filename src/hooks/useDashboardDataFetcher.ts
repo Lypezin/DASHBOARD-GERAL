@@ -53,7 +53,6 @@ export function useDashboardDataFetcher({
             });
 
             if (rpcError) {
-                console.log('🔴 [useDashboardMainData] Erro no RPC dashboard_resumo:', rpcError);
                 const errorMessage = String(rpcError?.message || '');
                 if (errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
                     const errorMsg = 'Variáveis de ambiente do Supabase não estão configuradas.';

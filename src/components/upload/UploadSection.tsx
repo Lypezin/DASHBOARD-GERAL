@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FileUploadArea } from './FileUploadArea';
 import { FileList } from './FileList';
 import { UploadProgress } from './UploadProgress';
@@ -33,7 +34,7 @@ interface UploadSectionProps {
   mvRefreshStatus?: string;
 }
 
-export function UploadSection({
+export const UploadSection = memo(function UploadSection({
   title,
   description,
   icon,
@@ -171,4 +172,4 @@ export function UploadSection({
       </CardContent>
     </Card>
   );
-}
+});
