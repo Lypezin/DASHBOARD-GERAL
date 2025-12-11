@@ -82,6 +82,14 @@ export const PrioridadePromoView = dynamic(
 );
 
 export const ComparacaoView = dynamic(
+  () => import('@/components/views/ComparacaoView').then(mod => ({ default: mod.default })),
+  {
+    ssr: false,
+    loading: () => defaultLoading,
+  }
+);
+
+export const MarketingComparacaoView = dynamic(
   () => import('@/components/views/marketing/MarketingComparacaoView').then(mod => ({ default: mod.default })),
   {
     ssr: false,

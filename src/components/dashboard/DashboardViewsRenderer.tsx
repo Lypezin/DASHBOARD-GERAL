@@ -15,6 +15,7 @@ import {
   EntregadoresMainView,
   PrioridadePromoView,
   ComparacaoView,
+  MarketingComparacaoView,
 } from '@/config/dynamicImports';
 import { LoadingSpinner } from '@/components/ui/loading';
 import type {
@@ -114,7 +115,7 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   }, [activeTab, previousTab]);
 
   // Verificar se precisa esperar Chart.js
-  const needsChart = activeTab === 'dashboard' || activeTab === 'analise' || activeTab === 'evolucao' || activeTab === 'comparacao';
+  const needsChart = activeTab === 'dashboard' || activeTab === 'analise' || activeTab === 'evolucao' || activeTab === 'comparacao' || activeTab === 'marketing_comparacao';
 
   if (needsChart && !chartReady) {
     return (
@@ -200,7 +201,17 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
           )}
 
           {activeTab === 'comparacao' && (
-            <ComparacaoView filters={filters} />
+            <ComparacaoView
+              semanas={semanas}
+              pracas={pracas}
+              subPracas={subPracas}
+              origens={origens}
+              currentUser={currentUser}
+            />
+          )}
+
+          {activeTab === 'marketing_comparacao' && (
+            <MarketingComparacaoView filters={filters} />
           )}
 
           {activeTab === 'marketing' && (
