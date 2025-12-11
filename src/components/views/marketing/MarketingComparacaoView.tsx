@@ -2,79 +2,15 @@ import React, { useMemo } from 'react';
 import { useMarketingComparacao } from './useMarketingComparacao';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AlertCircle, Loader2, Clock, Send, CheckCircle2, XCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DashboardFilters } from '@/types';
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-        return (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-lg shadow-lg">
-                <p className="font-bold text-slate-700 dark:text-slate-200 mb-2">{label}</p>
-                {payload.map((entry: any, index: number) => (
-                    <div key={index} className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                        <span className="text-slate-500 dark:text-slate-400">{entry.name}:</span>
-                        <span className="font-medium text-slate-900 dark:text-white">
-                            {entry.value.toLocaleString()}
-                        </span>
-                    </div>
-                ))}
-            </div>
-        );
-    }
-    return null;
-};
+import { getDateRangeFromWeek } from '@/utils/timeHelpers';
+import { MarketingSummaryCards } from './MarketingSummaryCards';
+import { MarketingComparacaoTable } from './MarketingComparacaoTable';
 
 interface MarketingComparacaoViewProps {
     filters: DashboardFilters;
-}
-
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-
-function formatDuration(seconds: number): string {
-    if (!seconds) return '00:00:00';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
-
-// Helper to get week number
-function extractWeekNumber(isoWeek: string) {
-    return isoWeek.split('-W')[1] || isoWeek;
-}
-
-// Helper to calculate percentage
-function calculatePercentage(value: number, total: number) {
-    if (!total || total === 0) return '0%';
-    return `${((value / total) * 100).toFixed(1)}%`;
-}
-
-// Helper to calculate date range from ISO week
-function getDateRangeFromWeek(year: number, week: number) {
-    const simple = new Date(year, 0, 1 + (week - 1) * 7);
-    const dayOfWeek = simple.getDay();
-    const isoWeekStart = simple;
-    if (dayOfWeek <= 4)
-        isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
-    else
-        isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
-
-    const isoWeekEnd = new Date(isoWeekStart);
-    isoWeekEnd.setDate(isoWeekStart.getDate() + 6);
-
-    return {
-        start: isoWeekStart.toISOString().split('T')[0],
-        end: isoWeekEnd.toISOString().split('T')[0]
-    };
 }
 
 const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ filters }: MarketingComparacaoViewProps) {
@@ -143,12 +79,6 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
         });
     }, [data]);
 
-    const totalHours = totals.segundos_ops + totals.segundos_mkt;
-
-    // Filter out current week to match other tabs if needed, 
-    // or keep it raw. User didn't specify, but usually we filter incomplete weeks.
-    // For now, let's show all data returned by the RPC.
-
     return (
         <div className="space-y-6 pb-20">
             {error && (
@@ -166,97 +96,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
             ) : (
                 <>
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Horas Totais
-                                </CardTitle>
-                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                                    <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{formatDuration(totalHours)}</div>
-                                <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-1 rounded">
-                                    <span className="flex items-center gap-1">Ops: <span className="font-mono font-medium">{formatDuration(totals.segundos_ops)}</span></span>
-                                    <span className="text-purple-600 font-bold flex items-center gap-1">Mkt: <span className="font-mono">{formatDuration(totals.segundos_mkt)}</span></span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-slate-400">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Ofertadas
-                                </CardTitle>
-                                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full">
-                                    <Send className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{(totals.ofertadas_ops + totals.ofertadas_mkt).toLocaleString('pt-BR')}</div>
-                                <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-1 rounded">
-                                    <span>Ops: {totals.ofertadas_ops.toLocaleString('pt-BR')}</span>
-                                    <span className="text-purple-600 font-bold">Mkt: {totals.ofertadas_mkt.toLocaleString('pt-BR')}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-cyan-500">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Aceitas
-                                </CardTitle>
-                                <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-full">
-                                    <CheckCircle2 className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{(totals.aceitas_ops + totals.aceitas_mkt).toLocaleString('pt-BR')}</div>
-                                <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-1 rounded">
-                                    <span>Ops: {totals.aceitas_ops.toLocaleString('pt-BR')}</span>
-                                    <span className="text-purple-600 font-bold">Mkt: {totals.aceitas_mkt.toLocaleString('pt-BR')}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-emerald-500">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Completas
-                                </CardTitle>
-                                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{(totals.concluidas_ops + totals.concluidas_mkt).toLocaleString('pt-BR')}</div>
-                                <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-1 rounded">
-                                    <span>Ops: {totals.concluidas_ops.toLocaleString('pt-BR')}</span>
-                                    <span className="text-purple-600 font-bold">Mkt: {totals.concluidas_mkt.toLocaleString('pt-BR')}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Rejeitadas
-                                </CardTitle>
-                                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                                    <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{(totals.rejeitadas_ops + totals.rejeitadas_mkt).toLocaleString('pt-BR')}</div>
-                                <div className="text-xs text-muted-foreground mt-1 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-1 rounded">
-                                    <span>Ops: {totals.rejeitadas_ops.toLocaleString('pt-BR')}</span>
-                                    <span className="text-purple-600 font-bold">Mkt: {totals.rejeitadas_mkt.toLocaleString('pt-BR')}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <MarketingSummaryCards totals={totals} />
 
                     <Card>
                         <CardHeader>
@@ -266,85 +106,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-muted/50">
-                                            <TableHead rowSpan={2} className="w-[100px]">Semana</TableHead>
-                                            <TableHead colSpan={4} className="text-center border-l bg-blue-50/50 dark:bg-blue-900/10">Horas Logadas</TableHead>
-                                            <TableHead colSpan={2} className="text-center border-l">Ofertadas</TableHead>
-                                            <TableHead colSpan={2} className="text-center border-l">Aceitas</TableHead>
-                                            <TableHead colSpan={2} className="text-center border-l">Completas</TableHead>
-                                            <TableHead colSpan={2} className="text-center border-l">Rejeitadas</TableHead>
-                                        </TableRow>
-                                        <TableRow>
-                                            {/* Hours Sub-headers */}
-                                            <TableHead className="text-right border-l bg-blue-50/50 dark:bg-blue-900/10 text-xs">Operacional</TableHead>
-                                            <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-600 font-semibold">Marketing</TableHead>
-                                            <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-slate-500">% Ops</TableHead>
-                                            <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-500 font-semibold">% Mkt</TableHead>
-
-                                            {/* Ofertadas Sub-headers */}
-                                            <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                                            <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
-
-                                            {/* Aceitas Sub-headers */}
-                                            <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                                            <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
-
-                                            {/* Completas Sub-headers */}
-                                            <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                                            <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
-
-                                            {/* Rejeitadas Sub-headers */}
-                                            <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                                            <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {data.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell colSpan={13} className="h-24 text-center">
-                                                    Nenhum dado encontrado para o período selecionado.
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : (
-                                            data.map((row) => {
-                                                const totalHours = row.segundos_ops + row.segundos_mkt;
-                                                return (
-                                                    <TableRow key={row.semana_iso}>
-                                                        <TableCell className="font-medium whitespace-nowrap">
-                                                            Semana {extractWeekNumber(row.semana_iso)}
-                                                        </TableCell>
-
-                                                        {/* Hours */}
-                                                        <TableCell className="text-right font-mono border-l bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_ops)}</TableCell>
-                                                        <TableCell className="text-right font-mono font-bold text-purple-600 dark:text-purple-400 bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_mkt)}</TableCell>
-                                                        <TableCell className="text-right text-xs text-slate-500 bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_ops, totalHours)}</TableCell>
-                                                        <TableCell className="text-right text-xs text-purple-500 font-semibold bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_mkt, totalHours)}</TableCell>
-
-                                                        {/* Ofertadas */}
-                                                        <TableCell className="text-right border-l">{row.ofertadas_ops.toLocaleString('pt-BR')}</TableCell>
-                                                        <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.ofertadas_mkt.toLocaleString('pt-BR')}</TableCell>
-
-                                                        {/* Aceitas */}
-                                                        <TableCell className="text-right border-l">{row.aceitas_ops.toLocaleString('pt-BR')}</TableCell>
-                                                        <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.aceitas_mkt.toLocaleString('pt-BR')}</TableCell>
-
-                                                        {/* Completas */}
-                                                        <TableCell className="text-right border-l">{row.concluidas_ops.toLocaleString('pt-BR')}</TableCell>
-                                                        <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.concluidas_mkt.toLocaleString('pt-BR')}</TableCell>
-
-                                                        {/* Rejeitadas */}
-                                                        <TableCell className="text-right border-l">{row.rejeitadas_ops.toLocaleString('pt-BR')}</TableCell>
-                                                        <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.rejeitadas_mkt.toLocaleString('pt-BR')}</TableCell>
-                                                    </TableRow>
-                                                );
-                                            })
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                            <MarketingComparacaoTable data={data} />
                         </CardContent>
                     </Card>
                 </>
