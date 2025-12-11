@@ -120,8 +120,13 @@ export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {
     let successCount = 0;
     let errorCount = 0;
 
+
+    // Collect specific errors for display
+    const finalErrorMessageParts: string[] = [];
+
     for (let fileIdx = 0; fileIdx < files.length; fileIdx++) {
       const file = files[fileIdx];
+      // ... existing setup logic ...
       setState(prev => ({
         ...prev,
         currentFileIndex: fileIdx + 1,
@@ -129,6 +134,7 @@ export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {
       }));
 
       try {
+        // ... existing processing logic ...
         setState(prev => ({
           ...prev,
           progressLabel: 'Processando dados...',
@@ -169,9 +175,14 @@ export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
         safeLog.error(`Erro no arquivo ${file.name}:`, error);
+        finalErrorMessageParts.push(`${file.name}: ${errorMessage}`);
         errorCount++;
       }
     }
+
+    const detailedErrorMsg = finalErrorMessageParts.length > 0
+      ? `\n\nDetalhes do erro:\n${finalErrorMessageParts.join('\n')}`
+      : '';
 
     setState(prev => ({
       ...prev,
@@ -184,7 +195,7 @@ export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {
 ⏳ Atualizando dados agregados... Isso pode levar 2-4 minutos para as visualizações principais.
 
 💡 Dica: As visualizações secundárias serão atualizadas em background. Você pode fechar esta página e voltar mais tarde.`
-          : `⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro. Verifique os logs.`,
+          : `⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro.${detailedErrorMsg}`,
     }));
 
     // Iniciar refresh automático se não houve erros
