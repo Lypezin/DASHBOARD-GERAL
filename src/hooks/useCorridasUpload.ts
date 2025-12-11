@@ -200,7 +200,8 @@ export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {
 
     // Iniciar refresh automático se não houve erros
     if (errorCount === 0) {
-      startAutoRefresh();
+      // Forçar refresh independente do horário, já que o usuário acabou de fazer upload manual
+      startAutoRefresh(true);
     }
 
     setFiles([]);

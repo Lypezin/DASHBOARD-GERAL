@@ -7,13 +7,13 @@ import type { RefreshPrioritizedResult } from '@/types/upload';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useAutoRefresh() {
-    const startAutoRefresh = useCallback(async () => {
+    const startAutoRefresh = useCallback(async (force = false) => {
         try {
             // Verificar se é horário de baixo uso para refresh automático
             const isLowUsage = isLowUsageTime();
             const timeContext = getTimeContextMessage();
 
-            if (!isLowUsage && IS_DEV) {
+            if (!isLowUsage && !force && IS_DEV) {
                 safeLog.info(`⏰ ${timeContext} - Refresh automático será adiado para horário de baixo uso`);
                 safeLog.info('💡 Dica: Use o botão "Atualizar Materialized Views" para forçar refresh imediato');
             }
@@ -27,8 +27,8 @@ export function useAutoRefresh() {
                         validateParams: false
                     });
 
-                    // Se não for horário de baixo uso, apenas marcar como pendente e retornar
-                    if (!isLowUsage) {
+                    // Se não for horário de baixo uso E não estiver forçando, apenas marcar como pendente e retornar
+                    if (!isLowUsage && !force) {
                         if (IS_DEV) {
                             safeLog.info('✅ MVs marcadas como pendentes. Refresh será feito em horário de baixo uso ou manualmente.');
                         }
@@ -36,7 +36,7 @@ export function useAutoRefresh() {
                     }
 
                     if (IS_DEV) {
-                        safeLog.info(`✅ ${timeContext} - Iniciando refresh automático de MVs`);
+                        safeLog.info(`✅ ${timeContext} - Iniciando refresh ${force ? 'FORÇADO' : 'automático'} de MVs`);
                     }
 
                     // Passo 2: Atualizar apenas MVs críticas imediatamente (prioridade 1)
