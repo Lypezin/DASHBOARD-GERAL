@@ -144,6 +144,9 @@ export default function UploadPage() {
                 { text: 'Aguarde a conclusão do upload antes de navegar' },
               ]}
               expectedColumns={Object.keys(COLUMN_MAP)}
+              isRefreshingMVs={corridasUpload.isRefreshingMVs}
+              mvRefreshProgress={corridasUpload.mvRefreshProgress}
+              mvRefreshStatus={corridasUpload.mvRefreshStatus}
             />
 
             {/* Seção de Upload Marketing */}

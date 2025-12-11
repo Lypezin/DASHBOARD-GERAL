@@ -7,6 +7,12 @@ import type { RefreshPrioritizedResult } from '@/types/upload';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useAutoRefresh() {
+    const [refreshState, setRefreshState] = useState({
+        isRefreshing: false,
+        progress: 0,
+        status: ''
+    });
+
     const startAutoRefresh = useCallback(async (force = false) => {
         try {
             // Verificar se é horário de baixo uso para refresh automático
@@ -16,11 +22,16 @@ export function useAutoRefresh() {
             if (!isLowUsage && !force && IS_DEV) {
                 safeLog.info(`⏰ ${timeContext} - Refresh automático será adiado para horário de baixo uso`);
                 safeLog.info('💡 Dica: Use o botão "Atualizar Materialized Views" para forçar refresh imediato');
+                return;
             }
+
+            setRefreshState({ isRefreshing: true, progress: 5, status: 'Iniciando atualização de dados...' });
 
             // Delay antes de iniciar refresh (permite que inserções terminem)
             setTimeout(async () => {
                 try {
+                    setRefreshState(prev => ({ ...prev, progress: 10, status: 'Preparando views...' }));
+
                     // Passo 1: Marcar todas as MVs relacionadas como precisando refresh
                     await safeRpc('refresh_mvs_after_bulk_insert', { delay_seconds: 5 }, {
                         timeout: 30000,
@@ -32,12 +43,15 @@ export function useAutoRefresh() {
                         if (IS_DEV) {
                             safeLog.info('✅ MVs marcadas como pendentes. Refresh será feito em horário de baixo uso ou manualmente.');
                         }
+                        setRefreshState({ isRefreshing: false, progress: 0, status: '' });
                         return;
                     }
 
                     if (IS_DEV) {
                         safeLog.info(`✅ ${timeContext} - Iniciando refresh ${force ? 'FORÇADO' : 'automático'} de MVs`);
                     }
+
+                    setRefreshState(prev => ({ ...prev, progress: 30, status: 'Atualizando views críticas...' }));
 
                     // Passo 2: Atualizar apenas MVs críticas imediatamente (prioridade 1)
                     const { data, error } = await safeRpc<RefreshPrioritizedResult>(
@@ -48,6 +62,8 @@ export function useAutoRefresh() {
                             validateParams: false
                         }
                     );
+
+                    setRefreshState(prev => ({ ...prev, progress: 70, status: 'Processando views secundárias...' }));
 
                     if (error) {
                         const errorCode = error?.code;
@@ -80,6 +96,7 @@ export function useAutoRefresh() {
                     // Passo 3: Iniciar refresh assíncrono das MVs secundárias em background
                     setTimeout(async () => {
                         try {
+                            setRefreshState(prev => ({ ...prev, progress: 90, status: 'Finalizando...' }));
                             await safeRpc('refresh_pending_mvs', {}, {
                                 timeout: 600000, // 10 minutos para todas as MVs secundárias
                                 validateParams: false
@@ -91,6 +108,8 @@ export function useAutoRefresh() {
                             if (IS_DEV) {
                                 safeLog.warn('Refresh de MVs secundárias não disponível, será processado automaticamente');
                             }
+                        } finally {
+                            setRefreshState({ isRefreshing: false, progress: 100, status: 'Concluído' });
                         }
                     }, 5000); // Delay de 5 segundos antes de iniciar MVs secundárias
 
@@ -99,6 +118,7 @@ export function useAutoRefresh() {
                     if (IS_DEV) {
                         safeLog.warn('Refresh prioritário não disponível, será processado automaticamente');
                     }
+                    setRefreshState({ isRefreshing: false, progress: 0, status: 'Erro ao atualizar (tentará automaticamente)' });
                 }
             }, 2000); // Delay de 2 segundos após upload
         } catch (e) {
@@ -106,8 +126,14 @@ export function useAutoRefresh() {
             if (IS_DEV) {
                 safeLog.warn('Erro ao iniciar refresh de MVs');
             }
+            setRefreshState({ isRefreshing: false, progress: 0, status: 'Erro' });
         }
     }, []);
 
-    return { startAutoRefresh };
+    return {
+        startAutoRefresh,
+        isRefreshing: refreshState.isRefreshing,
+        refreshProgress: refreshState.progress,
+        refreshStatus: refreshState.status
+    };
 }

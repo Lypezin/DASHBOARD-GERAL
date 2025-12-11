@@ -36,7 +36,7 @@ export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {
     currentFileIndex: 0,
   });
 
-  const { startAutoRefresh } = useUploadRefresh();
+  const { startAutoRefresh, isRefreshing, refreshProgress, refreshStatus } = useUploadRefresh();
 
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
@@ -216,6 +216,9 @@ export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {
     handleFileChange,
     removeFile,
     handleUpload,
+    isRefreshingMVs: isRefreshing,
+    mvRefreshProgress: refreshProgress,
+    mvRefreshStatus: refreshStatus
   };
 }
 
