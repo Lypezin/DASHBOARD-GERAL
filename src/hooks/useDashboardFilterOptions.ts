@@ -48,39 +48,42 @@ export function useDashboardFilterOptions(options: UseDashboardFiltersOptions) {
       return;
     }
 
-    // Processar praças
-    let pracasDisponiveis: FilterOption[] = Array.isArray(dimensoes.pracas)
-      ? dimensoes.pracas.map((p: string | number) => ({ value: String(p), label: String(p) }))
-      : [];
+    const fetchPracas = async () => {
+      let pracasTotais: string[] = [];
 
-    if (IS_DEV) {
-      safeLog.info('[useDashboardFilters] Praças antes de filtrar:', {
-        total: pracasDisponiveis.length,
-        pracas: pracasDisponiveis.map(p => p.value),
-      });
-    }
+      // 1. Se tiver acesso total, buscar do banco (lista completa)
+      if (currentUser && hasFullCityAccess(currentUser)) {
+        try {
+          const { data: pracasData, error: pracasError } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
+            timeout: RPC_TIMEOUTS.FAST,
+            validateParams: false
+          });
 
-    // Filtrar praças baseado nas permissões do usuário
-    if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
-      const pracasPermitidas = new Set(currentUser.assigned_pracas);
-      pracasDisponiveis = pracasDisponiveis.filter((p) => pracasPermitidas.has(p.value));
-      if (IS_DEV) {
-        safeLog.info('[useDashboardFilters] Praças após filtrar por permissões:', {
-          total: pracasDisponiveis.length,
-          pracas: pracasDisponiveis.map(p => p.value),
-          assigned_pracas: currentUser.assigned_pracas,
-        });
+          if (!pracasError && pracasData && pracasData.length > 0) {
+            pracasTotais = pracasData.map(p => p.praca || p).filter(Boolean);
+          } else {
+            // Fallback para dimensoes se RPC falhar (embora possa estar filtrado)
+            pracasTotais = Array.isArray(dimensoes?.pracas) ? dimensoes!.pracas.map(String) : [];
+          }
+        } catch (err) {
+          if (IS_DEV) safeLog.warn('Erro ao buscar praças via RPC:', err);
+          pracasTotais = Array.isArray(dimensoes?.pracas) ? dimensoes!.pracas.map(String) : [];
+        }
       }
-    }
+      // 2. Se não tiver acesso total, usar assigned_pracas
+      else if (currentUser?.assigned_pracas && currentUser.assigned_pracas.length > 0) {
+        pracasTotais = currentUser.assigned_pracas;
+      }
+      // 3. Fallback final (não deveria acontecer se logado)
+      else if (dimensoes?.pracas) {
+        pracasTotais = Array.isArray(dimensoes.pracas) ? dimensoes.pracas.map(String) : [];
+      }
 
-    if (IS_DEV) {
-      safeLog.info('[useDashboardFilters] Definindo praças:', {
-        total: pracasDisponiveis.length,
-        pracas: pracasDisponiveis.map(p => p.value),
-      });
-    }
+      const options = pracasTotais.map(p => ({ value: p, label: p }));
+      setPracas(options);
+    };
 
-    setPracas(pracasDisponiveis);
+    fetchPracas();
 
     // Filtrar dimensões (sub-praças, turnos, origens) baseado nas praças permitidas do usuário
     if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
