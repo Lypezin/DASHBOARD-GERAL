@@ -28,24 +28,24 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
   semana2Dias,
 }) => {
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '16px 40px' }}>
+    <SlideWrapper isVisible={isVisible} style={{ padding: '12px 32px' }}>
       <SlideHeader
         title="ADERÊNCIA DIÁRIA"
         subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
       />
 
       {/* Content */}
-      <section className="flex-1 flex flex-col gap-4">
+      <section className="flex-1 flex flex-col gap-2">
         {/* Week 1 Section */}
         <div>
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-2 mb-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-300" />
-            <h3 className="text-base font-bold text-slate-700 px-5 py-1.5 bg-slate-100 rounded-full border border-slate-200">
+            <h3 className="text-sm font-bold text-slate-700 px-4 py-1 bg-slate-100 rounded-full border border-slate-200">
               SEMANA {numeroSemana1}
             </h3>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-300" />
           </div>
-          <div className="grid grid-cols-7 gap-3">
+          <div className="grid grid-cols-7 gap-2">
             {semana1Dias.map((dia) => (
               <DayCard key={`sem1-${dia.sigla}`} dia={dia} isSecondWeek={false} />
             ))}
@@ -54,14 +54,14 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
 
         {/* Week 2 Section */}
         <div>
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-2 mb-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-blue-300" />
-            <h3 className="text-base font-bold text-white px-5 py-1.5 bg-blue-600 rounded-full shadow">
+            <h3 className="text-sm font-bold text-white px-4 py-1 bg-blue-600 rounded-full shadow">
               SEMANA {numeroSemana2}
             </h3>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-blue-300" />
           </div>
-          <div className="grid grid-cols-7 gap-3">
+          <div className="grid grid-cols-7 gap-2">
             {semana2Dias.map((dia) => (
               <DayCard
                 key={`sem2-${dia.sigla}`}
@@ -79,21 +79,21 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
         </div>
 
         {/* Summary Bar */}
-        <div className="bg-gradient-to-r from-slate-100 via-white to-slate-100 rounded-xl border border-slate-200 px-4 py-3 mt-auto">
-          <div className="grid grid-cols-7 gap-3">
+        <div className="bg-gradient-to-r from-slate-100 via-white to-slate-100 rounded-lg border border-slate-200 px-3 py-2">
+          <div className="grid grid-cols-7 gap-2">
             {semana2Dias.map((dia) => (
               <div key={`summary-${dia.sigla}`} className="text-center">
-                <span className="text-xs font-medium text-slate-500 block mb-1">{dia.sigla}</span>
-                <div className={`inline-flex items-center justify-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-bold ${dia.diferencaPercentualHorasPositiva
+                <span className="text-[0.65rem] font-medium text-slate-500 block">{dia.sigla}</span>
+                <div className={`inline-flex items-center justify-center gap-0.5 px-2 py-0.5 rounded-full text-[0.65rem] font-bold ${dia.diferencaPercentualHorasPositiva
                   ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                   : 'bg-rose-100 text-rose-700 border border-rose-200'
                   }`}>
                   {dia.diferencaPercentualHorasPositiva ? (
-                    <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-2 h-2 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 4l-8 8h5v8h6v-8h5z" />
                     </svg>
                   ) : (
-                    <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-2 h-2 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 20l8-8h-5V4H9v8H4z" />
                     </svg>
                   )}
