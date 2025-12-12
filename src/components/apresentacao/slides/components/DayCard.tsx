@@ -55,9 +55,9 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
         </div>
 
         {/* Hours delivered */}
-        <div className="w-full bg-emerald-50 border border-emerald-200 rounded px-1.5 py-1 text-center">
+        <div className="w-full bg-emerald-50 border border-emerald-200 rounded px-0.5 py-1 text-center">
             <span className="text-[0.5rem] font-semibold text-emerald-600 uppercase block">Entregue</span>
-            <span className="font-bold text-emerald-700 text-xs block" style={buildTimeTextStyle(dia.horasEntregues, 0.7)}>
+            <span className="font-bold text-emerald-700 text-xs block" style={buildTimeTextStyle(dia.horasEntregues, 0.65)}>
                 {dia.horasEntregues}
             </span>
         </div>

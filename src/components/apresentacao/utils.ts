@@ -118,7 +118,9 @@ export const buildTimeTextStyle = (
 
   // Redução progressiva mais suave
   let fontSize = baseFontRem;
-  if (length > 12) {
+  if (length > 13) {
+    fontSize = baseFontRem * 0.55;
+  } else if (length > 12) {
     fontSize = baseFontRem * 0.65;
   } else if (length > 10) {
     fontSize = baseFontRem * 0.75;

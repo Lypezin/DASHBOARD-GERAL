@@ -35,7 +35,7 @@ const SlideCapa: React.FC<SlideCapaProps> = ({
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full px-16">
+      <div className="relative z-10 flex flex-col items-center justify-center h-full w-full px-4 md:px-8 lg:px-16">
         {/* Company/Brand Logo area */}
         <div className="mb-8">
           <div className="w-20 h-1 bg-blue-400 rounded-full mx-auto" />
