@@ -13,7 +13,7 @@ export async function fetchAndValidateProfile(
     fetchUserProfile: boolean
 ): Promise<CurrentUser | null> {
     try {
-        console.log('🔵 [useAuthGuard] Buscando perfil do usuário...');
+
         const { data: profile, error: profileError } = await safeRpc<{
             is_approved: boolean;
             is_admin: boolean;
@@ -25,11 +25,11 @@ export async function fetchAndValidateProfile(
             validateParams: false
         });
 
-        console.log('🔵 [useAuthGuard] Resultado do perfil:', { profile, profileError });
+
 
         if (profileError) {
             // Erro ao buscar perfil - fazer logout e redirecionar
-            console.log('🔴 [useAuthGuard] Erro ao buscar perfil:', profileError);
+
             if (IS_DEV) {
                 safeLog.warn('[useAuthGuard] Erro ao buscar perfil, fazendo logout:', profileError);
             }
@@ -39,7 +39,7 @@ export async function fetchAndValidateProfile(
 
         // Verificar aprovação
         if (requireApproval && !profile?.is_approved) {
-            console.log('🔴 [useAuthGuard] Usuário não aprovado');
+
             if (IS_DEV) {
                 safeLog.warn('[useAuthGuard] Usuário não aprovado, fazendo logout');
             }
@@ -47,7 +47,7 @@ export async function fetchAndValidateProfile(
             return null;
         }
 
-        console.log('✅ [useAuthGuard] Usuário aprovado, continuando...');
+
 
         // Verificar role
         if (requiredRole && profile?.role) {

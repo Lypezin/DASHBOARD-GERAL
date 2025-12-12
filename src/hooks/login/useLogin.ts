@@ -22,23 +22,23 @@ export function useLogin() {
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = useCallback(async (formData: LoginFormData) => {
-    console.log('🔵 [useLogin] Iniciando processo de login...');
+
     setLoading(true);
     setError(null);
 
     try {
-      console.log('🔵 [useLogin] Chamando signInWithPassword...');
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (signInError) {
-        console.log('🔴 [useLogin] Erro no signInWithPassword:', signInError.message);
+
         throw signInError;
       }
 
-      console.log('✅ [useLogin] signInWithPassword bem-sucedido');
+
 
       // Verificar se o usuário está aprovado com retry
       let profile: any = null;
@@ -131,7 +131,7 @@ export function useLogin() {
       }
 
       // Login bem-sucedido
-      console.log('✅ [useLogin] Login completo, redirecionando para /');
+
       router.push('/');
       router.refresh();
     } catch (err: any) {

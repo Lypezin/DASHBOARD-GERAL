@@ -70,11 +70,11 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        console.log('🔵 [useAuthGuard] Iniciando verificação de autenticação', { pathname });
+
 
         // CRÍTICO: Não executar AuthGuard nas páginas de login/registro
         if (pathname === '/login' || pathname === '/registro') {
-          console.log('⚠️ [useAuthGuard] Página de login/registro detectada, pulando verificação');
+
           setIsChecking(false);
           setIsAuthenticated(false);
           return;
@@ -104,7 +104,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
           }
 
           // Usuário autenticado e autorizado
-          console.log('✅ [useAuthGuard] Autenticação completa! Usuário autorizado.');
+
           setIsAuthenticated(true);
         } else {
           // Apenas verificação de sessão, sem verificação de perfil
