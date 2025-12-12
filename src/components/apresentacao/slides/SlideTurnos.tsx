@@ -134,11 +134,11 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
       </header>
 
       {/* Cards Grid - 2 columns or centered single */}
-      <div className={`${isSingleItem ? 'flex justify-center items-center' : 'grid grid-cols-2 gap-8'} flex-1 content-center`}>
+      <div className={`${isSingleItem ? 'flex justify-center items-center' : 'grid grid-cols-2 gap-8'} flex-1 content-start`}>
         {itens.map((turno) => (
           <div
             key={turno.nome}
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg overflow-hidden ${isSingleItem ? 'w-[700px]' : ''}`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-[700px]' : ''}`}
           >
             {/* Card Header */}
             <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 min-h-[4.5rem] flex items-center justify-center">

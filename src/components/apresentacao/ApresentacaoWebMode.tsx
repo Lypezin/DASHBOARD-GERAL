@@ -50,12 +50,12 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
     }, []);
 
     return (
-        <div className="fixed inset-0 bg-slate-100 dark:bg-slate-950 z-[60] overflow-y-auto overflow-x-hidden">
+        <div className="fixed inset-0 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-xl z-[60] overflow-y-auto overflow-x-hidden">
             {/* Floating Header */}
-            <div className="fixed top-0 left-0 right-0 z-[70] p-4 flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-sm border-b border-slate-200 dark:border-slate-800 transition-all duration-300 hover:opacity-100 opacity-0 hover:translate-y-0 -translate-y-2 pointer-events-none hover:pointer-events-auto group-hover:opacity-100 group">
+            <div className="fixed top-0 left-0 right-0 z-[70] p-4 flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-all duration-300 hover:opacity-100 opacity-0 hover:translate-y-0 -translate-y-2 pointer-events-none hover:pointer-events-auto group-hover:opacity-100 group">
                 <div className="flex items-center gap-4">
                     {/* Trigger area to show header */}
-                    <div className="absolute top-0 left-0 right-0 h-4 md:h-2 -translate-y-full group-hover:translate-y-0 pointer-events-auto" />
+                    <div className="absolute top-0 left-0 right-0 h-6 -translate-y-full group-hover:translate-y-0 pointer-events-auto" />
                     <span className="font-semibold text-slate-700 dark:text-slate-200">Modo Apresentação</span>
                 </div>
 

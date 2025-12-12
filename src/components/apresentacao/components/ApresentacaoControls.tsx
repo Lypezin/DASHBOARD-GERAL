@@ -111,25 +111,6 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                 </Button>
 
                 <Button
-                    onClick={onGeneratePDF}
-                    disabled={totalSlides === 0 || isGenerating}
-                    variant="ghost"
-                    className="text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 min-w-[140px]"
-                >
-                    {isGenerating ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Gerando...
-                        </>
-                    ) : (
-                        <>
-                            <FileDown className="mr-2 h-4 w-4" />
-                            Gerar PDF
-                        </>
-                    )}
-                </Button>
-
-                <Button
                     variant="outline"
                     onClick={onClose}
                     className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"

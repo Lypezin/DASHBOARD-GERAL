@@ -58,11 +58,11 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
       )}
 
       {/* Cards Grid - responsive based on count */}
-      <div className={`${isSingleItem ? 'flex justify-center items-center' : 'grid grid-cols-3 gap-6'} flex-1 content-center`}>
+      <div className={`${isSingleItem ? 'flex justify-center items-center' : 'grid grid-cols-3 gap-6'} flex-1 content-start`}>
         {itens.map((item) => (
           <div
             key={item.nome}
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg overflow-hidden ${isSingleItem ? 'w-[700px]' : ''}`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-[700px]' : ''}`}
           >
             {/* Card Header */}
             <div className="bg-gradient-to-r from-slate-700 to-slate-600 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem]">

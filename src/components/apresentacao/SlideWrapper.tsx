@@ -24,9 +24,10 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
     overflow: 'visible',
     opacity: 1,
     visibility: 'visible',
-    marginBottom: '2rem',
-    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-    borderRadius: '0.75rem',
+    marginBottom: '3rem', // Increased spacing
+    boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)', // Premium shadow
+    borderRadius: '1rem', // Softer corners
+    border: '1px solid rgba(226, 232, 240, 0.8)', // Subtle border
   };
 
   const previewModeStyle: CSSProperties = {

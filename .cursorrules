@@ -1,0 +1,80 @@
+# Regras Gerais
+
+## Idioma
+- Você deve SEMPRE responder em Português (Brasil).
+- Se o usuário falar em outro idioma, responda em Português, a menos que solicitado o contrário.
+
+## Estilo de Código
+- Mantenha os comentários e documentação em Português quando possível.
+
+# Regras de Refatoração e Build
+
+## Regras de Refatoração de Arquivos
+
+### Limites de Tamanho
+- Arquivos TypeScript/React (`.tsx`, `.ts`) com mais de 500 linhas devem ser refatorados em componentes menores
+- Arquivos com mais de 1000 linhas devem ser reduzidos para no máximo 500 linhas
+- Sempre que um arquivo crescer além de 500 linhas, sugerir refatoração imediatamente
+- Priorizar separação de responsabilidades ao refatorar
+
+### Estrutura de Refatoração
+- **Filtros**: Extrair lógica de filtros para componentes separados (ex: `ComponentFilters.tsx`)
+- **Tabelas**: Extrair renderização de tabelas para componentes separados (ex: `ComponentTable.tsx`)
+- **Gráficos**: Extrair configuração e renderização de gráficos para componentes separados
+- **Hooks**: Extrair lógica complexa para hooks customizados (ex: `useComponentData.ts`)
+- **Utilitários**: Extrair funções auxiliares para arquivos de utilitários (ex: `ComponentUtils.ts`)
+- **Tipos**: Centralizar tipos compartilhados em arquivos de tipos (ex: `useComponentData.ts` ou `@/types`)
+
+### Diretórios de Componentes
+- Componentes extraídos devem ser organizados em subdiretórios:
+  - `src/components/views/[view-name]/[ComponentName].tsx`
+  - Exemplo: `src/components/views/comparacao/ComparacaoFilters.tsx`
+
+### Princípios de Refatoração
+1. **Separação de Responsabilidades**: Cada componente deve ter uma responsabilidade única
+2. **Reutilização**: Componentes extraídos devem ser reutilizáveis quando possível
+3. **Manutenibilidade**: Código mais fácil de entender e modificar
+4. **Performance**: Manter otimizações existentes (React.memo, useMemo, useCallback, etc.)
+5. **TypeScript**: Manter tipagem forte em todos os componentes
+6. **Consistência**: Usar os mesmos tipos exportados de hooks/utilitários em todos os componentes relacionados
+
+## Regras de Build e Validação
+
+### Validação Antes de Push
+- Sempre rodar `npm run build` antes de sugerir fazer push para a Vercel
+- Verificar se há erros de TypeScript antes de commitar
+- Verificar se há erros de ESLint críticos antes de commitar
+- Alertar sobre arquivos grandes que podem causar problemas no build
+
+### Verificação de Tipos
+- Sempre usar tipos explícitos em parâmetros de funções (evitar `any` implícito)
+- Garantir que todos os componentes importem tipos de fontes centralizadas
+- Verificar compatibilidade de tipos entre componentes relacionados
+- Usar tipos exportados de hooks/utilitários em vez de redefinir interfaces
+
+### Verificação de Imports
+- Verificar se todos os imports estão corretos após refatoração
+- Garantir que tipos compartilhados sejam importados de um único local
+- Verificar se componentes extraídos têm todos os imports necessários
+
+### Estrutura de Build
+- Alertar se um arquivo está crescendo além de 500 linhas durante desenvolvimento
+- Sugerir refatoração proativa antes que arquivos fiquem muito grandes
+- Verificar se componentes refatorados mantêm a mesma funcionalidade
+
+## Checklist Antes de Commitar
+
+1. ✅ Arquivo tem menos de 500 linhas (ou foi refatorado se maior)
+2. ✅ `npm run build` passa sem erros
+3. ✅ Não há erros de TypeScript
+4. ✅ Imports estão corretos
+5. ✅ Tipos estão centralizados e consistentes
+6. ✅ Componentes seguem a estrutura de diretórios definida
+7. ✅ ESLint warnings não críticos são aceitáveis, mas erros não
+
+## Quando Refatorar
+
+- **Imediatamente**: Arquivo passa de 1000 linhas
+- **Prioritário**: Arquivo passa de 500 linhas
+- **Oportunidade**: Arquivo está próximo de 500 linhas e há lógica que pode ser extraída
+- **Manutenção**: Durante correções de bugs ou adição de features em arquivos grandes
