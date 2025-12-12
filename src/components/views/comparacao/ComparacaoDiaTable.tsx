@@ -120,6 +120,20 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                             if (metric.key === 'taxa_aceitacao') {
                               rawValue = dayData.taxa_aceitacao ??
                                 (dayData.corridas_ofertadas ? (dayData.corridas_aceitas || 0) / dayData.corridas_ofertadas * 100 : 0);
+                            } else if (metric.key === 'horas_a_entregar') {
+                              // Prioritize seconds if available, otherwise parse string
+                              if (dayData.segundos_planejados !== undefined && dayData.segundos_planejados !== null) {
+                                rawValue = dayData.segundos_planejados;
+                              } else {
+                                rawValue = dayData.horas_a_entregar || 0;
+                              }
+                            } else if (metric.key === 'horas_entregues') {
+                              // Prioritize seconds if available
+                              if (dayData.segundos_realizados !== undefined && dayData.segundos_realizados !== null) {
+                                rawValue = dayData.segundos_realizados;
+                              } else {
+                                rawValue = dayData.horas_entregues || 0;
+                              }
                             } else {
                               // @ts-ignore - dynamic key access
                               rawValue = dayData[metric.key] ?? 0;
@@ -130,10 +144,14 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                           let displayValue = '-';
                           if (dayData) {
                             if (metric.isTime) {
-                              displayValue = String(rawValue); // Already string HH:MM:ss or needs formatting if number
+                              // If it's a number (seconds), format it. If it's a string, use it (or parse if it's "00:00:00" and we have seconds)
                               if (typeof rawValue === 'number') {
-                                // Convert seconds to HH:MM:ss if needed, but assuming string from API based on types
-                                displayValue = new Date(rawValue * 1000).toISOString().substr(11, 8);
+                                const h = Math.floor(rawValue / 3600);
+                                const m = Math.floor((rawValue % 3600) / 60);
+                                const s = Math.floor(rawValue % 60);
+                                displayValue = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                              } else {
+                                displayValue = String(rawValue);
                               }
                             } else if (metric.isPercent) {
                               displayValue = `${Number(rawValue).toFixed(1)}%`;
@@ -154,16 +172,16 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                                 prevValue = prevDayData.taxa_aceitacao ??
                                   (prevDayData.corridas_ofertadas ? (prevDayData.corridas_aceitas || 0) / prevDayData.corridas_ofertadas * 100 : 0);
                               } else if (metric.isTime) {
-                                // Time variation is tricky if string. Converting to seconds for variation calc.
-                                // Assuming simpler numeric comparison for now or skipping.
-                                // Let's parse time string to seconds for reliable diff
-                                const timeToSeconds = (t: string | number) => {
-                                  if (typeof t === 'number') return t;
-                                  if (!t) return 0;
-                                  const [h, m, s] = t.split(':').map(Number);
-                                  return (h * 3600) + (m * 60) + (s || 0);
-                                };
-                                prevValue = timeToSeconds(prevDayData[metric.key as keyof typeof prevDayData] as any);
+                                if (metric.key === 'horas_a_entregar' && prevDayData.segundos_planejados !== undefined) {
+                                  prevValue = prevDayData.segundos_planejados;
+                                } else if (metric.key === 'horas_entregues' && prevDayData.segundos_realizados !== undefined) {
+                                  prevValue = prevDayData.segundos_realizados;
+                                } else {
+                                  // Fallback to parsing string
+                                  const timeStr = prevDayData[metric.key as keyof typeof prevDayData] as string || '00:00:00';
+                                  const [h, m, s] = timeStr.split(':').map(Number);
+                                  prevValue = (h * 3600) + (m * 60) + (s || 0);
+                                }
                               } else {
                                 // @ts-ignore
                                 prevValue = Number(prevDayData[metric.key] ?? 0);
@@ -172,13 +190,12 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
 
                             let currentValueNum = 0;
                             if (metric.isTime) {
-                              const timeToSeconds = (t: string | number) => {
-                                if (typeof t === 'number') return t;
-                                if (!t) return 0;
-                                const [h, m, s] = t.split(':').map(Number);
-                                return (h * 3600) + (m * 60) + (s || 0);
-                              };
-                              currentValueNum = timeToSeconds(rawValue);
+                              if (typeof rawValue === 'number') {
+                                currentValueNum = rawValue;
+                              } else {
+                                const [h, m, s] = String(rawValue).split(':').map(Number);
+                                currentValueNum = (h * 3600) + (m * 60) + (s || 0);
+                              }
                             } else {
                               currentValueNum = Number(rawValue);
                             }
