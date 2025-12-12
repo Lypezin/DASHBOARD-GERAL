@@ -12,6 +12,7 @@ interface ComparingTableRowProps {
     showVariation?: boolean;
     invertVariationColors?: boolean;
     valueClassName?: string;
+    isEven?: boolean;
 }
 
 export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
@@ -22,10 +23,14 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
     formatValue,
     showVariation = true,
     invertVariationColors = false,
-    valueClassName = "text-slate-600 dark:text-slate-400"
+    valueClassName = "text-slate-600 dark:text-slate-400",
+    isEven = false,
 }) => {
     return (
-        <TableRow className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+        <TableRow className={`
+            transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50
+            ${!isEven ? 'bg-slate-50/30 dark:bg-slate-900/20' : ''}
+        `}>
             <TableCell className="font-medium text-slate-700 dark:text-slate-300">
                 <div className="flex items-center gap-2">
                     {icon}

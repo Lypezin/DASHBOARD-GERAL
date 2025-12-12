@@ -49,6 +49,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
               </span>
             )}
             valueClassName=""
+            isEven={true}
           />
 
           <ComparingTableRow
@@ -58,6 +59,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             getValue={(d) => d.total_ofertadas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
             valueClassName="text-slate-600 dark:text-slate-400"
+            isEven={false}
           />
 
           <ComparingTableRow
@@ -67,6 +69,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             getValue={(d) => d.total_aceitas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
             valueClassName="text-emerald-600 dark:text-emerald-400"
+            isEven={true}
           />
 
           <ComparingTableRow
@@ -77,6 +80,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             formatValue={(v) => v.toLocaleString('pt-BR')}
             valueClassName="text-rose-600 dark:text-rose-400"
             invertVariationColors
+            isEven={false}
           />
 
           <ComparingTableRow
@@ -86,6 +90,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             getValue={(d) => d.total_completadas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
             valueClassName="text-purple-600 dark:text-purple-400"
+            isEven={true}
           />
 
           <ComparingTableRow
@@ -95,6 +100,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             getValue={(d) => d.total_ofertadas ? ((d.total_aceitas ?? 0) / d.total_ofertadas) * 100 : 0}
             formatValue={(v) => `${v.toFixed(1)}%`}
             showVariation={false}
+            isEven={false}
           />
 
           <ComparingTableRow
@@ -105,6 +111,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             formatValue={(v) => formatarHorasParaHMS(v)}
             valueClassName="font-mono text-amber-600 dark:text-amber-400"
             showVariation={false}
+            isEven={true}
           />
 
           <ComparingTableRow
@@ -115,6 +122,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             formatValue={(v) => formatarHorasParaHMS(v)}
             valueClassName="font-mono text-blue-600 dark:text-blue-400"
             showVariation={false}
+            isEven={false}
           />
         </TableBody>
       </Table>

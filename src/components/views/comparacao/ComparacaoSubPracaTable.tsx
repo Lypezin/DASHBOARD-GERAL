@@ -1,73 +1,66 @@
+```typescript
 import React from 'react';
 import { DashboardResumoData } from '@/types';
-import { ComparacaoMetricRow } from './ComparacaoMetricRow';
-import { MapPin, TrendingUp, Megaphone, CheckCircle2, XCircle, Target, Percent, Calendar, Clock } from 'lucide-react';
-import { formatarHorasParaHMS } from '@/utils/formatters';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { VariacaoBadge } from '@/components/VariacaoBadge';
+import { Map } from 'lucide-react';
 
 interface ComparacaoSubPracaTableProps {
-    dadosComparacao: DashboardResumoData[];
-    semanasSelecionadas: string[];
+  dadosComparacao: DashboardResumoData[];
+  semanasSelecionadas: (number | string)[];
 }
 
 export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = ({
-    dadosComparacao,
-    semanasSelecionadas,
+  dadosComparacao,
+  semanasSelecionadas,
 }) => {
-    return (
+  // 1. Extrair todas as sub-praças disponíveis nos dados
+  const todasSubPracas = new Set<string>();
+  dadosComparacao.forEach((d) => {
+    // Ensure aderencia_sub_praca exists and is an array before iterating
+    if (d.aderencia_sub_praca && Array.isArray(d.aderencia_sub_praca)) {
+      d.aderencia_sub_praca.forEach((asp) => {
+        todasSubPracas.add(asp.sub_praca);
+      });
+    }
+  });
+  const subPracasOrdenadas = Array.from(todasSubPracas).sort();
+
+  // 2. Mapear dados
+  const dadosPorSubPraca: Record<string, Record<number, number>> = {};
+  subPracasOrdenadas.forEach((sp) => {
+    dadosPorSubPraca[sp] = {};
+    dadosComparacao.forEach((dado, idx) => {
+      const spData = dado.aderencia_sub_praca?.find((x) => x.sub_praca === sp);
+      dadosPorSubPraca[sp][idx] = spData ? spData.aderencia_percentual : 0;
+    });
+  });
+
+  return (
+    <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex items-center gap-2">
+            <Map className="h-5 w-5 text-emerald-500" />
+            <div>
+                <CardTitle className="text-base font-semibold text-slate-900 dark:text-white">
+                Detalhamento por Sub-Praça
+                </CardTitle>
+                <CardDescription className="text-xs text-slate-500">
+                Comparativo detalhado de aderência por região (sub-praça)
+                </CardDescription>
+            </div>
+            </div>
+        </CardHeader>
+      <CardContent className="p-0">
         <div className="overflow-x-auto">
-            <table className="w-full">
-                <thead className="bg-slate-50 dark:bg-slate-800/50">
-                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                        <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sub-Praça / Métrica</th>
-                        {semanasSelecionadas.map((semana, idx) => (
-                            <React.Fragment key={semana}>
-                                <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700">
-                                    Semana {semana}
-                                </th>
-                                {idx > 0 && (
-                                    <th className="px-4 py-4 text-center text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-900/10">
-                                        Δ% vs S{semanasSelecionadas[idx - 1]}
-                                    </th>
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {Array.from(new Set(dadosComparacao.flatMap(d => (d.aderencia_sub_praca || d.sub_praca || []).map(sp => sp.sub_praca)))).map((subPraca) => (
-                        <React.Fragment key={subPraca}>
-                            <tr className="bg-purple-50/50 dark:bg-purple-900/10">
-                                <td colSpan={semanasSelecionadas.length * 2} className="px-6 py-3 font-semibold text-purple-900 dark:text-purple-100 flex items-center gap-2">
-                                    <MapPin className="h-4 w-4" />
-                                    {subPraca}
-                                </td>
-                            </tr>
-
-                            <ComparacaoMetricRow
-                                label="Aderência"
-                                icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
-                                dadosComparacao={dadosComparacao}
-                                subPraca={subPraca}
-                                getValue={(d) => d.aderencia_percentual ?? 0}
-                                formatValue={(v) => (
-                                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-sm font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
-                                        {Number(v).toFixed(1)}%
-                                    </span>
-                                )}
-                            />
-
-                            <ComparacaoMetricRow
-                                label="Corridas Ofertadas"
-                                icon={<Megaphone className="h-4 w-4 text-slate-500" />}
-                                dadosComparacao={dadosComparacao}
-                                subPraca={subPraca}
-                                getValue={(d) => d.corridas_ofertadas ?? 0}
-                                formatValue={(v) => Number(v).toLocaleString('pt-BR')}
-                            />
-
-                            <ComparacaoMetricRow
-                                label="Corridas Aceitas"
-                                icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                                 dadosComparacao={dadosComparacao}
                                 subPraca={subPraca}
                                 getValue={(d) => d.corridas_aceitas ?? 0}
@@ -106,7 +99,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
                                     const aceitas = d.corridas_aceitas ?? 0;
                                     return ofertadas > 0 ? (aceitas / ofertadas) * 100 : 0;
                                 }}
-                                formatValue={(v) => `${Number(v).toFixed(1)}%`}
+                                formatValue={(v) => `${ Number(v).toFixed(1) }% `}
                                 showVariation={false}
                             />
 

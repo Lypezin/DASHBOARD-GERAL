@@ -1,94 +1,79 @@
+```typescript
 import React from 'react';
 import { DashboardResumoData } from '@/types';
-import { VariacaoBadge } from '@/components/VariacaoBadge';
-import { DIAS_DA_SEMANA } from '@/constants/comparacao';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { BarChart3 } from 'lucide-react';
-import { findDayData, getMetricValue } from '@/utils/comparacaoHelpers';
+import { VariacaoBadge } from '@/components/VariacaoBadge';
+import { Calendar } from 'lucide-react';
 
 interface ComparacaoDiaTableProps {
   dadosComparacao: DashboardResumoData[];
-  semanasSelecionadas: string[];
+  semanasSelecionadas: (number | string)[];
 }
 
 export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
   dadosComparacao,
   semanasSelecionadas,
 }) => {
+  // Helpers para processar dados por dia
+  // Assumindo que aderencia_dia está na ordem dom..sáb ou seg..dom.
+  // Vamos criar um mapa consolidado
+  const diasSemana = [
+    'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'
+  ];
+
+  // Estrutura: { [dia]: { [semanaIdx]: valor } }
+  const dadosPorDia: Record<string, Record<number, number>> = {};
+
+  diasSemana.forEach(dia => {
+    dadosPorDia[dia] = {};
+    dadosComparacao.forEach((dado, idx) => {
+      const diaData = dado.aderencia_dia.find(d => d.dia_semana === dia);
+      dadosPorDia[dia][idx] = diaData ? diaData.aderencia_percentual : 0;
+    });
+  });
+
   return (
-    <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-      <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
-        <div className="text-center sm:text-left">
-          <div className="flex items-center justify-center gap-2 sm:justify-start">
-            <BarChart3 className="h-5 w-5 text-blue-500" />
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
-              Análise por Dia da Semana
+    <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-5 w-5 text-blue-500" />
+          <div>
+            <CardTitle className="text-base font-semibold text-slate-900 dark:text-white">
+              Detalhamento Diário
             </CardTitle>
+            <CardDescription className="text-xs text-slate-500">
+              Comparativo de aderência dia a dia entre as semanas selecionadas
+            </CardDescription>
           </div>
-          <CardDescription className="mt-1 text-slate-500 dark:text-slate-400">
-            Distribuição de corridas e variações por dia da semana
-          </CardDescription>
         </div>
       </CardHeader>
-
       <CardContent className="p-0">
-
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 dark:bg-slate-800/50">
-              <tr className="border-b border-slate-200 dark:border-slate-700">
-                <th rowSpan={2} className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-700">
-                  Dia
-                </th>
-                <th rowSpan={2} className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 align-middle">
-                  Métrica
-                </th>
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[180px] text-slate-900 dark:text-white font-semibold pl-6">
+                  Dia da Semana
+                </TableHead>
                 {semanasSelecionadas.map((semana, idx) => (
-                  <th
-                    key={`header-${semana}`}
-                    colSpan={idx === 0 ? 1 : 2}
-                    className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700"
-                  >
-                    Semana {semana}
-                  </th>
-                ))}
-              </tr>
-              <tr className="border-b border-slate-200 dark:border-slate-700">
-                {semanasSelecionadas.map((semana, idx) =>
-                  idx === 0 ? (
-                    <th key={`sub-${semana}-valor`} className="px-4 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700">
-                      Valor
-                    </th>
-                  ) : (
-                    <React.Fragment key={`sub-${semana}`}>
-                      <th className="px-4 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700">
-                        Valor
-                      </th>
-                      <th className="px-4 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Δ%
-                      </th>
-                    </React.Fragment>
-                  )
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {DIAS_DA_SEMANA.map((dia, diaIdx) => {
-                const metricas = [
-                  { label: 'Ofertadas', key: 'corridas_ofertadas', color: 'text-slate-600 dark:text-slate-400' },
-                  { label: 'Aceitas', key: 'corridas_aceitas', color: 'text-emerald-600 dark:text-emerald-400' },
-                  { label: 'Rejeitadas', key: 'corridas_rejeitadas', color: 'text-rose-600 dark:text-rose-400' },
-                  { label: 'Completadas', key: 'corridas_completadas', color: 'text-blue-600 dark:text-blue-400' },
                 ];
 
                 return metricas.map((metrica, metricaIdx) => (
-                  <tr key={`${dia}-${metrica.key}`} className={diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'}>
+                  <tr key={`${ dia } -${ metrica.key } `} className={diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'}>
                     {metricaIdx === 0 && (
                       <td rowSpan={4} className="px-4 py-3 text-center font-medium text-slate-900 dark:text-white border-r border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/20">
                         {dia}
                       </td>
                     )}
-                    <td className={`px-4 py-2 text-center text-sm font-medium ${metrica.color}`}>{metrica.label}</td>
+                    <td className={`px - 4 py - 2 text - center text - sm font - medium ${ metrica.color } `}>{metrica.label}</td>
                     {dadosComparacao.map((dados, idx) => {
                       // Usar helper para encontrar dados do dia
                       const diaData = findDayData(dia, dados.aderencia_dia);
@@ -104,7 +89,7 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
 
                       return (
                         <React.Fragment key={idx}>
-                          <td className={`px-4 py-2 text-center font-medium ${metrica.color} border-l border-slate-200 dark:border-slate-700`}>
+                          <td className={`px - 4 py - 2 text - center font - medium ${ metrica.color } border - l border - slate - 200 dark: border - slate - 700`}>
                             {typeof valor === 'number' ? valor.toLocaleString('pt-BR') : '0'}
                           </td>
                           {idx > 0 && variacao !== null && (

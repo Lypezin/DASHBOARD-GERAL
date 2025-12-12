@@ -2,7 +2,16 @@ import React from 'react';
 import { FilterOption } from '@/types';
 import FiltroSelect from '@/components/FiltroSelect';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Search, Info, AlertCircle } from 'lucide-react';
+import { Search, Info, AlertCircle, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface ComparacaoFiltersProps {
   pracas: FilterOption[];
@@ -92,47 +101,56 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
         </div>
 
         {/* Seleção de Semanas */}
-        <div>
-          <label className="mb-3 block text-sm font-medium text-slate-700 dark:text-slate-300">
+        <div className="flex flex-col space-y-3">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Semanas (selecione 2 ou mais)
           </label>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-            {todasSemanas.map((semana) => {
-              const semanaStr = String(semana);
-              let semanaNumStr = semanaStr;
-              if (semanaStr.includes('W')) {
-                const match = semanaStr.match(/W(\d+)/);
-                semanaNumStr = match ? match[1] : semanaStr;
-              }
+          <div className="flex flex-wrap items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-10 px-4 w-full sm:w-[280px] justify-between border-slate-200 dark:border-slate-800">
+                  <span className="truncate">
+                    {semanasSelecionadas.length > 0
+                      ? `${semanasSelecionadas.length} semanas selecionadas`
+                      : "Selecionar semanas..."}
+                  </span>
+                  <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[280px] max-h-[300px] overflow-y-auto" align="start">
+                <DropdownMenuLabel>Semanas Disponíveis</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {todasSemanas.map((semana) => {
+                  const semanaStr = String(semana);
+                  const semanaNumStr = semanaStr.includes('W') ? (semanaStr.match(/W(\d+)/)?.[1] || semanaStr) : semanaStr;
+                  const isSelected = semanasSelecionadas.includes(semanaNumStr);
 
-              const isSelected = semanasSelecionadas.includes(semanaNumStr);
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={semanaStr}
+                      checked={isSelected}
+                      onCheckedChange={() => onToggleSemana(semana)}
+                    >
+                      Semana {semanaNumStr}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-              return (
-                <label
-                  key={semanaStr}
-                  className={`
-                    relative flex cursor-pointer items-center justify-center rounded-md border p-2 text-center transition-all
-                    ${isSelected
-                      ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:border-blue-500 dark:text-blue-300 font-medium ring-1 ring-blue-600 dark:ring-blue-500'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-slate-600'
-                    }
-                  `}
-                >
-                  <input
-                    type="checkbox"
-                    className="hidden"
-                    checked={isSelected}
-                    onChange={() => onToggleSemana(semana)}
-                  />
-                  <span className="text-sm">{semanaNumStr}</span>
-                  {isSelected && (
-                    <div className="absolute top-1 right-1">
-                      <div className="h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-500"></div>
-                    </div>
-                  )}
-                </label>
-              );
-            })}
+            {/* Selected Tags Display */}
+            <div className="flex flex-wrap gap-2">
+              {semanasSelecionadas.slice(0, 5).map((semana) => (
+                <div key={semana} className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:border-blue-800 dark:bg-blue-900/10 dark:text-blue-400">
+                  S{semana}
+                </div>
+              ))}
+              {semanasSelecionadas.length > 5 && (
+                <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                  +{semanasSelecionadas.length - 5}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
