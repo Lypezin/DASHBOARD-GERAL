@@ -1,3 +1,4 @@
+import React from 'react';
 import { DashboardSkeleton } from './DashboardSkeleton';
 
 interface DashboardLoadingStateProps {
