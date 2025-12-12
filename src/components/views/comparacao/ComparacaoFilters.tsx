@@ -57,36 +57,7 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
       </CardHeader>
 
       <CardContent className="p-6 space-y-6">
-        {/* Tutorial/Instruções para Apresentação */}
-        <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-900/50 dark:bg-purple-900/10">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-            <Info className="h-5 w-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
-            <div className="flex-1 space-y-3">
-              <div>
-                <h4 className="font-medium text-purple-900 dark:text-purple-300">Como Gerar a Apresentação em PDF</h4>
-                <div className="mt-2 rounded-md bg-amber-50 border border-amber-200 p-2 text-xs text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200 flex items-center gap-2">
-                  <AlertCircle className="h-3 w-3" />
-                  <strong>Em Desenvolvimento:</strong> A função de Apresentação está em desenvolvimento e será disponibilizada em breve.
-                </div>
-              </div>
 
-              <ol className="space-y-2 text-sm text-purple-800 dark:text-purple-300/80">
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-purple-600 dark:text-purple-400">1.</span>
-                  <span>Selecione <strong>exatamente 2 semanas</strong> usando os checkboxes abaixo.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-purple-600 dark:text-purple-400">2.</span>
-                  <span>Clique em <strong>&quot;Comparar Semanas&quot;</strong> para carregar os dados.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-purple-600 dark:text-purple-400">3.</span>
-                  <span>Clique em <strong>&quot;Apresentação&quot;</strong> para visualizar e gerar o PDF.</span>
-                </li>
-              </ol>
-            </div>
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Filtro de Praça */}

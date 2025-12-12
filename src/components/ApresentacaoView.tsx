@@ -21,6 +21,16 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const [visibleSections, setVisibleSections] = useState({
+    capa: true,
+    'aderencia-geral': true,
+    'sub-pracas': true,
+    'aderencia-diaria': true,
+    turnos: true,
+    origens: true,
+    demanda: true,
+  });
+
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas);
   const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
 
@@ -31,7 +41,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     numeroSemana2,
     periodoSemana1,
     periodoSemana2,
-    pracaSelecionada
+    pracaSelecionada,
+    visibleSections
   );
 
   useEffect(() => {
@@ -65,6 +76,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       onClose={onClose}
       numeroSemana1={numeroSemana1}
       numeroSemana2={numeroSemana2}
+      visibleSections={visibleSections}
+      onToggleSection={(section) => setVisibleSections(prev => ({ ...prev, [section]: !prev[section as keyof typeof prev] }))}
     />
   );
 };

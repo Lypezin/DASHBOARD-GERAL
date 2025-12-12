@@ -23,7 +23,16 @@ export const useApresentacaoSlides = (
   numeroSemana2: string,
   periodoSemana1: string,
   periodoSemana2: string,
-  pracaSelecionada: string | null
+  pracaSelecionada: string | null,
+  visibleSections: Record<string, boolean> = {
+    capa: true,
+    'aderencia-geral': true,
+    'sub-pracas': true,
+    'aderencia-diaria': true,
+    turnos: true,
+    origens: true,
+    demanda: true,
+  }
 ) => {
   const slides = useMemo(() => {
     if (!dadosProcessados) {
@@ -37,110 +46,124 @@ export const useApresentacaoSlides = (
     const slidesConfig: Array<{ key: string; render: (visible: boolean) => React.ReactNode }> = [];
     const { resumoSemana1, resumoSemana2, variacaoResumo, subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, demandaItens } = dadosProcessados;
 
-    slidesConfig.push({
-      key: 'capa',
-      render: (visible) => (
-        <SlideCapa
-          isVisible={visible}
-          pracaSelecionada={pracaSelecionada}
-          numeroSemana1={numeroSemana1}
-          numeroSemana2={numeroSemana2}
-          periodoSemana1={periodoSemana1}
-          periodoSemana2={periodoSemana2}
-        />
-      ),
-    });
-
-    slidesConfig.push({
-      key: 'aderencia-geral',
-      render: (visible) => (
-        <SlideAderenciaGeral
-          isVisible={visible}
-          semana1={resumoSemana1}
-          semana2={resumoSemana2}
-          variacao={variacaoResumo}
-        />
-      ),
-    });
-
-    const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
-    subPracasPaginas.forEach((pagina, indice) => {
+    if (visibleSections.capa) {
       slidesConfig.push({
-        key: `sub-pracas-${indice}`,
+        key: 'capa',
         render: (visible) => (
-          <SlideSubPracas
+          <SlideCapa
             isVisible={visible}
+            pracaSelecionada={pracaSelecionada}
             numeroSemana1={numeroSemana1}
             numeroSemana2={numeroSemana2}
-            paginaAtual={indice + 1}
-            totalPaginas={subPracasPaginas.length}
-            itens={pagina}
+            periodoSemana1={periodoSemana1}
+            periodoSemana2={periodoSemana2}
           />
         ),
       });
-    });
+    }
 
-    slidesConfig.push({
-      key: 'aderencia-diaria',
-      render: (visible) => (
-        <SlideAderenciaDiaria
-          isVisible={visible}
-          numeroSemana1={numeroSemana1}
-          numeroSemana2={numeroSemana2}
-          semana1Dias={semana1Dias}
-          semana2Dias={semana2Dias}
-        />
-      ),
-    });
-
-    const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
-    turnosPaginas.forEach((pagina, indice) => {
+    if (visibleSections['aderencia-geral']) {
       slidesConfig.push({
-        key: `turnos-${indice}`,
+        key: 'aderencia-geral',
         render: (visible) => (
-          <SlideTurnos
+          <SlideAderenciaGeral
             isVisible={visible}
-            numeroSemana1={numeroSemana1}
-            numeroSemana2={numeroSemana2}
-            paginaAtual={indice + 1}
-            totalPaginas={turnosPaginas.length}
-            itens={pagina}
+            semana1={resumoSemana1}
+            semana2={resumoSemana2}
+            variacao={variacaoResumo}
           />
         ),
       });
-    });
+    }
 
-    const origensPaginas = chunkArray(origensComparativo, ORIGENS_PER_PAGE);
-    origensPaginas.forEach((pagina, indice) => {
+    if (visibleSections['sub-pracas']) {
+      const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
+      subPracasPaginas.forEach((pagina, indice) => {
+        slidesConfig.push({
+          key: `sub-pracas-${indice}`,
+          render: (visible) => (
+            <SlideSubPracas
+              isVisible={visible}
+              numeroSemana1={numeroSemana1}
+              numeroSemana2={numeroSemana2}
+              paginaAtual={indice + 1}
+              totalPaginas={subPracasPaginas.length}
+              itens={pagina}
+            />
+          ),
+        });
+      });
+    }
+
+    if (visibleSections['aderencia-diaria']) {
       slidesConfig.push({
-        key: `origens-${indice}`,
+        key: 'aderencia-diaria',
         render: (visible) => (
-          <SlideOrigem
+          <SlideAderenciaDiaria
             isVisible={visible}
             numeroSemana1={numeroSemana1}
             numeroSemana2={numeroSemana2}
-            paginaAtual={indice + 1}
-            totalPaginas={origensPaginas.length}
-            itens={pagina}
+            semana1Dias={semana1Dias}
+            semana2Dias={semana2Dias}
           />
         ),
       });
-    });
+    }
 
-    slidesConfig.push({
-      key: 'demanda',
-      render: (visible) => (
-        <SlideDemandaRejeicoes
-          isVisible={visible}
-          numeroSemana1={numeroSemana1}
-          numeroSemana2={numeroSemana2}
-          itens={demandaItens}
-        />
-      ),
-    });
+    if (visibleSections.turnos) {
+      const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
+      turnosPaginas.forEach((pagina, indice) => {
+        slidesConfig.push({
+          key: `turnos-${indice}`,
+          render: (visible) => (
+            <SlideTurnos
+              isVisible={visible}
+              numeroSemana1={numeroSemana1}
+              numeroSemana2={numeroSemana2}
+              paginaAtual={indice + 1}
+              totalPaginas={turnosPaginas.length}
+              itens={pagina}
+            />
+          ),
+        });
+      });
+    }
+
+    if (visibleSections.origens) {
+      const origensPaginas = chunkArray(origensComparativo, ORIGENS_PER_PAGE);
+      origensPaginas.forEach((pagina, indice) => {
+        slidesConfig.push({
+          key: `origens-${indice}`,
+          render: (visible) => (
+            <SlideOrigem
+              isVisible={visible}
+              numeroSemana1={numeroSemana1}
+              numeroSemana2={numeroSemana2}
+              paginaAtual={indice + 1}
+              totalPaginas={origensPaginas.length}
+              itens={pagina}
+            />
+          ),
+        });
+      });
+    }
+
+    if (visibleSections.demanda) {
+      slidesConfig.push({
+        key: 'demanda',
+        render: (visible) => (
+          <SlideDemandaRejeicoes
+            isVisible={visible}
+            numeroSemana1={numeroSemana1}
+            numeroSemana2={numeroSemana2}
+            itens={demandaItens}
+          />
+        ),
+      });
+    }
 
     return slidesConfig;
-  }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, dadosComparacao?.length]);
+  }, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, dadosComparacao?.length, visibleSections]);
 
   return slides;
 };

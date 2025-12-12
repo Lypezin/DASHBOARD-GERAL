@@ -70,9 +70,12 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
                 className="text-white font-bold text-lg uppercase tracking-wide flex-1"
                 style={{
                   display: '-webkit-box',
-                  WebkitLineClamp: 1,
+                  WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  lineHeight: '1.2',
+                  maxHeight: '2.4em'
                 }}
                 title={item.nome}
               >
