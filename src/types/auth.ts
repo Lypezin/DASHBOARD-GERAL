@@ -13,5 +13,5 @@ export interface CurrentUser {
 // Helper para verificar se usuário tem acesso a todas as cidades
 // Admin, marketing e master têm acesso total
 export const hasFullCityAccess = (user: CurrentUser | null | undefined): boolean => {
-  return user?.is_admin === true || user?.role === 'marketing' || user?.role === 'master';
+  return user?.is_admin === true || user?.role === 'admin' || user?.role === 'marketing' || user?.role === 'master';
 };

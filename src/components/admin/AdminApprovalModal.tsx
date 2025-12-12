@@ -73,7 +73,7 @@ export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
           </Button>
           <Button
             onClick={onApprove}
-            disabled={loading || !selectedOrganizationId || (selectedRole !== 'marketing' && selectedPracas.length === 0)}
+            disabled={loading || !selectedOrganizationId || (selectedRole === 'user' && selectedPracas.length === 0)}
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             {loading ? (

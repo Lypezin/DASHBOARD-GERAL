@@ -73,7 +73,7 @@ export const AdminEditModal: React.FC<AdminEditModalProps> = ({
           </Button>
           <Button
             onClick={onSave}
-            disabled={loading || !selectedOrganizationId || (selectedRole !== 'marketing' && selectedPracas.length === 0)}
+            disabled={loading || !selectedOrganizationId || (selectedRole === 'user' && selectedPracas.length === 0)}
           >
             {loading ? (
               'Salvando...'
