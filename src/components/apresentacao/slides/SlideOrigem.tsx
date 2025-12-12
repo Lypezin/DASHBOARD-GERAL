@@ -65,24 +65,20 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
             className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg overflow-hidden ${isSingleItem ? 'w-[700px]' : ''}`}
           >
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-slate-700 to-slate-600 px-5 py-4 flex items-center justify-between gap-3 min-h-[6rem]">
+            <div className="bg-gradient-to-r from-slate-700 to-slate-600 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem]">
               <h3
-                className="text-white font-bold text-lg uppercase tracking-wide flex-1"
+                className="text-white font-bold text-base uppercase tracking-wide flex-1 leading-snug"
                 style={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  lineHeight: '1.3'
+                  wordBreak: 'break-word',
+                  hyphens: 'auto'
                 }}
                 title={item.nome}
               >
                 {item.nome}
               </h3>
-              <div className="bg-blue-500 rounded-lg px-4 py-1.5 text-center flex-shrink-0">
-                <span className="text-[0.6rem] font-medium text-blue-100 block">Planejado</span>
-                <span className="text-white font-bold text-base" style={buildTimeTextStyle(item.horasPlanejadas, 1)}>
+              <div className="bg-blue-500 rounded-lg px-3 py-1.5 text-center flex-shrink-0">
+                <span className="text-[0.55rem] font-medium text-blue-100 block">Planejado</span>
+                <span className="text-white font-bold text-sm" style={buildTimeTextStyle(item.horasPlanejadas, 0.875)}>
                   {item.horasPlanejadas}
                 </span>
               </div>

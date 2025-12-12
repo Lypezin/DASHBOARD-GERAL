@@ -141,16 +141,12 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
             className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg overflow-hidden ${isSingleItem ? 'w-[700px]' : ''}`}
           >
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-5 min-h-[5.5rem] flex items-center justify-center">
+            <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 min-h-[4.5rem] flex items-center justify-center">
               <h3
-                className="text-white font-bold text-xl uppercase tracking-wide text-center"
+                className="text-white font-bold text-lg uppercase tracking-wide text-center leading-snug"
                 style={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  lineHeight: '1.3'
+                  wordBreak: 'break-word',
+                  hyphens: 'auto'
                 }}
                 title={turno.nome}
               >
