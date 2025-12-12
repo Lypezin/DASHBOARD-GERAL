@@ -65,7 +65,7 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
             className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg overflow-hidden ${isSingleItem ? 'w-[700px]' : ''}`}
           >
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-slate-700 to-slate-600 px-5 py-3.5 flex items-center justify-between gap-3">
+            <div className="bg-gradient-to-r from-slate-700 to-slate-600 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem]">
               <h3
                 className="text-white font-bold text-lg uppercase tracking-wide flex-1"
                 style={{

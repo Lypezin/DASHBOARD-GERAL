@@ -28,7 +28,7 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
   semana2Dias,
 }) => {
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '28px 40px' }}>
+    <SlideWrapper isVisible={isVisible} style={{ padding: '16px 40px' }}>
       <SlideHeader
         title="ADERÊNCIA DIÁRIA"
         subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}

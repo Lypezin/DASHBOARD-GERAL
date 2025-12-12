@@ -59,7 +59,7 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({
 
         {/* Central variation box */}
         <div className="flex flex-col items-center justify-center">
-          <div className={`rounded-2xl border-2 px-10 py-8 text-center flex flex-col items-center gap-5 shadow-xl ${variacao.positiva
+          <div className={`rounded-2xl border-2 px-12 py-10 text-center flex flex-col items-center gap-8 shadow-xl ${variacao.positiva
             ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 border-emerald-300'
             : 'bg-gradient-to-br from-rose-50 via-rose-100 to-rose-50 border-rose-300'
             }`}>
