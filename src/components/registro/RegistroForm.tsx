@@ -67,13 +67,13 @@ export const RegistroForm = React.memo(function RegistroForm({
   return (
     <>
       <div className="mb-8 text-center">
-        <h2 className="mb-2 text-2xl font-bold text-white">Seus Dados</h2>
-        <p className="text-sm font-medium text-slate-300">Preencha os campos para criar sua conta</p>
+        <h2 className="mb-2 text-2xl font-bold text-slate-800">Seus Dados</h2>
+        <p className="text-sm font-medium text-slate-500">Preencha os campos para criar sua conta</p>
       </div>
 
       {error && (
-        <Alert variant="destructive" className="mb-6 bg-red-500/10 border-red-500/50 text-red-200">
-          <AlertCircle className="h-4 w-4" />
+        <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200 text-red-700">
+          <AlertCircle className="h-4 w-4 text-red-600" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -118,10 +118,10 @@ export const RegistroForm = React.memo(function RegistroForm({
       {/* Divider */}
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-slate-700" />
+          <span className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-transparent px-2 text-slate-400 backdrop-blur-sm">
+          <span className="bg-transparent px-2 text-slate-400 font-medium">
             ou
           </span>
         </div>
@@ -129,11 +129,11 @@ export const RegistroForm = React.memo(function RegistroForm({
 
       {/* Login Link */}
       <div className="text-center">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500">
           Já tem uma conta?{' '}
           <Link
             href="/login"
-            className="font-bold text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+            className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
           >
             Fazer login
           </Link>

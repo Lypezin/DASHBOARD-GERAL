@@ -48,14 +48,14 @@ export const LoginForm = React.memo(function LoginForm({
     <>
       {/* Card Header */}
       <div className="mb-8 text-center">
-        <h2 className="mb-2 text-3xl font-bold text-white">Bem-vindo de volta</h2>
-        <p className="text-sm font-medium text-slate-300">Entre com suas credenciais para continuar</p>
+        <h2 className="mb-2 text-2xl font-bold text-slate-800">Bem-vindo de volta</h2>
+        <p className="text-sm font-medium text-slate-500">Entre com suas credenciais para continuar</p>
       </div>
 
       {/* Error Message */}
       {error && (
-        <Alert variant="destructive" className="mb-6 bg-red-500/10 border-red-500/50 text-red-200">
-          <AlertCircle className="h-4 w-4" />
+        <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200 text-red-700">
+          <AlertCircle className="h-4 w-4 text-red-600" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -64,18 +64,18 @@ export const LoginForm = React.memo(function LoginForm({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email Field */}
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-slate-200">Email</Label>
+          <Label htmlFor="email" className="text-slate-600 font-medium">Email</Label>
           <div className="relative group">
-            <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 transition duration-300 group-hover:opacity-30 blur"></div>
+            <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={handleEmailChange}
                 required
-                className="pl-9 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                className="pl-9 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
                 placeholder="seu@email.com"
                 disabled={loading}
               />
@@ -85,25 +85,25 @@ export const LoginForm = React.memo(function LoginForm({
 
         {/* Password Field */}
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-slate-200">Senha</Label>
+          <Label htmlFor="password" className="text-slate-600 font-medium">Senha</Label>
           <div className="relative group">
-            <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 transition duration-300 group-hover:opacity-30 blur"></div>
+            <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={handlePasswordChange}
                 required
-                className="pl-9 pr-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                className="pl-9 pr-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
                 placeholder="••••••••"
                 disabled={loading}
               />
               <button
                 type="button"
                 onClick={toggleShowPassword}
-                className="absolute right-3 top-3 text-slate-400 hover:text-white transition-colors"
+                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -134,10 +134,10 @@ export const LoginForm = React.memo(function LoginForm({
       {/* Divider */}
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-slate-700" />
+          <span className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-transparent px-2 text-slate-400 backdrop-blur-sm">
+          <span className="bg-transparent px-2 text-slate-400 font-medium">
             ou
           </span>
         </div>
@@ -149,7 +149,7 @@ export const LoginForm = React.memo(function LoginForm({
           Não tem uma conta?{' '}
           <Link
             href="/registro"
-            className="font-bold text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+            className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
           >
             Criar conta
           </Link>

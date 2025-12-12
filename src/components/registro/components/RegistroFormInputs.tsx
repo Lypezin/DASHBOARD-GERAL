@@ -41,18 +41,18 @@ export const RegistroFormInputs: React.FC<RegistroFormInputsProps> = React.memo(
         <div className="space-y-4">
             {/* Nome Completo */}
             <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-slate-200">Nome Completo</Label>
+                <Label htmlFor="fullName" className="text-slate-600 font-medium">Nome Completo</Label>
                 <div className="relative group">
-                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
+                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
                     <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <Input
                             id="fullName"
                             type="text"
                             value={fullName}
                             onChange={onFullNameChange}
                             required
-                            className="pl-9 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                            className="pl-9 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
                             placeholder="João da Silva"
                             disabled={loading}
                         />
@@ -62,18 +62,18 @@ export const RegistroFormInputs: React.FC<RegistroFormInputsProps> = React.memo(
 
             {/* Email */}
             <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-200">Email</Label>
+                <Label htmlFor="email" className="text-slate-600 font-medium">Email</Label>
                 <div className="relative group">
-                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
+                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
                     <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <Input
                             id="email"
                             type="email"
                             value={email}
                             onChange={onEmailChange}
                             required
-                            className="pl-9 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                            className="pl-9 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
                             placeholder="seu@email.com"
                             disabled={loading}
                         />
@@ -83,11 +83,11 @@ export const RegistroFormInputs: React.FC<RegistroFormInputsProps> = React.memo(
 
             {/* Password */}
             <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-200">Senha</Label>
+                <Label htmlFor="password" className="text-slate-600 font-medium">Senha</Label>
                 <div className="relative group">
-                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
+                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
                     <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <Input
                             id="password"
                             type={showPassword ? 'text' : 'password'}
@@ -95,14 +95,14 @@ export const RegistroFormInputs: React.FC<RegistroFormInputsProps> = React.memo(
                             onChange={onPasswordChange}
                             required
                             minLength={6}
-                            className="pl-9 pr-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                            className="pl-9 pr-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
                             placeholder="••••••••"
                             disabled={loading}
                         />
                         <button
                             type="button"
                             onClick={onToggleShowPassword}
-                            className="absolute right-3 top-3 text-slate-400 hover:text-white transition-colors"
+                            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors"
                         >
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -120,11 +120,11 @@ export const RegistroFormInputs: React.FC<RegistroFormInputsProps> = React.memo(
 
             {/* Confirm Password */}
             <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-slate-200">Confirmar Senha</Label>
+                <Label htmlFor="confirmPassword" className="text-slate-600 font-medium">Confirmar Senha</Label>
                 <div className="relative group">
-                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
+                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
                     <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <Input
                             id="confirmPassword"
                             type={showConfirmPassword ? 'text' : 'password'}
@@ -132,21 +132,21 @@ export const RegistroFormInputs: React.FC<RegistroFormInputsProps> = React.memo(
                             onChange={onConfirmPasswordChange}
                             required
                             minLength={6}
-                            className="pl-9 pr-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                            className="pl-9 pr-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
                             placeholder="••••••••"
                             disabled={loading}
                         />
                         <button
                             type="button"
                             onClick={onToggleShowConfirmPassword}
-                            className="absolute right-3 top-3 text-slate-400 hover:text-white transition-colors"
+                            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors"
                         >
                             {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                     </div>
                 </div>
                 {confirmPassword.length > 0 && (
-                    <div className={`text-xs font-medium mt-1 ${password === confirmPassword ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <div className={`text-xs font-medium mt-1 ${password === confirmPassword ? 'text-emerald-600' : 'text-rose-500'}`}>
                         {password === confirmPassword ? '✓ Senhas coincidem' : 'As senhas não coincidem'}
                     </div>
                 )}
