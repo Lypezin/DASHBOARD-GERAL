@@ -11,8 +11,13 @@ export function Header() {
   const avatarUrl = useHeaderAvatar(user);
 
 
-  // Não mostrar header nas páginas de login/registro
-  if (typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname === '/registro')) {
+  // Não mostrar header nas páginas de login/registro e recuperação de senha
+  if (typeof window !== 'undefined' && (
+    window.location.pathname === '/login' ||
+    window.location.pathname === '/registro' ||
+    window.location.pathname === '/esqueci-senha' ||
+    window.location.pathname === '/redefinir-senha'
+  )) {
     return null;
   }
 

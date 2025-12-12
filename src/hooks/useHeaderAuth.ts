@@ -51,11 +51,16 @@ export function useHeaderAuth() {
         setHasTriedAuth(true);
         setIsLoading(false);
 
-        if (pathname !== '/login' && pathname !== '/registro') {
+        if (
+          pathname !== '/login' &&
+          pathname !== '/registro' &&
+          pathname !== '/esqueci-senha' &&
+          pathname !== '/redefinir-senha'
+        ) {
           if (IS_DEV) console.log('[HeaderAuth] Redirecting to login from:', pathname);
           router.push('/login');
         } else {
-          if (IS_DEV) console.log('[HeaderAuth] Already on login/register, skipping redirect');
+          if (IS_DEV) console.log('[HeaderAuth] Already on public page, skipping redirect');
         }
         return;
       }
