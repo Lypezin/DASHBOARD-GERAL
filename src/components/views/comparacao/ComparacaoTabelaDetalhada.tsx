@@ -4,6 +4,7 @@ import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatt
 import { getWeeklyHours } from '@/utils/comparacaoHelpers';
 import { TrendingUp, Megaphone, CheckCircle2, XCircle, Target, Percent, Calendar, Clock } from 'lucide-react';
 import { ComparingTableRow } from './components/ComparingTableRow';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface ComparacaoTabelaDetalhadaProps {
   dadosComparacao: DashboardResumoData[];
@@ -15,28 +16,28 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
   semanasSelecionadas,
 }) => {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-slate-50 dark:bg-slate-800/50">
-          <tr className="border-b border-slate-200 dark:border-slate-700">
-            <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800">
+      <Table>
+        <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
+          <TableRow className="border-b border-slate-200 dark:border-slate-700">
+            <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-[200px]">
               Métrica
-            </th>
+            </TableHead>
             {semanasSelecionadas.map((semana, idx) => (
               <React.Fragment key={semana}>
-                <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700">
+                <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700">
                   Semana {semana}
-                </th>
+                </TableHead>
                 {idx > 0 && (
-                  <th className="px-4 py-4 text-center text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-900/10">
-                    Δ% vs S{semanasSelecionadas[idx - 1]}
-                  </th>
+                  <TableHead className="text-center text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-900/10 w-[100px]">
+                    vs S{semanasSelecionadas[idx - 1]}
+                  </TableHead>
                 )}
               </React.Fragment>
             ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          </TableRow>
+        </TableHeader>
+        <TableBody className="divide-y divide-slate-100 dark:divide-slate-800">
           <ComparingTableRow
             label="Aderência Geral"
             icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
@@ -115,8 +116,8 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             valueClassName="font-mono text-blue-600 dark:text-blue-400"
             showVariation={false}
           />
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 };
