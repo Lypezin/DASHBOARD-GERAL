@@ -108,6 +108,14 @@ export const LoginForm = React.memo(function LoginForm({
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            <div className="flex justify-end pt-1">
+              <Link
+                href="/esqueci-senha"
+                className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
           </div>
         </div>
 
