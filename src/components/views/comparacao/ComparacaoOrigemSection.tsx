@@ -61,8 +61,6 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
         {viewMode === 'table' ? (
           <ComparacaoOrigemTable
             semanasSelecionadas={semanasSelecionadas}
-            origensDisponiveis={origensDisponiveis}
-            totalColunasOrigem={totalColunasOrigem}
             dadosComparacao={dadosComparacao}
           />
         ) : (
