@@ -24,7 +24,7 @@ export function useDashboardDataFetcher({
     filterPayload: FilterPayload;
     onError?: (error: Error | RpcError) => void;
 }) {
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchDashboardData = async (currentPayload: FilterPayload) => {
