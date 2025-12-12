@@ -75,46 +75,143 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {diasSemana.map((dia, index) => (
-                <TableRow
-                  key={dia}
-                  className={index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'}
-                >
-                  <TableCell className="font-medium text-slate-700 dark:text-slate-300 pl-6">
-                    {dia}
-                  </TableCell>
-                  {semanasSelecionadas.map((_, idx) => {
-                    const valor = dadosPorDia[dia][idx];
-                    let variacao: number | null = null;
+              {diasSemana.map((dia, diaIdx) => {
+                const metrics = [
+                  { label: 'Corridas Ofertadas', key: 'corridas_ofertadas', color: 'text-slate-600 dark:text-slate-400' },
+                  { label: 'Corridas Aceitas', key: 'corridas_aceitas', color: 'text-emerald-600 dark:text-emerald-400' },
+                  { label: 'Corridas Rejeitadas', key: 'corridas_rejeitadas', color: 'text-rose-600 dark:text-rose-400' },
+                  { label: 'Corridas Completadas', key: 'corridas_completadas', color: 'text-purple-600 dark:text-purple-400' },
+                  { label: 'Taxa de Aceitação', key: 'taxa_aceitacao', color: 'text-blue-600 dark:text-blue-400', isPercent: true },
+                  { label: 'Horas Planejadas', key: 'horas_a_entregar', color: 'text-amber-600 dark:text-amber-400', isTime: true },
+                  { label: 'Horas Entregues', key: 'horas_entregues', color: 'text-teal-600 dark:text-teal-400', isTime: true },
+                  { label: 'Aderência', key: 'aderencia_percentual', color: 'text-slate-900 dark:text-white font-bold', isPercent: true }
+                ];
 
-                    if (idx > 0) {
-                      const valorAnterior = dadosPorDia[dia][idx - 1];
-                      if (valorAnterior > 0) {
-                        variacao = ((valor - valorAnterior) / valorAnterior) * 100;
-                      } else if (valor > 0) {
-                        variacao = 100;
-                      } else {
-                        variacao = 0;
-                      }
-                    }
+                return (
+                  <React.Fragment key={dia}>
+                    {metrics.map((metric, metricIdx) => (
+                      <TableRow
+                        key={`${dia}-${metric.key}`}
+                        className={`
+                          hover:bg-slate-50 dark:hover:bg-slate-800/50
+                          ${diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'}
+                          ${metricIdx === 0 ? 'border-t-2 border-slate-100 dark:border-slate-800' : ''}
+                        `}
+                      >
+                        {metricIdx === 0 && (
+                          <TableCell
+                            rowSpan={metrics.length}
+                            className="font-bold text-slate-800 dark:text-slate-200 border-r border-slate-100 dark:border-slate-800 align-top bg-slate-50/50 dark:bg-slate-800/20 w-[140px]"
+                          >
+                            {dia}
+                          </TableCell>
+                        )}
+                        <TableCell className={`font-medium text-xs ${metric.color}`}>
+                          {metric.label}
+                        </TableCell>
+                        {semanasSelecionadas.map((_, weekIdx) => {
+                          // We need to access the full object from dadosComparacao directly here or redesign how dadosPorDia is built.
+                          // Redesigning slightly inline to access correct data.
+                          const weeklyData = dadosComparacao[weekIdx];
+                          const dayData = weeklyData.aderencia_dia.find(d => d.dia_semana === dia);
 
-                    return (
-                      <React.Fragment key={idx}>
-                        <TableCell className="text-center text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">
-                          {valor.toFixed(1)}%
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {idx > 0 ? (
-                            <VariacaoBadge variacao={variacao ?? 0} className="mx-auto" />
-                          ) : (
-                            <span className="text-slate-300 dark:text-slate-600">-</span>
-                          )}
-                        </TableCell>
-                      </React.Fragment>
-                    );
-                  })}
-                </TableRow>
-              ))}
+                          let rawValue: number | string = 0;
+                          if (dayData) {
+                            if (metric.key === 'taxa_aceitacao') {
+                              rawValue = dayData.taxa_aceitacao ??
+                                (dayData.corridas_ofertadas ? (dayData.corridas_aceitas || 0) / dayData.corridas_ofertadas * 100 : 0);
+                            } else {
+                              // @ts-ignore - dynamic key access
+                              rawValue = dayData[metric.key] ?? 0;
+                            }
+                          }
+
+                          // Format value
+                          let displayValue = '-';
+                          if (dayData) {
+                            if (metric.isTime) {
+                              displayValue = String(rawValue); // Already string HH:MM:ss or needs formatting if number
+                              if (typeof rawValue === 'number') {
+                                // Convert seconds to HH:MM:ss if needed, but assuming string from API based on types
+                                displayValue = new Date(rawValue * 1000).toISOString().substr(11, 8);
+                              }
+                            } else if (metric.isPercent) {
+                              displayValue = `${Number(rawValue).toFixed(1)}%`;
+                            } else {
+                              displayValue = Number(rawValue).toLocaleString('pt-BR');
+                            }
+                          }
+
+                          // Calculate Variation
+                          let variacao: number | null = null;
+                          if (weekIdx > 0) {
+                            const prevWeeklyData = dadosComparacao[weekIdx - 1];
+                            const prevDayData = prevWeeklyData.aderencia_dia.find(d => d.dia_semana === dia);
+                            let prevValue: number = 0;
+
+                            if (prevDayData) {
+                              if (metric.key === 'taxa_aceitacao') {
+                                prevValue = prevDayData.taxa_aceitacao ??
+                                  (prevDayData.corridas_ofertadas ? (prevDayData.corridas_aceitas || 0) / prevDayData.corridas_ofertadas * 100 : 0);
+                              } else if (metric.isTime) {
+                                // Time variation is tricky if string. Converting to seconds for variation calc.
+                                // Assuming simpler numeric comparison for now or skipping.
+                                // Let's parse time string to seconds for reliable diff
+                                const timeToSeconds = (t: string | number) => {
+                                  if (typeof t === 'number') return t;
+                                  if (!t) return 0;
+                                  const [h, m, s] = t.split(':').map(Number);
+                                  return (h * 3600) + (m * 60) + (s || 0);
+                                };
+                                prevValue = timeToSeconds(prevDayData[metric.key as keyof typeof prevDayData] as any);
+                              } else {
+                                // @ts-ignore
+                                prevValue = Number(prevDayData[metric.key] ?? 0);
+                              }
+                            }
+
+                            let currentValueNum = 0;
+                            if (metric.isTime) {
+                              const timeToSeconds = (t: string | number) => {
+                                if (typeof t === 'number') return t;
+                                if (!t) return 0;
+                                const [h, m, s] = t.split(':').map(Number);
+                                return (h * 3600) + (m * 60) + (s || 0);
+                              };
+                              currentValueNum = timeToSeconds(rawValue);
+                            } else {
+                              currentValueNum = Number(rawValue);
+                            }
+
+                            if (prevValue > 0) {
+                              variacao = ((currentValueNum - prevValue) / prevValue) * 100;
+                            } else if (currentValueNum > 0) {
+                              variacao = 100;
+                            } else {
+                              variacao = 0;
+                            }
+                          }
+
+                          return (
+                            <React.Fragment key={weekIdx}>
+                              <TableCell className="text-center text-xs border-l border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+                                {displayValue}
+                              </TableCell>
+                              <TableCell className="text-center p-1">
+                                {weekIdx > 0 ? (
+                                  <VariacaoBadge variacao={variacao ?? 0} className="mx-auto" />
+                                ) : (
+                                  <span className="text-slate-300 dark:text-slate-600 text-xs">-</span>
+                                )}
+                              </TableCell>
+                            </React.Fragment>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </React.Fragment>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
