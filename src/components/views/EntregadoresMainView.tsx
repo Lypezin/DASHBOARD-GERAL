@@ -10,6 +10,7 @@ import { calcularPercentualAceitas, calcularPercentualCompletadas } from './entr
 import { Button } from '@/components/ui/button';
 import { exportarEntregadoresMainParaExcel } from './entregadores/EntregadoresMainExcelExport';
 import { safeLog } from '@/lib/errorHandler';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 
 const EntregadoresMainView = React.memo(function EntregadoresMainView({
   entregadoresData,
@@ -99,14 +100,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     : 0;
 
   if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-          <p className="mt-4 text-sm font-medium text-slate-500">Carregando entregadores...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton contentOnly />;
   }
 
   if (!entregadoresData || !entregadoresData.entregadores || entregadoresData.entregadores.length === 0) {

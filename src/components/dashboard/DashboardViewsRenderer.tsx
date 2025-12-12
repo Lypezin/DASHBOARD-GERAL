@@ -17,7 +17,7 @@ import {
   ComparacaoView,
   MarketingComparacaoView,
 } from '@/config/dynamicImports';
-import { LoadingSpinner } from '@/components/ui/loading';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import type {
   Totals,
   AderenciaSemanal,
@@ -67,11 +67,7 @@ interface DashboardViewsRendererProps {
   filters: DashboardFilters;
 }
 
-const LoadingFallback = () => (
-  <div className="flex h-[60vh] items-center justify-center">
-    <LoadingSpinner size="lg" text="Carregando..." />
-  </div>
-);
+
 
 export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer({
   activeTab,
@@ -118,25 +114,17 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   const needsChart = activeTab === 'dashboard' || activeTab === 'analise' || activeTab === 'evolucao' || activeTab === 'comparacao' || activeTab === 'marketing_comparacao';
 
   if (needsChart && !chartReady) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <LoadingSpinner size="lg" text="Carregando gráficos..." />
-      </div>
-    );
+    return <DashboardSkeleton contentOnly />;
   }
 
   if (isTransitioning) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <LoadingSpinner size="lg" text="Carregando dados..." />
-      </div>
-    );
+    return <DashboardSkeleton contentOnly />;
   }
 
   return (
     <ErrorBoundary>
       <div className="animate-in fade-in-0 duration-500">
-        <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={<DashboardSkeleton contentOnly />}>
           {activeTab === 'dashboard' && (
             <DashboardView
               aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
@@ -157,7 +145,7 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
                 aderenciaOrigem={aderenciaOrigem}
               />
             ) : (
-              <LoadingFallback />
+              <DashboardSkeleton contentOnly />
             )
           )}
 

@@ -11,6 +11,7 @@ import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { Button } from '@/components/ui/button';
 import { exportarValoresParaExcel } from './valores/ValoresExcelExport';
 import { safeLog } from '@/lib/errorHandler';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 
 const ValoresView = React.memo(function ValoresView({
   valoresData,
@@ -49,11 +50,7 @@ const ValoresView = React.memo(function ValoresView({
   }, [sortedValores]);
 
   if (loading) {
-    return (
-      <div className="space-y-6 animate-fade-in">
-        <TableSkeleton rows={10} columns={5} />
-      </div>
-    );
+    return <DashboardSkeleton contentOnly />;
   }
 
   if (error) {

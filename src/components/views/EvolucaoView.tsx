@@ -11,6 +11,7 @@ import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { processEvolucaoData, createChartData } from './evolucao/EvolucaoDataProcessor';
 import { createEvolucaoChartOptions } from './evolucao/EvolucaoChartConfig';
 import { useThemeDetector } from '@/hooks/useThemeDetector';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 
 const EvolucaoView = React.memo(function EvolucaoView({
   evolucaoMensal,
@@ -79,11 +80,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
 
   // Early return APÓS todos os hooks
   if (loading) {
-    return (
-      <div className="space-y-6 animate-fade-in">
-        <TableSkeleton rows={8} columns={13} />
-      </div>
-    );
+    return <DashboardSkeleton contentOnly />;
   }
 
   return (

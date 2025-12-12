@@ -9,6 +9,7 @@ import { PrioridadeStatsCards } from './prioridade/PrioridadeStatsCards';
 import { usePrioridadeData } from './prioridade/usePrioridadeData';
 import { exportarPrioridadeParaExcel } from './prioridade/PrioridadeExcelExport';
 import { safeLog } from '@/lib/errorHandler';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import {
   calcularPercentualAceitas,
   calcularPercentualCompletadas,
@@ -65,14 +66,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   };
 
   if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-          <p className="mt-4 text-sm font-medium text-slate-500">Carregando dados de prioridade...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton contentOnly />;
   }
 
   if (!entregadoresData) {

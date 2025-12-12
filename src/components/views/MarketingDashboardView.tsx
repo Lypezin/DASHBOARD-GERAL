@@ -5,6 +5,7 @@ import { MarketingFiltersSection } from './marketing/MarketingFiltersSection';
 import { MarketingStatsCards } from './marketing/MarketingStatsCards';
 import { MarketingCityCards } from './marketing/MarketingCityCards';
 import { useMarketingData } from './marketing/useMarketingData';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 
 const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   const {
@@ -17,14 +18,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   } = useMarketingData();
 
   if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div>
-          <p className="mt-4 text-lg font-semibold text-purple-700 dark:text-purple-200">Carregando dados de Marketing...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton contentOnly />;
   }
 
   if (error) {

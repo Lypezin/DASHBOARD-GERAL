@@ -16,6 +16,7 @@ import { ComparacaoDiaTable } from './comparacao/ComparacaoDiaTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart2, Calendar } from 'lucide-react';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 
 const ComparacaoView = React.memo(function ComparacaoView(props: {
   semanas: string[];
@@ -43,12 +44,7 @@ const ComparacaoView = React.memo(function ComparacaoView(props: {
         dadosComparacaoLength={data.dadosComparacao.length}
       />
 
-      {state.loading && (
-        <div className="space-y-6 animate-fade-in">
-          <TableSkeleton rows={10} columns={4} />
-          <TableSkeleton rows={5} columns={2} showHeader={false} />
-        </div>
-      )}
+      {state.loading && <DashboardSkeleton contentOnly />}
 
       {!state.loading && data.dadosComparacao.length > 0 && (
         <div className="space-y-6">

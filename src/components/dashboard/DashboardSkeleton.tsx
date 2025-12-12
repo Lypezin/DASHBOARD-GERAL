@@ -1,26 +1,34 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function DashboardSkeleton() {
+interface DashboardSkeletonProps {
+    contentOnly?: boolean;
+}
+
+export function DashboardSkeleton({ contentOnly = false }: DashboardSkeletonProps) {
     return (
         <div className="space-y-4 animate-fade-in w-full">
             {/* Filtros Skeleton */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
-                {[...Array(4)].map((_, i) => (
-                    <div key={i} className="space-y-2">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-10 w-full rounded-md" />
-                    </div>
-                ))}
-            </div>
-
-            {/* Tabs Skeleton */}
-            <div className="w-full border-b border-slate-200 dark:border-slate-800">
-                <div className="flex gap-2 pb-2 overflow-x-auto">
-                    {[...Array(5)].map((_, i) => (
-                        <Skeleton key={i} className="h-10 w-32 rounded-lg" />
+            {!contentOnly && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full rounded-md" />
+                        </div>
                     ))}
                 </div>
-            </div>
+            )}
+
+            {/* Tabs Skeleton */}
+            {!contentOnly && (
+                <div className="w-full border-b border-slate-200 dark:border-slate-800">
+                    <div className="flex gap-2 pb-2 overflow-x-auto">
+                        {[...Array(5)].map((_, i) => (
+                            <Skeleton key={i} className="h-10 w-32 rounded-lg" />
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Main Content Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
