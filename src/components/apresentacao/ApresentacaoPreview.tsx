@@ -16,6 +16,7 @@ interface ApresentacaoPreviewProps {
   numeroSemana2: string;
   visibleSections: Record<string, boolean>;
   onToggleSection: (section: string) => void;
+  onStartPresentation: () => void;
 }
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
@@ -29,6 +30,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   numeroSemana2,
   visibleSections,
   onToggleSection,
+  onStartPresentation,
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -124,6 +126,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
             onNext={onNext}
             onClose={onClose}
             onGeneratePDF={generatePDF}
+            onStartPresentation={onStartPresentation}
             isGenerating={isGenerating}
             visibleSections={visibleSections}
             onToggleSection={onToggleSection}

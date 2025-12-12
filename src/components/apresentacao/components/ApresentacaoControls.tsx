@@ -16,6 +16,7 @@ interface ApresentacaoControlsProps {
     onNext: () => void;
     onClose: () => void;
     onGeneratePDF: () => void;
+    onStartPresentation: () => void;
     isGenerating: boolean;
     visibleSections: Record<string, boolean>;
     onToggleSection: (section: string) => void;
@@ -38,6 +39,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
     onNext,
     onClose,
     onGeneratePDF,
+    onStartPresentation,
     isGenerating,
     visibleSections,
     onToggleSection,
@@ -101,9 +103,18 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                 <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
 
                 <Button
+                    onClick={onStartPresentation}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[170px]"
+                >
+                    <Check className="mr-2 h-4 w-4" />
+                    Iniciar Apresentação
+                </Button>
+
+                <Button
                     onClick={onGeneratePDF}
                     disabled={totalSlides === 0 || isGenerating}
-                    className="bg-blue-600 hover:bg-blue-700 text-white min-w-[140px]"
+                    variant="ghost"
+                    className="text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 min-w-[140px]"
                 >
                     {isGenerating ? (
                         <>
