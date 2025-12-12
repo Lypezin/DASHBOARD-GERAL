@@ -1,5 +1,5 @@
 import React from 'react';
-import { DashboardResumoData, FilterOption } from '@/types';
+import { DashboardResumoData } from '@/types';
 import {
     Table,
     TableBody,
@@ -15,22 +15,30 @@ import { MapPin } from 'lucide-react';
 interface ComparacaoOrigemTableProps {
     dadosComparacao: DashboardResumoData[];
     semanasSelecionadas: (number | string)[];
-    origensDisponiveis: { value: string; label: string }[];
 }
 
 export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
     dadosComparacao,
     semanasSelecionadas,
-    origensDisponiveis,
 }) => {
-    // Helpers para processar dados por origem
-    const dadosPorOrigem: Record<string, Record<number, number>> = {};
+    // 1. Extrair todas as origens disponíveis
+    const todasOrigens = new Set<string>();
+    dadosComparacao.forEach((d) => {
+        if (d.aderencia_origem && Array.isArray(d.aderencia_origem)) {
+            d.aderencia_origem.forEach((item) => {
+                todasOrigens.add(item.origem);
+            });
+        }
+    });
+    const origensOrdenadas = Array.from(todasOrigens).sort();
 
-    origensDisponiveis.forEach(origem => {
-        dadosPorOrigem[origem.value] = {};
+    // 2. Mapear dados
+    const dadosPorOrigem: Record<string, Record<number, number>> = {};
+    origensOrdenadas.forEach((origem) => {
+        dadosPorOrigem[origem] = {};
         dadosComparacao.forEach((dado, idx) => {
-            const origemData = dado.aderencia_origem.find(d => d.origem === origem.value);
-            dadosPorOrigem[origem.value][idx] = origemData ? origemData.aderencia_percentual : 0;
+            const origemData = dado.aderencia_origem?.find((x) => x.origem === origem);
+            dadosPorOrigem[origem][idx] = origemData ? origemData.aderencia_percentual : 0;
         });
     });
 
@@ -51,66 +59,79 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
             </CardHeader>
             <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                    <Globe className="h-4 w-4" />
-                    {origemLabel}
-                </td>
-            </tr>
-            {METRICAS_ORIGEM.map((metrica) => (
-                <tr
-                    key={`${origemLabel}-${metrica.key}`}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                >
-                    <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
-                        <div className="flex items-center gap-2">
-                            <span className="text-lg">{metrica.icon}</span>
-                            {metrica.label}
-                        </div>
-                    </td>
-                    {dadosComparacao.map((dados, idx) => {
-                        const origemAtual =
-                            (dados.aderencia_origem || dados.origem)?.find((item) => (item.origem || '').trim() === origem) || ({} as any);
-                        const valorAtual = Number(
-                            origemAtual?.[metrica.key as keyof typeof origemAtual] ?? 0
-                        );
-                        let variacao: number | null = null;
-                        if (idx > 0) {
-                            const dadosAnterior = dadosComparacao[idx - 1];
-                            const origemAnterior =
-                                (dadosAnterior.aderencia_origem || dadosAnterior.origem)?.find((item) => (item.origem || '').trim() === origem) ||
-                                ({} as any);
-                            const valorAnterior = Number(
-                                origemAnterior?.[metrica.key as keyof typeof origemAnterior] ?? 0
-                            );
-                            variacao = calcularVariacaoPercentual(valorAnterior, valorAtual);
-                        }
-                        const valorFormatado =
-                            metrica.tipo === 'percent'
-                                ? `${valorAtual.toFixed(1)}%`
-                                : valorAtual.toLocaleString('pt-BR');
-                        return (
-                            <React.Fragment key={`${idx}-${metrica.key}`}>
-                                <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-700">
-                                    {valorFormatado}
-                                </td>
-                                {idx > 0 && (
-                                    <td className="px-4 py-4 text-center">
-                                        <VariacaoBadge
-                                            variacao={Number.isFinite(variacao ?? 0) ? (variacao ?? 0) : 0}
-                                            className="px-2 py-0.5 text-xs"
-                                            invertColors={Boolean(metrica.invertColors)}
-                                        />
-                                    </td>
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
-                </tr>
-            ))}
-        </React.Fragment>
-    );
-})}
-                </tbody >
-            </table >
-        </div >
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="hover:bg-transparent">
+                                <TableHead className="w-[180px] text-slate-900 dark:text-white font-semibold pl-6">
+                                    Origem
+                                </TableHead>
+                                {semanasSelecionadas.map((semana) => {
+                                    const semanaStr = String(semana).replace('W', '');
+                                    return (
+                                        <React.Fragment key={semana}>
+                                            <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 border-l border-slate-200 dark:border-slate-800 min-w-[100px]">
+                                                Semana {semanaStr}
+                                            </TableHead>
+                                            <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 min-w-[80px]">
+                                                Var %
+                                            </TableHead>
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {origensOrdenadas.map((origem, index) => (
+                                <TableRow
+                                    key={origem}
+                                    className={index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'}
+                                >
+                                    <TableCell className="font-medium text-slate-700 dark:text-slate-300 pl-6">
+                                        {origem}
+                                    </TableCell>
+                                    {semanasSelecionadas.map((_, idx) => {
+                                        const valor = dadosPorOrigem[origem][idx];
+                                        let variacao: number | null = null;
+
+                                        if (idx > 0) {
+                                            const valorAnterior = dadosPorOrigem[origem][idx - 1];
+                                            if (valorAnterior > 0) {
+                                                variacao = ((valor - valorAnterior) / valorAnterior) * 100;
+                                            } else if (valor > 0) {
+                                                variacao = 100;
+                                            } else {
+                                                variacao = 0;
+                                            }
+                                        }
+
+                                        return (
+                                            <React.Fragment key={idx}>
+                                                <TableCell className="text-center text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">
+                                                    {valor.toFixed(1)}%
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    {idx > 0 ? (
+                                                        <VariacaoBadge variacao={variacao ?? 0} className="mx-auto" />
+                                                    ) : (
+                                                        <span className="text-slate-300 dark:text-slate-600">-</span>
+                                                    )}
+                                                </TableCell>
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </TableRow>
+                            ))}
+                            {origensOrdenadas.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={semanasSelecionadas.length * 2 + 1} className="text-center py-6 text-slate-500">
+                                        Nenhum dado de origem disponível para as semanas selecionadas.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </CardContent>
+        </Card>
     );
 };

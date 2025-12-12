@@ -1,4 +1,3 @@
-```typescript
 import React from 'react';
 import { DashboardResumoData } from '@/types';
 import {
@@ -22,9 +21,6 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
   dadosComparacao,
   semanasSelecionadas,
 }) => {
-  // Helpers para processar dados por dia
-  // Assumindo que aderencia_dia está na ordem dom..sáb ou seg..dom.
-  // Vamos criar um mapa consolidado
   const diasSemana = [
     'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'
   ];
@@ -63,48 +59,64 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                 <TableHead className="w-[180px] text-slate-900 dark:text-white font-semibold pl-6">
                   Dia da Semana
                 </TableHead>
-                {semanasSelecionadas.map((semana, idx) => (
-                ];
+                {semanasSelecionadas.map((semana) => {
+                  const semanaStr = String(semana).replace('W', '');
+                  return (
+                    <React.Fragment key={semana}>
+                      <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 border-l border-slate-200 dark:border-slate-800 min-w-[100px]">
+                        Semana {semanaStr}
+                      </TableHead>
+                      <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 min-w-[80px]">
+                        Var %
+                      </TableHead>
+                    </React.Fragment>
+                  );
+                })}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {diasSemana.map((dia, index) => (
+                <TableRow
+                  key={dia}
+                  className={index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'}
+                >
+                  <TableCell className="font-medium text-slate-700 dark:text-slate-300 pl-6">
+                    {dia}
+                  </TableCell>
+                  {semanasSelecionadas.map((_, idx) => {
+                    const valor = dadosPorDia[dia][idx];
+                    let variacao: number | null = null;
 
-                return metricas.map((metrica, metricaIdx) => (
-                  <tr key={`${ dia } -${ metrica.key } `} className={diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'}>
-                    {metricaIdx === 0 && (
-                      <td rowSpan={4} className="px-4 py-3 text-center font-medium text-slate-900 dark:text-white border-r border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/20">
-                        {dia}
-                      </td>
-                    )}
-                    <td className={`px - 4 py - 2 text - center text - sm font - medium ${ metrica.color } `}>{metrica.label}</td>
-                    {dadosComparacao.map((dados, idx) => {
-                      // Usar helper para encontrar dados do dia
-                      const diaData = findDayData(dia, dados.aderencia_dia);
-                      const valor = getMetricValue(diaData, metrica.key);
-
-                      let variacao = null;
-                      if (idx > 0) {
-                        const dadosAnterior = dadosComparacao[idx - 1];
-                        const diaDataAnterior = findDayData(dia, dadosAnterior.aderencia_dia);
-                        const valorAnterior = getMetricValue(diaDataAnterior, metrica.key);
-                        variacao = valorAnterior > 0 ? ((valor - valorAnterior) / valorAnterior) * 100 : 0;
+                    if (idx > 0) {
+                      const valorAnterior = dadosPorDia[dia][idx - 1];
+                      if (valorAnterior > 0) {
+                        variacao = ((valor - valorAnterior) / valorAnterior) * 100;
+                      } else if (valor > 0) {
+                        variacao = 100;
+                      } else {
+                        variacao = 0;
                       }
+                    }
 
-                      return (
-                        <React.Fragment key={idx}>
-                          <td className={`px - 4 py - 2 text - center font - medium ${ metrica.color } border - l border - slate - 200 dark: border - slate - 700`}>
-                            {typeof valor === 'number' ? valor.toLocaleString('pt-BR') : '0'}
-                          </td>
-                          {idx > 0 && variacao !== null && (
-                            <td className="px-4 py-2 text-center text-xs font-bold">
-                              <VariacaoBadge variacao={variacao} className="px-2 py-0.5" />
-                            </td>
+                    return (
+                      <React.Fragment key={idx}>
+                        <TableCell className="text-center text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">
+                          {valor.toFixed(1)}%
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {idx > 0 ? (
+                            <VariacaoBadge variacao={variacao ?? 0} className="mx-auto" />
+                          ) : (
+                            <span className="text-slate-300 dark:text-slate-600">-</span>
                           )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tr>
-                ));
-              })}
-            </tbody>
-          </table>
+                        </TableCell>
+                      </React.Fragment>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>
