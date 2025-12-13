@@ -1,26 +1,22 @@
 import { useMemo } from 'react';
-import React from 'react';
-import { safeLog } from '@/lib/errorHandler';
-import { DashboardResumoData } from '@/types';
 import { DadosProcessados } from '@/utils/apresentacao/dataProcessor';
-import { chunkArray } from '@/utils/apresentacao/dataProcessor';
+import { DashboardResumoData } from '@/types/dashboard';
 import SlideCapa from '@/components/apresentacao/slides/SlideCapa';
 import SlideAderenciaGeral from '@/components/apresentacao/slides/SlideAderenciaGeral';
 import SlideSubPracas from '@/components/apresentacao/slides/SlideSubPracas';
 import SlideAderenciaDiaria from '@/components/apresentacao/slides/SlideAderenciaDiaria';
 import SlideTurnos from '@/components/apresentacao/slides/SlideTurnos';
-import SlideDemandaRejeicoes from '@/components/apresentacao/slides/SlideDemandaRejeicoes';
 import SlideOrigem from '@/components/apresentacao/slides/SlideOrigem';
-
-const SUB_PRACAS_PER_PAGE = 4;
-const TURNOS_PER_PAGE = 2; // Reduced from 3 to 2 for larger display
-const ORIGENS_PER_PAGE = 3; // Reduced from 6 to 3 for larger display
-
+import SlideDemanda from '@/components/apresentacao/slides/SlideDemandaRejeicoes';
 import SlideRanking from '@/components/apresentacao/slides/SlideRanking';
 import SlideResumoIA from '@/components/apresentacao/slides/SlideResumoIA';
 import { generateSmartInsights } from '@/utils/apresentacao/smartInsights';
+import { chunkArray } from '@/utils/apresentacao/processors/common';
+// import { console.log } from '@/utils/logger'; // Removed as file does not exist
 
-// ... (existing constants)
+const SUB_PRACAS_PER_PAGE = 2; // Reduced from 4 to 2 for larger display
+const TURNOS_PER_PAGE = 2; // Reduced from 3 to 2 for larger display
+const ORIGENS_PER_PAGE = 3; // Reduced from 6 to 3 for larger display
 
 export const useApresentacaoSlides = (
   dadosProcessados: DadosProcessados | null,
@@ -32,19 +28,18 @@ export const useApresentacaoSlides = (
   pracaSelecionada: string | null,
   visibleSections: Record<string, boolean> = {
     capa: true,
-    'resumo-ia': true, // New
+    'resumo-ia': true,
     'aderencia-geral': true,
-    'ranking': true, // New
+    'ranking': true,
     'sub-pracas': true,
     'aderencia-diaria': true,
-    'turnos': true,
-    'origens': true,
-    'demanda': true,
+    turnos: true,
+    origens: true,
+    demanda: true,
   }
 ) => {
   const slides = useMemo(() => {
     if (!dadosProcessados) {
-      // ... (error handling)
       return [] as Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
     }
 
@@ -106,6 +101,7 @@ export const useApresentacaoSlides = (
       });
     }
 
+    // 5. Sub-Praças
     if (visibleSections['sub-pracas']) {
       const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
       subPracasPaginas.forEach((pagina, indice) => {
@@ -124,9 +120,8 @@ export const useApresentacaoSlides = (
         });
       });
     }
-    // ... (rest of slides: daily, turnos, origens context unchanged in logic, just re-verify order later if needed)
 
-    // Resume original simplified flow for replacement:
+    // 6. Aderência Diária
     if (visibleSections['aderencia-diaria']) {
       slidesConfig.push({
         key: 'aderencia-diaria',
@@ -142,103 +137,71 @@ export const useApresentacaoSlides = (
       });
     }
 
-    // ... [KEEP EXISTING TURNOS/ORIGENS/DEMANDA LOGIC HERE - I will use a different replace strategy to avoid cutting code]
-    // Ah, replace_file_content replaces chunks. I should target specific sections.
+    // 7. Turnos
+    if (visibleSections.turnos) {
+      const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
+      turnosPaginas.forEach((pagina, indice) => {
+        slidesConfig.push({
+          key: `turnos-${indice}`,
+          render: (visible) => (
+            <SlideTurnos
+              isVisible={visible}
+              numeroSemana1={numeroSemana1}
+              numeroSemana2={numeroSemana2}
+              paginaAtual={indice + 1}
+              totalPaginas={turnosPaginas.length}
+              itens={pagina}
+            />
+          ),
+        });
+      });
+    }
 
-    // I will rewrite this Strategy.
-    // Instead of replacing the massive block, I will Insert imports at the top
-    // And Insert the new slide blocks in specific positions.
+    // 8. Origens
+    if (visibleSections.origens) {
+      const origensPaginas = chunkArray(origensComparativo, ORIGENS_PER_PAGE);
+      origensPaginas.forEach((pagina, indice) => {
+        slidesConfig.push({
+          key: `origens-${indice}`,
+          render: (visible) => (
+            <SlideOrigem
+              isVisible={visible}
+              numeroSemana1={numeroSemana1}
+              numeroSemana2={numeroSemana2}
+              paginaAtual={indice + 1}
+              totalPaginas={origensPaginas.length}
+              itens={pagina}
+            />
+          ),
+        });
+      });
+    }
+
+    // 9. Demanda
+    if (visibleSections.demanda) {
+      slidesConfig.push({
+        key: 'demanda',
+        render: (visible) => (
+          <SlideDemanda
+            isVisible={visible}
+            itens={demandaItens}
+            numeroSemana1={numeroSemana1}
+            numeroSemana2={numeroSemana2}
+          />
+        )
+      });
+    }
 
     return slidesConfig;
+  }, [
+    dadosProcessados,
+    visibleSections,
+    numeroSemana1,
+    numeroSemana2,
+    periodoSemana1,
+    periodoSemana2,
+    pracaSelecionada,
+  ]);
 
-    const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
-    subPracasPaginas.forEach((pagina, indice) => {
-      slidesConfig.push({
-        key: `sub-pracas-${indice}`,
-        render: (visible) => (
-          <SlideSubPracas
-            isVisible={visible}
-            numeroSemana1={numeroSemana1}
-            numeroSemana2={numeroSemana2}
-            paginaAtual={indice + 1}
-            totalPaginas={subPracasPaginas.length}
-            itens={pagina}
-          />
-        ),
-      });
-    });
-  }
-
-    if (visibleSections['aderencia-diaria']) {
-    slidesConfig.push({
-      key: 'aderencia-diaria',
-      render: (visible) => (
-        <SlideAderenciaDiaria
-          isVisible={visible}
-          numeroSemana1={numeroSemana1}
-          numeroSemana2={numeroSemana2}
-          semana1Dias={semana1Dias}
-          semana2Dias={semana2Dias}
-        />
-      ),
-    });
-  }
-
-  if (visibleSections.turnos) {
-    const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
-    turnosPaginas.forEach((pagina, indice) => {
-      slidesConfig.push({
-        key: `turnos-${indice}`,
-        render: (visible) => (
-          <SlideTurnos
-            isVisible={visible}
-            numeroSemana1={numeroSemana1}
-            numeroSemana2={numeroSemana2}
-            paginaAtual={indice + 1}
-            totalPaginas={turnosPaginas.length}
-            itens={pagina}
-          />
-        ),
-      });
-    });
-  }
-
-  if (visibleSections.origens) {
-    const origensPaginas = chunkArray(origensComparativo, ORIGENS_PER_PAGE);
-    origensPaginas.forEach((pagina, indice) => {
-      slidesConfig.push({
-        key: `origens-${indice}`,
-        render: (visible) => (
-          <SlideOrigem
-            isVisible={visible}
-            numeroSemana1={numeroSemana1}
-            numeroSemana2={numeroSemana2}
-            paginaAtual={indice + 1}
-            totalPaginas={origensPaginas.length}
-            itens={pagina}
-          />
-        ),
-      });
-    });
-  }
-
-  if (visibleSections.demanda) {
-    slidesConfig.push({
-      key: 'demanda',
-      render: (visible) => (
-        <SlideDemandaRejeicoes
-          isVisible={visible}
-          numeroSemana1={numeroSemana1}
-          numeroSemana2={numeroSemana2}
-          itens={demandaItens}
-        />
-      ),
-    });
-  }
-
-  return slidesConfig;
-}, [dadosProcessados, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, dadosComparacao?.length, visibleSections]);
-
-return slides;
+  return slides;
 };
-
