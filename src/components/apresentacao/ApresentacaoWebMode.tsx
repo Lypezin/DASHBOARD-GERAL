@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { SLIDE_WIDTH } from './constants';
 import { PresentationInteractionLayer, ToolType } from './components/PresentationInteractionLayer';
 import { MousePointer2, Pen, Eraser, Zap } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface ApresentacaoWebModeProps {
     slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
@@ -109,11 +110,25 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
                         ref={containerRef}
                         className="flex flex-col items-center w-full max-w-[1920px] px-4 md:px-8 lg:px-12 transition-all duration-200 ease-out"
                     >
-                        {slides.map((slide) => (
-                            <React.Fragment key={slide.key}>
-                                {slide.render(true)}
-                            </React.Fragment>
-                        ))}
+                        <AnimatePresence mode="popLayout" initial={false}>
+                            {slides.map((slide, index) => (
+                                <motion.div
+                                    key={slide.key}
+                                    initial={{ opacity: 0, x: 100, scale: 0.95 }}
+                                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                                    exit={{ opacity: 0, x: -100, scale: 0.95 }}
+                                    transition={{
+                                        type: "spring",
+                                        stiffness: 300,
+                                        damping: 30,
+                                        duration: 0.5
+                                    }}
+                                    className="w-full flex justify-center"
+                                >
+                                    {slide.render(true)}
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </div>
                 </div>
 

@@ -13,7 +13,7 @@ import SlideOrigem from '@/components/apresentacao/slides/SlideOrigem';
 import SlideDemanda from '@/components/apresentacao/slides/SlideDemandaRejeicoes';
 
 // Constants
-const SUB_PRACAS_PER_PAGE = 2;
+const SUB_PRACAS_PER_PAGE = 4;
 const TURNOS_PER_PAGE = 2;
 const ORIGENS_PER_PAGE = 3;
 

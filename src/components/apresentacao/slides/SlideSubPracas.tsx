@@ -3,6 +3,7 @@ import SlideWrapper from '../SlideWrapper';
 import { SlideHeader } from './components/SlideHeader';
 import { SubPracaCard } from './components/SubPracaCard';
 import { SubPracaModal } from './components/SubPracaModal';
+import { cn } from '@/lib/utils';
 
 interface SemanaResumo {
   aderencia: number;
@@ -56,8 +57,14 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
         </p>
       )}
 
-      {/* Cards Grid - 2x2 or centered single */}
-      <div className={`${isSingleItem ? 'flex justify-center items-center' : 'grid grid-cols-2 gap-7'} flex-1 content-start`}>
+      {/* Cards Grid - Adaptive */}
+      <div className={cn(
+        "grid gap-7 flex-1 content-start",
+        itens.length === 1 && "flex justify-center items-center",
+        itens.length === 2 && "grid-cols-2",
+        itens.length === 3 && "grid-cols-3",
+        itens.length >= 4 && "grid-cols-2 lg:grid-cols-4" // Use 4 cols if space permits, else 2x2
+      )}>
         {itens.map((item, index) => (
           <SubPracaCard
             key={item.nome}
