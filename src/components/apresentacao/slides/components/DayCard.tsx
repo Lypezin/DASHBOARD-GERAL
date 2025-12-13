@@ -17,6 +17,7 @@ interface ComponentDayCardProps {
         percentual: string;
         percentualPositiva: boolean;
     };
+    isActive?: boolean;
 }
 
 const buildCircleDasharray = (valor: number, radius: number) => {
@@ -27,9 +28,9 @@ const buildCircleDasharray = (valor: number, radius: number) => {
 
 import { useAnimatedProgress } from '@/hooks/ui/useAnimatedProgress';
 
-export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = false, variacao }) => {
+export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = false, variacao, isActive = true }) => {
     // Animate adherence
-    const animatedAderencia = useAnimatedProgress(dia.aderencia, 1000, Math.random() * 300);
+    const animatedAderencia = useAnimatedProgress(dia.aderencia, 1000, Math.random() * 300, isActive);
 
     return (
         <div className={`rounded-lg border px-1 py-2 flex flex-col items-center gap-1.5 ${isSecondWeek ? 'bg-gradient-to-b from-blue-50 to-white border-blue-200' : 'bg-gradient-to-b from-slate-50 to-white border-slate-200'}`}>
@@ -55,7 +56,7 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <span className={`text-slate-900 font-black leading-none tracking-tighter ${dia.aderencia >= 100 ? 'text-[0.55rem]' : 'text-[0.65rem]'}`}>
+                    <span className={`text-slate-900 font-black leading-none tracking-tighter ${dia.aderencia >= 100 ? 'text-[0.5rem]' : 'text-[0.6rem]'}`}>
                         {dia.aderencia.toFixed(1)}%
                     </span>
                 </div>

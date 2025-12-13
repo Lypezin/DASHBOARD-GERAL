@@ -13,6 +13,7 @@ import { useAnimatedProgress } from '@/hooks/ui/useAnimatedProgress';
 interface SemanaCardProps {
     semana: SemanaResumo;
     isHighlighted?: boolean;
+    isActive?: boolean;
 }
 
 const buildCircleDasharray = (valor: number) => {
@@ -21,8 +22,8 @@ const buildCircleDasharray = (valor: number) => {
     return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
-export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = false }) => {
-    const animatedAderencia = useAnimatedProgress(semana.aderencia, 1500, 200);
+export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = false, isActive = true }) => {
+    const animatedAderencia = useAnimatedProgress(semana.aderencia, 1500, 200, isActive);
     const adherenceText = semana.aderencia.toFixed(1);
     const fontSize = semana.aderencia >= 100 ? '2rem' : '2.5rem';
 

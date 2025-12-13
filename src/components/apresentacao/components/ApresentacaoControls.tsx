@@ -58,7 +58,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                             Personalizar
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuContent align="end" className="w-56 z-[100001]">
                         <DropdownMenuLabel>Seções do PDF</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         {Object.keys(visibleSections).map((key) => (

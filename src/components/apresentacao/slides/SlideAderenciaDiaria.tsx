@@ -47,7 +47,12 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
           </div>
           <div className="grid grid-cols-7 gap-2">
             {semana1Dias.map((dia) => (
-              <DayCard key={`sem1-${dia.sigla}`} dia={dia} isSecondWeek={false} />
+              <DayCard
+                key={`sem1-${dia.sigla}`}
+                dia={dia}
+                isSecondWeek={false}
+                isActive={isVisible}
+              />
             ))}
           </div>
         </div>
@@ -67,6 +72,7 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
                 key={`sem2-${dia.sigla}`}
                 dia={dia}
                 isSecondWeek={true}
+                isActive={isVisible}
                 variacao={{
                   horas: dia.diferencaHoras,
                   horasPositiva: dia.diferencaHorasPositiva,

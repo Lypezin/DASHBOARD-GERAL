@@ -55,7 +55,7 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({
       {/* Main content */}
       <div className="flex w-full justify-evenly items-center gap-4 flex-1 px-8">
         {/* Semana 1 */}
-        <SemanaCard semana={semana1} isHighlighted={false} />
+        <SemanaCard semana={semana1} isHighlighted={false} isActive={isVisible} />
 
         {/* Central variation box */}
         <div className="flex flex-col items-center justify-center">
@@ -102,7 +102,7 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({
         </div>
 
         {/* Semana 2 */}
-        <SemanaCard semana={semana2} isHighlighted={true} />
+        <SemanaCard semana={semana2} isHighlighted={true} isActive={isVisible} />
       </div>
     </SlideWrapper>
   );

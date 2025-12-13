@@ -9,6 +9,7 @@ interface WeekComparisonCircleProps {
     isSecond: boolean;
     size?: 'normal' | 'large';
     circleSizePx?: number; // Optional override
+    isActive?: boolean;
 }
 
 const buildCircleDasharray = (valor: number, radius: number) => {
@@ -23,15 +24,20 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
     label,
     isSecond,
     size = 'normal',
-    circleSizePx
+    circleSizePx,
+    isActive = true
 }) => {
     // Animate adherence
-    const animatedAderencia = useAnimatedProgress(aderencia, 1000, 100);
+    const animatedAderencia = useAnimatedProgress(aderencia, 1000, 100, isActive);
 
     // Default sizes if no override provided
     const defaultSize = size === 'large' ? 110 : 90;
     const dimension = circleSizePx || defaultSize;
-    // const fontSizeClass = size === 'large' ? 'text-2xl' : 'text-xl'; // Use dynamic font size below
+
+    // Font size logic to prevent overflow on 100%
+    const fontSizeClass = size === 'large'
+        ? (aderencia >= 100 ? 'text-lg' : 'text-xl')
+        : (aderencia >= 100 ? 'text-base' : 'text-lg');
 
     return (
         <div className="flex flex-col items-center gap-2">
@@ -56,7 +62,7 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <span className={`text-slate-900 font-black ${size === 'large' ? 'text-xl' : 'text-lg'} leading-none tracking-tight`}>
+                    <span className={`text-slate-900 font-black ${fontSizeClass} leading-none tracking-tight`}>
                         {aderencia.toFixed(1)}%
                     </span>
                 </div>
