@@ -59,7 +59,8 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     return (
         <div
             ref={containerRef}
-            className="bg-slate-100 dark:bg-slate-950 flex-1 overflow-hidden relative flex items-center justify-center"
+            // DEBUG: Blue background to see the viewport area
+            className="bg-blue-300 flex-1 overflow-hidden relative flex items-center justify-center"
         >
             <div
                 className="relative shadow-2xl transition-transform duration-200 ease-out"
@@ -70,14 +71,16 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
                     left: '50%',
                     transform: `translate(-50%, -50%) scale(${scale})`,
                     transformOrigin: 'center center',
-                    fontFamily: 'Inter, Arial, sans-serif',
-                    WebkitFontSmoothing: 'antialiased',
-                    MozOsxFontSmoothing: 'grayscale',
-                    textRendering: 'optimizeLegibility',
-                    // Debug border to see container
-                    border: '2px solid red',
+                    // DEBUG: Massive Red Outline to see the container bounds
+                    outline: '10px solid red',
+                    zIndex: 100,
                 }}
             >
+                {/* DEBUG: Text to prove container exists */}
+                <div style={{ position: 'absolute', top: -50, left: 0, background: 'black', color: 'white', zIndex: 9999 }}>
+                    CONTAINER EXISTS ({slides.length} slides)
+                </div>
+
                 {totalSlides === 0 ? (
                     <div
                         className="slide bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 absolute inset-0 flex items-center justify-center text-xl font-medium border border-slate-200 dark:border-slate-800 rounded-lg"

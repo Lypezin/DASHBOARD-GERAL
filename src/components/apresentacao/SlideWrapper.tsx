@@ -68,6 +68,12 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
         ...style,
       }}
     >
+      {/* DEBUG: Green overlay if isVisible */}
+      {isVisible && (
+        <div style={{ position: 'absolute', top: 0, right: 0, padding: 10, background: 'green', color: 'white', zIndex: 9999 }}>
+          SLIDE VISIBLE
+        </div>
+      )}
       {children}
     </div>
   );
