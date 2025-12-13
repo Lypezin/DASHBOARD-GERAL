@@ -1,5 +1,5 @@
 import React, { CSSProperties } from 'react';
-import { slideTransitionStyle } from './constants';
+import { slideTransitionStyle, slideDimensionsStyle } from './constants';
 import { usePresentationContext } from '@/contexts/PresentationContext';
 
 interface SlideWrapperProps {
@@ -16,9 +16,6 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   style = {},
 }) => {
   const { isWebMode } = usePresentationContext();
-
-  // Debug logs
-  console.log('[SlideWrapper] Rendering:', { isVisible, isWebMode, className });
 
   // WebMode: slides flow naturally in a scrollable container
   if (isWebMode) {
@@ -46,34 +43,27 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   }
 
   // PreviewMode: slides are stacked absolutely within a fixed-size container
+  // We use explicit pixel dimensions (1680x1188) to ensure robustness regardless of parent container quirks
   return (
     <div
       className={`slide bg-white text-slate-900 ${className}`.trim()}
       style={{
+        ...slideDimensionsStyle,
         position: 'absolute',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100%',  // Explicit for child h-full/w-full to work
-        height: '100%', // Explicit for child h-full/w-full to work
         display: 'flex',
         flexDirection: 'column',
         opacity: isVisible ? 1 : 0,
         visibility: isVisible ? 'visible' : 'hidden',
         overflow: 'hidden',
         zIndex: isVisible ? 10 : 0,
+        transformOrigin: 'top left',
         backgroundColor: '#ffffff',
         ...slideTransitionStyle,
         ...style,
       }}
     >
-      {/* DEBUG: Green overlay if isVisible */}
-      {isVisible && (
-        <div style={{ position: 'absolute', top: 0, right: 0, padding: 10, background: 'green', color: 'white', zIndex: 9999 }}>
-          SLIDE VISIBLE
-        </div>
-      )}
       {children}
     </div>
   );
