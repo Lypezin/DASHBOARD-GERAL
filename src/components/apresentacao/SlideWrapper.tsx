@@ -38,17 +38,16 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   };
 
   const previewModeStyle: CSSProperties = {
-    width: '100%',
-    height: '100%',
+    ...slideDimensionsStyle, // Use explicit px dimensions matching parent
     display: 'flex',
     flexDirection: 'column',
     opacity: isVisible ? 1 : 0,
     visibility: isVisible ? 'visible' : 'hidden',
     overflow: 'hidden',
     position: 'absolute',
-    top: 0,
+    top: 0, // Ensure strictly top-left alignment
     left: 0,
-    zIndex: isVisible ? 10 : 0, // Ensure visible slide is on top
+    zIndex: isVisible ? 10 : 0,
     ...slideTransitionStyle,
   };
 
