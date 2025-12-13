@@ -1,16 +1,10 @@
 import React from 'react';
 import { DashboardResumoData } from '@/types';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { VariacaoBadge } from '@/components/VariacaoBadge';
 import { Calendar } from 'lucide-react';
+import { ComparacaoDiaHeader } from './components/ComparacaoDiaHeader';
+import { ComparacaoDiaGroup } from './components/ComparacaoDiaGroup';
 
 interface ComparacaoDiaTableProps {
   dadosComparacao: DashboardResumoData[];
@@ -24,17 +18,6 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
   const diasSemana = [
     'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'
   ];
-
-  // Estrutura: { [dia]: { [semanaIdx]: valor } }
-  const dadosPorDia: Record<string, Record<number, number>> = {};
-
-  diasSemana.forEach(dia => {
-    dadosPorDia[dia] = {};
-    dadosComparacao.forEach((dado, idx) => {
-      const diaData = dado.aderencia_dia.find(d => d.dia_semana === dia);
-      dadosPorDia[dia][idx] = diaData ? diaData.aderencia_percentual : 0;
-    });
-  });
 
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -54,181 +37,17 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[180px] text-slate-900 dark:text-white font-semibold pl-6">
-                  Dia da Semana
-                </TableHead>
-                {semanasSelecionadas.map((semana) => {
-                  const semanaStr = String(semana).replace('W', '');
-                  return (
-                    <React.Fragment key={semana}>
-                      <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 border-l border-slate-200 dark:border-slate-800 min-w-[100px]">
-                        Semana {semanaStr}
-                      </TableHead>
-                      <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 min-w-[80px]">
-                        Var %
-                      </TableHead>
-                    </React.Fragment>
-                  );
-                })}
-              </TableRow>
-            </TableHeader>
+            <ComparacaoDiaHeader semanasSelecionadas={semanasSelecionadas} />
             <TableBody>
-              {diasSemana.map((dia, diaIdx) => {
-                const metrics = [
-                  { label: 'Corridas Ofertadas', key: 'corridas_ofertadas', color: 'text-slate-600 dark:text-slate-400' },
-                  { label: 'Corridas Aceitas', key: 'corridas_aceitas', color: 'text-emerald-600 dark:text-emerald-400' },
-                  { label: 'Corridas Rejeitadas', key: 'corridas_rejeitadas', color: 'text-rose-600 dark:text-rose-400' },
-                  { label: 'Corridas Completadas', key: 'corridas_completadas', color: 'text-purple-600 dark:text-purple-400' },
-                  { label: 'Taxa de Aceitação', key: 'taxa_aceitacao', color: 'text-blue-600 dark:text-blue-400', isPercent: true },
-                  { label: 'Horas Planejadas', key: 'horas_a_entregar', color: 'text-amber-600 dark:text-amber-400', isTime: true },
-                  { label: 'Horas Entregues', key: 'horas_entregues', color: 'text-teal-600 dark:text-teal-400', isTime: true },
-                  { label: 'Aderência', key: 'aderencia_percentual', color: 'text-slate-900 dark:text-white font-bold', isPercent: true }
-                ];
-
-                return (
-                  <React.Fragment key={dia}>
-                    {metrics.map((metric, metricIdx) => (
-                      <TableRow
-                        key={`${dia}-${metric.key}`}
-                        className={`
-                          hover:bg-slate-50 dark:hover:bg-slate-800/50
-                          ${diaIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'}
-                          ${metricIdx === 0 ? 'border-t-2 border-slate-100 dark:border-slate-800' : ''}
-                        `}
-                      >
-                        {metricIdx === 0 && (
-                          <TableCell
-                            rowSpan={metrics.length}
-                            className="font-bold text-slate-800 dark:text-slate-200 border-r border-slate-100 dark:border-slate-800 align-top bg-slate-50/50 dark:bg-slate-800/20 w-[140px]"
-                          >
-                            {dia}
-                          </TableCell>
-                        )}
-                        <TableCell className={`font-medium text-xs ${metric.color}`}>
-                          {metric.label}
-                        </TableCell>
-                        {semanasSelecionadas.map((_, weekIdx) => {
-                          // We need to access the full object from dadosComparacao directly here or redesign how dadosPorDia is built.
-                          // Redesigning slightly inline to access correct data.
-                          const weeklyData = dadosComparacao[weekIdx];
-                          const dayData = weeklyData.aderencia_dia.find(d => d.dia_semana === dia);
-
-                          let rawValue: number | string = 0;
-                          if (dayData) {
-                            if (metric.key === 'taxa_aceitacao') {
-                              rawValue = dayData.taxa_aceitacao ??
-                                (dayData.corridas_ofertadas ? (dayData.corridas_aceitas || 0) / dayData.corridas_ofertadas * 100 : 0);
-                            } else if (metric.key === 'horas_a_entregar') {
-                              // Prioritize seconds if available, otherwise parse string
-                              if (dayData.segundos_planejados !== undefined && dayData.segundos_planejados !== null) {
-                                rawValue = dayData.segundos_planejados;
-                              } else {
-                                rawValue = dayData.horas_a_entregar || 0;
-                              }
-                            } else if (metric.key === 'horas_entregues') {
-                              // Prioritize seconds if available
-                              if (dayData.segundos_realizados !== undefined && dayData.segundos_realizados !== null) {
-                                rawValue = dayData.segundos_realizados;
-                              } else {
-                                rawValue = dayData.horas_entregues || 0;
-                              }
-                            } else {
-                              // @ts-ignore - dynamic key access
-                              rawValue = dayData[metric.key] ?? 0;
-                            }
-                          }
-
-                          // Format value
-                          let displayValue = '-';
-                          if (dayData) {
-                            if (metric.isTime) {
-                              // If it's a number (seconds), format it. If it's a string, use it (or parse if it's "00:00:00" and we have seconds)
-                              if (typeof rawValue === 'number') {
-                                const h = Math.floor(rawValue / 3600);
-                                const m = Math.floor((rawValue % 3600) / 60);
-                                const s = Math.floor(rawValue % 60);
-                                displayValue = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-                              } else {
-                                displayValue = String(rawValue);
-                              }
-                            } else if (metric.isPercent) {
-                              displayValue = `${Number(rawValue).toFixed(1)}%`;
-                            } else {
-                              displayValue = Number(rawValue).toLocaleString('pt-BR');
-                            }
-                          }
-
-                          // Calculate Variation
-                          let variacao: number | null = null;
-                          if (weekIdx > 0) {
-                            const prevWeeklyData = dadosComparacao[weekIdx - 1];
-                            const prevDayData = prevWeeklyData.aderencia_dia.find(d => d.dia_semana === dia);
-                            let prevValue: number = 0;
-
-                            if (prevDayData) {
-                              if (metric.key === 'taxa_aceitacao') {
-                                prevValue = prevDayData.taxa_aceitacao ??
-                                  (prevDayData.corridas_ofertadas ? (prevDayData.corridas_aceitas || 0) / prevDayData.corridas_ofertadas * 100 : 0);
-                              } else if (metric.isTime) {
-                                if (metric.key === 'horas_a_entregar' && prevDayData.segundos_planejados !== undefined) {
-                                  prevValue = prevDayData.segundos_planejados;
-                                } else if (metric.key === 'horas_entregues' && prevDayData.segundos_realizados !== undefined) {
-                                  prevValue = prevDayData.segundos_realizados;
-                                } else {
-                                  // Fallback to parsing string
-                                  const timeStr = prevDayData[metric.key as keyof typeof prevDayData] as string || '00:00:00';
-                                  const [h, m, s] = timeStr.split(':').map(Number);
-                                  prevValue = (h * 3600) + (m * 60) + (s || 0);
-                                }
-                              } else {
-                                // @ts-ignore
-                                prevValue = Number(prevDayData[metric.key] ?? 0);
-                              }
-                            }
-
-                            let currentValueNum = 0;
-                            if (metric.isTime) {
-                              if (typeof rawValue === 'number') {
-                                currentValueNum = rawValue;
-                              } else {
-                                const [h, m, s] = String(rawValue).split(':').map(Number);
-                                currentValueNum = (h * 3600) + (m * 60) + (s || 0);
-                              }
-                            } else {
-                              currentValueNum = Number(rawValue);
-                            }
-
-                            if (prevValue > 0) {
-                              variacao = ((currentValueNum - prevValue) / prevValue) * 100;
-                            } else if (currentValueNum > 0) {
-                              variacao = 100;
-                            } else {
-                              variacao = 0;
-                            }
-                          }
-
-                          return (
-                            <React.Fragment key={weekIdx}>
-                              <TableCell className="text-center text-xs border-l border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
-                                {displayValue}
-                              </TableCell>
-                              <TableCell className="text-center p-1">
-                                {weekIdx > 0 ? (
-                                  <VariacaoBadge variacao={variacao ?? 0} className="mx-auto" />
-                                ) : (
-                                  <span className="text-slate-300 dark:text-slate-600 text-xs">-</span>
-                                )}
-                              </TableCell>
-                            </React.Fragment>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
-                  </React.Fragment>
-                );
-              })}
+              {diasSemana.map((dia, diaIdx) => (
+                <ComparacaoDiaGroup
+                  key={dia}
+                  dia={dia}
+                  diaIdx={diaIdx}
+                  semanasSelecionadas={semanasSelecionadas}
+                  dadosComparacao={dadosComparacao}
+                />
+              ))}
             </TableBody>
           </Table>
         </div>

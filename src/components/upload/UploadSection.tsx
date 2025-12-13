@@ -5,8 +5,10 @@ import { UploadProgress } from './UploadProgress';
 import { UploadMessage } from './UploadMessage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, FileSpreadsheet, Upload, CheckCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Upload } from 'lucide-react';
+import { UploadMVProgress } from './components/UploadMVProgress';
+import { UploadTips } from './components/UploadTips';
+import { UploadExpectedColumns } from './components/UploadExpectedColumns';
 
 interface UploadSectionProps {
   title: string;
@@ -113,23 +115,11 @@ export const UploadSection = memo(function UploadSection({
         />
 
         {/* Barra de Progresso - Atualização de MVs */}
-        {isRefreshingMVs && (
-          <div className="mt-2 space-y-1">
-            <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">
-              <span>Atualizando visualizações...</span>
-              <span>{Math.round(mvRefreshProgress || 0)}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-amber-100 dark:bg-amber-950/30">
-              <div
-                className="h-full bg-amber-500 transition-all duration-500 ease-out"
-                style={{ width: `${mvRefreshProgress || 0}%` }}
-              />
-            </div>
-            <p className="text-xs text-amber-600/80 dark:text-amber-400/80 text-center animate-pulse">
-              {mvRefreshStatus}
-            </p>
-          </div>
-        )}
+        <UploadMVProgress
+          isRefreshingMVs={isRefreshingMVs}
+          mvRefreshProgress={mvRefreshProgress}
+          mvRefreshStatus={mvRefreshStatus}
+        />
 
         {/* Mensagem de Status */}
         <UploadMessage
@@ -138,37 +128,10 @@ export const UploadSection = memo(function UploadSection({
         />
 
         {/* Informações e Dicas */}
-        {tips && tips.length > 0 && (
-          <div className="rounded-lg border bg-muted/50 p-3">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <ul className="flex-1 space-y-1 text-xs text-muted-foreground">
-                {tips.map((tip, index) => (
-                  <li key={index} className="flex items-start gap-1">
-                    {tip.text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
+        <UploadTips tips={tips} />
 
         {/* Colunas Esperadas */}
-        {expectedColumns && expectedColumns.length > 0 && (
-          <details className="group">
-            <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1">
-              <FileSpreadsheet className="h-3 w-3" />
-              Ver colunas esperadas
-            </summary>
-            <div className="mt-2 flex flex-wrap gap-1">
-              {expectedColumns.map((col) => (
-                <Badge key={col} variant="secondary" className="text-[10px] font-mono">
-                  {col}
-                </Badge>
-              ))}
-            </div>
-          </details>
-        )}
+        <UploadExpectedColumns columns={expectedColumns} />
       </CardContent>
     </Card>
   );

@@ -5,18 +5,6 @@
 
 import React, { Suspense, useState, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import {
-  DashboardView,
-  MarketingView,
-  AnaliseView,
-  UtrView,
-  EvolucaoView,
-  ValoresView,
-  EntregadoresMainView,
-  PrioridadePromoView,
-  ComparacaoView,
-  MarketingComparacaoView,
-} from '@/config/dynamicImports';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import type {
   Totals,
@@ -30,6 +18,7 @@ import type {
   TabType,
   DashboardFilters,
 } from '@/types';
+import { needsChartReady, renderActiveView } from './utils/viewRenderer';
 
 interface DashboardViewsRendererProps {
   activeTab: TabType;
@@ -69,33 +58,8 @@ interface DashboardViewsRendererProps {
 
 
 
-export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer({
-  activeTab,
-  chartReady,
-  aderenciaGeral,
-  aderenciaDia,
-  aderenciaTurno,
-  aderenciaSubPraca,
-  aderenciaOrigem,
-  totals,
-  utrData,
-  loadingTabData,
-  entregadoresData,
-  valoresData,
-  prioridadeData,
-  evolucaoMensal,
-  evolucaoSemanal,
-  loadingEvolucao,
-  anoSelecionado,
-  anosDisponiveis,
-  onAnoChange,
-  semanas,
-  pracas,
-  subPracas,
-  origens,
-  currentUser,
-  filters,
-}: DashboardViewsRendererProps) {
+export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer(props: DashboardViewsRendererProps) {
+  const { activeTab, chartReady } = props;
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [previousTab, setPreviousTab] = useState(activeTab);
 
@@ -111,7 +75,7 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   }, [activeTab, previousTab]);
 
   // Verificar se precisa esperar Chart.js
-  const needsChart = activeTab === 'dashboard' || activeTab === 'analise' || activeTab === 'evolucao' || activeTab === 'comparacao' || activeTab === 'marketing_comparacao';
+  const needsChart = needsChartReady(activeTab);
 
   if (needsChart && !chartReady) {
     return <DashboardSkeleton contentOnly />;
@@ -125,86 +89,7 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
     <ErrorBoundary>
       <div className="animate-in fade-in-0 duration-500">
         <Suspense fallback={<DashboardSkeleton contentOnly />}>
-          {activeTab === 'dashboard' && (
-            <DashboardView
-              aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
-              aderenciaDia={aderenciaDia}
-              aderenciaTurno={aderenciaTurno}
-              aderenciaSubPraca={aderenciaSubPraca}
-              aderenciaOrigem={aderenciaOrigem}
-            />
-          )}
-
-          {activeTab === 'analise' && (
-            totals ? (
-              <AnaliseView
-                totals={totals}
-                aderenciaDia={aderenciaDia}
-                aderenciaTurno={aderenciaTurno}
-                aderenciaSubPraca={aderenciaSubPraca}
-                aderenciaOrigem={aderenciaOrigem}
-              />
-            ) : (
-              <DashboardSkeleton contentOnly />
-            )
-          )}
-
-          {activeTab === 'utr' && (
-            <UtrView
-              utrData={utrData}
-              loading={loadingTabData}
-            />
-          )}
-
-          {activeTab === 'entregadores' && (
-            <EntregadoresMainView
-              entregadoresData={entregadoresData}
-              loading={loadingTabData}
-            />
-          )}
-
-          {activeTab === 'valores' && (
-            <ValoresView
-              valoresData={valoresData}
-              loading={loadingTabData}
-            />
-          )}
-
-          {activeTab === 'prioridade' && (
-            <PrioridadePromoView
-              entregadoresData={prioridadeData}
-              loading={loadingTabData}
-            />
-          )}
-
-          {activeTab === 'evolucao' && (
-            <EvolucaoView
-              evolucaoMensal={evolucaoMensal}
-              evolucaoSemanal={evolucaoSemanal}
-              loading={loadingEvolucao}
-              anoSelecionado={anoSelecionado}
-              anosDisponiveis={anosDisponiveis}
-              onAnoChange={onAnoChange}
-            />
-          )}
-
-          {activeTab === 'comparacao' && (
-            <ComparacaoView
-              semanas={semanas}
-              pracas={pracas}
-              subPracas={subPracas}
-              origens={origens}
-              currentUser={currentUser}
-            />
-          )}
-
-          {activeTab === 'marketing_comparacao' && (
-            <MarketingComparacaoView filters={filters} />
-          )}
-
-          {activeTab === 'marketing' && (
-            <MarketingView />
-          )}
+          {renderActiveView(activeTab, props)}
         </Suspense>
       </div>
     </ErrorBoundary>

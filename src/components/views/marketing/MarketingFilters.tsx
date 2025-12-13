@@ -1,17 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar, Filter, X, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Filter, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { CIDADES } from '@/constants/marketing';
+import { MarketingQuickFilters } from './components/MarketingQuickFilters';
+import { MarketingDateRangeFilter } from './components/MarketingDateRangeFilter';
+import { MarketingCityFilter } from './components/MarketingCityFilter';
 
 interface MarketingFiltersProps {
     filters: {
@@ -78,123 +72,12 @@ export const MarketingFilters = React.memo(function MarketingFilters({
                 </div>
             </CardHeader>
             <CardContent className="p-6 bg-white dark:bg-slate-900 space-y-6">
-                {/* Filtros rápidos */}
-                <div className="flex flex-wrap gap-2">
-                    <span className="text-sm text-slate-500 mr-2 self-center">Período rápido:</span>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleQuickFilter('week')}
-                        className="text-xs"
-                    >
-                        Última semana
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleQuickFilter('month')}
-                        className="text-xs"
-                    >
-                        Este mês
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleQuickFilter('quarter')}
-                        className="text-xs"
-                    >
-                        Este trimestre
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleQuickFilter('year')}
-                        className="text-xs"
-                    >
-                        Este ano
-                    </Button>
-                </div>
 
-                {/* Filtros principais */}
+                <MarketingQuickFilters onQuickFilter={handleQuickFilter} />
+
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {/* Filtro de Ano */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Ano
-                        </label>
-                        <Select
-                            value={filters.dataInicial.split('-')[0]}
-                            onValueChange={(year) => {
-                                const currentYear = new Date().getFullYear().toString();
-                                const today = new Date().toISOString().split('T')[0];
-
-                                setFilters(prev => ({
-                                    ...prev,
-                                    dataInicial: `${year}-01-01`,
-                                    dataFinal: year === currentYear ? today : `${year}-12-31`
-                                }));
-                            }}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Selecione o ano" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="2024">2024</SelectItem>
-                                <SelectItem value="2025">2025</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Data Inicial */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-slate-400" />
-                            Data Inicial
-                        </label>
-                        <Input
-                            type="date"
-                            value={filters.dataInicial}
-                            onChange={(e) => setFilters(prev => ({ ...prev, dataInicial: e.target.value }))}
-                            className="w-full"
-                        />
-                    </div>
-
-                    {/* Data Final */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-slate-400" />
-                            Data Final
-                        </label>
-                        <Input
-                            type="date"
-                            value={filters.dataFinal}
-                            onChange={(e) => setFilters(prev => ({ ...prev, dataFinal: e.target.value }))}
-                            className="w-full"
-                        />
-                    </div>
-
-                    {/* Praça */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Praça
-                        </label>
-                        <Select
-                            value={filters.praca || "all"}
-                            onValueChange={(value) => setFilters(prev => ({ ...prev, praca: value === "all" ? null : value }))}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Todas as praças" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todas as praças</SelectItem>
-                                {CIDADES.map((cidade) => (
-                                    <SelectItem key={cidade} value={cidade}>
-                                        {cidade}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <MarketingDateRangeFilter filters={filters} setFilters={setFilters} />
+                    <MarketingCityFilter filters={filters} setFilters={setFilters} />
                 </div>
 
                 {/* Botões de Ação */}
