@@ -20,7 +20,7 @@ interface ApresentacaoControlsProps {
     isGenerating: boolean;
     visibleSections: Record<string, boolean>;
     onToggleSection: (section: string) => void;
-    onAddMedia?: (files: File[]) => void;
+    onManageMedia?: () => void;
 }
 
 const SECTION_LABELS: Record<string, string> = {
@@ -44,7 +44,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
     isGenerating,
     visibleSections,
     onToggleSection,
-    onAddMedia,
+    onManageMedia,
 }) => {
     const slideAtualExibicao = totalSlides > 0 ? currentSlide + 1 : 0;
 
@@ -104,33 +104,15 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
 
                 <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
 
-                {/* Media Upload */}
-                <div className="relative">
-                    <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        className="hidden"
-                        id="media-upload"
-                        onChange={(e) => {
-                            if (e.target.files && onAddMedia) {
-                                onAddMedia(Array.from(e.target.files));
-                            }
-                        }}
-                    />
-                    <label htmlFor="media-upload">
-                        <Button
-                            variant="outline"
-                            className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                            asChild
-                        >
-                            <span>
-                                <FilePlus className="mr-2 h-4 w-4" />
-                                Adicionar Fotos
-                            </span>
-                        </Button>
-                    </label>
-                </div>
+                {/* Media Manager Button */}
+                <Button
+                    variant="outline"
+                    className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                    onClick={onManageMedia}
+                >
+                    <FilePlus className="mr-2 h-4 w-4" />
+                    Adicionar Fotos
+                </Button>
 
                 <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
 

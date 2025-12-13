@@ -11,6 +11,7 @@ import SlideDemanda from '@/components/apresentacao/slides/SlideDemandaRejeicoes
 import SlideRanking from '@/components/apresentacao/slides/SlideRanking';
 import SlideResumoIA from '@/components/apresentacao/slides/SlideResumoIA';
 import SlideMedia from '@/components/apresentacao/slides/SlideMedia';
+import { MediaSlideData } from '@/types/presentation';
 import { generateSmartInsights } from '@/utils/apresentacao/smartInsights';
 import { chunkArray } from '@/utils/apresentacao/processors/common';
 
@@ -37,7 +38,7 @@ export const useApresentacaoSlides = (
     origens: true,
     demanda: true,
   },
-  mediaFiles: string[] = []
+  mediaSlides: MediaSlideData[] = []
 ) => {
   const slides = useMemo(() => {
     if (!dadosProcessados) {
@@ -194,10 +195,10 @@ export const useApresentacaoSlides = (
     }
 
     // 10. Mídias (Fotos)
-    mediaFiles.forEach((mediaUrl, index) => {
+    mediaSlides.forEach((slideData, index) => {
       slidesConfig.push({
-        key: `media-${index}`,
-        render: (visible) => <SlideMedia isVisible={visible} mediaUrl={mediaUrl} index={index} />
+        key: `media-${slideData.id}`,
+        render: (visible) => <SlideMedia isVisible={visible} slideData={slideData} index={index} />
       });
     });
 
@@ -210,7 +211,7 @@ export const useApresentacaoSlides = (
     periodoSemana1,
     periodoSemana2,
     pracaSelecionada,
-    mediaFiles
+    mediaSlides
   ]);
 
   return slides;

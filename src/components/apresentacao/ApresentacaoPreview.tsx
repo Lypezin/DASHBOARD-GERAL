@@ -18,7 +18,7 @@ interface ApresentacaoPreviewProps {
   visibleSections: Record<string, boolean>;
   onToggleSection: (section: string) => void;
   onStartPresentation: () => void;
-  onAddMedia?: (files: File[]) => void;
+  onManageMedia?: () => void;
 }
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
@@ -33,7 +33,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
   visibleSections,
   onToggleSection,
   onStartPresentation,
-  onAddMedia,
+  onManageMedia,
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -144,7 +144,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
             isGenerating={isGenerating}
             visibleSections={visibleSections}
             onToggleSection={onToggleSection}
-            onAddMedia={onAddMedia}
+            onManageMedia={onManageMedia}
           />
 
           <div

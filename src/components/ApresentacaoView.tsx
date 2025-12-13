@@ -5,6 +5,8 @@ import { useApresentacaoSlides } from '@/hooks/apresentacao/useApresentacaoSlide
 import { ApresentacaoPreview } from './apresentacao/ApresentacaoPreview';
 import { ApresentacaoWebMode } from './apresentacao/ApresentacaoWebMode';
 import { PresentationContext } from '@/contexts/PresentationContext';
+import { MediaSlideData } from '@/types/presentation';
+import { MediaManagerModal } from './apresentacao/components/MediaManagerModal';
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
@@ -32,20 +34,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     demanda: true,
   });
 
-  // Media Files State (DataURLs)
-  const [mediaFiles, setMediaFiles] = useState<string[]>([]);
-
-  const handleAddMedia = (files: File[]) => {
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          setMediaFiles(prev => [...prev, e.target!.result as string]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  };
+  // Media Files State
+  const [mediaSlides, setMediaSlides] = useState<MediaSlideData[]>([]);
+  const [isMediaManagerOpen, setIsMediaManagerOpen] = useState(false);
 
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas);
   const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
@@ -59,7 +50,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     periodoSemana2,
     pracaSelecionada,
     visibleSections,
-    mediaFiles
+    mediaSlides
   );
 
   useEffect(() => {
@@ -105,9 +96,16 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           visibleSections={visibleSections}
           onToggleSection={(section) => setVisibleSections(prev => ({ ...prev, [section]: !prev[section as keyof typeof prev] }))}
           onStartPresentation={() => setViewMode('web_presentation')}
-          onAddMedia={handleAddMedia}
+          onManageMedia={() => setIsMediaManagerOpen(true)}
         />
       )}
+
+      <MediaManagerModal
+        isOpen={isMediaManagerOpen}
+        onClose={() => setIsMediaManagerOpen(false)}
+        mediaSlides={mediaSlides}
+        onUpdateSlides={setMediaSlides}
+      />
     </PresentationContext.Provider>
   );
 };
