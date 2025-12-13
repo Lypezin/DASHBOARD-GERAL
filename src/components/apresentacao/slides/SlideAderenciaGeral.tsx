@@ -53,7 +53,7 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({
       </header>
 
       {/* Main content */}
-      <div className="flex w-full justify-center items-center gap-12 flex-1">
+      <div className="flex w-full justify-evenly items-center gap-4 flex-1 px-8">
         {/* Semana 1 */}
         <SemanaCard semana={semana1} isHighlighted={false} />
 

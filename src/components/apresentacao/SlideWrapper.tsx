@@ -20,14 +20,17 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   const webModeStyle: CSSProperties = {
     position: 'relative',
     height: 'auto',
-    minHeight: '1188px', // SLIDE_HEIGHT
+    width: '100%',
+    minHeight: '800px', // Reduced min-height for flexibility
     overflow: 'visible',
     opacity: 1,
     visibility: 'visible',
-    marginBottom: '3rem', // Increased spacing
-    boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)', // Premium shadow
-    borderRadius: '1rem', // Softer corners
-    border: '1px solid rgba(226, 232, 240, 0.8)', // Subtle border
+    marginBottom: '3rem',
+    boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+    borderRadius: '1rem',
+    border: '1px solid rgba(226, 232, 240, 0.8)',
+    display: 'flex', // Ensure flex container for centering content if needed
+    flexDirection: 'column',
   };
 
   const previewModeStyle: CSSProperties = {

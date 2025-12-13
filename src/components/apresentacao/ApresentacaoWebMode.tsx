@@ -23,31 +23,7 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose]);
 
-    // Handle scaling for smaller screens
-    useEffect(() => {
-        const handleResize = () => {
-            if (!containerRef.current) return;
-            const container = containerRef.current;
-            const windowWidth = window.innerWidth;
-            const padding = 40; // 20px on each side
-            const availableWidth = windowWidth - padding;
 
-            // Calculate scale if viewport is smaller than slide width
-            if (availableWidth < SLIDE_WIDTH) {
-                const scale = availableWidth / SLIDE_WIDTH;
-                container.style.transform = `scale(${scale})`;
-                container.style.transformOrigin = 'top center';
-                // Adjust container height to compensate for scale
-                // This is tricky for a scrollable container, but for the inner wrapper it works
-            } else {
-                container.style.transform = 'none';
-            }
-        };
-
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
     return (
         <div className="fixed inset-0 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-xl z-[60] overflow-y-auto overflow-x-hidden">
@@ -71,11 +47,10 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
             <div className="fixed top-0 left-0 right-0 h-4 z-[65] hover:opacity-0" />
 
             {/* Main Content */}
-            <div className="min-h-screen py-10 flex flex-col items-center">
+            <div className="min-h-screen py-10 flex flex-col items-center w-full">
                 <div
                     ref={containerRef}
-                    style={{ width: SLIDE_WIDTH }}
-                    className="flex flex-col items-center transition-transform duration-200 ease-out"
+                    className="flex flex-col items-center w-full max-w-[1920px] px-4 md:px-8 lg:px-12 transition-all duration-200 ease-out"
                 >
                     {slides.map((slide) => (
                         <React.Fragment key={slide.key}>

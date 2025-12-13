@@ -61,7 +61,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
         {itens.map((item) => (
           <div
             key={item.nome}
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-4xl mx-auto' : ''}`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''}`}
           >
             {/* Card Header - Full width with name and planned */}
             <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-5 py-3 flex items-center justify-between gap-4 min-h-[4.5rem]">
