@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from './constants';
 import { Card } from '@/components/ui/card';
 import { ApresentacaoControls } from './components/ApresentacaoControls';
@@ -68,9 +69,20 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
     };
   }, [calculateScale]);
 
+  // Ensure portal rendering on client side
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    // Lock body scroll when preview is open
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   const totalSlides = slides.length;
 
-  return (
+  const content = (
     <>
       {/* CSS Global para sincronizar preview com PDF */}
       <style>{`
@@ -117,7 +129,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
         )}
       </div>
 
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 animate-in fade-in duration-200">
         <Card className="w-full max-w-6xl h-[95vh] flex flex-col overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl">
           <ApresentacaoControls
             currentSlide={currentSlide}
@@ -178,4 +190,8 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = ({
       />
     </>
   );
+
+  if (!mounted) return null;
+
+  return createPortal(content, document.body);
 };

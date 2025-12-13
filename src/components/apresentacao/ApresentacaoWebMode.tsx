@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { SLIDE_WIDTH } from './constants';
 
 interface ApresentacaoWebModeProps {
@@ -11,6 +12,16 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
     onClose,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        // Lock body scroll
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, []);
 
     // Esc to exit
     useEffect(() => {
@@ -24,11 +35,12 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
     }, [onClose]);
 
 
+    if (!mounted) return null;
 
-    return (
-        <div className="fixed inset-0 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-xl z-[9999] overflow-y-auto overflow-x-hidden">
+    return createPortal(
+        <div className="fixed inset-0 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-xl z-[99999] overflow-y-auto overflow-x-hidden">
             {/* Floating Header */}
-            <div className="fixed top-0 left-0 right-0 z-[10000] p-4 flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-all duration-300 hover:opacity-100 opacity-0 hover:translate-y-0 -translate-y-2 pointer-events-none hover:pointer-events-auto group-hover:opacity-100 group">
+            <div className="fixed top-0 left-0 right-0 z-[100000] p-4 flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-all duration-300 hover:opacity-100 opacity-0 hover:translate-y-0 -translate-y-2 pointer-events-none hover:pointer-events-auto group-hover:opacity-100 group">
                 <div className="flex items-center gap-4">
                     {/* Trigger area to show header */}
                     <div className="absolute top-0 left-0 right-0 h-6 -translate-y-full group-hover:translate-y-0 pointer-events-auto" />
@@ -44,7 +56,7 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
             </div>
 
             {/* Trigger zone for header */}
-            <div className="fixed top-0 left-0 right-0 h-4 z-[65] hover:opacity-0" />
+            <div className="fixed top-0 left-0 right-0 h-4 z-[99995] hover:opacity-0" />
 
             {/* Main Content */}
             <div className="min-h-screen py-10 flex flex-col items-center w-full">
@@ -61,9 +73,10 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
             </div>
 
             {/* Footer Instructions */}
-            <div className="fixed bottom-6 right-6 z-[60] pointer-events-none opacity-50 mix-blend-difference text-white text-xs font-mono">
+            <div className="fixed bottom-6 right-6 z-[99995] pointer-events-none opacity-50 mix-blend-difference text-white text-xs font-mono">
                 Pressione ESC para sair
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
