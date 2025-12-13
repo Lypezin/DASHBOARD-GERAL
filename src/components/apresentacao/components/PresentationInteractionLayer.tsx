@@ -90,8 +90,11 @@ export const PresentationInteractionLayer: React.FC<PresentationInteractionLayer
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}
         >
-            {/* Drawing Canvas */}
-            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+            {/* Drawing Canvas - pointer-events only when pen is active */}
+            <canvas
+                ref={canvasRef}
+                className={`absolute inset-0 w-full h-full ${tool !== 'pen' ? 'pointer-events-none' : ''}`}
+            />
 
             {/* Custom Cursor (Ball) for all tools except Pen (which has browser cursor) */}
             {tool !== 'pen' && (
