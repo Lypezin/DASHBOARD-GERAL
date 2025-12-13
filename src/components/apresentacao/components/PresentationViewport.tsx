@@ -53,6 +53,9 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
 
     const totalSlides = slides.length;
 
+    // Debug logs
+    console.log('[PresentationViewport] State:', { totalSlides, currentSlide, scale });
+
     return (
         <div
             ref={containerRef}
@@ -71,6 +74,8 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
                     WebkitFontSmoothing: 'antialiased',
                     MozOsxFontSmoothing: 'grayscale',
                     textRendering: 'optimizeLegibility',
+                    // Debug border to see container
+                    border: '2px solid red',
                 }}
             >
                 {totalSlides === 0 ? (
