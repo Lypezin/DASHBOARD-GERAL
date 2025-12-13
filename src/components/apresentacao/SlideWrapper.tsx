@@ -55,6 +55,8 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
+        width: '100%',  // Explicit for child h-full/w-full to work
+        height: '100%', // Explicit for child h-full/w-full to work
         display: 'flex',
         flexDirection: 'column',
         opacity: isVisible ? 1 : 0,
