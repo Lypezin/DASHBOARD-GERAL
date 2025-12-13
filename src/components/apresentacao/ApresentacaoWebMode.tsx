@@ -41,13 +41,13 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
     if (!mounted) return null;
 
     return createPortal(
-        <div className={`fixed inset-0 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-xl z-[99999] overflow-y-auto overflow-x-hidden ${tool !== 'cursor' ? 'cursor-none' : ''}`}>
+        <div className={`fixed inset-0 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-xl z-[99999] overflow-y-auto overflow-x-hidden cursor-none`}>
 
             {/* Interaction Layer */}
             <PresentationInteractionLayer tool={tool} isActive={true} />
 
             {/* Floating Header */}
-            <div className="fixed top-0 left-0 right-0 z-[100000] p-4 flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-all duration-300 hover:opacity-100 opacity-0 hover:translate-y-0 -translate-y-2 pointer-events-none hover:pointer-events-auto group-hover:opacity-100 group">
+            <div className="fixed top-0 left-0 right-0 z-[100001] p-4 flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-all duration-300 hover:opacity-100 opacity-0 hover:translate-y-0 -translate-y-2 pointer-events-none hover:pointer-events-auto group-hover:opacity-100 group">
                 <div className="flex items-center gap-4">
                     {/* Trigger area to show header */}
                     <div className="absolute top-0 left-0 right-0 h-6 -translate-y-full group-hover:translate-y-0 pointer-events-auto" />
@@ -55,7 +55,7 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
                 </div>
 
                 {/* Tools Toolbar */}
-                <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-lg border pointer-events-auto">
+                <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-lg border pointer-events-auto cursor-auto">
                     <button
                         onClick={() => setTool('cursor')}
                         className={`p-2 rounded-md transition-colors ${tool === 'cursor' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:bg-white/50'}`}

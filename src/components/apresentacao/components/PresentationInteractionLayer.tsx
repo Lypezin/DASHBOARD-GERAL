@@ -93,14 +93,19 @@ export const PresentationInteractionLayer: React.FC<PresentationInteractionLayer
             {/* Drawing Canvas */}
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-            {/* Laser Pointer Overlay */}
-            {tool === 'laser' && (
+            {/* Custom Cursor (Ball) for all tools except Pen (which has browser cursor) */}
+            {tool !== 'pen' && (
                 <div
-                    className="fixed w-4 h-4 bg-red-600 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.8)] pointer-events-none transition-transform duration-75 mix-blend-screen"
+                    className={`fixed w-4 h-4 rounded-full pointer-events-none transition-transform duration-75 mix-blend-screen
+                    ${tool === 'laser'
+                            ? 'bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.8)]'
+                            : 'bg-blue-400/80 border-2 border-white shadow-sm' // Default cursor style: Blueish ball
+                        }`}
                     style={{
                         left: mousePos.x,
                         top: mousePos.y,
-                        transform: 'translate(-50%, -50%)'
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 100002 // Ensure it's on top
                     }}
                 />
             )}

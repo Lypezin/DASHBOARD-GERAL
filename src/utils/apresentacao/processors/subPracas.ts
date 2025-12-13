@@ -7,6 +7,14 @@ import {
 } from './common';
 import { DadosBasicos } from './basicData';
 
+const normalizeKey = (key: string) => {
+    return (key || '')
+        .trim()
+        .toUpperCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, ''); // Remove accents
+};
+
 export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
     const { semana1, semana2 } = dadosBasicos;
     if (!semana1 || !semana2) return [];
@@ -14,11 +22,13 @@ export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
     // Use aderencia_sub_praca (main) with fallback to sub_praca (alias)
     const subPracasSemana1 = semana1.aderencia_sub_praca || semana1.sub_praca || [];
     const subPracasSemana2 = semana2.aderencia_sub_praca || semana2.sub_praca || [];
+
+    // Create maps with normalized keys for robust matching
     const subPracasSemana1Map = new Map(
-        subPracasSemana1.map((item) => [(item.sub_praca || '').trim().toUpperCase(), item])
+        subPracasSemana1.map((item) => [normalizeKey(item.sub_praca), item])
     );
     const subPracasSemana2Map = new Map(
-        subPracasSemana2.map((item) => [(item.sub_praca || '').trim().toUpperCase(), item])
+        subPracasSemana2.map((item) => [normalizeKey(item.sub_praca), item])
     );
 
     const todasSubPracas = Array.from(
