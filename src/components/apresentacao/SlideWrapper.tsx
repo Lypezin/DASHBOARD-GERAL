@@ -19,9 +19,13 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
 
   const webModeStyle: CSSProperties = {
     position: 'relative',
+    inset: 'auto', // Override the inset-0 from base class
     height: 'auto',
     width: '100%',
-    minHeight: '800px', // Reduced min-height for flexibility
+    minWidth: 'auto',
+    maxWidth: 'auto',
+    minHeight: '800px',
+    maxHeight: 'none',
     overflow: 'visible',
     opacity: 1,
     visibility: 'visible',
@@ -29,7 +33,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
     boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
     borderRadius: '1rem',
     border: '1px solid rgba(226, 232, 240, 0.8)',
-    display: 'flex', // Ensure flex container for centering content if needed
+    display: 'flex',
     flexDirection: 'column',
   };
 
