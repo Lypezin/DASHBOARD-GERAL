@@ -53,6 +53,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -88,6 +89,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -98,6 +100,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -109,6 +112,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -120,6 +124,7 @@
     opacity: 0;
     transform: scale(0.8);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -131,10 +136,12 @@
     opacity: 0;
     transform: scale(0.5);
   }
+
   70% {
     opacity: 1;
     transform: scale(1.1);
   }
+
   100% {
     transform: scale(1);
   }
@@ -169,6 +176,27 @@
 
 .animate-pop-in {
   animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Staggered animation delays */
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-400 {
+  animation-delay: 400ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
 }
 
 /* Hover effects */
@@ -291,12 +319,10 @@ canvas {
 
 /* Loading states */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--bg-secondary) 0%,
-    var(--bg-tertiary) 50%,
-    var(--bg-secondary) 100%
-  );
+  background: linear-gradient(90deg,
+      var(--bg-secondary) 0%,
+      var(--bg-tertiary) 50%,
+      var(--bg-secondary) 100%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
 }
@@ -305,6 +331,7 @@ canvas {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -348,7 +375,7 @@ canvas {
     padding: 1rem;
     border-radius: 12px;
   }
-  
+
   .btn {
     padding: 0.625rem 1.25rem;
     font-size: 0.875rem;
@@ -361,7 +388,7 @@ canvas {
     background: white;
     color: black;
   }
-  
+
   .no-print {
     display: none !important;
   }

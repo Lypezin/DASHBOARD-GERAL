@@ -26,7 +26,7 @@ const buildCircleDasharray = (valor: number, radius: number) => {
 };
 
 export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = false, variacao }) => (
-    <div className={`rounded-lg border p-2 flex flex-col items-center gap-1.5 ${isSecondWeek ? 'bg-gradient-to-b from-blue-50 to-white border-blue-200' : 'bg-gradient-to-b from-slate-50 to-white border-slate-200'}`}>
+    <div className={`rounded-lg border px-1 py-2 flex flex-col items-center gap-1.5 ${isSecondWeek ? 'bg-gradient-to-b from-blue-50 to-white border-blue-200' : 'bg-gradient-to-b from-slate-50 to-white border-slate-200'}`}>
         {/* Day label */}
         <span className={`text-xs font-bold uppercase tracking-wider ${isSecondWeek ? 'text-blue-700' : 'text-slate-700'}`}>
             {dia.sigla}

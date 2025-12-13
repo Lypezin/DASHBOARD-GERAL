@@ -58,10 +58,11 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
 
       {/* Cards Grid - 2x2 or centered single */}
       <div className={`${isSingleItem ? 'flex justify-center items-center' : 'grid grid-cols-2 gap-7'} flex-1 content-start`}>
-        {itens.map((item) => (
+        {itens.map((item, index) => (
           <div
             key={item.nome}
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''}`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''} animate-slide-up opacity-0`}
+            style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
           >
             {/* Card Header - Full width with name and planned */}
             <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-5 py-3 flex items-center justify-between gap-4 min-h-[4.5rem]">
