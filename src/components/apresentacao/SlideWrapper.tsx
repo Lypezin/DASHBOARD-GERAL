@@ -38,7 +38,8 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   };
 
   const previewModeStyle: CSSProperties = {
-    ...slideDimensionsStyle,
+    width: '100%',
+    height: '100%',
     display: 'flex',
     flexDirection: 'column',
     opacity: isVisible ? 1 : 0,
@@ -47,6 +48,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
     position: 'absolute',
     top: 0,
     left: 0,
+    zIndex: isVisible ? 10 : 0, // Ensure visible slide is on top
     ...slideTransitionStyle,
   };
 
