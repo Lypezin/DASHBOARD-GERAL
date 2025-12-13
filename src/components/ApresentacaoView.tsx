@@ -98,7 +98,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           numeroSemana2={numeroSemana2}
           visibleSections={visibleSections}
           onToggleSection={(section) => setVisibleSections(prev => ({ ...prev, [section]: !prev[section as keyof typeof prev] }))}
-          onStartPresentation={() => setViewMode('web_presentation')}
+          onStartPresentation={(orderedSlides) => {
+            setOrderedPresentationSlides(orderedSlides);
+            setViewMode('web_presentation');
+          }}
           onManageMedia={() => setIsMediaManagerOpen(true)}
         />
       )}

@@ -47,7 +47,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     return (
         <div
             ref={containerRef}
-            className="bg-slate-100 dark:bg-slate-950 flex-1 overflow-hidden p-4 relative"
+            className="bg-slate-100 dark:bg-slate-950 flex-1 overflow-hidden relative flex items-center justify-center"
         >
             <div
                 className="relative shadow-2xl transition-transform duration-200 ease-out"
