@@ -56,22 +56,17 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
 
                 {/* Tools Toolbar */}
                 <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-lg border pointer-events-auto cursor-auto">
+                    {/* Note: 'cursor' (Ball) is the default state when other tools are inactive */}
+
                     <button
-                        onClick={() => setTool('cursor')}
-                        className={`p-2 rounded-md transition-colors ${tool === 'cursor' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:bg-white/50'}`}
-                        title="Cursor"
-                    >
-                        <MousePointer2 size={18} />
-                    </button>
-                    <button
-                        onClick={() => setTool('laser')}
+                        onClick={() => setTool(current => current === 'laser' ? 'cursor' : 'laser')}
                         className={`p-2 rounded-md transition-colors ${tool === 'laser' ? 'bg-white shadow text-red-600' : 'text-slate-500 hover:bg-white/50'}`}
                         title="Laser Pointer"
                     >
                         <Zap size={18} />
                     </button>
                     <button
-                        onClick={() => setTool('pen')}
+                        onClick={() => setTool(current => current === 'pen' ? 'cursor' : 'pen')}
                         className={`p-2 rounded-md transition-colors ${tool === 'pen' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:bg-white/50'}`}
                         title="Caneta"
                     >

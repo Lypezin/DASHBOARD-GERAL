@@ -12,7 +12,8 @@ const normalizeKey = (key: string) => {
         .trim()
         .toUpperCase()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, ''); // Remove accents
+        .replace(/[\u0300-\u036f]/g, '') // Remove accents
+        .replace(/[^A-Z0-9]/g, ''); // Remove all non-alphanumeric chars (spaces, hyphens, punctuation)
 };
 
 export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
