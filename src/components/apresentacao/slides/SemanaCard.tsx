@@ -33,7 +33,7 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = 
             </div>
 
             {/* Progress circle - large and prominent */}
-            <div className="relative w-[220px] h-[220px]">
+            <div className="relative w-[220px] h-[220px] animate-scale-in">
                 <svg
                     className="absolute inset-0 w-full h-full"
                     viewBox="0 0 180 180"
@@ -62,15 +62,12 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = 
                 </svg>
 
                 {/* Centered text container */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center">
                     <span
-                        className="text-slate-900 font-black leading-none"
+                        className="text-slate-900 font-black leading-none tracking-tight"
                         style={{ fontSize }}
                     >
                         {adherenceText}%
-                    </span>
-                    <span className="text-base font-semibold text-slate-500 uppercase tracking-wide mt-2">
-                        Aderência
                     </span>
                 </div>
             </div>

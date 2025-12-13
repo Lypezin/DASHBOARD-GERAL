@@ -36,7 +36,7 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
             </span>
 
             {/* Progress Circle */}
-            <div className="relative" style={{ width: dimension, height: dimension }}>
+            <div className="relative animate-scale-in" style={{ width: dimension, height: dimension }}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                     <circle cx="50" cy="50" r="40" stroke="#e2e8f0" strokeWidth="8" fill="none" />
                     <circle
@@ -50,8 +50,8 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                         strokeLinecap="round"
                     />
                 </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className={`text-slate-900 font-black ${fontSizeClass} leading-none`}>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className={`text-slate-900 font-black ${size === 'large' ? 'text-xl' : 'text-lg'} leading-none tracking-tight`}>
                         {aderencia.toFixed(1)}%
                     </span>
                 </div>

@@ -71,7 +71,7 @@ const WeekCircle: React.FC<{
       </span>
 
       {/* Progress Circle */}
-      <div className={`relative ${circleSize}`}>
+      <div className={`relative ${circleSize} animate-scale-in`}>
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
           <circle cx="50" cy="50" r="40" stroke="#e2e8f0" strokeWidth="8" fill="none" />
           <circle
@@ -86,7 +86,7 @@ const WeekCircle: React.FC<{
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-slate-900 font-black ${fontSize} leading-none`}>
+          <span className={`text-slate-900 font-black ${fontSize} leading-none tracking-tight`}>
             {semana.aderencia.toFixed(1)}%
           </span>
         </div>
