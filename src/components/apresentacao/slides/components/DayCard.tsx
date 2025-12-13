@@ -56,8 +56,8 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <span className={`text-slate-900 font-black leading-none tracking-tight ${dia.aderencia >= 100 ? 'text-[0.65rem]' : 'text-sm'}`}>
-                        {dia.aderencia.toFixed(1)}%
+                    <span className={`text-slate-900 font-black leading-none tracking-tight ${dia.aderencia >= 100 ? 'text-[0.6rem]' : 'text-sm'}`}>
+                        {dia.aderencia >= 1000 ? '>999%' : dia.aderencia.toFixed(1) + '%'}
                     </span>
                 </div>
             </div>
