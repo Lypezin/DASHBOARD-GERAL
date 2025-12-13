@@ -41,8 +41,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
     visibility: isVisible ? 'visible' : 'hidden',
     overflow: 'hidden',
     position: 'absolute',
-    top: 0,
-    left: 0,
+    inset: 0,
     ...slideTransitionStyle,
   };
 

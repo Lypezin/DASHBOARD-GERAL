@@ -16,31 +16,40 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     const calculateScale = useCallback(() => {
         if (containerRef.current) {
             const container = containerRef.current.getBoundingClientRect();
-            // Use full available space
             const availableWidth = container.width;
             const availableHeight = container.height;
+
+            if (availableWidth === 0 || availableHeight === 0) return; // Not rendered yet
 
             const scaleX = availableWidth / SLIDE_WIDTH;
             const scaleY = availableHeight / SLIDE_HEIGHT;
 
-            // Use entire space (1.0 factor instead of 0.95) for better visibility
-            // The container has padding handling the margins
-            const newScale = Math.min(scaleX, scaleY);
-            setScale(Math.max(0.1, Math.min(1.5, newScale))); // Allow slight upsizing if needed, but keeping generally bounded
+            // Use 0.95 factor to leave a small margin for shadow
+            const newScale = Math.min(scaleX, scaleY) * 0.95;
+            setScale(Math.max(0.1, Math.min(1.2, newScale)));
         }
     }, []);
 
     useEffect(() => {
+        // Initial calculation with delays to ensure DOM is ready
         calculateScale();
-        // Small delay to ensure layout is settled
-        const timeoutId = setTimeout(calculateScale, 100);
+        const t1 = setTimeout(calculateScale, 50);
+        const t2 = setTimeout(calculateScale, 150);
+        const t3 = setTimeout(calculateScale, 300);
         window.addEventListener('resize', calculateScale);
 
         return () => {
-            clearTimeout(timeoutId);
+            clearTimeout(t1);
+            clearTimeout(t2);
+            clearTimeout(t3);
             window.removeEventListener('resize', calculateScale);
         };
     }, [calculateScale]);
+
+    // Recalculate when slide changes
+    useEffect(() => {
+        calculateScale();
+    }, [currentSlide, calculateScale]);
 
     const totalSlides = slides.length;
 
