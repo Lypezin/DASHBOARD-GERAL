@@ -54,6 +54,10 @@ const VariationBadge: React.FC<{ label: string; value: string; positive: boolean
   </div>
 );
 
+import { useAnimatedProgress } from '@/hooks/ui/useAnimatedProgress';
+
+// ... (other imports)
+
 // Week circle with hours
 const WeekCircle: React.FC<{
   semana: TurnoResumo;
@@ -63,6 +67,9 @@ const WeekCircle: React.FC<{
 }> = ({ semana, label, isSecond, size = 'normal' }) => {
   const circleSize = size === 'large' ? 'w-[120px] h-[120px]' : 'w-[100px] h-[100px]';
   const fontSize = size === 'large' ? 'text-2xl' : 'text-lg';
+
+  // Animate adherence
+  const animatedAderencia = useAnimatedProgress(semana.aderencia, 1000, 100);
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -81,8 +88,9 @@ const WeekCircle: React.FC<{
             stroke={isSecond ? "#2563eb" : "#64748b"}
             strokeWidth="8"
             fill="none"
-            strokeDasharray={buildCircleDasharray(semana.aderencia, 40)}
+            strokeDasharray={buildCircleDasharray(animatedAderencia, 40)}
             strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">

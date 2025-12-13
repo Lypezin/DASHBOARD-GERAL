@@ -1,5 +1,6 @@
 import React from 'react';
 import { buildTimeTextStyle } from '@/components/apresentacao/utils';
+import { useAnimatedProgress } from '@/hooks/ui/useAnimatedProgress';
 
 interface WeekComparisonCircleProps {
     aderencia: number;
@@ -24,10 +25,13 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
     size = 'normal',
     circleSizePx
 }) => {
+    // Animate adherence
+    const animatedAderencia = useAnimatedProgress(aderencia, 1000, 100);
+
     // Default sizes if no override provided
     const defaultSize = size === 'large' ? 110 : 90;
     const dimension = circleSizePx || defaultSize;
-    const fontSizeClass = size === 'large' ? 'text-2xl' : 'text-xl';
+    // const fontSizeClass = size === 'large' ? 'text-2xl' : 'text-xl'; // Use dynamic font size below
 
     return (
         <div className="flex flex-col items-center gap-2">
@@ -46,8 +50,9 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                         stroke={isSecond ? "#2563eb" : "#64748b"}
                         strokeWidth="8"
                         fill="none"
-                        strokeDasharray={buildCircleDasharray(aderencia, 40)}
+                        strokeDasharray={buildCircleDasharray(animatedAderencia, 40)}
                         strokeLinecap="round"
+                        className="transition-all duration-1000 ease-out"
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">

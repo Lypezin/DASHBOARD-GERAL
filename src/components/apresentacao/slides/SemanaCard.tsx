@@ -8,6 +8,8 @@ interface SemanaResumo {
     horasEntregues: string;
 }
 
+import { useAnimatedProgress } from '@/hooks/ui/useAnimatedProgress';
+
 interface SemanaCardProps {
     semana: SemanaResumo;
     isHighlighted?: boolean;
@@ -20,6 +22,7 @@ const buildCircleDasharray = (valor: number) => {
 };
 
 export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = false }) => {
+    const animatedAderencia = useAnimatedProgress(semana.aderencia, 1500, 200);
     const adherenceText = semana.aderencia.toFixed(1);
     const fontSize = semana.aderencia >= 100 ? '2rem' : '2.5rem';
 
@@ -56,8 +59,9 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = 
                         stroke={isHighlighted ? "#2563eb" : "#64748b"}
                         strokeWidth="14"
                         fill="none"
-                        strokeDasharray={buildCircleDasharray(semana.aderencia)}
+                        strokeDasharray={buildCircleDasharray(animatedAderencia)}
                         strokeLinecap="round"
+                        className="transition-all duration-1000 ease-out"
                     />
                 </svg>
 
