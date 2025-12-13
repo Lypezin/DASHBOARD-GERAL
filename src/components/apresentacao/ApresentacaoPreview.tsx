@@ -89,7 +89,7 @@ interface ApresentacaoPreviewProps {
   numeroSemana2: string;
   visibleSections: Record<string, boolean>;
   onToggleSection: (section: string) => void;
-  onStartPresentation: () => void;
+  onStartPresentation: (orderedSlides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>) => void;
   onManageMedia?: () => void;
 }
 
@@ -199,7 +199,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               onNext={handleNext}
               onClose={onClose}
               onGeneratePDF={generatePDF}
-              onStartPresentation={onStartPresentation}
+              onStartPresentation={() => onStartPresentation(orderedSlides)}
               isGenerating={isGenerating}
               visibleSections={visibleSections}
               onToggleSection={onToggleSection}

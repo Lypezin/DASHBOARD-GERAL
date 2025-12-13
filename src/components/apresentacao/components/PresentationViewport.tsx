@@ -16,16 +16,17 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     const calculateScale = useCallback(() => {
         if (containerRef.current) {
             const container = containerRef.current.getBoundingClientRect();
-            // Subtract padding (32px = p-4 * 2) from available space
-            const availableWidth = container.width - 32;
-            const availableHeight = container.height - 32;
+            // Use full available space
+            const availableWidth = container.width;
+            const availableHeight = container.height;
 
             const scaleX = availableWidth / SLIDE_WIDTH;
             const scaleY = availableHeight / SLIDE_HEIGHT;
 
-            // 0.95 factor to leave a small margin
-            const newScale = Math.min(scaleX, scaleY) * 0.95;
-            setScale(Math.max(0.1, Math.min(1, newScale)));
+            // Use entire space (1.0 factor instead of 0.95) for better visibility
+            // The container has padding handling the margins
+            const newScale = Math.min(scaleX, scaleY);
+            setScale(Math.max(0.1, Math.min(1.5, newScale))); // Allow slight upsizing if needed, but keeping generally bounded
         }
     }, []);
 

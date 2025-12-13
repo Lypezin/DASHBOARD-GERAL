@@ -11,7 +11,8 @@ interface SlideMediaProps {
 const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index }) => {
     return (
         <div
-            className={`absolute inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden transition-opacity duration-500 
+            ${isVisible ? 'opacity-100 z-50 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}
             style={{ width: SLIDE_WIDTH, height: SLIDE_HEIGHT }}
         >
             <div

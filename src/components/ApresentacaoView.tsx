@@ -38,6 +38,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   const [mediaSlides, setMediaSlides] = useState<MediaSlideData[]>([]);
   const [isMediaManagerOpen, setIsMediaManagerOpen] = useState(false);
 
+  // Ordered Slides for Presentation Mode
+  const [orderedPresentationSlides, setOrderedPresentationSlides] = useState<Array<{ key: string; render: (visible: boolean) => React.ReactNode }>>([]);
+
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas);
   const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
 
@@ -80,7 +83,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     <PresentationContext.Provider value={{ isWebMode }}>
       {viewMode === 'web_presentation' ? (
         <ApresentacaoWebMode
-          slides={slides}
+          slides={orderedPresentationSlides.length > 0 ? orderedPresentationSlides : slides}
           onClose={() => setViewMode('preview')}
         />
       ) : (
