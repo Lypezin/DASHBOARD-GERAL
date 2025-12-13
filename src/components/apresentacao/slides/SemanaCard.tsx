@@ -21,7 +21,7 @@ const buildCircleDasharray = (valor: number) => {
 
 export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = false }) => {
     const adherenceText = semana.aderencia.toFixed(1);
-    const fontSize = semana.aderencia >= 100 ? '2.75rem' : '3.5rem';
+    const fontSize = semana.aderencia >= 100 ? '2rem' : '2.5rem';
 
     return (
         <div className="flex flex-col items-center gap-5">

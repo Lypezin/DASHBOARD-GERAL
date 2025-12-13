@@ -48,7 +48,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
 
   return (
     <div
-      className={`${slideBaseClass} ${className}`.trim()}
+      className={`${slideBaseClass} ${className} ${isWebMode ? 'animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-forwards' : ''}`.trim()}
       style={{
         backgroundColor: '#ffffff',
         ...(isWebMode ? webModeStyle : previewModeStyle),

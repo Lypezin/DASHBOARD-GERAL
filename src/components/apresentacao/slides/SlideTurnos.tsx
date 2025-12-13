@@ -62,7 +62,7 @@ const WeekCircle: React.FC<{
   size?: 'normal' | 'large';
 }> = ({ semana, label, isSecond, size = 'normal' }) => {
   const circleSize = size === 'large' ? 'w-[120px] h-[120px]' : 'w-[100px] h-[100px]';
-  const fontSize = size === 'large' ? 'text-3xl' : 'text-2xl';
+  const fontSize = size === 'large' ? 'text-2xl' : 'text-lg';
 
   return (
     <div className="flex flex-col items-center gap-3">
