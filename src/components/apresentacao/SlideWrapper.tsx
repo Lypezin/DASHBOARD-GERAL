@@ -18,23 +18,27 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   const { isWebMode } = usePresentationContext();
 
   const webModeStyle: CSSProperties = {
-    position: 'relative',
+    position: 'relative' as const,
+    top: 'auto',
+    right: 'auto',
+    bottom: 'auto',
+    left: 'auto',
     inset: 'auto', // Override the inset-0 from base class
     height: 'auto',
     width: '100%',
     minWidth: 'auto',
-    maxWidth: 'auto',
+    maxWidth: 'none',
     minHeight: '800px',
     maxHeight: 'none',
     overflow: 'visible',
     opacity: 1,
-    visibility: 'visible',
+    visibility: 'visible' as const,
     marginBottom: '3rem',
     boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
     borderRadius: '1rem',
     border: '1px solid rgba(226, 232, 240, 0.8)',
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column' as const,
   };
 
   const previewModeStyle: CSSProperties = {
