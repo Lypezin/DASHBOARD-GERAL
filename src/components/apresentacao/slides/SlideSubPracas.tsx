@@ -65,7 +65,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
             style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
           >
             {/* Card Header - Full width with name and planned */}
-            <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-5 py-3 flex items-center justify-between gap-4 min-h-[4.5rem]">
+            <div className="bg-gradient-to-r from-blue-800 to-blue-600 px-5 py-3 flex items-center justify-between gap-4 min-h-[4.5rem]">
               <h3
                 className="text-white font-bold text-base uppercase tracking-wide flex-1 leading-snug"
                 style={{

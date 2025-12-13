@@ -56,20 +56,19 @@ const VariationBadge: React.FC<{ label: string; value: string; positive: boolean
 
 import { useAnimatedProgress } from '@/hooks/ui/useAnimatedProgress';
 
-// ... (other imports)
-
 // Week circle with hours
 const WeekCircle: React.FC<{
   semana: TurnoResumo;
   label: string;
   isSecond: boolean;
   size?: 'normal' | 'large';
-}> = ({ semana, label, isSecond, size = 'normal' }) => {
+  isActive?: boolean;
+}> = ({ semana, label, isSecond, size = 'normal', isActive = true }) => {
   const circleSize = size === 'large' ? 'w-[120px] h-[120px]' : 'w-[100px] h-[100px]';
   const fontSize = size === 'large' ? 'text-2xl' : 'text-lg';
 
   // Animate adherence
-  const animatedAderencia = useAnimatedProgress(semana.aderencia, 1000, 100);
+  const animatedAderencia = useAnimatedProgress(semana.aderencia, 1000, 100, isActive);
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -78,7 +77,7 @@ const WeekCircle: React.FC<{
       </span>
 
       {/* Progress Circle */}
-      <div className={`relative ${circleSize} animate-scale-in`}>
+      <div className={`relative ${circleSize} animate-scale-in ${isActive ? 'animate-pulse-scale delay-500' : ''}`}>
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
           <circle cx="50" cy="50" r="40" stroke="#e2e8f0" strokeWidth="8" fill="none" />
           <circle
@@ -150,7 +149,7 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
             style={{ animationDelay: `${index * 150}ms`, animationFillMode: 'forwards' }}
           >
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 min-h-[4.5rem] flex items-center justify-center">
+            <div className="bg-gradient-to-r from-blue-800 to-blue-600 px-6 py-4 min-h-[4.5rem] flex items-center justify-center">
               <h3
                 className="text-white font-bold text-lg uppercase tracking-wide text-center leading-snug"
                 style={{
@@ -172,12 +171,14 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({
                   label={`SEM ${numeroSemana1}`}
                   isSecond={false}
                   size={isSingleItem ? 'large' : 'normal'}
+                  isActive={isVisible}
                 />
                 <WeekCircle
                   semana={turno.semana2}
                   label={`SEM ${numeroSemana2}`}
                   isSecond={true}
                   size={isSingleItem ? 'large' : 'normal'}
+                  isActive={isVisible}
                 />
               </div>
 

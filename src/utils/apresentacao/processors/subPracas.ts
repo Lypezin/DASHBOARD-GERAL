@@ -15,10 +15,10 @@ export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
     const subPracasSemana1 = semana1.aderencia_sub_praca || semana1.sub_praca || [];
     const subPracasSemana2 = semana2.aderencia_sub_praca || semana2.sub_praca || [];
     const subPracasSemana1Map = new Map(
-        subPracasSemana1.map((item) => [(item.sub_praca || '').trim(), item])
+        subPracasSemana1.map((item) => [(item.sub_praca || '').trim().toUpperCase(), item])
     );
     const subPracasSemana2Map = new Map(
-        subPracasSemana2.map((item) => [(item.sub_praca || '').trim(), item])
+        subPracasSemana2.map((item) => [(item.sub_praca || '').trim().toUpperCase(), item])
     );
 
     const todasSubPracas = Array.from(

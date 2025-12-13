@@ -66,7 +66,7 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
             style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
           >
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-slate-700 to-slate-600 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem]">
+            <div className="bg-gradient-to-r from-blue-700 to-blue-600 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem]">
               <h3
                 className="text-white font-bold text-base uppercase tracking-wide flex-1 leading-snug"
                 style={{
