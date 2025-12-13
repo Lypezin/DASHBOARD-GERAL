@@ -15,7 +15,7 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
-    const [tool, setTool] = useState<ToolType>('cursor');
+    const [tool, setTool] = useState<ToolType>('laser');
 
     useEffect(() => {
         setMounted(true);
@@ -67,24 +67,17 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
 
                 {/* Tools Toolbar */}
                 <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-lg border pointer-events-auto">
-                    {/* Note: 'cursor' (Ball) is the default state when other tools are inactive */}
+                    {/* Default tool is now LASER. Clicking Pen/Eraser toggles them. If they are off, we are in Laser mode. */}
 
                     <button
-                        onClick={() => setTool(current => current === 'laser' ? 'cursor' : 'laser')}
-                        className={`p-2 rounded-md transition-colors ${tool === 'laser' ? 'bg-white shadow text-red-600' : 'text-slate-500 hover:bg-white/50'}`}
-                        title="Laser Pointer"
-                    >
-                        <Zap size={18} />
-                    </button>
-                    <button
-                        onClick={() => setTool(current => current === 'pen' ? 'cursor' : 'pen')}
+                        onClick={() => setTool(current => current === 'pen' ? 'laser' : 'pen')}
                         className={`p-2 rounded-md transition-colors ${tool === 'pen' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:bg-white/50'}`}
                         title="Caneta"
                     >
                         <Pen size={18} />
                     </button>
                     <button
-                        onClick={() => setTool('eraser')}
+                        onClick={() => setTool(current => current === 'eraser' ? 'laser' : 'eraser')}
                         className={`p-2 rounded-md transition-colors ${tool === 'eraser' ? 'bg-white shadow text-slate-600' : 'text-slate-500 hover:bg-white/50'}`}
                         title="Limpar Tela"
                     >

@@ -10,13 +10,13 @@ import SlideOrigem from '@/components/apresentacao/slides/SlideOrigem';
 import SlideDemanda from '@/components/apresentacao/slides/SlideDemandaRejeicoes';
 import SlideRanking from '@/components/apresentacao/slides/SlideRanking';
 import SlideResumoIA from '@/components/apresentacao/slides/SlideResumoIA';
+import SlideMedia from '@/components/apresentacao/slides/SlideMedia';
 import { generateSmartInsights } from '@/utils/apresentacao/smartInsights';
 import { chunkArray } from '@/utils/apresentacao/processors/common';
-// import { console.log } from '@/utils/logger'; // Removed as file does not exist
 
-const SUB_PRACAS_PER_PAGE = 2; // Reduced from 4 to 2 for larger display
-const TURNOS_PER_PAGE = 2; // Reduced from 3 to 2 for larger display
-const ORIGENS_PER_PAGE = 3; // Reduced from 6 to 3 for larger display
+const SUB_PRACAS_PER_PAGE = 2;
+const TURNOS_PER_PAGE = 2;
+const ORIGENS_PER_PAGE = 3;
 
 export const useApresentacaoSlides = (
   dadosProcessados: DadosProcessados | null,
@@ -36,7 +36,8 @@ export const useApresentacaoSlides = (
     turnos: true,
     origens: true,
     demanda: true,
-  }
+  },
+  mediaFiles: string[] = []
 ) => {
   const slides = useMemo(() => {
     if (!dadosProcessados) {
@@ -192,6 +193,14 @@ export const useApresentacaoSlides = (
       });
     }
 
+    // 10. Mídias (Fotos)
+    mediaFiles.forEach((mediaUrl, index) => {
+      slidesConfig.push({
+        key: `media-${index}`,
+        render: (visible) => <SlideMedia isVisible={visible} mediaUrl={mediaUrl} index={index} />
+      });
+    });
+
     return slidesConfig;
   }, [
     dadosProcessados,
@@ -201,6 +210,7 @@ export const useApresentacaoSlides = (
     periodoSemana1,
     periodoSemana2,
     pracaSelecionada,
+    mediaFiles
   ]);
 
   return slides;
