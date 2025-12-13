@@ -42,6 +42,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
   itens,
 }) => {
   const isSingleItem = itens.length === 1;
+  const [selectedItem, setSelectedItem] = React.useState<SubPracaComparativo | null>(null);
 
   return (
     <SlideWrapper isVisible={isVisible} style={{ padding: '32px 48px' }}>
@@ -61,7 +62,8 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
         {itens.map((item, index) => (
           <div
             key={item.nome}
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''} animate-slide-up opacity-0`}
+            onClick={() => setSelectedItem(item)}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''} animate-slide-up opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
             style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
           >
             {/* Card Header - Full width with name and planned */}
@@ -121,6 +123,63 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Drill Down Modal */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-[100010] bg-black/60 backdrop-blur-sm flex items-center justify-center p-8 animate-fade-in" onClick={() => setSelectedItem(null)}>
+          <div
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-scale-in"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-900 to-blue-700 px-8 py-6 relative">
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="absolute top-6 right-6 text-white/80 hover:text-white transition-colors"
+              >
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <h2 className="text-3xl font-black text-white uppercase tracking-wider mb-2">{selectedItem.nome}</h2>
+              <p className="text-blue-100 text-lg">Detalhamento de Performance</p>
+            </div>
+
+            {/* Content */}
+            <div className="p-10">
+              <div className="flex justify-center items-center gap-16 mb-10">
+                <div className="text-center transform scale-125">
+                  <WeekComparisonCircle
+                    aderencia={selectedItem.semana1.aderencia}
+                    horasEntregues={selectedItem.semana1.horasEntregues}
+                    label={`SEMANA ${numeroSemana1}`}
+                    isSecond={false}
+                    size="large"
+                  />
+                </div>
+                <div className="w-px h-32 bg-slate-200"></div>
+                <div className="text-center transform scale-125">
+                  <WeekComparisonCircle
+                    aderencia={selectedItem.semana2.aderencia}
+                    horasEntregues={selectedItem.semana2.horasEntregues}
+                    label={`SEMANA ${numeroSemana2}`}
+                    isSecond={true}
+                    size="large"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Insight from AI Logic (Mocked for now or reused) */}
+            <div className="bg-slate-50 px-8 py-4 border-t border-slate-100">
+              <p className="text-center text-slate-500 text-sm">
+                Use a ferramenta de <strong>Caneta</strong> para fazer anotações sobre este resultado.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
     </SlideWrapper>
   );
 };
