@@ -63,7 +63,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
           <div
             key={item.nome}
             onClick={() => setSelectedItem(item)}
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''} animate-slide-up opacity-0 cursor-none hover:scale-[1.02] transition-transform duration-200`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''} animate-slide-up opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
             style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
           >
             {/* Card Header - Full width with name and planned */}
@@ -126,7 +126,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
 
       {/* Drill Down Modal */}
       {selectedItem && (
-        <div className="fixed inset-0 z-[100010] bg-black/60 backdrop-blur-sm flex items-center justify-center p-8 animate-fade-in cursor-none" onClick={() => setSelectedItem(null)}>
+        <div className="fixed inset-0 z-[100010] bg-black/60 backdrop-blur-sm flex items-center justify-center p-8 animate-fade-in" onClick={() => setSelectedItem(null)}>
           <div
             className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-scale-in"
             onClick={e => e.stopPropagation()}
