@@ -19,7 +19,12 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
             const availableWidth = container.width;
             const availableHeight = container.height;
 
-            if (availableWidth === 0 || availableHeight === 0) return; // Not rendered yet
+            if (availableWidth === 0 || availableHeight === 0) {
+                console.log('[PresentationViewport] Container has 0 size!', { availableWidth, availableHeight });
+                return;
+            }
+
+            console.log('[PresentationViewport] Container Size:', { availableWidth, availableHeight });
 
             const scaleX = availableWidth / SLIDE_WIDTH;
             const scaleY = availableHeight / SLIDE_HEIGHT;
@@ -71,8 +76,13 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
                     WebkitFontSmoothing: 'antialiased',
                     MozOsxFontSmoothing: 'grayscale',
                     textRendering: 'optimizeLegibility',
+                    backgroundColor: 'pink', // DEBUG: Visible background for container
                 }}
             >
+                {/* DEBUG: Raw Test Element */}
+                <div style={{ position: 'absolute', top: 0, left: 0, width: 200, height: 100, background: 'red', zIndex: 99999, color: 'white', fontSize: 20, fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    VIEWPORT WORKING
+                </div>
                 {totalSlides === 0 ? (
                     <div
                         className="slide bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 absolute inset-0 flex items-center justify-center text-xl font-medium border border-slate-200 dark:border-slate-800 rounded-lg"
