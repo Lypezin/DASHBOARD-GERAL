@@ -17,13 +17,6 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
 }) => {
   const { isWebMode } = usePresentationContext();
 
-  // DEBUG PROPS
-  console.log('[SlideWrapper] Params:', {
-    isWebMode,
-    isVisible,
-    styleHasBackground: 'background' in style || 'backgroundColor' in style
-  });
-
   // WebMode: slides flow naturally in a scrollable container
   if (isWebMode) {
     return (
