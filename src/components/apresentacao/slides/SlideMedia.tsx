@@ -67,46 +67,34 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                     {canDrag && (
                         <>
                             {[
-                                { pos: 'tl', cursor: 'nwse-resize', sensitivity: -1, x: -20, y: -20 },
-                                { pos: 'tr', cursor: 'nesw-resize', sensitivity: 1, x: 'calc(100% - 20px)', y: -20 },
-                                { pos: 'bl', cursor: 'nesw-resize', sensitivity: -1, x: -20, y: 'calc(100% - 20px)' },
-                                { pos: 'br', cursor: 'nwse-resize', sensitivity: 1, x: 'calc(100% - 20px)', y: 'calc(100% - 20px)' }
+                                { pos: 'tl', cursor: 'nwse-resize', sensitivity: -1 },
+                                { pos: 'tr', cursor: 'nesw-resize', sensitivity: 1 },
+                                { pos: 'bl', cursor: 'nesw-resize', sensitivity: -1 },
+                                { pos: 'br', cursor: 'nwse-resize', sensitivity: 1 }
                             ].map((handle) => (
                                 <motion.div
                                     key={handle.pos}
-                                    drag="x" // We only need horizontal drag delta for scaling logic simplicity
+                                    drag="x"
                                     dragMomentum={false}
                                     dragPropagation={false}
                                     onDrag={(_, info) => {
                                         const currentScale = slideData.scale || 1;
-                                        // Sensitivity adjustment for smoother control at different scales
                                         const sensitivity = (0.005 / currentScale) * handle.sensitivity;
                                         const newScale = Math.max(0.1, Math.min(5.0, slideData.scale + info.delta.x * sensitivity));
                                         onUpdate({ scale: newScale });
                                     }}
                                     onDragEnd={() => { }}
-                                    // Make dragConstraints loosely infinite so it doesn't get stuck
                                     dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
-                                    // Snap back to position is handled by layout/style re-render? 
-                                    // Actually if we use drag="x", framer motion might keep the offset.
-                                    // We want it to be a "virtual" drag joystick.
-                                    // Adding dragElastic={0} and dragConstraints={{...}} with onDragEnd cleaning up?
-                                    // In Frame Motion, simplest "sticky handle" is to NOT let it move visually but capture drag delta.
-                                    // But user expects visual movement. 
-                                    // Let's rely on standard drag behavior but resetting position onDragEnd if needed? 
-                                    // Actually, if we just render it absolutely, React re-renders will snap it back if we don't save its position.
                                     style={{
                                         position: 'absolute',
-                                        left: handle.x !== undefined && typeof handle.x === 'number' && handle.x < 0 ? handle.x : undefined,
-                                        right: handle.x !== undefined && typeof handle.x !== 'number' ? 20 : (handle.pos.includes('r') ? -20 : undefined),
-                                        // Using simpler positioning style
-                                        ...(handle.pos.includes('l') ? { left: -20 } : { right: -20 }),
-                                        ...(handle.pos.includes('t') ? { top: -20 } : { bottom: -20 }),
-
                                         width: 40,
                                         height: 40,
                                         cursor: handle.cursor,
                                         zIndex: 50,
+                                        left: handle.pos.includes('l') ? -20 : undefined,
+                                        right: handle.pos.includes('r') ? -20 : undefined,
+                                        top: handle.pos.includes('t') ? -20 : undefined,
+                                        bottom: handle.pos.includes('b') ? -20 : undefined,
                                     }}
                                     className="flex items-center justify-center"
                                     whileHover={{ scale: 1.2 }}
