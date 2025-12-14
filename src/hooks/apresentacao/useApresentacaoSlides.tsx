@@ -35,7 +35,8 @@ export const useApresentacaoSlides = (
     origens: true,
     demanda: true,
   },
-  mediaSlides: MediaSlideData[] = []
+  mediaSlides: MediaSlideData[] = [],
+  onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void
 ) => {
   const slides = useMemo(() => {
     if (!dadosProcessados) {
@@ -85,7 +86,14 @@ export const useApresentacaoSlides = (
     mediaSlides.forEach((slideData, index) => {
       slidesConfig.push({
         key: `media-${slideData.id}`,
-        render: (visible) => <SlideMedia isVisible={visible} slideData={slideData} index={index} />
+        render: (visible) => (
+          <SlideMedia
+            isVisible={visible}
+            slideData={slideData}
+            index={index}
+            onUpdate={(updates) => onUpdateMediaSlide?.(slideData.id, updates)}
+          />
+        )
       });
     });
 

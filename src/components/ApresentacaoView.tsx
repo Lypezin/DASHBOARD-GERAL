@@ -44,6 +44,12 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas);
   const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
 
+  const handleUpdateMediaSlide = (id: string, updates: Partial<MediaSlideData>) => {
+    setMediaSlides(prev => prev.map(slide =>
+      slide.id === id ? { ...slide, ...updates } : slide
+    ));
+  };
+
   const slides = useApresentacaoSlides(
     dadosProcessados,
     dadosComparacao,
@@ -53,7 +59,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     periodoSemana2,
     pracaSelecionada,
     visibleSections,
-    mediaSlides
+    mediaSlides,
+    handleUpdateMediaSlide
   );
 
   useEffect(() => {
