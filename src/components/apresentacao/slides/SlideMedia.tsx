@@ -22,20 +22,22 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
     // Normalizing elements: if legacy data exists, convert to elements on the fly for rendering
     const elements = slideData.elements || [];
     if (elements.length === 0 && slideData.url) {
+        const legacyData = slideData as any;
         elements.push({
             id: 'legacy-img',
             type: 'image',
             content: slideData.url,
-            position: slideData.imagePosition || { x: 0, y: 0 },
-            scale: slideData.scale || 1
+            position: legacyData.imagePosition || { x: 0, y: 0 },
+            scale: legacyData.scale || 1
         });
     }
     if (elements.length <= 1 && slideData.text) { // Check <= 1 so we don't duplicate if we just added legacy img
+        const legacyData = slideData as any;
         elements.push({
             id: 'legacy-text',
             type: 'text',
             content: slideData.text,
-            position: slideData.textPositionCoords || { x: 0, y: 0 }
+            position: legacyData.textPositionCoords || { x: 0, y: 0 }
         });
     }
 
