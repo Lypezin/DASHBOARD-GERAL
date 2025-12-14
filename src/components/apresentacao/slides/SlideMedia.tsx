@@ -42,7 +42,7 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
     const handleUpdateElement = (elId: string, updates: any) => {
         if (!onUpdate) return;
 
-        let newElements = [...(slideData.elements || [])];
+        const newElements = [...(slideData.elements || [])];
 
         // Handle migration from legacy if needed during first interaction
         if (newElements.length === 0 && (slideData.url || slideData.text)) {
