@@ -51,28 +51,31 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                     style={{
                         x: slideData.imagePosition?.x || 0,
                         y: slideData.imagePosition?.y || 0,
+                        scale: slideData.scale || 1, // Apply scale here!
                         position: 'absolute',
                         top: '50%',
                         left: '50%',
-                        transform: 'translate(-50%, -50%)',
+                        transform: 'translate(-50%, -50%)', // This centers the element
                         cursor: canDrag ? 'grab' : 'default',
-                        touchAction: 'none'
+                        touchAction: 'none',
+                        transformOrigin: 'center center'
                     }}
-                    whileDrag={{ cursor: 'grabbing', scale: 1.02 }}
-                    className="flex items-center justify-center origin-center group"
+                    whileDrag={{ cursor: 'grabbing', scale: (slideData.scale || 1) * 1.02 }}
+                    className="flex items-center justify-center group"
                 >
-                    {/* Resize Handle */}
+                    {/* Resize Handle - Now inside scaled parent, will move with borders */}
                     {canDrag && (
                         <motion.div
                             drag
                             dragMomentum={false}
                             dragPropagation={false}
                             onDrag={(_, info) => {
-                                const sensitivity = 0.005;
+                                // Dividing delta by current scale to maintain consistent sensitivity
+                                const currentScale = slideData.scale || 1;
+                                const sensitivity = 0.005 / currentScale;
                                 const newScale = Math.max(0.1, Math.min(5.0, slideData.scale + info.delta.x * sensitivity));
                                 onUpdate({ scale: newScale });
                             }}
-                            // Reset position after drag so it stays at the corner
                             onDragEnd={() => { }}
                             style={{
                                 position: 'absolute',
@@ -82,24 +85,23 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                 height: 40,
                                 cursor: 'nwse-resize',
                                 zIndex: 50,
+                                // We need to inverse scale the handle so it stays constant size visualy?
+                                // Actually if parent scales, handle scales. This is usually desired for "zoom".
+                                // If we want handle to stay fixed size while parent scales, we'd need inverse scale.
+                                // For now let it scale, it's easier to grab.
                             }}
                             className="flex items-center justify-center"
-                            whileHover={{ scale: 1.1 }}
+                            whileHover={{ scale: 1.2 }}
                             whileTap={{ scale: 0.9 }}
                         >
-                            <div className="w-6 h-6 bg-blue-500 border-2 border-white rounded-full shadow-lg hover:bg-blue-600 transition-colors" />
+                            <div className="w-5 h-5 bg-blue-500 border-2 border-white rounded-full shadow-lg hover:bg-blue-600 transition-colors" />
                         </motion.div>
                     )}
 
-                    <div
-                        className="relative transition-transform duration-75 ease-out"
-                        style={{
-                            transform: `scale(${slideData.scale})`,
-                        }}
-                    >
+                    <div className="relative pointer-events-none select-none">
                         <img
                             src={slideData.url}
-                            className={`max-w-[85vw] max-h-[85vh] object-contain drop-shadow-2xl rounded-lg pointer-events-none select-none ${canDrag ? 'ring-2 ring-blue-500/0 group-hover:ring-blue-500/50 transition-all' : ''}`}
+                            className={`max-w-[85vw] max-h-[85vh] object-contain drop-shadow-2xl rounded-lg ${canDrag ? 'ring-2 ring-blue-500/0 group-hover:ring-blue-500/50 transition-all' : ''}`}
                             alt={`Anexo ${index + 1}`}
                             draggable={false}
                         />
@@ -130,7 +132,6 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                             cursor: canDrag ? 'grab' : 'default',
                             left: 0,
                             right: 0,
-                            // Use legacy positioning
                             ...(slideData.textPosition === 'top' ? { top: 0, paddingTop: '4rem' } :
                                 slideData.textPosition === 'center' ? { top: '50%', transform: 'translateY(-50%)' } :
                                     { bottom: 0, paddingBottom: '4rem' })
