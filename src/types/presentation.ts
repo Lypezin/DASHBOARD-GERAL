@@ -1,9 +1,21 @@
+export interface SlideElement {
+    id: string;
+    type: 'image' | 'text';
+    content: string; // URL for image, Text content for text
+    position: { x: number; y: number };
+    scale?: number; // For images
+    width?: number; // Optional constraint
+    style?: {
+        color?: string;
+        fontSize?: string;
+        bg?: string;
+    };
+}
+
 export interface MediaSlideData {
     id: string;
-    url: string;
-    scale: number; // 0.5 to 3.0
-    text: string;
-    textPosition: 'bottom' | 'top' | 'center';
-    imagePosition?: { x: number; y: number };
-    textPositionCoords?: { x: number; y: number };
+    elements: SlideElement[];
+    // Deprecated fields kept for temporary compatibility if needed, but we will migrate away
+    url?: string;
+    text?: string;
 }
