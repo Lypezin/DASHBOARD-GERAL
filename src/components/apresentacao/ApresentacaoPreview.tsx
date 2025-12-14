@@ -206,7 +206,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               onManageMedia={onManageMedia}
             />
 
-            <div className="flex-1 overflow-hidden relative bg-slate-100/50">
+            <div className="flex-1 overflow-hidden relative bg-slate-100/50 flex flex-col">
               <PresentationViewport
                 slides={orderedSlides}
                 currentSlide={currentSlide}
