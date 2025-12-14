@@ -26,9 +26,6 @@ export const MediaManagerEditor: React.FC<MediaManagerEditorProps> = ({
 
     return (
         <div className="flex flex-col h-full gap-6">
-            import {motion} from 'framer-motion';
-
-            // ... (inside component)
 
             {/* Preview Container */}
             <div className="flex-1 bg-black/90 rounded-lg overflow-hidden relative shadow-2xl border border-slate-700">
