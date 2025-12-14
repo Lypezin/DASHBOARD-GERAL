@@ -18,6 +18,7 @@ const SlideCapa: React.FC<SlideCapaProps> = ({
   periodoSemana1,
   periodoSemana2,
 }) => {
+  console.log('[SlideCapa] Rendering...', { isVisible });
   return (
     <SlideWrapper
       isVisible={isVisible}
