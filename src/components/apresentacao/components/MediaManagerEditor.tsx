@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Image as ImageIcon, Type, Maximize } from 'lucide-react';
 import { MediaSlideData } from '@/types/presentation';
+import { motion } from 'framer-motion';
 
 interface MediaManagerEditorProps {
     selectedSlide: MediaSlideData | undefined;
@@ -25,33 +26,93 @@ export const MediaManagerEditor: React.FC<MediaManagerEditorProps> = ({
 
     return (
         <div className="flex flex-col h-full gap-6">
+            import {motion} from 'framer-motion';
+
+            // ... (inside component)
+
             {/* Preview Container */}
-            <div className="flex-1 bg-black/90 rounded-lg overflow-hidden relative shadow-2xl border border-slate-700 flex items-center justify-center">
-                <div
-                    className="relative transition-transform duration-200 ease-out"
-                    style={{
-                        transform: `scale(${selectedSlide.scale})`,
-                        maxWidth: '90%',
-                        maxHeight: '90%'
-                    }}
-                >
-                    <img
-                        src={selectedSlide.url}
-                        alt="Preview"
-                        className="max-w-full max-h-full object-contain rounded"
-                    />
-                    {/* Text Overlay Preview */}
-                    {selectedSlide.text && (
-                        <div
-                            className={`absolute left-0 right-0 p-4 text-white text-center font-semibold text-shadow-sm pointer-events-none
-                                ${selectedSlide.textPosition === 'top' ? 'top-0 pt-8 bg-gradient-to-b from-black/80 to-transparent' :
-                                    selectedSlide.textPosition === 'center' ? 'top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-sm py-8' :
-                                        'bottom-0 pb-8 bg-gradient-to-t from-black/80 to-transparent'
+            <div className="flex-1 bg-black/90 rounded-lg overflow-hidden relative shadow-2xl border border-slate-700">
+                {/* We use a fixed reference frame for dragging validation */}
+                <div className="w-full h-full relative overflow-hidden">
+
+                    {/* Draggable Image */}
+                    <motion.div
+                        drag
+                        dragMomentum={false}
+                        onDragEnd={(_, info) => {
+                            const currentX = selectedSlide.imagePosition?.x || 0;
+                            const currentY = selectedSlide.imagePosition?.y || 0;
+                            onUpdate({
+                                imagePosition: {
+                                    x: currentX + info.offset.x,
+                                    y: currentY + info.offset.y
                                 }
-                            `}
+                            });
+                        }}
+                        style={{
+                            x: selectedSlide.imagePosition?.x || 0,
+                            y: selectedSlide.imagePosition?.y || 0,
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            cursor: 'grab'
+                        }}
+                        whileDrag={{ cursor: 'grabbing' }}
+                        className="flex items-center justify-center origin-center"
+                    >
+                        <div
+                            className="relative transition-transform duration-200 ease-out"
+                            style={{
+                                transform: `scale(${selectedSlide.scale})`,
+                                // Helper to prevent image from blowing up the container if scale is very large
+                                // but we want to allow scaling
+                            }}
                         >
-                            <span className="text-xl md:text-2xl drop-shadow-md">{selectedSlide.text}</span>
+                            <img
+                                src={selectedSlide.url}
+                                alt="Preview"
+                                className="max-w-[70vw] max-h-[70vh] object-contain rounded pointer-events-none select-none"
+                                draggable={false}
+                            />
                         </div>
+                    </motion.div>
+
+                    {/* Draggable Text Overlay */}
+                    {selectedSlide.text && (
+                        <motion.div
+                            drag
+                            dragMomentum={false}
+                            onDragEnd={(_, info) => {
+                                const currentX = selectedSlide.textPositionCoords?.x || 0;
+                                const currentY = selectedSlide.textPositionCoords?.y || 0;
+                                onUpdate({
+                                    textPositionCoords: {
+                                        x: currentX + info.offset.x,
+                                        y: currentY + info.offset.y
+                                    }
+                                });
+                            }}
+                            style={{
+                                x: selectedSlide.textPositionCoords?.x || 0,
+                                y: selectedSlide.textPositionCoords?.y || 0,
+                                position: 'absolute',
+                                cursor: 'grab',
+                                left: 0,
+                                right: 0,
+                                zIndex: 10,
+                                // Legacy positioning support
+                                ...(selectedSlide.textPosition === 'top' ? { top: 0, paddingTop: '2rem' } :
+                                    selectedSlide.textPosition === 'center' ? { top: '50%', transform: 'translateY(-50%)' } :
+                                        { bottom: 0, paddingBottom: '2rem' })
+                            }}
+                            whileDrag={{ cursor: 'grabbing' }}
+                            className="text-center pointer-events-auto"
+                        >
+                            <span className="text-xl md:text-2xl text-white font-semibold drop-shadow-md select-none">
+                                {selectedSlide.text}
+                            </span>
+                        </motion.div>
                     )}
                 </div>
             </div>
