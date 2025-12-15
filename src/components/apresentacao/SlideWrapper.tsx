@@ -1,4 +1,5 @@
 import React, { CSSProperties } from 'react';
+import { useInView } from 'react-intersection-observer';
 import { slideTransitionStyle, slideDimensionsStyle } from './constants';
 import { usePresentationContext } from '@/contexts/PresentationContext';
 
@@ -18,14 +19,21 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   const { isWebMode } = usePresentationContext();
 
   // WebMode: slides flow naturally in a scrollable container
+  const { ref, inView } = useInView({
+    triggerOnce: false,
+    rootMargin: '2000px 0px 2000px 0px', // Large buffer to pre-render slides well before they appear
+    skip: !isWebMode,
+  });
+
   if (isWebMode) {
     return (
       <div
+        ref={ref}
         className={`slide bg-white text-slate-900 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-forwards ${className}`.trim()}
         style={{
           position: 'relative',
           width: '100%',
-          minHeight: '800px',
+          minHeight: '800px', // Critical for scroll stability
           overflow: 'visible',
           marginBottom: '3rem',
           boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
@@ -37,7 +45,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
           ...style,
         }}
       >
-        {children}
+        {inView ? children : <div style={{ height: '100%' }} />}
       </div>
     );
   }
