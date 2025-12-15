@@ -41,7 +41,7 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
 
     return (
         <div className="flex flex-col items-center gap-2">
-            <span className={`text-sm font-bold px-4 py-1.5 rounded-full ${isSecond ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700'}`}>
+            <span className={`text-sm font-bold px-4 py-1.5 rounded-full ${isSecond ? 'bg-blue-600 text-white' : 'bg-sky-50 text-sky-700 border border-sky-100'}`}>
                 {label}
             </span>
 
@@ -53,7 +53,7 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                         cx="50"
                         cy="50"
                         r="34"
-                        stroke={isSecond ? "#2563eb" : "#60a5fa"}
+                        stroke={isSecond ? "#2563eb" : "#38bdf8"}
                         strokeWidth="7"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(animatedAderencia, 40)}
@@ -61,7 +61,7 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                         className="transition-all duration-1000 ease-out"
                     />
                 </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center pt-1">
                     <span className={`text-slate-900 font-black ${fontSizeClass} leading-none tracking-tight`}>
                         {aderencia.toFixed(1)}%
                     </span>

@@ -30,7 +30,7 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = 
     return (
         <div className="flex flex-col items-center gap-5">
             {/* Week label */}
-            <div className={`rounded-full px-8 py-3 shadow-md ${isHighlighted ? 'bg-blue-600 text-white' : 'bg-slate-100 border border-slate-200 text-slate-800'}`}>
+            <div className={`rounded-full px-8 py-3 shadow-md ${isHighlighted ? 'bg-blue-600 text-white' : 'bg-sky-50 border border-sky-200 text-sky-800'}`}>
                 <h3 className="text-2xl font-bold uppercase tracking-wide text-center">
                     Semana {semana.numeroSemana}
                 </h3>
@@ -57,7 +57,7 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = 
                         cx="90"
                         cy="90"
                         r="80"
-                        stroke={isHighlighted ? "#2563eb" : "#64748b"}
+                        stroke={isHighlighted ? "#2563eb" : "#38bdf8"}
                         strokeWidth="14"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(animatedAderencia)}
