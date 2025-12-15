@@ -8,6 +8,7 @@ import { DashboardViewsRenderer } from '@/components/dashboard/DashboardViewsRen
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState';
 import { DashboardErrorState } from '@/components/dashboard/DashboardErrorState';
 import { DashboardAuthLoading } from '@/components/dashboard/DashboardAuthLoading';
+import { OnlineUsersSidebar } from '@/components/OnlineUsersSidebar';
 import type { AderenciaSemanal } from '@/types';
 
 export default function DashboardPage() {
@@ -126,6 +127,7 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+      <OnlineUsersSidebar currentUser={currentUser} />
     </div>
   );
 }
