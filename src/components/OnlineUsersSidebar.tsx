@@ -96,10 +96,62 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
     return (
         <div
             className={cn(
-                "fixed right-0 top-20 z-40 transition-all duration-300 ease-in-out bg-white shadow-lg border-l border-slate-200 h-[calc(100vh-6rem)] rounded-l-xl flex flex-col",
-                isOpen ? "w-80" : "w-12"
+                "fixed right-0 top-20 z-40 h-[calc(100vh-6rem)] transition-transform duration-300 ease-in-out bg-white shadow-lg border-l border-slate-200 rounded-l-xl flex flex-col w-80",
+                isOpen ? "translate-x-0" : "translate-x-full"
             )}
         >
+            {/* Chat Window (Popup to the left of sidebar) */}
+            {activeChatUser && (
+                <div className="absolute top-0 -left-64 w-60 h-80 bg-white shadow-xl border border-slate-200 rounded-lg flex flex-col z-50 overflow-hidden animate-in slide-in-from-right-5">
+                    {/* Chat Header */}
+                    <div className="p-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="relative">
+                                <span className={cn("absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white", activeChatUser.is_idle ? "bg-amber-400" : "bg-emerald-500")} />
+                                {activeChatUser.avatar_url ? (
+                                    <img src={activeChatUser.avatar_url} className="w-6 h-6 rounded-full" />
+                                ) : <UserIcon className="w-6 h-6 p-1 bg-slate-200 rounded-full" />}
+                            </div>
+                            <span className="text-xs font-semibold truncate max-w-[100px]">{activeChatUser.name?.split(' ')[0]}</span>
+                        </div>
+                        <button onClick={() => setActiveChatUser(null)} className="text-slate-400 hover:text-slate-600">×</button>
+                    </div>
+
+                    {/* Messages */}
+                    <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-slate-50/30">
+                        {activeMessages.length === 0 && (
+                            <p className="text-[10px] text-center text-slate-400 mt-4">Envie um "Olá" 👋</p>
+                        )}
+                        {activeMessages.map((msg, i) => (
+                            <div key={i} className={cn("flex flex-col max-w-[85%]", msg.from === currentUser.id ? "ml-auto items-end" : "mr-auto items-start")}>
+                                <div className={cn("px-2 py-1 rounded-lg text-xs break-words",
+                                    msg.from === currentUser.id ? "bg-blue-500 text-white rounded-br-none" : "bg-white border border-slate-200 text-slate-700 rounded-bl-none"
+                                )}>
+                                    {msg.content}
+                                </div>
+                                <span className="text-[9px] text-slate-300 mt-0.5">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                        ))}
+                        <div ref={chatEndRef} />
+                    </div>
+
+                    {/* Input */}
+                    <div className="p-2 border-t border-slate-100 bg-white">
+                        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-1">
+                            <input
+                                className="flex-1 text-xs border border-slate-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400"
+                                placeholder="Digite..."
+                                value={chatInput}
+                                onChange={e => setChatInput(e.target.value)}
+                            />
+                            <button type="submit" className="bg-blue-500 text-white rounded p-1 hover:bg-blue-600">
+                                <ChevronRight size={14} />
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Notifications (Toast) */}
             <div className="absolute top-4 left-0 -translate-x-full pr-4 flex flex-col gap-2 pointer-events-none">
                 {notifications.map(n => (
@@ -112,9 +164,18 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
             {/* Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="absolute -left-3 top-4 bg-white border border-slate-200 rounded-full p-1 shadow-sm hover:bg-slate-50 transition-colors z-50"
+                className="absolute -left-10 top-4 bg-white border border-slate-200 rounded-l-lg p-2 shadow-sm hover:bg-slate-50 transition-colors z-50 flex items-center justify-center w-10 h-10"
+                title={isOpen ? "Fechar" : "Ver Usuários Online"}
             >
-                {isOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                {isOpen ? <ChevronRight size={16} /> : (
+                    <div className="relative">
+                        <Users size={18} className="text-blue-600" />
+                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 text-[6px] text-white items-center justify-center"></span>
+                        </span>
+                    </div>
+                )}
             </button>
 
             {/* Header & Search */}
