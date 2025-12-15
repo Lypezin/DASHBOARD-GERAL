@@ -26,7 +26,7 @@ const MetricCard: React.FC<{
   value: string;
   variant: 'week1' | 'week2';
 }> = ({ label, value, variant }) => (
-  <div className={`rounded-xl px-5 py-4 flex flex-col items-center shadow-sm ${variant === 'week2'
+  <div className={`rounded-xl px-5 py-4 flex flex-col items-center justify-center h-full shadow-sm ${variant === 'week2'
     ? 'bg-gradient-to-br from-blue-50 to-white border border-blue-200'
     : 'bg-gradient-to-br from-slate-50 to-white border border-slate-200'
     }`}>
@@ -47,7 +47,7 @@ const VariationCard: React.FC<{
   percentual: string;
   percentualPositiva: boolean;
 }> = ({ label, value, positive, percentual, percentualPositiva }) => (
-  <div className={`rounded-xl px-5 py-4 flex flex-col items-center shadow-md ${positive
+  <div className={`rounded-xl px-5 py-4 flex flex-col items-center justify-center h-full shadow-md ${positive
     ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-white border border-emerald-300'
     : 'bg-gradient-to-br from-rose-50 via-rose-100 to-white border border-rose-300'
     }`}>
@@ -102,59 +102,43 @@ const SlideDemandaRejeicoes: React.FC<SlideDemandaRejeicoesProps> = ({
         subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
       />
 
-      {/* 3 Column Layout */}
-      <div className="grid grid-cols-3 gap-6 flex-1">
-        {/* Week 1 Column */}
-        <div className="flex flex-col gap-3">
-          <h3 className="text-xl font-bold text-center mb-1 px-5 py-2.5 bg-sky-50 rounded-xl text-sky-800 border border-sky-100 uppercase tracking-wide">
+      <div className="flex flex-col gap-4 flex-1">
+        {/* Headers Row */}
+        <div className="grid grid-cols-3 gap-6">
+          <h3 className="text-xl font-bold text-center px-5 py-2.5 bg-sky-50 rounded-xl text-sky-800 border border-sky-100 uppercase tracking-wide">
             SEMANA {numeroSemana1}
           </h3>
-          <div className="space-y-3 flex-1">
-            {itens.map((item) => (
+          <h3 className="text-xl font-bold text-center px-5 py-2.5 bg-slate-50 rounded-xl text-slate-500 border border-slate-100 uppercase tracking-wide">
+            VARIAÇÕES
+          </h3>
+          <h3 className="text-xl font-bold text-center px-5 py-2.5 bg-blue-600 rounded-xl text-white shadow-md uppercase tracking-wide border border-blue-700">
+            SEMANA {numeroSemana2}
+          </h3>
+        </div>
+
+        {/* Content Rows */}
+        <div className="flex flex-col gap-3 flex-1 justify-center">
+          {itens.map((item) => (
+            <div key={item.label} className="grid grid-cols-3 gap-6">
               <MetricCard
-                key={`sem1-${item.label}`}
                 label={item.label}
                 value={item.semana1Valor}
                 variant="week1"
               />
-            ))}
-          </div>
-        </div>
-
-        {/* Variations Column */}
-        <div className="flex flex-col gap-3">
-          <h3 className="text-xl font-bold text-center mb-1 px-5 py-2.5 bg-slate-50 rounded-xl text-slate-500 border border-slate-100 uppercase tracking-wide">
-            VARIAÇÕES
-          </h3>
-          <div className="space-y-3 flex-1">
-            {itens.map((item) => (
               <VariationCard
-                key={`var-${item.label}`}
                 label={item.label}
                 value={item.variacaoValor}
                 positive={item.variacaoPositiva}
                 percentual={item.variacaoPercentual}
                 percentualPositiva={item.variacaoPercentualPositiva}
               />
-            ))}
-          </div>
-        </div>
-
-        {/* Week 2 Column */}
-        <div className="flex flex-col gap-3">
-          <h3 className="text-xl font-bold text-center mb-1 px-5 py-2.5 bg-blue-600 rounded-xl text-white shadow-md uppercase tracking-wide border border-blue-700">
-            SEMANA {numeroSemana2}
-          </h3>
-          <div className="space-y-3 flex-1">
-            {itens.map((item) => (
               <MetricCard
-                key={`sem2-${item.label}`}
                 label={item.label}
                 value={item.semana2Valor}
                 variant="week2"
               />
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </SlideWrapper>
