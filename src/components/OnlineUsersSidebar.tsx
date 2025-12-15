@@ -21,6 +21,38 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
     const [activeChatUser, setActiveChatUser] = useState<OnlineUser | null>(null);
     const [chatInput, setChatInput] = useState('');
     const chatEndRef = useRef<HTMLDivElement>(null);
+    const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+    const prevMessagesLengthRef = useRef(messages.length);
+
+    // Track unread messages
+    useEffect(() => {
+        if (messages.length > prevMessagesLengthRef.current) {
+            const newMsgs = messages.slice(prevMessagesLengthRef.current);
+            newMsgs.forEach(msg => {
+                // Se a mensagem não fui eu que mandei E (o chat não está aberto OU está aberto com outra pessoa)
+                if (msg.from !== currentUser?.id && (activeChatUser?.id !== msg.from)) {
+                    setUnreadCounts(prev => ({
+                        ...prev,
+                        [msg.from]: (prev[msg.from] || 0) + 1
+                    }));
+
+                    // Opcional: Tocar um som
+                }
+            });
+        }
+        prevMessagesLengthRef.current = messages.length;
+    }, [messages, activeChatUser, currentUser?.id]);
+
+    // Clear unread when opening chat
+    useEffect(() => {
+        if (activeChatUser) {
+            setUnreadCounts(prev => {
+                const newCounts = { ...prev };
+                delete newCounts[activeChatUser.id];
+                return newCounts;
+            });
+        }
+    }, [activeChatUser]);
 
     // Scroll to bottom of chat
     useEffect(() => {
@@ -83,6 +115,8 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
         const minutes = diff % 60;
         return `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}`;
     };
+
+    const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
 
     // Forçar re-render a cada minuto para atualizar os contadores de tempo
     const [_, setTick] = useState(0);
@@ -170,10 +204,19 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                 {isOpen ? <ChevronRight size={16} /> : (
                     <div className="relative">
                         <Users size={18} className="text-blue-600" />
-                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 text-[6px] text-white items-center justify-center"></span>
-                        </span>
+                        {/* Red Dot (Total Unread) */}
+                        {totalUnread > 0 && (
+                            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold ring-2 ring-white">
+                                {totalUnread > 9 ? '9+' : totalUnread}
+                            </span>
+                        )}
+                        {/* Pulse dot if no unread but open? No. Original pulse was here */}
+                        {totalUnread === 0 && (
+                            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 text-[6px] text-white items-center justify-center"></span>
+                            </span>
+                        )}
                     </div>
                 )}
             </button>
@@ -275,6 +318,13 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                                             )}
                                             title={user.is_idle ? "Ausente (Inativo)" : "Online"}
                                         />
+
+                                        {/* Unread Badge (Individual) */}
+                                        {unreadCounts[user.id] > 0 && (
+                                            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold ring-2 ring-white animate-bounce">
+                                                {unreadCounts[user.id] > 9 ? '9+' : unreadCounts[user.id]}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Info Area (Visible only when open) */}
