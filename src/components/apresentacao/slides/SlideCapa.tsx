@@ -48,7 +48,7 @@ const SlideCapa: React.FC<SlideCapaProps> = ({
 
         {/* Praça badge */}
         {pracaSelecionada && (
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-10 py-4 mb-10">
+          <div className="bg-white/20 border border-white/20 rounded-2xl px-10 py-4 mb-10">
             <p className="text-white/70 text-lg font-medium uppercase tracking-wider mb-1 text-center">
               Praça
             </p>
@@ -61,7 +61,7 @@ const SlideCapa: React.FC<SlideCapaProps> = ({
         {/* Week comparison */}
         <div className="flex items-center gap-8">
           {/* Week 1 */}
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-8 py-6 text-center min-w-[220px]">
+          <div className="bg-white/20 border border-white/20 rounded-2xl px-8 py-6 text-center min-w-[220px]">
             <p className="text-white/70 text-sm font-medium uppercase tracking-wider mb-2">
               Semana
             </p>
@@ -79,7 +79,7 @@ const SlideCapa: React.FC<SlideCapaProps> = ({
           </div>
 
           {/* Week 2 */}
-          <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl px-8 py-6 text-center min-w-[220px] shadow-lg">
+          <div className="bg-white/30 border border-white/30 rounded-2xl px-8 py-6 text-center min-w-[220px] shadow-lg">
             <p className="text-white/80 text-sm font-medium uppercase tracking-wider mb-2">
               Semana
             </p>

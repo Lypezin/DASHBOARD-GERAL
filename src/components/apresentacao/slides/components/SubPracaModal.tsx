@@ -17,7 +17,7 @@ export const SubPracaModal: React.FC<SubPracaModalProps> = ({
     onClose
 }) => {
     return (
-        <div className="fixed inset-0 z-[100010] bg-black/60 backdrop-blur-sm flex items-center justify-center p-8 animate-fade-in" onClick={onClose}>
+        <div className="fixed inset-0 z-[100010] bg-black/80 flex items-center justify-center p-8 animate-fade-in" onClick={onClose}>
             <div
                 className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-scale-in"
                 onClick={e => e.stopPropagation()}
