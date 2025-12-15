@@ -220,6 +220,24 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
         update();
     }, [currentTab, currentUser?.role, userId, isIdle, customStatus]); // Atualiza quando qualquer um mudar
 
+    const sendMessage = async (toUser: string, content: string) => {
+        if (!channelRef.current || !userId) return;
+        const msg = {
+            from: userId,
+            to: toUser,
+            content,
+            timestamp: new Date().toISOString()
+        };
+        // Optimistic update
+        setMessages(prev => [...prev, msg].slice(-50));
+
+        await channelRef.current.send({
+            type: 'broadcast',
+            event: 'chat',
+            payload: msg
+        });
+    };
+
     const clearJoinedUsers = () => setJoinedUsers([]);
 
     // 4. Final Cleanup
