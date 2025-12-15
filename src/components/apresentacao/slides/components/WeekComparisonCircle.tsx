@@ -34,10 +34,10 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
     const defaultSize = size === 'large' ? 110 : 90;
     const dimension = circleSizePx || defaultSize;
 
-    // Font size logic to prevent overflow on 100%
+    // Font size logic to prevent overflow on 100% (REDUCED)
     const fontSizeClass = size === 'large'
-        ? (aderencia >= 100 ? 'text-lg' : 'text-xl')
-        : (aderencia >= 100 ? 'text-base' : 'text-lg');
+        ? (aderencia >= 100 ? 'text-base' : 'text-lg')
+        : (aderencia >= 100 ? 'text-sm' : 'text-base');
 
     return (
         <div className="flex flex-col items-center gap-2">

@@ -30,6 +30,14 @@ export const processarTurnos = (dadosBasicos: DadosBasicos) => {
     return todosTurnos.map((nomeTurno) => {
         const turnoSemana1 = turnosSemana1Map.get(nomeTurno) || ({} as any);
         const turnoSemana2 = turnosSemana2Map.get(nomeTurno) || ({} as any);
+        const horasPlanejadasBase = turnoSemana1?.segundos_planejados
+            ? turnoSemana1.segundos_planejados / 3600
+            : turnoSemana2?.segundos_planejados
+                ? turnoSemana2.segundos_planejados / 3600
+                : converterHorasParaDecimal(
+                    turnoSemana1?.horas_a_entregar || turnoSemana2?.horas_a_entregar || '0'
+                );
+
         const horasSem1 = turnoSemana1?.segundos_realizados
             ? turnoSemana1.segundos_realizados / 3600
             : converterHorasParaDecimal(turnoSemana1?.horas_entregues || '0');
@@ -42,10 +50,11 @@ export const processarTurnos = (dadosBasicos: DadosBasicos) => {
 
         const diffHoras = calcularDiferenca(horasSem1, horasSem2);
         const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
-        const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
+        const diffAderenciaPercent = calcularDiferenca(aderenciaSem1, aderenciaSem2); // Fixed: Absolute difference (p.p.)
 
         return {
             nome: nomeTurno.toUpperCase(),
+            horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()), // Added field
             semana1: {
                 aderencia: aderenciaSem1,
                 horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),

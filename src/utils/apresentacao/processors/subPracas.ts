@@ -80,7 +80,7 @@ export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
 
         const diffHoras = calcularDiferenca(horasSem1, horasSem2);
         const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
-        const diffAderenciaPercent = calcularDiferencaPercentual(aderenciaSem1, aderenciaSem2);
+        const diffAderenciaPercent = calcularDiferenca(aderenciaSem1, aderenciaSem2); // Fixed: Absolute diff (p.p.)
 
         return {
             nome: displayName,
