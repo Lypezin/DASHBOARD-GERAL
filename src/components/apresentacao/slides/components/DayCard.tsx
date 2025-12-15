@@ -42,13 +42,13 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
             {/* Progress circle */}
             <div className={`relative w-[70px] h-[70px] animate-scale-in ${isActive ? 'animate-pulse-scale delay-500' : ''}`}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="50" cy="50" r="36" stroke="#e2e8f0" strokeWidth="8" fill="none" />
+                    <circle cx="50" cy="50" r="34" stroke="#e2e8f0" strokeWidth="7" fill="none" />
                     <circle
                         cx="50"
                         cy="50"
-                        r="36"
+                        r="34"
                         stroke={isSecondWeek ? "#2563eb" : "#38bdf8"}
-                        strokeWidth="8"
+                        strokeWidth="7"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(animatedAderencia, 40)}
                         strokeLinecap="round"
