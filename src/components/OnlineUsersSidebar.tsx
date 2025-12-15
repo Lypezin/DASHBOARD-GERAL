@@ -204,6 +204,11 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                 {isOpen ? <ChevronRight size={16} /> : (
                     <div className="relative">
                         <Users size={18} className="text-blue-600" />
+
+                        {/* Global Count Badge */}
+                        <span className="absolute -top-3 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] text-white font-bold ring-2 ring-white z-10">
+                            {onlineUsers.length}
+                        </span>
                         {/* Red Dot (Total Unread) */}
                         {totalUnread > 0 && (
                             <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold ring-2 ring-white">
@@ -339,10 +344,11 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                                                     {user.id !== currentUser.id && (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setActiveChatUser(user); setIsOpen(true); }}
-                                                            className="p-1 hover:bg-slate-100 rounded-full text-slate-300 hover:text-blue-500 transition-colors"
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md transition-colors text-xs font-medium"
                                                             title="Enviar mensagem"
                                                         >
                                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+                                                            Chat
                                                         </button>
                                                     )}
 
