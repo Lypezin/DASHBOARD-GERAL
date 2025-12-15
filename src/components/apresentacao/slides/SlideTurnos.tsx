@@ -98,7 +98,7 @@ const WeekCircle: React.FC<{
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center pt-0.5">
           <span className={`text-slate-900 font-black ${fontSize} leading-none tracking-tight`}>
-            {semana.aderencia.toFixed(1)}%
+            {semana.aderencia.toFixed(0)}%
           </span>
         </div>
       </div>

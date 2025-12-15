@@ -63,7 +63,7 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center pt-1">
                     <span className={`text-slate-900 font-black ${fontSizeClass} leading-none tracking-tight`}>
-                        {aderencia.toFixed(1)}%
+                        {aderencia.toFixed(0)}%
                     </span>
                 </div>
             </div>
