@@ -198,7 +198,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
             {/* Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="absolute -left-10 top-4 bg-white border border-slate-200 rounded-l-lg p-2 shadow-sm hover:bg-slate-50 transition-colors z-50 flex items-center justify-center w-10 h-10"
+                className="absolute -left-10 top-1/2 -translate-y-1/2 bg-white border border-slate-200 rounded-l-lg p-2 shadow-sm hover:bg-slate-50 transition-colors z-50 flex items-center justify-center w-10 h-10"
                 title={isOpen ? "Fechar" : "Ver Usuários Online"}
             >
                 {isOpen ? <ChevronRight size={16} /> : (
@@ -206,13 +206,13 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                         <Users size={18} className="text-blue-600" />
                         {/* Red Dot (Total Unread) */}
                         {totalUnread > 0 && (
-                            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold ring-2 ring-white">
+                            <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold ring-2 ring-white">
                                 {totalUnread > 9 ? '9+' : totalUnread}
                             </span>
                         )}
                         {/* Pulse dot if no unread but open? No. Original pulse was here */}
                         {totalUnread === 0 && (
-                            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                            <span className="absolute -bottom-1 -right-1 flex h-2.5 w-2.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 text-[6px] text-white items-center justify-center"></span>
                             </span>
