@@ -6,6 +6,7 @@ export interface OnlineUser {
     id: string;
     email: string | null;
     name: string | null;
+    avatar_url: string | null;
     online_at: string;
     role?: string;
 }
@@ -30,7 +31,8 @@ export function useOnlineUsers(currentUser: CurrentUser | null) {
             const myPresence: OnlineUser = {
                 id: user.id,
                 email: user.email ?? null,
-                name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
+                name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
+                avatar_url: user.user_metadata?.avatar_url || null,
                 role: currentUser.role,
                 online_at: new Date().toISOString(),
             };

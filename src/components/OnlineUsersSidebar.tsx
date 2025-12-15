@@ -72,9 +72,22 @@ export function OnlineUsersSidebar({ currentUser }: OnlineUsersSidebarProps) {
                             className="group flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
                         >
                             <div className="relative flex-shrink-0">
-                                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                    <User className="w-4 h-4" />
-                                </div>
+                                {user.avatar_url ? (
+                                    <img
+                                        src={user.avatar_url}
+                                        alt={user.name || 'User'}
+                                        className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                                        onError={(e) => {
+                                            // Fallback em caso de erro no carregamento da imagem
+                                            e.currentTarget.style.display = 'none';
+                                            e.currentTarget.parentElement?.classList.add('fallback-icon');
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                        <User className="w-4 h-4" />
+                                    </div>
+                                )}
                                 <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-slate-900 bg-emerald-500" />
                             </div>
 
