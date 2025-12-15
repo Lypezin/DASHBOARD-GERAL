@@ -62,7 +62,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
 
     return (
         <>
-            <div className="flex-1 min-w-[120px] max-w-[200px]">
+            <div className="flex-1 min-w-[120px]">
                 <FiltroSelect
                     label="Ano"
                     value={filters.ano !== null ? String(filters.ano) : ''}
@@ -71,7 +71,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                     onChange={(value) => handleChange('ano', value)}
                 />
             </div>
-            <div className="flex-1 min-w-[150px] max-w-[250px]">
+            <div className="flex-1 min-w-[120px]">
                 <FiltroSelect
                     label="Semana"
                     value={filters.semana !== null ? String(filters.semana) : ''}

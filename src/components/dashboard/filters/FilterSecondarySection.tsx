@@ -26,7 +26,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
 }) => {
     return (
         <>
-            <div className="flex-1 min-w-[150px] max-w-[250px]">
+            <div className="flex-1 min-w-[120px]">
                 <FiltroSelect
                     label="Praça"
                     value={filters.praca ?? ''}
@@ -36,7 +36,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                     disabled={shouldDisablePracaFilter}
                 />
             </div>
-            <div className="flex-1 min-w-[150px] max-w-[250px]">
+            <div className="flex-1 min-w-[120px]">
                 <FiltroMultiSelect
                     label="Sub praça"
                     selected={filters.subPracas || []}
@@ -45,7 +45,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                     onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPracas: values }))}
                 />
             </div>
-            <div className="flex-1 min-w-[150px] max-w-[250px]">
+            <div className="flex-1 min-w-[120px]">
                 <FiltroMultiSelect
                     label="Origem"
                     selected={filters.origens || []}
@@ -54,7 +54,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                     onSelectionChange={(values) => setFilters(prev => ({ ...prev, origens: values }))}
                 />
             </div>
-            <div className="flex-1 min-w-[150px] max-w-[250px]">
+            <div className="flex-1 min-w-[120px]">
                 <FiltroMultiSelect
                     label="Turno"
                     selected={filters.turnos || []}
