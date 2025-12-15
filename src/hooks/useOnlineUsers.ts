@@ -149,11 +149,39 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
         };
     }, []);
 
+    // Helper: Fetch full presence data (reusable)
+    const getPresenceData = async (user: any) => {
+        if (!user) return null;
+
+        let avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
+        try {
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('avatar_url')
+                .eq('id', user.id)
+                .single();
+            if (profile?.avatar_url) avatarUrl = profile.avatar_url;
+        } catch { }
+
+        return {
+            id: user.id,
+            email: user.email ?? null,
+            name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
+            avatar_url: avatarUrl,
+            role: currentUser?.role,
+            online_at: sessionStartRef.current,
+            current_tab: currentTab,
+            device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            is_idle: isIdle,
+            custom_status: customStatus
+        } as OnlineUser;
+    };
+
     // 4. Presence Logic (Online Users)
     useEffect(() => {
         if (!currentUser || !userId) return;
 
-        // Cleanup previous channel if exists to avoid duplicates when props change
+        // Cleanup previous channel if exists
         if (channelRef.current) {
             supabase.removeChannel(channelRef.current);
         }
@@ -167,34 +195,6 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
         });
 
         channelRef.current = channel;
-
-        const getPresenceData = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return null;
-
-            let avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
-            try {
-                const { data: profile } = await supabase
-                    .from('user_profiles')
-                    .select('avatar_url')
-                    .eq('id', user.id)
-                    .single();
-                if (profile?.avatar_url) avatarUrl = profile.avatar_url;
-            } catch { }
-
-            return {
-                id: user.id,
-                email: user.email ?? null,
-                name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
-                avatar_url: avatarUrl,
-                role: currentUser.role,
-                online_at: sessionStartRef.current,
-                current_tab: currentTab,
-                device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-                is_idle: isIdle,
-                custom_status: customStatus
-            } as OnlineUser;
-        };
 
         channel
             .on('presence', { event: 'sync' }, () => {
@@ -217,7 +217,8 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
-                    const p = await getPresenceData();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    const p = await getPresenceData(user);
                     if (p) await channel.track(p);
                 }
             });
@@ -225,36 +226,19 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
         return () => {
             if (channelRef.current) supabase.removeChannel(channelRef.current);
         };
-    }, [userId, currentUser?.organization_id]); // Re-connect logic 
+    }, [userId, currentUser?.organization_id]);
 
     // 5. Update Presence on State Change
     useEffect(() => {
         if (!channelRef.current || !userId) return;
 
         const update = async () => {
-            // We can just re-track with latest data
-            // Reuse getPresenceData logic or simplified version
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            const p = await getPresenceData(user);
 
-            let avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
-            // Optimazation: Don't re-fetch profile every time, assume avatar doesn't change often or use prev
-
-            const presence = {
-                id: userId,
-                email: user.email,
-                name: user.user_metadata?.full_name || user.user_metadata?.name,
-                avatar_url: avatarUrl,
-                role: currentUser?.role,
-                online_at: sessionStartRef.current,
-                current_tab: currentTab,
-                device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-                is_idle: isIdle,
-                custom_status: customStatus
-            };
             const channel = channelRef.current;
-            if (channel) {
-                await channel.track(presence);
+            if (channel && p) {
+                await channel.track(p);
             }
         };
         update();
