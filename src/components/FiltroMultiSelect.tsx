@@ -53,10 +53,17 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
           ref={buttonRef}
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
-          className="w-full text-left appearance-none rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-blue-400 hover:shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full text-left appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-8 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-blue-400 hover:shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {selected.length > 0 ? `${selected.length} selecionado(s)` : placeholder}
+          <span className="block truncate">
+            {selected.length > 0 ? `${selected.length} selecionado(s)` : placeholder}
+          </span>
         </button>
+        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+          <svg className="h-4 w-4 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </div>
 
       {isOpen && !disabled && options.length > 0 && (
