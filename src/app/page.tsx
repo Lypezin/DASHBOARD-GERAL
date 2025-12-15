@@ -127,7 +127,7 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-      <OnlineUsersSidebar currentUser={currentUser} />
+      <OnlineUsersSidebar currentUser={currentUser} currentTab={activeTab} />
     </div>
   );
 }

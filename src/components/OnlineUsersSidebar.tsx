@@ -6,11 +6,12 @@ import { cn } from '@/lib/utils'; // Assuming cn utility exists, usually common 
 
 interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;
+    currentTab: string;
 }
 
-export function OnlineUsersSidebar({ currentUser }: OnlineUsersSidebarProps) {
+export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSidebarProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const onlineUsers = useOnlineUsers(currentUser);
+    const onlineUsers = useOnlineUsers(currentUser, currentTab);
 
     // Se não estiver logado, não mostra nada
     if (!currentUser) return null;
@@ -88,6 +89,7 @@ export function OnlineUsersSidebar({ currentUser }: OnlineUsersSidebarProps) {
                                         <User className="w-4 h-4" />
                                     </div>
                                 )}
+
                                 <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-slate-900 bg-emerald-500" />
                             </div>
 
@@ -95,15 +97,22 @@ export function OnlineUsersSidebar({ currentUser }: OnlineUsersSidebarProps) {
                                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
                                     {user.name}
                                 </p>
-                                <div className="flex items-center gap-1.5">
-                                    {user.role && (
-                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wide border border-slate-200 dark:border-slate-700">
-                                            {user.role}
+                                <div className="flex flex-col gap-0.5">
+                                    <div className="flex items-center gap-1.5">
+                                        {user.role && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wide border border-slate-200 dark:border-slate-700">
+                                                {user.role}
+                                            </span>
+                                        )}
+                                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate flex items-center gap-1">
+                                            Online
                                         </span>
+                                    </div>
+                                    {user.current_tab && (
+                                        <p className="text-[10px] text-blue-500 dark:text-blue-400 truncate">
+                                            Em: {user.current_tab.charAt(0).toUpperCase() + user.current_tab.slice(1)}
+                                        </p>
                                     )}
-                                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate flex items-center gap-1">
-                                        Online
-                                    </span>
                                 </div>
                             </div>
                         </div>
