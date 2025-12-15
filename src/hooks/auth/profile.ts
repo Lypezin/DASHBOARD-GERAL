@@ -10,9 +10,11 @@ export async function fetchAndValidateProfile(
     router: any,
     requireApproval: boolean,
     requiredRole: 'admin' | 'marketing' | 'user' | undefined,
-    fetchUserProfile: boolean
+    fetchUserProfile: boolean,
+    userId: string // Added userId param
 ): Promise<CurrentUser | null> {
     try {
+        // ... (lines 17-74 are unchanged)
 
         const { data: profile, error: profileError } = await safeRpc<{
             is_approved: boolean;
@@ -25,11 +27,8 @@ export async function fetchAndValidateProfile(
             validateParams: false
         });
 
-
-
         if (profileError) {
-            // Erro ao buscar perfil - fazer logout e redirecionar
-
+            // ... error handling
             if (IS_DEV) {
                 safeLog.warn('[useAuthGuard] Erro ao buscar perfil, fazendo logout:', profileError);
             }
@@ -39,15 +38,12 @@ export async function fetchAndValidateProfile(
 
         // Verificar aprovação
         if (requireApproval && !profile?.is_approved) {
-
             if (IS_DEV) {
                 safeLog.warn('[useAuthGuard] Usuário não aprovado, fazendo logout');
             }
             await signOutAndRedirect(router);
             return null;
         }
-
-
 
         // Verificar role
         if (requiredRole && profile?.role) {
@@ -85,9 +81,11 @@ export async function fetchAndValidateProfile(
                     has_organization_id: !!profile.organization_id,
                     organization_id: profile.organization_id,
                     final_organization_id: organizationId,
+                    id: userId
                 });
             }
             return {
+                id: userId, // Added id
                 is_admin: profile.is_admin || false,
                 assigned_pracas: profile.assigned_pracas || [],
                 role: profile.role || 'user',

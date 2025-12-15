@@ -91,7 +91,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
 
         // Verificar aprovação e permissões se necessário
         if (requireApproval || requiredRole || fetchUserProfile) {
-          const profile = await fetchAndValidateProfile(router, requireApproval, requiredRole, fetchUserProfile);
+          const profile = await fetchAndValidateProfile(router, requireApproval, requiredRole, fetchUserProfile, sessionUser.id);
 
           if (profile) {
             setCurrentUser(profile);
