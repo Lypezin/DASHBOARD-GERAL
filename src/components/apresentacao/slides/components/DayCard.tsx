@@ -33,21 +33,21 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
     const animatedAderencia = useAnimatedProgress(dia.aderencia, 1000, Math.random() * 300, isActive);
 
     return (
-        <div className={`rounded-xl border px-2 py-3 flex flex-col items-center gap-2 ${isSecondWeek ? 'bg-gradient-to-b from-blue-50 to-white border-blue-200' : 'bg-gradient-to-b from-slate-50 to-white border-slate-200'}`}>
+        <div className={`rounded-xl border px-2 py-3 flex flex-col items-center gap-2 ${isSecondWeek ? 'bg-gradient-to-b from-blue-50 to-white border-blue-200' : 'bg-gradient-to-b from-sky-50 to-white border-sky-200'}`}>
             {/* Day label */}
-            <span className={`text-sm font-bold uppercase tracking-wider ${isSecondWeek ? 'text-blue-700' : 'text-slate-700'}`}>
+            <span className={`text-sm font-bold uppercase tracking-wider ${isSecondWeek ? 'text-blue-700' : 'text-sky-700'}`}>
                 {dia.sigla}
             </span>
 
             {/* Progress circle */}
             <div className={`relative w-[70px] h-[70px] animate-scale-in ${isActive ? 'animate-pulse-scale delay-500' : ''}`}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="50" cy="50" r="40" stroke="#e2e8f0" strokeWidth="8" fill="none" />
+                    <circle cx="50" cy="50" r="36" stroke="#e2e8f0" strokeWidth="8" fill="none" />
                     <circle
                         cx="50"
                         cy="50"
-                        r="40"
-                        stroke={isSecondWeek ? "#2563eb" : "#64748b"}
+                        r="36"
+                        stroke={isSecondWeek ? "#2563eb" : "#38bdf8"}
                         strokeWidth="8"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(animatedAderencia, 40)}

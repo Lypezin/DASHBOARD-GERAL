@@ -41,19 +41,19 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
 
     return (
         <div className="flex flex-col items-center gap-2">
-            <span className={`text-sm font-bold px-4 py-1.5 rounded-full ${isSecond ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
+            <span className={`text-sm font-bold px-4 py-1.5 rounded-full ${isSecond ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700'}`}>
                 {label}
             </span>
 
             {/* Progress Circle */}
             <div className="relative animate-scale-in" style={{ width: dimension, height: dimension }}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="50" cy="50" r="40" stroke="#e2e8f0" strokeWidth="8" fill="none" />
+                    <circle cx="50" cy="50" r="36" stroke="#e2e8f0" strokeWidth="8" fill="none" />
                     <circle
                         cx="50"
                         cy="50"
-                        r="40"
-                        stroke={isSecond ? "#2563eb" : "#64748b"}
+                        r="36"
+                        stroke={isSecond ? "#2563eb" : "#60a5fa"}
                         strokeWidth="8"
                         fill="none"
                         strokeDasharray={buildCircleDasharray(animatedAderencia, 40)}

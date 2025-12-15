@@ -39,11 +39,11 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
         {/* Week 1 Section */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-300" />
-            <h3 className="text-sm font-bold text-slate-700 px-4 py-1 bg-slate-100 rounded-full border border-slate-200">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-sky-300" />
+            <h3 className="text-sm font-bold text-sky-700 px-4 py-1 bg-sky-50 rounded-full border border-sky-200">
               SEMANA {numeroSemana1}
             </h3>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-300" />
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-sky-300" />
           </div>
           <div className="grid grid-cols-7 gap-2">
             {semana1Dias.map((dia) => (
