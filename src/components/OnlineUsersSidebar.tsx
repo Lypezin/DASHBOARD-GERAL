@@ -206,7 +206,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                         <Users size={18} className="text-blue-600" />
 
                         {/* Global Count Badge */}
-                        <span className="absolute -top-3 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] text-white font-bold ring-2 ring-white z-10">
+                        <span className="absolute -bottom-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[9px] text-white font-bold ring-2 ring-white z-10">
                             {onlineUsers.length}
                         </span>
                         {/* Red Dot (Total Unread) */}
