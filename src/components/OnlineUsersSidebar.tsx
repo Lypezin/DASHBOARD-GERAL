@@ -109,7 +109,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                             <div className="relative">
                                 <span className={cn("absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white", activeChatUser.is_idle ? "bg-amber-400" : "bg-emerald-500")} />
                                 {activeChatUser.avatar_url ? (
-                                    <img src={activeChatUser.avatar_url} className="w-6 h-6 rounded-full" />
+                                    <img src={activeChatUser.avatar_url} alt="Avatar" className="w-6 h-6 rounded-full" />
                                 ) : <UserIcon className="w-6 h-6 p-1 bg-slate-200 rounded-full" />}
                             </div>
                             <span className="text-xs font-semibold truncate max-w-[100px]">{activeChatUser.name?.split(' ')[0]}</span>
@@ -120,7 +120,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                     {/* Messages */}
                     <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-slate-50/30">
                         {activeMessages.length === 0 && (
-                            <p className="text-[10px] text-center text-slate-400 mt-4">Envie um "Olá" 👋</p>
+                            <p className="text-[10px] text-center text-slate-400 mt-4">Envie um &quot;Olá&quot; 👋</p>
                         )}
                         {activeMessages.map((msg, i) => (
                             <div key={i} className={cn("flex flex-col max-w-[85%]", msg.from === currentUser.id ? "ml-auto items-end" : "mr-auto items-start")}>
