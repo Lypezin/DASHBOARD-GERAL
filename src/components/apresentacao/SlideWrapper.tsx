@@ -21,7 +21,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   // WebMode: slides flow naturally in a scrollable container
   const { ref, inView } = useInView({
     triggerOnce: false,
-    rootMargin: '2000px 0px 2000px 0px', // Large buffer to pre-render slides well before they appear
+    rootMargin: '1200px 0px 1200px 0px', // Adjusted buffer for better performance on weaker machines
     skip: !isWebMode,
   });
 

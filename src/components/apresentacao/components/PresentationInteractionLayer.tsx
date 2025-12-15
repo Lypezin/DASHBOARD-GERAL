@@ -10,17 +10,29 @@ interface PresentationInteractionLayerProps {
 export const PresentationInteractionLayer: React.FC<PresentationInteractionLayerProps> = ({ tool, isActive }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const cursorRef = useRef<HTMLDivElement>(null); // Ref for direct DOM manipulation
+
+    // NO STATE for mouse position - direct DOM manipulation for performance
     const [isDrawing, setIsDrawing] = useState(false);
 
-    // Laser Pointer movement
+    // Optimized Cursor movement (Laser/Ball)
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            setMousePos({ x: e.clientX, y: e.clientY });
+            if (cursorRef.current) {
+                // Direct DOM update avoids React render cycle on every frame
+                cursorRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+            }
         };
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
-    }, []);
+
+        // Only attach if tool uses the custom cursor
+        if (tool !== 'pen') {
+            window.addEventListener('mousemove', handleMouseMove);
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, [tool]);
 
     // Canvas Drawing Logic
     useEffect(() => {
@@ -99,16 +111,19 @@ export const PresentationInteractionLayer: React.FC<PresentationInteractionLayer
             {/* Custom Cursor (Ball) for all tools except Pen (which has browser cursor) */}
             {tool !== 'pen' && (
                 <div
-                    className={`fixed w-4 h-4 rounded-full pointer-events-none transition-transform duration-75 mix-blend-screen
+                    ref={cursorRef}
+                    className={`fixed w-4 h-4 rounded-full pointer-events-none transition-colors duration-200 mix-blend-screen
                     ${tool === 'laser'
                             ? 'bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.8)]'
-                            : 'bg-blue-400/80 border-2 border-white shadow-sm' // Default cursor style: Blueish ball
+                            : 'bg-blue-400/80 border-2 border-white shadow-sm'
                         }`}
                     style={{
-                        left: mousePos.x,
-                        top: mousePos.y,
+                        left: 0,
+                        top: 0,
+                        // Initial position off-screen or handled by first move
                         transform: 'translate(-50%, -50%)',
-                        zIndex: 100002 // Ensure it's on top
+                        zIndex: 100002,
+                        willChange: 'transform' // Hint to browser to optimize layering
                     }}
                 />
             )}
