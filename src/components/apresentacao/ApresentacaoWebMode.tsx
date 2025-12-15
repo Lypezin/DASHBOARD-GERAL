@@ -102,33 +102,22 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
                 </div>
             </div>
 
-            <div className={`presentation-mode-container fixed inset-0 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-xl z-[99999] overflow-y-auto overflow-x-hidden`}>
+            <div className={`presentation-mode-container fixed inset-0 bg-slate-100 dark:bg-slate-950 z-[99999] overflow-y-auto overflow-x-hidden`}>
 
                 {/* Main Content */}
                 <div className="min-h-screen py-10 flex flex-col items-center w-full">
                     <div
                         ref={containerRef}
-                        className="flex flex-col items-center w-full max-w-[1920px] px-4 md:px-8 lg:px-12 transition-all duration-200 ease-out"
+                        className="flex flex-col items-center w-full max-w-[1920px] px-4 md:px-8 lg:px-12"
                     >
-                        <AnimatePresence mode="popLayout" initial={false}>
-                            {slides.map((slide, index) => (
-                                <motion.div
-                                    key={slide.key}
-                                    initial={{ opacity: 0, x: 100, scale: 0.95 }}
-                                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                                    exit={{ opacity: 0, x: -100, scale: 0.95 }}
-                                    transition={{
-                                        type: "spring",
-                                        stiffness: 300,
-                                        damping: 30,
-                                        duration: 0.5
-                                    }}
-                                    className="w-full flex justify-center"
-                                >
-                                    {slide.render(true)}
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
+                        {slides.map((slide, index) => (
+                            <div
+                                key={slide.key}
+                                className="w-full flex justify-center"
+                            >
+                                {slide.render(true)}
+                            </div>
+                        ))}
                     </div>
                 </div>
 
