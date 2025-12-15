@@ -44,7 +44,7 @@ export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: T
     { label: 'Prioridade/Promo', value: 'prioridade' },
     { label: 'Evolução', value: 'evolucao' },
     { label: 'Comparação', value: 'comparacao' },
-    { label: 'Operacional x Marketing', value: 'marketing_comparacao' },
+    { label: 'Operacional | Marketing', value: 'marketing_comparacao' },
     { label: 'Marketing', value: 'marketing' },
   ];
 
