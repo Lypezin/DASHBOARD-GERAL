@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useOnlineUsers } from '@/hooks/useOnlineUsers';
+import { useState, useEffect, useRef } from 'react';
+import { useOnlineUsers, OnlineUser } from '@/hooks/useOnlineUsers';
 import { CurrentUser } from '@/types';
-import { Users, ChevronLeft, ChevronRight, User } from 'lucide-react';
-import { cn } from '@/lib/utils'; // Assuming cn utility exists, usually common in shadcn structure
+import { cn } from '@/lib/utils';
+import { Users, ChevronLeft, ChevronRight, User as UserIcon, Monitor, Smartphone, Clock, Coffee } from 'lucide-react';
 
 interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;
@@ -11,125 +11,293 @@ interface OnlineUsersSidebarProps {
 
 export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSidebarProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const onlineUsers = useOnlineUsers(currentUser, currentTab);
+    // Agora o hook retorna um objeto completo
+    const { onlineUsers, setCustomStatus, joinedUsers, clearJoinedUsers, messages, sendMessage } = useOnlineUsers(currentUser, currentTab);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [myCustomStatus, setMyCustomStatus] = useState('');
+    const [notifications, setNotifications] = useState<{ id: string, message: string }[]>([]);
 
-    // Se não estiver logado, não mostra nada
+    // Chat State
+    const [activeChatUser, setActiveChatUser] = useState<OnlineUser | null>(null);
+    const [chatInput, setChatInput] = useState('');
+    const chatEndRef = useRef<HTMLDivElement>(null);
+
+    // Scroll to bottom of chat
+    useEffect(() => {
+        if (activeChatUser && chatEndRef.current) {
+            chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, activeChatUser]);
+
+    // Effect to process joinedUsers
+    useEffect(() => {
+        if (joinedUsers.length > 0) {
+            const newNotifs = joinedUsers.map(u => ({
+                id: Math.random().toString(36),
+                message: `${u.name?.split(' ')[0]} entrou!`
+            }));
+
+            setNotifications(prev => [...prev, ...newNotifs]);
+            clearJoinedUsers();
+
+            // Auto-dismiss logic
+            setTimeout(() => {
+                setNotifications(prev => prev.slice(newNotifs.length));
+            }, 3000);
+        }
+    }, [joinedUsers, clearJoinedUsers]);
+
+    const handleSendMessage = async () => {
+        if (!chatInput.trim() || !activeChatUser) return;
+        await sendMessage(activeChatUser.id, chatInput);
+        setChatInput('');
+    };
+
+    // Filter messages for active chat
+    const activeMessages = activeChatUser
+        ? messages.filter(m => (m.from === activeChatUser.id && m.to === currentUser?.id) || (m.from === currentUser?.id && m.to === activeChatUser.id))
+        : [];
+
+    // 1. Filter and Group Users
+    const filteredUsers = onlineUsers.filter((u: OnlineUser) =>
+    (u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.role?.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    const groupedUsers = {
+        admin: filteredUsers.filter((u: OnlineUser) => u.role === 'admin' || u.role === 'master'),
+        marketing: filteredUsers.filter((u: OnlineUser) => u.role === 'marketing'),
+        user: filteredUsers.filter((u: OnlineUser) => u.role === 'user' || !u.role || (u.role !== 'admin' && u.role !== 'master' && u.role !== 'marketing'))
+    };
+
+    const hasUsers = filteredUsers.length > 0;
+
+    // Helper para formatar tempo online
+    const formatTimeOnline = (dateString: string) => {
+        const start = new Date(dateString).getTime();
+        const now = new Date().getTime();
+        const diff = Math.floor((now - start) / 1000 / 60); // minutos
+
+        if (diff < 60) return `${diff}m`;
+        const hours = Math.floor(diff / 60);
+        const minutes = diff % 60;
+        return `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}`;
+    };
+
+    // Forçar re-render a cada minuto para atualizar os contadores de tempo
+    const [_, setTick] = useState(0);
+    useEffect(() => {
+        const interval = setInterval(() => setTick(t => t + 1), 60000);
+        return () => clearInterval(interval);
+    }, []);
+
     if (!currentUser) return null;
 
     return (
-        <>
-            {/* Botão Flutuante (quando fechado) */}
-            {!isOpen && (
-                <button
-                    onClick={() => setIsOpen(true)}
-                    className="fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-white dark:bg-slate-800 border-l border-t border-b border-slate-200 dark:border-slate-700 shadow-lg p-2 rounded-l-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex flex-col items-center gap-1 group"
-                    title="Usuários Online"
-                >
-                    <div className="relative">
-                        <Users className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
-                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                        </span>
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                        {onlineUsers.length}
-                    </span>
-                    <ChevronLeft className="w-3 h-3 text-slate-400 mt-1" />
-                </button>
+        <div
+            className={cn(
+                "fixed right-0 top-20 z-40 transition-all duration-300 ease-in-out bg-white shadow-lg border-l border-slate-200 h-[calc(100vh-6rem)] rounded-l-xl flex flex-col",
+                isOpen ? "w-80" : "w-12"
             )}
-
-            {/* Sidebar (quando aberta) */}
-            <div
-                className={cn(
-                    "fixed right-0 top-0 h-full w-72 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col",
-                    isOpen ? "translate-x-0" : "translate-x-full"
-                )}
-            >
-                {/* Header */}
-                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-blue-100 dark:bg-blue-900/30 p-1.5 rounded-lg">
-                            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Online</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{onlineUsers.length} usuário(s)</p>
-                        </div>
+        >
+            {/* Notifications (Toast) */}
+            <div className="absolute top-4 left-0 -translate-x-full pr-4 flex flex-col gap-2 pointer-events-none">
+                {notifications.map(n => (
+                    <div key={n.id} className="bg-slate-800 text-white text-xs px-3 py-2 rounded shadow-lg animate-in fade-in slide-in-from-right-5 whitespace-nowrap">
+                        {n.message} 🥳
                     </div>
-                    <button
-                        onClick={() => setIsOpen(false)}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                    >
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
+                ))}
+            </div>
+
+            {/* Toggle Button */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="absolute -left-3 top-4 bg-white border border-slate-200 rounded-full p-1 shadow-sm hover:bg-slate-50 transition-colors z-50"
+            >
+                {isOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
+
+            {/* Header & Search */}
+            <div className="p-4 border-b border-slate-100 flex flex-col gap-3 bg-slate-50/50 rounded-tl-xl">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <div className="bg-blue-100 p-2 rounded-lg shrink-0">
+                            <Users className="w-5 h-5 text-blue-600" />
+                        </div>
+                        {isOpen && (
+                            <div className="min-w-0">
+                                <h3 className="font-semibold text-slate-800 text-sm truncate">Online</h3>
+                                <p className="text-xs text-slate-500 truncate">{onlineUsers.length} usuário(s)</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* List */}
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                    {onlineUsers.map((user) => (
-                        <div
-                            key={user.id}
-                            className="group flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
-                        >
-                            <div className="relative flex-shrink-0">
-                                {user.avatar_url ? (
-                                    <img
-                                        src={user.avatar_url}
-                                        alt={user.name || 'User'}
-                                        className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-                                        onError={(e) => {
-                                            // Fallback em caso de erro no carregamento da imagem
-                                            e.currentTarget.style.display = 'none';
-                                            e.currentTarget.parentElement?.classList.add('fallback-icon');
-                                        }}
-                                    />
-                                ) : (
-                                    <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                        <User className="w-4 h-4" />
-                                    </div>
-                                )}
+                {/* Search Bar & Status - Only visible when open */}
+                {isOpen && (
+                    <div className="space-y-2">
+                        {/* Search */}
+                        <input
+                            type="text"
+                            placeholder="Buscar usuário..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-400 bg-white"
+                        />
 
-                                <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-slate-900 bg-emerald-500" />
-                            </div>
+                        {/* Status Setter */}
+                        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-1.5 px-2">
+                            <Coffee size={12} className="text-slate-400 shrink-0" />
+                            <input
+                                type="text"
+                                placeholder="Definir status (ex: Almoçando)"
+                                value={myCustomStatus}
+                                onChange={(e) => setMyCustomStatus(e.target.value)}
+                                className="w-full text-[10px] focus:outline-none bg-transparent"
+                                onBlur={() => setCustomStatus(myCustomStatus)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        setCustomStatus(myCustomStatus);
+                                        e.currentTarget.blur();
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
 
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
-                                    {user.name}
-                                </p>
-                                <div className="flex flex-col gap-0.5">
-                                    <div className="flex items-center gap-1.5">
-                                        {user.role && (
-                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wide border border-slate-200 dark:border-slate-700">
-                                                {user.role}
-                                            </span>
+            {/* User List */}
+            <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin scrollbar-thumb-slate-200">
+
+                {/* Groups */}
+                {['admin', 'marketing', 'user'].map((group) => {
+                    const usersInGroup = groupedUsers[group as keyof typeof groupedUsers];
+                    if (usersInGroup.length === 0) return null;
+
+                    return (
+                        <div key={group} className="space-y-2">
+                            {/* Header do Grupo */}
+                            {isOpen && usersInGroup.length > 0 && (
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase px-2 tracking-wider">
+                                    {group === 'user' ? 'Geral' : group} ({usersInGroup.length})
+                                </h4>
+                            )}
+
+                            {usersInGroup.map((user: OnlineUser) => (
+                                <div
+                                    key={user.id}
+                                    className={cn(
+                                        "group flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100",
+                                        !isOpen && "justify-center px-0 py-3"
+                                    )}
+                                >
+                                    {/* Avatar & Status */}
+                                    <div className="relative shrink-0">
+                                        {user.avatar_url ? (
+                                            <img
+                                                src={user.avatar_url}
+                                                alt={user.name || 'User'}
+                                                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                                            />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm">
+                                                <UserIcon className="w-5 h-5 text-slate-400" />
+                                            </div>
                                         )}
-                                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate flex items-center gap-1">
-                                            Online
-                                        </span>
+
+                                        {/* Status Dot */}
+                                        <span
+                                            className={cn(
+                                                "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white",
+                                                user.is_idle ? "bg-amber-400" : "bg-emerald-500"
+                                            )}
+                                            title={user.is_idle ? "Ausente (Inativo)" : "Online"}
+                                        />
                                     </div>
-                                    {user.current_tab && (
-                                        <p className="text-[10px] text-blue-500 dark:text-blue-400 truncate">
-                                            Em: {user.current_tab.charAt(0).toUpperCase() + user.current_tab.slice(1)}
-                                        </p>
+
+                                    {/* Info Area (Visible only when open) */}
+                                    {isOpen && (
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between">
+                                                <p className="font-medium text-sm text-slate-700 truncate" title={user.name || ''}>
+                                                    {user.name}
+                                                </p>
+                                                <div className="flex items-center gap-1">
+                                                    {/* Chat Button - Only show for others */}
+                                                    {user.id !== currentUser.id && (
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setActiveChatUser(user); setIsOpen(true); }}
+                                                            className="p-1 hover:bg-slate-100 rounded-full text-slate-300 hover:text-blue-500 transition-colors"
+                                                            title="Enviar mensagem"
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+                                                        </button>
+                                                    )}
+
+                                                    <div className="text-slate-300">
+                                                        {user.device === 'mobile' ? (
+                                                            <span title="Mobile">
+                                                                <Smartphone size={14} className="text-slate-400" />
+                                                            </span>
+                                                        ) : (
+                                                            <span title="Desktop">
+                                                                <Monitor size={14} className="text-slate-400" />
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Role & Status Label */}
+                                            <div className="flex items-center gap-2 mt-1">
+                                                {user.custom_status ? (
+                                                    <span className="text-xs text-slate-500 italic truncate flex items-center gap-1">
+                                                        <Coffee size={10} /> {user.custom_status}
+                                                    </span>
+                                                ) : (
+                                                    <span className={cn("text-xs truncate", user.is_idle ? "text-amber-500" : "text-emerald-600")}>
+                                                        {user.is_idle ? 'Ausente' : 'Disponível'}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Location (Tab) */}
+                                            {user.current_tab && (
+                                                <div className="flex items-center gap-1 mt-1 text-xs text-blue-500">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                                                    <span className="truncate">
+                                                        {user.current_tab.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {/* Time Online */}
+                                            <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400 ml-0.5">
+                                                <Clock size={10} />
+                                                <span>{formatTimeOnline(user.online_at)}</span>
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
-                            </div>
+                            ))}
                         </div>
-                    ))}
+                    )
+                })}
 
-                    {onlineUsers.length === 0 && (
-                        <div className="text-center py-8 text-slate-400 dark:text-slate-500 text-sm">
-                            Ninguém online... espere, você deve estar online!
-                        </div>
-                    )}
-                </div>
+                {!hasUsers && isOpen && (
+                    <div className="text-center p-4 text-slate-400 text-sm">
+                        Ninguém encontrado... 👻
+                    </div>
+                )}
+            </div>
 
-                {/* Footer */}
-                <div className="p-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-[10px] text-center text-slate-400">
+            {/* Footer info */}
+            {isOpen && (
+                <div className="p-2 text-center border-t border-slate-100 text-[10px] text-slate-300 bg-slate-50/50 rounded-bl-xl">
                     Atualizado em tempo real
                 </div>
-            </div>
-        </>
+            )}
+        </div>
     );
 }

@@ -4,6 +4,7 @@
 
 // Tipo para usuário atual com permissões
 export interface CurrentUser {
+  id: string;
   is_admin: boolean;
   assigned_pracas: string[];
   role?: 'admin' | 'marketing' | 'user' | 'master';
