@@ -41,7 +41,7 @@ export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: T
     { label: 'UTR', value: 'utr' },
     { label: 'Entregadores', value: 'entregadores' },
     { label: 'Valores', value: 'valores' },
-    { label: 'Prioridade/Promo', value: 'prioridade' },
+    { label: 'Prioridade | Promo', value: 'prioridade' },
     { label: 'Evolução', value: 'evolucao' },
     { label: 'Comparação', value: 'comparacao' },
     { label: 'Operacional | Marketing', value: 'marketing_comparacao' },
