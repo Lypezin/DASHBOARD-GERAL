@@ -9,6 +9,8 @@ export interface SlideElement {
         color?: string;
         fontSize?: string;
         bg?: string;
+        fontWeight?: 'bold' | 'normal';
+        fontStyle?: 'italic' | 'normal';
     };
 }
 

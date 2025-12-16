@@ -25,6 +25,8 @@ interface PresentationEditorContextType {
   setOverride: (key: string, override: Partial<SlideOverride>) => void;
   isEditing: boolean;
   toggleEditing: () => void;
+  selectedElementId: string | null;
+  setSelectedElementId: (id: string | null) => void;
 }
 
 export const PresentationEditorContext = createContext<PresentationEditorContextType | undefined>(undefined);
@@ -36,6 +38,7 @@ export const PresentationEditorProvider: React.FC<{ children: ReactNode; initial
   const [slideOrder, setSlideOrder] = useState<string[]>(initialOrder);
   const [overrides, setOverrides] = useState<Record<string, SlideOverride>>({});
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
 
   const moveSlide = useCallback((dragIndex: number, hoverIndex: number) => {
     setSlideOrder((prevOrder) => {
@@ -65,7 +68,9 @@ export const PresentationEditorProvider: React.FC<{ children: ReactNode; initial
       overrides,
       setOverride,
       isEditing,
-      toggleEditing
+      toggleEditing,
+      selectedElementId,
+      setSelectedElementId
     }}>
       {children}
     </PresentationEditorContext.Provider>
@@ -124,7 +129,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
   const contentRef = useRef<HTMLDivElement>(null);
   const captureContainerRef = useRef<HTMLDivElement>(null);
 
-  const { slideOrder, setSlideOrder } = usePresentationEditor();
+  const { slideOrder, setSlideOrder, selectedElementId, setSelectedElementId } = usePresentationEditor();
 
   // Initialize order on mount if empty (or when slides change significantly)
   useEffect(() => {
@@ -230,7 +235,15 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               {/* Media Toolbar Overlay */}
               {activeMediaSlide && onUpdateMediaSlide && (
                 <MediaToolbar
-                  hasSelection={false}
+                  hasSelection={!!selectedElementId}
+                  selectedElement={activeMediaSlide.elements?.find(e => e.id === selectedElementId)}
+                  onUpdateElement={(updates) => {
+                    if (!selectedElementId) return;
+                    const newElements = (activeMediaSlide.elements || []).map(el =>
+                      el.id === selectedElementId ? { ...el, ...updates } : el
+                    );
+                    onUpdateMediaSlide(activeMediaSlide.id, { elements: newElements });
+                  }}
                   onAddText={() => {
                     const newElement: SlideElement = {
                       id: crypto.randomUUID(),
@@ -255,7 +268,12 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
                       elements: [...(activeMediaSlide.elements || []), newElement]
                     });
                   }}
-                  onDeleteSelection={() => { }}
+                  onDeleteSelection={() => {
+                    if (!selectedElementId) return;
+                    const newElements = (activeMediaSlide.elements || []).filter(el => el.id !== selectedElementId);
+                    onUpdateMediaSlide(activeMediaSlide.id, { elements: newElements });
+                    setSelectedElementId(null);
+                  }}
                 />
               )}
             </div>

@@ -8,6 +8,7 @@ interface SlideWrapperProps {
   children: React.ReactNode;
   className?: string;
   style?: CSSProperties;
+  onClick?: () => void;
 }
 
 const SlideWrapper: React.FC<SlideWrapperProps> = ({
@@ -15,6 +16,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
   children,
   className = '',
   style = {},
+  onClick,
 }) => {
   const { isWebMode } = usePresentationContext();
 

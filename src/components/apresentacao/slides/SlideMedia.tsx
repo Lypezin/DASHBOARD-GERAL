@@ -1,8 +1,11 @@
-import React, { useRef } from 'react';
-import { MediaSlideData } from '@/types/presentation';
+
+import React, { useRef, useState, useEffect } from 'react';
+import { MediaSlideData, SlideElement } from '@/types/presentation';
 import SlideWrapper from '../SlideWrapper';
 import { motion } from 'framer-motion';
 import { usePresentationContext } from '@/contexts/PresentationContext';
+// Import context from Preview if available (or duplicate the type to avoid circular dep if needed, but context import is fine if exported)
+import { usePresentationEditor } from '../ApresentacaoPreview';
 
 interface SlideMediaProps {
     isVisible: boolean;
@@ -14,6 +17,7 @@ interface SlideMediaProps {
 const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, onUpdate }) => {
     const { isWebMode } = usePresentationContext();
     const containerRef = useRef<HTMLDivElement>(null);
+    const editorContext = usePresentationEditor(); // Logic relies on provider existing up tree
 
     // Only allow dragging in Preview mode (not in Web/Presentation mode)
     // AND if onUpdate is provided (which implies we are in an editable context)
@@ -41,18 +45,17 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
         });
     }
 
-    const handleUpdateElement = (elId: string, updates: any) => {
+    const { selectedElementId, setSelectedElementId } = editorContext;
+
+    const handleUpdateElement = (elId: string, updates: Partial<SlideElement>) => {
         if (!onUpdate) return;
 
         const newElements = [...(slideData.elements || [])];
 
-        // Handle migration from legacy if needed during first interaction
+        // Handle migration from legacy if needed (simple check)
         if (newElements.length === 0 && (slideData.url || slideData.text)) {
-            // We are interacting with a legacy slide, we should convert it fully now?
-            // No, let's just stick to updating the array if it exists, or create it.
-            // Simplest: If we are here, we should have a reliable way to update.
-            // For now, let's assume we are fully migrated or the Sidebar created elements.
-            // If we are editing "legacy" props via the new array...
+            // If we modify legacy items, we should probably initialize the elements array properly first.
+            // For now, let's assume we are mostly using new data structures.
         }
 
         const elIndex = newElements.findIndex(e => e.id === elId);
@@ -71,10 +74,14 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                 overflow: 'hidden',
                 position: 'relative'
             }}
+            // Deselect on click background
+            onClick={() => canDrag && setSelectedElementId(null)}
         >
             {/* Main Container */}
             <div ref={containerRef} className="w-full h-full relative bg-white overflow-hidden">
                 {elements.map((el) => {
+                    const isSelected = selectedElementId === el.id;
+
                     if (el.type === 'image') {
                         return (
                             <motion.div
@@ -90,6 +97,10 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                         }
                                     });
                                 }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (canDrag) setSelectedElementId(el.id);
+                                }}
                                 style={{
                                     x: el.position?.x || 0,
                                     y: el.position?.y || 0,
@@ -100,13 +111,14 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                     transform: 'translate(-50%, -50%)',
                                     cursor: canDrag ? 'grab' : 'default',
                                     touchAction: 'none',
-                                    transformOrigin: 'center center'
+                                    transformOrigin: 'center center',
+                                    zIndex: isSelected ? 50 : 10
                                 }}
                                 whileDrag={{ cursor: 'grabbing', scale: (el.scale || 1) * 1.02 }}
                                 className="flex items-center justify-center group"
                             >
-                                {/* 4 Resize Handles */}
-                                {canDrag && (
+                                {/* Resize Handles - Show when Selected */}
+                                {canDrag && isSelected && (
                                     <>
                                         {[
                                             { pos: 'tl', cursor: 'nwse-resize', sensitivity: -1 },
@@ -149,16 +161,18 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                                     top: handle.pos.includes('t') ? -12 : undefined,
                                                     bottom: handle.pos.includes('b') ? -12 : undefined,
                                                 }}
-                                                className="flex items-center justify-center bg-white border-2 border-slate-400 rounded-full shadow-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                                                className="flex items-center justify-center bg-white border-2 border-blue-500 rounded-full shadow-lg"
                                             />
                                         ))}
+                                        {/* Box Border */}
+                                        <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none" />
                                     </>
                                 )}
 
                                 <div className="relative pointer-events-none select-none">
                                     <img
                                         src={el.content}
-                                        className={`max-w-[85vw] max-h-[85vh] object-contain drop-shadow-2xl rounded-lg ${canDrag ? 'ring-2 ring-blue-500/0 group-hover:ring-blue-500/50 transition-all' : ''}`}
+                                        className={`max-w-[85vw] max-h-[85vh] object-contain drop-shadow-2xl rounded-lg`}
                                         alt="Slide Element"
                                         draggable={false}
                                     />
@@ -169,7 +183,7 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                         return (
                             <motion.div
                                 key={el.id}
-                                drag={canDrag}
+                                drag={canDrag && !isWebMode} // Disable drag while editing? Or rely on contentEditable behavior
                                 dragMomentum={false}
                                 onDragEnd={(_, info) => {
                                     if (!canDrag) return;
@@ -180,11 +194,15 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                         }
                                     });
                                 }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (canDrag) setSelectedElementId(el.id);
+                                }}
                                 style={{
                                     x: el.position?.x || 0,
                                     y: el.position?.y || 0,
                                     position: 'absolute',
-                                    zIndex: 30,
+                                    zIndex: isSelected ? 50 : 30,
                                     cursor: canDrag ? 'grab' : 'default',
                                     left: '50%', // Center default
                                     top: '50%',
@@ -192,11 +210,39 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                     minWidth: '300px'
                                 }}
                                 whileDrag={{ cursor: 'grabbing', scale: 1.02 }}
-                                className="text-center font-semibold pointer-events-auto text-slate-900 drop-shadow-xl"
                             >
-                                <p className="text-3xl leading-relaxed select-none whitespace-pre-wrap" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.8)' }}>
-                                    {el.content}
-                                </p>
+                                <div
+                                    className={`relative p-2 text-center rounded focus:outline-none ${isSelected && canDrag ? 'ring-2 ring-blue-500 bg-blue-50/10' : ''}`}
+                                >
+                                    {/* Text Content */}
+                                    <p
+                                        className="text-3xl leading-relaxed whitespace-pre-wrap outline-none"
+                                        style={{
+                                            textShadow: '0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.8)',
+                                            color: el.style?.color || '#0f172a',
+                                            fontWeight: el.style?.fontWeight === 'bold' ? 'bold' : 'normal',
+                                            fontStyle: el.style?.fontStyle === 'italic' ? 'italic' : 'normal',
+                                            fontSize: el.style?.fontSize || '1.875rem', // 3xl
+                                            backgroundColor: el.style?.bg || 'transparent',
+                                        }}
+                                        contentEditable={canDrag && isSelected}
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => {
+                                            const newText = e.currentTarget.innerText;
+                                            if (newText !== el.content) {
+                                                handleUpdateElement(el.id, { content: newText });
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            // Stop event propagation to prevent slide navigation or other global handlers
+                                            // while typing
+                                            e.stopPropagation();
+                                        }}
+                                    >
+                                        {el.content}
+                                    </p>
+
+                                </div>
                             </motion.div>
                         );
                     }
