@@ -7,6 +7,8 @@ import { Image as ImageIcon, Type, Maximize, Trash2, MousePointer2 } from 'lucid
 import { MediaSlideData, SlideElement } from '@/types/presentation';
 import { motion } from 'framer-motion';
 
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+
 interface MediaManagerEditorProps {
     selectedSlide: MediaSlideData | undefined;
     onUpdate: (updates: Partial<MediaSlideData>) => void;
@@ -18,6 +20,7 @@ export const MediaManagerEditor: React.FC<MediaManagerEditorProps> = ({
 }) => {
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const supabase = createClientComponentClient();
 
     if (!selectedSlide) {
         return (
@@ -49,21 +52,40 @@ export const MediaManagerEditor: React.FC<MediaManagerEditorProps> = ({
         setSelectedElementId(newElement.id);
     };
 
-    const handleAddImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAddImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const newElement: SlideElement = {
-                    id: crypto.randomUUID(),
-                    type: 'image',
-                    content: ev.target?.result as string,
-                    position: { x: 0, y: 0 },
-                    scale: 1
-                };
-                onUpdate({ elements: [...elements, newElement] });
-                setSelectedElementId(newElement.id);
+            const file = e.target.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `presentation_${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            // Upload to Supabase Storage
+            const { error: uploadError } = await supabase.storage
+                .from('presentation-media') // Use the correct bucket name
+                .upload(filePath, file);
+
+            if (uploadError) {
+                console.error('Error uploading image:', uploadError);
+                return;
+            }
+
+            // Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('presentation-media')
+                .getPublicUrl(filePath);
+
+            const newElement: SlideElement = {
+                id: crypto.randomUUID(),
+                type: 'image',
+                content: publicUrl, // Use URL instead of base64
+                position: { x: 0, y: 0 },
+                scale: 1
             };
-            reader.readAsDataURL(e.target.files[0]);
+            onUpdate({ elements: [...elements, newElement] });
+            setSelectedElementId(newElement.id);
+
+            // Reset input
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
