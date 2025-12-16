@@ -25,6 +25,8 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
 
     // Normalizing elements: if legacy data exists, convert to elements on the fly for rendering
     const elements = slideData.elements || [];
+    console.log('[SlideMedia] ID:', slideData.id, 'Elements:', elements, 'IsWebMode:', isWebMode);
+
     if (elements.length === 0 && slideData.url) {
         const legacyData = slideData as any;
         elements.push({

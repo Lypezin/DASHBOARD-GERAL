@@ -178,7 +178,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
                   }}
                   onAddText={() => {
                     const newElement: SlideElement = {
-                      id: crypto.randomUUID(),
+                      id: Math.random().toString(36).substr(2, 9),
                       type: 'text',
                       content: 'Novo Texto',
                       position: { x: 0, y: 0 }
@@ -189,7 +189,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
                   }}
                   onAddImage={(url) => {
                     const newElement: SlideElement = {
-                      id: crypto.randomUUID(),
+                      id: Math.random().toString(36).substr(2, 9),
                       type: 'image',
                       content: url,
                       position: { x: 0, y: 0 },

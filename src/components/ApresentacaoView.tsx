@@ -53,7 +53,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
 
   const handleAddMediaSlide = () => {
     const newSlide: MediaSlideData = {
-      id: crypto.randomUUID(),
+      id: Math.random().toString(36).substr(2, 9),
       title: 'Novo Slide',
       elements: []
     };
