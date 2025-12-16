@@ -19,13 +19,11 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
     const containerRef = useRef<HTMLDivElement>(null);
     const editorContext = usePresentationEditor(); // Logic relies on provider existing up tree
 
-    // Only allow dragging in Preview mode (not in Web/Presentation mode)
-    // AND if onUpdate is provided (which implies we are in an editable context)
     const canDrag = !isWebMode && !!onUpdate;
 
     // Normalizing elements: if legacy data exists, convert to elements on the fly for rendering
     const elements = slideData.elements || [];
-    console.log('[SlideMedia] ID:', slideData.id, 'Elements:', elements, 'IsWebMode:', isWebMode);
+    console.log('[SlideMedia] ID:', slideData.id, 'isVisible:', isVisible, 'Index:', index, 'Elements:', elements.length);
 
     if (elements.length === 0 && slideData.url) {
         const legacyData = slideData as any;
@@ -37,6 +35,7 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
             scale: legacyData.scale || 1
         });
     }
+
     if (elements.length <= 1 && slideData.text) { // Check <= 1 so we don't duplicate if we just added legacy img
         const legacyData = slideData as any;
         elements.push({
