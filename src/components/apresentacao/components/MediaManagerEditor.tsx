@@ -7,7 +7,7 @@ import { Image as ImageIcon, Type, Maximize, Trash2, MousePointer2 } from 'lucid
 import { MediaSlideData, SlideElement } from '@/types/presentation';
 import { motion } from 'framer-motion';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 
 interface MediaManagerEditorProps {
     selectedSlide: MediaSlideData | undefined;
@@ -20,7 +20,10 @@ export const MediaManagerEditor: React.FC<MediaManagerEditorProps> = ({
 }) => {
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const supabase = createClientComponentClient();
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
     if (!selectedSlide) {
         return (
