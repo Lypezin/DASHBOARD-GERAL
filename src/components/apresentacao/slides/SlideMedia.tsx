@@ -85,7 +85,7 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
             onClick={() => canDrag && setSelectedElementId(null)}
         >
             {/* Main Container */}
-            <div ref={containerRef} className="w-full h-full relative bg-white overflow-hidden">
+            <div ref={containerRef} className="w-full h-full relative bg-white">
                 {elements.map((el) => {
                     const isSelected = selectedElementId === el.id;
 
@@ -115,7 +115,7 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                     position: 'absolute',
                                     top: '50%',
                                     left: '50%',
-                                    transform: 'translate(-50%, -50%)',
+                                    // transform removed to avoid conflict with x/y
                                     cursor: canDrag ? 'grab' : 'default',
                                     touchAction: 'none',
                                     transformOrigin: 'center center',
@@ -213,7 +213,7 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                     cursor: canDrag ? 'grab' : 'default',
                                     left: '50%', // Center default
                                     top: '50%',
-                                    transform: 'translate(-50%, -50%)',
+                                    // transform removed
                                     minWidth: '300px'
                                 }}
                                 whileDrag={{ cursor: 'grabbing', scale: 1.02 }}
