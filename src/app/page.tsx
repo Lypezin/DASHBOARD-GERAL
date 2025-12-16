@@ -70,10 +70,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">
-      {/* DEBUG: Este div deve aparecer sempre */}
-      <div className="fixed right-4 bottom-4 bg-green-500 text-white p-3 rounded-lg z-[99999] shadow-lg font-bold text-sm">
-        ✅ Page Mounted
-      </div>
       <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
         {loading && <DashboardLoadingState />}
         {error && <DashboardErrorState error={error} />}

@@ -156,19 +156,12 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
         return () => clearInterval(interval);
     }, []);
 
-    // Debug: Se não tiver usuário, mostrar badge de erro visível
-    if (!currentUser) {
-        return (
-            <div className="fixed right-0 top-1/2 -translate-y-1/2 bg-red-500 text-white p-2 rounded-l-lg z-[9999] shadow-lg font-bold text-xs animate-pulse">
-                ! Auth Error
-            </div>
-        );
-    }
+    if (!currentUser) return null;
 
     return (
         <div
             className={cn(
-                "fixed right-0 top-20 z-[9999] h-[calc(100vh-6rem)] transition-transform duration-300 ease-in-out bg-white shadow-lg border-l border-slate-200 rounded-l-xl flex flex-col w-80 overflow-visible",
+                "fixed right-0 top-20 z-[100] h-[calc(100vh-6rem)] transition-transform duration-300 ease-in-out bg-white shadow-lg border-l border-slate-200 rounded-l-xl flex flex-col w-80",
                 isOpen ? "translate-x-0" : "translate-x-full"
             )}
         >
@@ -183,7 +176,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
 
             {/* Chat Window (Popup to the left of sidebar) */}
             {activeChatUser && (
-                <div className="absolute top-0 -left-80 w-80 h-[500px] bg-white shadow-xl border border-slate-200 rounded-lg flex flex-col z-[99999] overflow-hidden animate-in slide-in-from-right-5 font-sans">
+                <div className="absolute top-0 -left-80 w-80 h-[500px] bg-white shadow-xl border border-slate-200 rounded-lg flex flex-col z-[120] overflow-hidden animate-in slide-in-from-right-5 font-sans">
                     {/* Chat Header */}
                     <div className="p-3 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm z-10">
                         <div className="flex items-center gap-2">
@@ -384,10 +377,10 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                 ))}
             </div>
 
-            {/* Toggle Button - Moved to bottom-right for debugging */}
+            {/* Toggle Button - Fixed position for better visibility */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed right-4 bottom-20 bg-blue-600 border-2 border-red-500 rounded-full p-3 shadow-xl hover:bg-blue-700 transition-colors z-[99999] flex items-center justify-center w-12 h-12"
+                className="fixed right-4 bottom-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-xl transition-all duration-300 z-[100] flex items-center justify-center w-12 h-12 hover:scale-105"
                 title={isOpen ? "Fechar" : "Ver Usuários Online"}
             >
                 {isOpen ? <ChevronRight size={16} /> : (
