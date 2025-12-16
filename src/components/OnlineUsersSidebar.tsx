@@ -12,7 +12,7 @@ interface OnlineUsersSidebarProps {
 export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSidebarProps) {
     const [isOpen, setIsOpen] = useState(false);
     // Hook updated with new functions
-    const { onlineUsers, setCustomStatus, joinedUsers, clearJoinedUsers, messages, sendMessage, setTypingTo, reactToMessage, pinMessage } = useOnlineUsers(currentUser, currentTab);
+    const { onlineUsers, setCustomStatus, joinedUsers, clearJoinedUsers, messages, sendMessage, setTypingTo, reactToMessage, pinMessage, uploadFile } = useOnlineUsers(currentUser, currentTab);
     const [searchTerm, setSearchTerm] = useState('');
     const [myCustomStatus, setMyCustomStatus] = useState('');
     const [notifications, setNotifications] = useState<{ id: string, message: string }[]>([]);
@@ -88,6 +88,25 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
         }
     }, [joinedUsers, clearJoinedUsers]);
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !activeChatUser) return;
+
+        // Optimistically show uploading? For now just await
+        const upload = await uploadFile(file);
+
+        if (upload) {
+            await sendMessage(activeChatUser.id, "", {
+                attachments: [upload]
+            });
+        }
+
+        // Reset input
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
     const handleSendMessage = async () => {
         if (!chatInput.trim() || !activeChatUser) return;
         await sendMessage(activeChatUser.id, chatInput, {
@@ -146,6 +165,15 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                 isOpen ? "translate-x-0" : "translate-x-full"
             )}
         >
+            {/* Hidden File Input */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*,application/pdf"
+                onChange={handleFileUpload}
+            />
+
             {/* Chat Window (Popup to the left of sidebar) */}
             {activeChatUser && (
                 <div className="absolute top-0 -left-80 w-80 h-[500px] bg-white shadow-xl border border-slate-200 rounded-lg flex flex-col z-50 overflow-hidden animate-in slide-in-from-right-5 font-sans">
@@ -248,6 +276,22 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                                         isMe ? "bg-blue-600 text-white rounded-br-none" : "bg-white border border-slate-200 text-slate-700 rounded-bl-none",
                                         msg.isPinned && "ring-1 ring-yellow-400 bg-yellow-50/50"
                                     )}>
+                                        {/* Attachment Rendering */}
+                                        {msg.attachments?.map((att, idx) => (
+                                            <div key={idx} className="mb-2 rounded-md overflow-hidden bg-black/5">
+                                                {att.type === 'image' ? (
+                                                    <a href={att.url} target="_blank" rel="noopener noreferrer">
+                                                        <img src={att.url} alt="attachment" className="w-full h-auto max-h-48 object-cover hover:opacity-90 transition-opacity" />
+                                                    </a>
+                                                ) : (
+                                                    <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 bg-white/10 hover:bg-white/20 transition-colors">
+                                                        <div className="p-1.5 bg-white/20 rounded">📄</div>
+                                                        <span className="underline opacity-90 truncate">{att.name || 'Anexo'}</span>
+                                                    </a>
+                                                )}
+                                            </div>
+                                        ))}
+
                                         {msg.content}
                                         {/* Timestamp & Checks */}
                                         <div className={cn("text-[9px] mt-1 text-right flex items-center justify-end gap-1", isMe ? "text-blue-100" : "text-slate-400")}>
@@ -286,7 +330,12 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                         )}
 
                         <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className={cn("flex gap-2 items-end", replyingTo && "bg-slate-50 p-2 rounded-b-lg border border-slate-200 border-t-0")}>
-                            <button type="button" className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors" title="Enviar Imagem (Em breve)">
+                            <button
+                                type="button"
+                                className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors"
+                                onClick={() => fileInputRef.current?.click()}
+                                title="Enviar Imagem/Arquivo"
+                            >
                                 <Image size={18} />
                             </button>
                             <div className="flex-1 relative">

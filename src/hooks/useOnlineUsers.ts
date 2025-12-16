@@ -370,6 +370,29 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
         await supabase.from('chat_messages').update({ is_pinned: isPinned }).eq('id', msgId);
     };
 
+    const uploadFile = async (file: File) => {
+        if (!userId) return null;
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${userId}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('chat-attachments')
+            .upload(filePath, file);
+
+        if (uploadError) {
+            console.error('Error uploading file:', uploadError);
+            return null;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('chat-attachments')
+            .getPublicUrl(filePath);
+
+        return { url: publicUrl, name: file.name, type: file.type.startsWith('image/') ? 'image' : 'file' };
+    };
+
     const clearJoinedUsers = () => setJoinedUsers([]);
 
     return {
@@ -381,6 +404,7 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
         messages,
         sendMessage,
         reactToMessage,
-        pinMessage
+        pinMessage,
+        uploadFile
     };
 }
