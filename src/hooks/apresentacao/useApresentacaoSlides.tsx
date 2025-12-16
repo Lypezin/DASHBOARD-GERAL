@@ -3,6 +3,7 @@ import { DadosProcessados } from '@/utils/apresentacao/dataProcessor';
 import { DashboardResumoData } from '@/types/dashboard';
 import { MediaSlideData } from '@/types/presentation';
 import SlideMedia from '@/components/apresentacao/slides/SlideMedia';
+import SlideCapaFinal from '@/components/apresentacao/slides/SlideCapaFinal';
 import {
   buildSlideCapa,
   buildSlideResumoIA,
@@ -96,6 +97,14 @@ export const useApresentacaoSlides = (
         )
       });
     });
+
+    // 11. Capa Final
+    if (visibleSections['capa-final']) {
+      slidesConfig.push({
+        key: 'capa-final',
+        render: (visible) => <SlideCapaFinal isVisible={visible} />
+      });
+    }
 
     return slidesConfig;
   }, [

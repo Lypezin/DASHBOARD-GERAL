@@ -32,6 +32,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     turnos: true,
     origens: true,
     demanda: true,
+    'capa-final': true,
   });
 
   // Media Files State

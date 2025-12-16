@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { usePresentationContext } from '@/contexts/PresentationContext';
 // Import context from Preview if available (or duplicate the type to avoid circular dep if needed, but context import is fine if exported)
 import { usePresentationEditor } from '../ApresentacaoPreview';
+import { SLIDE_HEIGHT, SLIDE_WIDTH } from './../constants';
 
 interface SlideMediaProps {
     isVisible: boolean;
@@ -72,7 +73,12 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                 padding: 0,
                 backgroundColor: '#ffffff',
                 overflow: 'hidden',
-                position: 'relative'
+                position: 'relative',
+                // Force fixed height in WebMode to match Canvas/Preview coordinates and prevent cutoff
+                // Preview mode handles its own scaling via PresentationViewport
+                minHeight: isWebMode ? `${SLIDE_HEIGHT}px` : undefined,
+                height: isWebMode ? `${SLIDE_HEIGHT}px` : undefined,
+                maxWidth: isWebMode ? `${SLIDE_WIDTH}px` : undefined
             }}
             // Deselect on click background
             onClick={() => canDrag && setSelectedElementId(null)}
