@@ -85,6 +85,9 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
             onClick={() => canDrag && setSelectedElementId(null)}
         >
             {/* Main Container */}
+            {/* DEBUG BOX */}
+            <div className="absolute top-0 left-0 w-10 h-10 bg-red-500 z-[999] pointer-events-none opacity-50"></div>
+
             <div ref={containerRef} className="w-full h-full relative bg-white">
                 {elements.map((el) => {
                     const isSelected = selectedElementId === el.id;
@@ -188,35 +191,21 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                         );
                     } else if (el.type === 'text') {
                         return (
-                            <motion.div
+                            <div
                                 key={el.id}
-                                drag={canDrag && !isWebMode} // Disable drag while editing? Or rely on contentEditable behavior
-                                dragMomentum={false}
-                                onDragEnd={(_, info) => {
-                                    if (!canDrag) return;
-                                    handleUpdateElement(el.id, {
-                                        position: {
-                                            x: (el.position?.x || 0) + info.offset.x,
-                                            y: (el.position?.y || 0) + info.offset.y
-                                        }
-                                    });
-                                }}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     if (canDrag) setSelectedElementId(el.id);
                                 }}
                                 style={{
-                                    x: el.position?.x || 0,
-                                    y: el.position?.y || 0,
+                                    transform: `translate(-50%, -50%) translate(${el.position?.x || 0}px, ${el.position?.y || 0}px)`,
                                     position: 'absolute',
                                     zIndex: isSelected ? 50 : 30,
                                     cursor: canDrag ? 'grab' : 'default',
-                                    left: '50%', // Center default
+                                    left: '50%',
                                     top: '50%',
-                                    // transform removed
                                     minWidth: '300px'
                                 }}
-                                whileDrag={{ cursor: 'grabbing', scale: 1.02 }}
                             >
                                 <div
                                     className={`relative p-2 text-center rounded focus:outline-none ${isSelected && canDrag ? 'ring-2 ring-blue-500 bg-blue-50/10' : ''}`}
@@ -241,8 +230,6 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                             }
                                         }}
                                         onKeyDown={(e) => {
-                                            // Stop event propagation to prevent slide navigation or other global handlers
-                                            // while typing
                                             e.stopPropagation();
                                         }}
                                     >
@@ -250,7 +237,7 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                     </p>
 
                                 </div>
-                            </motion.div>
+                            </div>
                         );
                     }
                     return null;
