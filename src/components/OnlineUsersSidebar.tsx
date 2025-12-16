@@ -380,7 +380,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
             {/* Toggle Button - Fixed position for better visibility */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed right-4 bottom-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-xl transition-all duration-300 z-[100] flex items-center justify-center w-12 h-12 hover:scale-105"
+                className="fixed right-4 bottom-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-xl transition-all duration-300 z-[9999] flex items-center justify-center w-12 h-12 hover:scale-105"
                 title={isOpen ? "Fechar" : "Ver Usuários Online"}
             >
                 {isOpen ? <ChevronRight size={16} /> : (
