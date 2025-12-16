@@ -50,6 +50,21 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     ));
   };
 
+  const handleAddMediaSlide = () => {
+    const newSlide: MediaSlideData = {
+      id: crypto.randomUUID(),
+      title: 'Novo Slide',
+      elements: []
+    };
+    setMediaSlides(prev => [...prev, newSlide]);
+    // Optionally jump to new slide? Requires knowing index mapping. 
+    // Let sidebar handle selection logic if needed or just let user click.
+  };
+
+  const handleDeleteMediaSlide = (id: string) => {
+    setMediaSlides(prev => prev.filter(s => s.id !== id));
+  };
+
   const slides = useApresentacaoSlides(
     dadosProcessados,
     dadosComparacao,
@@ -109,7 +124,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
             setOrderedPresentationSlides(orderedSlides);
             setViewMode('web_presentation');
           }}
-          onManageMedia={() => setIsMediaManagerOpen(true)}
+          mediaSlides={mediaSlides}
+          onUpdateMediaSlide={handleUpdateMediaSlide}
+          onAddMediaSlide={handleAddMediaSlide}
+          onDeleteMediaSlide={handleDeleteMediaSlide}
         />
       )}
 

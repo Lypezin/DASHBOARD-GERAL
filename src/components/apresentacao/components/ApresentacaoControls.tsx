@@ -104,15 +104,17 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
 
                 <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
 
-                {/* Media Manager Button */}
-                <Button
-                    variant="outline"
-                    className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                    onClick={onManageMedia}
-                >
-                    <FilePlus className="mr-2 h-4 w-4" />
-                    Adicionar Fotos
-                </Button>
+                {/* Media Manager Button - Only show if callback provided */}
+                {onManageMedia && (
+                    <Button
+                        variant="outline"
+                        className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        onClick={onManageMedia}
+                    >
+                        <FilePlus className="mr-2 h-4 w-4" />
+                        Adicionar Fotos
+                    </Button>
+                )}
 
                 <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
 

@@ -18,4 +18,5 @@ export interface MediaSlideData {
     // Deprecated fields kept for temporary compatibility if needed, but we will migrate away
     url?: string;
     text?: string;
+    title?: string;
 }

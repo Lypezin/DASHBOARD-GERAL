@@ -114,36 +114,43 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
                                             { pos: 'bl', cursor: 'nesw-resize', sensitivity: -1 },
                                             { pos: 'br', cursor: 'nwse-resize', sensitivity: 1 }
                                         ].map((handle) => (
-                                            <motion.div
+                                            <div
                                                 key={handle.pos}
-                                                drag="x"
-                                                dragMomentum={false}
-                                                dragPropagation={false}
-                                                onDrag={(_, info) => {
-                                                    const currentScale = el.scale || 1;
-                                                    const sensitivity = (0.005 / currentScale) * handle.sensitivity;
-                                                    const newScale = Math.max(0.1, Math.min(5.0, (el.scale || 1) + info.delta.x * sensitivity));
-                                                    handleUpdateElement(el.id, { scale: newScale });
+                                                onPointerDown={(e) => {
+                                                    e.stopPropagation();
+                                                    e.preventDefault();
+                                                    const startX = e.clientX;
+                                                    const startScale = el.scale || 1;
+
+                                                    const onPointerMove = (moveEvent: PointerEvent) => {
+                                                        const currentScale = startScale;
+                                                        const deltaX = moveEvent.clientX - startX;
+                                                        const sensitivity = (0.005 / currentScale) * handle.sensitivity;
+                                                        const newScale = Math.max(0.1, Math.min(5.0, startScale + deltaX * sensitivity));
+                                                        handleUpdateElement(el.id, { scale: newScale });
+                                                    };
+
+                                                    const onPointerUp = () => {
+                                                        window.removeEventListener('pointermove', onPointerMove);
+                                                        window.removeEventListener('pointerup', onPointerUp);
+                                                    };
+
+                                                    window.addEventListener('pointermove', onPointerMove);
+                                                    window.addEventListener('pointerup', onPointerUp);
                                                 }}
-                                                onDragEnd={() => { }}
-                                                dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
                                                 style={{
                                                     position: 'absolute',
-                                                    width: 40,
-                                                    height: 40,
+                                                    width: 24,
+                                                    height: 24,
                                                     cursor: handle.cursor,
-                                                    zIndex: 50,
-                                                    left: handle.pos.includes('l') ? -20 : undefined,
-                                                    right: handle.pos.includes('r') ? -20 : undefined,
-                                                    top: handle.pos.includes('t') ? -20 : undefined,
-                                                    bottom: handle.pos.includes('b') ? -20 : undefined,
+                                                    zIndex: 100,
+                                                    left: handle.pos.includes('l') ? -12 : undefined,
+                                                    right: handle.pos.includes('r') ? -12 : undefined,
+                                                    top: handle.pos.includes('t') ? -12 : undefined,
+                                                    bottom: handle.pos.includes('b') ? -12 : undefined,
                                                 }}
-                                                className="flex items-center justify-center"
-                                                whileHover={{ scale: 1.2 }}
-                                                whileTap={{ scale: 0.9 }}
-                                            >
-                                                <div className="w-4 h-4 bg-white border-2 border-slate-400 rounded-full shadow-lg hover:border-blue-500 hover:bg-blue-50 transition-colors" />
-                                            </motion.div>
+                                                className="flex items-center justify-center bg-white border-2 border-slate-400 rounded-full shadow-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                                            />
                                         ))}
                                     </>
                                 )}

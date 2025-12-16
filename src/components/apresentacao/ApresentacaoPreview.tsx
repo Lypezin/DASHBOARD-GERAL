@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect, useMemo, createContext, useContext, useCallback, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Card } from '@/components/ui/card';
@@ -7,6 +8,8 @@ import { PresentationViewport } from './components/PresentationViewport';
 import { PresentationCaptureLayer } from './components/PresentationCaptureLayer';
 import { usePresentationPDF } from './hooks/usePresentationPDF';
 import { SlideSidebar } from './slides/components/SlideSidebar';
+import { MediaToolbar } from './components/MediaToolbar';
+import { MediaSlideData, SlideElement } from '@/types/presentation';
 
 // --- Embedded Context to avoid Build Issues ---
 interface SlideOverride {
@@ -90,6 +93,13 @@ interface ApresentacaoPreviewProps {
   visibleSections: Record<string, boolean>;
   onToggleSection: (section: string) => void;
   onStartPresentation: (orderedSlides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>) => void;
+
+  // New props for Media Editing
+  mediaSlides?: MediaSlideData[];
+  onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void;
+  onAddMediaSlide?: () => void;
+  onDeleteMediaSlide?: (id: string) => void;
+  // Deprecated/Removed
   onManageMedia?: () => void;
 }
 
@@ -98,14 +108,18 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
   currentSlide,
   onSlideChange,
   onNext,
-  onPrev, // We will override these to use local order
+  onPrev,
   onClose,
   numeroSemana1,
   numeroSemana2,
   visibleSections,
   onToggleSection,
   onStartPresentation,
-  onManageMedia,
+  mediaSlides,
+  onUpdateMediaSlide,
+  onAddMediaSlide,
+  onDeleteMediaSlide,
+  onManageMedia
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const captureContainerRef = useRef<HTMLDivElement>(null);
@@ -114,12 +128,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
 
   // Initialize order on mount if empty (or when slides change significantly)
   useEffect(() => {
-    // Only set if order is different length or empty. 
-    // Ideally we want to persist order across re-renders but invoke simple init.
-    // For now, simple logic: if slideOrder is smaller than slides, append.
-    // We trust context to keep state.
     const currentKeys = slides.map(s => s.key);
-    // If context is fresh (empty), set it.
     if (slideOrder.length === 0) {
       setSlideOrder(currentKeys);
     }
@@ -127,14 +136,11 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
 
   // Compute Ordered Slides
   const orderedSlides = useMemo(() => {
-    // Create map
     const map = new Map(slides.map(s => [s.key, s]));
-    // Map based on order
     const ordered = slideOrder
       .map(key => map.get(key))
       .filter((s): s is typeof slides[0] => !!s);
 
-    // Add any missing
     slides.forEach(s => {
       if (!slideOrder.includes(s.key)) ordered.push(s);
     });
@@ -151,16 +157,21 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
   };
 
   const { isGenerating, generatingProgress, capturingIndex, generatePDF } = usePresentationPDF({
-    slides: orderedSlides, // Use ordered slides for PDF
+    slides: orderedSlides,
     numeroSemana1,
     numeroSemana2,
     contentRef,
     captureContainerRef
   });
 
+  // Determine active media slide
+  const activeSlideKey = orderedSlides[currentSlide]?.key;
+  const activeMediaSlide = activeSlideKey && activeSlideKey.startsWith('media-') && mediaSlides
+    ? mediaSlides.find(m => `media-${m.id}` === activeSlideKey)
+    : null;
+
   return (
     <>
-      {/* CSS Global para sincronizar preview com PDF */}
       <style>{`
         .slide * {
           font-family: Inter, Arial, sans-serif !important;
@@ -185,13 +196,17 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
         <Card className="w-full max-w-[95vw] h-[95vh] flex overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-black">
           {/* Sidebar */}
           <SlideSidebar
-            slides={slides} // Pass original to list available keys, logic inside handles order
+            slides={slides}
             currentSlideIndex={currentSlide}
             onSlideSelect={onSlideChange}
+            mediaSlides={mediaSlides || []}
+            onUpdateMediaSlide={onUpdateMediaSlide}
+            onAddMediaSlide={onAddMediaSlide}
+            onDeleteMediaSlide={onDeleteMediaSlide}
           />
 
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col h-full min-w-0 bg-white">
+          <div className="flex-1 flex flex-col h-full min-w-0 bg-white relative">
             <ApresentacaoControls
               currentSlide={currentSlide}
               totalSlides={orderedSlides.length}
@@ -203,7 +218,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               isGenerating={isGenerating}
               visibleSections={visibleSections}
               onToggleSection={onToggleSection}
-              onManageMedia={onManageMedia}
+            // onManageMedia={onManageMedia} // Hidden/Moved to side
             />
 
             <div className="flex-1 overflow-hidden relative bg-slate-100/50 flex flex-col">
@@ -211,6 +226,38 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
                 slides={orderedSlides}
                 currentSlide={currentSlide}
               />
+
+              {/* Media Toolbar Overlay */}
+              {activeMediaSlide && onUpdateMediaSlide && (
+                <MediaToolbar
+                  hasSelection={false}
+                  onAddText={() => {
+                    const newElement: SlideElement = {
+                      id: crypto.randomUUID(),
+                      type: 'text',
+                      content: 'Novo Texto',
+                      position: { x: 0, y: 0 }
+                    };
+                    onUpdateMediaSlide(activeMediaSlide.id, {
+                      elements: [...(activeMediaSlide.elements || []), newElement]
+                    });
+                  }}
+                  onAddImage={(url) => {
+                    const newElement: SlideElement = {
+                      id: crypto.randomUUID(),
+                      type: 'image',
+                      content: url,
+                      position: { x: 0, y: 0 },
+                      scale: 1,
+                      width: 300 // default width
+                    };
+                    onUpdateMediaSlide(activeMediaSlide.id, {
+                      elements: [...(activeMediaSlide.elements || []), newElement]
+                    });
+                  }}
+                  onDeleteSelection={() => { }}
+                />
+              )}
             </div>
           </div>
         </Card>
@@ -226,7 +273,6 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
 };
 
 export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = (props) => {
-  // Ensure portal rendering on client side
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -237,7 +283,6 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = (props) =
     };
   }, []);
 
-  // Initial Order derived from props
   const initialOrder = useMemo(() => props.slides.map(s => s.key), [props.slides]);
 
   if (!mounted) return null;
