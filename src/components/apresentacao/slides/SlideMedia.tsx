@@ -4,8 +4,7 @@ import { MediaSlideData, SlideElement } from '@/types/presentation';
 import SlideWrapper from '../SlideWrapper';
 import { motion } from 'framer-motion';
 import { usePresentationContext } from '@/contexts/PresentationContext';
-// Import context from Preview if available (or duplicate the type to avoid circular dep if needed, but context import is fine if exported)
-import { usePresentationEditor } from '../ApresentacaoPreview';
+import { usePresentationEditor } from '../context/PresentationEditorContext';
 import { SLIDE_HEIGHT, SLIDE_WIDTH } from './../constants';
 
 interface SlideMediaProps {

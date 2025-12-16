@@ -1,6 +1,6 @@
 
 import React, { useRef, useState } from 'react';
-import { usePresentationEditor } from '../../ApresentacaoPreview';
+import { usePresentationEditor } from '../../context/PresentationEditorContext';
 import { GripVertical, Plus, Edit2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';

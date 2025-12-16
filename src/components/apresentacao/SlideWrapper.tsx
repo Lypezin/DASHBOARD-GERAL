@@ -73,6 +73,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
         ...slideTransitionStyle,
         ...style,
       }}
+      onClick={onClick}
     >
       {children}
     </div>
