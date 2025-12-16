@@ -208,7 +208,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                                                 <Reply size={8} />
                                                 <span className="font-bold">Em resposta</span>
                                             </div>
-                                            <div className="truncate italic opacity-90">"...mensagem anterior"</div>
+                                            <div className="truncate italic opacity-90">&quot;...mensagem anterior&quot;</div>
                                         </div>
                                     )}
 
