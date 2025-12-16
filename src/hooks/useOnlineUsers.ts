@@ -16,14 +16,20 @@ export interface OnlineUser {
     is_idle?: boolean;
     custom_status?: string;
     last_typed?: string;
+    typing_to?: string | null; // ID of the user they are typing to
 }
 
 export interface ChatMessage {
     id: string;
-    from: string; // mapped from from_user
-    to: string;   // mapped from to_user
+    from: string;
+    to: string;
     content: string;
-    timestamp: string; // mapped from created_at
+    timestamp: string;
+    replyTo?: { id: string, content?: string, fromName?: string };
+    reactions?: Record<string, string>; // userId: emoji
+    attachments?: { url: string, type: 'image' | 'video' | 'file', name: string }[];
+    isPinned?: boolean;
+    type?: 'text' | 'task_request' | 'system';
 }
 
 export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: string) {
@@ -75,47 +81,81 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
 
         fetchHistory();
 
-        // Subscribe to new messages
+        // Subscribe to chat changes (INSERT and UPDATE)
         const sub = supabase.channel('chat_db_changes')
             .on(
                 'postgres_changes',
                 {
-                    event: 'INSERT',
+                    event: '*', // Listen to INSERT and UPDATE
                     schema: 'public',
                     table: 'chat_messages',
-                    filter: `to_user=eq.${userId}` // Receive messages sent to me
+                    filter: `to_user=eq.${userId}`
                 },
                 (payload) => {
-                    const newMsg = payload.new;
-                    setMessages(prev => [...prev, {
-                        id: newMsg.id,
-                        from: newMsg.from_user,
-                        to: newMsg.to_user,
-                        content: newMsg.content,
-                        timestamp: newMsg.created_at
-                    }]);
+                    if (payload.eventType === 'INSERT') {
+                        const newMsg = payload.new;
+                        setMessages(prev => [...prev, {
+                            id: newMsg.id,
+                            from: newMsg.from_user,
+                            to: newMsg.to_user,
+                            content: newMsg.content,
+                            timestamp: newMsg.created_at,
+                            replyTo: newMsg.reply_to_id ? { id: newMsg.reply_to_id } as any : undefined, // Simplify for now, need to fetch full reply often
+                            reactions: newMsg.reactions || {},
+                            attachments: newMsg.attachments || [],
+                            isPinned: newMsg.is_pinned,
+                            type: newMsg.type
+                        }]);
+                    } else if (payload.eventType === 'UPDATE') {
+                        setMessages(prev => prev.map(m => m.id === payload.new.id ? {
+                            ...m,
+                            reactions: payload.new.reactions || {},
+                            isPinned: payload.new.is_pinned
+                        } : m));
+                    }
                 }
             )
             .on(
                 'postgres_changes',
                 {
-                    event: 'INSERT',
+                    event: '*',
                     schema: 'public',
                     table: 'chat_messages',
-                    filter: `from_user=eq.${userId}` // Receive messages sent by me (multitab/device sync)
+                    filter: `from_user=eq.${userId}`
                 },
                 (payload) => {
-                    // Check if we already have it (optimistic update might have added it)
-                    setMessages(prev => {
-                        if (prev.some(m => m.id === payload.new.id)) return prev;
-                        return [...prev, {
-                            id: payload.new.id,
-                            from: payload.new.from_user,
-                            to: payload.new.to_user,
-                            content: payload.new.content,
-                            timestamp: payload.new.created_at
-                        }];
-                    });
+                    if (payload.eventType === 'INSERT') {
+                        // Check if we already have it (optimistic update might have added it)
+                        setMessages(prev => {
+                            if (prev.some(m => m.id === payload.new.id)) {
+                                return prev.map(m => m.id === payload.new.id ? {
+                                    ...m,
+                                    timestamp: payload.new.created_at,
+                                    // Ensure server values take precedence
+                                    reactions: payload.new.reactions || {},
+                                    isPinned: payload.new.is_pinned
+                                } : m);
+                            }
+                            return [...prev, {
+                                id: payload.new.id,
+                                from: payload.new.from_user,
+                                to: payload.new.to_user,
+                                content: payload.new.content,
+                                timestamp: payload.new.created_at,
+                                replyTo: payload.new.reply_to_id,
+                                reactions: payload.new.reactions || {},
+                                attachments: payload.new.attachments || [],
+                                isPinned: payload.new.is_pinned,
+                                type: payload.new.type
+                            }];
+                        });
+                    } else if (payload.eventType === 'UPDATE') {
+                        setMessages(prev => prev.map(m => m.id === payload.new.id ? {
+                            ...m,
+                            reactions: payload.new.reactions || {},
+                            isPinned: payload.new.is_pinned
+                        } : m));
+                    }
                 }
             )
             .subscribe();
@@ -245,35 +285,80 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
 
     }, [currentTab, isIdle, customStatus]);
 
+    // 6. Typing Logic
+    const setTypingTo = async (targetUserId: string | null) => {
+        if (!channelRef.current || !userId) return;
 
-    const sendMessage = async (toUser: string, content: string) => {
+        // We update our own presence to indicate we are typing to someone
+        const { data: { user } } = await supabase.auth.getUser();
+        const p = await getPresenceData(user);
+
+        if (p) {
+            await channelRef.current.track({
+                ...p,
+                typing_to: targetUserId,
+                last_typed: targetUserId ? new Date().toISOString() : undefined
+            });
+        }
+    };
+
+    const sendMessage = async (toUser: string, content: string, options?: { replyTo?: string, attachments?: any[] }) => {
         if (!userId) return;
 
-        // Optimistic update
         const tempId = Math.random().toString();
-        const msg = {
+        const msg: ChatMessage = {
             id: tempId,
             from: userId,
             to: toUser,
             content,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            replyTo: options?.replyTo ? { id: options.replyTo } : undefined,
+            attachments: options?.attachments
         };
         setMessages(prev => [...prev, msg]);
 
         const { data, error } = await supabase.from('chat_messages').insert({
             from_user: userId,
             to_user: toUser,
-            content: content
+            content: content,
+            reply_to_id: options?.replyTo,
+            attachments: options?.attachments || []
         }).select().single();
 
         if (error) {
             console.error("Error sending message:", error);
-            // Rollback optimistic update if needed, or show error
             setMessages(prev => prev.filter(m => m.id !== tempId));
         } else if (data) {
-            // Replace optimistic with real
-            setMessages(prev => prev.map(m => m.id === tempId ? { ...m, id: data.id, timestamp: data.created_at } : m));
+            setMessages(prev => prev.map(m => m.id === tempId ? {
+                ...m,
+                id: data.id,
+                timestamp: data.created_at,
+                replyTo: data.reply_to_id ? { id: data.reply_to_id } : undefined
+            } : m));
         }
+    };
+
+    const reactToMessage = async (msgId: string, emoji: string) => {
+        // Optimistic
+        setMessages(prev => prev.map(m => {
+            if (m.id === msgId) {
+                const newReactions = { ...m.reactions, [userId!]: emoji };
+                return { ...m, reactions: newReactions };
+            }
+            return m;
+        }));
+
+        // Fetch current reactions first to merge (concurrency handling is basic here)
+        const { data: currentMsg } = await supabase.from('chat_messages').select('reactions').eq('id', msgId).single();
+        const updatedReactions = { ...currentMsg?.reactions, [userId!]: emoji };
+
+        await supabase.from('chat_messages').update({ reactions: updatedReactions }).eq('id', msgId);
+    };
+
+    const pinMessage = async (msgId: string, isPinned: boolean) => {
+        // Optimistic
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, isPinned } : m));
+        await supabase.from('chat_messages').update({ is_pinned: isPinned }).eq('id', msgId);
     };
 
     const clearJoinedUsers = () => setJoinedUsers([]);
@@ -281,9 +366,12 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
     return {
         onlineUsers,
         setCustomStatus,
+        setTypingTo,
         joinedUsers,
         clearJoinedUsers,
         messages,
-        sendMessage
+        sendMessage,
+        reactToMessage,
+        pinMessage
     };
 }

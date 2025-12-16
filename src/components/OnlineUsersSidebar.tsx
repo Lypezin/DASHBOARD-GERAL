@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { useOnlineUsers, OnlineUser } from '@/hooks/useOnlineUsers';
+import { useOnlineUsers, OnlineUser, ChatMessage } from '@/hooks/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
-import { Users, ChevronLeft, ChevronRight, User as UserIcon, Monitor, Smartphone, Clock, Coffee } from 'lucide-react';
+import { Users, ChevronLeft, ChevronRight, User as UserIcon, Monitor, Smartphone, Clock, Coffee, Smile, Pin, Reply, MoreHorizontal, Image, X } from 'lucide-react';
 
 interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;
@@ -11,8 +11,8 @@ interface OnlineUsersSidebarProps {
 
 export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSidebarProps) {
     const [isOpen, setIsOpen] = useState(false);
-    // Agora o hook retorna um objeto completo
-    const { onlineUsers, setCustomStatus, joinedUsers, clearJoinedUsers, messages, sendMessage } = useOnlineUsers(currentUser, currentTab);
+    // Hook updated with new functions
+    const { onlineUsers, setCustomStatus, joinedUsers, clearJoinedUsers, messages, sendMessage, setTypingTo, reactToMessage, pinMessage } = useOnlineUsers(currentUser, currentTab);
     const [searchTerm, setSearchTerm] = useState('');
     const [myCustomStatus, setMyCustomStatus] = useState('');
     const [notifications, setNotifications] = useState<{ id: string, message: string }[]>([]);
@@ -20,6 +20,8 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
     // Chat State
     const [activeChatUser, setActiveChatUser] = useState<OnlineUser | null>(null);
     const [chatInput, setChatInput] = useState('');
+    const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+    const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
     const prevMessagesLengthRef = useRef(messages.length);
@@ -81,8 +83,11 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
 
     const handleSendMessage = async () => {
         if (!chatInput.trim() || !activeChatUser) return;
-        await sendMessage(activeChatUser.id, chatInput);
+        await sendMessage(activeChatUser.id, chatInput, {
+            replyTo: replyingTo?.id
+        });
         setChatInput('');
+        setReplyingTo(null);
     };
 
     // Filter messages for active chat
@@ -136,50 +141,147 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
         >
             {/* Chat Window (Popup to the left of sidebar) */}
             {activeChatUser && (
-                <div className="absolute top-0 -left-64 w-60 h-80 bg-white shadow-xl border border-slate-200 rounded-lg flex flex-col z-50 overflow-hidden animate-in slide-in-from-right-5">
+                <div className="absolute top-0 -left-80 w-80 h-[500px] bg-white shadow-xl border border-slate-200 rounded-lg flex flex-col z-50 overflow-hidden animate-in slide-in-from-right-5 font-sans">
                     {/* Chat Header */}
-                    <div className="p-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                    <div className="p-3 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm z-10">
                         <div className="flex items-center gap-2">
                             <div className="relative">
-                                <span className={cn("absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white", activeChatUser.is_idle ? "bg-amber-400" : "bg-emerald-500")} />
+                                <span className={cn("absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white", activeChatUser.is_idle ? "bg-amber-400" : "bg-emerald-500")} />
                                 {activeChatUser.avatar_url ? (
-                                    <img src={activeChatUser.avatar_url} alt="Avatar" className="w-6 h-6 rounded-full" />
-                                ) : <UserIcon className="w-6 h-6 p-1 bg-slate-200 rounded-full" />}
+                                    <img src={activeChatUser.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full object-cover" />
+                                ) : <UserIcon className="w-8 h-8 p-1.5 bg-slate-100 rounded-full text-slate-500" />}
                             </div>
-                            <span className="text-xs font-semibold truncate max-w-[100px]">{activeChatUser.name?.split(' ')[0]}</span>
+                            <div className="leading-tight">
+                                <span className="text-sm font-bold text-slate-800 block">{activeChatUser.name?.split(' ')[0]}</span>
+                                <span className="text-[10px] text-slate-500 block">
+                                    {activeChatUser.typing_to === currentUser.id ? <span className="text-blue-500 animate-pulse font-medium">digitando...</span> : (activeChatUser.is_idle ? 'Ausente' : 'Online')}
+                                </span>
+                            </div>
                         </div>
-                        <button onClick={() => setActiveChatUser(null)} className="text-slate-400 hover:text-slate-600">×</button>
+                        <button onClick={() => setActiveChatUser(null)} className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-full transition-colors"><X size={16} /></button>
                     </div>
 
+                    {/* Pinned Messages Header (if any) */}
+                    {activeMessages.some(m => m.isPinned) && (
+                        <div className="bg-yellow-50 px-3 py-1 border-b border-yellow-100 flex items-center gap-2 text-[10px] text-yellow-700">
+                            <Pin size={10} className="fill-yellow-600 text-yellow-600" />
+                            <span className="truncate flex-1 font-medium">Mensagens fixadas</span>
+                        </div>
+                    )}
+
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-slate-50/30">
+                    <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-50/50">
                         {activeMessages.length === 0 && (
-                            <p className="text-[10px] text-center text-slate-400 mt-4">Envie um &quot;Olá&quot; 👋</p>
-                        )}
-                        {activeMessages.map((msg, i) => (
-                            <div key={i} className={cn("flex flex-col max-w-[85%]", msg.from === currentUser.id ? "ml-auto items-end" : "mr-auto items-start")}>
-                                <div className={cn("px-2 py-1 rounded-lg text-xs break-words",
-                                    msg.from === currentUser.id ? "bg-blue-500 text-white rounded-br-none" : "bg-white border border-slate-200 text-slate-700 rounded-bl-none"
-                                )}>
-                                    {msg.content}
+                            <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
+                                <div className="p-3 bg-slate-100 rounded-full">
+                                    <Smile size={24} className="text-slate-300" />
                                 </div>
-                                <span className="text-[9px] text-slate-300 mt-0.5">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <p className="text-xs">Inicie a conversa!</p>
                             </div>
-                        ))}
+                        )}
+                        {activeMessages.map((msg, i) => {
+                            const isMe = msg.from === currentUser.id;
+                            const isHovered = hoveredMessage === msg.id;
+
+                            return (
+                                <div
+                                    key={i}
+                                    className={cn("flex flex-col max-w-[85%] group relative", isMe ? "ml-auto items-end" : "mr-auto items-start")}
+                                    onMouseEnter={() => setHoveredMessage(msg.id)}
+                                    onMouseLeave={() => setHoveredMessage(null)}
+                                >
+                                    {/* Action Buttons (Hover) */}
+                                    {isHovered && (
+                                        <div className={cn("absolute -top-3 flex items-center gap-0.5 bg-white shadow-sm border border-slate-200 rounded-full p-0.5 z-10", isMe ? "right-0" : "left-0")}>
+                                            <button onClick={() => reactToMessage(msg.id, '👍')} className="p-1 hover:bg-slate-100 rounded-full" title="Curtir"><Smile size={12} className="text-slate-500" /></button>
+                                            <button onClick={() => setReplyingTo(msg)} className="p-1 hover:bg-slate-100 rounded-full" title="Responder"><Reply size={12} className="text-slate-500" /></button>
+                                            <button onClick={() => pinMessage(msg.id, !msg.isPinned)} className="p-1 hover:bg-slate-100 rounded-full" title="Fixar"><Pin size={12} className={cn(msg.isPinned ? "fill-black text-black" : "text-slate-500")} /></button>
+                                        </div>
+                                    )}
+
+                                    {/* Reply Context */}
+                                    {msg.replyTo && (
+                                        <div className={cn("text-[9px] px-2 py-1 rounded-t-lg border-x border-t w-full mb-[-1px] opacity-80",
+                                            isMe ? "bg-blue-600 text-blue-100 border-blue-500" : "bg-slate-200 text-slate-600 border-slate-300"
+                                        )}>
+                                            <div className="flex items-center gap-1 opacity-75 mb-0.5">
+                                                <Reply size={8} />
+                                                <span className="font-bold">Em resposta</span>
+                                            </div>
+                                            <div className="truncate italic opacity-90">"...mensagem anterior"</div>
+                                        </div>
+                                    )}
+
+                                    {/* Message Bubble */}
+                                    <div className={cn("px-3 py-2 rounded-lg text-xs break-words shadow-sm relative",
+                                        isMe ? "bg-blue-600 text-white rounded-br-none" : "bg-white border border-slate-200 text-slate-700 rounded-bl-none",
+                                        msg.isPinned && "ring-1 ring-yellow-400 bg-yellow-50/50"
+                                    )}>
+                                        {msg.content}
+                                        {/* Timestamp & Checks */}
+                                        <div className={cn("text-[9px] mt-1 text-right flex items-center justify-end gap-1", isMe ? "text-blue-100" : "text-slate-400")}>
+                                            {msg.isPinned && <Pin size={8} className="fill-current" />}
+                                            {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    </div>
+
+                                    {/* Reactions */}
+                                    {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1 -mb-1 z-10">
+                                            {Object.entries(msg.reactions).map(([uid, emoji], idx) => (
+                                                <span key={idx} className="bg-white border border-slate-100 shadow-sm rounded-full px-1 py-0.5 text-[9px]">{emoji}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                         <div ref={chatEndRef} />
                     </div>
 
-                    {/* Input */}
-                    <div className="p-2 border-t border-slate-100 bg-white">
-                        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-1">
-                            <input
-                                className="flex-1 text-xs border border-slate-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400"
-                                placeholder="Digite..."
-                                value={chatInput}
-                                onChange={e => setChatInput(e.target.value)}
-                            />
-                            <button type="submit" className="bg-blue-500 text-white rounded p-1 hover:bg-blue-600">
-                                <ChevronRight size={14} />
+                    {/* Input Area */}
+                    <div className="p-3 border-t border-slate-100 bg-white">
+                        {/* Reply Preview */}
+                        {replyingTo && (
+                            <div className="flex items-center justify-between bg-slate-50 border border-slate-200 border-b-0 rounded-t-lg p-2 text-xs text-slate-600">
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <Reply size={12} className="shrink-0 text-blue-500" />
+                                    <span className="truncate max-w-[200px] border-l-2 border-blue-300 pl-2 italic">
+                                        {replyingTo.content}
+                                    </span>
+                                </div>
+                                <button onClick={() => setReplyingTo(null)} className="hover:bg-slate-200 rounded p-0.5"><X size={12} /></button>
+                            </div>
+                        )}
+
+                        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className={cn("flex gap-2 items-end", replyingTo && "bg-slate-50 p-2 rounded-b-lg border border-slate-200 border-t-0")}>
+                            <button type="button" className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors" title="Enviar Imagem (Em breve)">
+                                <Image size={18} />
+                            </button>
+                            <div className="flex-1 relative">
+                                <textarea
+                                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 pr-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 resize-none max-h-24 scrollbar-hide bg-slate-50/50"
+                                    placeholder="Digite uma mensagem..."
+                                    rows={1}
+                                    value={chatInput}
+                                    onChange={e => {
+                                        setChatInput(e.target.value);
+                                        setTypingTo(activeChatUser.id);
+                                    }}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={!chatInput.trim()}
+                                className="bg-blue-600 text-white rounded-lg p-2 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                            >
+                                <ChevronRight size={18} />
                             </button>
                         </form>
                     </div>
@@ -410,11 +512,13 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
             </div>
 
             {/* Footer info */}
-            {isOpen && (
-                <div className="p-2 text-center border-t border-slate-100 text-[10px] text-slate-300 bg-slate-50/50 rounded-bl-xl">
-                    Atualizado em tempo real
-                </div>
-            )}
-        </div>
+            {
+                isOpen && (
+                    <div className="p-2 text-center border-t border-slate-100 text-[10px] text-slate-300 bg-slate-50/50 rounded-bl-xl">
+                        Atualizado em tempo real
+                    </div>
+                )
+            }
+        </div >
     );
 }
