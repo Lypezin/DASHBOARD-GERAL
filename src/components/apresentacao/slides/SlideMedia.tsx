@@ -71,21 +71,12 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
             isVisible={isVisible}
             style={{
                 padding: 0,
-                backgroundColor: '#ffffff',
-                overflow: 'hidden',
-                position: 'relative',
-                // Force fixed height in WebMode to match Canvas/Preview coordinates and prevent cutoff
-                // Preview mode handles its own scaling via PresentationViewport
-                minHeight: isWebMode ? `${SLIDE_HEIGHT}px` : undefined,
-                height: isWebMode ? `${SLIDE_HEIGHT}px` : undefined,
-                maxWidth: isWebMode ? `${SLIDE_WIDTH}px` : undefined
+                backgroundColor: '#ffffff'
             }}
             // Deselect on click background
             onClick={() => canDrag && setSelectedElementId(null)}
         >
             {/* Main Container */}
-            {/* DEBUG BOX */}
-            <div className="absolute top-0 left-0 w-10 h-10 bg-red-500 z-[999] pointer-events-none opacity-50"></div>
 
             <div ref={containerRef} className="w-full h-full relative bg-white">
                 {elements.map((el) => {
