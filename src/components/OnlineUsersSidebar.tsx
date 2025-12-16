@@ -21,7 +21,6 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
     const [activeChatUser, setActiveChatUser] = useState<OnlineUser | null>(null);
     const [chatInput, setChatInput] = useState('');
     const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
-    const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
     const prevMessagesLengthRef = useRef(messages.length);
@@ -181,23 +180,39 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                         )}
                         {activeMessages.map((msg, i) => {
                             const isMe = msg.from === currentUser.id;
-                            const isHovered = hoveredMessage === msg.id;
 
                             return (
                                 <div
                                     key={i}
-                                    className={cn("flex flex-col max-w-[85%] group relative", isMe ? "ml-auto items-end" : "mr-auto items-start")}
-                                    onMouseEnter={() => setHoveredMessage(msg.id)}
-                                    onMouseLeave={() => setHoveredMessage(null)}
+                                    className={cn("flex flex-col max-w-[85%] group relative mb-2", isMe ? "ml-auto items-end" : "mr-auto items-start")}
                                 >
-                                    {/* Action Buttons (Hover) */}
-                                    {isHovered && (
-                                        <div className={cn("absolute -top-3 flex items-center gap-0.5 bg-white shadow-sm border border-slate-200 rounded-full p-0.5 z-10", isMe ? "right-0" : "left-0")}>
-                                            <button onClick={() => reactToMessage(msg.id, '👍')} className="p-1 hover:bg-slate-100 rounded-full" title="Curtir"><Smile size={12} className="text-slate-500" /></button>
-                                            <button onClick={() => setReplyingTo(msg)} className="p-1 hover:bg-slate-100 rounded-full" title="Responder"><Reply size={12} className="text-slate-500" /></button>
-                                            <button onClick={() => pinMessage(msg.id, !msg.isPinned)} className="p-1 hover:bg-slate-100 rounded-full" title="Fixar"><Pin size={12} className={cn(msg.isPinned ? "fill-black text-black" : "text-slate-500")} /></button>
-                                        </div>
-                                    )}
+                                    {/* Action Buttons (CSS Hover) */}
+                                    <div className={cn(
+                                        "absolute -top-3 flex items-center gap-0.5 bg-white shadow-sm border border-slate-200 rounded-full p-0.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+                                        isMe ? "right-0" : "left-0"
+                                    )}>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); reactToMessage(msg.id, '👍'); }}
+                                            className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-blue-500 transition-colors"
+                                            title="Curtir"
+                                        >
+                                            <Smile size={12} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setReplyingTo(msg); }}
+                                            className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-blue-500 transition-colors"
+                                            title="Responder"
+                                        >
+                                            <Reply size={12} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); pinMessage(msg.id, !msg.isPinned); }}
+                                            className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-blue-500 transition-colors"
+                                            title={msg.isPinned ? "Desafixar" : "Fixar"}
+                                        >
+                                            <Pin size={12} className={cn(msg.isPinned ? "fill-orange-400 text-orange-400" : "")} />
+                                        </button>
+                                    </div>
 
                                     {/* Reply Context */}
                                     {msg.replyTo && (
