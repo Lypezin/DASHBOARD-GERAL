@@ -229,9 +229,17 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                                         )}>
                                             <div className="flex items-center gap-1 opacity-75 mb-0.5">
                                                 <Reply size={8} />
-                                                <span className="font-bold">Em resposta</span>
+                                                <span className="font-bold">
+                                                    {(() => {
+                                                        const replyTarget = messages.find(m => m.id === msg.replyTo?.id);
+                                                        return replyTarget?.from === currentUser.id ? "Você" :
+                                                            (replyTarget ? (onlineUsers.find(u => u.id === replyTarget.from)?.name?.split(' ')[0] || "Alguém") : "Mensagem antiga");
+                                                    })()}
+                                                </span>
                                             </div>
-                                            <div className="truncate italic opacity-90">&quot;...mensagem anterior&quot;</div>
+                                            <div className="truncate italic opacity-90">
+                                                &quot;{messages.find(m => m.id === msg.replyTo?.id)?.content || "...mensagem não encontrada"}&quot;
+                                            </div>
                                         </div>
                                     )}
 
