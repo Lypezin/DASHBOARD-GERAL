@@ -24,9 +24,17 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
     const chatEndRef = useRef<HTMLDivElement>(null);
     const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
     const prevMessagesLengthRef = useRef(messages.length);
+    const initialLoadRef = useRef(true);
 
     // Track unread messages
     useEffect(() => {
+        // Skip the initial load of messages (history) to prevent ghost notifications on F5
+        if (initialLoadRef.current && messages.length > 0) {
+            prevMessagesLengthRef.current = messages.length;
+            initialLoadRef.current = false;
+            return;
+        }
+
         if (messages.length > prevMessagesLengthRef.current) {
             const newMsgs = messages.slice(prevMessagesLengthRef.current);
             newMsgs.forEach(msg => {

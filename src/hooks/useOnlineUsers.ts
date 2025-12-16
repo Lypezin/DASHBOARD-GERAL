@@ -329,12 +329,21 @@ export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: stri
             console.error("Error sending message:", error);
             setMessages(prev => prev.filter(m => m.id !== tempId));
         } else if (data) {
-            setMessages(prev => prev.map(m => m.id === tempId ? {
-                ...m,
-                id: data.id,
-                timestamp: data.created_at,
-                replyTo: data.reply_to_id ? { id: data.reply_to_id } : undefined
-            } : m));
+            setMessages(prev => {
+                // Logic to avoid duplication if Realtime INSERT arrived first
+                const alreadyExists = prev.some(m => m.id === data.id);
+                if (alreadyExists) {
+                    // Remove optimistic, keep real
+                    return prev.filter(m => m.id !== tempId);
+                }
+                // Replace optimistic with real
+                return prev.map(m => m.id === tempId ? {
+                    ...m,
+                    id: data.id,
+                    timestamp: data.created_at,
+                    replyTo: data.reply_to_id ? { id: data.reply_to_id } : undefined
+                } : m);
+            });
         }
     };
 
