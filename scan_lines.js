@@ -1,45 +1,66 @@
 const fs = require('fs');
 const path = require('path');
 
-function walkDir(dir, files = []) {
-    const list = fs.readdirSync(dir);
-    list.forEach(file => {
-        const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath);
-        if (stat && stat.isDirectory()) {
-            walkDir(filePath, files);
-        } else {
-            if (file.endsWith('.ts') || file.endsWith('.tsx')) {
-                files.push(filePath);
-            }
-        }
-    });
-    return files;
+const rootDir = process.cwd();
+const srcDir = path.join(rootDir, 'src');
+const ignoreDirs = ['node_modules', '.git', '.next', 'out', 'dist', 'build', '.cursor'];
+const extensions = ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'];
+
+function countLines(filePath) {
+    try {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        return content.split('\n').length;
+    } catch (e) {
+        return 0;
+    }
 }
 
-const srcDir = path.join(__dirname, 'src');
-const files = walkDir(srcDir);
-const largeFiles = [];
+function scanDirectory(directory, fileList = []) {
+    const files = fs.readdirSync(directory);
 
-files.forEach(file => {
-    const content = fs.readFileSync(file, 'utf-8');
-    const lines = content.split('\n').length;
-    if (lines >= 150) {
-        largeFiles.push({ path: file, lines: lines });
+    for (const file of files) {
+        const fullPath = path.join(directory, file);
+        const stat = fs.statSync(fullPath);
+
+        if (stat.isDirectory()) {
+            if (!ignoreDirs.includes(file)) {
+                scanDirectory(fullPath, fileList);
+            }
+        } else {
+            const ext = path.extname(file);
+            if (extensions.includes(ext)) {
+                const lines = countLines(fullPath);
+                if (lines > 200) {
+                    fileList.push({ path: fullPath, lines });
+                }
+            }
+        }
     }
-});
 
-// Sort by lines descending
-largeFiles.sort((a, b) => b.lines - a.lines);
+    return fileList;
+}
 
-// Format output
-let output = '--- SCAN RESULTS START ---\n';
-largeFiles.forEach(f => {
-    const relPath = path.relative(__dirname, f.path);
-    output += `${relPath}: ${f.lines}\n`;
-});
-output += '--- SCAN RESULTS END ---\n';
+try {
+    console.log('Scanning src directory...');
+    const largeFiles = scanDirectory(srcDir);
+    
+    // Sort by line count descending
+    largeFiles.sort((a, b) => b.lines - a.lines);
 
-// Write to file directly
-fs.writeFileSync(path.join(__dirname, 'scan_results.txt'), output, 'utf-8');
-console.log('Results written to scan_results.txt');
+    console.log('\nFiles > 200 lines:');
+    console.log('-------------------');
+    largeFiles.forEach(f => {
+        const relPath = path.relative(rootDir, f.path);
+        console.log(`${f.lines} lines: ${relPath}`);
+    });
+
+    console.log(`\nTotal files found: ${largeFiles.length}`);
+    
+    // Also write to a file for easier reading
+    const outputContent = largeFiles.map(f => `${f.lines} lines: ${path.relative(rootDir, f.path)}`).join('\n');
+    fs.writeFileSync('scan_results.txt', outputContent);
+    console.log('Results saved to scan_results.txt');
+
+} catch (error) {
+    console.error('Error scanning:', error);
+}

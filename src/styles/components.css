@@ -1,0 +1,86 @@
+/* Cards modernos */
+.card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Botões modernos */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Tabelas responsivas e modernas */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg-secondary);
+}
+
+table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+table tbody tr:hover {
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+.dark table tbody tr:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Gráficos */
+canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+
+/* Loading states */
+.skeleton {
+    background: linear-gradient(90deg,
+            var(--bg-secondary) 0%,
+            var(--bg-tertiary) 50%,
+            var(--bg-secondary) 100%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+/* Badges e Pills */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+}

@@ -2,6 +2,11 @@
  * Tipos relacionados a filtros e payloads de filtros
  */
 
+export interface FilterOption {
+  value: string;
+  label: string;
+}
+
 /**
  * Payload de filtros para funções RPC
  */
@@ -59,3 +64,6 @@ export interface DashboardFilters {
   dataInicial: string | null;
   dataFinal: string | null;
 }
+
+// Alias para compatibilidade
+export type Filters = DashboardFilters;

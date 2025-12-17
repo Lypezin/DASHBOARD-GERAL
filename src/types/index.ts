@@ -12,10 +12,10 @@ export * from './auth';
 // Tipos de Marketing
 export * from './marketing';
 
-// Tipos de RPC (já existe em rpc.ts)
+// Tipos de RPC
 export * from './rpc';
 
-// Tipos de Cache (já existe em cache.ts)
+// Tipos de Cache
 export * from './cache';
 
 // Tipos de Upload
@@ -23,3 +23,10 @@ export * from './upload';
 
 // Tipos de Filtros
 export * from './filters';
+
+// Novos tipos extraídos
+export * from './utr';
+export * from './entregadores';
+export * from './financeiro';
+export * from './evolucao';
+export * from './users';
