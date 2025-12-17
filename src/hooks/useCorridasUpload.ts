@@ -3,7 +3,7 @@
  * Re-exporta lógica modularizada
  */
 
-import { useUploadRefresh } from '../useUploadRefresh';
+import { useUploadRefresh } from '@/hooks/useUploadRefresh';
 import { useFileSelection } from './upload/useFileSelection';
 import { useUploadProcessor } from './upload/useUploadProcessor';
 
