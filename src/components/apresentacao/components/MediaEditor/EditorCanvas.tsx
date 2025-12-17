@@ -35,7 +35,6 @@ export function EditorCanvas({ elements, selectedElementId, setSelectedElementId
                 {elements.map(el => {
                     const isSelected = el.id === selectedElementId;
                     const commonProps = {
-                        key: el.id,
                         drag: true,
                         dragMomentum: false,
                         onClick: (e: React.MouseEvent) => { e.stopPropagation(); setSelectedElementId(el.id); },
@@ -63,7 +62,7 @@ export function EditorCanvas({ elements, selectedElementId, setSelectedElementId
 
                     if (el.type === 'image') {
                         return (
-                            <motion.div {...commonProps} className={`flex items-center justify-center origin-center group ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
+                            <motion.div key={el.id} {...commonProps} className={`flex items-center justify-center origin-center group ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
                                 {isSelected && (
                                     <>
                                         {[
@@ -73,7 +72,7 @@ export function EditorCanvas({ elements, selectedElementId, setSelectedElementId
                                             { pos: 'br', cursor: 'nwse-resize', sensitivity: 1 }
                                         ].map((handle) => (
                                             <motion.div
-                                                key={handle.pos}
+                                                key={`${el.id}-${handle.pos}`}
                                                 drag="x"
                                                 dragMomentum={false}
                                                 dragPropagation={false}
@@ -104,7 +103,7 @@ export function EditorCanvas({ elements, selectedElementId, setSelectedElementId
                         );
                     } else if (el.type === 'text') {
                         return (
-                            <motion.div {...commonProps} className={`text-center font-semibold pointer-events-auto text-slate-900 drop-shadow-xl p-4 ${isSelected ? 'ring-2 ring-blue-500 rounded border border-blue-200/50' : ''}`}>
+                            <motion.div key={el.id} {...commonProps} className={`text-center font-semibold pointer-events-auto text-slate-900 drop-shadow-xl p-4 ${isSelected ? 'ring-2 ring-blue-500 rounded border border-blue-200/50' : ''}`}>
                                 <span className="text-xl md:text-3xl select-none whitespace-pre-wrap" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.8)' }}>
                                     {el.content}
                                 </span>
