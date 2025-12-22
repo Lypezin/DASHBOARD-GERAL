@@ -6,11 +6,11 @@
 import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
 import type { LoginFormData } from '@/hooks/login/useLogin';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { LoginHeader } from './components/LoginHeader';
+import { LoginFields } from './components/LoginFields';
 
 interface LoginFormProps {
   loading: boolean;
@@ -46,11 +46,7 @@ export const LoginForm = React.memo(function LoginForm({
 
   return (
     <>
-      {/* Card Header */}
-      <div className="mb-8 text-center">
-        <h2 className="mb-2 text-2xl font-bold text-slate-800">Bem-vindo de volta</h2>
-        <p className="text-sm font-medium text-slate-500">Entre com suas credenciais para continuar</p>
-      </div>
+      <LoginHeader />
 
       {/* Error Message */}
       {error && (
@@ -62,62 +58,15 @@ export const LoginForm = React.memo(function LoginForm({
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Email Field */}
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-slate-600 font-medium">Email</Label>
-          <div className="relative group">
-            <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={handleEmailChange}
-                required
-                className="pl-9 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
-                placeholder="seu@email.com"
-                disabled={loading}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Password Field */}
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-slate-600 font-medium">Senha</Label>
-          <div className="relative group">
-            <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={handlePasswordChange}
-                required
-                className="pl-9 pr-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
-                placeholder="••••••••"
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={toggleShowPassword}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            <div className="flex justify-end pt-1 relative z-10">
-              <Link
-                href="/esqueci-senha"
-                className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
-              >
-                Esqueci minha senha
-              </Link>
-            </div>
-          </div>
-        </div>
+        <LoginFields
+          email={email}
+          onEmailChange={handleEmailChange}
+          password={password}
+          onPasswordChange={handlePasswordChange}
+          showPassword={showPassword}
+          onTogglePassword={toggleShowPassword}
+          loading={loading}
+        />
 
         {/* Submit Button */}
         <Button
@@ -168,4 +117,3 @@ export const LoginForm = React.memo(function LoginForm({
 });
 
 LoginForm.displayName = 'LoginForm';
-

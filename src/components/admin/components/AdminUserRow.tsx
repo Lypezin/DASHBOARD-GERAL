@@ -1,26 +1,10 @@
 import React from 'react';
 import { User, UserProfile } from '@/hooks/useAdminData';
 import { Organization } from '@/hooks/useOrganizations';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import {
-    MoreHorizontal,
-    Shield,
-    ShieldAlert,
-    CheckCircle,
-    XCircle,
-    Edit,
-    Building2
-} from 'lucide-react';
+import { Building2 } from 'lucide-react';
+import { AdminUserCell } from './AdminUserCell';
+import { AdminActionsMenu } from './AdminActionsMenu';
 
 interface AdminUserRowProps {
     user: User;
@@ -47,40 +31,10 @@ export const AdminUserRow: React.FC<AdminUserRowProps> = ({
         return org?.name || 'Organização não encontrada';
     };
 
-    const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase();
-    };
-
     return (
         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
             <td className="p-4 align-middle">
-                <div className="flex items-center gap-3">
-                    <Avatar>
-                        <AvatarImage src={user.avatar_url} />
-                        <AvatarFallback>{getInitials(user.full_name)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                        <span className="font-medium">{user.full_name}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
-                        <div className="mt-1 flex gap-1">
-                            {user.is_admin && (
-                                <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 gap-1">
-                                    <Shield className="h-3 w-3" /> Admin
-                                </Badge>
-                            )}
-                            {user.role === 'marketing' && !user.is_admin && (
-                                <Badge variant="outline" className="text-[10px] px-1 py-0 h-5">
-                                    Marketing
-                                </Badge>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <AdminUserCell user={user} />
             </td>
             <td className="p-4 align-middle">
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -118,56 +72,14 @@ export const AdminUserRow: React.FC<AdminUserRowProps> = ({
                 </div>
             </td>
             <td className="p-4 align-middle text-right">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Abrir menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem
-                            onClick={() => navigator.clipboard.writeText(user.email)}
-                        >
-                            Copiar Email
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {!user.is_admin && !user.is_approved && (
-                            <DropdownMenuItem onClick={() => onApprove(user)} className="text-emerald-600">
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Aprovar Acesso
-                            </DropdownMenuItem>
-                        )}
-                        {user.is_approved && !user.is_admin && (
-                            <>
-                                <DropdownMenuItem onClick={() => onEditPracas(user)}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Editar Praças
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onRevokeAccess(user.id)} className="text-rose-600">
-                                    <XCircle className="mr-2 h-4 w-4" />
-                                    Revogar Acesso
-                                </DropdownMenuItem>
-                            </>
-                        )}
-                        {user.id !== currentUser?.id && (
-                            <DropdownMenuItem onClick={() => onToggleAdmin(user.id, user.is_admin)}>
-                                {user.is_admin ? (
-                                    <>
-                                        <ShieldAlert className="mr-2 h-4 w-4" />
-                                        Remover Admin
-                                    </>
-                                ) : (
-                                    <>
-                                        <Shield className="mr-2 h-4 w-4" />
-                                        Tornar Admin
-                                    </>
-                                )}
-                            </DropdownMenuItem>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <AdminActionsMenu
+                    user={user}
+                    currentUser={currentUser}
+                    onApprove={onApprove}
+                    onEditPracas={onEditPracas}
+                    onRevokeAccess={onRevokeAccess}
+                    onToggleAdmin={onToggleAdmin}
+                />
             </td>
         </tr>
     );
