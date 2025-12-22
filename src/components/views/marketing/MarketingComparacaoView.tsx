@@ -20,13 +20,15 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
     let dataInicial = filters.dataInicial;
     let dataFinal = filters.dataFinal;
 
-    // If dates are not set (e.g. Ano/Semana mode), calculate from week/year
-    if (!dataInicial || !dataFinal) {
-        if (filters.ano && filters.semana) {
-            const range = getDateRangeFromWeek(filters.ano, filters.semana);
-            dataInicial = range.start;
-            dataFinal = range.end;
-        } else if (filters.ano) {
+    // Force calculation from week/year if they are present, to ensure full ISO week range
+    // (This prevents issue where Month/Year filters might clip the start of the week, e.g. Dec 30/31 being excluded from Week 1)
+    if (filters.ano && filters.semana) {
+        const range = getDateRangeFromWeek(filters.ano, filters.semana);
+        dataInicial = range.start;
+        dataFinal = range.end;
+    } else if (!dataInicial || !dataFinal) {
+        // Fallback logic for when dates are missing and no specific week is selected
+        if (filters.ano) {
             // Whole year if only year is selected (or default to current year jan 1 - dec 31)
             dataInicial = `${filters.ano}-01-01`;
             dataFinal = `${filters.ano}-12-31`;
