@@ -5,7 +5,7 @@ export const chatService = {
     async fetchHistory(userId: string) {
         const { data, error } = await supabase
             .from('chat_messages')
-            .select('*')
+            .select('id, from_user, to_user, content, created_at, reply_to_id, reactions, attachments, is_pinned, type')
             .or(`from_user.eq.${userId},to_user.eq.${userId}`)
             .order('created_at', { ascending: false })
             .limit(100);

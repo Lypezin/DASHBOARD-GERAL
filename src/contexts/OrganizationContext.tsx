@@ -39,7 +39,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
       // Verificar se usuário está autenticado
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError || !user) {
         setOrganization(null);
         setIsLoading(false);
@@ -61,7 +61,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       // Buscar dados da organização
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
-        .select('*')
+        .select('id, name, slug, max_users, is_active, created_at, updated_at')
         .eq('id', organizationId)
         .single();
 
