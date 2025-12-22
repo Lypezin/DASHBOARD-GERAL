@@ -38,7 +38,6 @@ export async function fetchEntregadores(
       rodou_dia_final: filtroRodouDia.dataFinal || null,
       data_inicio_inicial: filtroDataInicio.dataInicial || null,
       data_inicio_final: filtroDataInicio.dataFinal || null,
-      data_inicio_final: filtroDataInicio.dataFinal || null,
       cidade: cidadeSelecionada || null,
       p_limit: limit
     };
