@@ -4,8 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download, Loader2, FileSpreadsheet } from 'lucide-react';
-import { fetchEntregadores } from '@/components/views/entregadores/EntregadoresDataFetcher';
-import { fetchEntregadoresAggregation } from '@/components/views/entregadores/helpers/fetchEntregadoresAggregation';
 import { getDateRangeFromWeek } from '@/utils/timeHelpers';
 import { EntregadorMarketing } from '@/types';
 import * as XLSX from 'xlsx';
@@ -29,6 +27,11 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Pagination state
+    const [page, setPage] = useState(0);
+    const [totalCount, setTotalCount] = useState(0);
+    const LIMIT = 50;
+
     const getWeekRange = (iso: string) => {
         if (!iso) return { start: '', end: '' };
         const parts = iso.split('-W');
@@ -40,51 +43,36 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
 
     const { start, end } = getWeekRange(semanaIso);
 
-    const fetchData = useCallback(async () => {
+    const loadData = useCallback(async (pageNum: number, isReset: boolean) => {
         if (!isOpen || !semanaIso) return;
 
         setLoading(true);
         setError(null);
-        setData([]);
+        if (isReset) {
+            setData([]);
+        }
 
         try {
             const { start, end } = getWeekRange(semanaIso);
-            // Usar limite de 5000 para balancear performance e completude dos dados
-            // O RPC pode ter limites internos, então não adianta pedir muito mais
-            const limit = 5000;
+            const offset = pageNum * LIMIT;
 
-            // 1. Fetch "Marketing" Drivers (via RPC)
-            // This returns drivers flagged as Marketing by the backend logic
-            const marketingList = await fetchEntregadores(
-                { dataInicial: start, dataFinal: end }, // filtroRodouDia
-                { dataInicial: null, dataFinal: null }, // filtroDataInicio
-                '', // cidadeSelecionada (Empty = all cities)
-                async () => [], // Fallback (not needed here as we handle errors)
-                '', // searchTerm
-                limit
-            );
+            // Import dynamically or ensure it's imported at top
+            const { fetchEntregadoresDetails } = await import('@/components/views/entregadores/EntregadoresDataFetcher');
 
-            // 2. Fetch "All" Drivers (Aggregation/Manual)
-            // This bypasses the RPC logic and fetches everyone in the tables for that period
-            const allDriversList = await fetchEntregadoresAggregation(
-                { dataInicial: null, dataFinal: null },
-                { dataInicial: start, dataFinal: end },
-                '',
-                ''
-            );
+            const result = await fetchEntregadoresDetails({
+                organizationId,
+                startDate: start,
+                endDate: end,
+                type: activeTab === 'marketing' ? 'MARKETING' : 'OPERATIONAL',
+                limit: LIMIT,
+                offset: offset
+            });
 
-            // 3. Separate Lists based on Tab
-            if (activeTab === 'marketing') {
-                setData(marketingList);
+            if (isReset) {
+                setData(result.data);
+                setTotalCount(result.totalCount);
             } else {
-                // Operational = All - Marketing
-                // We identify Marketing drivers by their ID
-                const marketingIds = new Set(marketingList.map(m => m.id_entregador));
-
-                // Filter "All" list to keep only those NOT in "Marketing" list
-                const opsList = allDriversList.filter(d => !marketingIds.has(d.id_entregador));
-
-                setData(opsList);
+                setData(prev => [...prev, ...result.data]);
             }
 
         } catch (err: any) {
@@ -93,11 +81,19 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
         } finally {
             setLoading(false);
         }
-    }, [isOpen, semanaIso, activeTab]);
+    }, [isOpen, semanaIso, activeTab, organizationId]);
 
+    // Reset and load when tab or week changes
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        setPage(0);
+        loadData(0, true);
+    }, [semanaIso, activeTab, loadData]);
+
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        loadData(nextPage, false);
+    };
 
     const handleExport = () => {
         if (data.length === 0) return;
@@ -126,6 +122,7 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
                     <DialogTitle>Detalhes da Semana {semanaIso}</DialogTitle>
                     <DialogDescription>
                         {start} até {end} • {activeTab === 'marketing' ? 'Entregadores Marketing' : 'Entregadores Operacional'}
+                        {totalCount > 0 && ` • Total: ${totalCount}`}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -148,12 +145,12 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
                         </Button>
                     </div>
 
-                    <TabsContent value="marketing" className="flex-1 overflow-auto border rounded-md">
-                        {renderTable(loading, error, data)}
+                    <TabsContent value="marketing" className="flex-1 overflow-auto border rounded-md relative">
+                        {renderTable(loading, error, data, totalCount, handleLoadMore)}
                     </TabsContent>
 
-                    <TabsContent value="operacional" className="flex-1 overflow-auto border rounded-md">
-                        {renderTable(loading, error, data)}
+                    <TabsContent value="operacional" className="flex-1 overflow-auto border rounded-md relative">
+                        {renderTable(loading, error, data, totalCount, handleLoadMore)}
                     </TabsContent>
                 </Tabs>
             </DialogContent>
@@ -162,44 +159,75 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
 };
 
 // Helper to render the table (avoid duplication)
-function renderTable(loading: boolean, error: string | null, data: EntregadorMarketing[]) {
-    if (loading) {
+function renderTable(
+    loading: boolean,
+    error: string | null,
+    data: EntregadorMarketing[],
+    totalCount: number,
+    onLoadMore: () => void
+) {
+    if (error) {
+        return <div className="p-4 text-center text-red-500">{error}</div>;
+    }
+
+    // Show loading spinner only on initial load (empty data)
+    if (loading && data.length === 0) {
         return (
             <div className="flex justify-center items-center h-40">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
-    if (error) {
-        return <div className="p-4 text-center text-red-500">{error}</div>;
-    }
+
     if (data.length === 0) {
         return <div className="p-8 text-center text-muted-foreground">Nenhum dado encontrado.</div>;
     }
+
+    const hasMore = data.length < totalCount;
+
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>ID</TableHead>
-                    <TableHead className="text-right">Horas</TableHead>
-                    <TableHead className="text-right">Ofertadas</TableHead>
-                    <TableHead className="text-right">Aceitas</TableHead>
-                    <TableHead className="text-right">Concluídas</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {data.map((row) => (
-                    <TableRow key={row.id_entregador}>
-                        <TableCell className="font-medium">{row.nome}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{row.id_entregador}</TableCell>
-                        <TableCell className="text-right font-mono">{formatarHorasParaHMS(row.total_segundos / 3600)}</TableCell>
-                        <TableCell className="text-right">{row.total_ofertadas}</TableCell>
-                        <TableCell className="text-right">{row.total_aceitas}</TableCell>
-                        <TableCell className="text-right">{row.total_completadas}</TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+        <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-auto">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>ID</TableHead>
+                            <TableHead className="text-right">Horas</TableHead>
+                            <TableHead className="text-right">Ofertadas</TableHead>
+                            <TableHead className="text-right">Aceitas</TableHead>
+                            <TableHead className="text-right">Concluídas</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {data.map((row) => (
+                            <TableRow key={row.id_entregador}>
+                                <TableCell className="font-medium">{row.nome}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground">{row.id_entregador}</TableCell>
+                                <TableCell className="text-right font-mono">{formatarHorasParaHMS(row.total_segundos / 3600)}</TableCell>
+                                <TableCell className="text-right">{row.total_ofertadas}</TableCell>
+                                <TableCell className="text-right">{row.total_aceitas}</TableCell>
+                                <TableCell className="text-right">{row.total_completadas}</TableCell>
+                            </TableRow>
+                        ))}
+                        {loading && (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center py-4">
+                                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            {hasMore && !loading && (
+                <div className="p-4 border-t flex justify-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <Button variant="secondary" onClick={onLoadMore} className="w-full max-w-sm">
+                        Carregar Mais ({totalCount - data.length} restantes)
+                    </Button>
+                </div>
+            )}
+        </div>
     );
 }
