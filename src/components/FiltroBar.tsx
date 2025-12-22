@@ -88,43 +88,51 @@ const FiltroBar = React.memo(function FiltroBar({
   const isModoIntervalo = filters?.filtroModo === 'intervalo';
 
   return (
-    <div className="space-y-4 relative z-10">
-      <FilterModeSwitch
-        isModoIntervalo={isModoIntervalo}
-        onToggle={handleToggleModo}
-      />
+    <div className="relative z-10 font-sans">
+      <div className="flex flex-col lg:flex-row lg:items-end gap-4">
 
-      {/* Filtros em linha horizontal */}
-      <div className="flex flex-wrap items-end gap-4">
-        <FilterPrimarySection
-          isModoIntervalo={isModoIntervalo}
-          filters={filters}
-          setFilters={setFilters}
-          anosOptions={anosOptions}
-          semanasOptions={semanasOptions}
-          handleChange={handleChange}
-        />
+        {/* Toggle Mode Swtich - Now Integrated */}
+        <div className="mb-0.5 min-w-fit">
+          <FilterModeSwitch
+            isModoIntervalo={isModoIntervalo}
+            onToggle={handleToggleModo}
+          />
+        </div>
 
-        <FilterSecondarySection
-          filters={filters}
-          setFilters={setFilters}
-          pracas={pracas}
-          subPracas={subPracas}
-          origens={origens}
-          turnos={turnos}
-          handleChange={handleChange}
-          shouldDisablePracaFilter={shouldDisablePracaFilter}
-        />
+        <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 hidden lg:block mx-2 self-center" />
 
-        {/* Botão Limpar Filtros */}
+        {/* Filters Group */}
+        <div className="flex-1 flex flex-wrap items-end gap-3">
+          <FilterPrimarySection
+            isModoIntervalo={isModoIntervalo}
+            filters={filters}
+            setFilters={setFilters}
+            anosOptions={anosOptions}
+            semanasOptions={semanasOptions}
+            handleChange={handleChange}
+          />
+
+          <FilterSecondarySection
+            filters={filters}
+            setFilters={setFilters}
+            pracas={pracas}
+            subPracas={subPracas}
+            origens={origens}
+            turnos={turnos}
+            handleChange={handleChange}
+            shouldDisablePracaFilter={shouldDisablePracaFilter}
+          />
+        </div>
+
+        {/* Clear Button - Compact */}
         {hasActiveFilters && (
           <div className="flex-shrink-0">
             <button
               onClick={handleClearFilters}
-              className="inline-flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors h-[42px]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-100/50 hover:bg-rose-50 dark:bg-slate-800/50 dark:hover:bg-rose-900/20 text-slate-600 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-all duration-200 border border-transparent hover:border-rose-200 dark:hover:border-rose-800 h-[40px]"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              <span>Limpar</span>
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              Limpar
             </button>
           </div>
         )}
