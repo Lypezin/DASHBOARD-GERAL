@@ -26,24 +26,24 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
     const Icon = data.aderencia >= 70 ? TrendingUp : TrendingDown;
 
     return (
-        <div className="group relative bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-zinc-900/5 dark:ring-zinc-100/10 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
+        <div className="group relative bg-white dark:bg-slate-900 rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-slate-200/50 dark:ring-slate-800 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:ring-blue-500/20 hover:-translate-y-0.5 transition-all duration-300">
             <div className="flex justify-between items-start mb-3">
-                <h3 className="font-medium text-sm text-slate-700 dark:text-slate-200 truncate pr-2" title={data.label}>
+                <h3 className="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate pr-2 tracking-tight" title={data.label}>
                     {data.label}
                 </h3>
-                <Badge variant={data.aderencia >= 90 ? 'default' : data.aderencia >= 70 ? 'secondary' : 'destructive'} className="text-[10px] h-5 px-1.5 font-normal">
+                <Badge variant={data.aderencia >= 90 ? 'default' : data.aderencia >= 70 ? 'secondary' : 'destructive'} className="text-[10px] h-5 px-1.5 font-medium shadow-sm">
                     {data.aderencia.toFixed(1)}%
                 </Badge>
             </div>
 
             <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-full ${data.aderencia >= 70 ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-rose-50 dark:bg-rose-900/20'}`}>
-                    <Icon className={`h-4 w-4 ${statusColor}`} />
+                <div className={`p-2 rounded-lg ${data.aderencia >= 70 ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400'}`}>
+                    <Icon className="h-4 w-4" />
                 </div>
                 <div className="flex-1">
                     <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div
-                            className={`h-full ${barColor} rounded-full`}
+                            className={`h-full ${barColor} rounded-full shadow-sm`}
                             style={{ width: `${Math.min(data.aderencia, 100)}%` }}
                         ></div>
                     </div>
@@ -51,13 +51,13 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                <div className="flex justify-between bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded">
-                    <span>Plan:</span>
-                    <span className="font-mono font-medium text-slate-700 dark:text-slate-300">{formatarHorasParaHMS(data.horasAEntregar)}</span>
+                <div className="flex justify-between bg-slate-50 dark:bg-slate-800/50 px-2.5 py-1.5 rounded-md border border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-500">Plan</span>
+                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">{formatarHorasParaHMS(data.horasAEntregar)}</span>
                 </div>
-                <div className="flex justify-between bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded">
-                    <span>Real:</span>
-                    <span className={`font-mono font-medium ${statusColor}`}>{formatarHorasParaHMS(data.horasEntregues)}</span>
+                <div className="flex justify-between bg-slate-50 dark:bg-slate-800/50 px-2.5 py-1.5 rounded-md border border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-500">Real</span>
+                    <span className={`font-mono font-semibold ${statusColor}`}>{formatarHorasParaHMS(data.horasEntregues)}</span>
                 </div>
             </div>
         </div>

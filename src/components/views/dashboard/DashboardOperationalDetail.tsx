@@ -48,8 +48,8 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
     }, [viewMode, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
     return (
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
+        <Card className="border-none shadow-none bg-transparent">
+            <CardHeader className="px-0 pt-0 pb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
                         <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
@@ -68,7 +68,7 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
                 </div>
             </CardHeader>
 
-            <CardContent className="p-6">
+            <CardContent className="p-0">
                 {dataToRender.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {dataToRender.map((item, index) => (
