@@ -7,19 +7,12 @@ import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { syncOrganizationIdToMetadata } from '@/utils/organizationHelpers';
-import { checkSupabaseMock, fetchUserProfileWithRetry, isTemporaryError } from '@/utils/auth/headerAuthHelpers';
+import { UserProfile } from './auth/types';
+import { verifyAuthSession, verifyUserProfile, shouldSkipRedirect } from './auth/utils/headerAuthSteps';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export interface UserProfile {
-  id: string;
-  full_name: string;
-  email: string;
-  is_admin: boolean;
-  is_approved: boolean;
-  avatar_url?: string | null;
-  organization_id?: string | null;
-}
+export type { UserProfile };
 
 export function useHeaderAuth() {
   const router = useRouter();
@@ -33,71 +26,36 @@ export function useHeaderAuth() {
     try {
       setIsLoading(true);
 
-      // 1. Verificar Mock
-      await checkSupabaseMock();
+      const sessionResult = await verifyAuthSession(pathname);
 
-      // 2. Verificar Sessão Auth
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-      if (IS_DEV) {
-        console.log('[HeaderAuth] Check:', {
-          pathname,
-          hasUser: !!authUser,
-          error: authError?.message
-        });
-      }
-
-      if (authError || !authUser) {
+      if (!sessionResult.success) {
         setHasTriedAuth(true);
         setIsLoading(false);
 
-        if (
-          pathname !== '/login' &&
-          pathname !== '/registro' &&
-          pathname !== '/esqueci-senha' &&
-          pathname !== '/redefinir-senha'
-        ) {
+        if (sessionResult.action === 'redirect_login') {
           if (IS_DEV) console.log('[HeaderAuth] Redirecting to login from:', pathname);
           router.push('/login');
         } else {
-          if (IS_DEV) console.log('[HeaderAuth] Already on public page, skipping redirect');
+          if (IS_DEV) console.log('[HeaderAuth] Public page or skip redirect');
         }
         return;
       }
 
-      if (pathname === '/login' || pathname === '/registro') {
+      if (shouldSkipRedirect(pathname)) {
         setHasTriedAuth(true);
         setIsLoading(false);
       }
 
       setHasTriedAuth(true);
 
-      // 3. Buscar Perfil (agora com lógica extraída)
-      const { profile, error: profileError } = await fetchUserProfileWithRetry();
+      const profileResult = await verifyUserProfile();
 
-      // 4. Tratar Erros de Perfil
-      if (profileError) {
-        if (isTemporaryError(profileError)) {
-          if (IS_DEV) safeLog.warn('[Header] Erro temporário ao buscar perfil, mostrando header sem perfil:', profileError);
-          setIsLoading(false);
-          return;
-        }
-
-        if (IS_DEV) safeLog.error('[Header] Erro ao carregar perfil:', profileError);
+      if (!profileResult.success) {
         setIsLoading(false);
         return;
       }
 
-      // 5. Verificar Aprovação
-      if (!profile?.is_approved) {
-        if (IS_DEV) safeLog.warn('[Header] Usuário não aprovado');
-        setIsLoading(false);
-        supabase.auth.signOut().catch(() => { });
-        return;
-      }
-
-      // 6. Sucesso
-      setUser(profile);
+      setUser(profileResult.profile!);
 
       // 7. Sincronizar (não bloqueante)
       try {
@@ -136,7 +94,7 @@ export function useHeaderAuth() {
         checkUser();
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        if (pathname !== '/login' && pathname !== '/registro') {
+        if (!shouldSkipRedirect(pathname)) {
           router.push('/login');
         }
       } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
@@ -185,4 +143,3 @@ export function useHeaderAuth() {
     handleLogout,
   };
 }
-

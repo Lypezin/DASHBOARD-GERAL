@@ -1,8 +1,9 @@
 import React from 'react';
 import { Entregador } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowUpDown, ArrowUp, ArrowDown, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
+import { PrioridadeTableHeader } from './components/PrioridadeTableHeader';
+import { PrioridadeTableRow } from './components/PrioridadeTableRow';
 
 interface PrioridadeTableProps {
   sortedEntregadores: Entregador[];
@@ -20,23 +21,6 @@ interface PrioridadeTableProps {
   getCompletadasColor: (percentual: number) => string;
   getCompletadasBg: (percentual: number) => string;
 }
-
-const SortIcon = ({
-  field,
-  currentField,
-  direction
-}: {
-  field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas';
-  currentField: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas';
-  direction: 'asc' | 'desc';
-}) => {
-  if (currentField !== field) {
-    return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400 inline" />;
-  }
-  return direction === 'asc' ?
-    <ArrowUp className="ml-1 h-3 w-3 text-slate-900 dark:text-white inline" /> :
-    <ArrowDown className="ml-1 h-3 w-3 text-slate-900 dark:text-white inline" />;
-};
 
 export const PrioridadeTable: React.FC<PrioridadeTableProps> = ({
   sortedEntregadores,
@@ -75,101 +59,29 @@ export const PrioridadeTable: React.FC<PrioridadeTableProps> = ({
       <CardContent className="p-0">
         <div className="max-h-[600px] overflow-auto">
           <table className="w-full">
-            <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-              <tr>
-                <th
-                  className="cursor-pointer px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                  onClick={() => onSort('nome_entregador')}
-                >
-                  Entregador <SortIcon field="nome_entregador" currentField={sortField} direction={sortDirection} />
-                </th>
-                <th
-                  className="cursor-pointer px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                  onClick={() => onSort('corridas_ofertadas')}
-                >
-                  Ofertadas <SortIcon field="corridas_ofertadas" currentField={sortField} direction={sortDirection} />
-                </th>
-                <th
-                  className="cursor-pointer px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                  onClick={() => onSort('corridas_aceitas')}
-                >
-                  Aceitas <SortIcon field="corridas_aceitas" currentField={sortField} direction={sortDirection} />
-                </th>
-                <th
-                  className="cursor-pointer px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                  onClick={() => onSort('corridas_rejeitadas')}
-                >
-                  Rejeitadas <SortIcon field="corridas_rejeitadas" currentField={sortField} direction={sortDirection} />
-                </th>
-                <th
-                  className="cursor-pointer px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                  onClick={() => onSort('percentual_aceitas')}
-                >
-                  % Aceitas <SortIcon field="percentual_aceitas" currentField={sortField} direction={sortDirection} />
-                </th>
-                <th
-                  className="cursor-pointer px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                  onClick={() => onSort('corridas_completadas')}
-                >
-                  Completadas <SortIcon field="corridas_completadas" currentField={sortField} direction={sortDirection} />
-                </th>
-                <th
-                  className="cursor-pointer px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                  onClick={() => onSort('percentual_completadas')}
-                >
-                  % Completadas <SortIcon field="percentual_completadas" currentField={sortField} direction={sortDirection} />
-                </th>
-                <th
-                  className="cursor-pointer px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                  onClick={() => onSort('aderencia_percentual')}
-                >
-                  Aderência <SortIcon field="aderencia_percentual" currentField={sortField} direction={sortDirection} />
-                </th>
-                <th
-                  className="cursor-pointer px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                  onClick={() => onSort('rejeicao_percentual')}
-                >
-                  % Rejeição <SortIcon field="rejeicao_percentual" currentField={sortField} direction={sortDirection} />
-                </th>
-              </tr>
-            </thead>
+            <PrioridadeTableHeader
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+            />
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {sortedEntregadores.map((entregador, index) => {
                 const ranking = index + 1;
-                const percentualAceitas = calcularPercentualAceitas(entregador);
-                const percentualCompletadas = calcularPercentualCompletadas(entregador);
-
                 return (
-                  <tr
+                  <PrioridadeTableRow
                     key={`${entregador.id_entregador}-${sortField}-${sortDirection}-${ranking}`}
-                    className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                  >
-                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{entregador.nome_entregador}</td>
-                    <td className="px-6 py-4 text-center text-slate-600 dark:text-slate-400 whitespace-nowrap">{entregador.corridas_ofertadas.toLocaleString('pt-BR')}</td>
-                    <td className="px-6 py-4 text-center text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{entregador.corridas_aceitas.toLocaleString('pt-BR')}</td>
-                    <td className="px-6 py-4 text-center text-rose-600 dark:text-rose-400 whitespace-nowrap">{entregador.corridas_rejeitadas.toLocaleString('pt-BR')}</td>
-                    <td className="px-6 py-4 text-center">
-                      <Badge variant="outline" className={`font-normal ${getAceitasBg(percentualAceitas)} ${getAceitasColor(percentualAceitas)} whitespace-nowrap`}>
-                        {percentualAceitas.toFixed(1)}%
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-center text-blue-600 dark:text-blue-400 whitespace-nowrap">{entregador.corridas_completadas.toLocaleString('pt-BR')}</td>
-                    <td className="px-6 py-4 text-center">
-                      <Badge variant="outline" className={`font-normal ${getCompletadasBg(percentualCompletadas)} ${getCompletadasColor(percentualCompletadas)} whitespace-nowrap`}>
-                        {percentualCompletadas.toFixed(1)}%
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <Badge variant="outline" className={`font-medium ${getAderenciaBg(entregador.aderencia_percentual ?? 0)} ${getAderenciaColor(entregador.aderencia_percentual ?? 0)} whitespace-nowrap`}>
-                        {(entregador.aderencia_percentual ?? 0).toFixed(1)}%
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <Badge variant="outline" className={`font-medium ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)} ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)} whitespace-nowrap`}>
-                        {(entregador.rejeicao_percentual ?? 0).toFixed(1)}%
-                      </Badge>
-                    </td>
-                  </tr>
+                    entregador={entregador}
+                    calcularPercentualAceitas={calcularPercentualAceitas}
+                    calcularPercentualCompletadas={calcularPercentualCompletadas}
+                    getAderenciaColor={getAderenciaColor}
+                    getAderenciaBg={getAderenciaBg}
+                    getRejeicaoColor={getRejeicaoColor}
+                    getRejeicaoBg={getRejeicaoBg}
+                    getAceitasColor={getAceitasColor}
+                    getAceitasBg={getAceitasBg}
+                    getCompletadasColor={getCompletadasColor}
+                    getCompletadasBg={getCompletadasBg}
+                  />
                 );
               })}
             </tbody>
