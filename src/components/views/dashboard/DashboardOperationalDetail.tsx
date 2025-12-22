@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ListChecks, BarChart3 } from 'lucide-react';
 import { OperationalDetailCard } from './components/OperationalDetailCard';
 import { OperationalViewToggle, ViewMode } from './components/OperationalViewToggle';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DashboardOperationalDetailProps {
     aderenciaTurno: AderenciaTurno[];
@@ -17,6 +18,22 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
     aderenciaOrigem,
 }: DashboardOperationalDetailProps) {
     const [viewMode, setViewMode] = useState<ViewMode>('turno');
+
+    // Animation variants
+    const container = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.05
+            }
+        }
+    };
+
+    const item = {
+        hidden: { opacity: 0, scale: 0.95 },
+        show: { opacity: 1, scale: 1, transition: { duration: 0.3 } }
+    };
 
     // Dados para renderização com base no viewMode
     const dataToRender = useMemo(() => {
@@ -70,11 +87,19 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
 
             <CardContent className="p-0">
                 {dataToRender.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <motion.div
+                        key={viewMode}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                        variants={container}
+                        initial="hidden"
+                        animate="show"
+                    >
                         {dataToRender.map((item, index) => (
-                            <OperationalDetailCard key={`${viewMode}-${index}`} data={item} />
+                            <motion.div key={`${viewMode}-${index}`} variants={item}>
+                                <OperationalDetailCard data={item} />
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
                         <BarChart3 className="h-12 w-12 mb-3 opacity-20" />

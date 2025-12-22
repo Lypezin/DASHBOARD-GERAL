@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { CircularProgress } from '@/components/ui/circular-progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowDown, ArrowUp, Clock, CheckCircle2, TrendingUp, AlertTriangle, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
 import {
     Tooltip,
     TooltipContent,
@@ -46,7 +47,12 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
 
     return (
         <TooltipProvider delayDuration={0}>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <motion.div
+                className="grid grid-cols-1 lg:grid-cols-12 gap-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+            >
                 {/* Main Score Card */}
                 <Card className="lg:col-span-4 border-none shadow-xl bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 overflow-hidden relative group ringing-1 ring-slate-100 dark:ring-slate-800">
                     <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500">
@@ -176,7 +182,7 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
                         </Card>
                     )}
                 </div>
-            </div>
+            </motion.div>
         </TooltipProvider>
     );
 });
