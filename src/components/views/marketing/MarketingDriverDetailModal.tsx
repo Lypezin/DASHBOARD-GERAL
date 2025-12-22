@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button'; // Assuming you have a Button component
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download, Loader2, FileSpreadsheet } from 'lucide-react';
-import { fetchEntregadores } from '@/components/views/entregadores/EntregadoresDataFetcher'; // Adjust import path
-import { getDateRangeFromWeek } from '@/utils/timeHelpers'; // You might need to create/import this
+import { fetchEntregadores } from '@/components/views/entregadores/EntregadoresDataFetcher';
+import { fetchEntregadoresAggregation } from '@/components/views/entregadores/helpers/fetchEntregadoresAggregation';
+import { getDateRangeFromWeek } from '@/utils/timeHelpers';
 import { EntregadorMarketing } from '@/types';
 import * as XLSX from 'xlsx';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -47,27 +48,42 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
         setData([]);
 
         try {
-            // Convert week to date range for 'rodou_dia' filter
             const { start, end } = getWeekRange(semanaIso);
+            // High limit to ensure we get ALL drivers, not just the default 1000
+            const limit = 20000;
 
-            // Reusing fetchEntregadores. 
-            // Note: This fetches "Marketing" drivers. 
-            // For separate Ops/Mkt, we assume this function returns what we classify as "Marketing" here.
-            // If we need "Ops", we might need a different fetcher or filter.
+            // 1. Fetch "Marketing" Drivers (via RPC)
+            // This returns drivers flagged as Marketing by the backend logic
+            const marketingList = await fetchEntregadores(
+                { dataInicial: start, dataFinal: end }, // filtroRodouDia
+                { dataInicial: null, dataFinal: null }, // filtroDataInicio
+                '', // cidadeSelecionada (Empty = all cities)
+                async () => [], // Fallback (not needed here as we handle errors)
+                '', // searchTerm
+                limit
+            );
 
+            // 2. Fetch "All" Drivers (Aggregation/Manual)
+            // This bypasses the RPC logic and fetches everyone in the tables for that period
+            const allDriversList = await fetchEntregadoresAggregation(
+                { dataInicial: null, dataFinal: null },
+                { dataInicial: start, dataFinal: end },
+                '',
+                ''
+            );
+
+            // 3. Separate Lists based on Tab
             if (activeTab === 'marketing') {
-                const result = await fetchEntregadores(
-                    { dataInicial: start, dataFinal: end }, // filtroRodouDia
-                    { dataInicial: null, dataFinal: null }, // filtroDataInicio
-                    '', // cidadeSelecionada (Empty means all? Need to check fetcher logic)
-                    async () => [], // Fallback
-                    '' // searchTerm
-                );
-                setData(result);
+                setData(marketingList);
             } else {
-                // TODO: Implement Ops fetcher
-                // For now, return empty or implement if source found
-                setData([]);
+                // Operational = All - Marketing
+                // We identify Marketing drivers by their ID
+                const marketingIds = new Set(marketingList.map(m => m.id_entregador));
+
+                // Filter "All" list to keep only those NOT in "Marketing" list
+                const opsList = allDriversList.filter(d => !marketingIds.has(d.id_entregador));
+
+                setData(opsList);
             }
 
         } catch (err: any) {
@@ -108,7 +124,7 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
                 <DialogHeader>
                     <DialogTitle>Detalhes da Semana {semanaIso}</DialogTitle>
                     <DialogDescription>
-                        {start} até {end}
+                        {start} até {end} • {activeTab === 'marketing' ? 'Entregadores Marketing' : 'Entregadores Operacional'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -132,49 +148,57 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
                     </div>
 
                     <TabsContent value="marketing" className="flex-1 overflow-auto border rounded-md">
-                        {loading ? (
-                            <div className="flex justify-center items-center h-40">
-                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            </div>
-                        ) : error ? (
-                            <div className="p-4 text-center text-red-500">{error}</div>
-                        ) : data.length === 0 ? (
-                            <div className="p-8 text-center text-muted-foreground">Nenhum dado encontrado.</div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nome</TableHead>
-                                        <TableHead>ID</TableHead>
-                                        <TableHead className="text-right">Horas</TableHead>
-                                        <TableHead className="text-right">Ofertadas</TableHead>
-                                        <TableHead className="text-right">Aceitas</TableHead>
-                                        <TableHead className="text-right">Concluídas</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {data.map((row) => (
-                                        <TableRow key={row.id_entregador}>
-                                            <TableCell className="font-medium">{row.nome}</TableCell>
-                                            <TableCell className="text-xs text-muted-foreground">{row.id_entregador}</TableCell>
-                                            <TableCell className="text-right font-mono">{formatarHorasParaHMS(row.total_segundos / 3600)}</TableCell>
-                                            <TableCell className="text-right">{row.total_ofertadas}</TableCell>
-                                            <TableCell className="text-right">{row.total_aceitas}</TableCell>
-                                            <TableCell className="text-right">{row.total_completadas}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        )}
+                        {renderTable(loading, error, data)}
                     </TabsContent>
 
-                    <TabsContent value="operacional" className="flex-1 overflow-auto border rounded-md p-4">
-                        <div className="text-center text-muted-foreground">
-                            Visualização detalhada do Operacional em desenvolvimento.
-                        </div>
+                    <TabsContent value="operacional" className="flex-1 overflow-auto border rounded-md">
+                        {renderTable(loading, error, data)}
                     </TabsContent>
                 </Tabs>
             </DialogContent>
         </Dialog>
     );
 };
+
+// Helper to render the table (avoid duplication)
+function renderTable(loading: boolean, error: string | null, data: EntregadorMarketing[]) {
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-40">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+    if (error) {
+        return <div className="p-4 text-center text-red-500">{error}</div>;
+    }
+    if (data.length === 0) {
+        return <div className="p-8 text-center text-muted-foreground">Nenhum dado encontrado.</div>;
+    }
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead className="text-right">Horas</TableHead>
+                    <TableHead className="text-right">Ofertadas</TableHead>
+                    <TableHead className="text-right">Aceitas</TableHead>
+                    <TableHead className="text-right">Concluídas</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {data.map((row) => (
+                    <TableRow key={row.id_entregador}>
+                        <TableCell className="font-medium">{row.nome}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{row.id_entregador}</TableCell>
+                        <TableCell className="text-right font-mono">{formatarHorasParaHMS(row.total_segundos / 3600)}</TableCell>
+                        <TableCell className="text-right">{row.total_ofertadas}</TableCell>
+                        <TableCell className="text-right">{row.total_aceitas}</TableCell>
+                        <TableCell className="text-right">{row.total_completadas}</TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    );
+}

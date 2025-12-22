@@ -14,7 +14,8 @@ export async function fetchEntregadores(
   filtroDataInicio: MarketingDateFilter,
   cidadeSelecionada: string,
   fetchEntregadoresFallbackFn: () => Promise<EntregadorMarketing[]>,
-  searchTerm: string = ''
+  searchTerm: string = '',
+  limit: number = QUERY_LIMITS.DEFAULT_LIST
 ): Promise<EntregadorMarketing[]> {
   try {
     // Obter organization_id do usuário atual
@@ -37,7 +38,9 @@ export async function fetchEntregadores(
       rodou_dia_final: filtroRodouDia.dataFinal || null,
       data_inicio_inicial: filtroDataInicio.dataInicial || null,
       data_inicio_final: filtroDataInicio.dataFinal || null,
-      cidade: cidadeSelecionada || null
+      data_inicio_final: filtroDataInicio.dataFinal || null,
+      cidade: cidadeSelecionada || null,
+      p_limit: limit
     };
 
     // Usar função RPC para buscar entregadores com dados agregados
