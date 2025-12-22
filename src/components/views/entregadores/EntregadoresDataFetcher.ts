@@ -137,7 +137,9 @@ export async function fetchEntregadoresDetails(params: EntregadorDetailsParams):
       p_search: params.search || null
     };
 
-    const { data, error } = await safeRpc<any[]>('get_entregadores_details', rpcParams);
+    const { data, error } = await safeRpc<any[]>('get_entregadores_details', rpcParams, {
+      validateParams: false
+    });
 
     if (error) throw error;
 
