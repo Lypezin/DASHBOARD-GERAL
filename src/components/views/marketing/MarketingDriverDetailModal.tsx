@@ -49,8 +49,9 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
 
         try {
             const { start, end } = getWeekRange(semanaIso);
-            // High limit to ensure we get ALL drivers, not just the default 1000
-            const limit = 20000;
+            // Usar limite de 5000 para balancear performance e completude dos dados
+            // O RPC pode ter limites internos, então não adianta pedir muito mais
+            const limit = 5000;
 
             // 1. Fetch "Marketing" Drivers (via RPC)
             // This returns drivers flagged as Marketing by the backend logic
