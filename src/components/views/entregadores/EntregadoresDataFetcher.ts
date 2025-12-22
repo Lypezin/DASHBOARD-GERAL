@@ -38,14 +38,24 @@ export async function fetchEntregadores(
       rodou_dia_final: filtroRodouDia.dataFinal || null,
       data_inicio_inicial: filtroDataInicio.dataInicial || null,
       data_inicio_final: filtroDataInicio.dataFinal || null,
-      cidade: cidadeSelecionada || null,
-      p_limit: limit
+      cidade: cidadeSelecionada || null
     };
 
     // Usar função RPC para buscar entregadores com dados agregados
     // Aumentar timeout para 60 segundos quando há múltiplos filtros (data início + cidade)
     const hasMultipleFilters = (filtroDataInicio.dataInicial || filtroDataInicio.dataFinal) && cidadeSelecionada;
     const timeoutDuration = hasMultipleFilters ? 60000 : 30000;
+
+    // Se o limite solicitado for maior que o padrão (ex: exportação de 20k),
+    // ignorar o RPC (que provavelmente tem limite hardcoded) e usar o fallback direto.
+    const bypassRpc = limit > QUERY_LIMITS.DEFAULT_LIST;
+
+    if (bypassRpc) {
+      if (IS_DEV) {
+        safeLog.info(`Limite (${limit}) > Padrão (${QUERY_LIMITS.DEFAULT_LIST}). Ignorando RPC e usando fallback.`);
+      }
+      return await fetchEntregadoresFallbackFn();
+    }
 
     if (IS_DEV) {
       safeLog.info('Chamando get_entregadores_marketing com params:', JSON.stringify(params));
@@ -57,6 +67,7 @@ export async function fetchEntregadores(
     });
 
     if (rpcError) {
+
       // Se a função RPC não existir ou der timeout, fazer fallback para query direta
       const errorCode = (rpcError as any)?.code || '';
       const errorMessage = String((rpcError as any)?.message || '');
