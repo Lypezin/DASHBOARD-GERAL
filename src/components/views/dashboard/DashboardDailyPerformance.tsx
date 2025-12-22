@@ -78,7 +78,6 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
                             'bg-rose-500';
 
                     return (
-                    return (
                         <Card
                             key={`dia-${index}`}
                             className={`border-none shadow-md hover:shadow-lg transition-all duration-300 ${isToday
