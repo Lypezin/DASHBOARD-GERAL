@@ -6,6 +6,7 @@ import { MarketingStatsCards } from './marketing/MarketingStatsCards';
 import { MarketingCityCards } from './marketing/MarketingCityCards';
 import { useMarketingData } from './marketing/useMarketingData';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { motion, Variants } from 'framer-motion';
 
 const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   const {
@@ -39,20 +40,47 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
     );
   }
 
+
+  const container: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in pb-8">
+    <motion.div
+      className="space-y-6 pb-8"
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
       {/* Filtros de Data */}
-      <MarketingFiltersSection
-        filters={filters}
-        onFilterChange={handleFilterChange}
-      />
+      <motion.div variants={item}>
+        <MarketingFiltersSection
+          filters={filters}
+          onFilterChange={handleFilterChange}
+        />
+      </motion.div>
 
       {/* Cartões Principais */}
-      <MarketingStatsCards totals={totals} />
+      <motion.div variants={item}>
+        <MarketingStatsCards totals={totals} />
+      </motion.div>
 
       {/* Cartões de Cidade */}
-      <MarketingCityCards citiesData={citiesData} />
-    </div>
+      <motion.div variants={item}>
+        <MarketingCityCards citiesData={citiesData} />
+      </motion.div>
+    </motion.div>
   );
 });
 

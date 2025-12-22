@@ -61,17 +61,17 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
   const showChart = chartData.datasets.length > 0 && chartData.labels.length > 0 && !chartError && hasData;
 
   return (
-    <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-      <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+    <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+      <CardHeader className="pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <BarChart2 className="h-5 w-5 text-blue-500" />
+              <span className="bg-blue-600 w-1.5 h-6 rounded-full inline-block"></span>
               <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
                 Evolução {selectedMetrics.size === 1 ? 'de ' + (selectedMetrics.has('horas') ? 'Horas Trabalhadas' : selectedMetrics.has('ofertadas') ? 'Corridas Ofertadas' : selectedMetrics.has('aceitas') ? 'Corridas Aceitas' : 'Corridas Completadas') : 'de Métricas'} {viewMode === 'mensal' ? 'Mensal' : 'Semanal'}
               </CardTitle>
             </div>
-            <CardDescription className="mt-1 text-slate-500 dark:text-slate-400">
+            <CardDescription className="mt-1 text-slate-500 dark:text-slate-400 pl-3.5">
               Análise detalhada de {selectedMetrics.size} {selectedMetrics.size === 1 ? 'métrica' : 'métricas'} ({dadosAtivosLength} {viewMode === 'mensal' ? 'meses' : 'semanas'} exibidos)
             </CardDescription>
           </div>
@@ -91,7 +91,7 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
         )}
       </CardHeader>
 
-      <CardContent className="p-6">
+      <CardContent className="p-6 pt-2">
         {chartData.datasets.length > 0 && chartData.labels.length > 0 ? (
           <div className="relative h-[500px] w-full">
             <EvolucaoEmptyState

@@ -31,9 +31,9 @@ interface EntradaSaidaCardProps {
 export const EntradaSaidaCard: React.FC<EntradaSaidaCardProps> = ({ item, isFirst }) => {
     return (
         <div
-            className={`relative overflow-hidden rounded-2xl border bg-white dark:bg-slate-900 p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${isFirst
-                ? 'border-indigo-200 dark:border-indigo-800 shadow-md shadow-indigo-100 dark:shadow-none'
-                : 'border-slate-200 dark:border-slate-800 shadow-sm'
+            className={`relative overflow-hidden rounded-2xl border-none p-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isFirst
+                ? 'bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-900 shadow-md ring-1 ring-indigo-100 dark:ring-indigo-900'
+                : 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-sm hover:bg-white dark:hover:bg-slate-900'
                 }`}
         >
             {isFirst && (

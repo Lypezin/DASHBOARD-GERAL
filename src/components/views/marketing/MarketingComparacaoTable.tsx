@@ -41,37 +41,37 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
         <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
             <Table>
                 <TableHeader>
-                    <TableRow className="bg-muted/50">
-                        <TableHead rowSpan={2} className="w-[100px]">Semana</TableHead>
-                        <TableHead rowSpan={2} className="w-[50px] text-center">Detalhes</TableHead>
-                        <TableHead colSpan={4} className="text-center border-l bg-blue-50/50 dark:bg-blue-900/10">Horas Logadas</TableHead>
-                        <TableHead colSpan={2} className="text-center border-l">Ofertadas</TableHead>
-                        <TableHead colSpan={2} className="text-center border-l">Aceitas</TableHead>
-                        <TableHead colSpan={2} className="text-center border-l">Completas</TableHead>
-                        <TableHead colSpan={2} className="text-center border-l">Rejeitadas</TableHead>
+                    <TableRow className="bg-slate-50 dark:bg-slate-900 border-b-2 border-slate-100 dark:border-slate-800">
+                        <TableHead rowSpan={2} className="w-[100px] font-bold text-slate-700 dark:text-slate-300">Semana</TableHead>
+                        <TableHead rowSpan={2} className="w-[50px] text-center font-bold text-slate-700 dark:text-slate-300">Detalhes</TableHead>
+                        <TableHead colSpan={4} className="text-center border-l border-slate-200 dark:border-slate-800 bg-blue-50/80 dark:bg-blue-900/20 font-bold text-blue-700 dark:text-blue-300">Horas Logadas</TableHead>
+                        <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Ofertadas</TableHead>
+                        <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Aceitas</TableHead>
+                        <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Completas</TableHead>
+                        <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold text-rose-600 dark:text-rose-400">Rejeitadas</TableHead>
                     </TableRow>
-                    <TableRow>
+                    <TableRow className="hover:bg-transparent">
                         {/* Hours Sub-headers */}
-                        <TableHead className="text-right border-l bg-blue-50/50 dark:bg-blue-900/10 text-xs">Operacional</TableHead>
-                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-600 font-semibold">Marketing</TableHead>
-                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-slate-500">% Ops</TableHead>
-                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-xs text-purple-500 font-semibold">% Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 bg-blue-50/50 dark:bg-blue-900/10 text-[11px] uppercase tracking-wider">Operacional</TableHead>
+                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-[11px] uppercase tracking-wider text-purple-600 font-bold">Marketing</TableHead>
+                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-[11px] uppercase tracking-wider text-slate-500">% Ops</TableHead>
+                        <TableHead className="text-right bg-blue-50/50 dark:bg-blue-900/10 text-[11px] uppercase tracking-wider text-purple-500 font-bold">% Mkt</TableHead>
 
                         {/* Ofertadas Sub-headers */}
-                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider">Ops</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
 
                         {/* Aceitas Sub-headers */}
-                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider">Ops</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
 
                         {/* Completas Sub-headers */}
-                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider">Ops</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
 
                         {/* Rejeitadas Sub-headers */}
-                        <TableHead className="text-right border-l text-xs">Ops</TableHead>
-                        <TableHead className="text-right text-xs text-purple-600 font-semibold">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider text-rose-600/70">Ops</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>

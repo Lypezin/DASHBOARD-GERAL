@@ -8,6 +8,7 @@ import { DashboardFilters } from '@/types';
 import { getDateRangeFromWeek } from '@/utils/timeHelpers';
 import { MarketingSummaryCards } from './MarketingSummaryCards';
 import { MarketingComparacaoTable } from './MarketingComparacaoTable';
+import { motion, Variants } from 'framer-motion';
 
 interface MarketingComparacaoViewProps {
     filters: DashboardFilters;
@@ -81,8 +82,28 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
         });
     }, [data]);
 
+    const container: Variants = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const item: Variants = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    };
+
     return (
-        <div className="space-y-6 pb-20">
+        <motion.div
+            className="space-y-6 pb-20"
+            variants={container}
+            initial="hidden"
+            animate="show"
+        >
             {error && (
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
@@ -98,22 +119,29 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
             ) : (
                 <>
                     {/* Summary Cards */}
-                    <MarketingSummaryCards totals={totals} />
+                    <motion.div variants={item}>
+                        <MarketingSummaryCards totals={totals} />
+                    </motion.div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Comparativo: Operacional vs Marketing</CardTitle>
-                            <CardDescription>
-                                Análise de volume e funil de corridas por semana
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <MarketingComparacaoTable data={data} praca={praca} />
-                        </CardContent>
-                    </Card>
+                    <motion.div variants={item}>
+                        <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <span className="bg-blue-600 w-1.5 h-6 rounded-full inline-block"></span>
+                                    Comparativo: Operacional vs Marketing
+                                </CardTitle>
+                                <CardDescription>
+                                    Análise de volume e funil de corridas por semana
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <MarketingComparacaoTable data={data} praca={praca} />
+                            </CardContent>
+                        </Card>
+                    </motion.div>
                 </>
             )}
-        </div>
+        </motion.div>
     );
 });
 

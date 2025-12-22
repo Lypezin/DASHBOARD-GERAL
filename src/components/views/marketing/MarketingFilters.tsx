@@ -46,7 +46,7 @@ export const MarketingFilters = React.memo(function MarketingFilters({
         filters.praca !== appliedFilters.praca;
 
     return (
-        <Card className="overflow-hidden border-0 shadow-xl shadow-slate-200/50 dark:shadow-none dark:border dark:border-slate-800">
+        <Card className="overflow-hidden border-none shadow-md bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex items-center justify-between">
                     <div>

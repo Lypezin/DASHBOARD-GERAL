@@ -57,40 +57,60 @@ export const MarketingStatsCard: React.FC<MarketingStatsCardProps> = ({
     breakdown,
     footerText
 }) => {
-    const theme = THEME_STYLES[colorTheme];
+    const theme = THEME_STYLES[colorTheme] || THEME_STYLES.indigo;
+
+    // Mapping for light/premium styles (Adapting existing themes to the new light style)
+    const getPremiumStyles = (themeName: string) => {
+        switch (themeName) {
+            case 'emerald': return { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/20 dark:to-slate-900', iconBg: 'bg-emerald-100 dark:bg-emerald-900/40' };
+            case 'rose': return { text: 'text-rose-600 dark:text-rose-400', bg: 'bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-900', iconBg: 'bg-rose-100 dark:bg-rose-900/40' };
+            case 'amber': return { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/20 dark:to-slate-900', iconBg: 'bg-amber-100 dark:bg-amber-900/40' };
+            case 'orange': return { text: 'text-orange-600 dark:text-orange-400', bg: 'bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/20 dark:to-slate-900', iconBg: 'bg-orange-100 dark:bg-orange-900/40' };
+            case 'indigo': default: return { text: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-900', iconBg: 'bg-indigo-100 dark:bg-indigo-900/40' };
+        }
+    };
+
+    const styles = getPremiumStyles(colorTheme);
 
     return (
-        <div className={`group relative overflow-hidden rounded-2xl p-1 shadow-lg ${theme.bg} ${theme.shadow}`}>
-            <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
-            <div className={`relative h-full rounded-xl p-5 backdrop-blur-sm flex flex-col justify-between ${theme.innerBg}`}>
+        <div className={`group relative overflow-hidden rounded-2xl border-none shadow-sm hover:shadow-lg transition-all duration-300 p-6 ${styles.bg}`}>
+            {/* Background Icon */}
+            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500 pointer-events-none">
+                <div className="w-24 h-24">{icon}</div>
+            </div>
+
+            <div className="relative z-10 flex flex-col justify-between h-full">
                 <div>
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="rounded-lg bg-white/20 p-2 text-white">
-                            {icon}
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{title}</span>
+                        <div className={`p-2 rounded-xl ${styles.iconBg} transition-shadow duration-300 group-hover:shadow-md`}>
+                            {/* We clone the icon to enforce size if needed, or just wrap it */}
+                            <div className={`h-4 w-4 ${styles.text} flex items-center justify-center`}>
+                                {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement, { className: 'w-4 h-4' }) : icon}
+                            </div>
                         </div>
-                        <span className="text-xs font-bold text-white/90 uppercase tracking-wider">{title}</span>
                     </div>
 
-                    <div className="mb-4">
-                        <h3 className="text-3xl font-bold text-white tracking-tight">{value}</h3>
-                        <p className={`text-xs ${theme.subtitle}`}>{subtitle}</p>
+                    <div className="mb-2">
+                        <h3 className={`text-2xl font-bold tracking-tight font-mono ${styles.text}`}>{value}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium opacity-80">{subtitle}</p>
                     </div>
                 </div>
 
                 {(breakdown || footerText) && (
-                    <div className="pt-3 border-t border-white/10 mt-auto">
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 mt-auto">
                         {breakdown ? (
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 {breakdown.map((item, idx) => (
-                                    <div key={idx} className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center text-white/90">
-                                            {item.icon && <span className="mr-2 opacity-90">{item.icon}</span>}
+                                    <div key={idx} className="flex justify-between items-center text-xs">
+                                        <div className="flex items-center text-slate-600 dark:text-slate-400">
+                                            {item.icon && <span className="mr-1.5 opacity-70">{item.icon}</span>}
                                             <span>{item.label}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="font-bold text-white">{item.value}</span>
+                                            <span className="font-semibold text-slate-700 dark:text-slate-200">{item.value}</span>
                                             {item.percent && (
-                                                <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded text-white/80">
+                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${styles.iconBg} ${styles.text}`}>
                                                     {item.percent}
                                                 </span>
                                             )}
@@ -99,7 +119,7 @@ export const MarketingStatsCard: React.FC<MarketingStatsCardProps> = ({
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-xs text-white/70">{footerText}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{footerText}</p>
                         )}
                     </div>
                 )}

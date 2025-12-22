@@ -36,7 +36,7 @@ export const AtendenteCard = React.memo(function AtendenteCard({
   );
 
   return (
-    <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 h-full flex flex-col">
+    <Card className="border-none shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm group">
       <CardContent className="p-4 flex flex-col flex-1 min-h-0 overflow-hidden space-y-4">
         {/* Card do Atendente - Compacto */}
         <div className="space-y-3 flex-shrink-0">

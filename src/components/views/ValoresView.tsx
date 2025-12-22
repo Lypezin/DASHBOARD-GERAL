@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { exportarValoresParaExcel } from './valores/ValoresExcelExport';
 import { safeLog } from '@/lib/errorHandler';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { motion, Variants } from 'framer-motion';
 
 const ValoresView = React.memo(function ValoresView({
   valoresData,
@@ -81,9 +82,30 @@ const ValoresView = React.memo(function ValoresView({
     );
   }
 
+
+  const container: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <motion.div
+      className="space-y-6 animate-fade-in"
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" variants={item}>
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Valores por Entregador
@@ -101,32 +123,38 @@ const ValoresView = React.memo(function ValoresView({
           <Download className="h-4 w-4" />
           {isExporting ? 'Exportando...' : 'Exportar Excel'}
         </Button>
-      </div>
+      </motion.div>
 
-      <ValoresSearch
-        searchTerm={searchTerm}
-        isSearching={isSearching}
-        totalResults={totalEntregadores}
-        onSearchChange={setSearchTerm}
-        onClearSearch={() => setSearchTerm('')}
-      />
+      <motion.div variants={item}>
+        <ValoresSearch
+          searchTerm={searchTerm}
+          isSearching={isSearching}
+          totalResults={totalEntregadores}
+          onSearchChange={setSearchTerm}
+          onClearSearch={() => setSearchTerm('')}
+        />
+      </motion.div>
 
-      <ValoresStatsCards
-        totalGeral={totalGeral}
-        totalEntregadores={totalEntregadores}
-        totalCorridas={totalCorridas}
-        taxaMediaGeral={taxaMediaGeral}
-        formatarReal={formatarReal}
-      />
+      <motion.div variants={item}>
+        <ValoresStatsCards
+          totalGeral={totalGeral}
+          totalEntregadores={totalEntregadores}
+          totalCorridas={totalCorridas}
+          taxaMediaGeral={taxaMediaGeral}
+          formatarReal={formatarReal}
+        />
+      </motion.div>
 
-      <ValoresTable
-        sortedValores={sortedValores}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-        formatarReal={formatarReal}
-      />
-    </div>
+      <motion.div variants={item}>
+        <ValoresTable
+          sortedValores={sortedValores}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          formatarReal={formatarReal}
+        />
+      </motion.div>
+    </motion.div>
   );
 });
 

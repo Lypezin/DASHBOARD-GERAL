@@ -7,6 +7,7 @@ import { EntradaSaidaChart } from './components/EntradaSaidaChart';
 import { EntradaSaidaMonthlyChart } from './components/EntradaSaidaMonthlyChart';
 import { Button } from '@/components/ui/button';
 import * as XLSX from 'xlsx';
+import { motion, Variants } from 'framer-motion';
 
 interface EntradaSaidaViewProps {
     dataInicial: string | null;
@@ -70,9 +71,29 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
         );
     }
 
+    const container: Variants = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const item: Variants = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    };
+
     return (
-        <div className="space-y-8">
-            <div className="flex justify-end">
+        <motion.div
+            className="space-y-8"
+            variants={container}
+            initial="hidden"
+            animate="show"
+        >
+            <motion.div className="flex justify-end" variants={item}>
                 <Button
                     onClick={handleExport}
                     variant="outline"
@@ -81,14 +102,20 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                     <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
                     Exportar Excel
                 </Button>
-            </div>
+            </motion.div>
 
-            <EntradaSaidaStatsCards data={data} />
-            <EntradaSaidaWeeklyGrid data={data} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <motion.div variants={item}>
+                <EntradaSaidaStatsCards data={data} />
+            </motion.div>
+
+            <motion.div variants={item}>
+                <EntradaSaidaWeeklyGrid data={data} />
+            </motion.div>
+
+            <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-6" variants={item}>
                 <EntradaSaidaChart data={data} />
                 <EntradaSaidaMonthlyChart data={data} />
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };

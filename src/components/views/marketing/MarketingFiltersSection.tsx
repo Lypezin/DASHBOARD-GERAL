@@ -14,7 +14,7 @@ export const MarketingFiltersSection = React.memo(function MarketingFiltersSecti
     onFilterChange,
 }: MarketingFiltersSectionProps) {
     return (
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="border-none shadow-sm bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
             <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4 text-slate-500" />

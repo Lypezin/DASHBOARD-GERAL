@@ -29,14 +29,15 @@ export const ValoresTable = React.memo(function ValoresTable({
     };
 
     return (
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
                         <DollarSign className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                     </div>
                     <div>
-                        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+                        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span className="bg-emerald-500 w-1.5 h-5 rounded-full inline-block"></span>
                             Valores por Entregador
                         </CardTitle>
                         <CardDescription className="text-slate-500 dark:text-slate-400">

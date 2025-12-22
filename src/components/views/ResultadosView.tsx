@@ -5,6 +5,7 @@ import { ResultadosFilters } from './resultados/ResultadosFilters';
 import { ResultadosCards } from './resultados/ResultadosCards';
 import { useResultadosData } from './resultados/useResultadosData';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
+import { motion, Variants } from 'framer-motion';
 
 const ResultadosView = React.memo(function ResultadosView() {
   const {
@@ -44,26 +45,48 @@ const ResultadosView = React.memo(function ResultadosView() {
     );
   }
 
+  const container: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div className="space-y-4">
-      <ResultadosFilters
-        filtroLiberacao={filters.filtroLiberacao}
-        filtroEnviados={filters.filtroEnviados}
-        filtroEnviadosLiberados={filters.filtroEnviadosLiberados}
-        onFiltroLiberacaoChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
-        onFiltroEnviadosChange={(filter) => handleFilterChange('filtroEnviados', filter)}
-        onFiltroEnviadosLiberadosChange={(filter) => handleFilterChange('filtroEnviadosLiberados', filter)}
-      />
+    <motion.div
+      className="space-y-6"
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div variants={item}>
+        <ResultadosFilters
+          filtroLiberacao={filters.filtroLiberacao}
+          filtroEnviados={filters.filtroEnviados}
+          filtroEnviadosLiberados={filters.filtroEnviadosLiberados}
+          onFiltroLiberacaoChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
+          onFiltroEnviadosChange={(filter) => handleFilterChange('filtroEnviados', filter)}
+          onFiltroEnviadosLiberadosChange={(filter) => handleFilterChange('filtroEnviadosLiberados', filter)}
+        />
+      </motion.div>
 
       {/* Header com Totais */}
-      <div className="space-y-4">
+      <motion.div className="space-y-4" variants={item}>
         <ResultadosCards
           totalEnviado={totais.totalEnviado}
           totalLiberado={totais.totalLiberado}
           atendentesData={atendentesData}
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 });
 

@@ -12,6 +12,7 @@ import { processEvolucaoData, createChartData } from './evolucao/EvolucaoDataPro
 import { createEvolucaoChartOptions } from './evolucao/EvolucaoChartConfig';
 import { useThemeDetector } from '@/hooks/useThemeDetector';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { motion, Variants } from 'framer-motion';
 
 const EvolucaoView = React.memo(function EvolucaoView({
   evolucaoMensal,
@@ -83,34 +84,61 @@ const EvolucaoView = React.memo(function EvolucaoView({
     return <DashboardSkeleton contentOnly />;
   }
 
+  // Animation variants
+  const container: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <EvolucaoFilters
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        anoSelecionado={anoSelecionado}
-        anosDisponiveis={anosDisponiveis}
-        onAnoChange={onAnoChange}
-        selectedMetrics={selectedMetrics}
-        onMetricsChange={setSelectedMetrics}
-      />
+    <motion.div
+      className="space-y-6"
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div variants={item}>
+        <EvolucaoFilters
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          anoSelecionado={anoSelecionado}
+          anosDisponiveis={anosDisponiveis}
+          onAnoChange={onAnoChange}
+          selectedMetrics={selectedMetrics}
+          onMetricsChange={setSelectedMetrics}
+        />
+      </motion.div>
 
-      <EvolucaoChart
-        chartData={chartData}
-        chartOptions={chartOptions}
-        chartError={chartError}
-        anoSelecionado={anoSelecionado}
-        selectedMetrics={selectedMetrics}
-        viewMode={viewMode}
-        dadosAtivosLength={totalPeriodos}
-      />
+      <motion.div variants={item}>
+        <EvolucaoChart
+          chartData={chartData}
+          chartOptions={chartOptions}
+          chartError={chartError}
+          anoSelecionado={anoSelecionado}
+          selectedMetrics={selectedMetrics}
+          viewMode={viewMode}
+          dadosAtivosLength={totalPeriodos}
+        />
+      </motion.div>
 
-      <EvolucaoStatsCards
-        dadosAtivos={dadosAtivos}
-        viewMode={viewMode}
-        anoSelecionado={anoSelecionado}
-      />
-    </div>
+      <motion.div variants={item}>
+        <EvolucaoStatsCards
+          dadosAtivos={dadosAtivos}
+          viewMode={viewMode}
+          anoSelecionado={anoSelecionado}
+        />
+      </motion.div>
+    </motion.div>
   );
 });
 
