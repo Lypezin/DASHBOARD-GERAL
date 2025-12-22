@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ListChecks, BarChart3 } from 'lucide-react';
 import { OperationalDetailCard } from './components/OperationalDetailCard';
 import { OperationalViewToggle, ViewMode } from './components/OperationalViewToggle';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 interface DashboardOperationalDetailProps {
     aderenciaTurno: AderenciaTurno[];
@@ -20,7 +20,7 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
     const [viewMode, setViewMode] = useState<ViewMode>('turno');
 
     // Animation variants
-    const container = {
+    const container: Variants = {
         hidden: { opacity: 0 },
         show: {
             opacity: 1,
@@ -30,7 +30,7 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
         }
     };
 
-    const item = {
+    const itemVariant: Variants = {
         hidden: { opacity: 0, scale: 0.95 },
         show: { opacity: 1, scale: 1, transition: { duration: 0.3 } }
     };
@@ -95,7 +95,7 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
                         animate="show"
                     >
                         {dataToRender.map((item, index) => (
-                            <motion.div key={`${viewMode}-${index}`} variants={item}>
+                            <motion.div key={`${viewMode}-${index}`} variants={itemVariant}>
                                 <OperationalDetailCard data={item} />
                             </motion.div>
                         ))}
