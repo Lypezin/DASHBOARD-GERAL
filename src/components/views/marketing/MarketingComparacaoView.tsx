@@ -106,7 +106,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <MarketingComparacaoTable data={data} />
+                            <MarketingComparacaoTable data={data} praca={praca} />
                         </CardContent>
                     </Card>
                 </>

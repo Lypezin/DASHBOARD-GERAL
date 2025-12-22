@@ -14,13 +14,15 @@ interface MarketingDriverDetailModalProps {
     onClose: () => void;
     semanaIso: string; // e.g., "2024-W30"
     organizationId: string | null;
+    praca?: string | null;
 }
 
 export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProps> = ({
     isOpen,
     onClose,
     semanaIso,
-    organizationId
+    organizationId,
+    praca
 }) => {
     const [activeTab, setActiveTab] = useState<'marketing' | 'operacional'>('marketing');
     const [data, setData] = useState<EntregadorMarketing[]>([]);
@@ -65,7 +67,8 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
                 endDate: end,
                 type: activeTab === 'marketing' ? 'MARKETING' : 'OPERATIONAL',
                 limit: LIMIT,
-                offset: offset
+                offset: offset,
+                praca: praca
             });
 
             if (isReset) {
@@ -81,7 +84,7 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
         } finally {
             setLoading(false);
         }
-    }, [isOpen, semanaIso, activeTab, organizationId]);
+    }, [isOpen, semanaIso, activeTab, organizationId, praca]);
 
     // Reset and load when tab or week changes
     useEffect(() => {

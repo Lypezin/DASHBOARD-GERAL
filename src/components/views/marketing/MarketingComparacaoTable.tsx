@@ -30,9 +30,10 @@ interface ComparacaoRow {
 
 interface MarketingComparacaoTableProps {
     data: ComparacaoRow[];
+    praca?: string | null;
 }
 
-export const MarketingComparacaoTable = React.memo(function MarketingComparacaoTable({ data }: MarketingComparacaoTableProps) {
+export const MarketingComparacaoTable = React.memo(function MarketingComparacaoTable({ data, praca }: MarketingComparacaoTableProps) {
     const { user } = useAuth();
     const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
 
@@ -134,6 +135,7 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                 onClose={() => setSelectedWeek(null)}
                 semanaIso={selectedWeek || ''}
                 organizationId={user?.organization_id || null}
+                praca={praca}
             />
         </div>
     );

@@ -118,6 +118,7 @@ export interface EntregadorDetailsParams {
   limit: number;
   offset: number;
   search?: string;
+  praca?: string | null;
 }
 
 export interface EntregadorDetailsResult {
@@ -134,7 +135,8 @@ export async function fetchEntregadoresDetails(params: EntregadorDetailsParams):
       p_tipo: params.type,
       p_limit: params.limit,
       p_offset: params.offset,
-      p_search: params.search || null
+      p_search: params.search || null,
+      p_praca: params.praca || null
     };
 
     const { data, error } = await safeRpc<any[]>('get_entregadores_details', rpcParams, {
