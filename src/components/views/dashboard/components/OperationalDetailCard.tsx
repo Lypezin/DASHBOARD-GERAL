@@ -26,7 +26,7 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
     const Icon = data.aderencia >= 70 ? TrendingUp : TrendingDown;
 
     return (
-        <div className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 hover:shadow-md transition-all duration-200">
+        <div className="group relative bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-zinc-900/5 dark:ring-zinc-100/10 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
             <div className="flex justify-between items-start mb-3">
                 <h3 className="font-medium text-sm text-slate-700 dark:text-slate-200 truncate pr-2" title={data.label}>
                     {data.label}

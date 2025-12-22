@@ -27,7 +27,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-zinc-200/50 dark:border-zinc-800/50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md shadow-sm transition-all duration-300">
       <div className="container flex h-14 max-w-screen-2xl items-center justify-between px-4 sm:px-8">
         <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-90" prefetch={true}>
           <div className="hidden sm:flex flex-col leading-none">
