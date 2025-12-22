@@ -26,85 +26,98 @@ export const PrioridadeStatsCards = React.memo(function PrioridadeStatsCards({
     totalCompletadas,
     aderenciaMedia,
 }: PrioridadeStatsCardsProps) {
+    // Reusable Premium Stat Card
+    const StatCard = ({
+        title,
+        icon: Icon,
+        value,
+        colorClass,
+        bgClass,
+        iconBgClass,
+    }: {
+        title: string;
+        icon: any;
+        value: string;
+        colorClass: string;
+        bgClass: string;
+        iconBgClass: string;
+    }) => (
+        <Card className={`border-none shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden relative ${bgClass}`}>
+            <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500`}>
+                <Icon className="w-16 h-16" />
+            </div>
+
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
+                <CardTitle className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                    {title}
+                </CardTitle>
+                <div className={`p-2 rounded-xl ${iconBgClass} transition-shadow duration-300 group-hover:shadow-md`}>
+                    <Icon className={`h-4 w-4 ${colorClass}`} />
+                </div>
+            </CardHeader>
+            <CardContent className="z-10 relative">
+                <div className={`text-xl font-bold tracking-tight ${colorClass} font-mono`}>
+                    {value}
+                </div>
+            </CardContent>
+        </Card>
+    );
+
     return (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
-            {/* Entregadores */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs font-medium text-muted-foreground">Entregadores</CardTitle>
-                    <Users className="h-3 w-3 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
-                        {totalEntregadores.toLocaleString('pt-BR')}
-                    </div>
-                </CardContent>
-            </Card>
+            <StatCard
+                title="Entregadores"
+                icon={Users}
+                value={totalEntregadores.toLocaleString('pt-BR')}
+                colorClass="text-blue-600 dark:text-blue-400"
+                bgClass="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-900"
+                iconBgClass="bg-blue-100 dark:bg-blue-900/40"
+            />
 
-            {/* Ofertadas */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs font-medium text-muted-foreground">Ofertadas</CardTitle>
-                    <Megaphone className="h-3 w-3 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
-                        {totalOfertadas.toLocaleString('pt-BR')}
-                    </div>
-                </CardContent>
-            </Card>
+            <StatCard
+                title="Ofertadas"
+                icon={Megaphone}
+                value={totalOfertadas.toLocaleString('pt-BR')}
+                colorClass="text-sky-600 dark:text-sky-400"
+                bgClass="bg-gradient-to-br from-sky-50 to-white dark:from-sky-900/20 dark:to-slate-900"
+                iconBgClass="bg-sky-100 dark:bg-sky-900/40"
+            />
 
-            {/* Aceitas */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs font-medium text-muted-foreground">Aceitas</CardTitle>
-                    <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
-                        {totalAceitas.toLocaleString('pt-BR')}
-                    </div>
-                </CardContent>
-            </Card>
+            <StatCard
+                title="Aceitas"
+                icon={CheckCircle2}
+                value={totalAceitas.toLocaleString('pt-BR')}
+                colorClass="text-emerald-600 dark:text-emerald-400"
+                bgClass="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/20 dark:to-slate-900"
+                iconBgClass="bg-emerald-100 dark:bg-emerald-900/40"
+            />
 
-            {/* Rejeitadas */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs font-medium text-muted-foreground">Rejeitadas</CardTitle>
-                    <XCircle className="h-3 w-3 text-rose-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
-                        {totalRejeitadas.toLocaleString('pt-BR')}
-                    </div>
-                </CardContent>
-            </Card>
+            <StatCard
+                title="Rejeitadas"
+                icon={XCircle}
+                value={totalRejeitadas.toLocaleString('pt-BR')}
+                colorClass="text-rose-600 dark:text-rose-400"
+                bgClass="bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-900"
+                iconBgClass="bg-rose-100 dark:bg-rose-900/40"
+            />
 
-            {/* Completadas */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs font-medium text-muted-foreground">Completadas</CardTitle>
-                    <Flag className="h-3 w-3 text-indigo-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
-                        {totalCompletadas.toLocaleString('pt-BR')}
-                    </div>
-                </CardContent>
-            </Card>
+            <StatCard
+                title="Completadas"
+                icon={Flag}
+                value={totalCompletadas.toLocaleString('pt-BR')}
+                colorClass="text-indigo-600 dark:text-indigo-400"
+                bgClass="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-900"
+                iconBgClass="bg-indigo-100 dark:bg-indigo-900/40"
+            />
 
-            {/* Aderência Média */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs font-medium text-muted-foreground">Aderência Média</CardTitle>
-                    <BarChart3 className="h-3 w-3 text-violet-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
-                        {aderenciaMedia.toFixed(1)}%
-                    </div>
-                </CardContent>
-            </Card>
+            <StatCard
+                title="Aderência"
+                icon={BarChart3}
+                value={`${aderenciaMedia.toFixed(1)}%`}
+                colorClass="text-violet-600 dark:text-violet-400"
+                bgClass="bg-gradient-to-br from-violet-50 to-white dark:from-violet-900/20 dark:to-slate-900"
+                iconBgClass="bg-violet-100 dark:bg-violet-900/40"
+            />
         </div>
     );
 });
