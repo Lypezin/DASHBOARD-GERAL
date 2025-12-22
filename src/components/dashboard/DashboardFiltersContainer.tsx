@@ -39,21 +39,22 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
     return null;
   }
 
-  <Card className="border-none shadow-sm bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-4 z-40 mb-6 transition-all duration-300 hover:shadow-md">
-    <CardContent className="p-4 sm:p-6">
-      <FiltroBar
-        filters={filters}
-        setFilters={setFilters}
-        anos={anosDisponiveis}
-        semanas={semanasDisponiveis.map(String)}
-        pracas={pracas}
-        subPracas={subPracas}
-        origens={origens}
-        turnos={turnos}
-        currentUser={currentUser}
-      />
-    </CardContent>
-  </Card>
+  return (
+    <Card className="border-none shadow-sm bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-4 z-40 mb-6 transition-all duration-300 hover:shadow-md">
+      <CardContent className="p-4 sm:p-6">
+        <FiltroBar
+          filters={filters}
+          setFilters={setFilters}
+          anos={anosDisponiveis}
+          semanas={semanasDisponiveis.map(String)}
+          pracas={pracas}
+          subPracas={subPracas}
+          origens={origens}
+          turnos={turnos}
+          currentUser={currentUser}
+        />
+      </CardContent>
+    </Card>
   );
 });
 
