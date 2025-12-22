@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import Image from 'next/image';
 import { usePerfilUpdate } from '@/hooks/perfil/usePerfilUpdate';
 import { validateImageFile } from '@/utils/perfil/validation';
+import { ProfileAvatarDisplay } from './components/ProfileAvatarDisplay';
+import { ProfileAvatarUploader } from './components/ProfileAvatarUploader';
 
 interface PerfilAvatarUploadProps {
   avatarUrl: string | null | undefined;
@@ -86,74 +87,21 @@ export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({
         </div>
       )}
       <div className="flex flex-col sm:flex-row gap-6 items-start">
-        <div className="flex-shrink-0">
-          <div className="relative">
-            <div className="h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden border-4 border-white dark:border-slate-700 shadow-lg">
-              {displayUrl ? (
-                <Image
-                  src={displayUrl}
-                  alt="Foto de perfil"
-                  width={160}
-                  height={160}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-4xl sm:text-5xl text-white">👤</span>
-              )}
-            </div>
-            {displayUrl && (
-              <button
-                onClick={handleRemovePhoto}
-                disabled={uploading}
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-lg transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Remover foto"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        </div>
+        <ProfileAvatarDisplay
+          displayUrl={displayUrl}
+          onRemove={handleRemovePhoto}
+          canRemove={!!displayUrl}
+          uploading={uploading}
+        />
 
-        <div className="flex-1 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Selecionar Imagem
-            </label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="block w-full text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer dark:file:bg-blue-500 dark:hover:file:bg-blue-600"
-              disabled={uploading}
-            />
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB
-            </p>
-          </div>
-
-          {previewUrl && previewUrl !== avatarUrl && (
-            <button
-              onClick={handleUpload}
-              disabled={uploading}
-              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
-            >
-              {uploading ? (
-                <>
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                  <span>Enviando...</span>
-                </>
-              ) : (
-                <>
-                  <span>📤</span>
-                  <span>Salvar Foto</span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
+        <ProfileAvatarUploader
+          ref={fileInputRef}
+          onFileSelect={handleFileSelect}
+          onUpload={handleUpload}
+          uploading={uploading}
+          hasPreview={!!previewUrl && previewUrl !== avatarUrl}
+        />
       </div>
     </div>
   );
 };
-

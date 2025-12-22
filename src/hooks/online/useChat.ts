@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { ChatMessage } from './types';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { chatService } from './services/chatService';
 
 export function useChat(userId: string | null) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -11,32 +12,16 @@ export function useChat(userId: string | null) {
     useEffect(() => {
         if (!userId) return;
 
-        const fetchHistory = async () => {
-            const { data, error } = await supabase
-                .from('chat_messages')
-                .select('*')
-                .or(`from_user.eq.${userId},to_user.eq.${userId}`)
-                .order('created_at', { ascending: false })
-                .limit(100);
-
-            if (!error && data) {
-                const mapped: ChatMessage[] = data.map(m => ({
-                    id: m.id,
-                    from: m.from_user,
-                    to: m.to_user,
-                    content: m.content,
-                    timestamp: m.created_at,
-                    replyTo: m.reply_to_id ? { id: m.reply_to_id } : undefined,
-                    reactions: m.reactions || {},
-                    attachments: m.attachments || [],
-                    isPinned: m.is_pinned,
-                    type: m.type
-                })).reverse();
-                setMessages(mapped);
+        const loadHistory = async () => {
+            try {
+                const history = await chatService.fetchHistory(userId);
+                setMessages(history);
+            } catch (error) {
+                console.error('Error fetching chat history:', error);
             }
         };
 
-        fetchHistory();
+        loadHistory();
 
         const handleChanges = (payload: any) => {
             if (payload.eventType === 'INSERT') {
@@ -56,7 +41,7 @@ export function useChat(userId: string | null) {
                         to: newMsg.to_user,
                         content: newMsg.content,
                         timestamp: newMsg.created_at,
-                        replyTo: newMsg.reply_to_id ? { id: newMsg.reply_to_id } : undefined, // Simplification
+                        replyTo: newMsg.reply_to_id ? { id: newMsg.reply_to_id } : undefined,
                         reactions: newMsg.reactions || {},
                         attachments: newMsg.attachments || [],
                         isPinned: newMsg.is_pinned,
@@ -99,62 +84,58 @@ export function useChat(userId: string | null) {
         };
         setMessages(prev => [...prev, msg]);
 
-        const { data, error } = await supabase.from('chat_messages').insert({
-            from_user: userId,
-            to_user: toUser,
-            content: content,
-            reply_to_id: options?.replyTo,
-            attachments: options?.attachments || []
-        }).select().single();
-
-        if (error) {
+        try {
+            const data = await chatService.sendMessage(userId, toUser, content, options);
+            if (data) {
+                setMessages(prev => {
+                    const alreadyExists = prev.some(m => m.id === data.id);
+                    if (alreadyExists) return prev.filter(m => m.id !== tempId);
+                    return prev.map(m => m.id === tempId ? {
+                        ...m,
+                        id: data.id,
+                        timestamp: data.created_at,
+                        replyTo: data.reply_to_id ? { id: data.reply_to_id } : undefined
+                    } : m);
+                });
+            }
+        } catch (error) {
             console.error("Error sending message:", error);
             setMessages(prev => prev.filter(m => m.id !== tempId));
-        } else if (data) {
-            setMessages(prev => {
-                const alreadyExists = prev.some(m => m.id === data.id);
-                if (alreadyExists) return prev.filter(m => m.id !== tempId);
-                return prev.map(m => m.id === tempId ? {
-                    ...m,
-                    id: data.id,
-                    timestamp: data.created_at,
-                    replyTo: data.reply_to_id ? { id: data.reply_to_id } : undefined
-                } : m);
-            });
         }
     };
 
     const reactToMessage = async (msgId: string, emoji: string) => {
+        if (!userId) return;
         setMessages(prev => prev.map(m => {
             if (m.id === msgId) {
-                return { ...m, reactions: { ...m.reactions, [userId!]: emoji } };
+                return { ...m, reactions: { ...m.reactions, [userId]: emoji } };
             }
             return m;
         }));
-        const { data: currentMsg } = await supabase.from('chat_messages').select('reactions').eq('id', msgId).single();
-        const updatedReactions = { ...currentMsg?.reactions, [userId!]: emoji };
-        await supabase.from('chat_messages').update({ reactions: updatedReactions }).eq('id', msgId);
+        try {
+            await chatService.reactToMessage(msgId, userId, emoji);
+        } catch (error) {
+            console.error('Error reacting to message:', error);
+        }
     };
 
     const pinMessage = async (msgId: string, isPinned: boolean) => {
         setMessages(prev => prev.map(m => m.id === msgId ? { ...m, isPinned } : m));
-        await supabase.from('chat_messages').update({ is_pinned: isPinned }).eq('id', msgId);
+        try {
+            await chatService.pinMessage(msgId, isPinned);
+        } catch (error) {
+            console.error('Error pinning message:', error);
+        }
     };
 
     const uploadFile = async (file: File) => {
         if (!userId) return null;
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${userId}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error: uploadError } = await supabase.storage.from('chat-attachments').upload(filePath, file);
-        if (uploadError) {
-            console.error('Error uploading file:', uploadError);
+        try {
+            return await chatService.uploadFile(userId, file);
+        } catch (error) {
+            console.error('Error uploading file:', error);
             return null;
         }
-
-        const { data: { publicUrl } } = supabase.storage.from('chat-attachments').getPublicUrl(filePath);
-        return { url: publicUrl, name: file.name, type: file.type.startsWith('image/') ? 'image' : 'file' };
     };
 
     return { messages, sendMessage, reactToMessage, pinMessage, uploadFile };
