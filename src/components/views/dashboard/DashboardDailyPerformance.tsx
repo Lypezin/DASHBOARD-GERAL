@@ -108,9 +108,13 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
                                         ></div>
                                     </div>
 
-                                    <div className="flex justify-between items-end text-xs font-mono mt-1">
-                                        <span className="font-bold text-slate-700 dark:text-slate-200">{formatarHorasParaHMS(dia.horas_entregues || '0')}</span>
-                                        <span className="text-slate-500 dark:text-slate-400 font-medium">/ {formatarHorasParaHMS(dia.horas_a_entregar || '0')}</span>
+                                    <div className="flex flex-col items-center justify-center mt-2 w-full text-center">
+                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 font-mono tracking-tight leading-none bg-slate-50 dark:bg-slate-800/50 px-2 py-0.5 rounded text-nowrap">
+                                            {formatarHorasParaHMS(dia.horas_entregues || '0')}
+                                        </span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-1 opacity-80 text-nowrap">
+                                            Meta: {formatarHorasParaHMS(dia.horas_a_entregar || '0')}
+                                        </span>
                                     </div>
                                 </div>
                             </CardContent>
