@@ -3,78 +3,34 @@
  * Extraído de src/app/page.tsx para melhor organização
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useTabData } from '@/hooks/useTabData';
 import { useTabDataMapper } from '@/hooks/useTabDataMapper';
 import { useDashboardKeys } from '@/hooks/dashboard/useDashboardKeys';
 import { useUserActivity } from '@/hooks/useUserActivity';
-import { registerChartJS } from '@/lib/chartConfig';
-import { safeLog } from '@/lib/errorHandler';
-import { buildFilterPayload } from '@/utils/helpers';
-import type { CurrentUser, TabType } from '@/types';
+import { TabType } from '@/types';
 import { useDashboardFilters } from './useDashboardFilters';
 import { useEvolutionAutoSelect } from './useEvolutionAutoSelect';
-
-const IS_DEV = process.env.NODE_ENV === 'development';
+import { useChartRegistration } from './dashboard/useChartRegistration';
+import { useDashboardAuthWrapper } from './dashboard/useDashboardAuthWrapper';
 
 export function useDashboardPage() {
+  // Auth Logic
+  const { isCheckingAuth, isAuthenticated, currentUser } = useDashboardAuthWrapper();
 
-  const { isChecking: isCheckingAuth, isAuthenticated, currentUser: authUser } = useAuthGuard({
-    requireApproval: true,
-    fetchUserProfile: true,
-  });
+  // Chart Registration
+  const chartReady = useChartRegistration();
 
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
 
   const { filters, setFilters } = useDashboardFilters();
 
-  // Log quando o hook é montado
-  useEffect(() => {
-    // console.log('🔄 [DashboardPage] Hook montado/remontado');
-  }, []);
-
-  // Log quando os filtros mudam
-  useEffect(() => {
-    // console.log('📊 [DashboardPage] FILTROS MUDARAM:', {
-    //   ano: filters.ano,
-    //   semana: filters.semana,
-    //   praca: filters.praca,
-    //   timestamp: new Date().toISOString(),
-    // });
-  }, [filters.ano, filters.semana, filters.praca]);
-
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(authUser || null);
-  const [chartReady, setChartReady] = useState(false);
-
-  // Atualizar currentUser quando authUser mudar
-  useEffect(() => {
-    if (authUser) {
-      setCurrentUser(authUser);
-    }
-  }, [authUser]);
-
-  // Registrar Chart.js apenas no cliente
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      registerChartJS()
-        .then(() => {
-          setChartReady(true);
-          if (IS_DEV) {
-            safeLog.info('✅ Chart.js está pronto, componentes podem renderizar');
-          }
-        })
-        .catch((error) => {
-          safeLog.error('Erro ao registrar Chart.js:', error);
-          setChartReady(true);
-        });
-    } else {
-      setChartReady(true);
-    }
-  }, []);
+  // Log quando o hook é montado/filtros mudam (opcional, pode ser removido se não usado)
+  useEffect(() => { }, []);
+  useEffect(() => { }, [filters.ano, filters.semana, filters.praca]);
 
   // 1. Obter dados (incluindo anosDisponiveis)
   const {
@@ -111,7 +67,6 @@ export function useDashboardPage() {
   // Reutilizar lógica centralizada de chaves e payload
   const { filterPayload } = useDashboardKeys(filters, currentUser);
 
-
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
 
   // Mapeia os dados do useTabData para as props dos componentes de view
@@ -120,7 +75,7 @@ export function useDashboardPage() {
     tabData,
   });
 
-  const { sessionId, isPageVisible, registrarAtividade } = useUserActivity(activeTab, filters, currentUser);
+  useUserActivity(activeTab, filters, currentUser);
 
   // Função para mudar de aba
   const handleTabChange = useCallback((tab: TabType) => {

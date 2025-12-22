@@ -7,6 +7,8 @@ import { PrioridadeSearch } from './prioridade/PrioridadeSearch';
 import { PrioridadeTable } from './prioridade/PrioridadeTable';
 import { PrioridadeStatsCards } from './prioridade/PrioridadeStatsCards';
 import { usePrioridadeData } from './prioridade/usePrioridadeData';
+import { usePrioridadeStats } from './prioridade/hooks/usePrioridadeStats';
+import { PrioridadeEmptyState, PrioridadeErrorState } from './prioridade/components/PrioridadeEmptyStates';
 import { exportarPrioridadeParaExcel } from './prioridade/PrioridadeExcelExport';
 import { safeLog } from '@/lib/errorHandler';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
@@ -22,11 +24,7 @@ import {
   getCompletadasColor,
   getCompletadasBg,
 } from './prioridade/PrioridadeUtils';
-import {
-  Users,
-  AlertCircle,
-  Download
-} from 'lucide-react';
+import { Download } from 'lucide-react';
 
 const PrioridadePromoView = React.memo(function PrioridadePromoView({
   entregadoresData,
@@ -55,6 +53,16 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
     handleClearFilters
   } = usePrioridadeData(entregadoresData);
 
+  // Calcular estatísticas
+  const {
+    totalOfertadas,
+    totalAceitas,
+    totalRejeitadas,
+    totalCompletadas,
+    totalEntregadores,
+    aderenciaMedia
+  } = usePrioridadeStats(dataFiltrada);
+
   // Função para exportar dados para Excel
   const exportarParaExcel = async () => {
     try {
@@ -70,34 +78,12 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   }
 
   if (!entregadoresData) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="max-w-md mx-auto rounded-xl border border-rose-200 bg-white p-6 text-center shadow-sm dark:border-rose-900 dark:bg-slate-900">
-          <AlertCircle className="mx-auto h-10 w-10 text-rose-500 mb-4" />
-          <p className="text-lg font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
-          <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">Não foi possível carregar os dados de prioridade.</p>
-        </div>
-      </div>
-    );
+    return <PrioridadeErrorState />;
   }
 
   if (entregadoresData.entregadores.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center border rounded-xl border-dashed border-slate-300 dark:border-slate-700">
-        <Users className="h-10 w-10 text-slate-400 mb-3" />
-        <p className="text-lg font-medium text-slate-900 dark:text-white">Nenhum entregador encontrado</p>
-        <p className="text-sm text-slate-500">Tente ajustar os filtros para ver os dados.</p>
-      </div>
-    );
+    return <PrioridadeEmptyState />;
   }
-
-  // Calcular estatísticas gerais com base nos dados filtrados
-  const totalOfertadas = dataFiltrada.reduce((sum, e) => sum + e.corridas_ofertadas, 0);
-  const totalAceitas = dataFiltrada.reduce((sum, e) => sum + e.corridas_aceitas, 0);
-  const totalRejeitadas = dataFiltrada.reduce((sum, e) => sum + e.corridas_rejeitadas, 0);
-  const totalCompletadas = dataFiltrada.reduce((sum, e) => sum + e.corridas_completadas, 0);
-  const totalEntregadores = dataFiltrada.length;
-  const aderenciaMedia = totalEntregadores > 0 ? dataFiltrada.reduce((sum, e) => sum + e.aderencia_percentual, 0) / totalEntregadores : 0;
 
   return (
     <div className="space-y-6 animate-fade-in">
