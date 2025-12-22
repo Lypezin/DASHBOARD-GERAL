@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Table,
     TableBody,
@@ -9,6 +9,10 @@ import {
 } from "@/components/ui/table";
 import { formatDuration, extractWeekNumber } from '@/utils/timeHelpers';
 import { calculatePercentage } from '@/utils/formatHelpers';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import { MarketingDriverDetailModal } from './MarketingDriverDetailModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ComparacaoRow {
     semana_iso: string;
@@ -29,12 +33,16 @@ interface MarketingComparacaoTableProps {
 }
 
 export const MarketingComparacaoTable = React.memo(function MarketingComparacaoTable({ data }: MarketingComparacaoTableProps) {
+    const { user } = useAuth();
+    const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
+
     return (
         <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow className="bg-muted/50">
                         <TableHead rowSpan={2} className="w-[100px]">Semana</TableHead>
+                        <TableHead rowSpan={2} className="w-[50px] text-center">Detalhes</TableHead>
                         <TableHead colSpan={4} className="text-center border-l bg-blue-50/50 dark:bg-blue-900/10">Horas Logadas</TableHead>
                         <TableHead colSpan={2} className="text-center border-l">Ofertadas</TableHead>
                         <TableHead colSpan={2} className="text-center border-l">Aceitas</TableHead>
@@ -68,7 +76,7 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                 <TableBody>
                     {data.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={13} className="h-24 text-center">
+                            <TableCell colSpan={14} className="h-24 text-center">
                                 Nenhum dado encontrado para o período selecionado.
                             </TableCell>
                         </TableRow>
@@ -79,6 +87,18 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                                 <TableRow key={row.semana_iso}>
                                     <TableCell className="font-medium whitespace-nowrap">
                                         Semana {extractWeekNumber(row.semana_iso)}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0"
+                                            onClick={() => setSelectedWeek(row.semana_iso)}
+                                            title="Ver detalhes"
+                                        >
+                                            <Search className="h-4 w-4 text-slate-500 hover:text-blue-500" />
+                                            <span className="sr-only">Ver detalhes</span>
+                                        </Button>
                                     </TableCell>
 
                                     {/* Hours */}
@@ -108,6 +128,13 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                     )}
                 </TableBody>
             </Table>
+
+            <MarketingDriverDetailModal
+                isOpen={!!selectedWeek}
+                onClose={() => setSelectedWeek(null)}
+                semanaIso={selectedWeek || ''}
+                organizationId={user?.organization_id || null}
+            />
         </div>
     );
 });
