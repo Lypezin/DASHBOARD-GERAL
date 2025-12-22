@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { EntregadorMarketing } from '@/types';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface EntregadoresTableHeaderProps {
     sortField: keyof EntregadorMarketing | 'rodando';
@@ -9,11 +8,11 @@ interface EntregadoresTableHeaderProps {
     onSort: (field: keyof EntregadorMarketing | 'rodando') => void;
 }
 
-export const EntregadoresTableHeader: React.FC<EntregadoresTableHeaderProps> = ({
+export const EntregadoresTableHeader = React.memo(function EntregadoresTableHeader({
     sortField,
     sortDirection,
-    onSort
-}) => {
+    onSort,
+}: EntregadoresTableHeaderProps) {
     const getSortIcon = (field: keyof EntregadorMarketing | 'rodando') => {
         if (sortField !== field) return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400 inline" />;
         return sortDirection === 'asc' ?
@@ -23,18 +22,24 @@ export const EntregadoresTableHeader: React.FC<EntregadoresTableHeaderProps> = (
 
     return (
         <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-            <div className="grid grid-cols-10 gap-4 px-6 py-3 min-w-[1200px]">
+            <div className="grid grid-cols-8 gap-4 px-6 py-3 min-w-[1000px]">
                 <div
                     className="cursor-pointer text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1 col-span-2"
                     onClick={() => onSort('nome')}
                 >
-                    Nome / ID {getSortIcon('nome')}
+                    Entregador {getSortIcon('nome')}
                 </div>
                 <div
                     className="cursor-pointer text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1"
                     onClick={() => onSort('regiao_atuacao')}
                 >
-                    Cidade {getSortIcon('regiao_atuacao')}
+                    Praça {getSortIcon('regiao_atuacao')}
+                </div>
+                <div
+                    className="cursor-pointer text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1"
+                    onClick={() => onSort('total_segundos')}
+                >
+                    Tempo {getSortIcon('total_segundos')}
                 </div>
                 <div
                     className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
@@ -50,35 +55,17 @@ export const EntregadoresTableHeader: React.FC<EntregadoresTableHeaderProps> = (
                 </div>
                 <div
                     className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
-                    onClick={() => onSort('total_completadas')}
-                >
-                    Completadas {getSortIcon('total_completadas')}
-                </div>
-                <div
-                    className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
                     onClick={() => onSort('total_rejeitadas')}
                 >
                     Rejeitadas {getSortIcon('total_rejeitadas')}
                 </div>
                 <div
                     className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
-                    onClick={() => onSort('total_segundos')}
+                    onClick={() => onSort('total_completadas')}
                 >
-                    Horas {getSortIcon('total_segundos')}
-                </div>
-                <div
-                    className="cursor-pointer text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1"
-                    onClick={() => onSort('dias_sem_rodar')}
-                >
-                    Dias s/ Rodar {getSortIcon('dias_sem_rodar')}
-                </div>
-                <div
-                    className="cursor-pointer text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1"
-                    onClick={() => onSort('rodando')}
-                >
-                    Status {getSortIcon('rodando')}
+                    Completadas {getSortIcon('total_completadas')}
                 </div>
             </div>
         </div>
     );
-};
+});
