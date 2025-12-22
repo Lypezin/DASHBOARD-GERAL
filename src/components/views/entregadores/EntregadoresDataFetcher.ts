@@ -126,48 +126,48 @@ export interface EntregadorDetailsResult {
 }
 
 export async function fetchEntregadoresDetails(params: EntregadorDetailsParams): Promise<EntregadorDetailsResult> {
-    try {
-        const rpcParams = {
-            p_organization_id: params.organizationId,
-            p_start_date: params.startDate,
-            p_end_date: params.endDate,
-            p_tipo: params.type,
-            p_limit: params.limit,
-            p_offset: params.offset,
-            p_search: params.search || null
-        };
+  try {
+    const rpcParams = {
+      p_organization_id: params.organizationId === '' ? null : params.organizationId,
+      p_start_date: params.startDate,
+      p_end_date: params.endDate,
+      p_tipo: params.type,
+      p_limit: params.limit,
+      p_offset: params.offset,
+      p_search: params.search || null
+    };
 
-        const { data, error } = await safeRpc<any[]>('get_entregadores_details', rpcParams);
+    const { data, error } = await safeRpc<any[]>('get_entregadores_details', rpcParams);
 
-        if (error) throw error;
+    if (error) throw error;
 
-        if (!data || data.length === 0) {
-            return { data: [], totalCount: 0 };
-        }
-
-        // Map RPC result to EntregadorMarketing interface
-        // RPC returns: id_entregador, nome, regiao_atuacao, total_segundos, total_ofertadas... total_count
-        const resultData: EntregadorMarketing[] = data.map((row: any) => ({
-            id_entregador: row.id_entregador,
-            nome: row.nome,
-            regiao_atuacao: row.regiao_atuacao,
-            total_segundos: Number(row.total_segundos),
-            total_ofertadas: Number(row.total_ofertadas),
-            total_aceitas: Number(row.total_aceitas),
-            total_completadas: Number(row.total_completadas),
-            total_rejeitadas: Number(row.total_rejeitadas),
-            // Default fields not returned by RPC but required by interface
-            ultima_data: null, 
-            dias_sem_rodar: null,
-            rodando: null // Could add to RPC if needed, but not critical for details view
-        }));
-
-        const totalCount = data.length > 0 ? Number(data[0].total_count) : 0;
-
-        return { data: resultData, totalCount };
-
-    } catch (err) {
-        console.error('Error fetching entregadores details:', err);
-        throw err;
+    if (!data || data.length === 0) {
+      return { data: [], totalCount: 0 };
     }
+
+    // Map RPC result to EntregadorMarketing interface
+    // RPC returns: id_entregador, nome, regiao_atuacao, total_segundos, total_ofertadas... total_count
+    const resultData: EntregadorMarketing[] = data.map((row: any) => ({
+      id_entregador: row.id_entregador,
+      nome: row.nome,
+      regiao_atuacao: row.regiao_atuacao,
+      total_segundos: Number(row.total_segundos),
+      total_ofertadas: Number(row.total_ofertadas),
+      total_aceitas: Number(row.total_aceitas),
+      total_completadas: Number(row.total_completadas),
+      total_rejeitadas: Number(row.total_rejeitadas),
+      // Default fields not returned by RPC but required by interface
+      ultima_data: null,
+      dias_sem_rodar: null,
+      rodando: null // Could add to RPC if needed, but not critical for details view
+    }));
+
+    const totalCount = data.length > 0 ? Number(data[0].total_count) : 0;
+
+    return { data: resultData, totalCount };
+
+  } catch (err) {
+    console.error('Error fetching entregadores details:', err);
+    throw err;
+  }
 }
