@@ -116,7 +116,7 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
                             </CardContent>
                         </Card>
                     );
-                    );
+
                 })}
             </div>
         </div>
