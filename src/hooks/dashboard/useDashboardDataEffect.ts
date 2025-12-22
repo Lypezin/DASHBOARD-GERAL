@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
-import { transformDashboardData, createEmptyDashboardData } from '@/utils/dashboard/transformers';
+import { createEmptyDashboardData } from '@/utils/dashboard/transformers';
+import { updateDashboardState, clearDashboardState } from './utils/updateDashboardState';
 import type { FilterPayload } from '@/types/filters';
 import type {
     Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno,
@@ -42,13 +43,7 @@ export function useDashboardDataEffect({
     setters
 }: UseDashboardDataEffectProps, payloadKey: string) {
 
-    const {
-        setTotals, setAderenciaSemanal, setAderenciaDia,
-        setAderenciaTurno, setAderenciaSubPraca, setAderenciaOrigem, setDimensoes
-    } = setters;
-
     useEffect(() => {
-        // Evitar processamento se o payload não mudou realmente
         if (previousPayloadRef.current === payloadKey) {
             if (IS_DEV) safeLog.info('[useDashboardDataEffect] Payload não mudou, ignorando');
             return;
@@ -64,7 +59,6 @@ export function useDashboardDataEffect({
         const hasValidFilters = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
             (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
 
-        // Se o payload anterior era inválido e agora é válido, limpar cache
         const previousPayloadWasInvalid = previousPayloadRef.current &&
             (!previousPayloadRef.current.includes('"p_ano":') || previousPayloadRef.current.includes('"p_ano":null')) &&
             (!previousPayloadRef.current.includes('"p_data_inicial":') || previousPayloadRef.current.includes('"p_data_inicial":null'));
@@ -75,20 +69,9 @@ export function useDashboardDataEffect({
 
         pendingPayloadKeyRef.current = payloadKey;
 
-        // Verificar cache
         const cachedData = checkCache(payloadKey);
         if (cachedData) {
-            const processedData = transformDashboardData(cachedData);
-
-            setTotals(processedData.totals);
-            setAderenciaSemanal(processedData.aderencia_semanal);
-            setAderenciaDia(processedData.aderencia_dia);
-            setAderenciaTurno(processedData.aderencia_turno);
-            setAderenciaSubPraca(processedData.aderencia_sub_praca);
-            setAderenciaOrigem(processedData.aderencia_origem);
-
-            if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
-
+            updateDashboardState(cachedData, setters, false);
             previousPayloadRef.current = payloadKey;
             isFirstExecutionRef.current = false;
             return;
@@ -115,31 +98,14 @@ export function useDashboardDataEffect({
                     : currentPayloadKey;
 
                 updateCache(cacheKeyToUse, data);
-
-                const processedData = transformDashboardData(data);
-
-                setTotals(processedData.totals);
-                setAderenciaSemanal(processedData.aderencia_semanal);
-                setAderenciaDia(processedData.aderencia_dia);
-                setAderenciaTurno(processedData.aderencia_turno);
-                setAderenciaSubPraca(processedData.aderencia_sub_praca);
-                setAderenciaOrigem(processedData.aderencia_origem);
-
-                if (processedData.dimensoes) setDimensoes(processedData.dimensoes);
+                updateDashboardState(data, setters, false);
 
                 previousPayloadRef.current = currentPayloadKey;
                 isFirstExecutionRef.current = false;
                 pendingPayloadKeyRef.current = '';
             } else {
-                // Handle empty data
                 const emptyData = createEmptyDashboardData();
-                setTotals({ ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 });
-                setAderenciaSemanal([]);
-                setAderenciaDia([]);
-                setAderenciaTurno([]);
-                setAderenciaSubPraca([]);
-                setAderenciaOrigem([]);
-                setDimensoes(emptyData.dimensoes);
+                clearDashboardState(setters, emptyData);
                 previousPayloadRef.current = currentPayloadKey;
                 isFirstExecutionRef.current = false;
             }

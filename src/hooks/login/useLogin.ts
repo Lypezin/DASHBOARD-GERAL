@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { syncOrganizationIdToMetadata } from '@/utils/organizationHelpers';
+import { fetchUserProfile, logLoginActivity } from './utils/loginHelpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -22,50 +23,23 @@ export function useLogin() {
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = useCallback(async (formData: LoginFormData) => {
-
     setLoading(true);
     setError(null);
 
     try {
-
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (signInError) {
-
         throw signInError;
       }
 
-
-
       // Verificar se o usuário está aprovado com retry
-      let profile: any = null;
-      let profileError: any = null;
-
-      try {
-        const result = await supabase.rpc('get_current_user_profile') as { data: any; error: any };
-        profile = result.data;
-        profileError = result.error;
-      } catch (err) {
-        profileError = err;
-      }
-
-      // Se houver erro, tentar novamente uma vez
-      if (profileError && !profile) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        try {
-          const retryResult = await supabase.rpc('get_current_user_profile') as { data: any; error: any };
-          profile = retryResult.data;
-          profileError = retryResult.error;
-        } catch (retryErr) {
-          profileError = retryErr;
-        }
-      }
+      const { profile, profileError } = await fetchUserProfile();
 
       if (profileError) {
-        // Erro ao carregar perfil - fazer logout apenas se for erro permanente
         const errorCode = (profileError as any)?.code || '';
         const errorMessage = String((profileError as any)?.message || '');
         const isTemporaryError = errorCode === 'TIMEOUT' ||
@@ -73,7 +47,6 @@ export function useLogin() {
           errorMessage.includes('network');
 
         if (isTemporaryError) {
-          // Erro temporário - tentar continuar
           if (IS_DEV) safeLog.warn('Erro temporário ao carregar perfil no login, continuando...');
         } else {
           await supabase.auth.signOut();
@@ -92,46 +65,22 @@ export function useLogin() {
       try {
         await syncOrganizationIdToMetadata();
       } catch (err) {
-        // Não bloquear login se sincronização falhar
         if (IS_DEV) {
           safeLog.warn('Erro ao sincronizar organization_id (não bloqueante):', err);
         }
       }
 
-      // Registrar atividade de login (tentar, mas não bloquear se falhar)
+      // Registrar atividade de login
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.id) {
-          const { error: rpcError } = await supabase.rpc('registrar_atividade', {
-            p_session_id: user.id,
-            p_action_type: 'login',
-            p_action_details: 'Fez login no sistema',
-            p_tab_name: 'dashboard',
-            p_filters_applied: null // Passar null em vez de {} vazio
-          });
-
-          // Ignorar erro silenciosamente - não bloquear login
-          // Apenas logar em desenvolvimento se não for 404
-          if (rpcError) {
-            const errorCode = (rpcError as any)?.code || '';
-            const errorMessage = String((rpcError as any)?.message || '');
-            const is404 = errorCode === 'PGRST116' || errorCode === '42883' ||
-              errorCode === 'PGRST204' ||
-              errorMessage.includes('404') ||
-              errorMessage.includes('not found');
-
-            if (!is404 && IS_DEV) {
-              safeLog.warn('Erro ao registrar atividade de login (não bloqueante):', rpcError);
-            }
-          }
+          await logLoginActivity(user.id);
         }
       } catch (err) {
-        // Ignorar erro - não bloquear login
         if (IS_DEV) safeLog.warn('Erro ao registrar atividade de login:', err);
       }
 
       // Login bem-sucedido
-
       router.push('/');
       router.refresh();
     } catch (err: any) {
@@ -148,4 +97,3 @@ export function useLogin() {
     handleLogin,
   };
 }
-
