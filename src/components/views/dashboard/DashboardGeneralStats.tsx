@@ -3,14 +3,8 @@ import { AderenciaSemanal } from '@/types';
 import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatters';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CircularProgress } from '@/components/ui/circular-progress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
-    LayoutDashboard,
-    Clock,
-    CheckCircle2,
-    AlertCircle
-} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowDown, ArrowUp, Clock, CheckCircle2, TrendingUp, AlertTriangle } from 'lucide-react';
 
 interface DashboardGeneralStatsProps {
     aderenciaGeral?: AderenciaSemanal;
@@ -22,7 +16,7 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
     const { theme } = useTheme();
 
     // Calcular gap de performance
-    const calcularGap = useMemo(() => {
+    const stats = useMemo(() => {
         if (!aderenciaGeral) return null;
         const planejadoStr = aderenciaGeral.horas_a_entregar || '0';
         const entregueStr = aderenciaGeral.horas_entregues || '0';
@@ -30,43 +24,40 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
         const planejado = converterHorasParaDecimal(planejadoStr);
         const entregue = converterHorasParaDecimal(entregueStr);
         const gap = Math.max(0, planejado - entregue);
+        const percentual = aderenciaGeral.aderencia_percentual ?? 0;
 
         return {
-            horas: gap,
-            formatado: formatarHorasParaHMS(gap)
+            planejado: formatarHorasParaHMS(planejadoStr),
+            entregue: formatarHorasParaHMS(entregueStr),
+            gap: gap > 0 ? formatarHorasParaHMS(gap) : null,
+            percentual,
+            statusColor: percentual >= 90 ? 'text-emerald-500' : percentual >= 70 ? 'text-blue-500' : 'text-rose-500',
+            progressColor: percentual >= 90 ? '#10b981' : percentual >= 70 ? '#3b82f6' : '#ef4444'
         };
     }, [aderenciaGeral]);
 
-    if (!aderenciaGeral) return null;
+    if (!stats) return null;
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Card Principal - Gráfico */}
-            <Card className="lg:col-span-1 border-slate-200 dark:border-slate-800 shadow-sm">
-                <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                            <LayoutDashboard className="h-4 w-4 text-slate-500" />
-                            Aderência Geral
-                        </CardTitle>
-                        <Badge variant="outline" className="font-normal text-xs">
-                            Consolidado
-                        </Badge>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Main Score Card */}
+            <Card className="lg:col-span-4 border-none shadow-lg bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 overflow-hidden relative group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <TrendingUp className="w-32 h-32 text-current" />
+                </div>
+
+                <CardContent className="flex flex-col items-center justify-center py-10 relative z-10">
+                    <div className="text-center mb-6">
+                        <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-300">Aderência Geral</h3>
+                        <p className="text-sm text-slate-400">Desempenho consolidado</p>
                     </div>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center py-6">
-                    <div className="relative">
+
+                    <div className="relative scale-110 mb-2">
                         <CircularProgress
-                            value={aderenciaGeral.aderencia_percentual ?? 0}
-                            size={200}
-                            strokeWidth={16}
-                            color={
-                                (aderenciaGeral.aderencia_percentual ?? 0) >= 90
-                                    ? (theme === 'dark' ? '#10b981' : '#059669')
-                                    : (aderenciaGeral.aderencia_percentual ?? 0) >= 70
-                                        ? (theme === 'dark' ? '#3b82f6' : '#2563eb')
-                                        : (theme === 'dark' ? '#ef4444' : '#dc2626')
-                            }
+                            value={stats.percentual}
+                            size={180}
+                            strokeWidth={12}
+                            color={stats.progressColor}
                             backgroundColor={theme === 'dark' ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}
                             showLabel={true}
                             label="Total"
@@ -75,68 +66,62 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
                 </CardContent>
             </Card>
 
-            {/* Cards de Métricas */}
-            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Metrics Grid */}
+            <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+
                 {/* Tempo Planejado */}
-                <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Tempo Planejado</CardTitle>
-                        <Clock className="h-4 w-4 text-blue-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-                            {formatarHorasParaHMS(aderenciaGeral.horas_a_entregar || '0')}
+                <Card className="border-none shadow-md hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-900 group">
+                    <CardContent className="p-6 flex items-start justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tempo Planejado</p>
+                            <h4 className="text-3xl font-bold text-slate-800 dark:text-slate-100 font-mono tracking-tight">
+                                {stats.planejado}
+                            </h4>
+                            <div className="mt-4 flex items-center gap-2 text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md w-fit">
+                                <ArrowUp className="w-3 h-3" />
+                                <span>Meta da Escala</span>
+                            </div>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Total de horas escaladas
-                        </p>
-                        <div className="mt-3 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 rounded-full w-full opacity-60"></div>
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                            <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Tempo Entregue */}
-                <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Tempo Entregue</CardTitle>
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-                            {formatarHorasParaHMS(aderenciaGeral.horas_entregues || '0')}
+                <Card className="border-none shadow-md hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-900 group">
+                    <CardContent className="p-6 flex items-start justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tempo Entregue</p>
+                            <h4 className={`text-3xl font-bold font-mono tracking-tight ${stats.statusColor}`}>
+                                {stats.entregue}
+                            </h4>
+                            <div className="mt-4 flex items-center gap-2 text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-md w-fit">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Realizado</span>
+                            </div>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Total de horas realizadas
-                        </p>
-                        <div className="mt-3 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
-                                style={{ width: `${Math.min(((aderenciaGeral.aderencia_percentual ?? 0) / 100) * 100, 100)}%` }}
-                            ></div>
+                        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                            <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Gap de Performance */}
-                {calcularGap && (
-                    <Card className="sm:col-span-2 border-slate-200 dark:border-slate-800 shadow-sm bg-slate-50/50 dark:bg-slate-900/50">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Gap de Performance</CardTitle>
-                            <AlertCircle className="h-4 w-4 text-rose-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-baseline gap-2">
-                                <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-                                    {calcularGap.formatado}
-                                </div>
-                                <span className="text-xs font-medium text-rose-600 dark:text-rose-400">
-                                    não entregues
-                                </span>
+                {/* Gap Indicator (Full Width if present) */}
+                {stats.gap && (
+                    <Card className="md:col-span-2 border-l-4 border-l-rose-500 shadow-sm bg-rose-50/30 dark:bg-rose-900/10">
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-full">
+                                <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Diferença entre planejado e realizado
-                            </p>
+                            <div className="flex-1">
+                                <p className="text-sm font-medium text-rose-900 dark:text-rose-200">
+                                    Atenção: Gap de Entrega
+                                </p>
+                                <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">
+                                    Faltam <span className="font-bold font-mono text-sm">{stats.gap}</span> para atingir a meta planejada.
+                                </p>
+                            </div>
                         </CardContent>
                     </Card>
                 )}

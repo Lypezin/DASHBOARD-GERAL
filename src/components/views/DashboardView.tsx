@@ -42,33 +42,51 @@ const DashboardView = React.memo(function DashboardView({
   }, [aderenciaGeral, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
   return (
-    <div className="space-y-6 animate-fade-in pb-8">
-      {/* Header com Botão de Exportar */}
-      <div className="flex justify-end">
+    <div className="space-y-8 animate-fade-in pb-12 pt-4">
+
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Visão Geral da Operação</h1>
+          <p className="text-muted-foreground">Monitoramento de aderência e indicadores chave de desempenho.</p>
+        </div>
         <Button
           variant="outline"
           onClick={handleExport}
           disabled={isExporting}
-          className="gap-2"
+          className="gap-2 shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-slate-900"
         >
           <Download className="h-4 w-4" />
-          {isExporting ? 'Exportando...' : 'Exportar Excel'}
+          {isExporting ? 'Exportando...' : 'Exportar Dados Completos'}
         </Button>
       </div>
 
       {/* Aderência Geral - Design Profissional Clean */}
-      <DashboardGeneralStats aderenciaGeral={aderenciaGeral} />
-
+      <section>
+        <DashboardGeneralStats aderenciaGeral={aderenciaGeral} />
+      </section>
 
       {/* Aderência por Dia da Semana */}
-      <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
+      <section className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Evolução Diária</h2>
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+        </div>
+        <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
+      </section>
 
       {/* Detalhamento Operacional */}
-      <DashboardOperationalDetail
-        aderenciaTurno={aderenciaTurno}
-        aderenciaSubPraca={aderenciaSubPraca}
-        aderenciaOrigem={aderenciaOrigem}
-      />
+      <section className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Detalhamento Operacional</h2>
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+        </div>
+        <DashboardOperationalDetail
+          aderenciaTurno={aderenciaTurno}
+          aderenciaSubPraca={aderenciaSubPraca}
+          aderenciaOrigem={aderenciaOrigem}
+        />
+      </section>
     </div>
   );
 });
