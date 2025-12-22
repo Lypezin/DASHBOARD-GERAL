@@ -129,8 +129,8 @@ export async function fetchEntregadoresDetails(params: EntregadorDetailsParams):
   try {
     const rpcParams = {
       p_organization_id: params.organizationId === '' ? null : params.organizationId,
-      p_start_date: params.startDate,
-      p_end_date: params.endDate,
+      p_start_date: params.startDate || null,
+      p_end_date: params.endDate || null,
       p_tipo: params.type,
       p_limit: params.limit,
       p_offset: params.offset,

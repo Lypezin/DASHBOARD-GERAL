@@ -95,24 +95,46 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
         loadData(nextPage, false);
     };
 
-    const handleExport = () => {
-        if (data.length === 0) return;
+    const handleExport = async () => {
+        try {
+            setLoading(true);
+            const { start, end } = getWeekRange(semanaIso);
 
-        const exportData = data.map(d => ({
-            ID: d.id_entregador,
-            Nome: d.nome,
-            'Região': d.regiao_atuacao,
-            'Horas Logadas': formatarHorasParaHMS(d.total_segundos / 3600),
-            'Ofertadas': d.total_ofertadas,
-            'Aceitas': d.total_aceitas,
-            'Concluídas': d.total_completadas,
-            'Rejeitadas': d.total_rejeitadas,
-        }));
+            // Import dynamically
+            const { fetchEntregadoresDetails } = await import('@/components/views/entregadores/EntregadoresDataFetcher');
 
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Dados");
-        XLSX.writeFile(wb, `Detalhes_${activeTab}_${semanaIso}.xlsx`);
+            // Fetch ALL data for export (using a high limit like 100000)
+            const result = await fetchEntregadoresDetails({
+                organizationId,
+                startDate: start,
+                endDate: end,
+                type: activeTab === 'marketing' ? 'MARKETING' : 'OPERATIONAL',
+                limit: 100000,
+                offset: 0
+            });
+
+            const exportData = result.data.map(d => ({
+                ID: d.id_entregador,
+                Nome: d.nome,
+                'Região': d.regiao_atuacao,
+                'Horas Logadas': formatarHorasParaHMS(d.total_segundos / 3600),
+                'Ofertadas': d.total_ofertadas,
+                'Aceitas': d.total_aceitas,
+                'Concluídas': d.total_completadas,
+                'Rejeitadas': d.total_rejeitadas,
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Dados");
+            XLSX.writeFile(wb, `Detalhes_${activeTab}_${semanaIso}.xlsx`);
+
+        } catch (err) {
+            console.error("Erro ao exportar:", err);
+            // Optionally show error toast
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -137,7 +159,7 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
                             variant="outline"
                             size="sm"
                             onClick={handleExport}
-                            disabled={loading || data.length === 0}
+                            disabled={loading}
                             className="gap-2"
                         >
                             <FileSpreadsheet className="h-4 w-4" />
