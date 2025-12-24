@@ -25,6 +25,8 @@ export interface AuthGuardOptions {
   fetchUserProfile?: boolean;
   /** Callback quando autenticação falhar */
   onAuthFailure?: () => void;
+  /** Se deve pular a verificação (ex: já autenticado via session storage) */
+  skip?: boolean;
 }
 
 /**
@@ -57,24 +59,26 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
     requireApproval = true,
     requiredRole,
     fetchUserProfile = false,
-    onAuthFailure
+    onAuthFailure,
+    skip = false // Novo parâmetro
   } = options;
 
   const router = useRouter();
   const pathname = usePathname();
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Se skip for true, iniciamos com isChecking=false
+  const [isChecking, setIsChecking] = useState(!skip);
+  const [isAuthenticated, setIsAuthenticated] = useState(skip);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Se skip for true, não faz nada
+    if (skip) return;
+
     const checkAuthentication = async () => {
       try {
-
-
         // CRÍTICO: Não executar AuthGuard nas páginas de login/registro
         if (pathname === '/login' || pathname === '/registro') {
-
           setIsChecking(false);
           setIsAuthenticated(false);
           return;
@@ -124,7 +128,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
     };
 
     checkAuthentication();
-  }, [router, pathname, requireApproval, requiredRole, fetchUserProfile, onAuthFailure]);
+  }, [router, pathname, requireApproval, requiredRole, fetchUserProfile, onAuthFailure, skip]);
 
   return {
     isChecking,

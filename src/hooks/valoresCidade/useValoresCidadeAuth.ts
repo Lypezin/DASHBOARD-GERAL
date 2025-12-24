@@ -5,15 +5,21 @@ const SENHA_VALORES_CIDADE = 'F4S@1S';
 const STORAGE_KEY_AUTH = 'valores_cidade_authenticated';
 
 export const useValoresCidadeAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem(STORAGE_KEY_AUTH) === 'true';
+    }
+    return false;
+  });
   const [password, setPassword] = useState<string>('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isAuthenticated); // Inicia como false se já autenticado
 
   // Buscar perfil para verificar cargo
   const { currentUser, isChecking } = useAuthGuard({
     fetchUserProfile: true,
-    requireApproval: false // Já deve estar aprovado se chegou aqui
+    requireApproval: false, // Já deve estar aprovado se chegou aqui
+    skip: isAuthenticated // Se já autenticado, pula verificação do AuthGuard
   });
 
   useEffect(() => {
