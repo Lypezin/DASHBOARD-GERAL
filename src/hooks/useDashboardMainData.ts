@@ -16,6 +16,7 @@ import {
 import { useDashboardDataFetcher } from './useDashboardDataFetcher';
 import { useDashboardCache } from './useDashboardCache';
 import { useDashboardDataEffect } from './dashboard/useDashboardDataEffect';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
@@ -30,6 +31,7 @@ interface UseDashboardMainDataOptions {
  */
 export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const { filterPayload, onError } = options;
+  const { isLoading: isOrgLoading } = useOrganization();
 
   const [totals, setTotals] = useState<Totals | null>(null);
   const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
@@ -61,6 +63,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     filterPayload.p_data_inicial,
     filterPayload.p_data_final,
     filterPayload.p_organization_id,
+    isOrgLoading,
     JSON.stringify(filterPayload.p_sub_pracas),
     JSON.stringify(filterPayload.p_origens),
     JSON.stringify(filterPayload.p_turnos),
@@ -84,7 +87,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       setAderenciaSubPraca,
       setAderenciaOrigem,
       setDimensoes
-    }
+    },
+    shouldFetch: !isOrgLoading
   }, payloadKey);
 
   return {
@@ -95,7 +99,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     aderenciaSubPraca,
     aderenciaOrigem,
     dimensoes,
-    loading,
+    loading: loading || isOrgLoading,
     error,
   };
 }

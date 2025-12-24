@@ -5,6 +5,7 @@ import { useCache } from './useCache';
 import { useTabDataFetcher } from './useTabDataFetcher';
 import { CACHE, DELAYS } from '@/constants/config';
 import { checkRateLimit, addToQueue, getPendingRequest, setPendingRequest } from '@/utils/dashboard/requestQueue';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
@@ -17,6 +18,8 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
   const previousTabRef = useRef<string>('');
   const isRequestPendingRef = useRef<boolean>(false);
 
+  const { isLoading: isOrgLoading } = useOrganization();
+
   const { getCached, setCached } = useCache<TabData>({
     ttl: CACHE.TAB_DATA_TTL,
     getCacheKey: (params) => `${params.tab}-${JSON.stringify(params.filterPayload)}`,
@@ -26,6 +29,10 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
   const filterPayloadStr = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
 
   useEffect(() => {
+    if (isOrgLoading) {
+      return;
+    }
+
     if (['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing'].includes(activeTab)) {
       setData(null); return;
     }

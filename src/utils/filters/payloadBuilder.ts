@@ -4,7 +4,7 @@ import { LIMITS, VALIDATION } from '@/constants/config';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser | null) => {
+export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser | null, passedOrganizationId?: string | null) => {
     if (IS_DEV) {
         try {
             safeLog.info('[buildFilterPayload] Start', {
@@ -58,6 +58,9 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
         if (dataInicial && !dataFinal) dataFinal = dataInicial;
         if (dataFinal && !dataInicial) dataInicial = dataFinal;
 
+        if (dataFinal && !dataInicial) dataInicial = dataFinal;
+        if (dataFinal && !dataInicial) dataInicial = dataFinal;
+
         ano = null;
         semana = null;
     } else {
@@ -80,7 +83,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
         }
     }
 
-    const organizationId = currentUser?.organization_id || null;
+    const organizationId = passedOrganizationId !== undefined ? passedOrganizationId : (currentUser?.organization_id || null);
 
     const semanasFiltered = filters.semanas?.map(Number).filter(n => !isNaN(n));
     const p_semanas = (semanasFiltered && semanasFiltered.length > 0) ? semanasFiltered : null;

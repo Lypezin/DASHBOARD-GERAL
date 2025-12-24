@@ -31,7 +31,8 @@ export function parseWeekString(semana: string | number): WeekInfo {
 export function createComparisonFilter(
     semana: string | number,
     pracaSelecionada: string | null,
-    currentUser: CurrentUser | null
+    currentUser: CurrentUser | null,
+    organizationId: string | null
 ) {
     const { semanaNumero, anoNumero } = parseWeekString(semana);
 
@@ -51,5 +52,5 @@ export function createComparisonFilter(
         dataFinal: null,
     };
 
-    return buildFilterPayload(filters, currentUser);
+    return buildFilterPayload(filters, currentUser, organizationId);
 }

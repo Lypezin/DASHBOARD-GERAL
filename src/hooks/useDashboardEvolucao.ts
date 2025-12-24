@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
 import type { FilterPayload } from '@/types/filters';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 interface UseDashboardEvolucaoOptions {
   filterPayload: FilterPayload;
@@ -17,7 +18,11 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  const { isLoading: isOrgLoading } = useOrganization();
+
   useEffect(() => {
+    if (isOrgLoading) return;
+
     // Só buscar se a tab ativa precisar desses dados
     const needsEvolucao = activeTab === 'evolucao' || activeTab === 'dashboard' || activeTab === 'utr';
 
@@ -85,6 +90,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
   }, [
     activeTab,
     anoEvolucao,
+    isOrgLoading,
     // Dependências de filtro (usar JSON.stringify se payload mudar referência)
     JSON.stringify(filterPayload)
   ]);

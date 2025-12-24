@@ -8,12 +8,13 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 export async function fetchComparisonMetrics(
     semanasSelecionadas: string[],
     pracaSelecionada: string | null,
-    currentUser: CurrentUser | null
+    currentUser: CurrentUser | null,
+    organizationId: string | null
 ): Promise<DashboardResumoData[]> {
     if (semanasSelecionadas.length < 2) return [];
 
     const promessasDados = semanasSelecionadas.map(async (semana) => {
-        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser);
+        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser, organizationId);
         const { semanaNumero, anoNumero } = parseWeekString(semana);
 
         if (IS_DEV) {

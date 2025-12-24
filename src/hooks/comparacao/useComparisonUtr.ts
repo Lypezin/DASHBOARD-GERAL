@@ -6,10 +6,11 @@ import { UtrData, CurrentUser } from '@/types';
 export async function fetchComparisonUtr(
     semanasSelecionadas: string[],
     pracaSelecionada: string | null,
-    currentUser: CurrentUser | null
+    currentUser: CurrentUser | null,
+    organizationId: string | null
 ): Promise<Array<{ semana: string | number; utr: UtrData | null }>> {
     const promessasUtr = semanasSelecionadas.map(async (semana) => {
-        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser);
+        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser, organizationId);
 
         try {
             const { data, error } = await safeRpc<UtrData>('calcular_utr', filtro, {

@@ -7,7 +7,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { MarketingDateFilter } from '@/types';
 import { AtendenteData } from '@/components/views/resultados/AtendenteCard';
-import { getCurrentUserOrganizationId } from '@/utils/organizationHelpers';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { processRpcData, fetchFallbackData } from './marketing/utils/atendentesDataUtils';
 
 interface TotaisData {
@@ -19,19 +19,23 @@ export function useAtendentesData() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { organizationId, isLoading: isOrgLoading } = useOrganization();
+
   const fetchAtendentesData = useCallback(async (
     filters: {
       filtroLiberacao: MarketingDateFilter;
       filtroEnviados: MarketingDateFilter;
     }
   ): Promise<{ atendentes: AtendenteData[]; totais: TotaisData }> => {
+    // Se ainda está carregando a organização, retorna vazio mas setado como carregando para quem chama saber
+    if (isOrgLoading) {
+      return { atendentes: [], totais: { totalEnviado: 0, totalLiberado: 0 } };
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      // Obter organization_id do usuário atual
-      const organizationId = await getCurrentUserOrganizationId();
-
       // Tentar usar RPC primeiro
       const { data: rpcData, error: rpcError } = await safeRpc<Array<{
         responsavel: string;
@@ -62,11 +66,11 @@ export function useAtendentesData() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [organizationId, isOrgLoading]);
 
   return {
     fetchAtendentesData,
-    loading,
+    loading: loading || isOrgLoading,
     error,
   };
 }

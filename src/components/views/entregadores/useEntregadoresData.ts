@@ -35,7 +35,7 @@ export function useEntregadoresData() {
     }, [searchTerm]);
 
     // Data Fetching Logic
-    const { organizationId } = useOrganization();
+    const { organizationId, isLoading: isOrgLoading } = useOrganization();
 
     // Data Fetching Logic
     const fetchEntregadoresFallbackFn = useCallback(async () => {
@@ -45,6 +45,9 @@ export function useEntregadoresData() {
     }, [filtroDataInicio, filtroRodouDia, cidadeSelecionada, debouncedSearchTerm]);
 
     const fetchEntregadoresFn = useCallback(async () => {
+        // Se a organização ainda está carregando, não faz nada
+        if (isOrgLoading) return;
+
         try {
             setLoading(true);
             setError(null);
@@ -65,7 +68,7 @@ export function useEntregadoresData() {
         } finally {
             setLoading(false);
         }
-    }, [filtroRodouDia, filtroDataInicio, cidadeSelecionada, organizationId, fetchEntregadoresFallbackFn, debouncedSearchTerm]);
+    }, [filtroRodouDia, filtroDataInicio, cidadeSelecionada, organizationId, fetchEntregadoresFallbackFn, debouncedSearchTerm, isOrgLoading]);
 
     useEffect(() => {
         fetchEntregadoresFn();
@@ -90,7 +93,7 @@ export function useEntregadoresData() {
     return {
         entregadores,
         entregadoresFiltrados,
-        loading,
+        loading: loading || isOrgLoading, // Expose combined loading state
         error,
         searchTerm,
         sortField,

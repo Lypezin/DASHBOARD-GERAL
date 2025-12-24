@@ -28,7 +28,8 @@ interface UseDashboardDataEffectProps {
         setAderenciaSubPraca: (data: AderenciaSubPraca[]) => void;
         setAderenciaOrigem: (data: AderenciaOrigem[]) => void;
         setDimensoes: (data: DimensoesDashboard | null) => void;
-    }
+    };
+    shouldFetch?: boolean;
 }
 
 export function useDashboardDataEffect({
@@ -40,10 +41,13 @@ export function useDashboardDataEffect({
     previousPayloadRef,
     isFirstExecutionRef,
     pendingPayloadKeyRef,
-    setters
+    setters,
+    shouldFetch = true
 }: UseDashboardDataEffectProps, payloadKey: string) {
 
     useEffect(() => {
+        if (!shouldFetch) return;
+
         if (previousPayloadRef.current === payloadKey) {
             if (IS_DEV) safeLog.info('[useDashboardDataEffect] Payload não mudou, ignorando');
             return;
