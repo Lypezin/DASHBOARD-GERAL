@@ -1,34 +1,7 @@
 Files with more than 100 lines:
----------------------------------
-148 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\utils.ts
-146 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\app\apresentacao\print\page.tsx
-141 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ui\sheet.tsx
-140 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\chartCalculations.ts
-139 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\prioridade\PrioridadeLayout.tsx
-137 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\perfil\usePerfilData.ts
-137 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\tabData\fallbacks\valores.ts
-134 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\comparacao\ComparacaoLayout.tsx
-133 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\app\page.tsx
-133 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\comparacao\hooks\useComparacaoViewController.ts
-133 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\useOrganizations.ts
-133 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\organizationHelpers.ts
-132 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\lib\rate-limiter\core.ts
-131 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\components\SlideSidebarItem.tsx
-131 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\marketing\components\utils\chartConfig.ts
-131 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\useDashboardPage.ts
-130 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\marketing\MarketingFilters.tsx
-130 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\constants\config.ts
-130 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\upload\useMVRefreshLogic.ts
-129 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\analise\AnaliseExcelExport.ts
-128 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\components\SlideSidebar.tsx
-126 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\components\MediaManagerSidebar.tsx
-125 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\app\admin\page.tsx
-125 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\OnlineUsersSidebar.tsx
-125 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\evolucao\EvolucaoChart.tsx
-125 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\usePagination.ts
-124 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\prioridade\PrioridadeStatsCards.tsx
-124 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\online\usePresence.ts
-123 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\registro\RegistroForm.tsx
+--------------------------------------------------
+135 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\useDashboardPage.ts
+124 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\OnlineUsersSidebar.tsx
 123 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ui\dialog.tsx
 123 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ui\dropdown-menu\DropdownItems.tsx
 123 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\upload\UploadSection.tsx
@@ -44,7 +17,6 @@ Files with more than 100 lines:
 121 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\app\perfil\page.tsx
 121 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\entregadores\EntregadoresLayout.tsx
 121 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\ValoresCidadeView.tsx
-121 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\apresentacao\utils\builders\simple.tsx
 121 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\types\dashboard.ts
 120 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\login\LoginForm.tsx
 120 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\dashboard\components\OperationalDetailCard.tsx
@@ -56,21 +28,25 @@ Files with more than 100 lines:
 118 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\SlideAderenciaDiaria.tsx
 118 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\auth\ForgotPasswordForm.tsx
 118 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ui\table.tsx
+118 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\prioridade\PrioridadeLayout.tsx
 118 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\ValoresView.tsx
-117 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\app\dashboard\page.tsx
 117 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\evolucao\dataProcessing.ts
+116 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\app\dashboard\page.tsx
 116 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ApresentacaoView.tsx
 116 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\upload\UploadRefreshMVs.tsx
 116 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\comparacao\ComparacaoTabelaDetalhada.tsx
 116 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\dashboard\DashboardExcelExport.ts
 116 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\dashboard\DashboardOperationalDetail.tsx
 116 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\entregadores\useEntregadoresData.ts
+116 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\upload\refreshUtils.ts
 116 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\apresentacao\processors\subPracas.ts
 115 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\components\ImageElement.tsx
 115 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\EntregadoresMainView.tsx
 115 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\marketing\MarketingEntradaSaidaView.tsx
 115 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\prioridade\PrioridadeFilters.tsx
 115 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\valores\ValoresTable.tsx
+115 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\formatters\timeFormatters.ts
+114 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\components\SlideSidebarItem.tsx
 114 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\SlideAderenciaGeral.tsx
 114 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\SlideTurnos.tsx
 114 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\dashboard\components\GeneralStatsMetrics.tsx
@@ -86,6 +62,7 @@ Files with more than 100 lines:
 111 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\SemanaCard.tsx
 111 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\entregadores\EntregadoresStatsCards.tsx
 111 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\evolucao\EvolucaoStatsCards.tsx
+111 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\tabData\fallbacks\valoresHelpers.ts
 110 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\marketing\components\EntradaSaidaCard.tsx
 110 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\dateParsing.ts
 109 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\MarketingDateFilter.tsx
@@ -100,6 +77,7 @@ Files with more than 100 lines:
 108 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\filters\payloadBuilder.ts
 107 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\pdf\slides\components\aderenciaCard.ts
 107 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\OnlineUsersSidebar\useSidebarController.ts
+107 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\comparacao\hooks\useComparacaoViewController.ts
 107 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\marketing\useMarketingDriverDetails.ts
 107 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\valores\ValoresStatsCards.tsx
 107 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\comparacao\dataLookup.ts
@@ -141,5 +119,5 @@ Files with more than 100 lines:
 101 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\shared\VirtualizedTable.tsx
 101 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\atendenteMappers.ts
 101 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\tabData\fetchers\valoresFetcher.ts
----------------------------------
-Total: 141 files
+--------------------------------------------------
+Total: 119 files

@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { OnlineUser } from './types';
 import { CurrentUser } from '@/types';
+import { getPresenceData } from './presenceData';
 
 export function usePresence(
     userId: string | null,
@@ -17,34 +18,6 @@ export function usePresence(
     const sessionStartRef = useRef(new Date().toISOString());
 
     const clearJoinedUsers = () => setJoinedUsers([]);
-
-    const getPresenceData = async (user: any) => {
-        if (!user) return null;
-        let avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
-        try {
-            const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('avatar_url')
-                .eq('id', user.id)
-                .single();
-            if (profile?.avatar_url) avatarUrl = profile.avatar_url;
-        } catch { }
-
-        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário';
-
-        return {
-            id: user.id,
-            email: user.email ?? null,
-            name,
-            avatar_url: avatarUrl,
-            role: currentUser?.role,
-            online_at: sessionStartRef.current,
-            current_tab: currentTab,
-            device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-            is_idle: isIdle,
-            custom_status: customStatus
-        } as OnlineUser;
-    };
 
     // Subscribing to Presence
     useEffect(() => {
@@ -78,7 +51,7 @@ export function usePresence(
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
                     const { data: { user } } = await supabase.auth.getUser();
-                    const p = await getPresenceData(user);
+                    const p = await getPresenceData(user, currentUser, currentTab, isIdle, customStatus, sessionStartRef.current);
                     if (p) await channel.track(p);
                 }
             });
@@ -93,7 +66,7 @@ export function usePresence(
         if (!channelRef.current || !userId) return;
         const update = async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            const p = await getPresenceData(user);
+            const p = await getPresenceData(user, currentUser, currentTab, isIdle, customStatus, sessionStartRef.current);
             if (channelRef.current && p) await channelRef.current.track(p);
         };
         update();
@@ -102,7 +75,7 @@ export function usePresence(
     const setTypingTo = async (targetUserId: string | null) => {
         if (!channelRef.current || !userId) return;
         const { data: { user } } = await supabase.auth.getUser();
-        const p = await getPresenceData(user);
+        const p = await getPresenceData(user, currentUser, currentTab, isIdle, customStatus, sessionStartRef.current);
         if (p) {
             await channelRef.current.track({
                 ...p,

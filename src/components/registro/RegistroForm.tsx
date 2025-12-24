@@ -1,17 +1,16 @@
-
 /**
  * Componente de formulário de registro
  * Extraído de src/app/registro/page.tsx
  */
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import { usePasswordStrength } from '@/hooks/registro/useRegistroValidation';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { RegistroFormInputs } from './components/RegistroFormInputs';
 import { RegistroFormHeader } from './components/RegistroFormHeader';
 import { RegistroFormFooter } from './components/RegistroFormFooter';
+import { RegistroSubmitButton } from './components/RegistroSubmitButton';
 
 interface RegistroFormProps {
   fullName: string;
@@ -50,22 +49,6 @@ export const RegistroForm = React.memo(function RegistroForm({
 }: RegistroFormProps) {
   const passwordStrength = usePasswordStrength(password);
 
-  const handleFullNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onFullNameChange(e.target.value);
-  }, [onFullNameChange]);
-
-  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onEmailChange(e.target.value);
-  }, [onEmailChange]);
-
-  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onPasswordChange(e.target.value);
-  }, [onPasswordChange]);
-
-  const handleConfirmPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onConfirmPasswordChange(e.target.value);
-  }, [onConfirmPasswordChange]);
-
   return (
     <>
       <RegistroFormHeader />
@@ -87,31 +70,15 @@ export const RegistroForm = React.memo(function RegistroForm({
           showConfirmPassword={showConfirmPassword}
           loading={loading}
           passwordStrength={passwordStrength}
-          onFullNameChange={handleFullNameChange}
-          onEmailChange={handleEmailChange}
-          onPasswordChange={handlePasswordChange}
-          onConfirmPasswordChange={handleConfirmPasswordChange}
+          onFullNameChange={(e) => onFullNameChange(e.target.value)}
+          onEmailChange={(e) => onEmailChange(e.target.value)}
+          onPasswordChange={(e) => onPasswordChange(e.target.value)}
+          onConfirmPasswordChange={(e) => onConfirmPasswordChange(e.target.value)}
           onToggleShowPassword={onToggleShowPassword}
           onToggleShowConfirmPassword={onToggleShowConfirmPassword}
         />
 
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white h-11 px-8 shadow-lg shadow-blue-500/25 border-0 transition-all active:scale-[0.98]"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Criando conta...
-            </>
-          ) : (
-            <>
-              Criar Conta
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
+        <RegistroSubmitButton loading={loading} />
       </form>
 
       <RegistroFormFooter />

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const MIN_LINES = 120;
+const MIN_LINES = 100;
 const SRC_DIR = path.join(__dirname, 'src');
 
 // Extensions to analyze
@@ -20,7 +20,7 @@ function countLines(filePath) {
 }
 
 function analyzeDirectory(dir) {
-    let filesOver120 = 0;
+    let filesOver100 = 0;
     let totalFiles = 0;
 
     function traverse(currentPath) {
@@ -39,7 +39,7 @@ function analyzeDirectory(dir) {
                     totalFiles++;
                     const lines = countLines(fullPath);
                     if (lines > MIN_LINES) {
-                        filesOver120++;
+                        filesOver100++;
                     }
                 }
             }
@@ -47,15 +47,15 @@ function analyzeDirectory(dir) {
     }
 
     traverse(dir);
-    return { filesOver120, totalFiles };
+    return { filesOver100, totalFiles };
 }
 
 console.log(`Contando arquivos com mais de ${MIN_LINES} linhas...`);
-const { filesOver120, totalFiles } = analyzeDirectory(SRC_DIR);
+const { filesOver100, totalFiles } = analyzeDirectory(SRC_DIR);
 
 console.log('\n=================================');
 console.log(`Total de arquivos analisados: ${totalFiles}`);
-console.log(`Arquivos com mais de ${MIN_LINES} linhas: ${filesOver120}`);
-console.log(`Arquivos com ${MIN_LINES} linhas ou menos: ${totalFiles - filesOver120}`);
-console.log(`Percentual acima de ${MIN_LINES} linhas: ${((filesOver120 / totalFiles) * 100).toFixed(2)}%`);
+console.log(`Arquivos com mais de ${MIN_LINES} linhas: ${filesOver100}`);
+console.log(`Arquivos com ${MIN_LINES} linhas ou menos: ${totalFiles - filesOver100}`);
+console.log(`Percentual acima de ${MIN_LINES} linhas: ${((filesOver100 / totalFiles) * 100).toFixed(2)}%`);
 console.log('=================================\n');

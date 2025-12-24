@@ -1,55 +1,74 @@
-
 const fs = require('fs');
 const path = require('path');
 
-function countLines(filePath) {
-    try {
-        const content = fs.readFileSync(filePath, 'utf8');
-        return content.split('\n').length;
-    } catch (e) {
-        return 0;
-    }
+const MIN_LINES = 100;
+const SRC_DIR = path.join(__dirname, 'src');
+const OUTPUT_FILE = path.join(__dirname, 'large_files_100.txt');
+
+// Extensions to analyze
+const EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
+
+// Directories to ignore
+const IGNORE_DIRS = ['node_modules', '.next', 'dist', 'build', '.git'];
+
+function shouldIgnore(filePath) {
+    return IGNORE_DIRS.some(dir => filePath.includes(dir));
 }
 
-function traverseDir(dir, fileList = []) {
-    const files = fs.readdirSync(dir);
+function countLines(filePath) {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return content.split('\n').length;
+}
 
-    files.forEach(file => {
-        const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath);
+function analyzeDirectory(dir) {
+    const results = [];
 
-        if (stat.isDirectory()) {
-            if (file !== 'node_modules' && file !== '.git') {
-                traverseDir(filePath, fileList);
-            }
-        } else {
-            if (filePath.endsWith('.ts') || filePath.endsWith('.tsx') || filePath.endsWith('.js') || filePath.endsWith('.jsx')) {
-                const lines = countLines(filePath);
-                if (lines > 100) {
-                    fileList.push({ path: filePath, lines: lines });
+    function traverse(currentPath) {
+        if (shouldIgnore(currentPath)) return;
+
+        const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const fullPath = path.join(currentPath, entry.name);
+
+            if (entry.isDirectory()) {
+                traverse(fullPath);
+            } else if (entry.isFile()) {
+                const ext = path.extname(entry.name);
+                if (EXTENSIONS.includes(ext)) {
+                    const lines = countLines(fullPath);
+                    if (lines > MIN_LINES) {
+                        results.push({ path: fullPath, lines });
+                    }
                 }
             }
         }
-    });
+    }
 
-    return fileList;
+    traverse(dir);
+    return results.sort((a, b) => b.lines - a.lines);
 }
 
-const srcDir = path.join(__dirname, 'src');
-const largeFiles = traverseDir(srcDir);
+console.log(`Analyzing files with more than ${MIN_LINES} lines...`);
+const largeFiles = analyzeDirectory(SRC_DIR);
 
-largeFiles.sort((a, b) => b.lines - a.lines);
+// Generate report
+let report = `Files with more than ${MIN_LINES} lines:\n`;
+report += '-'.repeat(50) + '\n';
 
-console.log('Files with more than 100 lines:');
-console.log('---------------------------------');
-let reportContent = 'Files with more than 100 lines:\n---------------------------------\n';
 largeFiles.forEach(file => {
-    const line = `${file.lines} lines: ${file.path}`;
-    console.log(line);
-    reportContent += line + '\n';
+    report += `${file.lines} lines: ${file.path}\n`;
 });
-console.log('---------------------------------');
-console.log(`Total: ${largeFiles.length} files`);
-reportContent += '---------------------------------\n';
-reportContent += `Total: ${largeFiles.length} files`;
-fs.writeFileSync('large_files_report_100.txt', reportContent);
+
+report += '-'.repeat(50) + '\n';
+report += `Total: ${largeFiles.length} files\n`;
+
+// Save to file
+fs.writeFileSync(OUTPUT_FILE, report, 'utf-8');
+console.log(`Found ${largeFiles.length} files. Report saved to ${OUTPUT_FILE}`);
+
+// Also print count summary
+const totalFiles = largeFiles.length;
+console.log('\n=================================');
+console.log(`Total files with more than ${MIN_LINES} lines: ${totalFiles}`);
+console.log('=================================\n');
