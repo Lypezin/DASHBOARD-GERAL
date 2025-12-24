@@ -13,15 +13,12 @@ export async function fetchEntregadores(
   filtroRodouDia: MarketingDateFilter,
   filtroDataInicio: MarketingDateFilter,
   cidadeSelecionada: string,
+  organizationId: string | null,
   fetchEntregadoresFallbackFn: () => Promise<EntregadorMarketing[]>,
   searchTerm: string = '',
   limit: number = QUERY_LIMITS.DEFAULT_LIST
 ): Promise<EntregadorMarketing[]> {
   try {
-    // Obter organization_id do usuário atual
-    const { getCurrentUserOrganizationId } = await import('@/utils/organizationHelpers');
-    let organizationId = await getCurrentUserOrganizationId();
-
     if (IS_DEV) {
       safeLog.info('Organization ID obtido:', organizationId);
     }

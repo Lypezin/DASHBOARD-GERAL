@@ -6,6 +6,7 @@ import { fetchEntregadores } from './EntregadoresDataFetcher';
 import { fetchEntregadoresFallback } from './EntregadoresFallbackFetcher';
 import { useEntregadoresFilterSort } from './hooks/useEntregadoresFilterSort';
 import { useEntregadoresTotals } from './hooks/useEntregadoresTotals';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 export function useEntregadoresData() {
     const [entregadores, setEntregadores] = useState<EntregadorMarketing[]>([]);
@@ -34,6 +35,9 @@ export function useEntregadoresData() {
     }, [searchTerm]);
 
     // Data Fetching Logic
+    const { organizationId } = useOrganization();
+
+    // Data Fetching Logic
     const fetchEntregadoresFallbackFn = useCallback(async () => {
         const data = await fetchEntregadoresFallback(filtroDataInicio, filtroRodouDia, cidadeSelecionada, debouncedSearchTerm);
         setEntregadores(data);
@@ -49,6 +53,7 @@ export function useEntregadoresData() {
                 filtroRodouDia,
                 filtroDataInicio,
                 cidadeSelecionada,
+                organizationId,
                 fetchEntregadoresFallbackFn,
                 debouncedSearchTerm
             );
@@ -60,7 +65,7 @@ export function useEntregadoresData() {
         } finally {
             setLoading(false);
         }
-    }, [filtroRodouDia, filtroDataInicio, cidadeSelecionada, fetchEntregadoresFallbackFn, debouncedSearchTerm]);
+    }, [filtroRodouDia, filtroDataInicio, cidadeSelecionada, organizationId, fetchEntregadoresFallbackFn, debouncedSearchTerm]);
 
     useEffect(() => {
         fetchEntregadoresFn();

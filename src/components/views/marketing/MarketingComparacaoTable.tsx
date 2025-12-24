@@ -12,7 +12,7 @@ import { calculatePercentage } from '@/utils/formatHelpers';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { MarketingDriverDetailModal } from './MarketingDriverDetailModal';
-import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 interface ComparacaoRow {
     semana_iso: string;
@@ -34,7 +34,7 @@ interface MarketingComparacaoTableProps {
 }
 
 export const MarketingComparacaoTable = React.memo(function MarketingComparacaoTable({ data, praca }: MarketingComparacaoTableProps) {
-    const { user } = useAuth();
+    const { organizationId } = useOrganization();
     const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
 
     return (
@@ -134,7 +134,7 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                 isOpen={!!selectedWeek}
                 onClose={() => setSelectedWeek(null)}
                 semanaIso={selectedWeek || ''}
-                organizationId={user?.organization_id || null}
+                organizationId={organizationId}
                 praca={praca}
             />
         </div>

@@ -108,13 +108,13 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     await fetchOrganization();
   }, [fetchOrganization]);
 
-  const value: OrganizationContextType = {
+  const value = React.useMemo<OrganizationContextType>(() => ({
     organization,
     organizationId: organization?.id || null,
     isLoading,
     error,
     refreshOrganization,
-  };
+  }), [organization, isLoading, error, refreshOrganization]);
 
   return (
     <OrganizationContext.Provider value={value}>
