@@ -19,42 +19,85 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
-    const prevMessagesLengthRef = useRef(messages.length);
-    const initialLoadRef = useRef(true);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Track unread messages
-    useEffect(() => {
-        if (initialLoadRef.current && messages.length > 0) {
-            prevMessagesLengthRef.current = messages.length;
-            initialLoadRef.current = false;
-            return;
+    // State para rastrear última leitura (Persistência Local)
+    const [lastReadMap, setLastReadMap] = useState<Record<string, string>>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(`chat_last_read_${currentUser?.id}`);
+            return saved ? JSON.parse(saved) : {};
         }
+        return {};
+    });
 
-        if (messages.length > prevMessagesLengthRef.current) {
-            const newMsgs = messages.slice(prevMessagesLengthRef.current);
-            newMsgs.forEach(msg => {
-                if (msg.from !== currentUser?.id && (activeChatUser?.id !== msg.from)) {
-                    setUnreadCounts(prev => ({
-                        ...prev,
-                        [msg.from]: (prev[msg.from] || 0) + 1
-                    }));
-                }
-            });
-        }
-        prevMessagesLengthRef.current = messages.length;
-    }, [messages, activeChatUser, currentUser?.id]);
-
-    // Clear unread when opening chat
+    // Recalcular Unread Counts sempre que mensagens mudarem ou lastReadMap mudar
     useEffect(() => {
-        if (activeChatUser) {
-            setUnreadCounts(prev => {
-                const newCounts = { ...prev };
-                delete newCounts[activeChatUser.id];
-                return newCounts;
-            });
+        if (!currentUser) return;
+
+        const counts: Record<string, number> = {};
+
+        messages.forEach(msg => {
+            // Ignorar mensagens enviadas por mim
+            if (msg.from === currentUser.id) return;
+
+            // Se estou com o chat aberto para esse usuário, não conta (mas deve atualizar lastRead - ver próximo effect)
+            if (activeChatUser?.id === msg.from) return;
+
+            const lastRead = lastReadMap[msg.from] || '1970-01-01T00:00:00Z';
+
+            // Se a mensagem é mais nova que a última leitura, conta
+            if (new Date(msg.timestamp) > new Date(lastRead)) {
+                counts[msg.from] = (counts[msg.from] || 0) + 1;
+            }
+        });
+
+        setUnreadCounts(counts);
+    }, [messages, lastReadMap, currentUser, activeChatUser]);
+
+    // Ao abrir chat, marcar como lido e salvar no storage
+    useEffect(() => {
+        if (activeChatUser && currentUser) {
+            // Encontrar mensagem mais recente desse usuário
+            const userMsgs = messages.filter(m => m.from === activeChatUser.id || m.to === activeChatUser.id);
+            if (userMsgs.length > 0) {
+                // Pegar timestamp da última mensagem (mesmo que seja minha, para zerar o contador)
+                const lastMsg = userMsgs[userMsgs.length - 1];
+                const now = new Date().toISOString();
+                // Usamos 'now' ou timestamp da msg? Melhor timestamp da msg + 1s ou 'now'. 
+                // Seguranca: usar NOW para garantir futuras msgs sejam capturadas.
+
+                setLastReadMap(prev => {
+                    const newMap = { ...prev, [activeChatUser.id]: now };
+                    localStorage.setItem(`chat_last_read_${currentUser.id}`, JSON.stringify(newMap));
+                    return newMap;
+                });
+            } else {
+                // Se não tem mensagens, marca como lido agora
+                setLastReadMap(prev => {
+                    const newMap = { ...prev, [activeChatUser.id]: new Date().toISOString() };
+                    localStorage.setItem(`chat_last_read_${currentUser.id}`, JSON.stringify(newMap));
+                    return newMap;
+                });
+            }
         }
-    }, [activeChatUser]);
+    }, [activeChatUser, currentUser]); // messages removed to avoid marking as read just by receiving msg while open (wait, actually if chat is open, receiving should mark as read? Yes, handled by effect dependency?)
+    // Melhor: quando recebe mensagem e chat está aberto, o effect acima (unread calc) já ignora (activeChatUser?.id === msg.from).
+    // Mas precisamos atualizar o LastRead para que quando fechar o chat, ela não apareça como não lida?
+    // Sim. O effect de baixo precisa rodar mensagens mudarem SE chat estiver aberto.
+
+    useEffect(() => {
+        if (activeChatUser && currentUser && messages.length > 0) {
+            const lastMsg = messages[messages.length - 1];
+            // Só atualiza se a última msg for desse papo
+            if (lastMsg.from === activeChatUser.id || lastMsg.to === activeChatUser.id) {
+                setLastReadMap(prev => {
+                    const newMap = { ...prev, [activeChatUser.id]: new Date().toISOString() };
+                    localStorage.setItem(`chat_last_read_${currentUser.id}`, JSON.stringify(newMap));
+                    return newMap;
+                });
+            }
+        }
+    }, [messages, activeChatUser, currentUser]);
 
     // Scroll to bottom
     useEffect(() => {
