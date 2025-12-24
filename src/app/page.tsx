@@ -12,122 +12,78 @@ import { OnlineUsersSidebar } from '@/components/OnlineUsersSidebar';
 import type { AderenciaSemanal } from '@/types';
 
 export default function DashboardPage() {
-  const {
-    // Auth
-    isCheckingAuth,
-    isAuthenticated,
-    currentUser,
-
-    // Tabs e Filtros
-    activeTab,
-    filters,
-    setFilters,
-    handleTabChange,
-
-    // Dados do Dashboard
-    aderenciaGeral,
-    aderenciaDia,
-    aderenciaTurno,
-    aderenciaSubPraca,
-    aderenciaOrigem,
-    totals,
-    anosDisponiveis,
-    semanasDisponiveis,
-    pracas,
-    subPracas,
-    origens,
-    turnos,
-    loading,
-    error,
-
-    // Dados de Evolução
-    evolucaoMensal,
-    evolucaoSemanal,
-    loadingEvolucao,
-    anoSelecionado,
-    setAnoEvolucao: setAnoEvolucao,
-
-    // Dados de Tabs
-    utrData,
-    entregadoresData,
-    valoresData,
-    prioridadeData,
-    loadingTabData,
-
-    // UI State
-    chartReady,
-  } = useDashboardPage();
+  const { auth, ui, filters, data } = useDashboardPage();
 
   // Mostrar loading enquanto verifica autenticação
-  if (isCheckingAuth) {
+  if (auth.isCheckingAuth) {
     return <DashboardAuthLoading />;
   }
 
   // Se não estiver autenticado, não renderizar nada (já foi redirecionado)
-  if (!isAuthenticated) {
+  if (!auth.isAuthenticated) {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">
       <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-        {loading && <DashboardLoadingState />}
-        {error && <DashboardErrorState error={error} />}
+        {ui.loading && <DashboardLoadingState />}
+        {ui.error && <DashboardErrorState error={ui.error} />}
 
-        {!loading && !error && (
+        {!ui.loading && !ui.error && (
           <div className="space-y-4 animate-fade-in">
             <DashboardFiltersContainer
-              filters={filters}
-              setFilters={setFilters}
-              anosDisponiveis={anosDisponiveis}
-              semanasDisponiveis={semanasDisponiveis}
-              pracas={pracas}
-              subPracas={subPracas}
-              origens={origens}
-              turnos={turnos}
-              currentUser={currentUser}
-              activeTab={activeTab}
+              filters={filters.state}
+              setFilters={filters.setState}
+              anosDisponiveis={filters.options.anos}
+              semanasDisponiveis={filters.options.semanas}
+              pracas={filters.options.pracas}
+              subPracas={filters.options.subPracas}
+              origens={filters.options.origens}
+              turnos={filters.options.turnos}
+              currentUser={auth.currentUser}
+              activeTab={ui.activeTab}
             />
 
             <TabNavigation
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-              variant={activeTab === 'comparacao' || activeTab === 'marketing' ? 'compact' : 'default'}
+              activeTab={ui.activeTab}
+              onTabChange={ui.handleTabChange}
+              variant={ui.activeTab === 'comparacao' || ui.activeTab === 'marketing' ? 'compact' : 'default'}
             />
 
             <main>
               <DashboardViewsRenderer
-                activeTab={activeTab}
-                chartReady={chartReady}
-                aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
-                aderenciaDia={aderenciaDia}
-                aderenciaTurno={aderenciaTurno}
-                aderenciaSubPraca={aderenciaSubPraca}
-                aderenciaOrigem={aderenciaOrigem}
-                totals={totals || undefined}
-                utrData={utrData}
-                loadingTabData={loadingTabData}
-                entregadoresData={entregadoresData}
-                valoresData={valoresData}
-                prioridadeData={prioridadeData}
-                evolucaoMensal={evolucaoMensal}
-                evolucaoSemanal={evolucaoSemanal}
-                loadingEvolucao={loadingEvolucao}
-                anoSelecionado={anoSelecionado}
-                anosDisponiveis={anosDisponiveis}
-                onAnoChange={setAnoEvolucao}
-                semanas={semanasDisponiveis}
-                pracas={pracas}
-                subPracas={subPracas}
-                origens={origens}
-                currentUser={currentUser}
-                filters={filters}
+                activeTab={ui.activeTab}
+                chartReady={ui.chartReady}
+                aderenciaGeral={data.dashboard.aderenciaGeral as AderenciaSemanal | undefined}
+                aderenciaDia={data.dashboard.aderenciaDia}
+                aderenciaTurno={data.dashboard.aderenciaTurno}
+                aderenciaSubPraca={data.dashboard.aderenciaSubPraca}
+                aderenciaOrigem={data.dashboard.aderenciaOrigem}
+                totals={data.dashboard.totals || undefined}
+                utrData={data.tabs.utrData}
+                loadingTabData={data.tabs.loading}
+                entregadoresData={data.tabs.entregadoresData}
+                valoresData={data.tabs.valoresData}
+                prioridadeData={data.tabs.prioridadeData}
+                evolucaoMensal={data.evolution.mensal}
+                evolucaoSemanal={data.evolution.semanal}
+                loadingEvolucao={data.evolution.loading}
+                anoSelecionado={data.evolution.anoSelecionado}
+                anosDisponiveis={data.evolution.anosOptions}
+                onAnoChange={data.evolution.setAno}
+                semanas={filters.options.semanas}
+                pracas={filters.options.pracas}
+                subPracas={filters.options.subPracas}
+                origens={filters.options.origens}
+                currentUser={auth.currentUser}
+                filters={filters.state}
               />
             </main>
           </div>
         )}
       </div>
-      <OnlineUsersSidebar currentUser={currentUser} currentTab={activeTab} />
+      <OnlineUsersSidebar currentUser={auth.currentUser} currentTab={ui.activeTab} />
     </div>
   );
 }

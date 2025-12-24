@@ -28,10 +28,6 @@ export function useDashboardPage() {
 
   const { filters, setFilters } = useDashboardFilters();
 
-  // Log quando o hook é montado/filtros mudam (opcional, pode ser removido se não usado)
-  useEffect(() => { }, []);
-  useEffect(() => { }, [filters.ano, filters.semana, filters.praca]);
-
   // 1. Obter dados (incluindo anosDisponiveis)
   const {
     totals,
@@ -82,49 +78,57 @@ export function useDashboardPage() {
     setActiveTab(tab);
   }, []);
 
-  return {
-    // Auth
-    isCheckingAuth,
-    isAuthenticated,
-    currentUser,
-
-    // Tabs e Filtros
-    activeTab,
-    filters,
-    setFilters,
-    handleTabChange,
-
-    // Dados do Dashboard
+  const dashboardData = {
     aderenciaGeral,
     aderenciaDia,
     aderenciaTurno,
     aderenciaSubPraca,
     aderenciaOrigem,
     totals,
-    anosDisponiveis,
-    semanasDisponiveis,
-    pracas,
-    subPracas,
-    origens,
-    turnos,
-    loading,
-    error,
+  };
 
-    // Dados de Evolução
-    evolucaoMensal,
-    evolucaoSemanal,
-    loadingEvolucao,
-    anoSelecionado: anoEvolucao,
-    setAnoEvolucao,
-
-    // Dados de Tabs
-    utrData,
-    entregadoresData,
-    valoresData,
-    prioridadeData,
-    loadingTabData,
-
-    // Chart
-    chartReady,
+  return {
+    auth: {
+      isCheckingAuth,
+      isAuthenticated,
+      currentUser,
+    },
+    ui: {
+      activeTab,
+      handleTabChange,
+      chartReady,
+      loading,
+      error,
+    },
+    filters: {
+      state: filters,
+      setState: setFilters,
+      options: {
+        anos: anosDisponiveis,
+        semanas: semanasDisponiveis,
+        pracas,
+        subPracas,
+        origens,
+        turnos,
+      },
+    },
+    data: {
+      dashboard: dashboardData,
+      tabs: {
+        utrData,
+        entregadoresData,
+        valoresData,
+        prioridadeData,
+        loading: loadingTabData,
+      },
+      evolution: {
+        mensal: evolucaoMensal,
+        semanal: evolucaoSemanal,
+        loading: loadingEvolucao,
+        anoSelecionado: anoEvolucao,
+        setAno: setAnoEvolucao,
+        anosOptions: anosDisponiveis,
+      },
+    },
   };
 }

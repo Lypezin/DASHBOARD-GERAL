@@ -2,8 +2,8 @@
 import { useEffect, useMemo } from 'react';
 import { FilterOption, CurrentUser } from '@/types';
 import { useComparacaoData } from '@/hooks/useComparacaoData';
-import { registerChartJS } from '@/lib/chartConfig';
-import { safeLog } from '@/lib/errorHandler';
+import { useComparacaoChartRegistration } from './useComparacaoChart';
+import { useComparacaoMemo } from './useComparacaoMemo';
 import { useComparacaoFilters, ViewMode } from './useComparacaoFilters';
 
 interface UseComparacaoViewControllerProps {
@@ -55,13 +55,7 @@ export function useComparacaoViewController({
     });
 
     // Registrar Chart.js
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            registerChartJS().catch((err) => {
-                safeLog.error('Erro ao registrar Chart.js:', err);
-            });
-        }
-    }, []);
+    useComparacaoChartRegistration();
 
     // Filtro automático de praça para não-admins/não-marketing
     useEffect(() => {
@@ -71,31 +65,11 @@ export function useComparacaoViewController({
         }
     }, [currentUser, setPracaSelecionada]);
 
-    const origensDisponiveis = useMemo(() => {
-        const conjunto = new Set<string>();
-        dadosComparacao.forEach((dados) => {
-            const origens = dados?.aderencia_origem || dados?.origem || [];
-            origens.forEach((item) => {
-                const nome = item?.origem?.trim();
-                if (nome) {
-                    conjunto.add(nome);
-                }
-            });
-        });
-        return Array.from(conjunto).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-    }, [dadosComparacao]);
-
-    const totalColunasOrigem = useMemo(
-        () => semanasSelecionadas.reduce((acc, _, idx) => acc + (idx === 0 ? 1 : 2), 0),
-        [semanasSelecionadas]
-    );
-
-    const utrComparacaoNormalizada = useMemo(() => {
-        return utrComparacao.map(item => ({
-            semana: String(item.semana),
-            utr: item.utr,
-        }));
-    }, [utrComparacao]);
+    const {
+        origensDisponiveis,
+        totalColunasOrigem,
+        utrComparacaoNormalizada
+    } = useComparacaoMemo(dadosComparacao, semanasSelecionadas, utrComparacao);
 
     return {
         state: {

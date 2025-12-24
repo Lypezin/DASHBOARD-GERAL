@@ -1,23 +1,7 @@
 import React from 'react';
 import { Entregador } from '@/types';
 import { Badge } from '@/components/ui/badge';
-
-interface PrioridadeTableRowProps {
-    entregador: Entregador;
-    calcularPercentualAceitas: (entregador: Entregador) => number;
-    calcularPercentualCompletadas: (entregador: Entregador) => number;
-    getAderenciaColor: (aderencia: number) => string;
-    getAderenciaBg: (aderencia: number) => string;
-    getRejeicaoColor: (rejeicao: number) => string;
-    getRejeicaoBg: (rejeicao: number) => string;
-    getAceitasColor: (percentual: number) => string;
-    getAceitasBg: (percentual: number) => string;
-    getCompletadasColor: (percentual: number) => string;
-    getCompletadasBg: (percentual: number) => string;
-}
-
-export const PrioridadeTableRow = React.memo<PrioridadeTableRowProps>(({
-    entregador,
+import {
     calcularPercentualAceitas,
     calcularPercentualCompletadas,
     getAderenciaColor,
@@ -28,6 +12,14 @@ export const PrioridadeTableRow = React.memo<PrioridadeTableRowProps>(({
     getAceitasBg,
     getCompletadasColor,
     getCompletadasBg,
+} from '../PrioridadeUtils';
+
+interface PrioridadeTableRowProps {
+    entregador: Entregador;
+}
+
+export const PrioridadeTableRow = React.memo<PrioridadeTableRowProps>(({
+    entregador,
 }) => {
     const percentualAceitas = calcularPercentualAceitas(entregador);
     const percentualCompletadas = calcularPercentualCompletadas(entregador);

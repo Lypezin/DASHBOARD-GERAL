@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { GripVertical, Edit2, Check, X } from 'lucide-react';
+import { GripVertical, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { SlideSidebarItemEdit } from './item/SlideSidebarItemEdit';
+import { SlideSidebarItemDisplay } from './item/SlideSidebarItemDisplay';
 
 interface SlideSidebarItemProps {
     slideKey: string;
@@ -76,38 +77,20 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
             </div>
             <div className="flex-1 min-w-0">
                 {isEditing ? (
-                    <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                        <Input
-                            value={editTitle}
-                            onChange={e => setEditTitle(e.target.value)}
-                            className="h-6 text-xs px-1"
-                            autoFocus
-                            onBlur={() => saveTitle()}
-                            onKeyDown={e => {
-                                if (e.key === 'Enter') saveTitle(e);
-                                if (e.key === 'Escape') setIsEditing(false);
-                            }}
-                        />
-                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-emerald-600" onClick={saveTitle}>
-                            <Check className="w-3 h-3" />
-                        </Button>
-                    </div>
+                    <SlideSidebarItemEdit
+                        editTitle={editTitle}
+                        setEditTitle={setEditTitle}
+                        saveTitle={saveTitle}
+                        cancelEdit={() => setIsEditing(false)}
+                    />
                 ) : (
-                    <div className="flex items-center justify-between group/title">
-                        <p className={`text-sm font-medium truncate ${isActive ? 'text-blue-700' : 'text-slate-700'}`}>
-                            {displayName}
-                        </p>
-                        {isMediaSlide && onUpdateTitle && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-5 w-5 p-0 opacity-0 group-hover/title:opacity-100 text-slate-400 hover:text-blue-500"
-                                onClick={startEditing}
-                            >
-                                <Edit2 className="w-3 h-3" />
-                            </Button>
-                        )}
-                    </div>
+                    <SlideSidebarItemDisplay
+                        displayName={displayName}
+                        isActive={isActive}
+                        isMediaSlide={isMediaSlide}
+                        onUpdateTitle={onUpdateTitle}
+                        startEditing={startEditing}
+                    />
                 )}
                 <p className="text-[10px] text-slate-400">Slide {index + 1}</p>
             </div>

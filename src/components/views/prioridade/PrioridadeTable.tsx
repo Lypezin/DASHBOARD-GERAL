@@ -10,16 +10,6 @@ interface PrioridadeTableProps {
   sortField: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas';
   sortDirection: 'asc' | 'desc';
   onSort: (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => void;
-  calcularPercentualAceitas: (entregador: Entregador) => number;
-  calcularPercentualCompletadas: (entregador: Entregador) => number;
-  getAderenciaColor: (aderencia: number) => string;
-  getAderenciaBg: (aderencia: number) => string;
-  getRejeicaoColor: (rejeicao: number) => string;
-  getRejeicaoBg: (rejeicao: number) => string;
-  getAceitasColor: (percentual: number) => string;
-  getAceitasBg: (percentual: number) => string;
-  getCompletadasColor: (percentual: number) => string;
-  getCompletadasBg: (percentual: number) => string;
 }
 
 export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
@@ -27,16 +17,6 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
   sortField,
   sortDirection,
   onSort,
-  calcularPercentualAceitas,
-  calcularPercentualCompletadas,
-  getAderenciaColor,
-  getAderenciaBg,
-  getRejeicaoColor,
-  getRejeicaoBg,
-  getAceitasColor,
-  getAceitasBg,
-  getCompletadasColor,
-  getCompletadasBg,
 }) => {
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
@@ -71,16 +51,6 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
                   <PrioridadeTableRow
                     key={`${entregador.id_entregador}-${sortField}-${sortDirection}-${ranking}`}
                     entregador={entregador}
-                    calcularPercentualAceitas={calcularPercentualAceitas}
-                    calcularPercentualCompletadas={calcularPercentualCompletadas}
-                    getAderenciaColor={getAderenciaColor}
-                    getAderenciaBg={getAderenciaBg}
-                    getRejeicaoColor={getRejeicaoColor}
-                    getRejeicaoBg={getRejeicaoBg}
-                    getAceitasColor={getAceitasColor}
-                    getAceitasBg={getAceitasBg}
-                    getCompletadasColor={getCompletadasColor}
-                    getCompletadasBg={getCompletadasBg}
                   />
                 );
               })}

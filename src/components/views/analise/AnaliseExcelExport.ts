@@ -2,30 +2,10 @@ import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrige
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { formatarHorasParaHMS } from '@/utils/formatters';
-import { calcularTaxas, AnaliseItem } from '@/hooks/analise/useAnaliseTaxas';
+import { calcularTaxas } from '@/hooks/analise/useAnaliseTaxas';
+import { formatarPorcentagem, formatarNumero, gerarDadosFormatados } from './excel/AnaliseExcelHelpers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-
-// Helper local para formatação
-const formatarPorcentagem = (valor: number) => {
-    return (valor / 100).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 1 });
-};
-
-const formatarNumero = (valor: number | undefined | null) => {
-    if (valor === undefined || valor === null) return 0;
-    return valor;
-};
-
-// Helper para converter item de aderência para AnaliseItem (para usar o calcularTaxas)
-const toAnaliseItem = (item: any): AnaliseItem => {
-    return {
-        corridas_ofertadas: item.corridas_ofertadas,
-        corridas_aceitas: item.corridas_aceitas,
-        corridas_rejeitadas: item.corridas_rejeitadas,
-        corridas_completadas: item.corridas_completadas,
-        horas_entregues: item.horas_entregues // Não usado no cálculo, mas parte da interface
-    };
-};
 
 export async function exportarAnaliseParaExcel(
     totals: Totals,
@@ -68,48 +48,25 @@ export async function exportarAnaliseParaExcel(
         }
 
         // Função helper para gerar planilhas detalhadas
-        const gerarPlanilhaDetalhada = (dados: any[], nomePlanilha: string, campoChave: string, labelChave: string) => {
-            if (!dados || dados.length === 0) return;
-
-            const dadosFormatados = dados.map(item => {
-                const taxas = calcularTaxas(toAnaliseItem(item));
-                const horas = formatarHorasParaHMS((item.segundos_realizados || 0) / 3600);
-
-                // Determinar o rótulo da linha
-                let label = item[campoChave] || 'N/A';
-                if (campoChave === 'data') {
-                    // Tenta formatar data ou deixar como está
-                    label = item.dia_semana || item.data || 'N/A';
-                }
-
-                return {
-                    [labelChave]: label,
-                    'Ofertadas': formatarNumero(item.corridas_ofertadas),
-                    'Aceitas': formatarNumero(item.corridas_aceitas),
-                    'Rejeitadas': formatarNumero(item.corridas_rejeitadas),
-                    'Completadas': formatarNumero(item.corridas_completadas),
-                    'Taxa Aceitação': formatarPorcentagem(taxas.taxaAceitacao),
-                    'Taxa Rejeição': formatarPorcentagem(taxas.taxaRejeicao),
-                    'Taxa Completitude': formatarPorcentagem(taxas.taxaCompletude),
-                    'Horas Entregues': horas
-                };
-            });
-
-            const ws = XLSX.utils.json_to_sheet(dadosFormatados);
-            XLSX.utils.book_append_sheet(wb, ws, nomePlanilha);
+        const appendPlanilha = (dados: any[], nomePlanilha: string, campoChave: string, labelChave: string) => {
+            const dadosFormatados = gerarDadosFormatados(dados, campoChave, labelChave);
+            if (dadosFormatados.length > 0) {
+                const ws = XLSX.utils.json_to_sheet(dadosFormatados);
+                XLSX.utils.book_append_sheet(wb, ws, nomePlanilha);
+            }
         };
 
         // 2. Aba: Por Dia
-        gerarPlanilhaDetalhada(aderenciaDia, 'Por Dia', 'data', 'Dia');
+        appendPlanilha(aderenciaDia, 'Por Dia', 'data', 'Dia');
 
         // 3. Aba: Por Turno
-        gerarPlanilhaDetalhada(aderenciaTurno, 'Por Turno', 'turno', 'Turno');
+        appendPlanilha(aderenciaTurno, 'Por Turno', 'turno', 'Turno');
 
         // 4. Aba: Por Sub-Praça
-        gerarPlanilhaDetalhada(aderenciaSubPraca, 'Por Sub-Praça', 'sub_praca', 'Sub-Praça');
+        appendPlanilha(aderenciaSubPraca, 'Por Sub-Praça', 'sub_praca', 'Sub-Praça');
 
         // 5. Aba: Por Origem
-        gerarPlanilhaDetalhada(aderenciaOrigem, 'Por Origem', 'origem', 'Origem');
+        appendPlanilha(aderenciaOrigem, 'Por Origem', 'origem', 'Origem');
 
         // Gerar Nome do Arquivo
         const agora = new Date();

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MediaSlideData } from '@/types/presentation';
 import { SlideSidebarItem } from './SlideSidebarItem';
+import { SlideSidebarList } from './SlideSidebarList';
 
 interface SlideSidebarProps {
     slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
@@ -72,56 +73,18 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = ({
             </div>
 
             <ScrollArea className="flex-1">
-                <div className="p-3 space-y-2">
-                    {displaySlides.map((slide, index) => {
-                        const isMediaSlide = slide.key.startsWith('media-');
-                        const mediaId = isMediaSlide ? slide.key.replace('media-', '') : null;
-                        const mediaData = mediaId ? mediaSlides.find(m => m.id === mediaId) : null;
-                        const displayName = mediaData?.title || formatSlideLabel(slide.key);
-
-                        return (
-                            <SlideSidebarItem
-                                key={slide.key}
-                                slideKey={slide.key}
-                                index={index}
-                                displayName={displayName}
-                                isActive={index === currentSlideIndex}
-                                isMediaSlide={isMediaSlide}
-                                mediaId={mediaId}
-                                onSelect={() => onSlideSelect(index)}
-                                onDragStart={onDragStart}
-                                onDragEnter={onDragEnter}
-                                onDragEnd={onDragEnd}
-                                onUpdateTitle={
-                                    onUpdateMediaSlide
-                                        ? (id, title) => onUpdateMediaSlide(id, { title })
-                                        : undefined
-                                }
-                                onDelete={onDeleteMediaSlide}
-                            />
-                        );
-                    })}
-                </div>
+                <SlideSidebarList
+                    displaySlides={displaySlides}
+                    currentSlideIndex={currentSlideIndex}
+                    mediaSlides={mediaSlides}
+                    onSlideSelect={onSlideSelect}
+                    onDragStart={onDragStart}
+                    onDragEnter={onDragEnter}
+                    onDragEnd={onDragEnd}
+                    onUpdateMediaSlide={onUpdateMediaSlide}
+                    onDeleteMediaSlide={onDeleteMediaSlide}
+                />
             </ScrollArea>
         </div>
     );
 };
-
-// Helper for labels
-function formatSlideLabel(key: string): string {
-    const labels: Record<string, string> = {
-        'capa': 'Capa',
-        'aderencia-geral': 'Aderência Geral',
-        'sub-pracas': 'Sub-Praças',
-        'aderencia-diaria': 'Por Dia',
-        'turnos': 'Turnos',
-        'origens': 'Origens',
-        'demanda': 'Demanda',
-        'ranking': 'Ranking',
-        'smart-summary': 'Resumo IA',
-        'entregadores-overview': 'Entregadores',
-        'financeiro': 'Financeiro',
-        'marketing': 'Marketing'
-    };
-    return labels[key] || key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-}

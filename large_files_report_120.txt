@@ -1,0 +1,33 @@
+Files with more than 120 lines:
+---------------------------------
+133 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\useDashboardPage.ts
+129 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\analise\AnaliseExcelExport.ts
+128 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\components\SlideSidebar.tsx
+126 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\components\MediaManagerSidebar.tsx
+125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\app\admin\page.tsx
+125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\OnlineUsersSidebar.tsx
+125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ui\sheet.tsx
+125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\evolucao\EvolucaoChart.tsx
+125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\usePagination.ts
+124 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\prioridade\PrioridadeStatsCards.tsx
+124 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\online\usePresence.ts
+123 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\registro\RegistroForm.tsx
+123 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ui\dialog.tsx
+123 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ui\dropdown-menu\DropdownItems.tsx
+123 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\upload\UploadSection.tsx
+123 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\apresentacao\useApresentacaoSlides.tsx
+123 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\dashboard\useDashboardDataEffect.ts
+122 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\AtendenteCard.tsx
+122 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\OnlineUsersSidebar\MessageList.tsx
+122 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\marketing\EntradaSaidaView.tsx
+122 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\resultados\AtendenteCard.tsx
+122 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\useHeaderAuth.ts
+122 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\excel\transformers.ts
+122 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\utils\timeHelpers.ts
+121 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\app\perfil\page.tsx
+121 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\entregadores\EntregadoresLayout.tsx
+121 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\ValoresCidadeView.tsx
+121 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\apresentacao\utils\builders\simple.tsx
+121 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\types\dashboard.ts
+---------------------------------
+Total: 29 files

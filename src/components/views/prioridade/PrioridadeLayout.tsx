@@ -1,23 +1,13 @@
 
 import React from 'react';
-import { motion, Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { staggerContainer, fadeInItem } from '@/utils/animations';
 import { PrioridadeHeader } from './PrioridadeHeader';
 import { PrioridadeFilters } from './PrioridadeFilters';
 import { PrioridadeSearch } from './PrioridadeSearch';
 import { PrioridadeStatsCards } from './PrioridadeStatsCards';
 import { PrioridadeTable } from './PrioridadeTable';
-import {
-    calcularPercentualAceitas,
-    calcularPercentualCompletadas,
-    getAderenciaColor,
-    getAderenciaBg,
-    getRejeicaoColor,
-    getRejeicaoBg,
-    getAceitasColor,
-    getAceitasBg,
-    getCompletadasColor,
-    getCompletadasBg,
-} from './PrioridadeUtils';
+
 
 interface PrioridadeLayoutProps {
     // State
@@ -66,33 +56,20 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
     onSort
 }: PrioridadeLayoutProps) {
 
-    const container: Variants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
 
-    const item: Variants = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-    };
 
     return (
         <motion.div
             className="space-y-6 pb-8"
-            variants={container}
+            variants={staggerContainer}
             initial="hidden"
             animate="show"
         >
-            <motion.div variants={item}>
+            <motion.div variants={fadeInItem}>
                 <PrioridadeHeader sortedEntregadores={sortedEntregadores} />
             </motion.div>
 
-            <motion.div variants={item}>
+            <motion.div variants={fadeInItem}>
                 <PrioridadeFilters
                     filtroAderencia={filtroAderencia}
                     filtroRejeicao={filtroRejeicao}
@@ -106,7 +83,7 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
                 />
             </motion.div>
 
-            <motion.div variants={item}>
+            <motion.div variants={fadeInItem}>
                 <PrioridadeSearch
                     searchTerm={searchTerm}
                     isSearching={isSearching}
@@ -116,7 +93,7 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
                 />
             </motion.div>
 
-            <motion.div variants={item}>
+            <motion.div variants={fadeInItem}>
                 <PrioridadeStatsCards
                     totalEntregadores={stats.totalEntregadores}
                     totalOfertadas={stats.totalOfertadas}
@@ -127,22 +104,12 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
                 />
             </motion.div>
 
-            <motion.div variants={item}>
+            <motion.div variants={fadeInItem}>
                 <PrioridadeTable
                     sortedEntregadores={sortedEntregadores}
                     sortField={sortField}
                     sortDirection={sortDirection}
                     onSort={onSort}
-                    calcularPercentualAceitas={calcularPercentualAceitas}
-                    calcularPercentualCompletadas={calcularPercentualCompletadas}
-                    getAderenciaColor={getAderenciaColor}
-                    getAderenciaBg={getAderenciaBg}
-                    getRejeicaoColor={getRejeicaoColor}
-                    getRejeicaoBg={getRejeicaoBg}
-                    getAceitasColor={getAceitasColor}
-                    getAceitasBg={getAceitasBg}
-                    getCompletadasColor={getCompletadasColor}
-                    getCompletadasBg={getCompletadasBg}
                 />
             </motion.div>
         </motion.div>

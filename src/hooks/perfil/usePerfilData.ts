@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
+
+import { fetchUserProfile, fetchUserAvatar } from './profileService';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -24,18 +25,13 @@ export const usePerfilData = () => {
 
   const checkUser = useCallback(async () => {
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      
+      const { authUser, profile, error: profileError } = await fetchUserProfile();
+
       if (!authUser) {
         router.push('/login');
         return;
       }
 
-      const { data: profile, error: profileError } = await safeRpc<UserProfile>('get_current_user_profile', {}, {
-        timeout: 10000,
-        validateParams: false
-      });
-      
       if (profileError) throw profileError;
 
       if (!profile?.is_approved) {
@@ -51,68 +47,23 @@ export const usePerfilData = () => {
 
       const updatedProfile = { ...profile, full_name: fullName };
       setUser(updatedProfile);
-      
-      let userCreatedAt: string | null = null;
+
+      // Set member since from auth first
       if (authUser?.created_at) {
-        userCreatedAt = authUser.created_at;
         setMemberSince(authUser.created_at);
       }
-      
+
+      // Fetch Avatar and additional dates
       if (profile?.id) {
-        try {
-          if (IS_DEV) safeLog.info('🔍 Buscando avatar_url para usuário:', profile.id);
-          
-          const { data: profileData, error: profileDataError } = await supabase
-            .from('user_profiles')
-            .select('avatar_url, id, updated_at, created_at')
-            .eq('id', profile.id)
-            .single();
-          
-          if (!userCreatedAt && profileData?.created_at) {
-            setMemberSince(profileData.created_at);
-          }
-          
-          if (IS_DEV) safeLog.info('📥 Resultado da busca:', { profileData, profileDataError });
-          
-          if (!profileDataError && profileData?.avatar_url) {
-            if (IS_DEV) safeLog.info('✅ Avatar encontrado:', profileData.avatar_url);
-            setUser(prev => prev ? { ...prev, avatar_url: profileData.avatar_url } : null);
-          } else if (profileDataError) {
-            if (IS_DEV) {
-              safeLog.warn('⚠️ Não foi possível buscar avatar_url:', {
-                error: profileDataError,
-                code: profileDataError.code,
-                message: profileDataError.message,
-                details: profileDataError.details,
-                hint: profileDataError.hint
-              });
-            }
-            
-            if (profileDataError.code === 'PGRST116') {
-              if (IS_DEV) safeLog.info('📝 Registro não existe, criando registro vazio...');
-              try {
-                const { error: createError } = await supabase
-                  .from('user_profiles')
-                  .insert({
-                    id: profile.id,
-                    avatar_url: null,
-                    updated_at: new Date().toISOString()
-                  });
-                
-                if (createError) {
-                  if (IS_DEV) safeLog.warn('⚠️ Erro ao criar registro vazio:', createError);
-                } else {
-                  if (IS_DEV) safeLog.info('✅ Registro vazio criado com sucesso');
-                }
-              } catch (err) {
-                if (IS_DEV) safeLog.warn('⚠️ Erro ao criar registro:', err);
-              }
-            }
-          } else if (profileData && !profileData.avatar_url) {
-            if (IS_DEV) safeLog.info('ℹ️ Usuário não tem avatar ainda');
-          }
-        } catch (err) {
-          if (IS_DEV) safeLog.warn('⚠️ Erro ao buscar avatar_url:', err);
+        const { avatarUrl, createdAt } = await fetchUserAvatar(profile.id);
+
+        if (avatarUrl) {
+          setUser(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
+        }
+
+        // Fallback date if auth date missing
+        if (!authUser?.created_at && createdAt) {
+          setMemberSince(createdAt);
         }
       }
     } catch (err) {

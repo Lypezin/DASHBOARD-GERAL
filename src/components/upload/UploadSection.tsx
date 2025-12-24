@@ -3,9 +3,9 @@ import { FileUploadArea } from './FileUploadArea';
 import { FileList } from './FileList';
 import { UploadProgress } from './UploadProgress';
 import { UploadMessage } from './UploadMessage';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Upload } from 'lucide-react';
+import { UploadActions } from './components/UploadActions';
+import { UploadHeader } from './components/UploadHeader';
+import { Card, CardContent } from '@/components/ui/card';
 import { UploadMVProgress } from './components/UploadMVProgress';
 import { UploadTips } from './components/UploadTips';
 import { UploadExpectedColumns } from './components/UploadExpectedColumns';
@@ -60,13 +60,7 @@ export const UploadSection = memo(function UploadSection({
 }: UploadSectionProps) {
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          {icon}
-          {title}
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </CardHeader>
+      <UploadHeader title={title} description={description} icon={icon} />
 
       <CardContent className="flex-1 flex flex-col gap-4">
         {/* Área de Upload */}
@@ -88,24 +82,14 @@ export const UploadSection = memo(function UploadSection({
         />
 
         {/* Botão de Upload */}
-        <Button
-          onClick={onUpload}
-          disabled={uploading || files.length === 0}
-          className="w-full"
-          variant={variant === 'marketing' ? 'default' : variant === 'valores' ? 'default' : 'default'}
-        >
-          {uploading ? (
-            <div className="flex items-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-              <span>Processando...</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              <span>Enviar {files.length > 0 ? `${files.length} Arquivo(s)` : 'Arquivo'}</span>
-            </div>
-          )}
-        </Button>
+        {/* Botão de Upload */}
+        <UploadActions
+          onUpload={onUpload}
+          uploading={uploading}
+          hasFiles={files.length > 0}
+          variant={variant}
+          fileCount={files.length}
+        />
 
         {/* Barra de Progresso */}
         <UploadProgress

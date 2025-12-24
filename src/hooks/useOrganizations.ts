@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { safeRpc } from '@/lib/rpcWrapper';
-import { safeLog } from '@/lib/errorHandler';
+import { fetchAllOrganizations, createNewOrganization, updateExistingOrganization } from '@/services/organizationService';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -36,84 +35,34 @@ export function useOrganizations() {
     setLoading(true);
     setError(null);
 
-    try {
-      const { data, error: rpcError } = await safeRpc<Organization[]>('list_all_organizations', {}, {
-        timeout: 30000,
-        validateParams: false
-      });
+    const { data, error: serviceError } = await fetchAllOrganizations();
 
-      if (rpcError) {
-        throw new Error(rpcError.message || 'Erro ao buscar organizações');
-      }
-
-      setOrganizations(data || []);
-    } catch (err: any) {
-      const errorMessage = err.message || 'Erro ao carregar organizações';
-      if (IS_DEV) {
-        safeLog.error('[useOrganizations] Erro:', err);
-      }
-      setError(errorMessage);
+    if (serviceError) {
+      setError(serviceError);
       setOrganizations([]);
-    } finally {
-      setLoading(false);
+    } else {
+      setOrganizations(data || []);
     }
+    setLoading(false);
   }, []);
 
   const createOrganization = useCallback(async (formData: OrganizationFormData): Promise<OrganizationOperationResult> => { // Updated return type
-    try {
-      const { data, error: rpcError } = await safeRpc<string>('create_organization', {
-        p_name: formData.name.trim(),
-        p_slug: formData.slug.trim().toLowerCase(),
-        p_max_users: formData.max_users
-      }, {
-        timeout: 30000,
-        validateParams: false
-      });
-
-      if (rpcError) {
-        return { success: false, error: rpcError.message || 'Erro ao criar organização' };
-      }
-
+    const result = await createNewOrganization(formData);
+    if (result.success) {
       await fetchOrganizations();
-      return { success: true, id: data || undefined };
-    } catch (err: any) {
-      const errorMessage = err.message || 'Erro ao criar organização';
-      if (IS_DEV) {
-        safeLog.error('[useOrganizations] Erro ao criar:', err);
-      }
-      return { success: false, error: errorMessage };
     }
+    return result;
   }, [fetchOrganizations]);
 
   const updateOrganization = useCallback(async (
     id: string,
     updates: Partial<OrganizationFormData & { is_active?: boolean }>
   ): Promise<OrganizationOperationResult> => { // Updated return type
-    try {
-      const { error: rpcError } = await safeRpc<boolean>('update_organization', {
-        p_id: id,
-        p_name: updates.name?.trim(),
-        p_slug: updates.slug?.trim().toLowerCase(),
-        p_max_users: updates.max_users,
-        p_is_active: updates.is_active
-      }, {
-        timeout: 30000,
-        validateParams: false
-      });
-
-      if (rpcError) {
-        return { success: false, error: rpcError.message || 'Erro ao atualizar organização' };
-      }
-
+    const result = await updateExistingOrganization(id, updates);
+    if (result.success) {
       await fetchOrganizations();
-      return { success: true };
-    } catch (err: any) {
-      const errorMessage = err.message || 'Erro ao atualizar organização';
-      if (IS_DEV) {
-        safeLog.error('[useOrganizations] Erro ao atualizar:', err);
-      }
-      return { success: false, error: errorMessage };
     }
+    return result;
   }, [fetchOrganizations]);
 
   useEffect(() => {
