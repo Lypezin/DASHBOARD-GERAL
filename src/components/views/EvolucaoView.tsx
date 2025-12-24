@@ -5,7 +5,8 @@ import { EvolucaoFilters } from './evolucao/EvolucaoFilters';
 import { EvolucaoChart } from './evolucao/EvolucaoChart';
 import { EvolucaoStatsCards } from './evolucao/EvolucaoStatsCards';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
-import { motion, Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { staggerContainer, fadeInItem } from '@/utils/animations';
 import { useEvolucaoViewController } from './evolucao/hooks/useEvolucaoViewController';
 
 const EvolucaoView = React.memo(function EvolucaoView({
@@ -34,29 +35,16 @@ const EvolucaoView = React.memo(function EvolucaoView({
     return <DashboardSkeleton contentOnly />;
   }
 
-  const container: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
 
-  const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
 
   return (
     <motion.div
       className="space-y-6"
-      variants={container}
+      variants={staggerContainer}
       initial="hidden"
       animate="show"
     >
-      <motion.div variants={item}>
+      <motion.div variants={fadeInItem}>
         <EvolucaoFilters
           viewMode={state.viewMode}
           onViewModeChange={actions.setViewMode}
@@ -68,7 +56,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
         />
       </motion.div>
 
-      <motion.div variants={item}>
+      <motion.div variants={fadeInItem}>
         <EvolucaoChart
           chartData={state.chartData}
           chartOptions={state.chartOptions}
@@ -80,7 +68,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
         />
       </motion.div>
 
-      <motion.div variants={item}>
+      <motion.div variants={fadeInItem}>
         <EvolucaoStatsCards
           dadosAtivos={state.dadosAtivos}
           viewMode={state.viewMode}

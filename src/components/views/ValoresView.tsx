@@ -10,7 +10,8 @@ import { useValoresData } from './valores/useValoresData';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { exportarValoresParaExcel } from './valores/ValoresExcelExport';
 import { safeLog } from '@/lib/errorHandler';
-import { motion, Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { staggerContainer, fadeInItem } from '@/utils/animations';
 
 import { ValoresHeader } from './valores/ValoresHeader';
 import { ValoresError, ValoresEmpty } from './valores/ValoresStates';
@@ -63,35 +64,22 @@ const ValoresView = React.memo(function ValoresView({
     return <ValoresEmpty />;
   }
 
-  const container: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
 
-  const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
 
   return (
     <motion.div
       className="space-y-6 animate-fade-in"
-      variants={container}
+      variants={staggerContainer}
       initial="hidden"
       animate="show"
     >
       <ValoresHeader
         isExporting={isExporting}
         onExport={handleExport}
-        variants={item}
+        variants={fadeInItem}
       />
 
-      <motion.div variants={item}>
+      <motion.div variants={fadeInItem}>
         <ValoresSearch
           searchTerm={searchTerm}
           isSearching={isSearching}
@@ -101,7 +89,7 @@ const ValoresView = React.memo(function ValoresView({
         />
       </motion.div>
 
-      <motion.div variants={item}>
+      <motion.div variants={fadeInItem}>
         <ValoresStatsCards
           totalGeral={totalGeral}
           totalEntregadores={totalEntregadores}
@@ -111,7 +99,7 @@ const ValoresView = React.memo(function ValoresView({
         />
       </motion.div>
 
-      <motion.div variants={item}>
+      <motion.div variants={fadeInItem}>
         <ValoresTable
           sortedValores={sortedValores}
           sortField={sortField}

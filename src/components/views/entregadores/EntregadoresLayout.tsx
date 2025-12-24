@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { motion, Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { staggerContainer, fadeInItem } from '@/utils/animations';
 import { EntregadoresHeader } from './components/EntregadoresHeader';
 import { EntregadoresFilters } from './EntregadoresFilters';
 import { EntregadoresStatsCards } from './EntregadoresStatsCards';
@@ -50,29 +51,16 @@ export const EntregadoresLayout = React.memo(function EntregadoresLayout({
     formatarSegundosParaHoras
 }: EntregadoresLayoutProps) {
 
-    const container: Variants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
 
-    const item: Variants = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-    };
 
     return (
         <motion.div
             className="space-y-6"
-            variants={container}
+            variants={staggerContainer}
             initial="hidden"
             animate="show"
         >
-            <motion.div variants={item}>
+            <motion.div variants={fadeInItem}>
                 <EntregadoresHeader
                     count={entregadoresFiltrados.length}
                     totalCount={entregadores.length}
@@ -82,7 +70,7 @@ export const EntregadoresLayout = React.memo(function EntregadoresLayout({
             </motion.div>
 
             {/* Filtros */}
-            <motion.div variants={item}>
+            <motion.div variants={fadeInItem}>
                 <EntregadoresFilters
                     searchTerm={searchTerm}
                     onSearchChange={onSearchChange}
@@ -96,7 +84,7 @@ export const EntregadoresLayout = React.memo(function EntregadoresLayout({
             </motion.div>
 
             {/* Cartões de Total */}
-            <motion.div variants={item}>
+            <motion.div variants={fadeInItem}>
                 <EntregadoresStatsCards
                     totalEntregadores={totais.totalEntregadores}
                     totalSegundos={totais.totalSegundos}
@@ -111,7 +99,7 @@ export const EntregadoresLayout = React.memo(function EntregadoresLayout({
             </motion.div>
 
             {/* Tabela de Entregadores */}
-            <motion.div variants={item}>
+            <motion.div variants={fadeInItem}>
                 {entregadores.length > 0 ? (
                     <EntregadoresTable
                         entregadores={entregadoresFiltrados}
