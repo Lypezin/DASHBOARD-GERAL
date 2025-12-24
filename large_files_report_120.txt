@@ -1,14 +1,7 @@
 Files with more than 120 lines:
 ---------------------------------
-133 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\useDashboardPage.ts
-129 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\analise\AnaliseExcelExport.ts
-128 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\slides\components\SlideSidebar.tsx
-126 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\components\MediaManagerSidebar.tsx
-125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\app\admin\page.tsx
-125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\OnlineUsersSidebar.tsx
-125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ui\sheet.tsx
-125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\evolucao\EvolucaoChart.tsx
-125 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\usePagination.ts
+135 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\useDashboardPage.ts
+124 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\OnlineUsersSidebar.tsx
 124 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\prioridade\PrioridadeStatsCards.tsx
 124 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\online\usePresence.ts
 123 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\registro\RegistroForm.tsx
@@ -30,4 +23,4 @@ Files with more than 120 lines:
 121 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\apresentacao\utils\builders\simple.tsx
 121 lines: c:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\types\dashboard.ts
 ---------------------------------
-Total: 29 files
+Total: 22 files

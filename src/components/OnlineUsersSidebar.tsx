@@ -1,12 +1,12 @@
 import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 import { useSidebarController } from './OnlineUsersSidebar/useSidebarController';
 import { SidebarTrigger } from './OnlineUsersSidebar/SidebarTrigger';
 import { SidebarHeader } from './OnlineUsersSidebar/SidebarHeader';
 import { UserList } from './OnlineUsersSidebar/UserList';
 import { ChatWindow } from './OnlineUsersSidebar/ChatWindow';
 import { NotificationsToast } from './OnlineUsersSidebar/NotificationsToast';
+import { createSendMessageHandler } from './OnlineUsersSidebar/sendMessageHandler';
 
 interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;
@@ -37,6 +37,15 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
     if (!currentUser) return null;
 
     const { setCustomStatus, sendMessage, setTypingTo, reactToMessage, pinMessage } = onlineUsersData;
+
+    const handleSendMessage = createSendMessageHandler({
+        chatInput,
+        activeChatUser,
+        replyingTo,
+        sendMessage,
+        setChatInput,
+        setReplyingTo
+    });
 
     return (
         <>
@@ -73,17 +82,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                     chatEndRef={chatEndRef}
                     chatInput={chatInput}
                     setChatInput={setChatInput}
-                    handleSendMessage={() => {
-                        if (!chatInput.trim() || !activeChatUser) return;
-                        sendMessage(activeChatUser.id, chatInput, {
-                            replyTo: replyingTo?.id
-                        });
-                        setChatInput('');
-                        setReplyingTo(null);
-
-                        // Notificação de envio
-                        toast.success(`Mensagem enviada para ${activeChatUser.name?.split(' ')[0]}`);
-                    }}
+                    handleSendMessage={handleSendMessage}
                     replyingTo={replyingTo}
                     fileInputRef={fileInputRef}
                     onlineUsers={onlineUsers}

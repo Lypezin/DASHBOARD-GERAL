@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { BarChart2, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EvolucaoChartLegend } from './EvolucaoChartLegend';
 import { EvolucaoEmptyState } from './EvolucaoEmptyState';
+import { hasChartData, detectDuplicateMetrics, shouldShowChart } from './chartValidation';
 
 interface EvolucaoChartProps {
   chartData: {
@@ -28,37 +29,9 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
   viewMode,
   dadosAtivosLength,
 }) => {
-  // Verificar se há dados reais para exibir
-  const hasData = useMemo(() => {
-    if (!chartData?.datasets?.length) return false;
-    return chartData.datasets.some(dataset =>
-      dataset.data && dataset.data.some((val: any) => val != null && val !== 0)
-    );
-  }, [chartData]);
-
-  const hasDuplicateMetrics = useMemo(() => {
-    const datasets = chartData?.datasets || [];
-    const identicalMetrics: string[] = [];
-
-    for (let i = 0; i < datasets.length; i++) {
-      for (let j = i + 1; j < datasets.length; j++) {
-        const d1 = datasets[i];
-        const d2 = datasets[j];
-        const values1 = d1.data.filter((v: number | null) => v != null);
-        const values2 = d2.data.filter((v: number | null) => v != null);
-
-        if (values1.length === values2.length && values1.length > 0) {
-          const allEqual = values1.every((v: number, idx: number) => v === values2[idx]);
-          if (allEqual && !identicalMetrics.includes(d1.label) && !identicalMetrics.includes(d2.label)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }, [chartData]);
-
-  const showChart = chartData.datasets.length > 0 && chartData.labels.length > 0 && !chartError && hasData;
+  const hasData = useMemo(() => hasChartData(chartData), [chartData]);
+  const hasDuplicateMetrics = useMemo(() => detectDuplicateMetrics(chartData), [chartData]);
+  const showChart = shouldShowChart(chartData, chartError, hasData);
 
   return (
     <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">

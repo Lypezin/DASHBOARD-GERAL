@@ -1,49 +1,6 @@
 /**
  * Hook genérico para paginação de dados
  * Suporta paginação com offset/limit e cursor-based
- */
-
-import { useState, useCallback, useMemo } from 'react';
-
-export interface PaginationOptions {
-  /** Tamanho da página (quantos itens por página) */
-  pageSize?: number;
-  /** Número inicial da página (começa em 1) */
-  initialPage?: number;
-}
-
-export interface PaginationState {
-  /** Página atual (começa em 1) */
-  currentPage: number;
-  /** Tamanho da página */
-  pageSize: number;
-  /** Total de itens (se conhecido) */
-  totalItems?: number;
-  /** Total de páginas (calculado se totalItems estiver disponível) */
-  totalPages?: number;
-}
-
-export interface PaginationControls {
-  /** Vai para a próxima página */
-  nextPage: () => void;
-  /** Vai para a página anterior */
-  previousPage: () => void;
-  /** Vai para uma página específica */
-  goToPage: (page: number) => void;
-  /** Reseta para a primeira página */
-  reset: () => void;
-  /** Se há próxima página */
-  hasNextPage: boolean;
-  /** Se há página anterior */
-  hasPreviousPage: boolean;
-  /** Offset para queries (calculado) */
-  offset: number;
-  /** Limit para queries (igual a pageSize) */
-  limit: number;
-}
-
-/**
- * Hook para gerenciar paginação de dados
  * 
  * @example
  * ```tsx
@@ -56,6 +13,12 @@ export interface PaginationControls {
  *   .range(offset, offset + limit - 1);
  * ```
  */
+
+import { useState, useCallback, useMemo } from 'react';
+import type { PaginationOptions, PaginationState, PaginationControls } from './pagination/types';
+
+export type { PaginationOptions, PaginationState, PaginationControls };
+
 export function usePagination(options: PaginationOptions = {}): PaginationState & PaginationControls {
   const {
     pageSize = 1000,
@@ -65,9 +28,7 @@ export function usePagination(options: PaginationOptions = {}): PaginationState 
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalItems, setTotalItems] = useState<number | undefined>(undefined);
 
-  const offset = useMemo(() => {
-    return (currentPage - 1) * pageSize;
-  }, [currentPage, pageSize]);
+  const offset = useMemo(() => (currentPage - 1) * pageSize, [currentPage, pageSize]);
 
   const totalPages = useMemo(() => {
     if (totalItems === undefined) return undefined;
@@ -75,13 +36,11 @@ export function usePagination(options: PaginationOptions = {}): PaginationState 
   }, [totalItems, pageSize]);
 
   const hasNextPage = useMemo(() => {
-    if (totalPages === undefined) return true; // Assumir que há próxima página se não soubermos o total
+    if (totalPages === undefined) return true;
     return currentPage < totalPages;
   }, [currentPage, totalPages]);
 
-  const hasPreviousPage = useMemo(() => {
-    return currentPage > 1;
-  }, [currentPage]);
+  const hasPreviousPage = useMemo(() => currentPage > 1, [currentPage]);
 
   const nextPage = useCallback(() => {
     if (hasNextPage) {
@@ -121,4 +80,3 @@ export function usePagination(options: PaginationOptions = {}): PaginationState 
     limit: pageSize,
   };
 }
-

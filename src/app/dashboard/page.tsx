@@ -10,49 +10,48 @@ import { DashboardAuthLoading } from '@/components/dashboard/DashboardAuthLoadin
 import type { AderenciaSemanal } from '@/types';
 
 export default function DashboardPage() {
+    const { auth, ui, filters: filtersGroup, data } = useDashboardPage();
+
+    // Destructure for easier access
+    const { isCheckingAuth, isAuthenticated, currentUser } = auth;
+    const { activeTab, handleTabChange, chartReady, loading, error } = ui;
+    const { state: filters, setState: setFilters, options } = filtersGroup;
     const {
-        // Auth
-        isCheckingAuth,
-        isAuthenticated,
-        currentUser,
+        anos: anosDisponiveis,
+        semanas: semanasDisponiveis,
+        pracas,
+        subPracas,
+        origens,
+        turnos
+    } = options;
 
-        // Tabs e Filtros
-        activeTab,
-        filters,
-        setFilters,
-        handleTabChange,
-
-        // Dados
+    // Dashboard data
+    const {
         aderenciaGeral,
         aderenciaDia,
         aderenciaTurno,
         aderenciaSubPraca,
         aderenciaOrigem,
-        totals,
-        anosDisponiveis,
-        semanasDisponiveis,
-        pracas,
-        subPracas,
-        origens,
-        turnos,
-        loading,
-        error,
+        totals
+    } = data.dashboard;
 
-        // Evolução e outros dados
-        evolucaoMensal,
-        evolucaoSemanal,
-        loadingEvolucao,
-        anoSelecionado,
-        setAnoEvolucao,
-
+    // Tab data
+    const {
         utrData,
         entregadoresData,
         valoresData,
         prioridadeData,
-        loadingTabData,
+        loading: loadingTabData
+    } = data.tabs;
 
-        chartReady,
-    } = useDashboardPage();
+    // Evolution data
+    const {
+        mensal: evolucaoMensal,
+        semanal: evolucaoSemanal,
+        loading: loadingEvolucao,
+        anoSelecionado,
+        setAno: setAnoEvolucao
+    } = data.evolution;
 
     if (isCheckingAuth) return <DashboardAuthLoading />;
     if (!isAuthenticated) return null;
