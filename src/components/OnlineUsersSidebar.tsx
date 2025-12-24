@@ -1,5 +1,6 @@
 import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { useSidebarController } from './OnlineUsersSidebar/useSidebarController';
 import { SidebarTrigger } from './OnlineUsersSidebar/SidebarTrigger';
 import { SidebarHeader } from './OnlineUsersSidebar/SidebarHeader';
@@ -79,6 +80,9 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                         });
                         setChatInput('');
                         setReplyingTo(null);
+
+                        // Notificação de envio
+                        toast.success(`Mensagem enviada para ${activeChatUser.name?.split(' ')[0]}`);
                     }}
                     replyingTo={replyingTo}
                     fileInputRef={fileInputRef}
