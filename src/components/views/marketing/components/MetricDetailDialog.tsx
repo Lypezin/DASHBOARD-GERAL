@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
     Dialog,
@@ -10,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Eye, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { MetricDetailList } from './MetricDetailList';
 
 interface MetricDetailDialogProps {
     type: 'entradas' | 'saidas';
@@ -35,9 +37,8 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
     const hoverBgClass = isEntrada ? 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'hover:bg-rose-50 dark:hover:bg-rose-900/20';
     const Icon = isEntrada ? ArrowUpRight : ArrowDownRight;
 
-    // Dot colors for lists
-    const mktDot = isEntrada ? 'bg-emerald-500' : 'bg-rose-500';
-    const opsDot = isEntrada ? 'bg-emerald-300' : 'bg-rose-300';
+    const hasNoRecords = !marketingNames.length && !operacionalNames.length && !marketingNovosNames.length && !operacionalNovosNames.length;
+    const hasNovos = marketingNovosNames.length > 0 || operacionalNovosNames.length > 0;
 
     return (
         <Dialog>
@@ -62,44 +63,26 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
                 </DialogHeader>
                 <ScrollArea className="h-[300px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
                     <div className="space-y-4">
-                        {(!marketingNames.length && !operacionalNames.length && !marketingNovosNames.length && !operacionalNovosNames.length) && (
+                        {hasNoRecords && (
                             <div className="text-sm text-slate-500 text-center py-4">Nenhum registro.</div>
                         )}
 
-                        {marketingNames.length > 0 && (
-                            <div>
-                                <h4 className={`text-xs font-bold uppercase ${colorClass} dark:text-${isEntrada ? 'emerald' : 'rose'}-400 mb-2 flex items-center gap-1.5`}>
-                                    <div className={`h-1.5 w-1.5 rounded-full ${mktDot}`}></div>
-                                    Marketing ({marketingNames.length})
-                                </h4>
-                                <ul className="space-y-1.5">
-                                    {marketingNames.map((nome, idx) => (
-                                        <li key={`mkt-${idx}`} className={`flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 py-1.5 px-3 rounded-md bg-white dark:bg-slate-800 shadow-sm border border-${isEntrada ? 'emerald' : 'rose'}-100 dark:border-${isEntrada ? 'emerald' : 'rose'}-900/30`}>
-                                            <span className="truncate">{nome}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+                        <MetricDetailList
+                            title="Marketing"
+                            items={marketingNames}
+                            type="marketing"
+                            isEntrada={isEntrada}
+                        />
 
-                        {operacionalNames.length > 0 && (
-                            <div>
-                                <h4 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
-                                    <div className={`h-1.5 w-1.5 rounded-full ${opsDot}`}></div>
-                                    Operacional ({operacionalNames.length})
-                                </h4>
-                                <ul className="space-y-1.5">
-                                    {operacionalNames.map((nome, idx) => (
-                                        <li key={`ops-${idx}`} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 py-1.5 px-3 rounded-md bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                                            <span className="truncate">{nome}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+                        <MetricDetailList
+                            title="Operacional"
+                            items={operacionalNames}
+                            type="operacional"
+                            isEntrada={isEntrada}
+                        />
 
-                        {/* Desistencias area (only present if lists are not empty) */}
-                        {(marketingNovosNames.length > 0 || operacionalNovosNames.length > 0) && (
+                        {/* Desistencias area */}
+                        {hasNovos && (
                             <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
                                 <h4 className="text-xs font-bold uppercase text-amber-600 dark:text-amber-500 mb-3 flex items-center gap-1.5">
                                     <div className="h-1.5 w-1.5 rounded-full bg-amber-500"></div>
@@ -107,31 +90,18 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
                                 </h4>
 
                                 <div className="space-y-4">
-                                    {marketingNovosNames.length > 0 && (
-                                        <div>
-                                            <h5 className="text-[10px] uppercase font-semibold text-rose-600/70 mb-2 ml-1">Marketing ({marketingNovosNames.length})</h5>
-                                            <ul className="space-y-1.5">
-                                                {marketingNovosNames.map((nome, idx) => (
-                                                    <li key={`mkt-nov-${idx}`} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 py-1.5 px-3 rounded-md bg-amber-50 dark:bg-amber-900/10 shadow-sm border border-amber-100 dark:border-amber-900/30">
-                                                        <span className="truncate">{nome}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-
-                                    {operacionalNovosNames.length > 0 && (
-                                        <div>
-                                            <h5 className="text-[10px] uppercase font-semibold text-slate-500/70 mb-2 ml-1">Operacional ({operacionalNovosNames.length})</h5>
-                                            <ul className="space-y-1.5">
-                                                {operacionalNovosNames.map((nome, idx) => (
-                                                    <li key={`ops-nov-${idx}`} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 py-1.5 px-3 rounded-md bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 border-dashed">
-                                                        <span className="truncate">{nome}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
+                                    <MetricDetailList
+                                        title="Marketing"
+                                        items={marketingNovosNames}
+                                        type="marketing-novos"
+                                        isEntrada={isEntrada}
+                                    />
+                                    <MetricDetailList
+                                        title="Operacional"
+                                        items={operacionalNovosNames}
+                                        type="operacional-novos"
+                                        isEntrada={isEntrada}
+                                    />
                                 </div>
                             </div>
                         )}

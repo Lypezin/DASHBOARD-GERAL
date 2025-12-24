@@ -1,13 +1,12 @@
+
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { safeLog } from '@/lib/errorHandler';
 import { UtrData, EntregadoresData, ValoresEntregador, CurrentUser } from '@/types';
 import { useCache } from './useCache';
 import { useTabDataFetcher } from './useTabDataFetcher';
 import { CACHE, DELAYS } from '@/constants/config';
-import { checkRateLimit, addToQueue, getPendingRequest, setPendingRequest } from '@/utils/dashboard/requestQueue';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useTabFetchOrchestrator } from './dashboard/useTabFetchOrchestrator';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 
 export function useTabData(activeTab: string, filterPayload: object, currentUser?: CurrentUser | null) {
@@ -27,6 +26,16 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
 
   const { fetchWithRetry, cancel, loading } = useTabDataFetcher();
   const filterPayloadStr = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
+
+  const { fetchDataForTab } = useTabFetchOrchestrator({
+    setData,
+    currentTabRef,
+    isRequestPendingRef,
+    filterPayloadRef,
+    getCached,
+    setCached,
+    fetchWithRetry
+  });
 
   useEffect(() => {
     if (isOrgLoading) {
@@ -51,75 +60,6 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     if (debounceTimeoutRef.current) { clearTimeout(debounceTimeoutRef.current); debounceTimeoutRef.current = null; }
     if (tabChanged) cancel();
 
-    const fetchDataForTab = async (tab: string) => {
-      if (currentTabRef.current !== tab || isRequestPendingRef.current) return;
-
-      const currentPayload = JSON.parse(filterPayloadRef.current);
-      const queueKey = `${tab}-${filterPayloadRef.current}`;
-
-      if (!checkRateLimit(queueKey)) return;
-
-      const pendingPromise = getPendingRequest(queueKey);
-      if (pendingPromise) {
-        pendingPromise.then((fetchedData) => {
-          if (currentTabRef.current !== tab) return;
-          const processedData = tab === 'valores'
-            ? (Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : [])
-            : (fetchedData as TabData);
-          setData(processedData);
-          setCached({ tab, filterPayload: currentPayload }, processedData);
-          isRequestPendingRef.current = false;
-        }).catch(() => {
-          if (currentTabRef.current === tab) {
-            handleFetchError(tab);
-            isRequestPendingRef.current = false;
-          }
-        });
-        return;
-      }
-
-      addToQueue(queueKey);
-
-      const cached = getCached({ tab, filterPayload: currentPayload });
-      if (cached !== null) {
-        if (currentTabRef.current === tab) {
-          setData(tab === 'valores' ? (Array.isArray(cached) ? cached as ValoresEntregador[] : []) : cached as TabData);
-          isRequestPendingRef.current = false;
-        }
-        return;
-      }
-
-      isRequestPendingRef.current = true;
-      const fetchPromise = new Promise((resolve, reject) => {
-        fetchWithRetry(tab, currentPayload,
-          (fetchedData) => {
-            if (currentTabRef.current !== tab) { resolve(null); return; }
-            const processedData = tab === 'valores' ? (Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : []) : (fetchedData as TabData);
-            setData(processedData);
-            setCached({ tab, filterPayload: currentPayload }, processedData);
-            isRequestPendingRef.current = false;
-            resolve(processedData);
-          },
-          (error) => {
-            if (currentTabRef.current === tab) {
-              if (IS_DEV) safeLog.error(`❌ Erro dados tab ${tab}:`, error);
-              handleFetchError(tab);
-              isRequestPendingRef.current = false;
-            }
-            reject(error);
-          },
-          () => currentTabRef.current === tab
-        );
-      });
-      setPendingRequest(queueKey, fetchPromise);
-    };
-
-    const handleFetchError = (tab: string) => {
-      if (tab === 'entregadores' || tab === 'prioridade') setData({ entregadores: [], total: 0 });
-      else if (tab === 'valores') setData([]);
-      else setData(null);
-    };
-
     debounceTimeoutRef.current = setTimeout(() => {
       if (currentTabRef.current === activeTab && filterPayloadRef.current === filterPayloadStr) {
         fetchDataForTab(activeTab);
@@ -131,7 +71,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       cancel();
       isRequestPendingRef.current = false;
     };
-  }, [activeTab, filterPayloadStr]);
+  }, [activeTab, filterPayloadStr, isOrgLoading]);
 
   useEffect(() => setData(null), [activeTab]);
   return { data, loading };

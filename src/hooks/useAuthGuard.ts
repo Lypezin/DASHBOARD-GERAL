@@ -1,17 +1,11 @@
+
 /**
  * Hook para verificação de autenticação e autorização
  * Centraliza lógica de verificação de sessão, aprovação e permissões
  */
 
-import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { safeLog } from '@/lib/errorHandler';
-import { signOutAndRedirect } from '@/utils/authHelpers';
 import { CurrentUser } from '@/types';
-import { checkSession } from './auth/session';
-import { fetchAndValidateProfile } from './auth/profile';
-
-const IS_DEV = process.env.NODE_ENV === 'development';
+import { useAuthFlow } from './auth/useAuthFlow';
 
 /**
  * Opções para o hook de autenticação
@@ -55,85 +49,5 @@ export interface AuthGuardResult {
  * Redireciona automaticamente para login se não autenticado
  */
 export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
-  const {
-    requireApproval = true,
-    requiredRole,
-    fetchUserProfile = false,
-    onAuthFailure,
-    skip = false // Novo parâmetro
-  } = options;
-
-  const router = useRouter();
-  const pathname = usePathname();
-  // Se skip for true, iniciamos com isChecking=false
-  const [isChecking, setIsChecking] = useState(!skip);
-  const [isAuthenticated, setIsAuthenticated] = useState(skip);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Se skip for true, não faz nada
-    if (skip) return;
-
-    const checkAuthentication = async () => {
-      try {
-        // CRÍTICO: Não executar AuthGuard nas páginas de login/registro
-        if (pathname === '/login' || pathname === '/registro') {
-          setIsChecking(false);
-          setIsAuthenticated(false);
-          return;
-        }
-
-        setIsChecking(true);
-        setError(null);
-
-        const sessionUser = await checkSession(router);
-        if (!sessionUser) {
-          if (onAuthFailure) onAuthFailure();
-          return;
-        }
-
-        // Verificar aprovação e permissões se necessário
-        if (requireApproval || requiredRole || fetchUserProfile) {
-          const profile = await fetchAndValidateProfile(router, requireApproval, requiredRole, fetchUserProfile, sessionUser.id);
-
-          if (profile) {
-            setCurrentUser(profile);
-          } else if (fetchUserProfile) {
-            // Se precisava do perfil e retornou null (e não redirecionou dentro de fetchAndValidateProfile), algo deu errado
-            // Mas fetchAndValidateProfile já lida com redirecionamento em caso de erro/falta de permissão
-            // Se retornou null, é pq falhou.
-            if (onAuthFailure) onAuthFailure();
-            return;
-          }
-
-          // Usuário autenticado e autorizado
-
-          setIsAuthenticated(true);
-        } else {
-          // Apenas verificação de sessão, sem verificação de perfil
-          setIsAuthenticated(true);
-        }
-      } catch (err) {
-        // Erro inesperado - fazer logout e redirecionar
-        if (IS_DEV) {
-          safeLog.error('[useAuthGuard] Erro ao verificar autenticação:', err);
-        }
-        setError(err instanceof Error ? err.message : 'Erro ao verificar autenticação');
-        await signOutAndRedirect(router);
-        if (onAuthFailure) onAuthFailure();
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    checkAuthentication();
-  }, [router, pathname, requireApproval, requiredRole, fetchUserProfile, onAuthFailure, skip]);
-
-  return {
-    isChecking,
-    isAuthenticated,
-    currentUser,
-    error,
-  };
+  return useAuthFlow(options);
 }

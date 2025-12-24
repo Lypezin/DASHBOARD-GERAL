@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
     Table,
@@ -7,12 +8,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { formatDuration, extractWeekNumber } from '@/utils/timeHelpers';
-import { calculatePercentage } from '@/utils/formatHelpers';
-import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
 import { MarketingDriverDetailModal } from './MarketingDriverDetailModal';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { MarketingComparacaoRow } from './components/MarketingComparacaoRow';
 
 interface ComparacaoRow {
     semana_iso: string;
@@ -82,50 +80,13 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                             </TableCell>
                         </TableRow>
                     ) : (
-                        data.map((row) => {
-                            const totalHours = row.segundos_ops + row.segundos_mkt;
-                            return (
-                                <TableRow key={row.semana_iso}>
-                                    <TableCell className="font-medium whitespace-nowrap">
-                                        Semana {extractWeekNumber(row.semana_iso)}
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 w-8 p-0"
-                                            onClick={() => setSelectedWeek(row.semana_iso)}
-                                            title="Ver detalhes"
-                                        >
-                                            <Search className="h-4 w-4 text-slate-500 hover:text-blue-500" />
-                                            <span className="sr-only">Ver detalhes</span>
-                                        </Button>
-                                    </TableCell>
-
-                                    {/* Hours */}
-                                    <TableCell className="text-right font-mono border-l bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_ops)}</TableCell>
-                                    <TableCell className="text-right font-mono font-bold text-purple-600 dark:text-purple-400 bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_mkt)}</TableCell>
-                                    <TableCell className="text-right text-xs text-slate-500 bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_ops, totalHours)}</TableCell>
-                                    <TableCell className="text-right text-xs text-purple-500 font-semibold bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_mkt, totalHours)}</TableCell>
-
-                                    {/* Ofertadas */}
-                                    <TableCell className="text-right border-l">{row.ofertadas_ops.toLocaleString('pt-BR')}</TableCell>
-                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.ofertadas_mkt.toLocaleString('pt-BR')}</TableCell>
-
-                                    {/* Aceitas */}
-                                    <TableCell className="text-right border-l">{row.aceitas_ops.toLocaleString('pt-BR')}</TableCell>
-                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.aceitas_mkt.toLocaleString('pt-BR')}</TableCell>
-
-                                    {/* Completas */}
-                                    <TableCell className="text-right border-l">{row.concluidas_ops.toLocaleString('pt-BR')}</TableCell>
-                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.concluidas_mkt.toLocaleString('pt-BR')}</TableCell>
-
-                                    {/* Rejeitadas */}
-                                    <TableCell className="text-right border-l">{row.rejeitadas_ops.toLocaleString('pt-BR')}</TableCell>
-                                    <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.rejeitadas_mkt.toLocaleString('pt-BR')}</TableCell>
-                                </TableRow>
-                            );
-                        })
+                        data.map((row) => (
+                            <MarketingComparacaoRow
+                                key={row.semana_iso}
+                                row={row}
+                                onSelectWeek={setSelectedWeek}
+                            />
+                        ))
                     )}
                 </TableBody>
             </Table>

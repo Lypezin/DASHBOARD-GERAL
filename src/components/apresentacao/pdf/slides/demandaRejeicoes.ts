@@ -1,14 +1,7 @@
 
-import {
-  COR_TEXTO,
-  COR_VERDE,
-  COR_VERMELHO,
-  COR_PRIMARIA,
-  COR_CINZA_CLARO,
-  COR_SUBTITULO,
-  BORDA_RAIO_GRANDE,
-} from '../constants';
-import { criarSlideComLayout, obterSeta } from '../helpers';
+import { COR_PRIMARIA } from '../constants';
+import { criarSlideComLayout } from '../helpers';
+import { criarCardMetricaDemanda, criarCardVariacaoDemanda } from './components/demandaRejeicoesHelpers';
 
 // Função para criar slide de demanda/rejeições - Design Premium
 export const criarSlideDemandaRejeicoes = (
@@ -25,65 +18,6 @@ export const criarSlideDemandaRejeicoes = (
     variacaoPercentualPositiva: boolean;
   }>
 ): any => {
-  const criarCardMetrica = (item: typeof itens[0], isSemana1: boolean) => ({
-    stack: [
-      {
-        text: item.label.toUpperCase(),
-        fontSize: 11,
-        bold: true,
-        color: COR_SUBTITULO,
-        alignment: 'center',
-        characterSpacing: 0.5,
-        margin: [0, 0, 0, 8],
-      },
-      {
-        text: isSemana1 ? item.semana1Valor : item.semana2Valor,
-        fontSize: 28,
-        bold: true,
-        color: COR_TEXTO,
-        alignment: 'center',
-      },
-    ],
-    fillColor: COR_CINZA_CLARO,
-    borderRadius: 12,
-    padding: [15, 12],
-    margin: [0, 0, 0, 12],
-  });
-
-  const criarCardVariacao = (item: typeof itens[0]) => ({
-    stack: [
-      {
-        text: item.label.toUpperCase(),
-        fontSize: 10,
-        color: COR_SUBTITULO,
-        alignment: 'center',
-        bold: true,
-        characterSpacing: 0.5,
-        margin: [0, 0, 0, 6],
-      },
-      // Valor com seta Unicode
-      {
-        text: `${obterSeta(item.variacaoPositiva)} ${item.variacaoValor}`,
-        fontSize: 22,
-        bold: true,
-        color: item.variacaoPositiva ? COR_VERDE : COR_VERMELHO,
-        alignment: 'center',
-        margin: [0, 0, 0, 4],
-      },
-      // Percentual com seta Unicode
-      {
-        text: `${obterSeta(item.variacaoPercentualPositiva)} ${item.variacaoPercentual}`,
-        fontSize: 16,
-        bold: true,
-        color: item.variacaoPercentualPositiva ? COR_VERDE : COR_VERMELHO,
-        alignment: 'center',
-      },
-    ],
-    fillColor: item.variacaoPositiva ? '#ecfdf5' : '#fef2f2',
-    borderRadius: 10,
-    padding: [15, 12],
-    margin: [0, 0, 0, 12],
-  });
 
   const conteudo = {
     columns: [
@@ -100,7 +34,7 @@ export const criarSlideDemandaRejeicoes = (
             characterSpacing: 0.5,
             margin: [0, 10, 0, 20],
           },
-          ...itens.map((item) => criarCardMetrica(item, true)),
+          ...itens.map((item) => criarCardMetricaDemanda(item, true)),
         ],
       },
       // Coluna Variações (Centro)
@@ -116,7 +50,7 @@ export const criarSlideDemandaRejeicoes = (
             characterSpacing: 0.5,
             margin: [0, 10, 0, 20],
           },
-          ...itens.map((item) => criarCardVariacao(item)),
+          ...itens.map((item) => criarCardVariacaoDemanda(item)),
         ],
       },
       // Coluna Semana 2
@@ -132,7 +66,7 @@ export const criarSlideDemandaRejeicoes = (
             characterSpacing: 0.5,
             margin: [0, 10, 0, 20],
           },
-          ...itens.map((item) => criarCardMetrica(item, false)),
+          ...itens.map((item) => criarCardMetricaDemanda(item, false)),
         ],
       },
     ],

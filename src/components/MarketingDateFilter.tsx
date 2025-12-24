@@ -1,12 +1,14 @@
+
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { MarketingDateFilter as MarketingDateFilterType } from '@/types';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Calendar, X } from 'lucide-react';
+import { useDateFilterState } from '@/hooks/filters/useDateFilterState';
 
 interface MarketingDateFilterProps {
   label: string;
@@ -19,58 +21,18 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
   filter,
   onFilterChange,
 }) => {
-  // Estado local para valores temporários (não aplicados ainda)
-  const [tempDataInicial, setTempDataInicial] = useState<string>(filter.dataInicial || '');
-  const [tempDataFinal, setTempDataFinal] = useState<string>(filter.dataFinal || '');
-
-  // Sincronizar estado local quando filtro externo mudar (inclusive na montagem inicial)
-  useEffect(() => {
-    if (filter) {
-      setTempDataInicial(filter.dataInicial || '');
-      setTempDataFinal(filter.dataFinal || '');
-    }
-  }, [filter]);
-
-  const handleDataInicialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setTempDataInicial(value);
-  };
-
-  const handleDataFinalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setTempDataFinal(value);
-  };
-
-  const handleAplicar = () => {
-    // Validar datas antes de aplicar
-    const dataInicial = tempDataInicial || null;
-    let dataFinal = tempDataFinal || null;
-
-    // Validar que data final >= data inicial
-    if (dataInicial && dataFinal && dataFinal < dataInicial) {
-      dataFinal = dataInicial;
-      setTempDataFinal(dataInicial);
-    }
-
-    onFilterChange({
-      dataInicial,
-      dataFinal,
-    });
-  };
-
-  const handleLimpar = () => {
-    setTempDataInicial('');
-    setTempDataFinal('');
-    onFilterChange({
-      dataInicial: null,
-      dataFinal: null,
-    });
-  };
-
-  const hoje = new Date().toISOString().split('T')[0];
-  const dataMinima = '2020-01-01';
-  const temFiltro = filter.dataInicial || filter.dataFinal;
-  const temAlteracao = tempDataInicial !== (filter.dataInicial || '') || tempDataFinal !== (filter.dataFinal || '');
+  const {
+    tempDataInicial,
+    tempDataFinal,
+    handleDataInicialChange,
+    handleDataFinalChange,
+    handleAplicar,
+    handleLimpar,
+    hoje,
+    dataMinima,
+    temFiltro,
+    temAlteracao
+  } = useDateFilterState(filter, onFilterChange);
 
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm">

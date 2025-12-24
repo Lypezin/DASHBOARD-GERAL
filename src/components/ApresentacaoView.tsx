@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useEffect } from 'react';
 import { DashboardResumoData } from '@/types';
 import { useApresentacaoData } from '@/hooks/apresentacao/useApresentacaoData';
 import { useApresentacaoSlides } from '@/hooks/apresentacao/useApresentacaoSlides';
 import { ApresentacaoPreview } from './apresentacao/ApresentacaoPreview';
 import { ApresentacaoWebMode } from './apresentacao/ApresentacaoWebMode';
 import { PresentationContext } from '@/contexts/PresentationContext';
-import { MediaSlideData } from '@/types/presentation';
 import { MediaManagerModal } from './apresentacao/components/MediaManagerModal';
+import { useApresentacaoController } from '@/hooks/apresentacao/useApresentacaoController';
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
@@ -21,50 +22,19 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   pracaSelecionada,
   onClose,
 }) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [viewMode, setViewMode] = useState<'preview' | 'web_presentation'>('preview');
-
-  const [visibleSections, setVisibleSections] = useState({
-    capa: true,
-    'aderencia-geral': true,
-    'sub-pracas': true,
-    'aderencia-diaria': true,
-    turnos: true,
-    origens: true,
-    demanda: true,
-    'capa-final': true,
-  });
-
-  // Media Files State
-  const [mediaSlides, setMediaSlides] = useState<MediaSlideData[]>([]);
-  const [isMediaManagerOpen, setIsMediaManagerOpen] = useState(false);
-
-  // Ordered Slides for Presentation Mode
-  const [orderedPresentationSlides, setOrderedPresentationSlides] = useState<Array<{ key: string; render: (visible: boolean) => React.ReactNode }>>([]);
+  const { state, actions } = useApresentacaoController();
+  const {
+    currentSlide, viewMode, visibleSections,
+    mediaSlides, isMediaManagerOpen, orderedPresentationSlides
+  } = state;
+  const {
+    setCurrentSlide, setViewMode,
+    setIsMediaManagerOpen, setOrderedPresentationSlides, setMediaSlides,
+    handleUpdateMediaSlide, handleAddMediaSlide, handleDeleteMediaSlide, toggleSection
+  } = actions;
 
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas);
   const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
-
-  const handleUpdateMediaSlide = (id: string, updates: Partial<MediaSlideData>) => {
-    setMediaSlides(prev => prev.map(slide =>
-      slide.id === id ? { ...slide, ...updates } : slide
-    ));
-  };
-
-  const handleAddMediaSlide = () => {
-    const newSlide: MediaSlideData = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: 'Novo Slide',
-      elements: []
-    };
-    setMediaSlides(prev => [...prev, newSlide]);
-    // Optionally jump to new slide? Requires knowing index mapping. 
-    // Let sidebar handle selection logic if needed or just let user click.
-  };
-
-  const handleDeleteMediaSlide = (id: string) => {
-    setMediaSlides(prev => prev.filter(s => s.id !== id));
-  };
 
   const slides = useApresentacaoSlides(
     dadosProcessados,
@@ -84,7 +54,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
       if (slides.length === 0) return 0;
       return Math.min(prev, slides.length - 1);
     });
-  }, [slides.length]);
+  }, [slides.length, setCurrentSlide]);
 
   const goToNextSlide = () => {
     setCurrentSlide((prev) => {
@@ -120,7 +90,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           numeroSemana1={numeroSemana1}
           numeroSemana2={numeroSemana2}
           visibleSections={visibleSections}
-          onToggleSection={(section) => setVisibleSections(prev => ({ ...prev, [section]: !prev[section as keyof typeof prev] }))}
+          onToggleSection={toggleSection}
           onStartPresentation={(orderedSlides) => {
             setOrderedPresentationSlides(orderedSlides);
             setViewMode('web_presentation');

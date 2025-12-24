@@ -1,3 +1,4 @@
+
 /**
  * Hook para gerenciar autenticação e perfil do usuário no Header
  */
@@ -9,6 +10,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { syncOrganizationIdToMetadata } from '@/utils/organizationHelpers';
 import { UserProfile } from './auth/types';
 import { verifyAuthSession, verifyUserProfile, shouldSkipRedirect } from './auth/utils/headerAuthSteps';
+import { useAuthSubscription } from './auth/useAuthSubscription';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -77,6 +79,9 @@ export function useHeaderAuth() {
     }
   }, [pathname, router]);
 
+  // Use extracted subscription logic
+  useAuthSubscription({ checkUser, setUser, pathname });
+
   useEffect(() => {
     loadingTimeoutRef.current = setTimeout(() => {
       if (isLoading) {
@@ -89,38 +94,9 @@ export function useHeaderAuth() {
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
-        checkUser();
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        if (!shouldSkipRedirect(pathname)) {
-          router.push('/login');
-        }
-      } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        if (IS_DEV && event === 'USER_UPDATED') {
-          safeLog.info('[Header] Evento USER_UPDATED recebido, atualizando perfil...');
-        }
-        checkUser();
-      }
-    });
-
-    const handleProfileUpdate = (event: CustomEvent) => {
-      if (IS_DEV) safeLog.info('[Header] Evento customizado userProfileUpdated recebido, atualizando perfil...', event.detail);
-      checkUser();
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
-    }
-
     return () => {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
-      }
-      subscription.unsubscribe();
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
       }
     };
   }, [checkUser]);

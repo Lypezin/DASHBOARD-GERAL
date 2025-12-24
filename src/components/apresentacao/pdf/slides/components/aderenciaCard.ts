@@ -1,5 +1,7 @@
-import { COR_TEXTO, COR_VERDE, COR_VERMELHO, COR_PRIMARIA, COR_CINZA_CLARO, COR_SUBTITULO, BORDA_RAIO_MEDIO } from '../../constants';
-import { criarGraficoCircular, obterSeta } from '../../helpers';
+
+import { COR_TEXTO, COR_PRIMARIA, COR_CINZA_CLARO, COR_SUBTITULO, COR_VERDE, BORDA_RAIO_MEDIO } from '../../constants';
+import { criarGraficoCircular } from '../../helpers';
+import { criarStackDiferencasAderencia } from './aderenciaCardHelpers';
 
 export const criarCardDia = (
     dia: { sigla: string; aderencia: number; horasEntregues: string },
@@ -63,42 +65,7 @@ export const criarCardDia = (
             },
             // Diferenças (se existirem) com setas Unicode
             ...(temDiferencas && diferencas
-                ? [
-                    {
-                        stack: [
-                            {
-                                text: 'VARIAÇÃO',
-                                fontSize: 8,
-                                color: COR_SUBTITULO,
-                                alignment: 'center',
-                                bold: true,
-                                characterSpacing: 0.3,
-                                margin: [0, 0, 0, 4],
-                            },
-                            // Seta + Valor de horas
-                            {
-                                text: `${obterSeta(diferencas.diferencaHorasPositiva)} ${diferencas.diferencaHoras}`,
-                                fontSize: 10,
-                                bold: true,
-                                color: diferencas.diferencaHorasPositiva ? COR_VERDE : COR_VERMELHO,
-                                alignment: 'center',
-                                margin: [0, 0, 0, 2],
-                            },
-                            // Seta + Percentual
-                            {
-                                text: `${obterSeta(diferencas.diferencaPercentualHorasPositiva)} ${diferencas.diferencaPercentualHoras}`,
-                                fontSize: 9,
-                                bold: true,
-                                color: diferencas.diferencaPercentualHorasPositiva ? COR_VERDE : COR_VERMELHO,
-                                alignment: 'center',
-                            },
-                        ],
-                        fillColor: diferencas.diferencaPercentualHorasPositiva ? '#ecfdf5' : '#fef2f2',
-                        borderRadius: 6,
-                        padding: [6, 5],
-                        margin: [4, 0, 4, 6],
-                    },
-                ]
+                ? [criarStackDiferencasAderencia(diferencas)]
                 : [{ text: '', margin: [0, 0, 0, 6] }]),
         ],
         fillColor: COR_CINZA_CLARO,

@@ -1,0 +1,18 @@
+Files with more than 150 lines:
+---------------------------------
+259 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\marketing\MarketingDriverDetailModal.tsx
+201 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\OnlineUsersSidebar\useSidebarController.ts
+199 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\PrioridadePromoView.tsx
+189 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\dashboard\DashboardGeneralStats.tsx
+186 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\ComparacaoView.tsx
+183 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\pdf\slides\components\subPracaCard.ts
+175 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\entregadores\EntregadoresDataFetcher.ts
+169 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\UtrView.tsx
+164 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\ValoresView.tsx
+159 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\EntregadoresView.tsx
+159 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\marketing\utils\atendentesDataUtils.ts
+156 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\AnaliseView.tsx
+153 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\apresentacao\pdf\slides\components\turnosCard.ts
+152 lines: C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\dashboard\DashboardDailyPerformance.tsx
+---------------------------------
+Total: 14 files

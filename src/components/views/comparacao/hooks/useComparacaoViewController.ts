@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+
+import { useEffect, useMemo } from 'react';
 import { FilterOption, CurrentUser } from '@/types';
 import { useComparacaoData } from '@/hooks/useComparacaoData';
 import { registerChartJS } from '@/lib/chartConfig';
 import { safeLog } from '@/lib/errorHandler';
+import { useComparacaoFilters, ViewMode } from './useComparacaoFilters';
 
 interface UseComparacaoViewControllerProps {
     semanas: string[];
@@ -12,21 +14,30 @@ interface UseComparacaoViewControllerProps {
     currentUser: CurrentUser | null;
 }
 
-export type ViewMode = 'table' | 'chart';
+export type { ViewMode };
 
 export function useComparacaoViewController({
     semanas,
     currentUser,
 }: UseComparacaoViewControllerProps) {
-    const [semanasSelecionadas, setSemanasSelecionadas] = useState<string[]>([]);
-    const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(null);
-    const [mostrarApresentacao, setMostrarApresentacao] = useState(false);
-
-    // Estados para controlar visualização (tabela/gráfico)
-    const [viewModeDetalhada, setViewModeDetalhada] = useState<ViewMode>('table');
-    const [viewModeDia, setViewModeDia] = useState<ViewMode>('table');
-    const [viewModeSubPraca, setViewModeSubPraca] = useState<ViewMode>('table');
-    const [viewModeOrigem, setViewModeOrigem] = useState<ViewMode>('table');
+    const {
+        semanasSelecionadas,
+        setSemanasSelecionadas,
+        pracaSelecionada,
+        setPracaSelecionada,
+        mostrarApresentacao,
+        setMostrarApresentacao,
+        viewModeDetalhada,
+        setViewModeDetalhada,
+        viewModeDia,
+        setViewModeDia,
+        viewModeSubPraca,
+        setViewModeSubPraca,
+        viewModeOrigem,
+        setViewModeOrigem,
+        toggleSemana,
+        shouldDisablePracaFilter
+    } = useComparacaoFilters(currentUser);
 
     // Usar hook de dados
     const {
@@ -35,7 +46,7 @@ export function useComparacaoViewController({
         utrComparacao,
         todasSemanas,
         compararSemanas,
-        error // Exposing error if needed
+        error
     } = useComparacaoData({
         semanas,
         semanasSelecionadas,
@@ -58,29 +69,7 @@ export function useComparacaoViewController({
         if (currentUser && !currentUser.is_admin && !isMarketing && currentUser.assigned_pracas.length === 1) {
             setPracaSelecionada(currentUser.assigned_pracas[0]);
         }
-    }, [currentUser]);
-
-    const toggleSemana = useCallback((semana: number | string) => {
-        setSemanasSelecionadas(prev => {
-            let semanaStr = String(semana);
-            if (semanaStr.includes('W')) {
-                const match = semanaStr.match(/W(\d+)/);
-                semanaStr = match ? match[1] : semanaStr;
-            } else {
-                semanaStr = String(semana);
-            }
-
-            if (prev.includes(semanaStr)) {
-                return prev.filter(s => s !== semanaStr);
-            } else {
-                return [...prev, semanaStr].sort((a, b) => {
-                    const numA = parseInt(a, 10);
-                    const numB = parseInt(b, 10);
-                    return numA - numB;
-                });
-            }
-        });
-    }, []);
+    }, [currentUser, setPracaSelecionada]);
 
     const origensDisponiveis = useMemo(() => {
         const conjunto = new Set<string>();
@@ -107,9 +96,6 @@ export function useComparacaoViewController({
             utr: item.utr,
         }));
     }, [utrComparacao]);
-
-    const isMarketing = currentUser?.role === 'marketing';
-    const shouldDisablePracaFilter = Boolean(currentUser && !currentUser.is_admin && !isMarketing && currentUser.assigned_pracas.length === 1);
 
     return {
         state: {
