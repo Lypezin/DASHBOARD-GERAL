@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import MarketingDashboardView from './MarketingDashboardView';
 import ResultadosView from './ResultadosView';
 import ValoresCidadeView from './ValoresCidadeView';
@@ -9,7 +10,17 @@ import MarketingEntradaSaidaView from './marketing/MarketingEntradaSaidaView';
 import TabButton from '@/components/TabButton';
 
 const MarketingView = React.memo(function MarketingView() {
-  const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'resultados' | 'valores-cidade' | 'entregadores' | 'entrada-saida'>('dashboard');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const activeSubTab = searchParams.get('tab') || 'dashboard';
+
+  const handleTabChange = (tab: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -27,27 +38,27 @@ const MarketingView = React.memo(function MarketingView() {
           <TabButton
             label="Dashboard"
             active={activeSubTab === 'dashboard'}
-            onClick={() => setActiveSubTab('dashboard')}
+            onClick={() => handleTabChange('dashboard')}
           />
           <TabButton
             label="Resultados"
             active={activeSubTab === 'resultados'}
-            onClick={() => setActiveSubTab('resultados')}
+            onClick={() => handleTabChange('resultados')}
           />
           <TabButton
             label="Valores por Cidade"
             active={activeSubTab === 'valores-cidade'}
-            onClick={() => setActiveSubTab('valores-cidade')}
+            onClick={() => handleTabChange('valores-cidade')}
           />
           <TabButton
             label="Entregadores"
             active={activeSubTab === 'entregadores'}
-            onClick={() => setActiveSubTab('entregadores')}
+            onClick={() => handleTabChange('entregadores')}
           />
           <TabButton
             label="Entrada/Saída"
             active={activeSubTab === 'entrada-saida'}
-            onClick={() => setActiveSubTab('entrada-saida')}
+            onClick={() => handleTabChange('entrada-saida')}
           />
         </div>
       </div>

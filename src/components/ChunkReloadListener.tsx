@@ -17,12 +17,14 @@ export function ChunkReloadListener() {
             const msgLower = message.toLowerCase();
 
             // Detecção de erros de Chunk/Deploy
+            // Detecção de erros de Chunk/Deploy (JS antigo tentando carregar chunks novos)
             const isChunkError =
                 msgLower.includes('loading chunk') ||
                 msgLower.includes('unexpected token <') || // Retorno de HTML 404 no lugar de JS
-                msgLower.includes('minified react error #418') || // Hydration mismatch comum em deploy
-                msgLower.includes('minified react error #423') ||
                 (msgLower.includes('cannot read properties of undefined') && msgLower.includes('reading \'call\'')); // Webpack bootstrap failure
+
+            // REMOVIDO: Erros de Hydration (#418, #423) não devem causar reload automático pois muitas vezes são benignos
+            // ou causados por extensões do browser.
 
             if (isChunkError) {
                 // Prevenir loop infinito de reloads (se o erro persistir por > 10s, deixa crashar)
