@@ -9,12 +9,22 @@ export const useValoresCidadeData = (
   filter: ValoresCidadeDateFilter,
   filterEnviados: MarketingDateFilter
 ) => {
+  // Persistent state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cidadesData, setCidadesData] = useState<ValoresCidadePorCidade[]>([]);
   const [totalGeral, setTotalGeral] = useState<number>(0);
   const [custoPorLiberado, setCustoPorLiberado] = useState<number>(0);
   const [quantidadeLiberados, setQuantidadeLiberados] = useState<number>(0);
+
+  // We rely on the parent component to manage filter state usually,
+  // but if the parent (ValoresCidadeView) unmounts, its state is lost.
+  // The fix needs to happen in the VIEW component or by making the filter 
+  // passed to this hook persistent.
+
+  // Actually, the USER said "desfiltra tudo", meaning the input inputs are cleared.
+  // The inputs are controlled by state in `ValoresCidadeView`.
+  // So I need to modify `ValoresCidadeView` to use a persistent hook or sessionStorage.
 
   const fetchData = async () => {
     try {
