@@ -23,11 +23,13 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
   const [tempDataInicial, setTempDataInicial] = useState<string>(filter.dataInicial || '');
   const [tempDataFinal, setTempDataFinal] = useState<string>(filter.dataFinal || '');
 
-  // Sincronizar estado local quando filtro externo mudar
+  // Sincronizar estado local quando filtro externo mudar (inclusive na montagem inicial)
   useEffect(() => {
-    setTempDataInicial(filter.dataInicial || '');
-    setTempDataFinal(filter.dataFinal || '');
-  }, [filter.dataInicial, filter.dataFinal]);
+    if (filter) {
+      setTempDataInicial(filter.dataInicial || '');
+      setTempDataFinal(filter.dataFinal || '');
+    }
+  }, [filter]);
 
   const handleDataInicialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
