@@ -22,37 +22,47 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // State para rastrear última leitura (Persistência Local)
-    const [lastReadMap, setLastReadMap] = useState<Record<string, string>>(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem(`chat_last_read_${currentUser?.id}`);
-            return saved ? JSON.parse(saved) : {};
-        }
-        return {};
-    });
+    const [lastReadMap, setLastReadMap] = useState<Record<string, string>>({});
 
-    // Recalcular Unread Counts sempre que mensagens mudarem ou lastReadMap mudar
+    // Carregar lastReadMap quando o usuário for identificado
     useEffect(() => {
-        if (!currentUser) return;
+        if (currentUser?.id) {
+            const saved = localStorage.getItem(`chat_last_read_${currentUser.id}`);
+            if (saved) {
+                try {
+                    setLastReadMap(JSON.parse(saved));
+                } catch (e) {
+                    console.error('Erro ao ler chat_last_read:', e);
+                }
+            }
+        }
+    }, [currentUser?.id]);
+
+    // Recalcular Unread Counts
+    useEffect(() => {
+        if (!currentUser?.id) return;
 
         const counts: Record<string, number> = {};
 
         messages.forEach(msg => {
-            // Ignorar mensagens enviadas por mim
+            // CRÍTICO: Ignorar mensagens enviadas por MIM
+            // O usuário relatou que "aparece total de mensagem que eu mandei". Isso não deve acontecer.
             if (msg.from === currentUser.id) return;
 
-            // Se estou com o chat aberto para esse usuário, não conta (mas deve atualizar lastRead - ver próximo effect)
+            // Se estou com o chat aberto para esse usuário e a janela está visível, não conta
+            // Mas isso é difícil saber. Vamos assumir que se activeChatUser está setado, estamos vendo.
             if (activeChatUser?.id === msg.from) return;
 
             const lastRead = lastReadMap[msg.from] || '1970-01-01T00:00:00Z';
 
-            // Se a mensagem é mais nova que a última leitura, conta
+            // Comparação de datas segura
             if (new Date(msg.timestamp) > new Date(lastRead)) {
                 counts[msg.from] = (counts[msg.from] || 0) + 1;
             }
         });
 
         setUnreadCounts(counts);
-    }, [messages, lastReadMap, currentUser, activeChatUser]);
+    }, [messages, lastReadMap, currentUser?.id, activeChatUser?.id]);
 
     // Ao abrir chat, marcar como lido e salvar no storage
     useEffect(() => {
