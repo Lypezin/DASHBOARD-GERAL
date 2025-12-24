@@ -18,13 +18,11 @@ const ResultadosView = React.memo(function ResultadosView() {
   } = useResultadosData();
 
   if (loading) {
-    if (loading) {
-      return (
-        <div className="space-y-6 animate-fade-in">
-          <TableSkeleton rows={8} columns={4} />
-        </div>
-      );
-    }
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <TableSkeleton rows={8} columns={4} />
+      </div>
+    );
   }
 
   if (error) {

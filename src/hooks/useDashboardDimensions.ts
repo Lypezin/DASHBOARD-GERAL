@@ -13,7 +13,27 @@ export function useDashboardDimensions() {
   useEffect(() => {
     const fetchInitialDimensions = async () => {
       setLoading(true);
+
+      // Cache Key
+      const CACHE_KEY = 'dashboard_dimensions_cache';
+      const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
+
       try {
+        // 1. Tentar ler do cache
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const { timestamp, data } = JSON.parse(cached);
+          const isValid = Date.now() - timestamp < CACHE_DURATION;
+
+          if (isValid && data.anos?.length > 0 && data.semanas?.length > 0) {
+            setAnosDisponiveis(data.anos);
+            setSemanasDisponiveis(data.semanas);
+            setLoading(false);
+            return; // Cache hit!
+          }
+        }
+
+        // 2. Se não houver cache ou expirou, buscar da API
         const [anosResult, semanasResult] = await Promise.all([
           safeRpc<number[]>('listar_anos_disponiveis', {}, {
             timeout: 30000,
@@ -26,14 +46,25 @@ export function useDashboardDimensions() {
         ]);
 
         if (anosResult.error) throw anosResult.error;
-        setAnosDisponiveis(anosResult.data || []);
+        const anosData = anosResult.data || [];
+        setAnosDisponiveis(anosData);
 
         if (semanasResult.error) throw semanasResult.error;
-        setSemanasDisponiveis(
-          Array.isArray(semanasResult.data)
-            ? semanasResult.data.map(s => typeof s === 'object' && s !== null && 'semana' in s ? String(s.semana) : String(s))
-            : []
-        );
+        const semanasData = Array.isArray(semanasResult.data)
+          ? semanasResult.data.map(s => typeof s === 'object' && s !== null && 'semana' in s ? String(s.semana) : String(s))
+          : [];
+        setSemanasDisponiveis(semanasData);
+
+        // 3. Salvar no Cache
+        if (anosData.length > 0 && semanasData.length > 0) {
+          sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            data: {
+              anos: anosData,
+              semanas: semanasData
+            }
+          }));
+        }
 
       } catch (err) {
         safeLog.error('Erro ao buscar dimensões iniciais:', err);

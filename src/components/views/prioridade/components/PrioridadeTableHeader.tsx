@@ -25,7 +25,7 @@ const SortIcon = ({
         <ArrowDown className="ml-1 h-3 w-3 text-slate-900 dark:text-white inline" />;
 };
 
-export const PrioridadeTableHeader: React.FC<PrioridadeTableHeaderProps> = ({
+export const PrioridadeTableHeader = React.memo<PrioridadeTableHeaderProps>(({
     sortField,
     sortDirection,
     onSort
@@ -90,4 +90,6 @@ export const PrioridadeTableHeader: React.FC<PrioridadeTableHeaderProps> = ({
             </tr>
         </thead>
     );
-};
+});
+
+PrioridadeTableHeader.displayName = 'PrioridadeTableHeader';

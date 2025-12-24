@@ -22,7 +22,7 @@ interface PrioridadeTableProps {
   getCompletadasBg: (percentual: number) => string;
 }
 
-export const PrioridadeTable: React.FC<PrioridadeTableProps> = ({
+export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
   sortedEntregadores,
   sortField,
   sortDirection,
@@ -90,4 +90,6 @@ export const PrioridadeTable: React.FC<PrioridadeTableProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+PrioridadeTable.displayName = 'PrioridadeTable';

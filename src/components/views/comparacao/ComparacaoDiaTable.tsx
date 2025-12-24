@@ -11,7 +11,7 @@ interface ComparacaoDiaTableProps {
   semanasSelecionadas: (number | string)[];
 }
 
-export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
+export const ComparacaoDiaTable = React.memo<ComparacaoDiaTableProps>(({
   dadosComparacao,
   semanasSelecionadas,
 }) => {
@@ -54,4 +54,6 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+ComparacaoDiaTable.displayName = 'ComparacaoDiaTable';

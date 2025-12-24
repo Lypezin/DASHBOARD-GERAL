@@ -16,7 +16,7 @@ interface PrioridadeTableRowProps {
     getCompletadasBg: (percentual: number) => string;
 }
 
-export const PrioridadeTableRow: React.FC<PrioridadeTableRowProps> = ({
+export const PrioridadeTableRow = React.memo<PrioridadeTableRowProps>(({
     entregador,
     calcularPercentualAceitas,
     calcularPercentualCompletadas,
@@ -61,4 +61,6 @@ export const PrioridadeTableRow: React.FC<PrioridadeTableRowProps> = ({
             </td>
         </tr>
     );
-};
+});
+
+PrioridadeTableRow.displayName = 'PrioridadeTableRow';

@@ -16,7 +16,7 @@ interface ComparacaoDiaGroupProps {
     dadosComparacao: DashboardResumoData[];
 }
 
-export const ComparacaoDiaGroup: React.FC<ComparacaoDiaGroupProps> = ({
+export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({
     dia,
     diaIdx,
     semanasSelecionadas,
@@ -81,4 +81,6 @@ export const ComparacaoDiaGroup: React.FC<ComparacaoDiaGroupProps> = ({
             ))}
         </React.Fragment>
     );
-};
+});
+
+ComparacaoDiaGroup.displayName = 'ComparacaoDiaGroup';
