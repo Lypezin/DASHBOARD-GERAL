@@ -65,7 +65,9 @@ export const useValoresCidadeAuth = () => {
     // Loading é true se: local loading é true OU auth guard checking é true
     // Mas se já autenticado via session, local loading vira false rápido.
     // Vamos manter loading local sincronizado com efeito.
-    loading: loading || isChecking,
+    // Loading é true se: ainda está fazendo check locais ou se auth guard está checando
+    // MAS, se já estivermos autenticados (via session storage ou cache), não precisamos mostrar loading
+    loading: !isAuthenticated && (loading || isChecking),
     setPassword,
     handlePasswordSubmit,
   };
