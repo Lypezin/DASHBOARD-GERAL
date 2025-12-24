@@ -70,7 +70,11 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       }
 
       if (orgData) {
-        setOrganization(orgData as Organization);
+        // Only update if data actually changed to avoid re-renders
+        setOrganization(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(orgData)) return prev;
+          return orgData as Organization;
+        });
       } else {
         setOrganization(null);
       }
@@ -91,7 +95,9 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
     // Escutar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+      // Ignorar TOKEN_REFRESHED para evitar reloads desnecessários na tela
+      // Dados da organização não mudam com o refresh do token
+      if (event === 'SIGNED_IN') {
         fetchOrganization();
       } else if (event === 'SIGNED_OUT') {
         setOrganization(null);
