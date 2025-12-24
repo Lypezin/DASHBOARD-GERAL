@@ -19,12 +19,14 @@ export function SidebarTrigger({ isOpen, setIsOpen, onlineCount, unreadCount }: 
                 <div className="relative">
                     <Users size={18} className="text-white" />
 
-                    <span className="absolute -bottom-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] text-blue-600 font-bold ring-2 ring-blue-600 z-10">
+                    {/* Contador de Usuários Online (Bottom-Right -> Bottom-Left para evitar sobrepor notificações) */}
+                    <span className="absolute -bottom-2 -left-2 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] text-blue-600 font-bold ring-2 ring-blue-600 z-10 shadow-sm">
                         {onlineCount}
                     </span>
 
+                    {/* Contador de Mensagens não lidas (Top-Right) */}
                     {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold ring-2 ring-white">
+                        <span className="absolute -top-3 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold ring-2 ring-white shadow-sm z-20">
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                     )}
