@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gauge, Timer, Car, Activity } from 'lucide-react';
 import { UtrGeral as UtrGeralType } from '@/types';
+import { formatarHorasParaHMS } from '@/utils/formatters';
 
 interface UtrGeralProps {
     data: UtrGeralType;
@@ -37,7 +38,7 @@ export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
                             <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Tempo Total</span>
                         </div>
                         <p className="text-3xl font-bold text-slate-900 dark:text-white font-mono tracking-tight">
-                            {(data.tempo_horas ?? 0).toFixed(2)}<span className="text-lg text-slate-400 ml-1">h</span>
+                            {formatarHorasParaHMS(data.tempo_horas ?? 0)}
                         </p>
                     </div>
 
