@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Timer, Car } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatarHorasParaHMS } from '@/utils/formatters';
 
 interface UtrItemBase {
     tempo_horas: number;
@@ -67,7 +68,7 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
                                     <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
                                         <div className="flex items-center gap-1.5 p-1.5 rounded-md bg-slate-50 dark:bg-slate-900/50">
                                             <Timer className="h-3 w-3 text-orange-500" />
-                                            <span>{((item.tempo_horas ?? 0)).toFixed(1)}h</span>
+                                            <span>{formatarHorasParaHMS(item.tempo_horas ?? 0)}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5 justify-end p-1.5 rounded-md bg-slate-50 dark:bg-slate-900/50">
                                             <Car className="h-3 w-3 text-emerald-500" />
