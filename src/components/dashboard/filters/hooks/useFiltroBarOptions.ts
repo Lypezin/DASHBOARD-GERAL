@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import { getISOWeek } from 'date-fns';
+import { getISOWeek, getISOWeekYear } from 'date-fns';
 import { Filters } from '@/types';
 
 export function useFiltroBarOptions(
@@ -14,7 +14,7 @@ export function useFiltroBarOptions(
 
     const semanasOptions = useMemo(() => {
         const today = new Date();
-        const currentYear = today.getFullYear();
+        const currentYear = getISOWeekYear(today);
         const currentWeek = getISOWeek(today);
         const selectedYear = filters?.ano ? parseInt(String(filters.ano), 10) : null;
 
