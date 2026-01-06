@@ -56,13 +56,13 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                         <tr key={dia} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                             <td className="px-6 py-4 text-center font-medium text-slate-900 dark:text-white">{dia}</td>
                             {dadosComparacao.map((dados, idx) => {
-                                const diaData = findDayData(dia, dados.aderencia_dia);
+                                const diaData = findDayData(dia, dados?.aderencia_dia);
                                 const aderencia = getMetricValue(diaData, 'aderencia_percentual');
 
                                 let variacao = null;
                                 if (idx > 0) {
                                     const dadosAnterior = dadosComparacao[idx - 1];
-                                    const diaDataAnterior = findDayData(dia, dadosAnterior.aderencia_dia);
+                                    const diaDataAnterior = findDayData(dia, dadosAnterior?.aderencia_dia);
                                     const aderenciaAnterior = getMetricValue(diaDataAnterior, 'aderencia_percentual');
                                     variacao = calcularVariacaoPercentual(aderenciaAnterior, aderencia);
                                 }
