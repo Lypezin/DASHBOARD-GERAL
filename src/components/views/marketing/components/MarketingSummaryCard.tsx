@@ -8,6 +8,8 @@ interface MarketingSummaryCardProps {
     value: string;
     opsValue: string;
     mktValue: string;
+    opsPercent?: string;
+    mktPercent?: string;
     colorClass: string;
     bgClass: string;
     iconBgClass: string;
@@ -19,6 +21,8 @@ export const MarketingSummaryCard = ({
     value,
     opsValue,
     mktValue,
+    opsPercent,
+    mktPercent,
     colorClass,
     bgClass,
     iconBgClass
@@ -44,11 +48,17 @@ export const MarketingSummaryCard = ({
             <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-xs bg-white/60 dark:bg-slate-900/40 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
                     <span className="text-slate-500 font-medium">Ops</span>
-                    <span className="font-mono font-bold text-slate-700 dark:text-slate-200">{opsValue}</span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-bold text-slate-700 dark:text-slate-200">{opsValue}</span>
+                        {opsPercent && <span className="text-[10px] text-slate-500 font-medium">({opsPercent})</span>}
+                    </div>
                 </div>
                 <div className="flex items-center justify-between text-xs bg-white/60 dark:bg-slate-900/40 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
                     <span className="text-purple-600 dark:text-purple-400 font-medium">Mkt</span>
-                    <span className="font-mono font-bold text-purple-700 dark:text-purple-300">{mktValue}</span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-bold text-purple-700 dark:text-purple-300">{mktValue}</span>
+                        {mktPercent && <span className="text-[10px] text-purple-600/70 dark:text-purple-400/70 font-medium">({mktPercent})</span>}
+                    </div>
                 </div>
             </div>
         </CardContent>
