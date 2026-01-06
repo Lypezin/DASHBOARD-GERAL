@@ -47,7 +47,10 @@ export function useDashboardDimensions() {
 
         if (anosResult.error) throw anosResult.error;
         const anosData = anosResult.data || [];
-        setAnosDisponiveis(anosData);
+        // Ensure 2024, 2025, 2026 are always available
+        const defaultYears = [2024, 2025, 2026];
+        const mergedYears = Array.from(new Set([...defaultYears, ...anosData])).sort((a, b) => b - a);
+        setAnosDisponiveis(mergedYears);
 
         if (semanasResult.error) throw semanasResult.error;
         const semanasData = Array.isArray(semanasResult.data)

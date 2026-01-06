@@ -22,7 +22,6 @@ export function useEvolutionAutoSelect({
     // Selecionar automaticamente o ano mais recente se nenhum estiver selecionado
     useEffect(() => {
         if (anosDisponiveis && anosDisponiveis.length > 0) {
-            safeLog.info('[AutoSelect] Checking years:', { available: anosDisponiveis, currentFilter: filters.ano, currentEvolucao: anoEvolucao });
             const shouldSelect = !filters.ano || !anosDisponiveis.includes(filters.ano);
 
             if (shouldSelect) {
@@ -38,7 +37,6 @@ export function useEvolutionAutoSelect({
         if (Array.isArray(anosDisponiveis) && anosDisponiveis.length > 0) {
             if (!anosDisponiveis.includes(anoEvolucao)) {
                 const ultimoAno = anosDisponiveis[anosDisponiveis.length - 1];
-                safeLog.info(`[AutoSelect] Resetting invalid year: ${anoEvolucao} -> ${ultimoAno} (Available: ${anosDisponiveis})`);
                 setAnoEvolucao(ultimoAno);
             }
         }
