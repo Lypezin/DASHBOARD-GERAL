@@ -11,10 +11,11 @@ interface UseComparacaoDataOptions {
   semanasSelecionadas: string[];
   pracaSelecionada: string | null;
   currentUser: CurrentUser | null;
+  anoSelecionado?: number;
 }
 
 export function useComparacaoData(options: UseComparacaoDataOptions) {
-  const { semanasSelecionadas, pracaSelecionada, currentUser, semanas } = options;
+  const { semanasSelecionadas, pracaSelecionada, currentUser, semanas, anoSelecionado } = options;
   const { organizationId, isLoading: isOrgLoading } = useOrganization();
 
   const [loading, setLoading] = useState(false);
@@ -52,8 +53,8 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
       try {
         const [dados, utrs] = await Promise.all([
-          fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId),
-          fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId)
+          fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
+          fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado)
         ]);
 
         if (isMounted) {
@@ -76,7 +77,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     return () => {
       isMounted = false;
     };
-  }, [semanasSelecionadas, pracaSelecionada, currentUser, organizationId, isOrgLoading]);
+  }, [semanasSelecionadas, pracaSelecionada, currentUser, organizationId, isOrgLoading, anoSelecionado]);
 
   // Função vazia apenas para manter compatibilidade com interface antiga se necessário,
   // ou pode ser removida se o controller não a usar.

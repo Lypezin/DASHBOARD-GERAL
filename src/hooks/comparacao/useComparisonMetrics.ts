@@ -9,13 +9,14 @@ export async function fetchComparisonMetrics(
     semanasSelecionadas: string[],
     pracaSelecionada: string | null,
     currentUser: CurrentUser | null,
-    organizationId: string | null
+    organizationId: string | null,
+    selectedYear?: number
 ): Promise<DashboardResumoData[]> {
     if (semanasSelecionadas.length < 2) return [];
 
     const promessasDados = semanasSelecionadas.map(async (semana) => {
-        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser, organizationId);
-        const { semanaNumero, anoNumero } = parseWeekString(semana);
+        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser, organizationId, selectedYear);
+        const { semanaNumero, anoNumero } = parseWeekString(semana, selectedYear);
 
         if (IS_DEV) {
             safeLog.info(`[Comparacao] Buscando dados para semana ${semana} (ano: ${anoNumero}, número: ${semanaNumero})`);

@@ -7,10 +7,11 @@ export async function fetchComparisonUtr(
     semanasSelecionadas: string[],
     pracaSelecionada: string | null,
     currentUser: CurrentUser | null,
-    organizationId: string | null
+    organizationId: string | null,
+    selectedYear?: number
 ): Promise<Array<{ semana: string | number; utr: UtrData | null }>> {
     const promessasUtr = semanasSelecionadas.map(async (semana) => {
-        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser, organizationId);
+        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser, organizationId, selectedYear);
 
         try {
             const { data, error } = await safeRpc<UtrData>('calcular_utr', filtro, {

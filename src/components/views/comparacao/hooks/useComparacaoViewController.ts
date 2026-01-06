@@ -12,6 +12,7 @@ interface UseComparacaoViewControllerProps {
     subPracas: FilterOption[];
     origens: FilterOption[];
     currentUser: CurrentUser | null;
+    anoSelecionado?: number;
 }
 
 export type { ViewMode };
@@ -19,6 +20,7 @@ export type { ViewMode };
 export function useComparacaoViewController({
     semanas,
     currentUser,
+    anoSelecionado,
 }: UseComparacaoViewControllerProps) {
     const {
         semanasSelecionadas,
@@ -52,6 +54,7 @@ export function useComparacaoViewController({
         semanasSelecionadas,
         pracaSelecionada,
         currentUser,
+        anoSelecionado
     });
 
     // Registrar Chart.js

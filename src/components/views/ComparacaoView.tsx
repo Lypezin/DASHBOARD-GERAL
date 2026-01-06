@@ -10,6 +10,7 @@ const ComparacaoView = React.memo(function ComparacaoView(props: {
   subPracas: FilterOption[];
   origens: FilterOption[];
   currentUser: CurrentUser | null;
+  anoSelecionado?: number;
 }) {
   const { state, data, actions } = useComparacaoViewController(props);
 

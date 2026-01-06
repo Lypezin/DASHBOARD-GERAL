@@ -69,6 +69,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     subPracas={props.subPracas}
                     origens={props.origens}
                     currentUser={props.currentUser}
+                    anoSelecionado={props.anoSelecionado}
                 />
             );
         case 'marketing_comparacao':
