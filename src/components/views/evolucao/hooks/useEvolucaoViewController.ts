@@ -44,6 +44,17 @@ export function useEvolucaoViewController({
         });
     }, []);
 
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            console.log('[DEBUG] useEvolucaoViewController params changed:', {
+                anoSelecionado,
+                viewMode,
+                mensalLength: evolucaoMensal?.length,
+                semanalLength: evolucaoSemanal?.length
+            });
+        }
+    }, [anoSelecionado, viewMode, evolucaoMensal, evolucaoSemanal]);
+
     const { dadosAtivos, baseLabels, dadosPorLabel } = useMemo(
         () => processEvolucaoData(viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado),
         [viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado]
