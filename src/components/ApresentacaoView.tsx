@@ -13,6 +13,7 @@ interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
   semanasSelecionadas: string[];
   pracaSelecionada: string | null;
+  anoSelecionado?: number;
   onClose: () => void;
 }
 
@@ -20,6 +21,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   dadosComparacao,
   semanasSelecionadas,
   pracaSelecionada,
+  anoSelecionado,
   onClose,
 }) => {
   const { state, actions } = useApresentacaoController();
@@ -33,7 +35,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     handleUpdateMediaSlide, handleAddMediaSlide, handleDeleteMediaSlide, toggleSection
   } = actions;
 
-  const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas);
+  const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas, anoSelecionado);
   const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
 
   const slides = useApresentacaoSlides(

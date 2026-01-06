@@ -24,11 +24,11 @@ export const extrairNumeroSemana = (semana: string) => {
     return semana;
 };
 
-export const calcularPeriodoSemana = (numeroSemana: string) => {
+export const calcularPeriodoSemana = (numeroSemana: string, ano?: number) => {
     const semanaNum = parseInt(numeroSemana, 10);
     if (Number.isNaN(semanaNum)) return '';
-    const anoAtual = new Date().getFullYear();
-    const primeiraSemana = new Date(anoAtual, 0, 1 + (semanaNum - 1) * 7);
+    const anoRef = ano || new Date().getFullYear();
+    const primeiraSemana = new Date(anoRef, 0, 1 + (semanaNum - 1) * 7);
     const primeiraDiaSemana = primeiraSemana.getDate() - primeiraSemana.getDay() + 1;
     const inicio = new Date(primeiraSemana.setDate(primeiraDiaSemana));
     const fim = new Date(inicio);

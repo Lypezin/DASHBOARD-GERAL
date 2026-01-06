@@ -85,7 +85,8 @@ export function useComparacaoViewController({
             viewModeOrigem,
             loading,
             error,
-            shouldDisablePracaFilter
+            shouldDisablePracaFilter,
+            anoSelecionado
         },
         data: {
             dadosComparacao,

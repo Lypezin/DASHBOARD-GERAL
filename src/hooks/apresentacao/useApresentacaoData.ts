@@ -4,11 +4,12 @@ import { processarDadosBasicos, processarDadosCompletos, DadosBasicos, DadosProc
 
 export const useApresentacaoData = (
   dadosComparacao: DashboardResumoData[],
-  semanasSelecionadas: string[]
+  semanasSelecionadas: string[],
+  anoSelecionado?: number
 ) => {
   const dadosBasicos = useMemo(() => {
-    return processarDadosBasicos(dadosComparacao, semanasSelecionadas);
-  }, [dadosComparacao, semanasSelecionadas]);
+    return processarDadosBasicos(dadosComparacao, semanasSelecionadas, anoSelecionado);
+  }, [dadosComparacao, semanasSelecionadas, anoSelecionado]);
 
   const dadosProcessados = useMemo(() => {
     return processarDadosCompletos(dadosBasicos);

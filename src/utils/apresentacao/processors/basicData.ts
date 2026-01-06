@@ -22,7 +22,8 @@ export interface DadosBasicos {
 
 export const processarDadosBasicos = (
     dadosComparacao: DashboardResumoData[],
-    semanasSelecionadas: string[]
+    semanasSelecionadas: string[],
+    anoSelecionado?: number
 ): DadosBasicos => {
     if (!dadosComparacao || dadosComparacao.length < 2) {
         return {
@@ -53,8 +54,8 @@ export const processarDadosBasicos = (
         semana2: sem2,
         numeroSemana1: numSem1,
         numeroSemana2: numSem2,
-        periodoSemana1: calcularPeriodoSemana(numSem1),
-        periodoSemana2: calcularPeriodoSemana(numSem2),
+        periodoSemana1: calcularPeriodoSemana(numSem1, anoSelecionado),
+        periodoSemana2: calcularPeriodoSemana(numSem2, anoSelecionado),
         aderencia1: sem1?.aderencia_semanal?.[0]?.aderencia_percentual || 0,
         aderencia2: sem2?.aderencia_semanal?.[0]?.aderencia_percentual || 0,
         horasEntregues1: sem1?.aderencia_semanal?.[0]?.segundos_realizados
