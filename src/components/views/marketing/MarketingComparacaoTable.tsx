@@ -43,10 +43,10 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                         <TableHead rowSpan={2} className="w-[100px] font-bold text-slate-700 dark:text-slate-300">Semana</TableHead>
                         <TableHead rowSpan={2} className="w-[50px] text-center font-bold text-slate-700 dark:text-slate-300">Detalhes</TableHead>
                         <TableHead colSpan={4} className="text-center border-l border-slate-200 dark:border-slate-800 bg-blue-50/80 dark:bg-blue-900/20 font-bold text-blue-700 dark:text-blue-300">Horas Logadas</TableHead>
-                        <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Ofertadas</TableHead>
-                        <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Aceitas</TableHead>
-                        <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Completas</TableHead>
-                        <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold text-rose-600 dark:text-rose-400">Rejeitadas</TableHead>
+                        <TableHead colSpan={4} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Ofertadas</TableHead>
+                        <TableHead colSpan={4} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Aceitas</TableHead>
+                        <TableHead colSpan={4} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Completas</TableHead>
+                        <TableHead colSpan={4} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold text-rose-600 dark:text-rose-400">Rejeitadas</TableHead>
                     </TableRow>
                     <TableRow className="hover:bg-transparent">
                         {/* Hours Sub-headers */}
@@ -58,18 +58,26 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                         {/* Ofertadas Sub-headers */}
                         <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider">Ops</TableHead>
                         <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-slate-500">% Ops</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-500 font-bold">% Mkt</TableHead>
 
                         {/* Aceitas Sub-headers */}
                         <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider">Ops</TableHead>
                         <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-slate-500">% Ops</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-500 font-bold">% Mkt</TableHead>
 
                         {/* Completas Sub-headers */}
                         <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider">Ops</TableHead>
                         <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-slate-500">% Ops</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-500 font-bold">% Mkt</TableHead>
 
                         {/* Rejeitadas Sub-headers */}
                         <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider text-rose-600/70">Ops</TableHead>
                         <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-slate-500">% Ops</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-500 font-bold">% Mkt</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>

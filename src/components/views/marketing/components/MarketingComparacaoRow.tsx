@@ -55,18 +55,26 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
             {/* Ofertadas */}
             <TableCell className="text-right border-l">{row.ofertadas_ops.toLocaleString('pt-BR')}</TableCell>
             <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.ofertadas_mkt.toLocaleString('pt-BR')}</TableCell>
+            <TableCell className="text-right text-xs text-slate-500">{calculatePercentage(row.ofertadas_ops, row.ofertadas_ops + row.ofertadas_mkt)}</TableCell>
+            <TableCell className="text-right text-xs text-purple-500 font-semibold">{calculatePercentage(row.ofertadas_mkt, row.ofertadas_ops + row.ofertadas_mkt)}</TableCell>
 
             {/* Aceitas */}
             <TableCell className="text-right border-l">{row.aceitas_ops.toLocaleString('pt-BR')}</TableCell>
             <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.aceitas_mkt.toLocaleString('pt-BR')}</TableCell>
+            <TableCell className="text-right text-xs text-slate-500">{calculatePercentage(row.aceitas_ops, row.aceitas_ops + row.aceitas_mkt)}</TableCell>
+            <TableCell className="text-right text-xs text-purple-500 font-semibold">{calculatePercentage(row.aceitas_mkt, row.aceitas_ops + row.aceitas_mkt)}</TableCell>
 
             {/* Completas */}
             <TableCell className="text-right border-l">{row.concluidas_ops.toLocaleString('pt-BR')}</TableCell>
             <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.concluidas_mkt.toLocaleString('pt-BR')}</TableCell>
+            <TableCell className="text-right text-xs text-slate-500">{calculatePercentage(row.concluidas_ops, row.concluidas_ops + row.concluidas_mkt)}</TableCell>
+            <TableCell className="text-right text-xs text-purple-500 font-semibold">{calculatePercentage(row.concluidas_mkt, row.concluidas_ops + row.concluidas_mkt)}</TableCell>
 
             {/* Rejeitadas */}
             <TableCell className="text-right border-l">{row.rejeitadas_ops.toLocaleString('pt-BR')}</TableCell>
             <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.rejeitadas_mkt.toLocaleString('pt-BR')}</TableCell>
+            <TableCell className="text-right text-xs text-slate-500">{calculatePercentage(row.rejeitadas_ops, row.rejeitadas_ops + row.rejeitadas_mkt)}</TableCell>
+            <TableCell className="text-right text-xs text-purple-500 font-semibold">{calculatePercentage(row.rejeitadas_mkt, row.rejeitadas_ops + row.rejeitadas_mkt)}</TableCell>
         </TableRow>
     );
 });
