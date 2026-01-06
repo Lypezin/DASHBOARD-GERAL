@@ -41,7 +41,6 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                     onPracaChange={actions.setPracaSelecionada}
                     onToggleSemana={actions.toggleSemana}
                     onClearSemanas={actions.limparSemanas}
-                    onComparar={actions.compararSemanas}
                     onMostrarApresentacao={() => actions.setMostrarApresentacao(true)}
                     loading={state.loading}
                     dadosComparacaoLength={data.dadosComparacao.length}

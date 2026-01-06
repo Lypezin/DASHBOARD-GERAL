@@ -14,7 +14,6 @@ interface ComparacaoFiltersProps {
   onPracaChange: (praca: string | null) => void;
   onToggleSemana: (semana: number | string) => void;
   onClearSemanas: () => void;
-  onComparar: () => void;
   onMostrarApresentacao: () => void;
   loading: boolean;
   dadosComparacaoLength: number;
@@ -29,7 +28,6 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
   onPracaChange,
   onToggleSemana,
   onClearSemanas,
-  onComparar,
   onMostrarApresentacao,
   loading,
   dadosComparacaoLength,
@@ -88,14 +86,6 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                 Limpar seleção
               </button>
             )}
-            <button
-              onClick={onComparar}
-              disabled={semanasSelecionadas.length < 2 || loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {loading ? 'Comparando...' : 'Comparar Semanas'}
-            </button>
-
             <button
               onClick={onMostrarApresentacao}
               disabled={semanasSelecionadas.length !== 2 || dadosComparacaoLength !== 2}

@@ -47,7 +47,6 @@ export function useComparacaoViewController({
         dadosComparacao,
         utrComparacao,
         todasSemanas,
-        compararSemanas,
         error
     } = useComparacaoData({
         semanas,
@@ -103,8 +102,7 @@ export function useComparacaoViewController({
             setViewModeSubPraca,
             setViewModeOrigem,
             toggleSemana,
-            limparSemanas: () => setSemanasSelecionadas([]),
-            compararSemanas
+            limparSemanas: () => setSemanasSelecionadas([])
         }
     };
 }

@@ -79,13 +79,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     };
   }, [semanasSelecionadas, pracaSelecionada, currentUser, organizationId, isOrgLoading, anoSelecionado]);
 
-  // Função vazia apenas para manter compatibilidade com interface antiga se necessário,
-  // ou pode ser removida se o controller não a usar.
-  // O hook original retornava `compararSemanas`.
-  const compararSemanas = async () => {
-    // No-op, data fetching is now reactive
-    console.warn('compararSemanas is deprecated, fetching is reactive now');
-  };
+
 
   return {
     loading: loading || isOrgLoading,
@@ -93,6 +87,5 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     dadosComparacao,
     utrComparacao,
     todasSemanas,
-    compararSemanas,
   };
 }
