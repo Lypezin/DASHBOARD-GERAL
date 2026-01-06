@@ -47,34 +47,74 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
             </TableCell>
 
             {/* Hours */}
-            <TableCell className="text-right font-mono border-l bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_ops)}</TableCell>
-            <TableCell className="text-right font-mono font-bold text-purple-600 dark:text-purple-400 bg-blue-50/30 dark:bg-blue-900/5">{formatDuration(row.segundos_mkt)}</TableCell>
-            <TableCell className="text-right text-xs text-slate-500 bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_ops, totalHours)}</TableCell>
-            <TableCell className="text-right text-xs text-purple-500 font-semibold bg-blue-50/30 dark:bg-blue-900/5">{calculatePercentage(row.segundos_mkt, totalHours)}</TableCell>
+            <TableCell className="text-right font-mono border-l bg-blue-50/30 dark:bg-blue-900/5 align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{formatDuration(row.segundos_ops)}</span>
+                    <span className="text-[10px] text-slate-500">{calculatePercentage(row.segundos_ops, totalHours)}</span>
+                </div>
+            </TableCell>
+            <TableCell className="text-right font-mono border-r bg-blue-50/30 dark:bg-blue-900/5 align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-bold text-purple-600 dark:text-purple-400">{formatDuration(row.segundos_mkt)}</span>
+                    <span className="text-[10px] text-purple-500/80 font-medium">{calculatePercentage(row.segundos_mkt, totalHours)}</span>
+                </div>
+            </TableCell>
 
             {/* Ofertadas */}
-            <TableCell className="text-right border-l">{row.ofertadas_ops.toLocaleString('pt-BR')}</TableCell>
-            <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.ofertadas_mkt.toLocaleString('pt-BR')}</TableCell>
-            <TableCell className="text-right text-xs text-slate-500">{calculatePercentage(row.ofertadas_ops, row.ofertadas_ops + row.ofertadas_mkt)}</TableCell>
-            <TableCell className="text-right text-xs text-purple-500 font-semibold">{calculatePercentage(row.ofertadas_mkt, row.ofertadas_ops + row.ofertadas_mkt)}</TableCell>
+            <TableCell className="text-right border-l align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{row.ofertadas_ops.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-slate-500">{calculatePercentage(row.ofertadas_ops, row.ofertadas_ops + row.ofertadas_mkt)}</span>
+                </div>
+            </TableCell>
+            <TableCell className="text-right align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-bold text-purple-600 dark:text-purple-400">{row.ofertadas_mkt.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-purple-500/80 font-medium">{calculatePercentage(row.ofertadas_mkt, row.ofertadas_ops + row.ofertadas_mkt)}</span>
+                </div>
+            </TableCell>
 
             {/* Aceitas */}
-            <TableCell className="text-right border-l">{row.aceitas_ops.toLocaleString('pt-BR')}</TableCell>
-            <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.aceitas_mkt.toLocaleString('pt-BR')}</TableCell>
-            <TableCell className="text-right text-xs text-slate-500">{calculatePercentage(row.aceitas_ops, row.aceitas_ops + row.aceitas_mkt)}</TableCell>
-            <TableCell className="text-right text-xs text-purple-500 font-semibold">{calculatePercentage(row.aceitas_mkt, row.aceitas_ops + row.aceitas_mkt)}</TableCell>
+            <TableCell className="text-right border-l align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{row.aceitas_ops.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-slate-500">{calculatePercentage(row.aceitas_ops, row.aceitas_ops + row.aceitas_mkt)}</span>
+                </div>
+            </TableCell>
+            <TableCell className="text-right align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-bold text-purple-600 dark:text-purple-400">{row.aceitas_mkt.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-purple-500/80 font-medium">{calculatePercentage(row.aceitas_mkt, row.aceitas_ops + row.aceitas_mkt)}</span>
+                </div>
+            </TableCell>
 
             {/* Completas */}
-            <TableCell className="text-right border-l">{row.concluidas_ops.toLocaleString('pt-BR')}</TableCell>
-            <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.concluidas_mkt.toLocaleString('pt-BR')}</TableCell>
-            <TableCell className="text-right text-xs text-slate-500">{calculatePercentage(row.concluidas_ops, row.concluidas_ops + row.concluidas_mkt)}</TableCell>
-            <TableCell className="text-right text-xs text-purple-500 font-semibold">{calculatePercentage(row.concluidas_mkt, row.concluidas_ops + row.concluidas_mkt)}</TableCell>
+            <TableCell className="text-right border-l align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{row.concluidas_ops.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-slate-500">{calculatePercentage(row.concluidas_ops, row.concluidas_ops + row.concluidas_mkt)}</span>
+                </div>
+            </TableCell>
+            <TableCell className="text-right align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-bold text-purple-600 dark:text-purple-400">{row.concluidas_mkt.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-purple-500/80 font-medium">{calculatePercentage(row.concluidas_mkt, row.concluidas_ops + row.concluidas_mkt)}</span>
+                </div>
+            </TableCell>
 
             {/* Rejeitadas */}
-            <TableCell className="text-right border-l">{row.rejeitadas_ops.toLocaleString('pt-BR')}</TableCell>
-            <TableCell className="text-right font-bold text-purple-600 dark:text-purple-400">{row.rejeitadas_mkt.toLocaleString('pt-BR')}</TableCell>
-            <TableCell className="text-right text-xs text-slate-500">{calculatePercentage(row.rejeitadas_ops, row.rejeitadas_ops + row.rejeitadas_mkt)}</TableCell>
-            <TableCell className="text-right text-xs text-purple-500 font-semibold">{calculatePercentage(row.rejeitadas_mkt, row.rejeitadas_ops + row.rejeitadas_mkt)}</TableCell>
+            <TableCell className="text-right border-l align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{row.rejeitadas_ops.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-slate-500">{calculatePercentage(row.rejeitadas_ops, row.rejeitadas_ops + row.rejeitadas_mkt)}</span>
+                </div>
+            </TableCell>
+            <TableCell className="text-right align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-bold text-purple-600 dark:text-purple-400">{row.rejeitadas_mkt.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-purple-500/80 font-medium">{calculatePercentage(row.rejeitadas_mkt, row.rejeitadas_ops + row.rejeitadas_mkt)}</span>
+                </div>
+            </TableCell>
         </TableRow>
     );
 });
