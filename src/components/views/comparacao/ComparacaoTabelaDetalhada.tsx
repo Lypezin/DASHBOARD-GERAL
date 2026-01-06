@@ -26,7 +26,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             label="Aderência Geral"
             icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
             data={dadosComparacao}
-            getValue={(d) => d.aderencia_semanal[0]?.aderencia_percentual ?? 0}
+            getValue={(d) => d?.aderencia_semanal?.[0]?.aderencia_percentual ?? 0}
             formatValue={(v) => (
               <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-sm font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
                 {v.toFixed(1)}%
@@ -40,7 +40,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             label="Corridas Ofertadas"
             icon={<Megaphone className="h-4 w-4 text-slate-500" />}
             data={dadosComparacao}
-            getValue={(d) => d.total_ofertadas ?? 0}
+            getValue={(d) => d?.total_ofertadas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
             valueClassName="text-slate-600 dark:text-slate-400"
             isEven={false}
@@ -50,7 +50,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             label="Corridas Aceitas"
             icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />}
             data={dadosComparacao}
-            getValue={(d) => d.total_aceitas ?? 0}
+            getValue={(d) => d?.total_aceitas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
             valueClassName="text-emerald-600 dark:text-emerald-400"
             isEven={true}
@@ -60,7 +60,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             label="Corridas Rejeitadas"
             icon={<XCircle className="h-4 w-4 text-rose-500" />}
             data={dadosComparacao}
-            getValue={(d) => d.total_rejeitadas ?? 0}
+            getValue={(d) => d?.total_rejeitadas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
             valueClassName="text-rose-600 dark:text-rose-400"
             invertVariationColors
@@ -71,7 +71,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             label="Corridas Completadas"
             icon={<Target className="h-4 w-4 text-purple-500" />}
             data={dadosComparacao}
-            getValue={(d) => d.total_completadas ?? 0}
+            getValue={(d) => d?.total_completadas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
             valueClassName="text-purple-600 dark:text-purple-400"
             isEven={true}
@@ -81,7 +81,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             label="Taxa de Aceitação"
             icon={<Percent className="h-4 w-4 text-slate-500" />}
             data={dadosComparacao}
-            getValue={(d) => d.total_ofertadas ? ((d.total_aceitas ?? 0) / d.total_ofertadas) * 100 : 0}
+            getValue={(d) => d?.total_ofertadas ? ((d.total_aceitas ?? 0) / d.total_ofertadas) * 100 : 0}
             formatValue={(v) => `${v.toFixed(1)}%`}
             showVariation={false}
             isEven={false}

@@ -41,7 +41,7 @@ export function createComparisonFilter(
     const filters = {
         ano: anoNumero,
         semana: semanaNumero,
-        semanas: [],
+        semanas: [semanaNumero],
         praca: pracaSelecionada,
         subPraca: null,
         origem: null,
