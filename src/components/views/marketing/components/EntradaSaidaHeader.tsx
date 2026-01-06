@@ -24,6 +24,9 @@ export const EntradaSaidaHeader: React.FC<EntradaSaidaHeaderProps> = ({ semana, 
                     <p className={`font-semibold text-sm ${isFirst ? 'text-indigo-900 dark:text-indigo-100' : 'text-slate-900 dark:text-slate-100'
                         }`}>
                         {formatWeekLabel(semana)}
+                        <span className="ml-1 text-xs opacity-60 font-normal">
+                            '{(semana.split('-')[0] || '').slice(2)}
+                        </span>
                     </p>
                 </div>
             </div>
