@@ -47,6 +47,8 @@ export function getTimeMetric(obj: any, metricKey: string): string | number {
 }
 
 export function getWeeklyHours(dados: DashboardResumoData, metricKey: 'horas_planejadas' | 'horas_entregues'): string {
+    if (!dados) return '00:00:00';
+
     // 1. Tentar pegar de aderencia_semanal
     if (dados.aderencia_semanal && dados.aderencia_semanal.length > 0) {
         const semanaData = dados.aderencia_semanal[0] as any;

@@ -46,7 +46,7 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({
                     </TableCell>
                     {semanasSelecionadas.map((_, weekIdx) => {
                         const weeklyData = dadosComparacao[weekIdx];
-                        const dayData = weeklyData.aderencia_dia.find(d => d.dia_semana === dia);
+                        const dayData = weeklyData?.aderencia_dia?.find(d => d.dia_semana === dia);
 
                         // Calculate current value
                         const rawValue = getRawValue(dayData, metric.key);
@@ -56,7 +56,7 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({
                         let variacao: number | null = null;
                         if (weekIdx > 0) {
                             const prevWeeklyData = dadosComparacao[weekIdx - 1];
-                            const prevDayData = prevWeeklyData.aderencia_dia.find(d => d.dia_semana === dia);
+                            const prevDayData = prevWeeklyData?.aderencia_dia?.find(d => d.dia_semana === dia);
                             const prevValue = getRawValue(prevDayData, metric.key);
 
                             variacao = calculateVariation(rawValue, prevValue, metric);
