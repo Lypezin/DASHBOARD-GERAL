@@ -31,17 +31,25 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
   useEffect(() => {
     // Se a organização ainda está carregando, não inicia busca
     if (isOrgLoading) {
-      // Opcional: manter loading true se quiser indicar que o sistema "está pensando"
+      console.log('[Comparacao] Aguardando organização carregar...');
       return;
     }
 
     let isMounted = true;
 
     const fetchData = async () => {
+      console.log('[Comparacao] fetchData iniciado', {
+        semanasSelecionadas,
+        pracaSelecionada,
+        anoSelecionado,
+        organizationId,
+        currentUserRole: currentUser?.role,
+        currentUserPracas: currentUser?.assigned_pracas
+      });
+
       // Só busca se tiver pelo menos 2 semanas selecionadas (regra original)
-      // OU se tiver pelo menos 1? A regra original do hook tinha if (semanasSelecionadas.length < 2) return;
-      // Mas o estado inicial pode ser vazio.
       if (!semanasSelecionadas || semanasSelecionadas.length < 2) {
+        console.log('[Comparacao] Menos de 2 semanas selecionadas, retornando vazio');
         setDadosComparacao([]);
         setUtrComparacao([]);
         setLoading(false);
@@ -52,16 +60,29 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       setError(null);
 
       try {
+        console.log('[Comparacao] Chamando fetchComparisonMetrics e fetchComparisonUtr...');
         const [dados, utrs] = await Promise.all([
           fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
           fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado)
         ]);
+
+        console.log('[Comparacao] Dados recebidos:', {
+          dadosLength: dados?.length,
+          dadosPreview: dados?.map(d => ({
+            total_ofertadas: d?.total_ofertadas,
+            total_aceitas: d?.total_aceitas,
+            aderencia_semanal: d?.aderencia_semanal?.length,
+            aderencia_dia: d?.aderencia_dia?.length
+          })),
+          utrsLength: utrs?.length
+        });
 
         if (isMounted) {
           setDadosComparacao(dados);
           setUtrComparacao(utrs);
         }
       } catch (error: any) {
+        console.error('[Comparacao] Erro ao buscar dados:', error);
         if (isMounted) {
           setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
         }
