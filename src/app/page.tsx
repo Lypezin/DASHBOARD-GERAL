@@ -69,7 +69,7 @@ export default function DashboardPage() {
                 evolucaoMensal={data.evolution.mensal}
                 evolucaoSemanal={data.evolution.semanal}
                 loadingEvolucao={data.evolution.loading}
-                anoSelecionado={data.evolution.anoSelecionado}
+                anoSelecionado={filters.state.ano ?? data.evolution.anoSelecionado}
                 anosDisponiveis={data.evolution.anosOptions}
                 onAnoChange={data.evolution.setAno}
                 semanas={filters.options.semanas}
