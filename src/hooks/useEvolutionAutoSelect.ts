@@ -26,7 +26,7 @@ export function useEvolutionAutoSelect({
 
             if (shouldSelect) {
                 const maxYear = Math.max(...anosDisponiveis);
-                if (IS_DEV) safeLog.info(`[DashboardEvolucao] Definindo ano padrão para: ${maxYear}`);
+                safeLog.info(`[DashboardEvolucao] Definindo ano padrão para: ${maxYear} (Reason: Filters:${filters.ano} Available:${anosDisponiveis.join(',')})`);
                 setFilters((prev: any) => ({ ...prev, ano: maxYear }));
                 setAnoEvolucao(maxYear);
             }

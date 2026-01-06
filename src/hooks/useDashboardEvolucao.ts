@@ -61,7 +61,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
           supabase.rpc('dashboard_utr_semanal', params)
         ]);
 
-        if (process.env.NODE_ENV === 'development') {
+        if (true) {
           safeLog.info('[useDashboardEvolucao] Dados recebidos:', {
             mensalLength: mensalRes.data?.length,
             semanalLength: semanalRes.data?.length,
