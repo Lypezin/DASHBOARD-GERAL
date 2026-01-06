@@ -77,7 +77,12 @@ export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProces
   const turnosComparativo = processarTurnos(dadosBasicos);
 
   // Processar Origens
+  console.log('[DataProcessor] Processing origens:', {
+    semana1OrigemCount: semana1?.aderencia_origem?.length,
+    semana2OrigemCount: semana2?.aderencia_origem?.length
+  });
   const origensComparativo = processarOrigens(dadosBasicos);
+  console.log('[DataProcessor] Origens processed:', origensComparativo?.length);
 
   // Processar Demanda
   const demandaItens = processarDemanda(dadosBasicos);

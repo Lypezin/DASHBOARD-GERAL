@@ -76,7 +76,13 @@ export const useApresentacaoSlides = (
     slidesConfig.push(...turnos);
 
     // 8. Origens
+    console.log('[Apresentacao] Building origens slides:', {
+      origensVisible: visibleSections.origens,
+      origensCount: origensComparativo?.length,
+      origensPreview: origensComparativo?.slice(0, 2)
+    });
     const origens = buildSlidesOrigem(visibleSections.origens, origensComparativo, { numeroSemana1, numeroSemana2 });
+    console.log('[Apresentacao] Origens slides built:', origens.length);
     slidesConfig.push(...origens);
 
     // 9. Demanda
