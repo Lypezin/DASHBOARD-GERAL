@@ -19,6 +19,14 @@ export function useEvolutionAutoSelect({
     setAnoEvolucao
 }: UseEvolutionAutoSelectProps) {
 
+    // Sincronizar anoEvolucao quando o usuário muda o filtro principal
+    useEffect(() => {
+        if (filters.ano && filters.ano !== anoEvolucao) {
+            safeLog.info(`[DashboardEvolucao] Sincronizando anoEvolucao com filters.ano: ${filters.ano}`);
+            setAnoEvolucao(filters.ano);
+        }
+    }, [filters.ano, anoEvolucao, setAnoEvolucao]);
+
     // Selecionar automaticamente o ano mais recente se nenhum estiver selecionado
     useEffect(() => {
         if (anosDisponiveis && anosDisponiveis.length > 0) {
