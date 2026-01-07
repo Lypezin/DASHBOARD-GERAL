@@ -14,15 +14,11 @@ const EvolucaoView = React.memo(function EvolucaoView({
   evolucaoSemanal,
   loading,
   anoSelecionado,
-  anosDisponiveis,
-  onAnoChange,
 }: {
   evolucaoMensal: EvolucaoMensal[];
   evolucaoSemanal: EvolucaoSemanal[];
   loading: boolean;
   anoSelecionado: number;
-  anosDisponiveis: number[];
-  onAnoChange: (ano: number) => void;
 }) {
   const { state, actions } = useEvolucaoViewController({
     evolucaoMensal,
@@ -48,9 +44,6 @@ const EvolucaoView = React.memo(function EvolucaoView({
         <EvolucaoFilters
           viewMode={state.viewMode}
           onViewModeChange={actions.setViewMode}
-          anoSelecionado={anoSelecionado}
-          anosDisponiveis={anosDisponiveis}
-          onAnoChange={onAnoChange}
           selectedMetrics={state.selectedMetrics}
           onMetricsChange={actions.setSelectedMetrics}
         />

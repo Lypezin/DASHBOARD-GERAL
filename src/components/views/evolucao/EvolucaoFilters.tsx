@@ -1,16 +1,12 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
-import { EvolucaoYearSelector } from './components/EvolucaoYearSelector';
 import { EvolucaoViewToggle } from './components/EvolucaoViewToggle';
 import { EvolucaoMetricsSelector, MetricType } from './components/EvolucaoMetricsSelector';
 
 interface EvolucaoFiltersProps {
   viewMode: 'mensal' | 'semanal';
   onViewModeChange: (mode: 'mensal' | 'semanal') => void;
-  anoSelecionado: number;
-  anosDisponiveis: number[];
-  onAnoChange: (ano: number) => void;
   selectedMetrics: Set<MetricType>;
   onMetricsChange: (metrics: Set<MetricType>) => void;
 }
@@ -18,9 +14,6 @@ interface EvolucaoFiltersProps {
 export const EvolucaoFilters: React.FC<EvolucaoFiltersProps> = ({
   viewMode,
   onViewModeChange,
-  anoSelecionado,
-  anosDisponiveis,
-  onAnoChange,
   selectedMetrics,
   onMetricsChange,
 }) => {
@@ -43,12 +36,6 @@ export const EvolucaoFilters: React.FC<EvolucaoFiltersProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <EvolucaoYearSelector
-              anoSelecionado={anoSelecionado}
-              anosDisponiveis={anosDisponiveis}
-              onAnoChange={onAnoChange}
-            />
-
             <EvolucaoViewToggle
               viewMode={viewMode}
               onViewModeChange={onViewModeChange}

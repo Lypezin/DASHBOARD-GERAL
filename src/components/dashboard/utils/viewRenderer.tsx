@@ -57,8 +57,6 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     evolucaoSemanal={props.evolucaoSemanal}
                     loading={props.loadingEvolucao}
                     anoSelecionado={props.anoSelecionado}
-                    anosDisponiveis={props.anosDisponiveis}
-                    onAnoChange={props.onAnoChange}
                 />
             );
         case 'comparacao':
