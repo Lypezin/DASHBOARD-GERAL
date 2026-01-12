@@ -31,32 +31,58 @@ export function useMarketingExcelExport({
             setExportLoading(true);
             const { start, end } = getWeekRange(semanaIso);
 
-            const { fetchEntregadoresDetails } = await import('@/components/views/entregadores/EntregadoresDataFetcher');
-
             // Dynamic import for XLSX
             const XLSX = await import('xlsx');
             const { formatarHorasParaHMS } = await import('@/utils/formatters');
 
-            const result = await fetchEntregadoresDetails({
-                organizationId,
-                startDate: start,
-                endDate: end,
-                type: activeTab === 'marketing' ? 'MARKETING' : 'OPERATIONAL',
-                limit: 100000,
-                offset: 0,
-                praca
-            });
+            let exportData: any[] = [];
 
-            const exportData = result.data.map(d => ({
-                ID: d.id_entregador,
-                Nome: d.nome,
-                'Região': d.regiao_atuacao,
-                'Horas Logadas': formatarHorasParaHMS(d.total_segundos / 3600),
-                'Ofertadas': d.total_ofertadas,
-                'Aceitas': d.total_aceitas,
-                'Concluídas': d.total_completadas,
-                'Rejeitadas': d.total_rejeitadas,
-            }));
+            if (activeTab === 'operacional') {
+                // Use custom fetch for Operacional to get praca field
+                const { fetchOperacionalExportData } = await import('./fetchOperacionalExportData');
+
+                const result = await fetchOperacionalExportData({
+                    organizationId,
+                    startDate: start,
+                    endDate: end,
+                    praca
+                });
+
+                exportData = result.map(d => ({
+                    ID: d.id_entregador,
+                    Nome: d.nome,
+                    'Região': d.praca || '--',
+                    'Horas Logadas': formatarHorasParaHMS(d.total_segundos / 3600),
+                    'Ofertadas': d.total_ofertadas,
+                    'Aceitas': d.total_aceitas,
+                    'Concluídas': d.total_completadas,
+                    'Rejeitadas': d.total_rejeitadas,
+                }));
+            } else {
+                // Use standard fetch for Marketing
+                const { fetchEntregadoresDetails } = await import('@/components/views/entregadores/EntregadoresDataFetcher');
+
+                const result = await fetchEntregadoresDetails({
+                    organizationId,
+                    startDate: start,
+                    endDate: end,
+                    type: 'MARKETING',
+                    limit: 100000,
+                    offset: 0,
+                    praca
+                });
+
+                exportData = result.data.map(d => ({
+                    ID: d.id_entregador,
+                    Nome: d.nome,
+                    'Região': d.regiao_atuacao || '--',
+                    'Horas Logadas': formatarHorasParaHMS(d.total_segundos / 3600),
+                    'Ofertadas': d.total_ofertadas,
+                    'Aceitas': d.total_aceitas,
+                    'Concluídas': d.total_completadas,
+                    'Rejeitadas': d.total_rejeitadas,
+                }));
+            }
 
             const ws = XLSX.utils.json_to_sheet(exportData);
             const wb = XLSX.utils.book_new();
