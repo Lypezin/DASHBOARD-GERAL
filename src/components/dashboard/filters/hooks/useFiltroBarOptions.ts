@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import { getISOWeek, getISOWeekYear } from 'date-fns';
 import { Filters } from '@/types';
+import { useSemanasComDados } from '@/hooks/useSemanasComDados';
 
 export function useFiltroBarOptions(
     anos: number[],
@@ -12,36 +13,36 @@ export function useFiltroBarOptions(
         return anos.map((ano) => ({ value: String(ano), label: String(ano) }));
     }, [anos]);
 
+    // Busca semanas que realmente têm dados para o ano selecionado
+    const selectedYear = filters?.ano ? parseInt(String(filters.ano), 10) : null;
+    const { semanasComDados } = useSemanasComDados(selectedYear);
+
     const semanasOptions = useMemo(() => {
         const today = new Date();
         const currentYear = getISOWeekYear(today);
         const currentWeek = getISOWeek(today);
-        const selectedYear = filters?.ano ? parseInt(String(filters.ano), 10) : null;
 
-        return semanas
-            .filter(sem => sem && sem !== '' && sem !== 'NaN')
-            .filter(sem => {
-                // Parse year from week format if available (e.g., "2026-W1")
-                if (sem.includes('-W')) {
-                    const [yearPart, weekPart] = sem.split('-W');
-                    const weekYear = parseInt(yearPart, 10);
-                    const weekNum = parseInt(weekPart, 10);
-                    
-                    // Filter by selected year - only show weeks that belong to that year
-                    if (selectedYear && weekYear !== selectedYear) {
-                        return false;
-                    }
-                    
-                    // For current year, also filter out future weeks
+        // Se temos semanas com dados do banco, usar elas
+        if (semanasComDados.length > 0) {
+            return semanasComDados
+                .filter(weekNum => {
+                    // Para o ano atual, filtrar semanas futuras
                     if (selectedYear === currentYear && weekNum > currentWeek) {
                         return false;
                     }
-                    
-                    return !isNaN(weekNum);
-                }
-                
-                // For plain week numbers (no year info), apply current week filter
-                // only if selected year is current year
+                    return true;
+                })
+                .map(weekNum => ({
+                    value: String(weekNum),
+                    label: `Semana ${weekNum}`
+                }));
+        }
+
+        // Fallback: usar semanas passadas como props (comportamento anterior)
+        return semanas
+            .filter(sem => sem && sem !== '' && sem !== 'NaN')
+            .filter(sem => {
+                // Para o ano atual, filtrar semanas futuras
                 if (selectedYear === currentYear) {
                     const parsed = parseInt(sem, 10);
                     return !isNaN(parsed) && parsed <= currentWeek;
@@ -49,21 +50,15 @@ export function useFiltroBarOptions(
                 return true;
             })
             .map((sem) => {
-                let weekNumber = sem;
-                if (sem.includes('-W')) {
-                    weekNumber = sem.split('-W')[1];
-                }
-                const parsed = parseInt(weekNumber, 10);
+                const parsed = parseInt(sem, 10);
                 if (isNaN(parsed)) return null;
-                const normalizedWeek = String(parsed);
-                return { value: normalizedWeek, label: `Semana ${normalizedWeek}` };
+                return { value: String(parsed), label: `Semana ${parsed}` };
             })
             .filter((opt): opt is { value: string; label: string } => opt !== null)
-            // Remove duplicates (same week from different sources)
-            .filter((opt, index, self) => 
+            .filter((opt, index, self) =>
                 index === self.findIndex((o) => o.value === opt.value)
             );
-    }, [semanas, filters?.ano]);
+    }, [semanas, selectedYear, semanasComDados]);
 
     return { anosOptions, semanasOptions };
 }
