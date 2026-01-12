@@ -54,7 +54,15 @@ export function useDashboardDimensions() {
 
         if (semanasResult.error) throw semanasResult.error;
         const semanasData = Array.isArray(semanasResult.data)
-          ? semanasResult.data.map(s => typeof s === 'object' && s !== null && 'semana' in s ? String(s.semana) : String(s))
+          ? semanasResult.data.map(s => {
+            if (typeof s === 'object' && s !== null && 'ano' in s && 'semana' in s) {
+              // Include year info: "2026-W1"
+              return `${s.ano}-W${s.semana}`;
+            } else if (typeof s === 'object' && s !== null && 'semana' in s) {
+              return String(s.semana);
+            }
+            return String(s);
+          })
           : [];
         setSemanasDisponiveis(semanasData);
 
