@@ -21,12 +21,12 @@ export function useSemanasComDados(ano: number | null) {
         const fetchSemanasComDados = async () => {
             setLoading(true);
             try {
-                // Busca semanas distintas que possuem dados na tabela dados_consolidados
+                // Busca semanas distintas que possuem dados na tabela dados_corridas
+                // Usando data_do_periodo para extrair ano e semana ISO
                 const { data, error } = await supabase
-                    .from('dados_consolidados')
-                    .select('semana_iso')
-                    .eq('ano_iso', ano)
-                    .not('semana_iso', 'is', null);
+                    .from('dados_corridas')
+                    .select('data_do_periodo')
+                    .not('data_do_periodo', 'is', null);
 
                 if (error) {
                     if (IS_DEV) safeLog.error('Erro ao buscar semanas com dados:', error);
@@ -35,13 +35,26 @@ export function useSemanasComDados(ano: number | null) {
                 }
 
                 if (data && data.length > 0) {
-                    // Extrai semanas únicas e ordena
-                    const semanasUnicas = [...new Set(
-                        data
-                            .map(row => row.semana_iso)
-                            .filter((s): s is number => typeof s === 'number' && !isNaN(s))
-                    )].sort((a, b) => b - a); // Ordem decrescente (mais recente primeiro)
+                    // Extrai ano e semana ISO a partir de data_do_periodo
+                    const semanasDoAno = data
+                        .map(row => {
+                            if (!row.data_do_periodo) return null;
+                            const date = new Date(row.data_do_periodo);
+                            const dateYear = date.getFullYear();
+                            // Só inclui se for do ano selecionado
+                            if (dateYear !== ano) return null;
+                            // Calcula semana ISO
+                            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                            const dayNum = d.getUTCDay() || 7;
+                            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+                            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                            const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+                            return weekNo;
+                        })
+                        .filter((s): s is number => typeof s === 'number' && !isNaN(s));
 
+                    // Extrai semanas únicas e ordena (decrescente)
+                    const semanasUnicas = [...new Set(semanasDoAno)].sort((a, b) => b - a);
                     setSemanas(semanasUnicas);
                 } else {
                     setSemanas([]);

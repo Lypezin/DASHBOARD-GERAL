@@ -34,6 +34,14 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
             case 'prioridade':
                 return await fetchEntregadoresData({ filterPayload });
 
+            // These tabs manage their own data fetching
+            case 'analise':
+            case 'evolucao':
+            case 'comparacao':
+            case 'marketing':
+            case 'marketing_comparacao':
+                return { data: null, error: null };
+
             default:
                 return { data: null, error: new Error(`Tab desconhecida: ${tab}`) };
         }
