@@ -6,12 +6,14 @@ interface UseMarketingExcelExportProps {
     semanaIso: string;
     organizationId: string | null;
     activeTab: 'marketing' | 'operacional';
+    praca?: string | null;
 }
 
 export function useMarketingExcelExport({
     semanaIso,
     organizationId,
-    activeTab
+    activeTab,
+    praca
 }: UseMarketingExcelExportProps) {
     const [exportLoading, setExportLoading] = useState(false);
 
@@ -41,7 +43,8 @@ export function useMarketingExcelExport({
                 endDate: end,
                 type: activeTab === 'marketing' ? 'MARKETING' : 'OPERATIONAL',
                 limit: 100000,
-                offset: 0
+                offset: 0,
+                praca
             });
 
             const exportData = result.data.map(d => ({
@@ -65,7 +68,7 @@ export function useMarketingExcelExport({
         } finally {
             setExportLoading(false);
         }
-    }, [semanaIso, organizationId, activeTab]);
+    }, [semanaIso, organizationId, activeTab, praca]);
 
     return {
         exportLoading,

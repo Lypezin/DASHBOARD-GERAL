@@ -30,7 +30,8 @@ export const useMarketingDriverDetails = ({
     const { exportLoading, handleExport } = useMarketingExcelExport({
         semanaIso,
         organizationId,
-        activeTab
+        activeTab,
+        praca
     });
 
     const getWeekRange = useCallback((iso: string) => {
