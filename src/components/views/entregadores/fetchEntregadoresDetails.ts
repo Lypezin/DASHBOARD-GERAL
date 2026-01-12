@@ -45,7 +45,7 @@ export async function fetchEntregadoresDetails(params: EntregadorDetailsParams):
         const resultData: EntregadorMarketing[] = data.map((row: any) => ({
             id_entregador: row.id_entregador,
             nome: row.nome,
-            regiao_atuacao: row.regiao_atuacao,
+            regiao_atuacao: row.regiao_atuacao || row.praca || null,
             total_segundos: Number(row.total_segundos),
             total_ofertadas: Number(row.total_ofertadas),
             total_aceitas: Number(row.total_aceitas),
