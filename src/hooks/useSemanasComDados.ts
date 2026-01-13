@@ -23,10 +23,10 @@ export function useSemanasComDados(ano: number | null) {
             try {
                 // Busca semanas distintas que possuem dados na tabela dados_corridas
                 // Usando data_do_periodo para extrair ano e semana ISO
+                // Busca semanas distintas usando a RPC get_semanas_data
+                // Isso evita o problema do limite de 1000 linhas da API padrão
                 const { data, error } = await supabase
-                    .from('dados_corridas')
-                    .select('data_do_periodo')
-                    .not('data_do_periodo', 'is', null);
+                    .rpc('get_semanas_data', { ano_param: ano });
 
                 if (error) {
                     if (IS_DEV) safeLog.error('Erro ao buscar semanas com dados:', error);
@@ -36,10 +36,17 @@ export function useSemanasComDados(ano: number | null) {
 
                 if (data && data.length > 0) {
                     // Extrai ano e semana ISO a partir de data_do_periodo
-                    const semanasDoAno = data
-                        .map(row => {
+                    const semanasDoAno = (data as { data_do_periodo: string }[])
+                        .map((row) => {
                             if (!row.data_do_periodo) return null;
-                            const date = new Date(row.data_do_periodo);
+                            // Parse manual da data para evitar problemas de timezone (browser vs UTC)
+                            // A data vem como YYYY-MM-DD
+                            const parts = row.data_do_periodo.split('-');
+                            const year = parseInt(parts[0], 10);
+                            const month = parseInt(parts[1], 10);
+                            const day = parseInt(parts[2], 10);
+
+                            const date = new Date(year, month - 1, day);
                             const dateYear = date.getFullYear();
                             // Só inclui se for do ano selecionado
                             if (dateYear !== ano) return null;
@@ -54,7 +61,7 @@ export function useSemanasComDados(ano: number | null) {
                         .filter((s): s is number => typeof s === 'number' && !isNaN(s));
 
                     // Extrai semanas únicas e ordena (decrescente)
-                    const semanasUnicas = [...new Set(semanasDoAno)].sort((a, b) => b - a);
+                    const semanasUnicas = [...new Set(semanasDoAno)].sort((a: number, b: number) => b - a);
                     setSemanas(semanasUnicas);
                 } else {
                     setSemanas([]);
