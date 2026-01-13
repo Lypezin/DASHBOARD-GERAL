@@ -24,7 +24,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
   const [utrComparacao, setUtrComparacao] = useState<Array<{ semana: string | number; utr: UtrData | null }>>([]);
 
   // Use extracted hook for all weeks
-  const todasSemanas = useAllWeeks(semanas);
+  const todasSemanas = useAllWeeks(semanas, anoSelecionado);
 
   // Removido compararSemanas pois a lógica agora é reativa via useEffect
 

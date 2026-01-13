@@ -4,12 +4,58 @@ import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export function useAllWeeks(fallbackWeeks?: string[]) {
+export function useAllWeeks(fallbackWeeks?: string[], anoSelecionado?: number) {
     const [todasSemanas, setTodasSemanas] = useState<(number | string)[]>([]);
 
     useEffect(() => {
         async function fetchTodasSemanas() {
             try {
+                // Se temos ano selecionado, usar a nova RPC otimizada
+                if (anoSelecionado) {
+                    const { data, error } = await safeRpc<any[]>('get_semanas_data', {
+                        ano_param: anoSelecionado
+                    });
+
+                    if (error) {
+                        if (IS_DEV) safeLog.error('Erro ao buscar semanas do ano:', error);
+                        if (fallbackWeeks && fallbackWeeks.length > 0) setTodasSemanas(fallbackWeeks);
+                        return;
+                    }
+
+                    if (data && Array.isArray(data)) {
+                        // Processar datas para extrair semanas (logica igual ao useSemanasComDados)
+                        const semanasDoAno = data
+                            .map((row: any) => {
+                                if (!row.data_do_periodo) return null;
+                                // Parse manual da data
+                                const parts = row.data_do_periodo.split('-');
+                                const year = parseInt(parts[0], 10);
+                                const month = parseInt(parts[1], 10);
+                                const day = parseInt(parts[2], 10);
+
+                                const date = new Date(year, month - 1, day);
+                                const dateYear = date.getFullYear();
+
+                                // Garantir que é do ano certo (embora a RPC já filtre)
+                                if (dateYear !== anoSelecionado) return null;
+
+                                // Calcula semana ISO
+                                const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                                const dayNum = d.getUTCDay() || 7;
+                                d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+                                const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                                const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+                                return weekNo;
+                            })
+                            .filter((s): s is number => typeof s === 'number' && !isNaN(s));
+
+                        const semanasUnicas = [...new Set(semanasDoAno)].sort((a, b) => a - b); // Ascendente para comparação viz
+                        setTodasSemanas(semanasUnicas);
+                    }
+                    return;
+                }
+
+                // Fallback legado: listar todas as semanas (sem filtro de ano)
                 const { data, error } = await safeRpc<any[]>('listar_todas_semanas', {}, {
                     timeout: 30000,
                     validateParams: false
@@ -63,7 +109,7 @@ export function useAllWeeks(fallbackWeeks?: string[]) {
             }
         }
         fetchTodasSemanas();
-    }, [fallbackWeeks]);
+    }, [fallbackWeeks, anoSelecionado]);
 
     return todasSemanas;
 }
