@@ -20,11 +20,20 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
     } else if (!dataInicial || !dataFinal) {
         // Fallback logic for when dates are missing and no specific week is selected
         if (filters.ano) {
-            dataInicial = `${filters.ano}-01-01`;
-            dataFinal = `${filters.ano}-12-31`;
+            // Use ISO Week 1 start of the selected year (may be in December of previous year)
+            const isoWeek1Start = getDateRangeFromWeek(filters.ano, 1);
+            dataInicial = isoWeek1Start.start;
+            // For end date, use current date if same year, otherwise Dec 31
+            const currentYear = new Date().getFullYear();
+            if (filters.ano >= currentYear) {
+                dataFinal = new Date().toISOString().split('T')[0];
+            } else {
+                dataFinal = `${filters.ano}-12-31`;
+            }
         } else {
             const year = new Date().getFullYear();
-            dataInicial = `${year}-01-01`;
+            const isoWeek1Start = getDateRangeFromWeek(year, 1);
+            dataInicial = isoWeek1Start.start;
             dataFinal = new Date().toISOString().split('T')[0];
         }
     }
