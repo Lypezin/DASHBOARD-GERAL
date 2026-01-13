@@ -26,7 +26,7 @@ export function useSemanasComDados(ano: number | null) {
                 // Busca semanas distintas usando a RPC get_semanas_data
                 // Isso evita o problema do limite de 1000 linhas da API padrão
                 const { data, error } = await supabase
-                    .rpc('get_semanas_data_v2', { ano_param: ano });
+                    .rpc('get_active_weeks_for_year', { year_input: ano });
 
                 if (error) {
                     if (IS_DEV) safeLog.error('Erro ao buscar semanas com dados:', error);

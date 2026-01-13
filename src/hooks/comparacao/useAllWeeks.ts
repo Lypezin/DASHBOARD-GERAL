@@ -12,8 +12,8 @@ export function useAllWeeks(fallbackWeeks?: string[], anoSelecionado?: number) {
             try {
                 // Se temos ano selecionado, usar a nova RPC otimizada
                 if (anoSelecionado) {
-                    const { data, error } = await safeRpc<any[]>('get_semanas_data_v2', {
-                        ano_param: anoSelecionado
+                    const { data, error } = await safeRpc<any[]>('get_active_weeks_for_year', {
+                        year_input: anoSelecionado
                     });
 
                     if (error) {
