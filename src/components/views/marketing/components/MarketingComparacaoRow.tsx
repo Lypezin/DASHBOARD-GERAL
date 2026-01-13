@@ -18,6 +18,8 @@ interface ComparacaoRow {
     concluidas_mkt: number;
     rejeitadas_ops: number;
     rejeitadas_mkt: number;
+    valor_ops?: number;
+    valor_mkt?: number;
 }
 
 interface MarketingComparacaoRowProps {
@@ -113,6 +115,28 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
                 <div className="flex flex-col items-end gap-0.5">
                     <span className="font-bold text-purple-600 dark:text-purple-400">{row.rejeitadas_mkt.toLocaleString('pt-BR')}</span>
                     <span className="text-[10px] text-purple-500/80 font-medium">{calculatePercentage(row.rejeitadas_mkt, row.rejeitadas_ops + row.rejeitadas_mkt)}</span>
+                </div>
+            </TableCell>
+
+            {/* Valor */}
+            <TableCell className="text-right border-l bg-amber-50/30 dark:bg-amber-900/5 align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(row.valor_ops || 0)}
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                        {calculatePercentage(row.valor_ops || 0, (row.valor_ops || 0) + (row.valor_mkt || 0))}
+                    </span>
+                </div>
+            </TableCell>
+            <TableCell className="text-right bg-amber-50/30 dark:bg-amber-900/5 align-top py-2">
+                <div className="flex flex-col items-end gap-0.5">
+                    <span className="font-bold text-purple-600 dark:text-purple-400">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(row.valor_mkt || 0)}
+                    </span>
+                    <span className="text-[10px] text-purple-500/80 font-medium">
+                        {calculatePercentage(row.valor_mkt || 0, (row.valor_ops || 0) + (row.valor_mkt || 0))}
+                    </span>
                 </div>
             </TableCell>
         </TableRow>

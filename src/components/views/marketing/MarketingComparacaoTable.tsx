@@ -24,6 +24,8 @@ interface ComparacaoRow {
     concluidas_mkt: number;
     rejeitadas_ops: number;
     rejeitadas_mkt: number;
+    valor_ops?: number;
+    valor_mkt?: number;
 }
 
 interface MarketingComparacaoTableProps {
@@ -47,6 +49,7 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                         <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Aceitas</TableHead>
                         <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold">Completas</TableHead>
                         <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 font-bold text-rose-600 dark:text-rose-400">Rejeitadas</TableHead>
+                        <TableHead colSpan={2} className="text-center border-l border-slate-200 dark:border-slate-800 bg-amber-50/80 dark:bg-amber-900/20 font-bold text-amber-700 dark:text-amber-300">Valor (R$)</TableHead>
                     </TableRow>
                     <TableRow className="hover:bg-transparent">
                         {/* Hours Sub-headers */}
@@ -68,12 +71,16 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                         {/* Rejeitadas Sub-headers */}
                         <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider text-rose-600/70">Ops</TableHead>
                         <TableHead className="text-right text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
+
+                        {/* Valor Sub-headers */}
+                        <TableHead className="text-right border-l border-slate-200 dark:border-slate-800 bg-amber-50/50 dark:bg-amber-900/10 text-[11px] uppercase tracking-wider">Ops</TableHead>
+                        <TableHead className="text-right bg-amber-50/50 dark:bg-amber-900/10 text-[11px] uppercase tracking-wider text-purple-600 font-bold">Mkt</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {data.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={14} className="h-24 text-center">
+                            <TableCell colSpan={16} className="h-24 text-center">
                                 Nenhum dado encontrado para o período selecionado.
                             </TableCell>
                         </TableRow>
