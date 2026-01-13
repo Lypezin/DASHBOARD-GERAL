@@ -52,12 +52,15 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
             concluidas_mkt: acc.concluidas_mkt + row.concluidas_mkt,
             rejeitadas_ops: acc.rejeitadas_ops + row.rejeitadas_ops,
             rejeitadas_mkt: acc.rejeitadas_mkt + row.rejeitadas_mkt,
+            valor_ops: acc.valor_ops + (row.valor_ops || 0),
+            valor_mkt: acc.valor_mkt + (row.valor_mkt || 0),
         }), {
             segundos_ops: 0, segundos_mkt: 0,
             ofertadas_ops: 0, ofertadas_mkt: 0,
             aceitas_ops: 0, aceitas_mkt: 0,
             concluidas_ops: 0, concluidas_mkt: 0,
-            rejeitadas_ops: 0, rejeitadas_mkt: 0
+            rejeitadas_ops: 0, rejeitadas_mkt: 0,
+            valor_ops: 0, valor_mkt: 0
         });
     }, [data]);
 

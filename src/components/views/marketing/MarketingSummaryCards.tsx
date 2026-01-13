@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Send, CheckCircle2, XCircle } from 'lucide-react';
+import { Clock, Send, CheckCircle2, XCircle, DollarSign } from 'lucide-react';
 import { formatDuration } from '@/utils/timeHelpers';
 import { calculatePercentage } from '@/utils/formatHelpers';
 import { MarketingSummaryCard } from './components/MarketingSummaryCard';
@@ -16,6 +16,8 @@ interface MarketingTotals {
     concluidas_mkt: number;
     rejeitadas_ops: number;
     rejeitadas_mkt: number;
+    valor_ops: number;
+    valor_mkt: number;
 }
 
 interface MarketingSummaryCardsProps {
@@ -28,9 +30,15 @@ export const MarketingSummaryCards = React.memo(function MarketingSummaryCards({
     const totalAceitas = totals.aceitas_ops + totals.aceitas_mkt;
     const totalConcluidas = totals.concluidas_ops + totals.concluidas_mkt;
     const totalRejeitadas = totals.rejeitadas_ops + totals.rejeitadas_mkt;
+    const totalValor = (totals.valor_ops || 0) + (totals.valor_mkt || 0);
+
+    // Formatador de moeda
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             <MarketingSummaryCard
                 title="Horas Totais"
                 icon={Clock}
@@ -94,6 +102,19 @@ export const MarketingSummaryCards = React.memo(function MarketingSummaryCards({
                 colorClass="text-rose-600 dark:text-rose-400"
                 bgClass="bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-900"
                 iconBgClass="bg-rose-100 dark:bg-rose-900/40"
+            />
+
+            <MarketingSummaryCard
+                title="Valor Total"
+                icon={DollarSign}
+                value={formatCurrency(totalValor)}
+                opsValue={formatCurrency(totals.valor_ops || 0)}
+                mktValue={formatCurrency(totals.valor_mkt || 0)}
+                opsPercent={calculatePercentage(totals.valor_ops || 0, totalValor)}
+                mktPercent={calculatePercentage(totals.valor_mkt || 0, totalValor)}
+                colorClass="text-amber-600 dark:text-amber-400"
+                bgClass="bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/20 dark:to-slate-900"
+                iconBgClass="bg-amber-100 dark:bg-amber-900/40"
             />
         </div>
     );

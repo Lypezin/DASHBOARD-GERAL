@@ -20,6 +20,9 @@ export interface MarketingComparisonData {
     // Rejected
     rejeitadas_ops: number;
     rejeitadas_mkt: number;
+    // Values (taxas)
+    valor_ops: number;
+    valor_mkt: number;
 }
 
 export function useMarketingComparacao(
@@ -31,7 +34,7 @@ export function useMarketingComparacao(
     const [data, setData] = useState<MarketingComparisonData[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
+
     // Ref to track the current active request ID
     const requestIdRef = useRef(0);
 
@@ -76,11 +79,11 @@ export function useMarketingComparacao(
             setData(result || []);
 
         } catch (err: any) {
-             // Check if this is still the active request
-             if (currentRequestId !== requestIdRef.current) {
+            // Check if this is still the active request
+            if (currentRequestId !== requestIdRef.current) {
                 return;
             }
-            
+
             safeLog.error('Erro ao buscar comparação marketing:', err);
             setError(err.message || 'Erro ao carregar dados');
         } finally {
@@ -92,7 +95,7 @@ export function useMarketingComparacao(
 
     useEffect(() => {
         fetchData();
-        
+
         // Cleanup function to invalidate current request on unmount or deps change
         return () => {
             // We don't actively abort the fetch since safeRpc doesn't return an abort controller,
