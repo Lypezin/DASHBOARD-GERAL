@@ -1,41 +1,38 @@
 import { useState, useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { useSemanasComDados } from '@/hooks/useSemanasComDados';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+/**
+ * Hook que retorna todas as semanas disponíveis para comparação.
+ * Se um ano está selecionado, usa useSemanasComDados para buscar apenas semanas com dados.
+ * Caso contrário, usa o fallback legado.
+ */
 export function useAllWeeks(fallbackWeeks?: string[], anoSelecionado?: number) {
     const [todasSemanas, setTodasSemanas] = useState<(number | string)[]>([]);
 
+    // Usa o mesmo hook que o filtro principal usa
+    const { semanasComDados, loadingSemanasComDados } = useSemanasComDados(anoSelecionado ?? null);
+
     useEffect(() => {
-        async function fetchTodasSemanas() {
+        // Se temos ano selecionado e semanas com dados, usar elas
+        if (anoSelecionado && semanasComDados.length > 0) {
+            // Ordena ascendente para visualização de comparação
+            const ordenadas = [...semanasComDados].sort((a, b) => a - b);
+            setTodasSemanas(ordenadas);
+            return;
+        }
+
+        // Se temos ano selecionado mas ainda não carregou, aguardar
+        if (anoSelecionado && loadingSemanasComDados) {
+            return;
+        }
+
+        // Fallback: buscar todas as semanas sem filtro de ano
+        async function fetchFallback() {
             try {
-                // Se temos ano selecionado, usar a versão sobrecarregada de listar_todas_semanas
-                if (anoSelecionado) {
-                    const { data, error } = await safeRpc<{ semana: number }[]>('listar_todas_semanas', {
-                        ano_param: anoSelecionado
-                    });
-
-                    if (error) {
-                        if (IS_DEV) safeLog.error('Erro ao buscar semanas do ano:', error);
-                        if (fallbackWeeks && fallbackWeeks.length > 0) setTodasSemanas(fallbackWeeks);
-                        return;
-                    }
-
-                    if (data && Array.isArray(data)) {
-                        // A RPC já retorna {semana: number}[], extraímos os números diretamente
-                        const semanasNumeros = data
-                            .map((row) => row.semana)
-                            .filter((s): s is number => typeof s === 'number' && !isNaN(s));
-
-                        // Ordena ascendente para visualização de comparação
-                        semanasNumeros.sort((a, b) => a - b);
-                        setTodasSemanas(semanasNumeros);
-                    }
-                    return;
-                }
-
-                // Fallback legado: listar todas as semanas (sem filtro de ano)
                 const { data, error } = await safeRpc<any[]>('listar_todas_semanas', {}, {
                     timeout: 30000,
                     validateParams: false
@@ -88,8 +85,12 @@ export function useAllWeeks(fallbackWeeks?: string[], anoSelecionado?: number) {
                 }
             }
         }
-        fetchTodasSemanas();
-    }, [fallbackWeeks, anoSelecionado]);
+
+        // Só busca fallback se não temos ano selecionado
+        if (!anoSelecionado) {
+            fetchFallback();
+        }
+    }, [fallbackWeeks, anoSelecionado, semanasComDados, loadingSemanasComDados]);
 
     return todasSemanas;
 }
