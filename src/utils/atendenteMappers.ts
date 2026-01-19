@@ -5,20 +5,17 @@
 export const ATENDENTES = [
   'Fernanda Raphaelly',
   'Beatriz Angelo',
-  'Melissa',
   'Carolini Braguini',
 ] as const;
 
 export const ATENDENTES_FOTOS: { [key: string]: string | null } = {
   'Fernanda Raphaelly': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/FERNANDA%20FOTO.png',
   'Beatriz Angelo': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/FOTO%20BEATRIZ.png',
-  'Melissa': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/MELISSA%20FOTO.png',
   'Carolini Braguini': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/CAROL%20FOTO.jpg',
 };
 
 export const ATENDENTE_TO_ID: { [key: string]: string } = {
   'Carolini Braguini': '6905',
-  'Melissa': '4182',
   'Beatriz Angelo': '6976',
   'Fernanda Raphaelly': '5447',
 };
