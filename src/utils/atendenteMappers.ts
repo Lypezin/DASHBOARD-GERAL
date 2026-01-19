@@ -14,10 +14,10 @@ export const ATENDENTES_FOTOS: { [key: string]: string | null } = {
   'Carolini Braguini': 'https://ulmobmmlkevxswxpcyza.supabase.co/storage/v1/object/public/avatars/foto%20atendentes/CAROL%20FOTO.jpg',
 };
 
-export const ATENDENTE_TO_ID: { [key: string]: string } = {
+export const ATENDENTE_TO_ID: { [key: string]: string | string[] } = {
   'Carolini Braguini': '6905',
   'Beatriz Angelo': '6976',
-  'Fernanda Raphaelly': '5447',
+  'Fernanda Raphaelly': ['5447', '4182'],
 };
 
 export const CIDADE_TO_REGIAO: { [key: string]: string } = {
@@ -45,8 +45,10 @@ export const REGIAO_TO_CIDADE_VALORES: { [key: string]: string } = {
  */
 export function findAtendenteNomeById(id: string): string {
   const idNormalizado = String(id).trim();
-  for (const [nome, atendenteId] of Object.entries(ATENDENTE_TO_ID)) {
-    if (String(atendenteId).trim() === idNormalizado) {
+  for (const [nome, atendenteIds] of Object.entries(ATENDENTE_TO_ID)) {
+    // Suporta tanto string única quanto array de IDs
+    const ids = Array.isArray(atendenteIds) ? atendenteIds : [atendenteIds];
+    if (ids.some(aid => String(aid).trim() === idNormalizado)) {
       return nome;
     }
   }

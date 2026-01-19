@@ -32,8 +32,10 @@ export async function fetchAndProcessValores(filtroEnviadosLiberados: MarketingD
             const valor = Number(row.valor) || 0;
 
             let atendenteNome = '';
-            for (const [nome, id] of Object.entries(ATENDENTE_TO_ID)) {
-                if (String(id).trim() === idAtendente) {
+            for (const [nome, ids] of Object.entries(ATENDENTE_TO_ID)) {
+                // Suporta tanto string única quanto array de IDs
+                const idArray = Array.isArray(ids) ? ids : [ids];
+                if (idArray.some(id => String(id).trim() === idAtendente)) {
                     atendenteNome = nome;
                     break;
                 }
