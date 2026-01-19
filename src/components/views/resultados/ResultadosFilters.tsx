@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { MarketingDateFilter } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Filter } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Filter, Calendar, Send, CheckCircle2 } from 'lucide-react';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 
 interface ResultadosFiltersProps {
@@ -24,32 +24,64 @@ export const ResultadosFilters = React.memo(function ResultadosFilters({
   onFiltroEnviadosLiberadosChange,
 }: ResultadosFiltersProps) {
   return (
-    <Card className="border-none shadow-sm bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
-      <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
+    <Card className="border-none shadow-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl overflow-hidden">
+      {/* Header com gradiente */}
+      <div className="px-5 py-3 bg-gradient-to-r from-slate-50 via-purple-50/50 to-slate-50 dark:from-slate-800/50 dark:via-purple-900/20 dark:to-slate-800/50 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-slate-500" />
-          <CardTitle className="text-base font-medium text-slate-700 dark:text-slate-200">
+          <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/40">
+            <Filter className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+          </div>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
             Filtros de Data
-          </CardTitle>
+          </span>
         </div>
-      </CardHeader>
-      <CardContent className="pt-4">
+      </div>
+      <CardContent className="p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <MarketingDateFilterComponent
-            label="Filtro de Liberação"
-            filter={filtroLiberacao}
-            onFilterChange={onFiltroLiberacaoChange}
-          />
-          <MarketingDateFilterComponent
-            label="Filtro de Enviados"
-            filter={filtroEnviados}
-            onFilterChange={onFiltroEnviadosChange}
-          />
-          <MarketingDateFilterComponent
-            label="Filtro de Enviados (Liberados)"
-            filter={filtroEnviadosLiberados}
-            onFilterChange={onFiltroEnviadosLiberadosChange}
-          />
+          {/* Filtro Liberação */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-blue-700 dark:text-blue-300">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>Liberação</span>
+            </div>
+            <div className="rounded-xl border border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-950/20 p-2">
+              <MarketingDateFilterComponent
+                label=""
+                filter={filtroLiberacao}
+                onFilterChange={onFiltroLiberacaoChange}
+              />
+            </div>
+          </div>
+
+          {/* Filtro Enviados */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+              <Send className="h-3.5 w-3.5" />
+              <span>Enviados</span>
+            </div>
+            <div className="rounded-xl border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/50 dark:bg-emerald-950/20 p-2">
+              <MarketingDateFilterComponent
+                label=""
+                filter={filtroEnviados}
+                onFilterChange={onFiltroEnviadosChange}
+              />
+            </div>
+          </div>
+
+          {/* Filtro Enviados (Liberados) */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-purple-700 dark:text-purple-300">
+              <Calendar className="h-3.5 w-3.5" />
+              <span>Valores</span>
+            </div>
+            <div className="rounded-xl border border-purple-100 dark:border-purple-900/30 bg-purple-50/50 dark:bg-purple-950/20 p-2">
+              <MarketingDateFilterComponent
+                label=""
+                filter={filtroEnviadosLiberados}
+                onFilterChange={onFiltroEnviadosLiberadosChange}
+              />
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -57,4 +89,3 @@ export const ResultadosFilters = React.memo(function ResultadosFilters({
 });
 
 ResultadosFilters.displayName = 'ResultadosFilters';
-
