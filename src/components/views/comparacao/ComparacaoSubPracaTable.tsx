@@ -12,6 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Map } from 'lucide-react';
 import { ComparacaoSubPracaRow, SubPracaMetric } from './components/ComparacaoSubPracaRow';
+import { formatarHorasParaHMS } from '@/utils/formatters';
 
 interface ComparacaoSubPracaTableProps {
   dadosComparacao: DashboardResumoData[];
@@ -38,11 +39,25 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
   subPracasOrdenadas.forEach((sp) => {
     dadosPorSubPraca[sp] = {};
     dadosComparacao.forEach((dado, idx) => {
+      // ... inside map loop
       const spData = dado.aderencia_sub_praca?.find((x) => x.sub_praca === sp);
+
+      let entregueStr = spData?.horas_entregues || '-';
+      let metaStr = spData?.horas_a_entregar || '-';
+
+      // Fallback calculation using seconds if strings are missing
+      if ((!spData?.horas_entregues || spData?.horas_entregues === '00:00:00') && spData?.segundos_realizados !== undefined) {
+        entregueStr = formatarHorasParaHMS(spData.segundos_realizados / 3600);
+      }
+
+      if ((!spData?.horas_a_entregar || spData?.horas_a_entregar === '00:00:00') && spData?.segundos_planejados !== undefined) {
+        metaStr = formatarHorasParaHMS(spData.segundos_planejados / 3600);
+      }
+
       dadosPorSubPraca[sp][idx] = {
         aderencia: spData ? spData.aderencia_percentual : 0,
-        entregue: spData?.horas_entregues || '-',
-        meta: spData?.horas_a_entregar || '-'
+        entregue: entregueStr,
+        meta: metaStr
       };
     });
   });
@@ -56,10 +71,18 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
             <CardTitle className="text-base font-semibold text-slate-900 dark:text-white">
               Detalhamento por Sub-Praça
             </CardTitle>
-            <CardDescription className="text-xs text-slate-500">
+            <CardDescription className="text-xs text-slate-500 hidden sm:block">
               Comparativo detalhado de aderência por região (sub-praça)
             </CardDescription>
           </div>
+        </div>
+        <div className="flex gap-2">
+          <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+            Meta: Horas planejadas
+          </span>
+          <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+            Entregue: Horas realizadas
+          </span>
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -82,10 +105,10 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
               <TableRow className="hover:bg-transparent">
                 {semanasSelecionadas.map((semana) => (
                   <React.Fragment key={`subheader-${semana}`}>
-                    <TableHead className="text-center font-medium text-slate-500 h-9 text-xs border-l border-slate-100 dark:border-slate-800 min-w-[70px]">Meta</TableHead>
-                    <TableHead className="text-center font-medium text-slate-500 h-9 text-xs min-w-[70px]">Entregue</TableHead>
-                    <TableHead className="text-center font-medium text-slate-500 h-9 text-xs min-w-[70px]">%</TableHead>
-                    <TableHead className="text-center font-medium text-slate-500 h-9 text-xs border-r border-slate-200 dark:border-slate-800 min-w-[70px]">Var</TableHead>
+                    <TableHead className="text-center font-medium text-slate-500 h-9 text-[10px] uppercase tracking-wider border-l border-slate-100 dark:border-slate-800 min-w-[70px]">Meta</TableHead>
+                    <TableHead className="text-center font-medium text-slate-500 h-9 text-[10px] uppercase tracking-wider min-w-[70px]">Entregue</TableHead>
+                    <TableHead className="text-center font-medium text-slate-500 h-9 text-[10px] uppercase tracking-wider min-w-[70px]">Aderência</TableHead>
+                    <TableHead className="text-center font-medium text-slate-500 h-9 text-[10px] uppercase tracking-wider border-r border-slate-200 dark:border-slate-800 min-w-[70px]">Var</TableHead>
                   </React.Fragment>
                 ))}
               </TableRow>

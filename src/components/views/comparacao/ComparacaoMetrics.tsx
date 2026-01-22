@@ -41,8 +41,8 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
     iconBgClass: string;
   }) => (
     <Card className={`border-none shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden relative ${bgClass}`}>
-      <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500`}>
-        <Icon className="w-16 h-16" />
+      <div className={`absolute -bottom-4 -right-4 p-3 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 group-hover:-rotate-12 duration-500 pointer-events-none`}>
+        <Icon className="w-24 h-24" />
       </div>
 
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
