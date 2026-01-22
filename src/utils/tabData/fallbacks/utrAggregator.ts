@@ -15,7 +15,7 @@ export const processUtrData = (data: any[]): UtrData => {
     let totalCorridas = 0;
 
     for (const row of data) {
-        const tempoStr = row.tempo_disponivel_escalado || '0:00:00';
+        const tempoStr = row.tempo_disponivel_absoluto || '0:00:00';
         const [hours, minutes, seconds] = tempoStr.split(':').map(Number);
         totalTempoSegundos += (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
         totalCorridas += Number(row.numero_de_corridas_aceitas) || 0;
@@ -31,7 +31,7 @@ export const processUtrData = (data: any[]): UtrData => {
     const pracaMap = new Map<string, { tempo: number; corridas: number }>();
     for (const row of data) {
         const praca = row.praca || 'Não especificada';
-        const tempoStr = row.tempo_disponivel_escalado || '0:00:00';
+        const tempoStr = row.tempo_disponivel_absoluto || '0:00:00';
         const [hours, minutes, seconds] = tempoStr.split(':').map(Number);
         const tempo = (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
         const corridas = Number(row.numero_de_corridas_aceitas) || 0;

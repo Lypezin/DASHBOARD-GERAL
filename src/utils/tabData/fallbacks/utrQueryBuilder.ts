@@ -5,7 +5,7 @@ import type { FilterPayload } from '@/types/filters';
 export const buildUtrQuery = (safePayload: FilterPayload) => {
     let query = supabase
         .from('dados_corridas')
-        .select('tempo_disponivel_escalado, numero_de_corridas_aceitas, praca, sub_praca, origem, periodo');
+        .select('tempo_disponivel_absoluto, numero_de_corridas_aceitas, praca, sub_praca, origem, periodo');
 
     if (safePayload.p_semana && safePayload.p_ano) {
         const dataInicio = new Date(safePayload.p_ano, 0, 1);
