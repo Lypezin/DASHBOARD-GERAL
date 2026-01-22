@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Map } from 'lucide-react';
-import { ComparacaoSubPracaRow } from './components/ComparacaoSubPracaRow';
+import { ComparacaoSubPracaRow, SubPracaMetric } from './components/ComparacaoSubPracaRow';
 
 interface ComparacaoSubPracaTableProps {
   dadosComparacao: DashboardResumoData[];
@@ -34,12 +34,16 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
   const subPracasOrdenadas = Array.from(todasSubPracas).sort();
 
   // 2. Mapear dados
-  const dadosPorSubPraca: Record<string, Record<number, number>> = {};
+  const dadosPorSubPraca: Record<string, Record<number, SubPracaMetric>> = {};
   subPracasOrdenadas.forEach((sp) => {
     dadosPorSubPraca[sp] = {};
     dadosComparacao.forEach((dado, idx) => {
       const spData = dado.aderencia_sub_praca?.find((x) => x.sub_praca === sp);
-      dadosPorSubPraca[sp][idx] = spData ? spData.aderencia_percentual : 0;
+      dadosPorSubPraca[sp][idx] = {
+        aderencia: spData ? spData.aderencia_percentual : 0,
+        entregue: spData?.horas_entregues || '-',
+        meta: spData?.horas_a_entregar || '-'
+      };
     });
   });
 
@@ -62,23 +66,28 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[180px] text-slate-900 dark:text-white font-semibold pl-6">
+              <TableRow className="hover:bg-transparent border-b border-slate-200 dark:border-slate-800">
+                <TableHead rowSpan={2} className="w-[180px] text-slate-900 dark:text-white font-semibold pl-6 border-r border-slate-100 dark:border-slate-800">
                   Sub-Praça
                 </TableHead>
                 {semanasSelecionadas.map((semana) => {
                   const semanaStr = String(semana).replace('W', '');
                   return (
-                    <React.Fragment key={semana}>
-                      <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 border-l border-slate-200 dark:border-slate-800 min-w-[100px]">
-                        Semana {semanaStr}
-                      </TableHead>
-                      <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 min-w-[80px]">
-                        Var %
-                      </TableHead>
-                    </React.Fragment>
+                    <TableHead key={semana} colSpan={4} className="text-center font-bold text-slate-900 dark:text-white border-l border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                      Semana {semanaStr}
+                    </TableHead>
                   );
                 })}
+              </TableRow>
+              <TableRow className="hover:bg-transparent">
+                {semanasSelecionadas.map((semana) => (
+                  <React.Fragment key={`subheader-${semana}`}>
+                    <TableHead className="text-center font-medium text-slate-500 h-9 text-xs border-l border-slate-100 dark:border-slate-800 min-w-[70px]">Meta</TableHead>
+                    <TableHead className="text-center font-medium text-slate-500 h-9 text-xs min-w-[70px]">Entregue</TableHead>
+                    <TableHead className="text-center font-medium text-slate-500 h-9 text-xs min-w-[70px]">%</TableHead>
+                    <TableHead className="text-center font-medium text-slate-500 h-9 text-xs border-r border-slate-200 dark:border-slate-800 min-w-[70px]">Var</TableHead>
+                  </React.Fragment>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -93,7 +102,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
               ))}
               {subPracasOrdenadas.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={semanasSelecionadas.length * 2 + 1} className="text-center py-6 text-slate-500">
+                  <TableCell colSpan={semanasSelecionadas.length * 4 + 1} className="text-center py-6 text-slate-500">
                     Nenhum dado de sub-praça disponível para as semanas selecionadas.
                   </TableCell>
                 </TableRow>

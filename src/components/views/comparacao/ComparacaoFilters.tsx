@@ -35,65 +35,60 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
       <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center gap-2">
-          <Search className="h-5 w-5 text-slate-500" />
-          <div>
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">Configurar Comparação</CardTitle>
-            <CardDescription className="text-slate-500 dark:text-slate-400">
-              Selecione a praça e as semanas para análise comparativa detalhada
-            </CardDescription>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+               <Search className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">Configuração</CardTitle>
+              <CardDescription className="text-slate-500 dark:text-slate-400">
+                Defina os parâmetros da comparação
+              </CardDescription>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Filtro de Praça */}
-          <div>
-            <FiltroSelect
-              label="Praça"
-              value={pracaSelecionada ?? ''}
-              options={pracas}
-              placeholder="Todas"
-              onChange={(value) => onPracaChange(value)}
-              disabled={shouldDisablePracaFilter}
-            />
-          </div>
-
-          {/* Seleção de Semanas */}
-          <ComparacaoWeekSelector
-            todasSemanas={todasSemanas}
-            semanasSelecionadas={semanasSelecionadas}
-            onToggleSemana={onToggleSemana}
-          />
-        </div>
-
-        {/* Botões de Ação */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-          <div className="text-sm text-slate-500 dark:text-slate-400">
-            {semanasSelecionadas.length > 0 && (
-              <span>
-                {semanasSelecionadas.length} semana{semanasSelecionadas.length !== 1 ? 's' : ''} selecionada{semanasSelecionadas.length !== 1 ? 's' : ''}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {semanasSelecionadas.length > 0 && (
+           <div className="flex items-center gap-2">
+             {semanasSelecionadas.length > 0 && (
               <button
                 onClick={onClearSemanas}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800"
+                 className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-red-600 hover:bg-slate-50 rounded-md transition-colors dark:text-slate-400 dark:hover:text-red-400 dark:hover:bg-slate-800"
               >
-                Limpar seleção
+                Limpar filtros
               </button>
             )}
-            <button
+             <button
               onClick={onMostrarApresentacao}
               disabled={semanasSelecionadas.length !== 2 || dadosComparacaoLength !== 2}
               className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               title={semanasSelecionadas.length !== 2 ? 'Selecione exatamente 2 semanas para gerar a apresentação' : 'Gerar apresentação em PDF'}
             >
-              Apresentação
+              Mode Apresentação
             </button>
+           </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Filtro de Praça - Mais compacto */}
+          <div className="w-full lg:w-1/4">
+            <FiltroSelect
+              label="Praça"
+              value={pracaSelecionada ?? ''}
+              options={pracas}
+              placeholder="Todas as praças"
+              onChange={(value) => onPracaChange(value)}
+              disabled={shouldDisablePracaFilter}
+            />
+          </div>
+
+          {/* Seleção de Semanas - Ocupa o resto */}
+          <div className="w-full lg:w-3/4">
+             <ComparacaoWeekSelector
+                todasSemanas={todasSemanas}
+                semanasSelecionadas={semanasSelecionadas}
+                onToggleSemana={onToggleSemana}
+              />
           </div>
         </div>
       </CardContent>
