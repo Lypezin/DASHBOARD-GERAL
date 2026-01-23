@@ -40,7 +40,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <ThemeProviderWrapper>
           <OrganizationProvider>
-            <ChunkReloadListener />
+            {/* <ChunkReloadListener /> */}
             <Toaster richColors position="top-right" />
             <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
               <Header />
