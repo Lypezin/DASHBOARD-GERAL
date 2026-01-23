@@ -1,11 +1,49 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Entregador, EntregadoresData } from '@/types';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from '../EntregadoresUtils';
 
 export function useEntregadoresMainSort(entregadoresData: EntregadoresData | null) {
-    const [sortField, setSortField] = useState<keyof Entregador | 'percentual_aceitas' | 'percentual_completadas'>('aderencia_percentual');
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-    const [searchTerm, setSearchTerm] = useState('');
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // Init from URL
+    const getInitialSortField = () => {
+        return (searchParams.get('ent_sort') as any) || 'aderencia_percentual';
+    };
+    const getInitialSortDirection = () => {
+        return (searchParams.get('ent_dir') as 'asc' | 'desc') || 'desc';
+    };
+    const getInitialSearchTerm = () => {
+        return searchParams.get('ent_search') || '';
+    };
+
+    const [sortField, setSortField] = useState<keyof Entregador | 'percentual_aceitas' | 'percentual_completadas'>(getInitialSortField);
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(getInitialSortDirection);
+    const [searchTerm, setSearchTerm] = useState(getInitialSearchTerm);
+
+    // Sync to URL
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        let changed = false;
+
+        if (sortField !== 'aderencia_percentual') {
+            if (params.get('ent_sort') !== sortField) { params.set('ent_sort', sortField); changed = true; }
+        } else if (params.has('ent_sort')) { params.delete('ent_sort'); changed = true; }
+
+        if (sortDirection !== 'desc') {
+            if (params.get('ent_dir') !== sortDirection) { params.set('ent_dir', sortDirection); changed = true; }
+        } else if (params.has('ent_dir')) { params.delete('ent_dir'); changed = true; }
+
+        if (searchTerm) {
+            if (params.get('ent_search') !== searchTerm) { params.set('ent_search', searchTerm); changed = true; }
+        } else if (params.has('ent_search')) { params.delete('ent_search'); changed = true; }
+
+        if (changed) {
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
+    }, [sortField, sortDirection, searchTerm, pathname, router, searchParams]);
 
     const sortedEntregadores: Entregador[] = useMemo(() => {
         if (!entregadoresData?.entregadores) return [];
