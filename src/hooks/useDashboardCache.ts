@@ -11,6 +11,21 @@ const globalDashboardCache = {
     timestamp: 0
 };
 
+/**
+ * Retorna os dados iniciais do cache global para inicialização de estados
+ * Isso evita o efeito de "refresh" quando o componente é remontado
+ */
+export function getInitialCacheData(): DashboardResumoData | null {
+    return globalDashboardCache.data;
+}
+
+/**
+ * Retorna a chave do cache atual
+ */
+export function getCacheKey(): string {
+    return globalDashboardCache.key;
+}
+
 export function useDashboardCache() {
     // Initialize previousPayloadRef with global cache key to prevent re-fetch when component remounts
     // This fixes the issue where returning to the tab caused a refresh

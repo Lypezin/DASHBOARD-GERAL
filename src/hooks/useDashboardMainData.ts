@@ -14,7 +14,7 @@ import {
   DimensoesDashboard,
 } from '@/types';
 import { useDashboardDataFetcher } from './useDashboardDataFetcher';
-import { useDashboardCache } from './useDashboardCache';
+import { useDashboardCache, getInitialCacheData } from './useDashboardCache';
 import { useDashboardDataEffect } from './dashboard/useDashboardDataEffect';
 import { useOrganization } from '@/contexts/OrganizationContext';
 
@@ -33,13 +33,24 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const { filterPayload, onError } = options;
   const { isLoading: isOrgLoading } = useOrganization();
 
-  const [totals, setTotals] = useState<Totals | null>(null);
-  const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>([]);
-  const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>([]);
-  const [aderenciaTurno, setAderenciaTurno] = useState<AderenciaTurno[]>([]);
-  const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>([]);
-  const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>([]);
-  const [dimensoes, setDimensoes] = useState<DimensoesDashboard | null>(null);
+  // Inicializar estados com dados do cache global para evitar "refresh" ao voltar para a aba
+  const initialCache = getInitialCacheData();
+
+  // Converter totais do cache para o tipo Totals usado no componente
+  const cachedTotals: Totals | null = initialCache?.totais ? {
+    ofertadas: initialCache.totais.corridas_ofertadas,
+    aceitas: initialCache.totais.corridas_aceitas,
+    rejeitadas: initialCache.totais.corridas_rejeitadas,
+    completadas: initialCache.totais.corridas_completadas,
+  } : null;
+
+  const [totals, setTotals] = useState<Totals | null>(cachedTotals);
+  const [aderenciaSemanal, setAderenciaSemanal] = useState<AderenciaSemanal[]>(initialCache?.aderencia_semanal ?? []);
+  const [aderenciaDia, setAderenciaDia] = useState<AderenciaDia[]>(initialCache?.aderencia_dia ?? []);
+  const [aderenciaTurno, setAderenciaTurno] = useState<AderenciaTurno[]>(initialCache?.aderencia_turno ?? []);
+  const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>(initialCache?.aderencia_sub_praca ?? []);
+  const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>(initialCache?.aderencia_origem ?? []);
+  const [dimensoes, setDimensoes] = useState<DimensoesDashboard | null>(initialCache?.dimensoes ?? null);
 
   const { fetchDashboardData, loading, error } = useDashboardDataFetcher({ filterPayload, onError });
 
