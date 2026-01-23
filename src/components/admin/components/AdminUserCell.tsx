@@ -25,6 +25,16 @@ export const AdminUserCell: React.FC<AdminUserCellProps> = ({ user }) => {
         // Tenta pegar do raw_user_meta_data (se existir na resposta do RPC)
         if (user.raw_user_meta_data?.avatar_url) return user.raw_user_meta_data.avatar_url;
 
+        // Checks extras baseados no Chat (presenceData.ts)
+        if (user.picture) return user.picture;
+        if (user.photo_url) return user.photo_url;
+
+        const metadata = user.raw_user_meta_data || user.user_metadata;
+        if (metadata) {
+            if (metadata.avatar_url) return metadata.avatar_url;
+            if (metadata.picture) return metadata.picture;
+        }
+
         return undefined;
     };
 
