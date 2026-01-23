@@ -52,7 +52,14 @@ export async function middleware(request: NextRequest) {
 
     // Redirecionar para dashboard se já estiver logado e tentar acessar login/registro
     if ((path === '/login' || path === '/registro') && user) {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+        const dashboardUrl = new URL('/dashboard', request.url);
+
+        // Preservar todos os parâmetros de busca originais para não perder filtros
+        request.nextUrl.searchParams.forEach((value, key) => {
+            dashboardUrl.searchParams.set(key, value);
+        });
+
+        return NextResponse.redirect(dashboardUrl);
     }
 
     return response;
