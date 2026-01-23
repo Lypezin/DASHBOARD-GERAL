@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useDashboardPage } from '@/hooks/useDashboardPage';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
