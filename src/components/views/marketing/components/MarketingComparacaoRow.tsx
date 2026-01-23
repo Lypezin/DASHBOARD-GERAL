@@ -70,6 +70,7 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
             <TableCell className="text-right border-l border-slate-100 dark:border-slate-800 align-middle py-4">
                 <div className="flex flex-col items-end gap-1">
                     <span className="font-medium text-slate-600 dark:text-slate-400 text-xs">{row.ofertadas_ops.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-slate-400">{calculatePercentage(row.ofertadas_ops, row.ofertadas_ops + row.ofertadas_mkt)}</span>
                 </div>
             </TableCell>
             <TableCell className="text-right align-middle py-4">
@@ -83,6 +84,7 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
             <TableCell className="text-right border-l border-slate-100 dark:border-slate-800 align-middle py-4">
                 <div className="flex flex-col items-end gap-1">
                     <span className="font-medium text-slate-600 dark:text-slate-400 text-xs">{row.aceitas_ops.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-slate-400">{calculatePercentage(row.aceitas_ops, row.aceitas_ops + row.aceitas_mkt)}</span>
                 </div>
             </TableCell>
             <TableCell className="text-right align-middle py-4">
@@ -96,6 +98,7 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
             <TableCell className="text-right border-l border-slate-100 dark:border-slate-800 align-middle py-4">
                 <div className="flex flex-col items-end gap-1">
                     <span className="font-medium text-slate-600 dark:text-slate-400 text-xs">{row.concluidas_ops.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-slate-400">{calculatePercentage(row.concluidas_ops, row.concluidas_ops + row.concluidas_mkt)}</span>
                 </div>
             </TableCell>
             <TableCell className="text-right align-middle py-4">
@@ -109,6 +112,7 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
             <TableCell className="text-right border-l border-slate-100 dark:border-slate-800 align-middle py-4">
                 <div className="flex flex-col items-end gap-1">
                     <span className="font-medium text-rose-600/70 dark:text-rose-400/70 text-xs">{row.rejeitadas_ops.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-rose-400/70">{calculatePercentage(row.rejeitadas_ops, row.rejeitadas_ops + row.rejeitadas_mkt)}</span>
                 </div>
             </TableCell>
             <TableCell className="text-right align-middle py-4">
@@ -123,6 +127,9 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
                 <div className="flex flex-col items-end gap-1">
                     <span className="font-medium text-slate-600 dark:text-slate-400 text-xs">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(row.valor_ops || 0)}
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                        {calculatePercentage(row.valor_ops || 0, (row.valor_ops || 0) + (row.valor_mkt || 0))}
                     </span>
                 </div>
             </TableCell>
