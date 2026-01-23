@@ -59,7 +59,7 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
 
       {/* Cards Grid - Adaptive */}
       <div className={cn(
-        "grid gap-7 flex-1 content-start",
+        "grid gap-7 flex-1 place-content-center w-full max-w-[1400px] mx-auto",
         itens.length === 1 && "flex justify-center items-center",
         itens.length === 2 && "grid-cols-2",
         itens.length === 3 && "grid-cols-3",

@@ -3,6 +3,7 @@ import { DadosProcessados } from '@/utils/apresentacao/dataProcessor';
 import { DashboardResumoData } from '@/types/dashboard';
 import { MediaSlideData } from '@/types/presentation';
 import SlideMedia from '@/components/apresentacao/slides/SlideMedia';
+import SlideUTR from '@/components/apresentacao/slides/SlideUTR';
 import SlideCapaFinal from '@/components/apresentacao/slides/SlideCapaFinal';
 import {
   buildSlideCapa,
@@ -20,6 +21,7 @@ import {
 export const useApresentacaoSlides = (
   dadosProcessados: DadosProcessados | null,
   dadosComparacao: DashboardResumoData[],
+  utrComparacao: any[], // Add type here
   numeroSemana1: string,
   numeroSemana2: string,
   periodoSemana1: string,
@@ -32,6 +34,7 @@ export const useApresentacaoSlides = (
     'ranking': true,
     'sub-pracas': true,
     'aderencia-diaria': true,
+    'utr': true, // Add default true
     turnos: true,
     origens: true,
     demanda: true,
@@ -71,11 +74,26 @@ export const useApresentacaoSlides = (
     const aderenciaDiaria = buildSlideAderenciaDiaria(visibleSections['aderencia-diaria'], { numeroSemana1, numeroSemana2, semana1Dias, semana2Dias });
     if (aderenciaDiaria) slidesConfig.push(aderenciaDiaria);
 
-    // 7. Turnos
+    // 7 UTR (New)
+    if (visibleSections['utr'] !== false) { // Default to true if undefined
+      slidesConfig.push({
+        key: 'utr',
+        render: (visible: boolean) => (
+          <SlideUTR
+            isVisible={visible}
+            numeroSemana1={numeroSemana1}
+            numeroSemana2={numeroSemana2}
+            utrComparacao={utrComparacao}
+          />
+        )
+      });
+    }
+
+    // 8. Turnos
     const turnos = buildSlidesTurnos(visibleSections.turnos, turnosComparativo, { numeroSemana1, numeroSemana2 });
     slidesConfig.push(...turnos);
 
-    // 8. Origens
+    // 9. Origens
     console.log('[Apresentacao] Building origens slides:', {
       origensVisible: visibleSections.origens,
       origensCount: origensComparativo?.length,
@@ -85,11 +103,11 @@ export const useApresentacaoSlides = (
     console.log('[Apresentacao] Origens slides built:', origens.length);
     slidesConfig.push(...origens);
 
-    // 9. Demanda
+    // 10. Demanda
     const demanda = buildSlideDemanda(visibleSections.demanda, demandaItens, { numeroSemana1, numeroSemana2 });
     if (demanda) slidesConfig.push(demanda);
 
-    // 10. Mídias
+    // 11. Mídias
     mediaSlides.forEach((slideData, index) => {
       slidesConfig.push({
         key: `media-${slideData.id}`,
@@ -104,7 +122,7 @@ export const useApresentacaoSlides = (
       });
     });
 
-    // 11. Capa Final
+    // 12. Capa Final
     if (visibleSections['capa-final']) {
       slidesConfig.push({
         key: 'capa-final',
@@ -121,7 +139,8 @@ export const useApresentacaoSlides = (
     periodoSemana1,
     periodoSemana2,
     pracaSelecionada,
-    mediaSlides
+    mediaSlides,
+    utrComparacao
   ]);
 
   return slides;

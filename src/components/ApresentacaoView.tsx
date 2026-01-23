@@ -11,6 +11,7 @@ import { PresentationEditorProvider } from '@/components/apresentacao/context/Pr
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
+  utrComparacao: any[]; // UtrComparacaoItem[]
   semanasSelecionadas: string[];
   pracaSelecionada: string | null;
   anoSelecionado?: number;
@@ -19,6 +20,7 @@ interface ApresentacaoViewProps {
 
 const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   dadosComparacao,
+  utrComparacao,
   semanasSelecionadas,
   pracaSelecionada,
   anoSelecionado,
@@ -41,6 +43,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   const slides = useApresentacaoSlides(
     dadosProcessados,
     dadosComparacao,
+    utrComparacao,
     numeroSemana1,
     numeroSemana2,
     periodoSemana1,
