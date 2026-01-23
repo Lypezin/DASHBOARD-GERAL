@@ -89,27 +89,34 @@ export function useDashboardFilters({ anosDisponiveis, setAnoEvolucao }: UseDash
             return;
         }
 
-        const params = new URLSearchParams();
+        const params = new URLSearchParams(searchParams.toString());
 
-        if (filters.ano) params.set('ano', String(filters.ano));
-        if (filters.semana) params.set('semana', String(filters.semana));
-        if (filters.praca) params.set('praca', filters.praca);
-        if (filters.subPraca) params.set('subPraca', filters.subPraca);
-        if (filters.origem) params.set('origem', filters.origem);
-        if (filters.turno) params.set('turno', filters.turno);
+        // Helper para setar ou remover param
+        const updateParam = (key: string, value: string | null | undefined) => {
+            if (value) params.set(key, value);
+            else params.delete(key);
+        };
 
-        if (filters.subPracas.length > 0) params.set('subPracas', filters.subPracas.join(','));
-        if (filters.origens.length > 0) params.set('origens', filters.origens.join(','));
-        if (filters.turnos.length > 0) params.set('turnos', filters.turnos.join(','));
-        if (filters.semanas.length > 0) params.set('semanas', filters.semanas.join(','));
+        updateParam('ano', filters.ano ? String(filters.ano) : null);
+        updateParam('semana', filters.semana ? String(filters.semana) : null);
+        updateParam('praca', filters.praca);
+        updateParam('subPraca', filters.subPraca);
+        updateParam('origem', filters.origem);
+        updateParam('turno', filters.turno);
+
+        updateParam('subPracas', filters.subPracas.length > 0 ? filters.subPracas.join(',') : null);
+        updateParam('origens', filters.origens.length > 0 ? filters.origens.join(',') : null);
+        updateParam('turnos', filters.turnos.length > 0 ? filters.turnos.join(',') : null);
+        updateParam('semanas', filters.semanas.length > 0 ? filters.semanas.join(',') : null);
 
         if (filters.filtroModo !== 'ano_semana') params.set('filtroModo', filters.filtroModo);
-        if (filters.dataInicial) params.set('dataInicial', filters.dataInicial);
-        if (filters.dataFinal) params.set('dataFinal', filters.dataFinal);
+        else params.delete('filtroModo');
 
-        // Manter o parâmetro 'tab' se existir
-        const currentTab = searchParams.get('tab');
-        if (currentTab) params.set('tab', currentTab);
+        updateParam('dataInicial', filters.dataInicial);
+        updateParam('dataFinal', filters.dataFinal);
+
+        // 'tab' e outros params (como 'comp_semanas') são preservados automaticamente
+        // pois iniciamos com searchParams.toString()
 
         const queryString = params.toString();
         const url = queryString ? `${pathname}?${queryString}` : pathname;
