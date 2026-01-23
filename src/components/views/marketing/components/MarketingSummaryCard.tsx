@@ -32,16 +32,16 @@ export const MarketingSummaryCard = ({
             <Icon className="w-16 h-16" />
         </div>
 
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
+        <CardHeader className="flex flex-col items-start space-y-3 pb-2 z-10 relative">
+            <div className={`p-2.5 rounded-xl ${iconBgClass} transition-shadow duration-300 group-hover:shadow-md`}>
+                <Icon className={`h-5 w-5 ${colorClass}`} />
+            </div>
             <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
                 {title}
             </CardTitle>
-            <div className={`p-2 rounded-xl ${iconBgClass} transition-shadow duration-300 group-hover:shadow-md`}>
-                <Icon className={`h-4 w-4 ${colorClass}`} />
-            </div>
         </CardHeader>
-        <CardContent className="z-10 relative">
-            <div className={`text-2xl font-bold tracking-tight mb-3 ${colorClass}`}>
+        <CardContent className="z-10 relative pt-0">
+            <div className={`text-3xl font-bold tracking-tight mb-4 ${colorClass}`}>
                 {value}
             </div>
 
