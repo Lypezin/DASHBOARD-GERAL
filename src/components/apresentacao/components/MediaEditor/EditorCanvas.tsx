@@ -11,6 +11,7 @@ interface EditorCanvasProps {
 
 export function EditorCanvas({ elements, selectedElementId, setSelectedElementId, handleUpdateElement }: EditorCanvasProps) {
     return (
+        /* eslint-disable @next/next/no-img-element */
         <div className="flex-1 bg-black/90 rounded-lg overflow-hidden relative shadow-2xl border border-slate-700 flex items-center justify-center"
             onClick={() => setSelectedElementId(null)}>
 

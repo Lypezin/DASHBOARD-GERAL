@@ -25,6 +25,7 @@ export const MediaManagerList: React.FC<MediaManagerListProps> = ({
                 const previewUrl = firstImage ? firstImage.content : slide.url; // Fallback to legacy
 
                 return (
+                    /* eslint-disable @next/next/no-img-element */
                     <div
                         key={slide.id}
                         onClick={() => onSelect(slide.id)}

@@ -28,6 +28,24 @@ export const PresentationEditorProvider: React.FC<{ children: ReactNode; initial
     const [isEditing, setIsEditing] = useState(false);
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
 
+    // Sync state with prop changes (e.g. new slides added via hook)
+    React.useEffect(() => {
+        setSlideOrder((prev) => {
+            // Find keys that are in initialOrder but not in prev (new slides)
+            const newKeys = initialOrder.filter(key => !prev.includes(key));
+
+            // If internal state is empty, just take the new order
+            if (prev.length === 0) return initialOrder;
+
+            // If we have new keys, append them (or more complex merge logic if needed)
+            if (newKeys.length > 0) {
+                return [...prev, ...newKeys];
+            }
+
+            return prev;
+        });
+    }, [initialOrder]);
+
     const moveSlide = useCallback((dragIndex: number, hoverIndex: number) => {
         setSlideOrder((prevOrder) => {
             const newOrder = [...prevOrder];

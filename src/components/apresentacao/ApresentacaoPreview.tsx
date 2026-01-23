@@ -104,9 +104,7 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = (props) =
   const initialOrder = useMemo(() => props.slides.map(s => s.key), [props.slides]);
   if (!mounted) return null;
   return createPortal(
-    <PresentationEditorProvider initialOrder={initialOrder}>
-      <ApresentacaoPreviewContent {...props} />
-    </PresentationEditorProvider>,
+    <ApresentacaoPreviewContent {...props} />,
     document.body
   );
 };
