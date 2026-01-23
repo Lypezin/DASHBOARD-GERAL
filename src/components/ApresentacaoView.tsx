@@ -1,18 +1,78 @@
-
 import React, { useEffect } from 'react';
 import { DashboardResumoData } from '@/types';
 import { useApresentacaoData } from '@/hooks/apresentacao/useApresentacaoData';
 import { useApresentacaoSlides } from '@/hooks/apresentacao/useApresentacaoSlides';
 import { ApresentacaoPreview } from './apresentacao/ApresentacaoPreview';
 import { ApresentacaoWebMode } from './apresentacao/ApresentacaoWebMode';
+import { PresentationContext } from '@/contexts/PresentationContext';
+import { MediaManagerModal } from './apresentacao/components/MediaManagerModal';
+import { useApresentacaoController } from '@/hooks/apresentacao/useApresentacaoController';
 import { PresentationEditorProvider } from '@/components/apresentacao/context/PresentationEditorContext';
 
-// ... existing imports
+interface ApresentacaoViewProps {
+  dadosComparacao: DashboardResumoData[];
+  semanasSelecionadas: string[];
+  pracaSelecionada: string | null;
+  anoSelecionado?: number;
+  onClose: () => void;
+}
 
 const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
-  // ... props
+  dadosComparacao,
+  semanasSelecionadas,
+  pracaSelecionada,
+  anoSelecionado,
+  onClose,
 }) => {
-  // ... existing hooks
+  const { state, actions } = useApresentacaoController();
+  const {
+    currentSlide, viewMode, visibleSections,
+    mediaSlides, isMediaManagerOpen, orderedPresentationSlides
+  } = state;
+  const {
+    setCurrentSlide, setViewMode,
+    setIsMediaManagerOpen, setOrderedPresentationSlides, setMediaSlides,
+    handleUpdateMediaSlide, handleAddMediaSlide, handleDeleteMediaSlide, toggleSection
+  } = actions;
+
+  const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas, anoSelecionado);
+  const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
+
+  const slides = useApresentacaoSlides(
+    dadosProcessados,
+    dadosComparacao,
+    numeroSemana1,
+    numeroSemana2,
+    periodoSemana1,
+    periodoSemana2,
+    pracaSelecionada,
+    visibleSections,
+    mediaSlides,
+    handleUpdateMediaSlide
+  );
+
+  useEffect(() => {
+    setCurrentSlide((prev) => {
+      if (slides.length === 0) return 0;
+      return Math.min(prev, slides.length - 1);
+    });
+  }, [slides.length, setCurrentSlide]);
+
+  const goToNextSlide = () => {
+    setCurrentSlide((prev) => {
+      if (slides.length === 0) return 0;
+      return Math.min(prev + 1, slides.length - 1);
+    });
+  };
+
+  const goToPrevSlide = () => {
+    setCurrentSlide((prev) => {
+      if (slides.length === 0) return 0;
+      return Math.max(prev - 1, 0);
+    });
+  };
+
+  const isWebMode = viewMode === 'web_presentation';
 
   // Calculate initial order from slides
   const initialOrder = React.useMemo(() => slides.map(s => s.key), [slides]);
