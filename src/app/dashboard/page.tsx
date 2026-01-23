@@ -1,5 +1,4 @@
-
-import { useSearchParams } from 'next/navigation';
+'use client';
 
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
