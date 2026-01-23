@@ -1,5 +1,5 @@
 /**
- * Constantes para a view de comparação
+ * Constantes para a view de comparação .
  */
 
 export interface MetricaOrigem {
