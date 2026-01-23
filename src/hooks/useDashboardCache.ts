@@ -12,16 +12,11 @@ const globalDashboardCache = {
 };
 
 export function useDashboardCache() {
-    // Refs for flow control (still needed per instance)
-    const previousPayloadRef = useRef<string>('');
-    const isFirstExecutionRef = useRef<boolean>(true);
+    // Initialize previousPayloadRef with global cache key to prevent re-fetch when component remounts
+    // This fixes the issue where returning to the tab caused a refresh
+    const previousPayloadRef = useRef<string>(globalDashboardCache.key || '');
+    const isFirstExecutionRef = useRef<boolean>(!globalDashboardCache.data);
     const pendingPayloadKeyRef = useRef<string>('');
-
-    // Initialize previousPayloadRef with global cache key if available to prevent initial re-fetch if payload matches
-    if (isFirstExecutionRef.current && globalDashboardCache.key && globalDashboardCache.data) {
-        // If we have global cache, we can potentialy use it. 
-        // Logic in useDashboardDataEffect calls checkCache(payloadKey)
-    }
 
     const checkCache = (payloadKey: string) => {
         if (globalDashboardCache.key === payloadKey && globalDashboardCache.data) {
