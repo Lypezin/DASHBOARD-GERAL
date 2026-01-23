@@ -35,7 +35,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
 
   return (
     <motion.div
-      className="space-y-6"
+      className="space-y-8 max-w-[1800px] mx-auto"
       variants={staggerContainer}
       initial="hidden"
       animate="show"
