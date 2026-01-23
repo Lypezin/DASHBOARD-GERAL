@@ -46,17 +46,17 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
                     </motion.div>
 
                     <motion.div variants={fadeInItem}>
-                        <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <span className="bg-blue-600 w-1.5 h-6 rounded-full inline-block"></span>
+                        <Card className="border-none shadow-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-md overflow-hidden ring-1 ring-slate-200/50 dark:ring-slate-800/50">
+                            <CardHeader className="bg-gradient-to-r from-blue-50/50 to-transparent dark:from-blue-900/10 pb-6 border-b border-slate-100 dark:border-slate-800/60">
+                                <CardTitle className="flex items-center gap-3 text-xl">
+                                    <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-blue-500 to-indigo-600 shadow-sm" />
                                     Comparativo: Operacional vs Marketing
                                 </CardTitle>
-                                <CardDescription>
-                                    Análise de volume e funil de corridas por semana
+                                <CardDescription className="ml-4.5 pl-1 text-slate-500 dark:text-slate-400">
+                                    Análise detalhada de volume e funil de corridas por semana
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-0">
                                 <MarketingComparacaoTable data={data} praca={praca} />
                             </CardContent>
                         </Card>

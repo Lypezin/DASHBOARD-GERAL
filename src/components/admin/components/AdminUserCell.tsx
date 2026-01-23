@@ -18,10 +18,22 @@ export const AdminUserCell: React.FC<AdminUserCellProps> = ({ user }) => {
             .toUpperCase();
     };
 
+    const getAvatarUrl = (user: User | any) => {
+        // Tenta pegar do campo direto
+        if (user.avatar_url) return user.avatar_url;
+
+        // Tenta pegar do raw_user_meta_data (se existir na resposta do RPC)
+        if (user.raw_user_meta_data?.avatar_url) return user.raw_user_meta_data.avatar_url;
+
+        return undefined;
+    };
+
+    const avatarUrl = getAvatarUrl(user);
+
     return (
         <div className="flex items-center gap-3">
             <Avatar>
-                <AvatarImage src={user.avatar_url} />
+                <AvatarImage src={avatarUrl} />
                 <AvatarFallback>{getInitials(user.full_name)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
