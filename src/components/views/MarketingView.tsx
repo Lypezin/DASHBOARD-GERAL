@@ -14,12 +14,12 @@ const MarketingView = React.memo(function MarketingView() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const activeSubTab = searchParams.get('tab') || 'dashboard';
+  const activeSubTab = searchParams.get('mkt_tab') || 'dashboard';
 
   const handleTabChange = (tab: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', tab);
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    params.set('mkt_tab', tab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (
