@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { fetchPracasWithFallback } from './admin/utils/pracasFetcher';
@@ -37,14 +38,28 @@ export function useAdminData() {
     setError(null);
 
     try {
-      const [usersPromise, pendingPromise, pracasPromise] = await Promise.allSettled([
+      const [usersPromise, pendingPromise, pracasPromise, profilesPromise] = await Promise.allSettled([
         safeRpc<User[]>('list_all_users', {}, { timeout: 30000, validateParams: false }),
         safeRpc<User[]>('list_pending_users', {}, { timeout: 30000, validateParams: false }),
-        fetchPracasWithFallback()
+        fetchPracasWithFallback(),
+        supabase.from('user_profiles').select('id, avatar_url')
       ]);
 
+      let profilesMap = new Map<string, string>();
+      if (profilesPromise.status === 'fulfilled' && profilesPromise.value.data) {
+        profilesPromise.value.data.forEach((p: any) => {
+          if (p.avatar_url) profilesMap.set(p.id, p.avatar_url);
+        });
+      }
+
       if (usersPromise.status === 'fulfilled' && !usersPromise.value.error) {
-        setUsers(usersPromise.value.data || []);
+        const rawUsers = usersPromise.value.data || [];
+        // Merge avatars
+        const mergedUsers = rawUsers.map(u => ({
+          ...u,
+          avatar_url: profilesMap.get(u.id) || u.avatar_url
+        }));
+        setUsers(mergedUsers);
       } else {
         if (IS_DEV) {
           const errorMsg = usersPromise.status === 'fulfilled'
@@ -58,7 +73,13 @@ export function useAdminData() {
       }
 
       if (pendingPromise.status === 'fulfilled' && !pendingPromise.value.error) {
-        setPendingUsers(pendingPromise.value.data || []);
+        // Pending users usually don't have profiles yet, but we can try mapping if needed
+        const rawPending = pendingPromise.value.data || [];
+        const mergedPending = rawPending.map(u => ({
+          ...u,
+          avatar_url: profilesMap.get(u.id) || u.avatar_url
+        }));
+        setPendingUsers(mergedPending);
       } else {
         if (IS_DEV) {
           const errorMsg = pendingPromise.status === 'fulfilled'
