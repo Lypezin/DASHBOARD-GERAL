@@ -6,7 +6,7 @@ import SlideTurnos from '@/components/apresentacao/slides/SlideTurnos';
 import SlideOrigem from '@/components/apresentacao/slides/SlideOrigem';
 
 // Constants
-const SUB_PRACAS_PER_PAGE = 4;
+const SUB_PRACAS_PER_PAGE = 3;
 const TURNOS_PER_PAGE = 2;
 const ORIGENS_PER_PAGE = 3;
 
