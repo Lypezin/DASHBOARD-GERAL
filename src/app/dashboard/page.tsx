@@ -1,6 +1,3 @@
-'use client';
-
-import { useSearchParams } from 'next/navigation';
 import React from 'react';
 import { useDashboardPage } from '@/hooks/useDashboardPage';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -119,7 +116,6 @@ function DashboardContent() {
                     </div>
                 )}
             </div>
-            <DebugUrlState filters={filters} activeTab={activeTab} />
         </div>
     );
 }
