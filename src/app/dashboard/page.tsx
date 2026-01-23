@@ -1,5 +1,7 @@
-'use client';
 
+import { useSearchParams } from 'next/navigation';
+
+import { useSearchParams } from 'next/navigation';
 import React from 'react';
 import { useDashboardPage } from '@/hooks/useDashboardPage';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -117,6 +119,25 @@ function DashboardContent() {
                         </main>
                     </div>
                 )}
+            </div>
+            <DebugUrlState filters={filters} activeTab={activeTab} />
+        </div>
+    );
+}
+
+function DebugUrlState({ filters, activeTab }: { filters: any, activeTab: string }) {
+    const searchParams = useSearchParams();
+    // Force re-render when URL changes
+    const paramsString = searchParams.toString();
+
+    return (
+        <div className="fixed bottom-4 right-4 p-4 bg-black/90 text-green-400 text-xs font-mono rounded-lg shadow-2xl z-50 border border-green-500/30 max-w-md pointer-events-none opacity-80">
+            <div className="font-bold border-b border-green-500/30 mb-2 pb-1">DEBUG STATE (Tire print)</div>
+            <div className="space-y-1">
+                <div className="break-all"><span className="text-white">URL Search:</span> {paramsString || '(empty)'}</div>
+                <div><span className="text-white">Active Tab:</span> {activeTab}</div>
+                <div><span className="text-white">Filter Ano:</span> {filters.ano}</div>
+                <div><span className="text-white">Time:</span> {new Date().toLocaleTimeString()}</div>
             </div>
         </div>
     );
