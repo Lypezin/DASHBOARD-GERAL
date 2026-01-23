@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useTabData } from '@/hooks/useTabData';
@@ -17,16 +18,54 @@ import { useChartRegistration } from './dashboard/useChartRegistration';
 import { useDashboardAuthWrapper } from './dashboard/useDashboardAuthWrapper';
 
 export function useDashboardPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   // Auth Logic
   const { isCheckingAuth, isAuthenticated, currentUser } = useDashboardAuthWrapper();
 
   // Chart Registration
   const chartReady = useChartRegistration();
 
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  // Initialize activeTab from URL or default to 'dashboard'
+  const getInitialTab = (): TabType => {
+    const tabParam = searchParams.get('tab');
+    // Validate if param is a valid TabType (simple validation)
+    if (tabParam && ['dashboard', 'analise', 'utr', 'entregadores', 'valores', 'evolucao', 'prioridade', 'comparacao', 'marketing', 'marketing_comparacao'].includes(tabParam)) {
+      return tabParam as TabType;
+    }
+    return 'dashboard';
+  };
+
+  const [activeTab, setActiveTabState] = useState<TabType>(getInitialTab);
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
 
   const { filters, setFilters } = useDashboardFilters();
+
+  // Sync activeTab with URL
+  const setActiveTab = useCallback((newTab: TabType) => {
+    setActiveTabState(newTab);
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (newTab === 'dashboard') {
+      params.delete('tab');
+    } else {
+      params.set('tab', newTab);
+    }
+
+    const queryString = params.toString();
+    const url = queryString ? `${pathname}?${queryString}` : pathname;
+    router.replace(url, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  // Update activeTab if URL changes externally (e.g. back button)
+  useEffect(() => {
+    const urlTab = getInitialTab();
+    if (urlTab !== activeTab) {
+      setActiveTabState(urlTab);
+    }
+  }, [searchParams]);
 
   // 1. Obter dados (incluindo anosDisponiveis)
   const {
