@@ -19,13 +19,7 @@ export default function DashboardPage() {
   );
 }
 
-function DashboardContent() {
-  return (
-    <React.Suspense fallback={<DashboardLoadingState />}>
-      <DashboardContent />
-    </React.Suspense>
-  );
-}
+
 
 function DashboardContent() {
   const { auth, ui, filters, data } = useDashboardPage();
