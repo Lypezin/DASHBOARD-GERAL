@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { AnaliseTableTabs } from '@/components/analise/AnaliseTableTabs';
 import { ListChecks } from 'lucide-react';
@@ -26,28 +26,25 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
 }: AnaliseDetailedCardProps) {
     return (
         <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                            <ListChecks className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                <span className="bg-indigo-500 w-1.5 h-6 rounded-full inline-block"></span>
-                                Análise Detalhada
-                            </CardTitle>
-                            <CardDescription className="text-slate-500 dark:text-slate-400">
-                                Métricas completas de performance por segmento
-                            </CardDescription>
-                        </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-6 py-5 border-b border-slate-100 dark:border-slate-800/60">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                        <ListChecks className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <AnaliseTableTabs
-                        activeTable={activeTable}
-                        onTableChange={onTableChange}
-                    />
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
+                            Análise Detalhada
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Métricas completas de performance por segmento
+                        </p>
+                    </div>
                 </div>
-            </CardHeader>
+                <AnaliseTableTabs
+                    activeTable={activeTable}
+                    onTableChange={onTableChange}
+                />
+            </div>
 
             <CardContent className="p-0">
                 <AnaliseTable

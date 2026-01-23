@@ -58,7 +58,7 @@ const AnaliseView = React.memo(function AnaliseView({
 
   return (
     <motion.div
-      className="space-y-6 pb-8"
+      className="space-y-8 pb-8 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8"
       variants={container}
       initial="hidden"
       animate="show"
