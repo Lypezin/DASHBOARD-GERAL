@@ -10,6 +10,14 @@ import { DashboardAuthLoading } from '@/components/dashboard/DashboardAuthLoadin
 import type { AderenciaSemanal } from '@/types';
 
 export default function DashboardPage() {
+    return (
+        <React.Suspense fallback={<DashboardLoadingState />}>
+            <DashboardContent />
+        </React.Suspense>
+    );
+}
+
+function DashboardContent() {
     const { auth, ui, filters: filtersGroup, data } = useDashboardPage();
 
     // Destructure for easier access
