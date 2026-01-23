@@ -24,7 +24,8 @@ export function useAuthSubscription({ checkUser, setUser, pathname }: UseAuthSub
             } else if (event === 'SIGNED_OUT') {
                 setUser(null);
                 if (!shouldSkipRedirect(pathname)) {
-                    router.push('/login');
+                    const search = typeof window !== 'undefined' ? window.location.search : '';
+                    router.push(`/login${search}`);
                 }
             } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
                 if (IS_DEV && event === 'USER_UPDATED') {

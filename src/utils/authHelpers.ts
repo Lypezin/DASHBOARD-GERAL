@@ -48,17 +48,25 @@ export function hasOldSupabaseTokens(): boolean {
  */
 export async function signOutAndRedirect(router: { push: (path: string) => void }, redirectPath: string = '/login'): Promise<void> {
   console.log('🔴 [signOutAndRedirect] Fazendo logout e redirecionando para:', redirectPath);
-  console.trace('[signOutAndRedirect] Stack trace:');
+
+  let targetPath = redirectPath;
+  if (typeof window !== 'undefined' && redirectPath === '/login') {
+    const search = window.location.search;
+    if (search) {
+      targetPath = `${redirectPath}${search}`;
+    }
+  }
+
   try {
     await supabase.auth.signOut();
     clearSupabaseStorage();
-    router.push(redirectPath);
+    router.push(targetPath);
   } catch (error) {
     if (IS_DEV) {
       safeLog.error('[signOutAndRedirect] Erro ao fazer logout:', error);
     }
     clearSupabaseStorage();
-    router.push(redirectPath);
+    router.push(targetPath);
   }
 }
 
