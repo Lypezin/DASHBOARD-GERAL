@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { ViewToggleButton } from '../ViewToggleButton';
 import { ComparacaoTabelaDetalhada } from './ComparacaoTabelaDetalhada';
 import { ComparacaoCharts } from './ComparacaoCharts';
@@ -20,30 +19,30 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
 }) => {
     return (
         <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-            <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 lg:p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                            <BarChart2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
-                            Comparação Detalhada de Métricas
-                        </CardTitle>
-                    </div>
-                    <div className="flex gap-2">
-                        <ViewToggleButton
-                            active={viewMode === 'table'}
-                            onClick={() => onViewModeChange('table')}
-                            label="Tabela"
-                        />
-                        <ViewToggleButton
-                            active={viewMode === 'chart'}
-                            onClick={() => onViewModeChange('chart')}
-                            label="Gráfico"
-                        />
-                    </div>
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800/60">
+                <div>
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
+                        <div className="h-6 w-1 rounded-full bg-blue-500" />
+                        Análise Detalhada
+                    </h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 pl-3">
+                        Visão granular de todas as métricas por semana
+                    </p>
                 </div>
-            </CardHeader>
+
+                <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                    <ViewToggleButton
+                        active={viewMode === 'table'}
+                        onClick={() => onViewModeChange('table')}
+                        label="Tabela"
+                    />
+                    <ViewToggleButton
+                        active={viewMode === 'chart'}
+                        onClick={() => onViewModeChange('chart')}
+                        label="Gráfico"
+                    />
+                </div>
+            </div>
             <CardContent className="p-0">
                 {viewMode === 'table' ? (
                     <ComparacaoTabelaDetalhada

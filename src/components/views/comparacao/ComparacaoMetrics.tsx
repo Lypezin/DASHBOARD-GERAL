@@ -3,7 +3,7 @@ import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatters';
 import { getWeeklyHours } from '@/utils/comparacaoHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Car, Clock } from 'lucide-react';
+import { CheckCircle2, Car, Clock, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface ComparacaoMetricsProps {
   dadosComparacao: DashboardResumoData[];
@@ -12,90 +12,125 @@ interface ComparacaoMetricsProps {
 export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
   dadosComparacao,
 }) => {
+  // Cálculos Básicos
   const aderenciaMedia = Number(
-    (dadosComparacao.reduce((sum, d) => sum + (d?.aderencia_semanal?.[0]?.aderencia_percentual ?? 0), 0) / dadosComparacao.length).toFixed(1)
+    (dadosComparacao.reduce((sum, d) => sum + (d?.aderencia_semanal?.[0]?.aderencia_percentual ?? 0), 0) / (dadosComparacao.length || 1)).toFixed(1)
   );
 
   const totalCorridas = dadosComparacao.reduce((sum, d) => sum + (d?.total_completadas ?? 0), 0);
 
-  const horasEntregues = formatarHorasParaHMS(
-    dadosComparacao.reduce((sum, d) => sum + converterHorasParaDecimal(getWeeklyHours(d, 'horas_entregues')), 0).toString()
-  );
+  const horasTotaisDecimal = dadosComparacao.reduce((sum, d) => sum + converterHorasParaDecimal(getWeeklyHours(d, 'horas_entregues')), 0);
+  const horasEntregues = formatarHorasParaHMS(horasTotaisDecimal.toString());
 
-  // Reusable Premium Stat Card
-  const StatCard = ({
+  const totalReceita = dadosComparacao.reduce((sum, d) => sum + ((d as any)?.total_valor ?? 0), 0);
+
+
+  // Componente Hero Card
+  const HeroCard = ({
     title,
-    icon: Icon,
     value,
     subtext,
-    colorClass,
-    bgClass,
-    iconBgClass,
+    icon: Icon,
+    trend, // 'up' | 'down' | 'neutral'
+    trendValue,
+    colorFrom,
+    colorTo,
+    iconColor
   }: {
     title: string;
-    icon: any;
     value: string;
-    subtext?: string;
-    colorClass: string;
-    bgClass: string;
-    iconBgClass: string;
+    subtext: string;
+    icon: any;
+    trend?: 'up' | 'down' | 'neutral';
+    trendValue?: string;
+    colorFrom: string;
+    colorTo: string;
+    iconColor: string;
   }) => (
-    <Card className={`border-none shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden relative ${bgClass}`}>
-      <div className={`absolute -bottom-4 -right-4 p-3 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 group-hover:-rotate-12 duration-500 pointer-events-none`}>
-        <Icon className="w-24 h-24" />
+    <Card className="relative overflow-hidden border-none shadow-lg group">
+      <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-10 group-hover:opacity-20 transition-opacity duration-500`} />
+
+      {/* Background Decorative Icon */}
+      <div className="absolute -right-6 -bottom-6 opacity-5 transform rotate-12 group-hover:scale-110 transition-transform duration-700">
+        <Icon className={`w-36 h-36 ${iconColor}`} />
       </div>
 
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-          {title}
-        </CardTitle>
-        <div className={`p-2 rounded-xl ${iconBgClass} transition-shadow duration-300 group-hover:shadow-md`}>
-          <Icon className={`h-4 w-4 ${colorClass}`} />
+      <CardContent className="p-6 relative z-10">
+        <div className="flex justify-between items-start mb-4">
+          <div className={`p-3 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 ${iconColor}`}>
+            <Icon className="w-6 h-6" />
+          </div>
+          {trend && (
+            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md bg-white/50 border border-white/60
+                        ${trend === 'up' ? 'text-emerald-600' : trend === 'down' ? 'text-rose-600' : 'text-slate-500'}
+                    `}>
+              {trend === 'up' && <TrendingUp className="w-3 h-3" />}
+              {trend === 'down' && <TrendingDown className="w-3 h-3" />}
+              {trend === 'neutral' && <Minus className="w-3 h-3" />}
+              {trendValue}
+            </div>
+          )}
         </div>
-      </CardHeader>
-      <CardContent className="z-10 relative">
-        <div className={`text-3xl font-bold tracking-tight mb-1 ${colorClass} font-mono`}>
-          {value}
+
+        <div className="space-y-1">
+          <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</h3>
+          <div className="text-4xl font-bold tracking-tight text-slate-800 dark:text-slate-100 font-mono">
+            {value}
+          </div>
+          <p className="text-sm font-medium text-slate-400 dark:text-slate-500 mt-1">{subtext}</p>
         </div>
-        {subtext && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-            {subtext}
-          </p>
-        )}
       </CardContent>
     </Card>
   );
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-      <StatCard
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <HeroCard
         title="Aderência Média"
+        value={`${aderenciaMedia}%`}
+        subtext="Média do período selecionado"
         icon={CheckCircle2}
-        value={`${aderenciaMedia.toFixed(1)}%`}
-        subtext="Média de aderência no período"
-        colorClass="text-blue-600 dark:text-blue-400"
-        bgClass="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-900"
-        iconBgClass="bg-blue-100 dark:bg-blue-900/40"
+        trend="neutral"
+        trendValue="Estável"
+        colorFrom="from-blue-500"
+        colorTo="to-indigo-600"
+        iconColor="text-blue-600"
       />
 
-      <StatCard
-        title="Total de Corridas"
-        icon={Car}
+      <HeroCard
+        title="Total Corridas"
         value={totalCorridas.toLocaleString('pt-BR')}
-        subtext="Corridas completadas somadas"
-        colorClass="text-emerald-600 dark:text-emerald-400"
-        bgClass="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/20 dark:to-slate-900"
-        iconBgClass="bg-emerald-100 dark:bg-emerald-900/40"
+        subtext="Volume total entregue"
+        icon={Car}
+        trend="up"
+        trendValue="Volume"
+        colorFrom="from-emerald-500"
+        colorTo="to-teal-600"
+        iconColor="text-emerald-600"
       />
 
-      <StatCard
-        title="Horas Entregues"
-        icon={Clock}
+      <HeroCard
+        title="Horas Totais"
         value={horasEntregues}
-        subtext="Total bruto de horas entregues"
-        colorClass="text-purple-600 dark:text-purple-400"
-        bgClass="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-slate-900"
-        iconBgClass="bg-purple-100 dark:bg-purple-900/40"
+        subtext="Tempo total em rota"
+        icon={Clock}
+        trend="neutral"
+        trendValue="Produtividade"
+        colorFrom="from-violet-500"
+        colorTo="to-purple-600"
+        iconColor="text-purple-600"
+      />
+
+      <HeroCard
+        title="Receita Total"
+        value={totalReceita.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+        subtext="Faturamento do período"
+        icon={TrendingUp}
+        trend="up"
+        trendValue="Receita"
+        colorFrom="from-amber-400"
+        colorTo="to-orange-500"
+        iconColor="text-orange-600"
       />
     </div>
   );
