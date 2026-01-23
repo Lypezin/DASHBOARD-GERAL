@@ -7,15 +7,7 @@ import {
     Flag,
     BarChart3
 } from 'lucide-react';
-import React from 'react';
-import {
-    Users,
-    Megaphone,
-    CheckCircle2,
-    XCircle,
-    Flag,
-    BarChart3
-} from 'lucide-react';
+
 import { Card, CardContent } from '@/components/ui/card';
 
 interface PrioridadeStatsCardsProps {
