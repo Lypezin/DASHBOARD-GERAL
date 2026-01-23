@@ -83,7 +83,7 @@ const SlideUTR: React.FC<SlideUTRProps> = ({
                                             ) : (
                                                 <div className="flex flex-col items-center gap-2">
                                                     <span className="text-4xl font-extrabold text-blue-600">
-                                                        {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}%
+                                                        {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}
                                                     </span>
                                                     {/* Optional: Add bar/progress indicator here if desired */}
                                                 </div>

@@ -25,13 +25,13 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
     return (
         <div
             onClick={() => onClick(item)}
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''} animate-slide-up opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : 'h-full flex flex-col'} animate-slide-up opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
             style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
         >
-            {/* Card Header - Full width with name and planned */}
-            <div className="bg-gradient-to-r from-blue-800 to-blue-600 px-5 py-3 flex items-center justify-between gap-4 min-h-[4.5rem]">
+            {/* Card Header - Fixed height for alignment */}
+            <div className="bg-gradient-to-r from-blue-800 to-blue-600 px-5 py-3 flex items-center justify-between gap-4 h-[5.5rem] flex-shrink-0">
                 <h3
-                    className="text-white font-bold text-base uppercase tracking-wide flex-1 leading-snug"
+                    className="text-white font-bold text-base uppercase tracking-wide flex-1 leading-snug line-clamp-3"
                     style={{
                         wordBreak: 'break-word',
                         hyphens: 'auto'
@@ -49,7 +49,7 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
             </div>
 
             {/* Card Body */}
-            <div className={isSingleItem ? 'p-10' : 'p-5'}>
+            <div className={`${isSingleItem ? 'p-10' : 'p-5'} flex-1 flex flex-col justify-center`}>
                 {/* Week Comparison */}
                 <div className={`flex items-center justify-center ${isSingleItem ? 'gap-12' : 'gap-8'} mb-5`}>
                     <WeekComparisonCircle
