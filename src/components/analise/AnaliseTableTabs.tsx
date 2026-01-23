@@ -16,26 +16,25 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
   activeTable,
   onTableChange,
 }: AnaliseTableTabsProps) {
-  const tabs: { id: TableType; label: string; icon: string }[] = [
-    { id: 'dia', label: 'Por Dia', icon: '📅' },
-    { id: 'turno', label: 'Por Turno', icon: '🕐' },
-    { id: 'sub_praca', label: 'Por Sub Praça', icon: '📍' },
-    { id: 'origem', label: 'Por Origem', icon: '🏢' },
+  const tabs: { id: TableType; label: string }[] = [
+    { id: 'dia', label: 'Por Dia' },
+    { id: 'turno', label: 'Por Turno' },
+    { id: 'sub_praca', label: 'Por Sub Praça' },
+    { id: 'origem', label: 'Por Origem' },
   ];
 
   return (
-    <div className="flex gap-3 flex-wrap">
+    <div className="flex gap-2 flex-wrap bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTableChange(tab.id)}
-          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
-            activeTable === tab.id
-              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
-              : 'bg-white text-slate-700 hover:bg-blue-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 hover:scale-105 border border-slate-200 dark:border-slate-700'
-          }`}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${activeTable === tab.id
+              ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+            }`}
         >
-          {tab.icon} {tab.label}
+          {tab.label}
         </button>
       ))}
     </div>

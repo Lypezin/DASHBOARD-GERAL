@@ -26,40 +26,40 @@ export const AnaliseTable = React.memo(function AnaliseTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/50 shadow-lg">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
       <table className="w-full">
-        <thead className="bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-slate-800 dark:to-slate-700">
-          <tr className="border-b-2 border-blue-200 dark:border-slate-600">
-            <th className="px-4 py-3 text-left text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
+        <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+          <tr className="border-b border-slate-100 dark:border-slate-800">
+            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {labelColumn}
             </th>
-            <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
+            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Horas Entregues
             </th>
-            <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
-              Corridas Ofertadas
+            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Ofertadas
             </th>
-            <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
+            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Aceitas
             </th>
-            <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
+            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Rejeitadas
             </th>
-            <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
+            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Completadas
             </th>
-            <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
-              % Aceitação
+            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              % Aceit.
             </th>
-            <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
-              % Rejeição
+            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              % Rej.
             </th>
-            <th className="px-4 py-3 text-right text-xs sm:text-sm font-bold uppercase text-slate-700 dark:text-slate-200">
-              % Completude
+            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              % Comp.
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+        <tbody className="divide-none">
           {data.map((item, index) => (
             <AnaliseTableRow key={index} item={item} />
           ))}
