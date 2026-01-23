@@ -12,6 +12,22 @@ import { OnlineUsersSidebar } from '@/components/OnlineUsersSidebar';
 import type { AderenciaSemanal } from '@/types';
 
 export default function DashboardPage() {
+  return (
+    <React.Suspense fallback={<DashboardLoadingState />}>
+      <DashboardContent />
+    </React.Suspense>
+  );
+}
+
+function DashboardContent() {
+  return (
+    <React.Suspense fallback={<DashboardLoadingState />}>
+      <DashboardContent />
+    </React.Suspense>
+  );
+}
+
+function DashboardContent() {
   const { auth, ui, filters, data } = useDashboardPage();
 
   // Mostrar loading enquanto verifica autenticação
