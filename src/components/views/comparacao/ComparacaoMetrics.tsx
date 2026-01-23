@@ -22,7 +22,7 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
   const horasTotaisDecimal = dadosComparacao.reduce((sum, d) => sum + converterHorasParaDecimal(getWeeklyHours(d, 'horas_entregues')), 0);
   const horasEntregues = formatarHorasParaHMS(horasTotaisDecimal.toString());
 
-  const totalReceita = dadosComparacao.reduce((sum, d) => sum + ((d as any)?.total_valor ?? 0), 0);
+
 
 
   // Componente Hero Card
@@ -84,7 +84,7 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <HeroCard
         title="Aderência Média"
         value={`${aderenciaMedia}%`}
@@ -121,17 +121,6 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
         iconColor="text-purple-600"
       />
 
-      <HeroCard
-        title="Receita Total"
-        value={totalReceita.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-        subtext="Faturamento do período"
-        icon={TrendingUp}
-        trend="up"
-        trendValue="Receita"
-        colorFrom="from-amber-400"
-        colorTo="to-orange-500"
-        iconColor="text-orange-600"
-      />
     </div>
   );
 };

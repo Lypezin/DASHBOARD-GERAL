@@ -26,19 +26,26 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
     valueClassName = "text-slate-600 dark:text-slate-400",
     isEven = false,
 }) => {
+    // Calculate max value for relative bars
+    const values = data.map(getValue);
+    const maxValue = Math.max(...values, 0);
+
     return (
         <TableRow className={`
-            transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50
+            transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50 group
             ${!isEven ? 'bg-slate-50/30 dark:bg-slate-900/20' : ''}
         `}>
-            <TableCell className="font-medium text-slate-700 dark:text-slate-300">
-                <div className="flex items-center gap-2">
-                    {icon}
+            <TableCell className="font-medium text-slate-700 dark:text-slate-300 py-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white dark:bg-slate-800 shadow-sm rounded-lg ring-1 ring-slate-100 dark:ring-slate-700">
+                        {icon}
+                    </div>
                     {label}
                 </div>
             </TableCell>
             {data.map((dados, idx) => {
                 const rawValue = getValue(dados);
+                const percentage = maxValue > 0 ? (rawValue / maxValue) * 100 : 0;
 
                 let variacao: number | null = null;
 
@@ -60,14 +67,30 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
 
                 return (
                     <React.Fragment key={idx}>
-                        <TableCell className={`text-center text-sm border-l border-slate-200 dark:border-slate-700 ${valueClassName}`}>
-                            {formatValue(rawValue)}
+                        <TableCell className={`text-center text-sm border-l border-slate-100 dark:border-slate-800/60 relative p-0 h-full align-middle`}>
+                            <div className="relative w-full h-full py-4 px-2 flex flex-col items-center justify-center z-10">
+                                <span className={`font-medium relative z-10 ${valueClassName}`}>
+                                    {formatValue(rawValue)}
+                                </span>
+                            </div>
+
+                            {/* Visual Bar Background */}
+                            <div className="absolute bottom-0 left-0 h-1 bg-blue-500/10 dark:bg-blue-400/10 w-full">
+                                <div
+                                    className="h-full bg-blue-500/50 dark:bg-blue-400/50 transition-all duration-500"
+                                    style={{ width: `${percentage}%` }}
+                                />
+                            </div>
                         </TableCell>
                         {idx > 0 && (
-                            <TableCell className="text-center bg-slate-50/50 dark:bg-slate-900/50 p-2">
+                            <TableCell className="text-center w-[80px] p-0">
                                 {variacao !== null ? (
-                                    <VariacaoBadge variacao={variacao} className="hidden sm:inline-flex px-2 py-0.5 text-xs" invertColors={invertVariationColors} />
-                                ) : null}
+                                    <div className="flex justify-center">
+                                        <VariacaoBadge variacao={variacao} className="scale-90" invertColors={invertVariationColors} />
+                                    </div>
+                                ) : (
+                                    <span className="text-slate-300 dark:text-slate-700">•</span>
+                                )}
                             </TableCell>
                         )}
                     </React.Fragment>
