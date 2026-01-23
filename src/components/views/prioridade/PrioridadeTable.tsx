@@ -1,6 +1,6 @@
 import React from 'react';
 import { Entregador } from '@/types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Star } from 'lucide-react';
 import { PrioridadeTableHeader } from './components/PrioridadeTableHeader';
 import { PrioridadeTableRow } from './components/PrioridadeTableRow';
@@ -19,22 +19,22 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
   onSort,
 }) => {
   return (
-    <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-      <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
-        <div className="flex items-center gap-2">
+    <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 border-b border-slate-100 dark:border-slate-800/60">
+        <div className="flex items-center gap-3">
           <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
             <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
               Prioridade/Promo
-            </CardTitle>
-            <CardDescription className="text-slate-500 dark:text-slate-400">
-              Análise detalhada de entregadores para priorização e promoções
-            </CardDescription>
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Análise detalhada de entregadores
+            </p>
           </div>
         </div>
-      </CardHeader>
+      </div>
 
       <CardContent className="p-0">
         <div className="max-h-[600px] overflow-auto">

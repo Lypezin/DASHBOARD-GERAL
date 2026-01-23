@@ -7,7 +7,16 @@ import {
     Flag,
     BarChart3
 } from 'lucide-react';
-import { StatCard } from './components/StatCard';
+import React from 'react';
+import {
+    Users,
+    Megaphone,
+    CheckCircle2,
+    XCircle,
+    Flag,
+    BarChart3
+} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface PrioridadeStatsCardsProps {
     totalEntregadores: number;
@@ -26,60 +35,120 @@ export const PrioridadeStatsCards = React.memo(function PrioridadeStatsCards({
     totalCompletadas,
     aderenciaMedia,
 }: PrioridadeStatsCardsProps) {
+
+    // Helper Component for Hero Card
+    const HeroCard = ({
+        title,
+        value,
+        subtext,
+        icon: Icon,
+        colorFrom,
+        colorTo,
+        iconColor,
+        isPercentage = false
+    }: {
+        title: string;
+        value: string;
+        subtext: string;
+        icon: any;
+        colorFrom: string;
+        colorTo: string;
+        iconColor: string;
+        isPercentage?: boolean
+    }) => (
+        <Card className="relative overflow-hidden border-none shadow-md hover:shadow-lg transition-all duration-300 group">
+            <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-[0.08] group-hover:opacity-[0.12] transition-opacity duration-500`} />
+
+            <div className="absolute -right-6 -bottom-6 opacity-5 transform rotate-12 group-hover:scale-110 transition-transform duration-700">
+                <Icon className={`w-32 h-32 ${iconColor}`} />
+            </div>
+
+            <CardContent className="p-5 relative z-10 flex flex-col justify-between h-full">
+                <div className="flex justify-between items-start mb-3">
+                    <div className={`p-2.5 rounded-xl bg-white dark:bg-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/10 ${iconColor}`}>
+                        <Icon className="w-5 h-5" />
+                    </div>
+                </div>
+
+                <div>
+                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{title}</h3>
+                    <div className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 font-mono">
+                        {value}
+                    </div>
+                    {isPercentage && (
+                        <div className="mt-2 h-1 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                                className={`h-full bg-current ${iconColor}`}
+                                style={{ width: value }}
+                            />
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+
     return (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
-            <StatCard
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <HeroCard
                 title="Entregadores"
                 icon={Users}
                 value={totalEntregadores.toLocaleString('pt-BR')}
-                colorClass="text-blue-600 dark:text-blue-400"
-                bgClass="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-900"
-                iconBgClass="bg-blue-100 dark:bg-blue-900/40"
+                subtext="Total cadastrados"
+                colorFrom="from-blue-400"
+                colorTo="to-blue-600"
+                iconColor="text-blue-600"
             />
 
-            <StatCard
+            <HeroCard
                 title="Ofertadas"
                 icon={Megaphone}
                 value={totalOfertadas.toLocaleString('pt-BR')}
-                colorClass="text-sky-600 dark:text-sky-400"
-                bgClass="bg-gradient-to-br from-sky-50 to-white dark:from-sky-900/20 dark:to-slate-900"
-                iconBgClass="bg-sky-100 dark:bg-sky-900/40"
+                subtext="Total ofertadas"
+                colorFrom="from-sky-400"
+                colorTo="to-cyan-600"
+                iconColor="text-sky-600"
             />
 
-            <StatCard
+            <HeroCard
                 title="Aceitas"
                 icon={CheckCircle2}
                 value={totalAceitas.toLocaleString('pt-BR')}
-                colorClass="text-emerald-600 dark:text-emerald-400"
-                bgClass="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/20 dark:to-slate-900"
-                iconBgClass="bg-emerald-100 dark:bg-emerald-900/40"
+                subtext="Total aceitas"
+                colorFrom="from-emerald-400"
+                colorTo="to-teal-600"
+                iconColor="text-emerald-600"
             />
 
-            <StatCard
+            <HeroCard
                 title="Rejeitadas"
                 icon={XCircle}
                 value={totalRejeitadas.toLocaleString('pt-BR')}
-                colorClass="text-rose-600 dark:text-rose-400"
-                bgClass="bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-900"
-                iconBgClass="bg-rose-100 dark:bg-rose-900/40"
+                subtext="Total rejeitadas"
+                colorFrom="from-rose-400"
+                colorTo="to-pink-600"
+                iconColor="text-rose-600"
             />
 
-            <StatCard
+            <HeroCard
                 title="Completadas"
                 icon={Flag}
                 value={totalCompletadas.toLocaleString('pt-BR')}
-                colorClass="text-indigo-600 dark:text-indigo-400"
-                bgClass="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-900"
-                iconBgClass="bg-indigo-100 dark:bg-indigo-900/40"
+                subtext="Total completadas"
+                colorFrom="from-indigo-400"
+                colorTo="to-violet-600"
+                iconColor="text-indigo-600"
             />
 
-            <StatCard
-                title="Aderência"
+            <HeroCard
+                title="Aderência Média"
                 icon={BarChart3}
                 value={`${aderenciaMedia.toFixed(1)}%`}
-                colorClass="text-violet-600 dark:text-violet-400"
-                bgClass="bg-gradient-to-br from-violet-50 to-white dark:from-violet-900/20 dark:to-slate-900"
-                iconBgClass="bg-violet-100 dark:bg-violet-900/40"
+                subtext="Média geral"
+                colorFrom="from-violet-400"
+                colorTo="to-purple-600"
+                iconColor="text-violet-600"
+                isPercentage={true}
             />
         </div>
     );
