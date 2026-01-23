@@ -1,10 +1,40 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { MediaSlideData } from '@/types/presentation';
 
 export function useApresentacaoController() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const getInitialViewMode = () => {
+        return searchParams.get('comp_apres_mode') === 'web_presentation'
+            ? 'web_presentation'
+            : 'preview';
+    };
+
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [viewMode, setViewMode] = useState<'preview' | 'web_presentation'>('preview');
+    const [viewMode, setViewMode] = useState<'preview' | 'web_presentation'>(getInitialViewMode);
+
+    // Sync to URL
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        let changed = false;
+
+        if (viewMode === 'web_presentation') {
+            if (params.get('comp_apres_mode') !== 'web_presentation') {
+                params.set('comp_apres_mode', 'web_presentation');
+                changed = true;
+            }
+        } else if (params.has('comp_apres_mode')) {
+            params.delete('comp_apres_mode');
+            changed = true;
+        }
+
+        if (changed) {
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
+    }, [viewMode, pathname, router, searchParams]);
 
     const [visibleSections, setVisibleSections] = useState({
         capa: true,
