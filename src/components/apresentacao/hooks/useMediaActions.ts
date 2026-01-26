@@ -30,7 +30,8 @@ export function useMediaActions({
             id: Math.random().toString(36).substr(2, 9),
             type: 'text',
             content: 'Novo Texto',
-            position: { x: 0, y: 0 }
+            position: { x: 0, y: 0 },
+            scale: 1
         };
         onUpdateMediaSlide(activeMediaSlide.id, {
             elements: [...(activeMediaSlide.elements || []), newElement]
