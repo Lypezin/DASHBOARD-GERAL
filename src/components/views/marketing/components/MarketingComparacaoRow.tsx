@@ -126,19 +126,7 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
                 </div>
             </TableCell>
 
-            {/* Entregadores */}
-            <TableCell className="text-right border-l border-slate-100 dark:border-slate-800 align-middle py-4">
-                <div className="flex flex-col items-end gap-1">
-                    <span className="font-medium text-indigo-600/70 dark:text-indigo-400/70 text-xs">{row.entregadores_ops?.toLocaleString('pt-BR') || 0}</span>
-                    <span className="text-[10px] text-indigo-400/70">{calculatePercentage(row.entregadores_ops || 0, (row.entregadores_ops || 0) + (row.entregadores_mkt || 0))}</span>
-                </div>
-            </TableCell>
-            <TableCell className="text-right align-middle py-4">
-                <div className="flex flex-col items-end gap-1">
-                    <span className="font-semibold text-purple-600 dark:text-purple-400 text-xs">{row.entregadores_mkt?.toLocaleString('pt-BR') || 0}</span>
-                    <span className="text-[10px] text-purple-500/70">{calculatePercentage(row.entregadores_mkt || 0, (row.entregadores_ops || 0) + (row.entregadores_mkt || 0))}</span>
-                </div>
-            </TableCell>
+
 
             {/* Valor */}
             <TableCell className="text-right border-l border-slate-100 dark:border-slate-800 align-middle py-4">

@@ -54,32 +54,32 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                     </TableRow>
                     <TableRow className="hover:bg-transparent border-b border-slate-100 dark:border-slate-800">
                         {/* Entregadores Sub-headers */}
-                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-2">Ops</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-2 min-w-[60px]">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-1">Ops</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-1 min-w-[50px]">Mkt</TableHead>
 
                         {/* Hours Sub-headers */}
-                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-2">Ops</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-2 min-w-[70px]">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-1">Ops</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-1 min-w-[60px]">Mkt</TableHead>
 
                         {/* Ofertadas Sub-headers */}
-                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-2">Ops</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-2 min-w-[60px]">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-1">Ops</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-1 min-w-[50px]">Mkt</TableHead>
 
                         {/* Aceitas Sub-headers */}
-                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-2">Ops</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-2 min-w-[60px]">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-1">Ops</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-1 min-w-[50px]">Mkt</TableHead>
 
                         {/* Completas Sub-headers */}
-                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-2">Ops</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-2 min-w-[60px]">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-1">Ops</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-1 min-w-[50px]">Mkt</TableHead>
 
                         {/* Rejeitadas Sub-headers */}
-                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-2">Ops</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-2 min-w-[60px]">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-1">Ops</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 px-1 min-w-[50px]">Mkt</TableHead>
 
                         {/* Valor Sub-headers */}
-                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-2">Ops</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 pr-4 px-2 min-w-[80px]">Mkt</TableHead>
+                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400 px-1">Ops</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500 pr-4 px-1 min-w-[70px]">Mkt</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
