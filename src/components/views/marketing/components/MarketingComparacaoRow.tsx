@@ -58,11 +58,13 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
             <TableCell className="text-right font-mono border-l border-slate-100 dark:border-slate-800 align-middle py-4">
                 <div className="flex flex-col items-end gap-1">
                     <span className="font-medium text-slate-600 dark:text-slate-400 text-xs">{formatDuration(row.segundos_ops)}</span>
+                    <span className="text-[10px] text-slate-400">{calculatePercentage(row.segundos_ops, row.segundos_ops + row.segundos_mkt)}</span>
                 </div>
             </TableCell>
             <TableCell className="text-right font-mono align-middle py-4">
                 <div className="flex flex-col items-end gap-1">
                     <span className="font-medium text-purple-600 dark:text-purple-400 text-xs">{formatDuration(row.segundos_mkt)}</span>
+                    <span className="text-[10px] text-purple-500/70">{calculatePercentage(row.segundos_mkt, row.segundos_ops + row.segundos_mkt)}</span>
                 </div>
             </TableCell>
 
