@@ -97,19 +97,18 @@ const SlideUTR: React.FC<SlideUTRProps> = ({
                 </div>
 
             </div>
-            </div >
         );
     };
 
-return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '32px 48px' }}>
-        <SlideHeader
-            title="UTR"
-            subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
-        />
-        {renderContent()}
-    </SlideWrapper>
-);
+    return (
+        <SlideWrapper isVisible={isVisible} style={{ padding: '32px 48px' }}>
+            <SlideHeader
+                title="UTR"
+                subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
+            />
+            {renderContent()}
+        </SlideWrapper>
+    );
 };
 
 export default SlideUTR;
