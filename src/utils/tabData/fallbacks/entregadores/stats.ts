@@ -77,7 +77,8 @@ export async function fetchEntregadoresStats(
             corridas_rejeitadas: item.corridas_rejeitadas,
             corridas_completadas: item.corridas_completadas,
             aderencia_percentual: Math.round(aderencia * 100) / 100,
-            rejeicao_percentual: Math.round(rejeicao * 100) / 100
+            rejeicao_percentual: Math.round(rejeicao * 100) / 100,
+            total_segundos: item.tempo_total
         };
     });
 }
