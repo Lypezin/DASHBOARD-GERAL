@@ -96,24 +96,20 @@ const SlideUTR: React.FC<SlideUTRProps> = ({
                     </table>
                 </div>
 
-                <div className="mt-8 text-center max-w-2xl bg-blue-50/50 p-6 rounded-xl border border-blue-100">
-                    <p className="text-slate-600 text-lg">
-                        <span className="font-semibold text-blue-700">Nota:</span> O UTR representa a porcentagem do tempo logado que o entregador passou em corridas ou disponível para receber pedidos.
-                    </p>
-                </div>
             </div>
+            </div >
         );
     };
 
-    return (
-        <SlideWrapper isVisible={isVisible} style={{ padding: '32px 48px' }}>
-            <SlideHeader
-                title="UTR - UTILIZAÇÃO DE TEMPO REAL"
-                subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
-            />
-            {renderContent()}
-        </SlideWrapper>
-    );
+return (
+    <SlideWrapper isVisible={isVisible} style={{ padding: '32px 48px' }}>
+        <SlideHeader
+            title="UTR"
+            subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
+        />
+        {renderContent()}
+    </SlideWrapper>
+);
 };
 
 export default SlideUTR;
