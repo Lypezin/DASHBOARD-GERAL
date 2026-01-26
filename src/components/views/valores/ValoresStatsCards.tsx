@@ -36,21 +36,19 @@ export const ValoresStatsCards = React.memo(function ValoresStatsCards({
         bgClass: string;
         iconBgClass: string;
     }) => (
-        <Card className={`border-none shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden relative ${bgClass}`}>
-            <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500`}>
-                <Icon className="w-16 h-16" />
-            </div>
+        <Card className="border-none shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800">
+            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${bgClass} opacity-10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110 duration-500`} />
 
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-                <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     {title}
                 </CardTitle>
-                <div className={`p-2 rounded-xl ${iconBgClass} transition-shadow duration-300 group-hover:shadow-md`}>
+                <div className={`p-2 rounded-lg ${iconBgClass} transition-colors duration-300 group-hover:bg-opacity-80`}>
                     <Icon className={`h-4 w-4 ${colorClass}`} />
                 </div>
             </CardHeader>
             <CardContent className="z-10 relative">
-                <div className={`text-2xl font-bold tracking-tight ${colorClass} font-mono mb-1`}>
+                <div className={`text-2xl font-bold tracking-tight mb-1 ${colorClass}`}>
                     {value}
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium opacity-80">
