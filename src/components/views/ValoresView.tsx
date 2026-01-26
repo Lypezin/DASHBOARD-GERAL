@@ -73,22 +73,6 @@ const ValoresView = React.memo(function ValoresView({
       initial="hidden"
       animate="show"
     >
-      <ValoresHeader
-        isExporting={isExporting}
-        onExport={handleExport}
-        variants={fadeInItem}
-      />
-
-      <motion.div variants={fadeInItem}>
-        <ValoresSearch
-          searchTerm={searchTerm}
-          isSearching={isSearching}
-          totalResults={totalEntregadores}
-          onSearchChange={setSearchTerm}
-          onClearSearch={() => setSearchTerm('')}
-        />
-      </motion.div>
-
       <motion.div variants={fadeInItem}>
         <ValoresStatsCards
           totalGeral={totalGeral}
@@ -99,15 +83,33 @@ const ValoresView = React.memo(function ValoresView({
         />
       </motion.div>
 
-      <motion.div variants={fadeInItem}>
-        <ValoresTable
-          sortedValores={sortedValores}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-          formatarReal={formatarReal}
+      <div className="space-y-4">
+        <ValoresHeader
+          isExporting={isExporting}
+          onExport={handleExport}
+          variants={fadeInItem}
         />
-      </motion.div>
+
+        <motion.div variants={fadeInItem}>
+          <ValoresSearch
+            searchTerm={searchTerm}
+            isSearching={isSearching}
+            totalResults={totalEntregadores}
+            onSearchChange={setSearchTerm}
+            onClearSearch={() => setSearchTerm('')}
+          />
+        </motion.div>
+
+        <motion.div variants={fadeInItem}>
+          <ValoresTable
+            sortedValores={sortedValores}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            formatarReal={formatarReal}
+          />
+        </motion.div>
+      </div>
     </motion.div>
   );
 });

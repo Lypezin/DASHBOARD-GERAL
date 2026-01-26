@@ -20,13 +20,16 @@ export const ValoresHeader = React.memo(function ValoresHeader({
             className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
             variants={variants}
         >
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    Valores por Entregador
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                    Acompanhe o repasse de cada entregador
-                </p>
+            <div className="flex items-center gap-3">
+                <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 shadow-sm" />
+                <div>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                        Valores por Entregador
+                    </h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                        Acompanhe o repasse de cada entregador
+                    </p>
+                </div>
             </div>
             <Button
                 variant="outline"
