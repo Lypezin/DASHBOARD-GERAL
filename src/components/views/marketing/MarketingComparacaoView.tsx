@@ -21,7 +21,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
 
     return (
         <motion.div
-            className="space-y-8 pb-20 w-full max-w-[1600px] mx-auto"
+            className="space-y-8 pb-20 w-full max-w-[1800px] mx-auto"
             variants={staggerContainer}
             initial="hidden"
             animate="show"
