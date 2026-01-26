@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { TableRow, TableCell } from "@/components/ui/table";
+import { ValoresEntregador } from '@/types';
 
 interface ValoresTableRowProps {
     entregador: ValoresEntregador;
