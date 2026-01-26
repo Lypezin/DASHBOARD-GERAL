@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Send, CheckCircle2, XCircle, DollarSign } from 'lucide-react';
+import { Clock, Send, CheckCircle2, XCircle, DollarSign, Users } from 'lucide-react';
 import { formatDuration } from '@/utils/timeHelpers';
 import { calculatePercentage } from '@/utils/formatHelpers';
 import { MarketingSummaryCard } from './components/MarketingSummaryCard';
@@ -18,6 +18,8 @@ interface MarketingTotals {
     rejeitadas_mkt: number;
     valor_ops: number;
     valor_mkt: number;
+    entregadores_ops: number;
+    entregadores_mkt: number;
 }
 
 interface MarketingSummaryCardsProps {
@@ -102,6 +104,19 @@ export const MarketingSummaryCards = React.memo(function MarketingSummaryCards({
                 colorClass="text-rose-600 dark:text-rose-400"
                 bgClass="bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-900"
                 iconBgClass="bg-rose-100 dark:bg-rose-900/40"
+            />
+
+            <MarketingSummaryCard
+                title="Entregadores"
+                icon={Users}
+                value={(totals.entregadores_ops + totals.entregadores_mkt).toLocaleString('pt-BR')}
+                opsValue={totals.entregadores_ops.toLocaleString('pt-BR')}
+                mktValue={totals.entregadores_mkt.toLocaleString('pt-BR')}
+                opsPercent={calculatePercentage(totals.entregadores_ops, totals.entregadores_ops + totals.entregadores_mkt)}
+                mktPercent={calculatePercentage(totals.entregadores_mkt, totals.entregadores_ops + totals.entregadores_mkt)}
+                colorClass="text-indigo-600 dark:text-indigo-400"
+                bgClass="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-900"
+                iconBgClass="bg-indigo-100 dark:bg-indigo-900/40"
             />
 
             <MarketingSummaryCard

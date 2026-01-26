@@ -49,6 +49,7 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                         <TableHead colSpan={2} className="text-center border-l border-slate-100 dark:border-slate-800 font-semibold text-slate-600 dark:text-slate-300">Aceitas</TableHead>
                         <TableHead colSpan={2} className="text-center border-l border-slate-100 dark:border-slate-800 font-semibold text-slate-600 dark:text-slate-300">Completas</TableHead>
                         <TableHead colSpan={2} className="text-center border-l border-slate-100 dark:border-slate-800 font-semibold text-slate-600 dark:text-slate-300">Rejeitadas</TableHead>
+                        <TableHead colSpan={2} className="text-center border-l border-slate-100 dark:border-slate-800 font-semibold text-indigo-600 dark:text-indigo-400">Entregadores</TableHead>
                         <TableHead colSpan={2} className="text-center border-l border-slate-100 dark:border-slate-800 font-semibold text-amber-600 dark:text-amber-400">Valor (R$)</TableHead>
                     </TableRow>
                     <TableRow className="hover:bg-transparent border-b border-slate-100 dark:border-slate-800">
@@ -69,6 +70,10 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                         <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500">Mkt</TableHead>
 
                         {/* Rejeitadas Sub-headers */}
+                        <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400">Ops</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500">Mkt</TableHead>
+
+                        {/* Entregadores Sub-headers */}
                         <TableHead className="text-right border-l border-slate-100 dark:border-slate-800 text-[10px] uppercase tracking-wider font-medium text-slate-400">Ops</TableHead>
                         <TableHead className="text-right text-[10px] uppercase tracking-wider font-bold text-purple-500">Mkt</TableHead>
 

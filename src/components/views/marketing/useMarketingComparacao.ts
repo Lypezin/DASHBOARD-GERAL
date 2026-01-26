@@ -23,6 +23,9 @@ export interface MarketingComparisonData {
     // Values (taxas)
     valor_ops: number;
     valor_mkt: number;
+    // Drivers (entregadores)
+    entregadores_ops: number;
+    entregadores_mkt: number;
 }
 
 export function useMarketingComparacao(

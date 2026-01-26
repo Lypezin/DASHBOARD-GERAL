@@ -63,13 +63,16 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
             rejeitadas_mkt: acc.rejeitadas_mkt + row.rejeitadas_mkt,
             valor_ops: acc.valor_ops + (row.valor_ops || 0),
             valor_mkt: acc.valor_mkt + (row.valor_mkt || 0),
+            entregadores_ops: acc.entregadores_ops + (row.entregadores_ops || 0),
+            entregadores_mkt: acc.entregadores_mkt + (row.entregadores_mkt || 0),
         }), {
             segundos_ops: 0, segundos_mkt: 0,
             ofertadas_ops: 0, ofertadas_mkt: 0,
             aceitas_ops: 0, aceitas_mkt: 0,
             concluidas_ops: 0, concluidas_mkt: 0,
             rejeitadas_ops: 0, rejeitadas_mkt: 0,
-            valor_ops: 0, valor_mkt: 0
+            valor_ops: 0, valor_mkt: 0,
+            entregadores_ops: 0, entregadores_mkt: 0
         });
     }, [data]);
 
