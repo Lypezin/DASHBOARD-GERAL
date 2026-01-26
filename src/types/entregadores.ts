@@ -7,6 +7,7 @@ export interface Entregador {
     corridas_completadas: number;
     aderencia_percentual: number;
     rejeicao_percentual: number;
+    total_segundos: number;
 }
 
 export interface EntregadoresData {

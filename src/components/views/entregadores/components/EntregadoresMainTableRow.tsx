@@ -7,11 +7,19 @@ interface EntregadoresTableRowProps {
     entregador: Entregador;
 }
 
+import { formatarHorasParaHMS } from '@/utils/formatters';
+
+interface EntregadoresTableRowProps {
+    entregador: Entregador;
+}
+
 export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTableRow({
     entregador
 }: EntregadoresTableRowProps) {
+    const horas = (entregador.total_segundos || 0) / 3600;
+
     return (
-        <div className="grid grid-cols-8 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[1000px]">
+        <div className="grid grid-cols-9 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[1000px]">
             <div className="col-span-2">
                 <div className="text-sm font-medium text-slate-900 dark:text-white truncate">
                     {entregador.nome_entregador}
@@ -19,6 +27,9 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
                 <div className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate">
                     {entregador.id_entregador}
                 </div>
+            </div>
+            <div className="text-center font-mono text-sm text-slate-600 dark:text-slate-400">
+                {formatarHorasParaHMS(horas)}
             </div>
             <div className="text-right text-sm text-slate-600 dark:text-slate-400">
                 {(entregador.corridas_ofertadas || 0).toLocaleString()}
