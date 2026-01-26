@@ -27,14 +27,14 @@ const MarketingView = React.memo(function MarketingView() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Marketing</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Marketing</h2>
             <p className="text-muted-foreground">
               Gerencie campanhas e resultados
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-1">
+        <div className="p-1.5 bg-slate-100/80 dark:bg-slate-800/80 rounded-2xl backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 inline-flex flex-wrap gap-1.5 shadow-inner">
           <TabButton
             label="Dashboard"
             active={activeSubTab === 'dashboard'}
