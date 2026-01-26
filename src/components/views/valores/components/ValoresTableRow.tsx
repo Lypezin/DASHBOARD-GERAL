@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ValoresEntregador } from '@/types';
+import { TableRow, TableCell } from "@/components/ui/table";
 
 interface ValoresTableRowProps {
     entregador: ValoresEntregador;
@@ -15,31 +15,31 @@ export const ValoresTableRow = React.memo(({ entregador, ranking, formatarReal }
     const nomeEntregador = String(entregador.nome_entregador || entregador.id_entregador || 'N/A');
 
     return (
-        <div
-            className="grid grid-cols-4 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[600px]"
-        >
-            <div className="flex items-center gap-3 text-sm">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
-                    {ranking}
-                </span>
-                <span className="font-medium text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-none">{nomeEntregador}</span>
-            </div>
-            <div className="text-right">
+        <TableRow className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800">
+            <TableCell className="py-4 pl-6">
+                <div className="flex items-center gap-3 text-sm">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
+                        {ranking}
+                    </span>
+                    <span className="font-medium text-slate-900 dark:text-white truncate max-w-[200px]">{nomeEntregador}</span>
+                </div>
+            </TableCell>
+            <TableCell className="text-right py-4">
                 <span className="font-mono font-medium text-emerald-600 dark:text-emerald-400">
                     {formatarReal(totalTaxas)}
                 </span>
-            </div>
-            <div className="text-right">
+            </TableCell>
+            <TableCell className="text-right py-4">
                 <span className="text-slate-600 dark:text-slate-400 text-sm">
                     {numeroCorridas.toLocaleString('pt-BR')}
                 </span>
-            </div>
-            <div className="text-right">
+            </TableCell>
+            <TableCell className="text-right py-4 pr-6">
                 <span className="font-mono text-slate-600 dark:text-slate-400 text-sm">
                     {formatarReal(taxaMedia)}
                 </span>
-            </div>
-        </div>
+            </TableCell>
+        </TableRow>
     );
 });
 

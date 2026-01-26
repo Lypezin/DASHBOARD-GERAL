@@ -68,7 +68,7 @@ const ValoresView = React.memo(function ValoresView({
 
   return (
     <motion.div
-      className="space-y-6 animate-fade-in"
+      className="space-y-6 animate-fade-in w-full max-w-[1800px] mx-auto"
       variants={staggerContainer}
       initial="hidden"
       animate="show"
