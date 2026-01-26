@@ -12,6 +12,8 @@ import { safeLog } from '@/lib/errorHandler';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { useEntregadoresMainSort } from './entregadores/hooks/useEntregadoresMainSort';
 
+import { formatarHorasParaHMS } from '@/utils/formatters';
+
 const EntregadoresMainView = React.memo(function EntregadoresMainView({
   entregadoresData,
   loading,
@@ -48,6 +50,12 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     : 0;
   const rejeicaoMedia = totalEntregadores > 0
     ? sortedEntregadores.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / totalEntregadores
+    : 0;
+  const totalCorridasCompletadas = totalEntregadores > 0
+    ? sortedEntregadores.reduce((sum, e) => sum + (e.corridas_completadas || 0), 0)
+    : 0;
+  const totalSegundos = totalEntregadores > 0
+    ? sortedEntregadores.reduce((sum, e) => sum + (e.total_segundos || 0), 0)
     : 0;
 
   if (loading) {
@@ -90,7 +98,8 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
         totalEntregadores={totalEntregadores}
         aderenciaMedia={aderenciaMedia}
         rejeicaoMedia={rejeicaoMedia}
-        totalCorridas={entregadoresData.total || 0}
+        totalCorridas={totalCorridasCompletadas}
+        totalHoras={formatarHorasParaHMS(totalSegundos / 3600)}
       />
 
       <EntregadoresMainSearch
