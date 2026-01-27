@@ -24,7 +24,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
     if (isOrgLoading) return;
 
     // Só buscar se a tab ativa precisar desses dados
-    const needsEvolucao = activeTab === 'evolucao' || activeTab === 'dashboard' || activeTab === 'utr';
+    const needsEvolucao = activeTab === 'evolucao' || activeTab === 'dashboard' || activeTab === 'utr' || activeTab === 'resumo';
 
     if (!needsEvolucao) return;
 
