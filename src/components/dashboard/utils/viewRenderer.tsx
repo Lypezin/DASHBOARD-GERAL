@@ -81,7 +81,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     evolucaoSemanal={props.evolucaoSemanal}
                     aderenciaSemanal={props.aderenciaSemanal}
                     utrSemanal={props.utrSemanal}
-                    pracasDisponiveis={props.pracas?.map(p => p.value) || []}
+                    pracasDisponiveis={props.pracas?.map((p: { value: string }) => p.value) || []}
                     anoSelecionado={props.anoSelecionado || new Date().getFullYear()}
                     loading={props.loadingEvolucao}
                 />
