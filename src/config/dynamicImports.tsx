@@ -96,3 +96,11 @@ export const MarketingComparacaoView = dynamic(
     loading: () => defaultLoading,
   }
 );
+
+export const ResumoSemanalView = dynamic(
+  () => import('@/components/views/ResumoSemanalView').then(mod => ({ default: mod.ResumoSemanalView })),
+  {
+    ssr: false,
+    loading: () => defaultLoading,
+  }
+);

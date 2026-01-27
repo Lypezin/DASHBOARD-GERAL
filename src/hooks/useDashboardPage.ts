@@ -119,6 +119,7 @@ export function useDashboardPage() {
 
   const dashboardData = {
     aderenciaGeral,
+    aderenciaSemanal,
     aderenciaDia,
     aderenciaTurno,
     aderenciaSubPraca,

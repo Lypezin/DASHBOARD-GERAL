@@ -23,3 +23,13 @@ export const formatSignedPercent = (value: number): string => {
     const sign = value > 0 ? '+' : '−';
     return `${sign}${percentFormatter.format(Math.abs(value))}%`;
 };
+
+export const formatNumber = (value: number | undefined | null, fractionDigits: number = 0): string => {
+    if (value === undefined || value === null || !Number.isFinite(value)) return '0';
+    return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: fractionDigits }).format(value);
+};
+
+export const formatPercent = (value: number | undefined | null, fractionDigits: number = 1): string => {
+    if (value === undefined || value === null || !Number.isFinite(value)) return '0,0%';
+    return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: fractionDigits, minimumFractionDigits: fractionDigits }).format(value) + '%';
+};

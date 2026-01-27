@@ -66,6 +66,7 @@ function DashboardContent() {
                 activeTab={ui.activeTab}
                 chartReady={ui.chartReady}
                 aderenciaGeral={data.dashboard.aderenciaGeral as AderenciaSemanal | undefined}
+                aderenciaSemanal={data.dashboard.aderenciaSemanal}
                 aderenciaDia={data.dashboard.aderenciaDia}
                 aderenciaTurno={data.dashboard.aderenciaTurno}
                 aderenciaSubPraca={data.dashboard.aderenciaSubPraca}

@@ -25,6 +25,7 @@ interface DashboardViewsRendererProps {
   chartReady: boolean;
   // Dashboard props
   aderenciaGeral?: AderenciaSemanal;
+  aderenciaSemanal?: AderenciaSemanal[];
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
   aderenciaSubPraca: AderenciaSubPraca[];

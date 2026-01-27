@@ -11,6 +11,7 @@ import {
     PrioridadePromoView,
     ComparacaoView,
     MarketingComparacaoView,
+    ResumoSemanalView,
 } from '@/config/dynamicImports';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import type { TabType } from '@/types';
@@ -74,6 +75,15 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
             return <MarketingComparacaoView filters={props.filters} />;
         case 'marketing':
             return <MarketingView />;
+        case 'resumo':
+            return (
+                <ResumoSemanalView
+                    evolucaoSemanal={props.evolucaoSemanal}
+                    aderenciaSemanal={props.aderenciaSemanal}
+                    utrSemanal={props.utrData?.semanal} // Inspect UTR Data structure. It might be different.
+                    loading={props.loadingTabData || props.loadingEvolucao}
+                />
+            );
         default:
             return <DashboardSkeleton contentOnly />; // Or null, but skeleton is safer fallback
     }

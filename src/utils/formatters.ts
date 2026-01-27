@@ -17,5 +17,7 @@ export {
 // Re-export number formatters
 export {
   formatSignedInteger,
-  formatSignedPercent
+  formatSignedPercent,
+  formatNumber,
+  formatPercent
 } from './formatters/numberFormatters';
