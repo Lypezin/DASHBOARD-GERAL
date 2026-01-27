@@ -79,9 +79,9 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
             return (
                 <ResumoSemanalView
                     evolucaoSemanal={props.evolucaoSemanal}
-                    aderenciaSemanal={props.aderenciaSemanalV2 || props.aderenciaSemanal}
+                    aderenciaSemanal={props.aderenciaSemanal}
                     utrSemanal={props.utrData?.semanal}
-                    loading={props.loadingResumo || props.loadingEvolucao}
+                    loading={props.loadingEvolucao}
                 />
             );
         default:

@@ -36,6 +36,7 @@ export const ResumoSemanalView = ({
         aderenciaSemanal?.forEach(d => {
             // Using logic to try to map 'semana' string to our composite key if possible
             // But if d.semana is just "42", we treat it as such.
+            aderenciaMap.set(String(d.semana), d);
             allWeeks.add(d.semana);
         });
 
@@ -105,17 +106,16 @@ export const ResumoSemanalView = ({
 
             const pedidos = epi?.corridas_completadas || 0;
 
-            // Drivers and Slots from V2 RPC
-            const drivers = api?.total_drivers || 0;
-            const slots = api?.total_slots || 0;
-
-            // SH: "horas_entregues" from aderencia 
+            // SH: "horas_entregues" from aderencia (e.g. "123:45" format)
             let sh = 0;
             if (api?.horas_entregues) {
-                sh = parseFloat(api.horas_entregues.replace(':', '.'));
+                const parts = api.horas_entregues.split(':');
+                if (parts.length >= 1) {
+                    sh = parseFloat(parts[0]) + (parts[1] ? parseFloat(parts[1]) / 60 : 0);
+                }
+            } else if (api?.segundos_realizados) {
+                sh = api.segundos_realizados / 3600;
             }
-
-            const frequencia = slots > 0 ? (drivers / slots) * 100 : 0;
 
             const utr = upi?.utr || 0;
             const aderencia = api?.aderencia_percentual || 0;
@@ -125,6 +125,11 @@ export const ResumoSemanalView = ({
 
             // Clean label
             const label = epi?.semana_label || `Semana ${weekNum}`;
+
+            // Note: Drivers and Frequência require backend changes not yet implemented
+            // Displaying N/A for now
+            const drivers = 0; // Placeholder - requires backend aggregation
+            const frequencia = 0; // Placeholder - requires backend aggregation
 
             return {
                 label: weekKey,
