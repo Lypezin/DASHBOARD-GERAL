@@ -50,6 +50,44 @@ export function useApresentacaoController() {
     const [mediaSlides, setMediaSlides] = useState<MediaSlideData[]>([]);
     const [isMediaManagerOpen, setIsMediaManagerOpen] = useState(false);
     const [orderedPresentationSlides, setOrderedPresentationSlides] = useState<Array<{ key: string; render: (visible: boolean) => React.ReactNode }>>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    // Load from localStorage on mount
+    useEffect(() => {
+        const savedSlides = localStorage.getItem('dashboard_presentation_slides');
+        const savedSections = localStorage.getItem('dashboard_presentation_sections');
+
+        if (savedSlides) {
+            try {
+                setMediaSlides(JSON.parse(savedSlides));
+            } catch (e) {
+                console.error('Error parsing saved slides:', e);
+            }
+        }
+
+        if (savedSections) {
+            try {
+                setVisibleSections(JSON.parse(savedSections));
+            } catch (e) {
+                console.error('Error parsing saved sections:', e);
+            }
+        }
+
+        setIsLoaded(true);
+    }, []);
+
+    // Save to localStorage when changes occur
+    useEffect(() => {
+        if (isLoaded) {
+            localStorage.setItem('dashboard_presentation_slides', JSON.stringify(mediaSlides));
+        }
+    }, [mediaSlides, isLoaded]);
+
+    useEffect(() => {
+        if (isLoaded) {
+            localStorage.setItem('dashboard_presentation_sections', JSON.stringify(visibleSections));
+        }
+    }, [visibleSections, isLoaded]);
 
     const handleUpdateMediaSlide = useCallback((id: string, updates: Partial<MediaSlideData>) => {
         setMediaSlides(prev => prev.map(slide =>
