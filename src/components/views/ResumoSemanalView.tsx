@@ -122,18 +122,27 @@ export const ResumoSemanalView = ({
             let drivers: number;
             let sh: number;
             let aderenciaMedia: number;
+            let utr: number;
+            let aderencia: number;
+            let rejeite: number;
 
             if (useLocalData && localData) {
                 pedidos = localData.pedidos;
                 drivers = localData.drivers;
                 sh = localData.sh;
                 aderenciaMedia = localData.aderenciaMedia;
+                utr = localData.utr;
+                aderencia = localData.aderencia;
+                rejeite = localData.rejeite;
             } else if (useLocalData) {
                 // Filter active but no local data for this week
                 pedidos = 0;
                 drivers = 0;
                 sh = 0;
                 aderenciaMedia = 0;
+                utr = 0;
+                aderencia = 0;
+                rejeite = 0;
             } else {
                 // No filter - use global data
                 pedidos = epi?.corridas_completadas || 0;
@@ -148,13 +157,13 @@ export const ResumoSemanalView = ({
                     sh = api.segundos_realizados / 3600;
                 }
                 aderenciaMedia = localData?.aderenciaMedia || api?.aderencia_percentual || 0;
-            }
 
-            const utr = upi?.utr || 0;
-            const aderencia = api?.aderencia_percentual || 0;
-            const rejeite = epi?.corridas_rejeitadas && epi.corridas_ofertadas
-                ? (epi.corridas_rejeitadas / epi.corridas_ofertadas) * 100
-                : 0;
+                utr = upi?.utr || 0;
+                aderencia = api?.aderencia_percentual || 0;
+                rejeite = epi?.corridas_rejeitadas && epi.corridas_ofertadas
+                    ? (epi.corridas_rejeitadas / epi.corridas_ofertadas) * 100
+                    : 0;
+            }
 
             const label = epi?.semana_label || `Semana ${weekNum}`;
 
