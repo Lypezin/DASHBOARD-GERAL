@@ -164,6 +164,7 @@ export function useDashboardPage() {
       evolution: {
         mensal: evolucaoMensal,
         semanal: evolucaoSemanal,
+        utrSemanal,
         loading: loadingEvolucao,
         anoSelecionado: anoEvolucao,
         setAno: setAnoEvolucao,

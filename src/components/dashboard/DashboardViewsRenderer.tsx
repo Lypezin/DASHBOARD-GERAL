@@ -55,6 +55,8 @@ interface DashboardViewsRendererProps {
   origens: FilterOption[];
   currentUser: CurrentUser | null;
   filters: DashboardFilters;
+  // UTR Semanal from evolution data
+  utrSemanal?: any[];
 }
 
 

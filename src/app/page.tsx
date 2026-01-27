@@ -80,6 +80,7 @@ function DashboardContent() {
                 evolucaoMensal={data.evolution.mensal}
                 evolucaoSemanal={data.evolution.semanal}
                 loadingEvolucao={data.evolution.loading}
+                utrSemanal={data.evolution.utrSemanal}
                 anoSelecionado={filters.state.ano ?? data.evolution.anoSelecionado}
                 anosDisponiveis={data.evolution.anosOptions}
                 onAnoChange={data.evolution.setAno}

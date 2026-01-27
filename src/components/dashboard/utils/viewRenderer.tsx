@@ -80,7 +80,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                 <ResumoSemanalView
                     evolucaoSemanal={props.evolucaoSemanal}
                     aderenciaSemanal={props.aderenciaSemanal}
-                    utrSemanal={props.utrData?.semanal}
+                    utrSemanal={props.utrSemanal}
                     loading={props.loadingEvolucao}
                 />
             );
