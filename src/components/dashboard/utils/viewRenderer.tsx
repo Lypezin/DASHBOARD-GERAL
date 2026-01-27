@@ -79,9 +79,9 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
             return (
                 <ResumoSemanalView
                     evolucaoSemanal={props.evolucaoSemanal}
-                    aderenciaSemanal={props.aderenciaSemanal}
-                    utrSemanal={props.utrData?.semanal} // Inspect UTR Data structure. It might be different.
-                    loading={props.loadingTabData || props.loadingEvolucao}
+                    aderenciaSemanal={props.aderenciaSemanalV2 || props.aderenciaSemanal}
+                    utrSemanal={props.utrData?.semanal}
+                    loading={props.loadingResumo || props.loadingEvolucao}
                 />
             );
         default:

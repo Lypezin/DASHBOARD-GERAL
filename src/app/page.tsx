@@ -89,6 +89,8 @@ function DashboardContent() {
                 origens={filters.options.origens}
                 currentUser={auth.currentUser}
                 filters={filters.state}
+                aderenciaSemanalV2={data.resumo?.aderenciaSemanalV2}
+                loadingResumo={data.resumo?.loading}
               />
             </main>
           </div>

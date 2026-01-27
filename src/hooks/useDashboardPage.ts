@@ -16,6 +16,7 @@ import { useDashboardFilters } from './useDashboardFilters';
 import { useEvolutionAutoSelect } from './useEvolutionAutoSelect';
 import { useChartRegistration } from './dashboard/useChartRegistration';
 import { useDashboardAuthWrapper } from './dashboard/useDashboardAuthWrapper';
+import { useResumoSemanalData } from './useResumoSemanalData';
 
 export function useDashboardPage() {
   const router = useRouter();
@@ -112,6 +113,12 @@ export function useDashboardPage() {
 
   useUserActivity(activeTab, filters, currentUser);
 
+  // Dados específicos para a aba Resumo (V2)
+  const { aderenciaSemanalV2, loading: loadingResumo } = useResumoSemanalData({
+    filterPayload,
+    activeTab
+  });
+
   // Função para mudar de aba
   const handleTabChange = useCallback((tab: TabType) => {
     setActiveTab(tab);
@@ -168,6 +175,10 @@ export function useDashboardPage() {
         anoSelecionado: anoEvolucao,
         setAno: setAnoEvolucao,
         anosOptions: anosDisponiveis,
+      },
+      resumo: {
+        aderenciaSemanalV2,
+        loading: loadingResumo,
       },
     },
   };

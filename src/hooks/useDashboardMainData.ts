@@ -77,7 +77,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     isOrgLoading,
     JSON.stringify(filterPayload.p_sub_pracas),
     JSON.stringify(filterPayload.p_origens),
-    JSON.stringify(filterPayload.p_turnos) + '-v2',
+    JSON.stringify(filterPayload.p_turnos),
   ]);
 
   // Usar o hook de efeito extraído

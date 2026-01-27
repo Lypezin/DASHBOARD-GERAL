@@ -55,6 +55,9 @@ interface DashboardViewsRendererProps {
   origens: FilterOption[];
   currentUser: CurrentUser | null;
   filters: DashboardFilters;
+  // Resumo V2 props
+  aderenciaSemanalV2?: any[];
+  loadingResumo?: boolean;
 }
 
 
