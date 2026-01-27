@@ -48,6 +48,8 @@ export function useResumoSemanalData({ filterPayload, activeTab }: UseResumoSema
 
                 const params = {
                     p_ano: filterPayload.p_ano,
+                    p_semana: filterPayload.p_semana,
+                    p_semanas: filterPayload.p_semanas,
                     p_organization_id: filterPayload.p_organization_id,
                     p_praca: filterPayload.p_praca,
                     p_sub_praca: filterPayload.p_sub_praca,
@@ -56,6 +58,9 @@ export function useResumoSemanalData({ filterPayload, activeTab }: UseResumoSema
                     p_sub_pracas: filterPayload.p_sub_pracas,
                     p_origens: filterPayload.p_origens,
                     p_turnos: filterPayload.p_turnos,
+                    p_filtro_modo: filterPayload.p_filtro_modo,
+                    p_data_inicial: filterPayload.p_data_inicial,
+                    p_data_final: filterPayload.p_data_final,
                 };
 
                 if (process.env.NODE_ENV === 'development') {
