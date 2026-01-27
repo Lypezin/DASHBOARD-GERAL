@@ -284,6 +284,29 @@ export const ResumoSemanalView = ({
                                         <TableCell className="text-right text-red-600 dark:text-red-400 font-medium">{formatPercent(row.rejeite)}</TableCell>
                                     </TableRow>
                                 ))}
+                                {/* Totals Row */}
+                                {displayRows.length > 0 && (
+                                    <TableRow className="bg-slate-100 dark:bg-slate-800/80 font-bold border-t-2 border-slate-300 dark:border-slate-600">
+                                        <TableCell className="font-bold">
+                                            <div className="bg-gradient-to-r from-blue-700 to-indigo-700 text-white rounded-md py-1 px-3 text-center inline-block min-w-[3rem] text-sm shadow-sm">
+                                                TOTAL
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
+                                            {formatNumber(displayRows.reduce((sum, row) => sum + row.pedidos, 0))}
+                                        </TableCell>
+                                        <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
+                                            {formatNumber(displayRows.reduce((sum, row) => sum + row.drivers, 0))}
+                                        </TableCell>
+                                        <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
+                                            {formatNumber(displayRows.reduce((sum, row) => sum + row.sh, 0))}
+                                        </TableCell>
+                                        <TableCell className="text-right text-slate-400">—</TableCell>
+                                        <TableCell className="text-right text-slate-400">—</TableCell>
+                                        <TableCell className="text-right text-slate-400">—</TableCell>
+                                        <TableCell className="text-right text-slate-400">—</TableCell>
+                                    </TableRow>
+                                )}
                                 {displayRows.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
