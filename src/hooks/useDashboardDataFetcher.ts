@@ -47,7 +47,7 @@ export function useDashboardDataFetcher({
 
             if (IS_DEV) safeLog.info('[useDashboardMainData] Chamando dashboard_resumo com payload:', currentPayload);
 
-            const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo', currentPayload, {
+            const { data, error: rpcError } = await safeRpc<DashboardResumoData>('dashboard_resumo_v2', currentPayload, {
                 timeout: RPC_TIMEOUTS.DEFAULT,
                 validateParams: false
             });

@@ -18,6 +18,8 @@ export interface AderenciaSemanal {
   segundos_planejados?: number;
   segundos_realizados?: number;
   aderencia_percentual: number;
+  total_drivers?: number;
+  total_slots?: number;
 }
 
 export interface AderenciaDia {

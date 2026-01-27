@@ -48,22 +48,35 @@ export const ResumoSemanalView = ({
 
         // Convert Set to Array and Sort Descending (Newest first)
         const sortedWeeks = Array.from(allWeeks).sort((a, b) => {
-            // Sort by year then week if format is YYYY-WW, otherwise fallback
-            // This sorting is heuristic-based if formats mix.
-            const splitA = a.split('-');
-            const splitB = b.split('-');
+            const strA = String(a);
+            const strB = String(b);
+
+            // Sort by year then week if format is YYYY-WW
+            const splitA = strA.split('-');
+            const splitB = strB.split('-');
 
             if (splitA.length === 2 && splitB.length === 2) {
                 const yearA = parseInt(splitA[0]);
                 const weekA = parseInt(splitA[1]);
                 const yearB = parseInt(splitB[0]);
                 const weekB = parseInt(splitB[1]);
-                if (yearA !== yearB) return yearB - yearA;
-                return weekB - weekA;
+
+                if (!isNaN(yearA) && !isNaN(yearB) && !isNaN(weekA) && !isNaN(weekB)) {
+                    if (yearA !== yearB) return yearB - yearA;
+                    return weekB - weekA;
+                }
             }
 
-            // Fallback for simple strings (numeric sort desc)
-            return parseInt(b) - parseInt(a);
+            // Fallback for simple numeric values (e.g. "42" vs "41")
+            const numA = parseInt(strA);
+            const numB = parseInt(strB);
+
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return numB - numA;
+            }
+
+            // String fallback
+            return strB.localeCompare(strA, undefined, { numeric: true });
         });
 
         // Take last 4 weeks
@@ -72,41 +85,37 @@ export const ResumoSemanalView = ({
         return recentWeeks.map(weekKey => {
             // Heuristic matching
             let weekNum = 0;
-            if (weekKey.includes('-')) {
-                weekNum = parseInt(weekKey.split('-')[1]);
+            const strKey = String(weekKey);
+
+            if (strKey.includes('-')) {
+                weekNum = parseInt(strKey.split('-')[1]);
             } else {
-                weekNum = parseInt(weekKey);
+                weekNum = parseInt(strKey);
             }
 
             // Find in arrays
             const epi = evolucaoSemanal?.find(e => e.semana === weekNum);
             const api = aderenciaSemanal?.find(a => {
                 // Aderencia 'semana' formatting is inconsistent in types (string) vs number.
-                // Try exact match or match with week number
-                if (a.semana === weekKey) return true;
-                if (parseInt(a.semana) === weekNum) return true;
+                if (String(a.semana) === strKey) return true;
+                if (parseInt(String(a.semana)) === weekNum) return true;
                 return false;
             });
             const upi = utrSemanal?.find(u => u.semana === weekNum);
 
             const pedidos = epi?.corridas_completadas || 0;
 
-            // Drivers not yet available in types, using placeholder 0
-            const drivers = 0;
+            // Drivers and Slots from V2 RPC
+            const drivers = api?.total_drivers || 0;
+            const slots = api?.total_slots || 0;
 
-            // SH: "horas_entregues" from aderencia (string HH:MM:SS presumably or decimal string)
+            // SH: "horas_entregues" from aderencia 
             let sh = 0;
             if (api?.horas_entregues) {
-                // Simple parse if it's "HH:MM:SS" or similar. 
-                // Assuming helper or direct float. If string "1230:45", we need a parser.
-                // Using parseFloat for now if it's decimal-like, or 0.
-                // Verify converter usage if imported.
-                // checking `converterHorasParaDecimal` imported in existing files.
-                // For now, raw display or simple parse.
-                sh = parseFloat(api.horas_entregues.replace(':', '.')); // Very naiive
+                sh = parseFloat(api.horas_entregues.replace(':', '.'));
             }
 
-            const frequencia = 0; // drivers / slots
+            const frequencia = slots > 0 ? (drivers / slots) * 100 : 0;
 
             const utr = upi?.utr || 0;
             const aderencia = api?.aderencia_percentual || 0;
