@@ -21,6 +21,7 @@ interface PedidosData {
     semana: number;
     total_pedidos: number;
     total_sh: number;
+    aderencia_media: number;
 }
 
 interface ResumoLocalData {
@@ -30,6 +31,7 @@ interface ResumoLocalData {
     slots: number;
     pedidos: number;
     sh: number;
+    aderenciaMedia: number;
 }
 
 interface UseResumoLocalDataOptions {
@@ -124,7 +126,8 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
                 drivers: d.total_drivers,
                 slots: d.total_slots,
                 pedidos: 0,
-                sh: 0
+                sh: 0,
+                aderenciaMedia: 0
             });
         });
 
@@ -135,6 +138,7 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
             if (existing) {
                 existing.pedidos = p.total_pedidos;
                 existing.sh = p.total_sh;
+                existing.aderenciaMedia = p.aderencia_media || 0;
             } else {
                 map.set(key, {
                     ano: p.ano,
@@ -142,7 +146,8 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
                     drivers: 0,
                     slots: 0,
                     pedidos: p.total_pedidos,
-                    sh: p.total_sh
+                    sh: p.total_sh,
+                    aderenciaMedia: p.aderencia_media || 0
                 });
             }
         });
