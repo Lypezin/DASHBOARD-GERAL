@@ -26,7 +26,11 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   anoSelecionado,
   onClose,
 }) => {
-  const { state, actions } = useApresentacaoController();
+  const { state, actions } = useApresentacaoController({
+    praca: pracaSelecionada,
+    ano: anoSelecionado,
+    semanas: semanasSelecionadas
+  });
   const {
     currentSlide, viewMode, visibleSections,
     mediaSlides, isMediaManagerOpen, orderedPresentationSlides
