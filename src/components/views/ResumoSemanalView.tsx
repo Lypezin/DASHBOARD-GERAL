@@ -176,14 +176,11 @@ export const ResumoSemanalView = ({
     const displayRows = processedData;
     const isLoading = loading || loadingLocal;
 
-    // Copy table content (without week column)
+    // Copy table content (without week column, headers, or totals)
     const handleCopyTable = useCallback(() => {
         if (displayRows.length === 0) return;
 
-        // Header
-        const headers = ['Pedidos', 'Drivers', 'SH', 'Aderência Média', 'UTR', 'Aderência', 'Rejeite'];
-
-        // Data rows
+        // Data rows only (no headers, no totals)
         const rows = displayRows.map(row => [
             formatNumber(row.pedidos),
             formatNumber(row.drivers),
@@ -194,18 +191,7 @@ export const ResumoSemanalView = ({
             formatPercent(row.rejeite)
         ].join('\t'));
 
-        // Totals row
-        const totals = [
-            formatNumber(displayRows.reduce((sum, row) => sum + row.pedidos, 0)),
-            formatNumber(displayRows.reduce((sum, row) => sum + row.drivers, 0)),
-            formatNumber(displayRows.reduce((sum, row) => sum + row.sh, 0)),
-            '—',
-            '—',
-            '—',
-            '—'
-        ].join('\t');
-
-        const tableText = [headers.join('\t'), ...rows, totals].join('\n');
+        const tableText = rows.join('\n');
 
         navigator.clipboard.writeText(tableText).then(() => {
             setCopied(true);
