@@ -1,11 +1,11 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { EvolucaoSemanal, AderenciaSemanal, UtrSemanal } from '@/types';
 import { formatNumber, formatPercent } from '@/utils/formatters';
-import { useResumoDrivers } from '@/hooks/useResumoDrivers';
+import { useResumoLocalData, useResumoPracasFilter } from '@/hooks/useResumoDrivers';
 
 interface ResumoSemanalViewProps {
     evolucaoSemanal: EvolucaoSemanal[];
@@ -24,51 +24,38 @@ export const ResumoSemanalView = ({
     anoSelecionado,
     loading
 }: ResumoSemanalViewProps) => {
-    // Local praça filter state (independent of main filter)
-    const [selectedPracas, setSelectedPracas] = useState<string[]>([]);
-    const [filterOpen, setFilterOpen] = useState(false);
+    // Persisted local praça filter
+    const { selectedPracas, togglePraca, clearFilter } = useResumoPracasFilter();
+    const [filterOpen, setFilterOpen] = React.useState(false);
 
-    // Fetch drivers data using local filter
-    const { driversMap, loading: loadingDrivers } = useResumoDrivers({
+    // Fetch filtered data (drivers, pedidos, SH) using local praça filter
+    const { dataMap: localDataMap, loading: loadingLocal } = useResumoLocalData({
         ano: anoSelecionado,
         pracas: selectedPracas,
         activeTab: 'resumo'
     });
 
-    const togglePraca = (praca: string) => {
-        setSelectedPracas(prev =>
-            prev.includes(praca)
-                ? prev.filter(p => p !== praca)
-                : [...prev, praca]
-        );
-    };
-
-    const clearFilter = () => {
-        setSelectedPracas([]);
-        setFilterOpen(false);
-    };
+    // Determine if we're using local filtered data or global data
+    const useLocalData = selectedPracas.length > 0;
 
     const processedData = useMemo(() => {
         const allWeeks = new Set<string>();
 
-        const evolucaoMap = new Map<string, EvolucaoSemanal>();
+        // Always use evolucaoSemanal to determine which weeks to show
         evolucaoSemanal?.forEach(d => {
             const compositeKey = `${d.ano}-${d.semana}`;
-            evolucaoMap.set(compositeKey, d);
             allWeeks.add(compositeKey);
         });
 
         const aderenciaMap = new Map<string, AderenciaSemanal>();
         aderenciaSemanal?.forEach(d => {
             aderenciaMap.set(String(d.semana), d);
-            allWeeks.add(d.semana);
         });
 
         const utrMap = new Map<string, UtrSemanal>();
         utrSemanal?.forEach(d => {
             const compositeKey = `${d.ano}-${d.semana}`;
             utrMap.set(compositeKey, d);
-            allWeeks.add(compositeKey);
         });
 
         const sortedWeeks = Array.from(allWeeks).sort((a, b) => {
@@ -115,6 +102,10 @@ export const ResumoSemanalView = ({
                 weekNum = parseInt(strKey);
             }
 
+            const driverKey = `${yearNum}-${weekNum}`;
+            const localData = localDataMap.get(driverKey);
+
+            // Get global data for fallback
             const epi = evolucaoSemanal?.find(e => e.semana === weekNum);
             const api = aderenciaSemanal?.find(a => {
                 if (String(a.semana) === strKey) return true;
@@ -123,24 +114,40 @@ export const ResumoSemanalView = ({
             });
             const upi = utrSemanal?.find(u => u.semana === weekNum);
 
-            const pedidos = epi?.corridas_completadas || 0;
+            // Use local filtered data if filter is active, otherwise use global
+            let pedidos: number;
+            let drivers: number;
+            let sh: number;
+            let slots: number;
 
-            let sh = 0;
-            if (api?.horas_entregues) {
-                const parts = api.horas_entregues.split(':');
-                if (parts.length >= 1) {
-                    sh = parseFloat(parts[0]) + (parts[1] ? parseFloat(parts[1]) / 60 : 0);
+            if (useLocalData && localData) {
+                pedidos = localData.pedidos;
+                drivers = localData.drivers;
+                sh = localData.sh;
+                slots = localData.slots;
+            } else if (useLocalData) {
+                // Filter active but no local data for this week
+                pedidos = 0;
+                drivers = 0;
+                sh = 0;
+                slots = 0;
+            } else {
+                // No filter - use global data
+                pedidos = epi?.corridas_completadas || 0;
+                drivers = localData?.drivers || 0;
+                sh = 0;
+                if (api?.horas_entregues) {
+                    const parts = api.horas_entregues.split(':');
+                    if (parts.length >= 1) {
+                        sh = parseFloat(parts[0]) + (parts[1] ? parseFloat(parts[1]) / 60 : 0);
+                    }
+                } else if (api?.segundos_realizados) {
+                    sh = api.segundos_realizados / 3600;
                 }
-            } else if (api?.segundos_realizados) {
-                sh = api.segundos_realizados / 3600;
+                slots = localData?.slots || 0;
             }
 
-            const driverKey = `${yearNum}-${weekNum}`;
-            const driverData = driversMap.get(driverKey);
-            const drivers = driverData?.total_drivers || 0;
-            const slots = driverData?.total_slots || 0;
             const frequencia = slots > 0 ? (drivers / slots) * 100 : 0;
-
             const utr = upi?.utr || 0;
             const aderencia = api?.aderencia_percentual || 0;
             const rejeite = epi?.corridas_rejeitadas && epi.corridas_ofertadas
@@ -162,10 +169,10 @@ export const ResumoSemanalView = ({
             };
         });
 
-    }, [evolucaoSemanal, aderenciaSemanal, utrSemanal, driversMap, anoSelecionado]);
+    }, [evolucaoSemanal, aderenciaSemanal, utrSemanal, localDataMap, anoSelecionado, useLocalData]);
 
     const displayRows = processedData;
-    const isLoading = loading || loadingDrivers;
+    const isLoading = loading || loadingLocal;
 
     return (
         <div className="space-y-6 w-full max-w-[1400px] mx-auto p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -198,7 +205,7 @@ export const ResumoSemanalView = ({
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Selecione as Praças</span>
                                     {selectedPracas.length > 0 && (
                                         <button
-                                            onClick={clearFilter}
+                                            onClick={() => { clearFilter(); setFilterOpen(false); }}
                                             className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
                                         >
                                             Limpar

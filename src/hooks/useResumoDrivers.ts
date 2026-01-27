@@ -1,9 +1,9 @@
 /**
- * Hook dedicado para buscar dados de drivers/entregadores por semana
- * para a aba Resumo Semanal
+ * Hook dedicado para buscar dados do resumo semanal com filtro local de praça
+ * Busca drivers, pedidos e SH filtrados pelas praças selecionadas
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
@@ -16,14 +16,33 @@ interface DriversData {
     total_slots: number;
 }
 
-interface UseResumoDriversOptions {
+interface PedidosData {
+    ano: number;
+    semana: number;
+    total_pedidos: number;
+    total_sh: number;
+}
+
+interface ResumoLocalData {
+    ano: number;
+    semana: number;
+    drivers: number;
+    slots: number;
+    pedidos: number;
+    sh: number;
+}
+
+interface UseResumoLocalDataOptions {
     ano: number;
     pracas: string[];
     activeTab: string;
 }
 
-export function useResumoDrivers({ ano, pracas, activeTab }: UseResumoDriversOptions) {
+const STORAGE_KEY = 'resumo_pracas_filter';
+
+export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDataOptions) {
     const [driversData, setDriversData] = useState<DriversData[]>([]);
+    const [pedidosData, setPedidosData] = useState<PedidosData[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
@@ -36,7 +55,7 @@ export function useResumoDrivers({ ano, pracas, activeTab }: UseResumoDriversOpt
 
         let mounted = true;
 
-        const fetchDrivers = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
                 setError(null);
@@ -48,29 +67,35 @@ export function useResumoDrivers({ ano, pracas, activeTab }: UseResumoDriversOpt
                 };
 
                 if (process.env.NODE_ENV === 'development') {
-                    safeLog.info('[useResumoDrivers] Fetching drivers data:', params);
+                    safeLog.info('[useResumoLocalData] Fetching data:', params);
                 }
 
-                const { data, error: rpcError } = await supabase.rpc('resumo_semanal_drivers', params);
+                // Fetch both drivers and pedidos in parallel
+                const [driversResult, pedidosResult] = await Promise.all([
+                    supabase.rpc('resumo_semanal_drivers', params),
+                    supabase.rpc('resumo_semanal_pedidos', params)
+                ]);
 
                 if (!mounted) return;
 
-                if (rpcError) {
-                    safeLog.error('[useResumoDrivers] RPC error:', rpcError);
-                    setError(new Error(rpcError.message));
-                    setLoading(false);
-                    return;
+                if (driversResult.error) {
+                    safeLog.error('[useResumoLocalData] Drivers RPC error:', driversResult.error);
+                }
+                if (pedidosResult.error) {
+                    safeLog.error('[useResumoLocalData] Pedidos RPC error:', pedidosResult.error);
                 }
 
                 if (process.env.NODE_ENV === 'development') {
-                    safeLog.info('[useResumoDrivers] Data received:', data);
+                    safeLog.info('[useResumoLocalData] Drivers data:', driversResult.data);
+                    safeLog.info('[useResumoLocalData] Pedidos data:', pedidosResult.data);
                 }
 
-                setDriversData(data || []);
+                setDriversData(driversResult.data || []);
+                setPedidosData(pedidosResult.data || []);
 
             } catch (err: any) {
                 if (mounted) {
-                    safeLog.error('[useResumoDrivers] Error:', err);
+                    safeLog.error('[useResumoLocalData] Error:', err);
                     setError(err);
                 }
             } finally {
@@ -78,7 +103,7 @@ export function useResumoDrivers({ ano, pracas, activeTab }: UseResumoDriversOpt
             }
         };
 
-        const timeoutId = setTimeout(fetchDrivers, DELAYS.DEBOUNCE);
+        const timeoutId = setTimeout(fetchData, DELAYS.DEBOUNCE);
 
         return () => {
             mounted = false;
@@ -86,20 +111,100 @@ export function useResumoDrivers({ ano, pracas, activeTab }: UseResumoDriversOpt
         };
     }, [ano, JSON.stringify(pracas), activeTab, isOrgLoading, organization?.id]);
 
-    // Create a map for easy lookup
-    const driversMap = useMemo(() => {
-        const map = new Map<string, DriversData>();
+    // Merge drivers and pedidos data into a single map
+    const dataMap = useMemo(() => {
+        const map = new Map<string, ResumoLocalData>();
+
+        // First add drivers data
         driversData.forEach(d => {
             const key = `${d.ano}-${d.semana}`;
-            map.set(key, d);
+            map.set(key, {
+                ano: d.ano,
+                semana: d.semana,
+                drivers: d.total_drivers,
+                slots: d.total_slots,
+                pedidos: 0,
+                sh: 0
+            });
         });
+
+        // Then merge pedidos data
+        pedidosData.forEach(p => {
+            const key = `${p.ano}-${p.semana}`;
+            const existing = map.get(key);
+            if (existing) {
+                existing.pedidos = p.total_pedidos;
+                existing.sh = p.total_sh;
+            } else {
+                map.set(key, {
+                    ano: p.ano,
+                    semana: p.semana,
+                    drivers: 0,
+                    slots: 0,
+                    pedidos: p.total_pedidos,
+                    sh: p.total_sh
+                });
+            }
+        });
+
         return map;
-    }, [driversData]);
+    }, [driversData, pedidosData]);
 
     return {
-        driversData,
-        driversMap,
+        dataMap,
         loading,
         error
+    };
+}
+
+// Hook for managing persisted praça filter
+export function useResumoPracasFilter() {
+    const [selectedPracas, setSelectedPracas] = useState<string[]>(() => {
+        if (typeof window === 'undefined') return [];
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    const setPracas = useCallback((pracas: string[]) => {
+        setSelectedPracas(pracas);
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(pracas));
+        } catch {
+            // Ignore storage errors
+        }
+    }, []);
+
+    const togglePraca = useCallback((praca: string) => {
+        setSelectedPracas(prev => {
+            const newPracas = prev.includes(praca)
+                ? prev.filter(p => p !== praca)
+                : [...prev, praca];
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(newPracas));
+            } catch {
+                // Ignore storage errors
+            }
+            return newPracas;
+        });
+    }, []);
+
+    const clearFilter = useCallback(() => {
+        setSelectedPracas([]);
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+        } catch {
+            // Ignore storage errors
+        }
+    }, []);
+
+    return {
+        selectedPracas,
+        setPracas,
+        togglePraca,
+        clearFilter
     };
 }
