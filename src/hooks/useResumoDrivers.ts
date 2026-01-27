@@ -22,6 +22,9 @@ interface PedidosData {
     total_pedidos: number;
     total_sh: number;
     aderencia_media: number;
+    utr: number;
+    aderencia: number;
+    rejeite: number;
 }
 
 interface ResumoLocalData {
@@ -32,6 +35,9 @@ interface ResumoLocalData {
     pedidos: number;
     sh: number;
     aderenciaMedia: number;
+    utr: number;
+    aderencia: number;
+    rejeite: number;
 }
 
 interface UseResumoLocalDataOptions {
@@ -127,7 +133,10 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
                 slots: d.total_slots,
                 pedidos: 0,
                 sh: 0,
-                aderenciaMedia: 0
+                aderenciaMedia: 0,
+                utr: 0,
+                aderencia: 0,
+                rejeite: 0
             });
         });
 
@@ -139,6 +148,9 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
                 existing.pedidos = p.total_pedidos;
                 existing.sh = p.total_sh;
                 existing.aderenciaMedia = p.aderencia_media || 0;
+                existing.utr = p.utr || 0;
+                existing.aderencia = p.aderencia || 0;
+                existing.rejeite = p.rejeite || 0;
             } else {
                 map.set(key, {
                     ano: p.ano,
@@ -147,7 +159,10 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
                     slots: 0,
                     pedidos: p.total_pedidos,
                     sh: p.total_sh,
-                    aderenciaMedia: p.aderencia_media || 0
+                    aderenciaMedia: p.aderencia_media || 0,
+                    utr: p.utr || 0,
+                    aderencia: p.aderencia || 0,
+                    rejeite: p.rejeite || 0
                 });
             }
         });
