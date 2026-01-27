@@ -102,6 +102,7 @@ export function useComparacaoViewController({
             setViewModeSubPraca,
             setViewModeOrigem,
             toggleSemana,
+            setSemanasSelecionadas,
             limparSemanas: () => setSemanasSelecionadas([])
         }
     };

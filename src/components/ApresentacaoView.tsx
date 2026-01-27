@@ -20,6 +20,8 @@ interface ApresentacaoViewProps {
   pracaSelecionada: string | null;
   anoSelecionado?: number;
   onClose: () => void;
+  onPracaChange?: (praca: string) => void;
+  onSemanasChange?: (semanas: string[]) => void;
 }
 
 const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
@@ -29,6 +31,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   pracaSelecionada,
   anoSelecionado,
   onClose,
+  onPracaChange,
+  onSemanasChange,
 }) => {
   const { state, actions } = useApresentacaoController({
     praca: pracaSelecionada,
@@ -64,13 +68,34 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   };
 
   const handleLoadPresentation = (pres: SavedPresentation) => {
-    // Need to verify if setVisibleSections is available in actions
-    // useApresentacaoController returns toggleSection and setVisibleSections
+    // 1. Restore Slides/Sections (Content)
     if (pres.slides) setMediaSlides(pres.slides);
     if (pres.sections) actions.setVisibleSections(pres.sections as any);
     setIsManagersOpen(false);
-    if (pres.filters?.praca && pres.filters.praca !== pracaSelecionada) {
-      toast.warning(`Atenção: Carregando apresentação de ${pres.filters.praca} em ${pracaSelecionada || 'Geral'}.`);
+
+    // 2. Restore Global Filters (Context) - If callbacks provided
+    let contextChanged = false;
+
+    // Restore Praca
+    if (pres.filters?.praca && pres.filters.praca !== pracaSelecionada && onPracaChange) {
+      onPracaChange(pres.filters.praca);
+      contextChanged = true;
+    }
+
+    // Restore Weeks
+    // Compare arrays: different length OR different elements
+    const savedWeeks = pres.filters?.semanas || [];
+    const currentWeeks = semanasSelecionadas || [];
+    const weeksChanged = savedWeeks.length !== currentWeeks.length ||
+      !savedWeeks.slice().sort().every((val: any, index: any) => val === currentWeeks.slice().sort()[index]);
+
+    if (weeksChanged && onSemanasChange && savedWeeks.length > 0) {
+      onSemanasChange(savedWeeks);
+      contextChanged = true;
+    }
+
+    if (contextChanged) {
+      toast.success(`Contexto atualizado para: ${pres.filters?.praca || 'Geral'} (${pres.filters?.semanas?.length} semanas)`);
     } else {
       toast.success(`Apresentação "${pres.name}" carregada.`);
     }
