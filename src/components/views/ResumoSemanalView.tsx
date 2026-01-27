@@ -118,19 +118,19 @@ export const ResumoSemanalView = ({
             let pedidos: number;
             let drivers: number;
             let sh: number;
-            let slots: number;
+            let aderenciaMedia: number;
 
             if (useLocalData && localData) {
                 pedidos = localData.pedidos;
                 drivers = localData.drivers;
                 sh = localData.sh;
-                slots = localData.slots;
+                aderenciaMedia = localData.aderenciaMedia;
             } else if (useLocalData) {
                 // Filter active but no local data for this week
                 pedidos = 0;
                 drivers = 0;
                 sh = 0;
-                slots = 0;
+                aderenciaMedia = 0;
             } else {
                 // No filter - use global data
                 pedidos = epi?.corridas_completadas || 0;
@@ -144,10 +144,9 @@ export const ResumoSemanalView = ({
                 } else if (api?.segundos_realizados) {
                     sh = api.segundos_realizados / 3600;
                 }
-                slots = localData?.slots || 0;
+                aderenciaMedia = localData?.aderenciaMedia || api?.aderencia_percentual || 0;
             }
 
-            const frequencia = slots > 0 ? (drivers / slots) * 100 : 0;
             const utr = upi?.utr || 0;
             const aderencia = api?.aderencia_percentual || 0;
             const rejeite = epi?.corridas_rejeitadas && epi.corridas_ofertadas
@@ -162,7 +161,7 @@ export const ResumoSemanalView = ({
                 pedidos,
                 drivers,
                 sh,
-                frequencia,
+                aderenciaMedia,
                 utr,
                 aderencia,
                 rejeite
@@ -268,7 +267,7 @@ export const ResumoSemanalView = ({
                                     <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Pedidos</TableHead>
                                     <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Drivers</TableHead>
                                     <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">SH</TableHead>
-                                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Frequência</TableHead>
+                                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Aderência Média</TableHead>
                                     <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">UTR</TableHead>
                                     <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Aderência</TableHead>
                                     <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Rejeite</TableHead>
@@ -285,8 +284,8 @@ export const ResumoSemanalView = ({
                                         <TableCell className="text-right font-medium">{formatNumber(row.pedidos)}</TableCell>
                                         <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatNumber(row.drivers)}</TableCell>
                                         <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatNumber(row.sh)}</TableCell>
-                                        <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatPercent(row.frequencia)}</TableCell>
-                                        <TableCell className="text-right font-medium">{formatNumber(row.utr, 1)}</TableCell>
+                                        <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatPercent(row.aderenciaMedia)}</TableCell>
+                                        <TableCell className="text-right font-medium">{formatNumber(row.utr, 2)}</TableCell>
                                         <TableCell className="text-right font-bold text-slate-700 dark:text-slate-200">{formatPercent(row.aderencia)}</TableCell>
                                         <TableCell className="text-right text-red-600 dark:text-red-400 font-medium">{formatPercent(row.rejeite)}</TableCell>
                                     </TableRow>
