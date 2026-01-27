@@ -69,7 +69,11 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     if (pres.slides) setMediaSlides(pres.slides);
     if (pres.sections) actions.setVisibleSections(pres.sections as any);
     setIsManagersOpen(false);
-    toast.success(`Apresentação "${pres.name}" carregada.`);
+    if (pres.filters?.praca && pres.filters.praca !== pracaSelecionada) {
+      toast.warning(`Atenção: Carregando apresentação de ${pres.filters.praca} em ${pracaSelecionada || 'Geral'}.`);
+    } else {
+      toast.success(`Apresentação "${pres.name}" carregada.`);
+    }
   };
 
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas, anoSelecionado);

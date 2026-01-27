@@ -23,11 +23,19 @@ export function useSavedPresentations() {
 
         try {
             setLoading(true);
-            const { data, error } = await supabase
+            const { data: { user } } = await supabase.auth.getUser();
+
+            let query = supabase
                 .from('presentations')
                 .select('*')
-                .eq('organization_id', organization.id)
-                .order('created_at', { ascending: false });
+                .eq('organization_id', organization.id);
+
+            // Filter by user_id if stored in filters (Logic Isolation)
+            if (user?.id) {
+                query = query.contains('filters', { user_id: user.id });
+            }
+
+            const { data, error } = await query.order('created_at', { ascending: false });
 
             if (error) throw error;
             setSavedPresentations(data || []);
@@ -48,6 +56,14 @@ export function useSavedPresentations() {
 
         try {
             setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            // Embed user_id in filters for logic isolation
+            const filtersWithUser = {
+                ...filters,
+                user_id: user?.id
+            };
+
             const { data, error } = await supabase
                 .from('presentations')
                 .insert({
@@ -55,7 +71,7 @@ export function useSavedPresentations() {
                     name,
                     slides,
                     sections,
-                    filters
+                    filters: filtersWithUser
                 })
                 .select()
                 .single();
