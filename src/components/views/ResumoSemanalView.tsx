@@ -1,14 +1,18 @@
 
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import { EvolucaoSemanal, AderenciaSemanal, UtrSemanal } from '@/types';
 import { formatNumber, formatPercent } from '@/utils/formatters';
+import { useResumoDrivers } from '@/hooks/useResumoDrivers';
 
 interface ResumoSemanalViewProps {
     evolucaoSemanal: EvolucaoSemanal[];
     aderenciaSemanal: AderenciaSemanal[];
     utrSemanal: UtrSemanal[];
+    pracasDisponiveis: string[];
+    anoSelecionado: number;
     loading?: boolean;
 }
 
@@ -16,11 +20,35 @@ export const ResumoSemanalView = ({
     evolucaoSemanal,
     aderenciaSemanal,
     utrSemanal,
+    pracasDisponiveis,
+    anoSelecionado,
     loading
 }: ResumoSemanalViewProps) => {
+    // Local praça filter state (independent of main filter)
+    const [selectedPracas, setSelectedPracas] = useState<string[]>([]);
+    const [filterOpen, setFilterOpen] = useState(false);
+
+    // Fetch drivers data using local filter
+    const { driversMap, loading: loadingDrivers } = useResumoDrivers({
+        ano: anoSelecionado,
+        pracas: selectedPracas,
+        activeTab: 'resumo'
+    });
+
+    const togglePraca = (praca: string) => {
+        setSelectedPracas(prev =>
+            prev.includes(praca)
+                ? prev.filter(p => p !== praca)
+                : [...prev, praca]
+        );
+    };
+
+    const clearFilter = () => {
+        setSelectedPracas([]);
+        setFilterOpen(false);
+    };
 
     const processedData = useMemo(() => {
-        // Collect all unique weeks from all data sources
         const allWeeks = new Set<string>();
 
         const evolucaoMap = new Map<string, EvolucaoSemanal>();
@@ -30,12 +58,8 @@ export const ResumoSemanalView = ({
             allWeeks.add(compositeKey);
         });
 
-        // aderenciaSemanal items might not have 'ano'. Usually they are for the selected year or context.
-        // Assuming current logic context provides relevant data.
         const aderenciaMap = new Map<string, AderenciaSemanal>();
         aderenciaSemanal?.forEach(d => {
-            // Using logic to try to map 'semana' string to our composite key if possible
-            // But if d.semana is just "42", we treat it as such.
             aderenciaMap.set(String(d.semana), d);
             allWeeks.add(d.semana);
         });
@@ -47,12 +71,10 @@ export const ResumoSemanalView = ({
             allWeeks.add(compositeKey);
         });
 
-        // Convert Set to Array and Sort Descending (Newest first)
         const sortedWeeks = Array.from(allWeeks).sort((a, b) => {
             const strA = String(a);
             const strB = String(b);
 
-            // Sort by year then week if format is YYYY-WW
             const splitA = strA.split('-');
             const splitB = strB.split('-');
 
@@ -68,7 +90,6 @@ export const ResumoSemanalView = ({
                 }
             }
 
-            // Fallback for simple numeric values (e.g. "42" vs "41")
             const numA = parseInt(strA);
             const numB = parseInt(strB);
 
@@ -76,28 +97,26 @@ export const ResumoSemanalView = ({
                 return numB - numA;
             }
 
-            // String fallback
             return strB.localeCompare(strA, undefined, { numeric: true });
         });
 
-        // Take last 4 weeks
         const recentWeeks = sortedWeeks.slice(0, 4);
 
         return recentWeeks.map(weekKey => {
-            // Heuristic matching
             let weekNum = 0;
+            let yearNum = anoSelecionado;
             const strKey = String(weekKey);
 
             if (strKey.includes('-')) {
-                weekNum = parseInt(strKey.split('-')[1]);
+                const parts = strKey.split('-');
+                yearNum = parseInt(parts[0]);
+                weekNum = parseInt(parts[1]);
             } else {
                 weekNum = parseInt(strKey);
             }
 
-            // Find in arrays
             const epi = evolucaoSemanal?.find(e => e.semana === weekNum);
             const api = aderenciaSemanal?.find(a => {
-                // Aderencia 'semana' formatting is inconsistent in types (string) vs number.
                 if (String(a.semana) === strKey) return true;
                 if (parseInt(String(a.semana)) === weekNum) return true;
                 return false;
@@ -106,7 +125,6 @@ export const ResumoSemanalView = ({
 
             const pedidos = epi?.corridas_completadas || 0;
 
-            // SH: "horas_entregues" from aderencia (e.g. "123:45" format)
             let sh = 0;
             if (api?.horas_entregues) {
                 const parts = api.horas_entregues.split(':');
@@ -117,19 +135,19 @@ export const ResumoSemanalView = ({
                 sh = api.segundos_realizados / 3600;
             }
 
+            const driverKey = `${yearNum}-${weekNum}`;
+            const driverData = driversMap.get(driverKey);
+            const drivers = driverData?.total_drivers || 0;
+            const slots = driverData?.total_slots || 0;
+            const frequencia = slots > 0 ? (drivers / slots) * 100 : 0;
+
             const utr = upi?.utr || 0;
             const aderencia = api?.aderencia_percentual || 0;
             const rejeite = epi?.corridas_rejeitadas && epi.corridas_ofertadas
                 ? (epi.corridas_rejeitadas / epi.corridas_ofertadas) * 100
                 : 0;
 
-            // Clean label
             const label = epi?.semana_label || `Semana ${weekNum}`;
-
-            // Note: Drivers and Frequência require backend changes not yet implemented
-            // Displaying N/A for now
-            const drivers = 0; // Placeholder - requires backend aggregation
-            const frequencia = 0; // Placeholder - requires backend aggregation
 
             return {
                 label: weekKey,
@@ -144,18 +162,96 @@ export const ResumoSemanalView = ({
             };
         });
 
-    }, [evolucaoSemanal, aderenciaSemanal, utrSemanal]);
+    }, [evolucaoSemanal, aderenciaSemanal, utrSemanal, driversMap, anoSelecionado]);
 
     const displayRows = processedData;
+    const isLoading = loading || loadingDrivers;
 
     return (
         <div className="space-y-6 w-full max-w-[1400px] mx-auto p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Card className="border-none shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                         Resumo Semanal
                     </CardTitle>
+
+                    {/* Local Praça Filter */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setFilterOpen(!filterOpen)}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        >
+                            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                            </svg>
+                            {selectedPracas.length === 0
+                                ? "Filtrar por Praça"
+                                : `${selectedPracas.length} praça(s)`}
+                            <svg className={cn("w-4 h-4 transition-transform", filterOpen && "rotate-180")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        {filterOpen && (
+                            <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50">
+                                <div className="p-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Selecione as Praças</span>
+                                    {selectedPracas.length > 0 && (
+                                        <button
+                                            onClick={clearFilter}
+                                            className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                        >
+                                            Limpar
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="max-h-64 overflow-y-auto p-2">
+                                    {pracasDisponiveis.map((praca) => (
+                                        <label
+                                            key={praca}
+                                            className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedPracas.includes(praca)}
+                                                onChange={() => togglePraca(praca)}
+                                                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-slate-700 dark:text-slate-300">{praca}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                                <div className="p-3 border-t border-slate-200 dark:border-slate-700">
+                                    <button
+                                        onClick={() => setFilterOpen(false)}
+                                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                                    >
+                                        Aplicar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </CardHeader>
+
+                {/* Selected Praças Tags */}
+                {selectedPracas.length > 0 && (
+                    <div className="px-6 pb-2 flex flex-wrap gap-2">
+                        {selectedPracas.map(praca => (
+                            <span
+                                key={praca}
+                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50"
+                                onClick={() => togglePraca(praca)}
+                            >
+                                {praca}
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </span>
+                        ))}
+                    </div>
+                )}
+
                 <CardContent>
                     <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden">
                         <Table>
@@ -191,7 +287,7 @@ export const ResumoSemanalView = ({
                                 {displayRows.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                                            {loading ? 'Carregando dados...' : 'Nenhum dado disponível para o período.'}
+                                            {isLoading ? 'Carregando dados...' : 'Nenhum dado disponível para o período.'}
                                         </TableCell>
                                     </TableRow>
                                 )}
