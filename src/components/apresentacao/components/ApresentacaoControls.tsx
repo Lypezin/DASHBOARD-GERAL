@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Check, FilePlus } from 'lucide-react';
+import { X, Check, FilePlus, FolderOpen, Save } from 'lucide-react';
 import { PresentationSectionToggle } from './PresentationSectionToggle';
 import { PresentationNavigation } from './PresentationNavigation';
 
@@ -17,6 +17,8 @@ interface ApresentacaoControlsProps {
     visibleSections: Record<string, boolean>;
     onToggleSection: (section: string) => void;
     onManageMedia?: () => void;
+    onSaveClick?: () => void;
+    onManageClick?: () => void;
 }
 
 export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
@@ -29,6 +31,8 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
     visibleSections,
     onToggleSection,
     onManageMedia,
+    onSaveClick,
+    onManageClick
 }) => {
     return (
         <div className="sticky top-0 bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
@@ -58,6 +62,32 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                     >
                         <FilePlus className="mr-2 h-4 w-4" />
                         Adicionar Fotos
+                    </Button>
+                )}
+
+                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+                {onManageClick && (
+                    <Button
+                        variant="outline"
+                        className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        onClick={onManageClick}
+                        title="Minhas Apresentações"
+                    >
+                        <FolderOpen className="mr-2 h-4 w-4" />
+                        Minhas
+                    </Button>
+                )}
+
+                {onSaveClick && (
+                    <Button
+                        variant="outline"
+                        className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={onSaveClick}
+                        title="Salvar Apresentação"
+                    >
+                        <Save className="mr-2 h-4 w-4" />
+                        Salvar
                     </Button>
                 )}
 

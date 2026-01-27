@@ -6,8 +6,12 @@ import { ApresentacaoPreview } from './apresentacao/ApresentacaoPreview';
 import { ApresentacaoWebMode } from './apresentacao/ApresentacaoWebMode';
 import { PresentationContext } from '@/contexts/PresentationContext';
 import { MediaManagerModal } from './apresentacao/components/MediaManagerModal';
+import { PresentationManager } from './apresentacao/components/PresentationManager';
+import { SavePresentationDialog } from './apresentacao/components/SavePresentationDialog';
 import { useApresentacaoController } from '@/hooks/apresentacao/useApresentacaoController';
+import { useSavedPresentations, SavedPresentation } from '@/hooks/apresentacao/useSavedPresentations';
 import { PresentationEditorProvider } from '@/components/apresentacao/context/PresentationEditorContext';
+import { toast } from 'sonner';
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
@@ -37,9 +41,36 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   } = state;
   const {
     setCurrentSlide, setViewMode,
-    setIsMediaManagerOpen, setOrderedPresentationSlides, setMediaSlides,
+    setIsMediaManagerOpen, setOrderedPresentationSlides, setMediaSlides, setVisibleSections,
     handleUpdateMediaSlide, handleAddMediaSlide, handleDeleteMediaSlide, toggleSection
   } = actions;
+
+  // Saved Presentations Logic
+  const { savedPresentations, loading: isLoadingSaves, savePresentation, deletePresentation } = useSavedPresentations();
+  const [isManagersOpen, setIsManagersOpen] = React.useState(false);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = React.useState(false);
+
+  const handleSavePresentation = async (name: string) => {
+    try {
+      await savePresentation(name, mediaSlides, visibleSections, {
+        praca: pracaSelecionada,
+        ano: anoSelecionado,
+        semanas: semanasSelecionadas
+      });
+      toast({ title: 'Sucesso', description: 'Apresentação salva com sucesso!' });
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Falha ao salvar apresentação.', variant: 'destructive' });
+    }
+  };
+
+  const handleLoadPresentation = (pres: SavedPresentation) => {
+    // Need to verify if setVisibleSections is available in actions
+    // useApresentacaoController returns toggleSection and setVisibleSections
+    if (pres.slides) setMediaSlides(pres.slides);
+    if (pres.sections) actions.setVisibleSections(pres.sections);
+    setIsManagersOpen(false);
+    toast({ title: 'Carregado', description: `Apresentação "${pres.name}" carregada.` });
+  };
 
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas, anoSelecionado);
   const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
@@ -112,6 +143,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
             onUpdateMediaSlide={handleUpdateMediaSlide}
             onAddMediaSlide={handleAddMediaSlide}
             onDeleteMediaSlide={handleDeleteMediaSlide}
+            onManageClick={() => setIsManagersOpen(true)}
+            onSaveClick={() => setIsSaveDialogOpen(true)}
           />
         )}
 
@@ -120,6 +153,20 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
           onClose={() => setIsMediaManagerOpen(false)}
           mediaSlides={mediaSlides}
           onUpdateSlides={setMediaSlides}
+        />
+
+        <PresentationManager
+          isOpen={isManagersOpen}
+          onClose={() => setIsManagersOpen(false)}
+          presentations={savedPresentations}
+          onLoad={handleLoadPresentation}
+          onDelete={deletePresentation}
+          isLoading={isLoadingSaves}
+        />
+        <SavePresentationDialog
+          isOpen={isSaveDialogOpen}
+          onClose={() => setIsSaveDialogOpen(false)}
+          onSave={handleSavePresentation}
         />
       </PresentationContext.Provider>
     </PresentationEditorProvider>

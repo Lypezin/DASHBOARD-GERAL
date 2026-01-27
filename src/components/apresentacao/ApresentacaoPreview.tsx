@@ -28,13 +28,17 @@ interface ApresentacaoPreviewProps {
   onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void;
   onAddMediaSlide?: () => void;
   onDeleteMediaSlide?: (id: string) => void;
+  onAddMediaSlide?: () => void;
+  onDeleteMediaSlide?: (id: string) => void;
   onManageMedia?: () => void; // Deprecated
+  onSaveClick?: () => void;
+  onManageClick?: () => void;
 }
 
 const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
   slides, currentSlide, onSlideChange, onClose, numeroSemana1, numeroSemana2,
   visibleSections, onToggleSection, onStartPresentation, mediaSlides,
-  onUpdateMediaSlide, onAddMediaSlide, onDeleteMediaSlide
+  onUpdateMediaSlide, onAddMediaSlide, onDeleteMediaSlide, onSaveClick, onManageClick
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const captureContainerRef = useRef<HTMLDivElement>(null);
@@ -72,6 +76,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               onPrev={handlePrev} onNext={handleNext} onClose={onClose}
               onGeneratePDF={generatePDF} onStartPresentation={() => onStartPresentation(orderedSlides)}
               isGenerating={isGenerating} visibleSections={visibleSections} onToggleSection={onToggleSection}
+              onSaveClick={onSaveClick} onManageClick={onManageClick}
             />
             <div className="flex-1 overflow-hidden relative bg-slate-100/50 flex flex-col">
               <PresentationViewport slides={orderedSlides} currentSlide={currentSlide} />
