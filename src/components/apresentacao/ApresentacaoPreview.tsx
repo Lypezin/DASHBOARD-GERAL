@@ -28,8 +28,6 @@ interface ApresentacaoPreviewProps {
   onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void;
   onAddMediaSlide?: () => void;
   onDeleteMediaSlide?: (id: string) => void;
-  onAddMediaSlide?: () => void;
-  onDeleteMediaSlide?: (id: string) => void;
   onManageMedia?: () => void; // Deprecated
   onSaveClick?: () => void;
   onManageClick?: () => void;

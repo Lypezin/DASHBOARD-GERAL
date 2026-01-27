@@ -57,9 +57,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
         ano: anoSelecionado,
         semanas: semanasSelecionadas
       });
-      toast({ title: 'Sucesso', description: 'Apresentação salva com sucesso!' });
+      toast.success('Apresentação salva com sucesso!');
     } catch (error) {
-      toast({ title: 'Erro', description: 'Falha ao salvar apresentação.', variant: 'destructive' });
+      toast.error('Falha ao salvar apresentação.');
     }
   };
 
@@ -67,9 +67,9 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     // Need to verify if setVisibleSections is available in actions
     // useApresentacaoController returns toggleSection and setVisibleSections
     if (pres.slides) setMediaSlides(pres.slides);
-    if (pres.sections) actions.setVisibleSections(pres.sections);
+    if (pres.sections) actions.setVisibleSections(pres.sections as any);
     setIsManagersOpen(false);
-    toast({ title: 'Carregado', description: `Apresentação "${pres.name}" carregada.` });
+    toast.success(`Apresentação "${pres.name}" carregada.`);
   };
 
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas, anoSelecionado);
