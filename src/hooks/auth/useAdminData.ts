@@ -19,13 +19,6 @@ export interface User {
   organization_id?: string | null;
   avatar_url?: string;
 }
-
-export interface UserProfile {
-  id: string;
-  is_admin: boolean;
-  is_approved: boolean;
-}
-
 export function useAdminData() {
   const [users, setUsers] = useState<User[]>([]);
   const [pendingUsers, setPendingUsers] = useState<User[]>([]);

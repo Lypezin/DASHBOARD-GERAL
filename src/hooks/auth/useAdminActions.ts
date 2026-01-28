@@ -1,4 +1,4 @@
-import { UserProfile } from './useAdminData';
+import { UserProfile } from './types';
 import { useAdminApproval } from '@/hooks/admin/useAdminApproval';
 import { useAdminEdit } from '@/hooks/admin/useAdminEdit';
 import { useAdminStatus } from '@/hooks/admin/useAdminStatus';

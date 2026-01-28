@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { executeAdminRpc } from '@/utils/adminHelpers';
-import { User } from '../useAdminData';
+import { User } from '@/hooks/auth/useAdminData';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 

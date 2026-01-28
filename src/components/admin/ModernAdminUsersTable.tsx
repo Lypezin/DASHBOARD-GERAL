@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { User, UserProfile } from '@/hooks/auth/useAdminData';
+import { User } from '@/hooks/auth/useAdminData';
+import { UserProfile } from '@/hooks/auth/types';
 import { Organization } from '@/hooks/auth/useOrganizations';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';

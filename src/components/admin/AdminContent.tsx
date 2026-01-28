@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminUsersTab } from '@/components/admin/tabs/AdminUsersTab';
 import { AdminOrganizationsTab } from '@/components/admin/tabs/AdminOrganizationsTab';
 import { AdminStats } from '@/components/admin/AdminStats';
-import { UserProfile } from '@/hooks/auth/useAdminData';
+import { UserProfile } from '@/hooks/auth/types';
 
 interface AdminContentProps {
     currentUser: UserProfile;

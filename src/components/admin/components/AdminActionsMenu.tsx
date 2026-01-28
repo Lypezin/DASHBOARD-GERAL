@@ -1,5 +1,6 @@
 import React from 'react';
-import { User, UserProfile } from '@/hooks/auth/useAdminData';
+import { User } from '@/hooks/auth/useAdminData';
+import { UserProfile } from '@/hooks/auth/types';
 import {
     DropdownMenu,
     DropdownMenuContent,

@@ -15,7 +15,7 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import type { PaginationOptions, PaginationState, PaginationControls } from './pagination/types';
+import type { PaginationOptions, PaginationState, PaginationControls } from '@/hooks/pagination/types';
 
 export type { PaginationOptions, PaginationState, PaginationControls };
 

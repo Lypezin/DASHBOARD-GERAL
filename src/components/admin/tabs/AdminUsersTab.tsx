@@ -1,5 +1,6 @@
 import React from 'react';
-import { UserProfile } from '@/hooks/auth/useAdminData';
+import { User } from '@/hooks/auth/useAdminData';
+import { UserProfile } from '@/hooks/auth/types';
 import { useAdminActions } from '@/hooks/auth/useAdminActions';
 import { useOrganizations, Organization } from '@/hooks/auth/useOrganizations';
 import { ModernAdminUsersTable } from '@/components/admin/ModernAdminUsersTable';
@@ -11,8 +12,8 @@ import { AdminLoadingSkeleton } from '@/components/admin/AdminLoadingSkeleton';
 
 interface AdminUsersTabProps {
     currentUser: UserProfile | null;
-    users: UserProfile[];
-    pendingUsers: UserProfile[];
+    users: User[];
+    pendingUsers: User[];
     pracasDisponiveis: string[];
     loading: boolean;
     error: string | null;
