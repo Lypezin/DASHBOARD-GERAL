@@ -7,8 +7,8 @@ import { safeLog } from '@/lib/errorHandler';
 import { MarketingDateFilter } from '@/types';
 import { AtendenteData } from '@/components/views/resultados/AtendenteCard';
 import { findCidadeValue } from '@/utils/atendenteMappers';
-import { fetchAndProcessValores } from './resultados/utils/valoresHelper';
-import { fetchLiberadosCount } from './resultados/utils/liberadosHelper';
+import { fetchAndProcessValores } from '@/hooks/resultados/utils/valoresHelper';
+import { fetchLiberadosCount } from '@/hooks/resultados/utils/liberadosHelper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 

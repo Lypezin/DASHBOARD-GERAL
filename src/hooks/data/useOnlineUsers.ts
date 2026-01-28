@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { CurrentUser } from '@/types';
-import { useIdleDetection } from './online/useIdleDetection';
-import { usePresence } from './online/usePresence';
-import { useChat } from './online/useChat';
-import { OnlineUser, ChatMessage } from './online/types';
+import { useIdleDetection } from '@/hooks/online/useIdleDetection';
+import { usePresence } from '@/hooks/online/usePresence';
+import { useChat } from '@/hooks/online/useChat';
+import { OnlineUser, ChatMessage } from '@/hooks/online/types';
 
 export type { OnlineUser, ChatMessage };
 

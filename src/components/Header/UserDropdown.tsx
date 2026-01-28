@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Settings, LogOut } from 'lucide-react';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
+import { UserProfile } from '@/hooks/auth/types';
 
 interface UserDropdownProps {
     user: UserProfile | null;

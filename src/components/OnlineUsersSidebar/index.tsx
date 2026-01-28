@@ -1,12 +1,12 @@
 import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
-import { useSidebarController } from './OnlineUsersSidebar/useSidebarController';
-import { SidebarTrigger } from './OnlineUsersSidebar/SidebarTrigger';
-import { SidebarHeader } from './OnlineUsersSidebar/SidebarHeader';
-import { UserList } from './OnlineUsersSidebar/UserList';
-import { ChatWindow } from './OnlineUsersSidebar/ChatWindow';
-import { NotificationsToast } from './OnlineUsersSidebar/NotificationsToast';
-import { createSendMessageHandler } from './OnlineUsersSidebar/sendMessageHandler';
+import { useSidebarController } from './useSidebarController';
+import { SidebarTrigger } from './SidebarTrigger';
+import { SidebarHeader } from './SidebarHeader';
+import { UserList } from './UserList';
+import { ChatWindow } from './ChatWindow';
+import { NotificationsToast } from './NotificationsToast';
+import { createSendMessageHandler } from './sendMessageHandler';
 
 interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;

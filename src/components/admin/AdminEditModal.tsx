@@ -1,4 +1,6 @@
 import React from 'react';
+import { User } from '@/hooks/auth/useAdminData';
+import { Organization } from '@/contexts/OrganizationContext';
 import { useAdminActions } from '@/hooks/auth/useAdminActions';
 import { useAdminData } from '@/hooks/auth/useAdminData';
 import {

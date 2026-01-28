@@ -1,5 +1,5 @@
-import { useAutoRefresh } from './useAutoRefresh';
-import { useManualRefresh } from './useManualRefresh';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { useManualRefresh } from '@/hooks/useManualRefresh';
 
 /**
  * Hook para gerenciar refresh de Materialized Views

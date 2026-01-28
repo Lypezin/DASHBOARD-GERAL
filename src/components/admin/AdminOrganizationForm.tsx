@@ -4,6 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
 
+export interface OrganizationFormData {
+    name: string;
+    slug: string;
+    max_users: number;
+}
+
 interface AdminOrganizationFormProps {
     formData: OrganizationFormData;
     setFormData: React.Dispatch<React.SetStateAction<OrganizationFormData>>;

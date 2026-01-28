@@ -1,5 +1,6 @@
 import React from 'react';
 import { useOrganizations } from '@/hooks/auth/useOrganizations';
+import { Organization } from '@/contexts/OrganizationContext';
 import {
     Select,
     SelectContent,

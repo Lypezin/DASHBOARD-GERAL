@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Organization } from '@/contexts/OrganizationContext';
 import { useOrganizations } from '@/hooks/auth/useOrganizations';
 import {
     DropdownMenu,

@@ -5,8 +5,10 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 
+import { CurrentUser } from '@/types/auth';
+
 interface DesktopNavLinksProps {
-    user: UserProfile | null;
+    user: CurrentUser | null;
 }
 
 export const DesktopNavLinks: React.FC<DesktopNavLinksProps> = ({ user }) => {

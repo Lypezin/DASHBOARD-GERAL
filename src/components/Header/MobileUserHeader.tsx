@@ -1,10 +1,6 @@
-```typescript
-
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserProfile } from '@/hooks/auth/useHeaderAuth';
-import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
-import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
 
 interface MobileUserHeaderProps {
     user: UserProfile | null;

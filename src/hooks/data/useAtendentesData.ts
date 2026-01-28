@@ -8,7 +8,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { MarketingDateFilter } from '@/types';
 import { AtendenteData } from '@/components/views/resultados/AtendenteCard';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { processRpcData, fetchFallbackData } from './marketing/utils/atendentesDataUtils';
+import { processRpcData, fetchFallbackData } from '@/hooks/marketing/utils/atendentesDataUtils';
 
 interface TotaisData {
   totalEnviado: number;
