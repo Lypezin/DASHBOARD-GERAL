@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
-import { UserProfile } from '@/hooks/useHeaderAuth';
+import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 import { MobileUserHeader } from './Header/MobileUserHeader';
 import { MobileNavContent } from './Header/MobileNavContent';
 

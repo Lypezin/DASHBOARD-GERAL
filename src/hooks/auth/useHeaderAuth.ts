@@ -8,9 +8,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { syncOrganizationIdToMetadata } from '@/utils/organizationHelpers';
-import { UserProfile } from './auth/types';
-import { verifyAuthSession, verifyUserProfile, shouldSkipRedirect } from './auth/utils/headerAuthSteps';
-import { useAuthSubscription } from './auth/useAuthSubscription';
+import { UserProfile } from './types';
+import { verifyAuthSession, verifyUserProfile, shouldSkipRedirect } from './utils/headerAuthSteps';
+import { useAuthSubscription } from './useAuthSubscription';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 

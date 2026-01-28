@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useHeaderAuth } from '@/hooks/useHeaderAuth';
-import { useHeaderAvatar } from '@/hooks/useHeaderAvatar';
+import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
+import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
 import { HeaderDesktopMenu } from './HeaderDesktopMenu';
 import { HeaderMobileMenu } from './HeaderMobileMenu';
 

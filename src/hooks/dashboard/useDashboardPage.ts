@@ -6,16 +6,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useDashboardData } from './useDashboardData';
 import { useTabData } from '@/hooks/useTabData';
 import { useTabDataMapper } from '@/hooks/useTabDataMapper';
-import { useDashboardKeys } from '@/hooks/dashboard/useDashboardKeys';
+import { useDashboardKeys } from './useDashboardKeys';
 import { useUserActivity } from '@/hooks/useUserActivity';
 import { TabType } from '@/types';
 import { useDashboardFilters } from './useDashboardFilters';
-import { useEvolutionAutoSelect } from './useEvolutionAutoSelect';
-import { useChartRegistration } from './dashboard/useChartRegistration';
-import { useDashboardAuthWrapper } from './dashboard/useDashboardAuthWrapper';
+import { useEvolutionAutoSelect } from '@/hooks/useEvolutionAutoSelect';
+import { useChartRegistration } from './useChartRegistration';
+import { useDashboardAuthWrapper } from './useDashboardAuthWrapper';
 
 export function useDashboardPage() {
   const router = useRouter();

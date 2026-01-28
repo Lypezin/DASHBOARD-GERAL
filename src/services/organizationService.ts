@@ -1,7 +1,7 @@
 
 import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
-import { Organization, OrganizationFormData, OrganizationOperationResult } from '@/hooks/useOrganizations';
+import { Organization, OrganizationFormData, OrganizationOperationResult } from '@/hooks/auth/useOrganizations';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 

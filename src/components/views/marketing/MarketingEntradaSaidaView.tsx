@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { EntradaSaidaView } from './EntradaSaidaView';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth/useAuth';
 import { MarketingFilters } from './MarketingFilters';
 
 const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView() {

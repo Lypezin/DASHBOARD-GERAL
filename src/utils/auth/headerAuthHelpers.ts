@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { UserProfile } from '@/hooks/useHeaderAuth';
+import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { useAuthGuard } from '@/hooks/auth/useAuthGuard';
 import { CurrentUser } from '@/types';
 
 export function useDashboardAuthWrapper() {

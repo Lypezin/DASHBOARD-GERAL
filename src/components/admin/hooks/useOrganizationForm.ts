@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Organization, OrganizationFormData } from '@/hooks/useOrganizations';
+import { Organization, OrganizationFormData, useOrganizations } from '@/hooks/auth/useOrganizations';
 
 interface UseOrganizationFormProps {
     organization: Organization | null;

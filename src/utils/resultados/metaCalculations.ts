@@ -1,6 +1,11 @@
 export const META_CUSTO = 50;
 
-export const calcularMetaInfo = (custoPorLiberado?: number, quantidadeLiberados?: number, valorTotal?: number) => {
+export interface MetaInfo {
+    faltamLiberados: number;
+    jaAtingiuMeta: boolean;
+}
+
+export const calcularMetaInfo = (custoPorLiberado?: number, quantidadeLiberados?: number, valorTotal?: number): MetaInfo | null => {
     if (!custoPorLiberado || custoPorLiberado <= 0) return null;
 
     let faltamLiberados = 0;

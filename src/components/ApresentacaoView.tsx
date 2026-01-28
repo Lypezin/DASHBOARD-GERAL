@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { useApresentacaoData } from '@/hooks/apresentacao/useApresentacaoData';
 import { useApresentacaoSlides } from '@/hooks/apresentacao/useApresentacaoSlides';
@@ -9,9 +9,10 @@ import { MediaManagerModal } from './apresentacao/components/MediaManagerModal';
 import { PresentationManager } from './apresentacao/components/PresentationManager';
 import { SavePresentationDialog } from './apresentacao/components/SavePresentationDialog';
 import { useApresentacaoController } from '@/hooks/apresentacao/useApresentacaoController';
-import { useSavedPresentations, SavedPresentation } from '@/hooks/apresentacao/useSavedPresentations';
+import { useSavedPresentations } from '@/hooks/apresentacao/useSavedPresentations';
 import { PresentationEditorProvider } from '@/components/apresentacao/context/PresentationEditorContext';
-import { toast } from 'sonner';
+import { usePresentationNavigation } from '@/hooks/apresentacao/usePresentationNavigation';
+import { usePresentationManagerActions } from '@/hooks/apresentacao/usePresentationManagerActions';
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
@@ -45,7 +46,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   } = state;
   const {
     setCurrentSlide, setViewMode,
-    setIsMediaManagerOpen, setOrderedPresentationSlides, setMediaSlides, setVisibleSections,
+    setIsMediaManagerOpen, setOrderedPresentationSlides, setMediaSlides,
     handleUpdateMediaSlide, handleAddMediaSlide, handleDeleteMediaSlide, toggleSection
   } = actions;
 
@@ -54,52 +55,20 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
   const [isManagersOpen, setIsManagersOpen] = React.useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = React.useState(false);
 
-  const handleSavePresentation = async (name: string) => {
-    try {
-      await savePresentation(name, mediaSlides, visibleSections, {
-        praca: pracaSelecionada,
-        ano: anoSelecionado,
-        semanas: semanasSelecionadas
-      });
-      toast.success('Apresentação salva com sucesso!');
-    } catch (error) {
-      toast.error('Falha ao salvar apresentação.');
-    }
-  };
-
-  const handleLoadPresentation = (pres: SavedPresentation) => {
-    // 1. Restore Slides/Sections (Content)
-    if (pres.slides) setMediaSlides(pres.slides);
-    if (pres.sections) actions.setVisibleSections(pres.sections as any);
-    setIsManagersOpen(false);
-
-    // 2. Restore Global Filters (Context) - If callbacks provided
-    let contextChanged = false;
-
-    // Restore Praca
-    if (pres.filters?.praca && pres.filters.praca !== pracaSelecionada && onPracaChange) {
-      onPracaChange(pres.filters.praca);
-      contextChanged = true;
-    }
-
-    // Restore Weeks
-    // Compare arrays: different length OR different elements
-    const savedWeeks = pres.filters?.semanas || [];
-    const currentWeeks = semanasSelecionadas || [];
-    const weeksChanged = savedWeeks.length !== currentWeeks.length ||
-      !savedWeeks.slice().sort().every((val: any, index: any) => val === currentWeeks.slice().sort()[index]);
-
-    if (weeksChanged && onSemanasChange && savedWeeks.length > 0) {
-      onSemanasChange(savedWeeks);
-      contextChanged = true;
-    }
-
-    if (contextChanged) {
-      toast.success(`Contexto atualizado para: ${pres.filters?.praca || 'Geral'} (${pres.filters?.semanas?.length} semanas)`);
-    } else {
-      toast.success(`Apresentação "${pres.name}" carregada.`);
-    }
-  };
+  // Extracted Actions
+  const { handleSavePresentation, handleLoadPresentation } = usePresentationManagerActions({
+    savePresentation,
+    mediaSlides,
+    visibleSections,
+    pracaSelecionada,
+    anoSelecionado,
+    semanasSelecionadas,
+    setMediaSlides,
+    setVisibleSections: actions.setVisibleSections,
+    setIsManagersOpen,
+    onPracaChange,
+    onSemanasChange
+  });
 
   const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas, anoSelecionado);
   const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
@@ -118,26 +87,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
     handleUpdateMediaSlide
   );
 
-  useEffect(() => {
-    setCurrentSlide((prev) => {
-      if (slides.length === 0) return 0;
-      return Math.min(prev, slides.length - 1);
-    });
-  }, [slides.length, setCurrentSlide]);
-
-  const goToNextSlide = () => {
-    setCurrentSlide((prev) => {
-      if (slides.length === 0) return 0;
-      return Math.min(prev + 1, slides.length - 1);
-    });
-  };
-
-  const goToPrevSlide = () => {
-    setCurrentSlide((prev) => {
-      if (slides.length === 0) return 0;
-      return Math.max(prev - 1, 0);
-    });
-  };
+  // Extracted Navigation
+  const { goToNextSlide, goToPrevSlide } = usePresentationNavigation(slides, setCurrentSlide);
 
   const isWebMode = viewMode === 'web_presentation';
 

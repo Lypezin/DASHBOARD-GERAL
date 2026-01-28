@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Settings, LogOut, Moon, Sun } from 'lucide-react';
-import { UserProfile } from '@/hooks/useHeaderAuth';
+import { UserProfile } from '@/hooks/auth/useHeaderAuth';
 
 interface MobileNavContentProps {
     user: UserProfile | null;

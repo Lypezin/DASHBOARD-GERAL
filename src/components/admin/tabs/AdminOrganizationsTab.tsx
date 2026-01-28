@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Organization, OrganizationOperationResult } from '@/hooks/useOrganizations';
+import { Organization, OrganizationOperationResult } from '@/hooks/auth/useOrganizations';
 import { ModernAdminOrganizationsTable } from '@/components/admin/ModernAdminOrganizationsTable';
 import { AdminOrganizationModal } from '@/components/admin/AdminOrganizationModal';
 import { Button } from '@/components/ui/button';

@@ -4,8 +4,8 @@
  */
 
 import { CurrentUser, DimensoesDashboard } from '@/types';
-import { usePracaOptions } from './filters/usePracaOptions';
-import { useDimensionOptions } from './filters/useDimensionOptions';
+import { usePracaOptions } from '../filters/usePracaOptions';
+import { useDimensionOptions } from '../filters/useDimensionOptions';
 
 interface UseDashboardFiltersOptions {
   dimensoes: DimensoesDashboard | null;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { User } from '@/hooks/useAdminData';
+import { useAdminActions } from '@/hooks/auth/useAdminActions';
 
 interface AdminPendingUsersProps {
   pendingUsers: User[];

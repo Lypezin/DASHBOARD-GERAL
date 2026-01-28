@@ -4,7 +4,7 @@ import { useDashboardDimensions } from './useDashboardDimensions';
 import { useDashboardMainData } from './useDashboardMainData';
 import { useDashboardEvolucao } from './useDashboardEvolucao';
 import { useDashboardFilterOptions } from './useDashboardFilterOptions';
-import { useDashboardKeys } from './dashboard/useDashboardKeys';
+import { useDashboardKeys } from './useDashboardKeys';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 
 export function useDashboardData(initialFilters: Filters, activeTab: string, anoEvolucao: number, currentUser?: CurrentUser | null) {

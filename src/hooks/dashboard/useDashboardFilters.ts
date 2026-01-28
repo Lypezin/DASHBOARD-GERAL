@@ -1,35 +1,12 @@
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Filters } from '@/types';
-
-const IS_DEV = process.env.NODE_ENV === 'development';
+import { parseArrayParam, parseNumberParam, parseNumberArrayParam } from '@/utils/urlParsers';
 
 interface UseDashboardFiltersOptions {
     anosDisponiveis?: number[];
     setAnoEvolucao?: (ano: number) => void;
 }
-
-// Helper para parsear arrays da URL (ex: subPracas=a,b,c)
-const parseArrayParam = (param: string | null): string[] => {
-    if (!param) return [];
-    return param.split(',').filter(Boolean);
-};
-
-// Helper para parsear números da URL
-const parseNumberParam = (param: string | null): number | null => {
-    if (!param) return null;
-    const num = Number(param);
-    return isNaN(num) ? null : num;
-};
-
-// Helper para parsear arrays de números da URL
-const parseNumberArrayParam = (param: string | null): number[] => {
-    if (!param) return [];
-    return param.split(',')
-        .map(Number)
-        .filter(n => !isNaN(n));
-};
 
 export function useDashboardFilters({ anosDisponiveis, setAnoEvolucao }: UseDashboardFiltersOptions = {}) {
     const router = useRouter();

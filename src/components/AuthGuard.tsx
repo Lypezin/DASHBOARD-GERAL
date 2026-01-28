@@ -4,7 +4,7 @@
  */
 
 import { ReactNode } from 'react';
-import { useAuthGuard, AuthGuardOptions } from '@/hooks/useAuthGuard';
+import { useAuthGuard, AuthGuardOptions } from '@/hooks/auth/useAuthGuard';
 
 interface AuthGuardProps extends AuthGuardOptions {
   children: ReactNode;
@@ -12,11 +12,11 @@ interface AuthGuardProps extends AuthGuardOptions {
   loadingComponent?: ReactNode;
 }
 
-export function AuthGuard({ 
-  children, 
+export function AuthGuard({
+  children,
   fallback,
   loadingComponent,
-  ...authOptions 
+  ...authOptions
 }: AuthGuardProps) {
   const { isChecking, isAuthenticated } = useAuthGuard(authOptions);
 

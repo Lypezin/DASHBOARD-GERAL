@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useDashboardPage } from '@/hooks/useDashboardPage';
+import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardViewsRenderer } from '@/components/dashboard/DashboardViewsRenderer';
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState';

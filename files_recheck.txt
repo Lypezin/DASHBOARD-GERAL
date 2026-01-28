@@ -1,0 +1,4 @@
+﻿C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\ApresentacaoView.tsx: 205
+C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\ResumoSemanalView.tsx: 386
+C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\components\views\resultados\AtendenteCard.tsx: 221
+C:\Users\Luiz\Desktop\DASHBOARD-GERAL\src\hooks\useResumoDrivers.ts: 230

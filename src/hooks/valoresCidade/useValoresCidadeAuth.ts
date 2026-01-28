@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { useAuthGuard } from '@/hooks/auth/useAuthGuard';
 
 const SENHA_VALORES_CIDADE = 'F4S@1S';
 const STORAGE_KEY_AUTH = 'valores_cidade_authenticated';

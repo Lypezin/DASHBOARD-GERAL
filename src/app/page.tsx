@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { TabNavigation } from '@/components/TabNavigation';
-import { useDashboardPage } from '@/hooks/useDashboardPage';
+import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
 import { DashboardFiltersContainer } from '@/components/dashboard/DashboardFiltersContainer';
 import { DashboardViewsRenderer } from '@/components/dashboard/DashboardViewsRenderer';
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState';

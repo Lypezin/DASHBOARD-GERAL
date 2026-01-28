@@ -15,7 +15,7 @@ import {
 } from '@/types';
 import { useDashboardDataFetcher } from './useDashboardDataFetcher';
 import { useDashboardCache, getInitialCacheData } from './useDashboardCache';
-import { useDashboardDataEffect } from './dashboard/useDashboardDataEffect';
+import { useDashboardDataEffect } from './useDashboardDataEffect';
 import { useOrganization } from '@/contexts/OrganizationContext';
 
 import type { FilterPayload } from '@/types/filters';

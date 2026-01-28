@@ -1,7 +1,8 @@
-
 import React from 'react';
-import { Organization } from '@/hooks/useOrganizations';
+import { Organization } from '@/hooks/useOrganizations'; // Assuming Organization type is still needed from here
 import { AdminOrganizationRow } from './AdminOrganizationRow';
+import { useOrganizations } from '@/hooks/auth/useOrganizations';
+import { useOrganizationSelection } from '@/hooks/auth/useOrganizationSelection';
 
 interface AdminOrganizationsTableProps {
     organizations: Organization[];
