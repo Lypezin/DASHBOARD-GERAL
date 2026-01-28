@@ -5,7 +5,7 @@
  */
 
 import { CurrentUser } from '@/types';
-import { useAuthFlow } from './auth/useAuthFlow';
+import { useAuthFlow } from './useAuthFlow';
 
 /**
  * Opções para o hook de autenticação

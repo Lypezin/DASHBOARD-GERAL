@@ -1,7 +1,7 @@
 import { UserProfile } from './useAdminData';
-import { useAdminApproval } from './admin/useAdminApproval';
-import { useAdminEdit } from './admin/useAdminEdit';
-import { useAdminStatus } from './admin/useAdminStatus';
+import { useAdminApproval } from '@/hooks/admin/useAdminApproval';
+import { useAdminEdit } from '@/hooks/admin/useAdminEdit';
+import { useAdminStatus } from '@/hooks/admin/useAdminStatus';
 
 export function useAdminActions(
   currentUser: UserProfile | null,

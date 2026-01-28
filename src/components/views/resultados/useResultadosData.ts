@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MarketingDateFilter } from '@/types';
+// getValoresCidade removed as it is unused and broke build
 import { safeLog } from '@/lib/errorHandler';
 import { AtendenteData } from './AtendenteCard';
 import { useAtendentesData } from '@/hooks/data/useAtendentesData';

@@ -7,7 +7,7 @@
 import { useRef } from 'react';
 import { CacheEntry, isCacheValid, createCacheEntry } from '@/types/cache';
 import { CACHE } from '@/constants/config';
-import { getFromSessionStorage, setToSessionStorage } from './cache/sessionStorage';
+import { getFromSessionStorage, setToSessionStorage } from '@/hooks/cache/sessionStorage';
 
 interface UseCacheOptions<T> {
   /** TTL do cache em milissegundos (padrão: CACHE.TAB_DATA_TTL) */

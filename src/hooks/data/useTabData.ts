@@ -5,7 +5,7 @@ import { useCache } from './useCache';
 import { useTabDataFetcher } from './useTabDataFetcher';
 import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { useTabFetchOrchestrator } from './dashboard/useTabFetchOrchestrator';
+import { useTabFetchOrchestrator } from '@/hooks/dashboard/useTabFetchOrchestrator';
 
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 

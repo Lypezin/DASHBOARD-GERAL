@@ -4,8 +4,8 @@
  */
 
 import { useUploadRefresh } from './useUploadRefresh';
-import { useFileSelection } from './upload/useFileSelection';
-import { useUploadProcessor } from './upload/useUploadProcessor';
+import { useFileSelection } from '@/hooks/upload/useFileSelection';
+import { useUploadProcessor } from '@/hooks/upload/useUploadProcessor';
 
 interface UseCorridasUploadProps {
   organizationId?: string;

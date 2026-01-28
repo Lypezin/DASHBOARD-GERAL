@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { safeLog } from '@/lib/errorHandler';
-import { useAuthState } from './upload-auth/useAuthState';
-import { checkAdminStatus } from './upload-auth/checkAuth';
+import { useAuthState } from '@/hooks/upload-auth/useAuthState';
+import { checkAdminStatus } from '@/hooks/upload-auth/checkAuth';
 
 const AUTH_TIMEOUT = 10000;
 const MAX_RETRIES = 2;

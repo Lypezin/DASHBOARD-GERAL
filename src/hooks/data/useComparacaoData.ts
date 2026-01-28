@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { DashboardResumoData, UtrData, CurrentUser } from '@/types';
 import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { useAllWeeks } from './comparacao/useAllWeeks';
-import { fetchComparisonMetrics } from './comparacao/useComparisonMetrics';
-import { fetchComparisonUtr } from './comparacao/useComparisonUtr';
+import { useAllWeeks } from '@/hooks/comparacao/useAllWeeks';
+import { fetchComparisonMetrics } from '@/hooks/comparacao/useComparisonMetrics';
+import { fetchComparisonUtr } from '@/hooks/comparacao/useComparisonUtr';
 
 interface UseComparacaoDataOptions {
   semanas: string[];

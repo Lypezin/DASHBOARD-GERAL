@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { fetchPracasWithFallback } from './admin/utils/pracasFetcher';
+import { fetchPracasWithFallback } from '@/hooks/admin/utils/pracasFetcher';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
