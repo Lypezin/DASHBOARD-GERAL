@@ -53,14 +53,22 @@ export function useUserActivity(
     return () => { if (tabTimeout.current) clearTimeout(tabTimeout.current); };
   }, [activeTab, sessionId, registrarAtividade]);
 
-  // Filter Change
+  // Filter Change (com debounce para evitar chamadas excessivas)
+  const filterTimeout = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (!currentUserRef.current || !sessionId) return;
+
+    if (filterTimeout.current) clearTimeout(filterTimeout.current);
+
     const hasActiveFilters = Object.values(filtersRef.current).some(v => v != null && (Array.isArray(v) ? v.length > 0 : true));
     if (hasActiveFilters) {
-      registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current);
+      filterTimeout.current = setTimeout(() => {
+        registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current);
+      }, 300);
     }
-  }, [JSON.stringify(filters), sessionId, registrarAtividade]);
+
+    return () => { if (filterTimeout.current) clearTimeout(filterTimeout.current); };
+  }, [filters, sessionId, registrarAtividade]);
 
   // Visibility
   useEffect(() => {

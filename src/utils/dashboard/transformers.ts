@@ -1,6 +1,8 @@
 import {
     Totals
 } from '@/types';
+import type { RawAderenciaItem, ProcessedAderenciaItem } from '@/types/aderencia';
+import type { AderenciaDia } from '@/types';
 import { safeNumber } from '@/utils/helpers';
 import {
     processSeconds,
@@ -11,11 +13,11 @@ import {
 
 export { convertHorasToString, enrichAderenciaDia, createEmptyDashboardData };
 
-const mapAdherenceData = (data: any[], isDia: boolean = false) => {
+const mapAdherenceData = (data: RawAderenciaItem[], isDia: boolean = false): (ProcessedAderenciaItem | AderenciaDia)[] => {
     if (!Array.isArray(data)) return [];
 
-    return data.map((item: any) => {
-        const mapped = {
+    return data.map((item) => {
+        const mapped: ProcessedAderenciaItem = {
             ...item,
             horas_a_entregar: processSeconds(item.horas_a_entregar || item.segundos_planejados),
             horas_entregues: processSeconds(item.horas_entregues || item.segundos_realizados)
@@ -23,14 +25,14 @@ const mapAdherenceData = (data: any[], isDia: boolean = false) => {
 
         if (isDia) {
             mapped.dia_da_semana = item.dia_da_semana || item.dia_semana;
-            return enrichAderenciaDia(mapped);
+            return enrichAderenciaDia(mapped as unknown as AderenciaDia);
         }
 
         return mapped;
     });
 };
 
-export const transformDashboardData = (data: any) => {
+export const transformDashboardData = (data: unknown) => {
     const rawData = Array.isArray(data) ? (data[0] || {}) : data;
 
     if (!rawData) {

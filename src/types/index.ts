@@ -30,3 +30,4 @@ export * from './entregadores';
 export * from './financeiro';
 export * from './evolucao';
 export * from './users';
+export * from './aderencia';

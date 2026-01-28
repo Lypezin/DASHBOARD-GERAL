@@ -73,6 +73,5 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     };
   }, [activeTab, filterPayloadStr, isOrgLoading]);
 
-  useEffect(() => setData(null), [activeTab]);
   return { data, loading };
 }
