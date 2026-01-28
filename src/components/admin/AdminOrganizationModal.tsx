@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Organization, OrganizationFormData } from '@/hooks/useOrganizations';
+import { Organization, OrganizationFormData } from '@/hooks/auth/useOrganizations';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

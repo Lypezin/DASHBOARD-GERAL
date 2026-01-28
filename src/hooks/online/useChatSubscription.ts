@@ -1,5 +1,6 @@
 
 import { useEffect, useRef } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { supabase } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { ChatMessage } from './types';
@@ -21,7 +22,7 @@ export function useChatSubscription({ userId, setMessages }: UseChatSubscription
                 const history = await chatService.fetchHistory(userId);
                 setMessages(history);
             } catch (error) {
-                console.error('Error fetching chat history:', error);
+                safeLog.error('Error fetching chat history:', error);
             }
         };
 

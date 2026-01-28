@@ -1,4 +1,4 @@
-import { ChatMessage, OnlineUser } from '@/hooks/useOnlineUsers';
+import { ChatMessage, OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
 import { Smile, Reply, Pin } from 'lucide-react';

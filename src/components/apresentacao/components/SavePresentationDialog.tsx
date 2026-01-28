@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,7 @@ export const SavePresentationDialog: React.FC<SavePresentationDialogProps> = ({
             await onSave(name);
             onClose();
         } catch (error) {
-            console.error(error);
+            safeLog.error('Erro ao salvar apresentação:', error);
         } finally {
             setIsSaving(false);
         }

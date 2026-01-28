@@ -32,11 +32,11 @@ export function ChunkReloadListener() {
                 const now = Date.now();
 
                 if (!lastReload || (now - Number(lastReload) > 10000)) {
-                    console.warn('[ChunkReloadListener] Erro de chunk detectado. Recarregando página...', message);
+                    safeLog.warn('[ChunkReloadListener] Erro de chunk detectado. Recarregando página...', message);
                     sessionStorage.setItem('chunk_reload_timestamp', now.toString());
                     window.location.reload();
                 } else {
-                    console.error('[ChunkReloadListener] Loop de reload detectado. Abortando reload.', message);
+                    safeLog.error('[ChunkReloadListener] Loop de reload detectado. Abortando reload.', message);
                 }
             }
         };

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { supabase } from '@/lib/supabaseClient';
 
 interface ForgotPasswordState {
@@ -26,7 +27,7 @@ export function useForgotPassword() {
 
             setState({ loading: false, error: null, success: true });
         } catch (err: any) {
-            console.error('Erro ao enviar email de recuperação:', err);
+            safeLog.error('Erro ao enviar email de recuperação:', err);
             setState({
                 loading: false,
                 error: err.message || 'Ocorreu um erro ao enviar o email. Tente novamente.',

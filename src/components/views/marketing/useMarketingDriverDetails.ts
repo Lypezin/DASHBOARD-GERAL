@@ -1,6 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { getDateRangeFromWeek } from '@/utils/timeHelpers';
+import { safeLog } from '@/lib/errorHandler';
 import { EntregadorMarketing } from '@/types';
 import { useMarketingExcelExport } from './hooks/useMarketingExcelExport';
 
@@ -76,7 +77,7 @@ export const useMarketingDriverDetails = ({
             }
 
         } catch (err: any) {
-            console.error("Error fetching details:", err);
+            safeLog.error("Error fetching details:", err);
             setError("Erro ao carregar detalhes.");
         } finally {
             setLoading(false);

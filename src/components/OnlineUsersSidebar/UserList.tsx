@@ -1,4 +1,4 @@
-import { OnlineUser } from '@/hooks/useOnlineUsers';
+import { OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { UserListItem } from './UserListItem';
 

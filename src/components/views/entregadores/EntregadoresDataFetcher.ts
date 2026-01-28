@@ -58,7 +58,7 @@ export async function fetchEntregadores(
 
     return data;
   } catch (err: any) {
-    console.error('❌ ERRO GERAL fetchEntregadores:', err);
+    safeLog.error('❌ ERRO GERAL fetchEntregadores:', err);
     safeLog.error('Erro ao buscar entregadores:', err);
     throw err;
   }

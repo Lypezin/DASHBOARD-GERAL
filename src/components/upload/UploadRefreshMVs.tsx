@@ -2,7 +2,7 @@
  * Componente para gerenciar refresh de Materialized Views
  */
 
-import { useUploadRefresh } from '@/hooks/useUploadRefresh';
+import { useUploadRefresh } from '@/hooks/data/useUploadRefresh';
 
 interface UploadRefreshMVsProps {
   onAutoRefresh?: () => void;
@@ -65,15 +65,14 @@ export function UploadRefreshMVs({ onAutoRefresh }: UploadRefreshMVsProps) {
 
           {message && (
             <div
-              className={`mt-3 rounded-lg p-3 text-sm ${
-                message.includes('✅')
+              className={`mt-3 rounded-lg p-3 text-sm ${message.includes('✅')
                   ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200'
                   : message.includes('❌')
-                  ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-200'
-                  : message.includes('ℹ️')
-                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-200'
-                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
-              }`}
+                    ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-200'
+                    : message.includes('ℹ️')
+                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-200'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
+                }`}
             >
               {message}
             </div>

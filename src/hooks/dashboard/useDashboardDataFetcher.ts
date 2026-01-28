@@ -37,7 +37,7 @@ export function useDashboardDataFetcher({
                 const { supabase } = await import('@/lib/supabaseClient');
                 if (!supabase || !supabase.rpc) throw new Error('Cliente Supabase não está disponível');
             } catch (supabaseError) {
-                console.error('❌ [useDashboardMainData] Erro ao verificar cliente Supabase:', supabaseError);
+                safeLog.error('❌ [useDashboardMainData] Erro ao verificar cliente Supabase:', supabaseError);
                 const errorMsg = 'Cliente Supabase não está disponível. Aguarde o carregamento completo da página.';
                 setError(errorMsg);
                 if (onError) onError(new Error(errorMsg));

@@ -1,6 +1,6 @@
 import React from 'react';
-import { User } from '@/hooks/useAdminData';
-import { Organization } from '@/hooks/useOrganizations';
+import { User } from '@/hooks/auth/useAdminData';
+import { Organization } from '@/hooks/auth/useOrganizations';
 import {
   Dialog,
   DialogContent,

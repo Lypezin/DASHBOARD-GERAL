@@ -1,4 +1,4 @@
-import { OnlineUser, ChatMessage } from '@/hooks/useOnlineUsers';
+import { ChatMessage, OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { ChatHeader } from './ChatHeader';
 import { MessageList } from './MessageList';

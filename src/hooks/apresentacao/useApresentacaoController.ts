@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { MediaSlideData } from '@/types/presentation';
 
@@ -78,7 +79,7 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
             try {
                 setMediaSlides(JSON.parse(savedSlides));
             } catch (e) {
-                console.error('Error parsing saved slides:', e);
+                safeLog.error('Error parsing saved slides:', e);
                 setMediaSlides([]);
             }
         } else {
@@ -89,7 +90,7 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
             try {
                 setVisibleSections(JSON.parse(savedSections));
             } catch (e) {
-                console.error('Error parsing saved sections:', e);
+                safeLog.error('Error parsing saved sections:', e);
             }
         } else {
             // Reset to defaults if needed, or keep previous state? 

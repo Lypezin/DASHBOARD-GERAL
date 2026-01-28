@@ -1,7 +1,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { FilterOption, CurrentUser } from '@/types';
-import { useComparacaoData } from '@/hooks/useComparacaoData';
+import { useComparacaoData } from '@/hooks/data/useComparacaoData';
 import { useComparacaoChartRegistration } from './useComparacaoChart';
 import { useComparacaoMemo } from './useComparacaoMemo';
 import { useComparacaoFilters, ViewMode } from './useComparacaoFilters';

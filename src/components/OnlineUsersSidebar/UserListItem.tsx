@@ -1,4 +1,4 @@
-import { OnlineUser } from '@/hooks/useOnlineUsers';
+import { OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
 import { User as UserIcon, Smartphone, Monitor, Coffee, Clock } from 'lucide-react';

@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { ChatMessage } from './types';
 import { chatService } from './services/chatService';
 import { useChatSubscription } from './useChatSubscription';
@@ -40,7 +41,7 @@ export function useChat(userId: string | null) {
                 });
             }
         } catch (error) {
-            console.error("Error sending message:", error);
+            safeLog.error("Error sending message:", error);
             setMessages(prev => prev.filter(m => m.id !== tempId));
         }
     };
@@ -56,7 +57,7 @@ export function useChat(userId: string | null) {
         try {
             await chatService.reactToMessage(msgId, userId, emoji);
         } catch (error) {
-            console.error('Error reacting to message:', error);
+            safeLog.error('Error reacting to message:', error);
         }
     };
 
@@ -65,7 +66,7 @@ export function useChat(userId: string | null) {
         try {
             await chatService.pinMessage(msgId, isPinned);
         } catch (error) {
-            console.error('Error pinning message:', error);
+            safeLog.error('Error pinning message:', error);
         }
     };
 
@@ -74,7 +75,7 @@ export function useChat(userId: string | null) {
         try {
             return await chatService.uploadFile(userId, file);
         } catch (error) {
-            console.error('Error uploading file:', error);
+            safeLog.error('Error uploading file:', error);
             return null;
         }
     };

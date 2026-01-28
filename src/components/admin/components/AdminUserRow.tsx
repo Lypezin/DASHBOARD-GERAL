@@ -1,6 +1,6 @@
 import React from 'react';
-import { User, UserProfile } from '@/hooks/useAdminData';
-import { Organization } from '@/hooks/useOrganizations';
+import { User, UserProfile } from '@/hooks/auth/useAdminData';
+import { Organization } from '@/hooks/auth/useOrganizations';
 import { Badge } from '@/components/ui/badge';
 import { Building2 } from 'lucide-react';
 import { AdminUserCell } from './AdminUserCell';

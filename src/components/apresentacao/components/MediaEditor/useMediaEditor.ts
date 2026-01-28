@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { MediaSlideData, SlideElement } from '@/types/presentation';
 import { createBrowserClient } from '@supabase/ssr';
 
@@ -46,7 +47,7 @@ export function useMediaEditor(
                 .upload(filePath, file);
 
             if (uploadError) {
-                console.error('Error uploading image:', uploadError);
+                safeLog.error('Error uploading image:', uploadError);
                 return;
             }
 

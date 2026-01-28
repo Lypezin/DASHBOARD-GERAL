@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { AtendenteData } from './AtendenteCard';
-import { useAtendentesData } from '@/hooks/useAtendentesData';
-import { useCustoPorLiberado } from '@/hooks/useCustoPorLiberado';
+import { useAtendentesData } from '@/hooks/data/useAtendentesData';
+import { useCustoPorLiberado } from '@/hooks/data/useCustoPorLiberado';
 
 interface TotaisData {
     totalEnviado: number;

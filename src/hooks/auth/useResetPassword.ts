@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { supabase } from '@/lib/supabaseClient';
 
 interface ResetPasswordState {
@@ -26,7 +27,7 @@ export function useResetPassword() {
 
             setState({ loading: false, error: null, success: true });
         } catch (err: any) {
-            console.error('Erro ao redefinir senha:', err);
+            safeLog.error('Erro ao redefinir senha:', err);
             setState({
                 loading: false,
                 error: err.message || 'Ocorreu um erro ao redefinir sua senha. Tente novamente.',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { OrganizationFormData } from '@/hooks/useOrganizations';
+import { useOrganizations } from '@/hooks/auth/useOrganizations';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';

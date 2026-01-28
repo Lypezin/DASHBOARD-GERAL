@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import { getISOWeek, getISOWeekYear } from 'date-fns';
 import { Filters } from '@/types';
-import { useSemanasComDados } from '@/hooks/useSemanasComDados';
+import { useSemanasComDados } from '@/hooks/data/useSemanasComDados';
 
 export function useFiltroBarOptions(
     anos: number[],

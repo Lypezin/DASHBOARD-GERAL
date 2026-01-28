@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from '@/hooks/useAdminData';
+import { User } from '@/hooks/auth/useAdminData';
 import { useAdminActions } from '@/hooks/auth/useAdminActions';
 
 interface AdminPendingUsersProps {

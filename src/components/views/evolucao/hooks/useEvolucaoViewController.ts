@@ -6,7 +6,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { calculateYAxisRange } from '@/utils/charts';
 import { processEvolucaoData, createChartData } from '../EvolucaoDataProcessor';
 import { createEvolucaoChartOptions } from '../EvolucaoChartConfig';
-import { useThemeDetector } from '@/hooks/useThemeDetector';
+import { useThemeDetector } from '@/hooks/ui/useThemeDetector';
 
 export function useEvolucaoViewController({
     evolucaoMensal,

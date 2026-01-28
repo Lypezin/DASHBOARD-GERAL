@@ -3,8 +3,8 @@ import { useRef } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
 import { checkRateLimit, addToQueue, getPendingRequest, setPendingRequest } from '@/utils/dashboard/requestQueue';
-import { useCache } from '@/hooks/useCache';
-import { useTabDataFetcher } from '@/hooks/useTabDataFetcher';
+import { useCache } from '@/hooks/data/useCache';
+import { useTabDataFetcher } from '@/hooks/data/useTabDataFetcher';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;

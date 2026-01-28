@@ -1,4 +1,4 @@
-import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { useAuthGuard } from './useAuthGuard';
 import { CurrentUser } from '@/types';
 
 export function useAuth() {

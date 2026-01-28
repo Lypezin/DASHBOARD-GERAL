@@ -1,7 +1,7 @@
 import React from 'react';
-import { UserProfile } from '@/hooks/useAdminData';
-import { useAdminActions } from '@/hooks/useAdminActions';
-import { useOrganizations, Organization } from '@/hooks/useOrganizations';
+import { UserProfile } from '@/hooks/auth/useAdminData';
+import { useAdminActions } from '@/hooks/auth/useAdminActions';
+import { useOrganizations, Organization } from '@/hooks/auth/useOrganizations';
 import { ModernAdminUsersTable } from '@/components/admin/ModernAdminUsersTable';
 import { ModernAdminPendingUsers } from '@/components/admin/ModernAdminPendingUsers';
 import { AdminApprovalModal } from '@/components/admin/AdminApprovalModal';

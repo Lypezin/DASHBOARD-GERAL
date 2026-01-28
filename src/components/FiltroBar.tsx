@@ -2,7 +2,7 @@ import React, { useMemo, useEffect } from 'react';
 import { getISOWeek } from 'date-fns';
 import { Filters, FilterOption, CurrentUser } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
-import { useFiltroBar } from '@/hooks/useFiltroBar';
+import { useFiltroBar } from '@/hooks/ui/useFiltroBar';
 import { useFiltroBarOptions } from './dashboard/filters/hooks/useFiltroBarOptions';
 import { FilterModeSwitch } from './dashboard/filters/FilterModeSwitch';
 import { FilterPrimarySection } from './dashboard/filters/FilterPrimarySection';

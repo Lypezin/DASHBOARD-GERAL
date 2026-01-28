@@ -3,9 +3,9 @@ import React, { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EvolucaoSemanal, AderenciaSemanal, UtrSemanal } from '@/types';
 import { formatNumber, formatPercent } from '@/utils/formatters';
-import { useResumoLocalData } from '@/hooks/useResumoDrivers';
-import { useResumoPracasFilter } from '@/hooks/useResumoPracasFilter';
-import { useResumoSemanalLogic } from '@/hooks/useResumoSemanalLogic';
+import { useResumoLocalData } from '@/hooks/data/useResumoDrivers';
+import { useResumoPracasFilter } from '@/hooks/data/useResumoPracasFilter';
+import { useResumoSemanalLogic } from '@/hooks/data/useResumoSemanalLogic';
 import { ResumoFilters } from './resumo-semanal/ResumoFilters';
 import { ResumoTable } from './resumo-semanal/ResumoTable';
 

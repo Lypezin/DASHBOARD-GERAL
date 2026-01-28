@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DashboardResumoData, UtrData, CurrentUser } from '@/types';
-import { getSafeErrorMessage } from '@/lib/errorHandler';
+import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAllWeeks } from './comparacao/useAllWeeks';
 import { fetchComparisonMetrics } from './comparacao/useComparisonMetrics';
@@ -38,7 +38,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     let isMounted = true;
 
     const fetchData = async () => {
-      console.log('[Comparacao] fetchData iniciado', {
+      safeLog.info('[Comparacao] fetchData iniciado', {
         semanasSelecionadas,
         pracaSelecionada,
         anoSelecionado,
@@ -49,7 +49,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
       // Só busca se tiver pelo menos 2 semanas selecionadas (regra original)
       if (!semanasSelecionadas || semanasSelecionadas.length < 2) {
-        console.log('[Comparacao] Menos de 2 semanas selecionadas, retornando vazio');
+        safeLog.info('[Comparacao] Menos de 2 semanas selecionadas, retornando vazio');
         setDadosComparacao([]);
         setUtrComparacao([]);
         setLoading(false);
@@ -60,13 +60,13 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       setError(null);
 
       try {
-        console.log('[Comparacao] Chamando fetchComparisonMetrics e fetchComparisonUtr...');
+        safeLog.info('[Comparacao] Chamando fetchComparisonMetrics e fetchComparisonUtr...');
         const [dados, utrs] = await Promise.all([
           fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
           fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado)
         ]);
 
-        console.log('[Comparacao] Dados recebidos:', {
+        safeLog.info('[Comparacao] Dados recebidos:', {
           dadosLength: dados?.length,
           dadosPreview: dados?.map(d => ({
             total_ofertadas: d?.total_ofertadas,
@@ -82,7 +82,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           setUtrComparacao(utrs);
         }
       } catch (error: any) {
-        console.error('[Comparacao] Erro ao buscar dados:', error);
+        safeLog.error('[Comparacao] Erro ao buscar dados:', error);
         if (isMounted) {
           setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
         }

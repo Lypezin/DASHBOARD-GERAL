@@ -1,5 +1,5 @@
 import React from 'react';
-import { Organization } from '@/hooks/useOrganizations';
+import { useOrganizations } from '@/hooks/auth/useOrganizations';
 import {
     Select,
     SelectContent,

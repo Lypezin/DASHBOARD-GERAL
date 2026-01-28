@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AdminLoadingSkeleton } from '@/components/admin/AdminLoadingSkeleton';
-import { useAdminData, UserProfile } from '@/hooks/useAdminData';
-import { useOrganizations } from '@/hooks/useOrganizations';
+import { useAdminData, UserProfile } from '@/hooks/auth/useAdminData';
+import { useOrganizations } from '@/hooks/auth/useOrganizations';
 import { AdminContent } from '@/components/admin/AdminContent';
 
 export default function AdminPage() {

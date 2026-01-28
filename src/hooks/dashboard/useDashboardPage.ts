@@ -7,13 +7,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 import { useDashboardData } from './useDashboardData';
-import { useTabData } from '@/hooks/useTabData';
-import { useTabDataMapper } from '@/hooks/useTabDataMapper';
+import { useTabData } from '@/hooks/data/useTabData';
+import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { useDashboardKeys } from './useDashboardKeys';
-import { useUserActivity } from '@/hooks/useUserActivity';
+import { useUserActivity } from '@/hooks/auth/useUserActivity';
 import { TabType } from '@/types';
 import { useDashboardFilters } from './useDashboardFilters';
-import { useEvolutionAutoSelect } from '@/hooks/useEvolutionAutoSelect';
+import { useEvolutionAutoSelect } from '@/hooks/data/useEvolutionAutoSelect';
 import { useChartRegistration } from './useChartRegistration';
 import { useDashboardAuthWrapper } from './useDashboardAuthWrapper';
 

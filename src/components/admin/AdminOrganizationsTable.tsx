@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Organization } from '@/hooks/useOrganizations';
+import { Organization } from '@/hooks/auth/useOrganizations'; // Keep this for the type definition
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useOrganizations } from '@/hooks/auth/useOrganizations'; // New import
+import { useOrganizationSelection } from '@/hooks/auth/useOrganizationSelection'; // New import
 
 interface AdminOrganizationsTableProps {
   organizations: Organization[];

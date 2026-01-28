@@ -32,7 +32,7 @@ export async function handleRpcError(
     }
 
     // Log detalhado do erro APENAS se não for tratado pelo fallback
-    console.error('❌ ERRO CRÍTICO get_entregadores_marketing:', {
+    safeLog.error('❌ ERRO CRÍTICO get_entregadores_marketing:', {
         erro: rpcError,
         params: params,
         mensagem: (rpcError as any)?.message,

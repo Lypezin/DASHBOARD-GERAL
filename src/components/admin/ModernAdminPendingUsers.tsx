@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from '@/hooks/useAdminData';
+import { User } from '@/hooks/auth/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

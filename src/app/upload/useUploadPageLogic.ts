@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useUploadAuth } from '@/hooks/useUploadAuth';
-import { useCorridasUpload } from '@/hooks/useCorridasUpload';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { useUploadAuth } from '@/hooks/auth/useUploadAuth';
+import { useCorridasUpload } from '@/hooks/data/useCorridasUpload';
+import { useFileUpload } from '@/hooks/data/useFileUpload';
 import { useGenericUploadState } from '@/hooks/upload/useGenericUploadState';
-import { useOrganizationSelection } from '@/hooks/useOrganizationSelection';
+import { useOrganization } from '@/hooks/auth/useOrganization';
+import { useOrganizationSelection } from '@/hooks/auth/useOrganizationSelection';
 import {
     MARKETING_COLUMN_MAP,
     VALORES_CIDADE_COLUMN_MAP,

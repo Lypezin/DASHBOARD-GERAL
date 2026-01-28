@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { useSemanasComDados } from '@/hooks/useSemanasComDados';
+import { useSemanasComDados } from '@/hooks/data/useSemanasComDados';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 

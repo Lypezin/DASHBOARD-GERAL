@@ -72,10 +72,10 @@ export function useMarketingComparacao(
             if (rpcError) {
                 // Ignore query_canceled (57014) errors as they are expected when cancelling
                 if (rpcError.code === '57014' || rpcError.message?.includes('57014')) {
-                    console.warn('Ignored cancelled request', rpcError);
+                    safeLog.warn('Ignored cancelled request', rpcError);
                     return;
                 }
-                console.error('RPC Error:', rpcError);
+                safeLog.error('RPC Error:', rpcError);
                 throw rpcError;
             }
 

@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { useOnlineUsers, OnlineUser, ChatMessage } from '@/hooks/useOnlineUsers';
+import { useOnlineUsers, OnlineUser, ChatMessage } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { useChatPersistence } from './hooks/useChatPersistence';
 import { formatTimeOnline } from './utils';

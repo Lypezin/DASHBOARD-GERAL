@@ -1,5 +1,6 @@
 
 import { useCallback, useState } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { getDateRangeFromWeek } from '@/utils/timeHelpers';
 
 interface UseMarketingExcelExportProps {
@@ -90,7 +91,7 @@ export function useMarketingExcelExport({
             XLSX.writeFile(wb, `Detalhes_${activeTab}_${semanaIso}.xlsx`);
 
         } catch (err) {
-            console.error("Erro ao exportar:", err);
+            safeLog.error("Erro ao exportar:", err);
         } finally {
             setExportLoading(false);
         }

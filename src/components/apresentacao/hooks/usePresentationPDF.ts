@@ -1,4 +1,5 @@
 import { useState, useRef, RefObject } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { SLIDE_HEIGHT, SLIDE_WIDTH } from '../constants';
@@ -90,7 +91,7 @@ export const usePresentationPDF = ({
             const filename = `Comparativo_Semana${numeroSemana1}_vs_Semana${numeroSemana2}.pdf`;
             pdf.save(filename);
         } catch (error) {
-            console.error('Erro ao gerar PDF:', error);
+            safeLog.error('Erro ao gerar PDF:', error);
             alert('Erro ao gerar PDF. Tente novamente.');
         } finally {
             if (contentRef.current) {

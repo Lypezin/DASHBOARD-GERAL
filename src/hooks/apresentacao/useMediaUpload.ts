@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr';
+import { safeLog } from '@/lib/errorHandler';
 import { useRef } from 'react';
 
 export const useMediaUpload = (onAddImage: (url: string) => void) => {
@@ -21,7 +22,7 @@ export const useMediaUpload = (onAddImage: (url: string) => void) => {
                 .upload(filePath, file);
 
             if (uploadError) {
-                console.error('Error uploading image:', uploadError);
+                safeLog.error('Error uploading image:', uploadError);
                 return;
             }
 

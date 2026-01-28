@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { ChatMessage, OnlineUser } from '@/hooks/useOnlineUsers';
+import { ChatMessage, OnlineUser } from '@/hooks/data/useOnlineUsers';
+import { safeLog } from '@/lib/errorHandler';
 import { CurrentUser } from '@/types';
 
 export function useChatPersistence(
@@ -19,7 +20,7 @@ export function useChatPersistence(
                 try {
                     setLastReadMap(JSON.parse(saved));
                 } catch (e) {
-                    console.error('Erro ao ler chat_last_read:', e);
+                    safeLog.error('Erro ao ler chat_last_read:', e);
                 }
             }
         }

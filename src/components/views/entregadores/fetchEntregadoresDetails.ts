@@ -1,5 +1,6 @@
 
 import { safeRpc } from '@/lib/rpcWrapper';
+import { safeLog } from '@/lib/errorHandler';
 import { EntregadorMarketing } from '@/types';
 
 export interface EntregadorDetailsParams {
@@ -62,7 +63,7 @@ export async function fetchEntregadoresDetails(params: EntregadorDetailsParams):
         return { data: resultData, totalCount };
 
     } catch (err) {
-        console.error('Error fetching entregadores details:', err);
+        safeLog.error('Error fetching entregadores details:', err);
         throw err;
     }
 }

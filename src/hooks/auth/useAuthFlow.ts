@@ -5,7 +5,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { signOutAndRedirect } from '@/utils/authHelpers';
 import { checkSession } from './session';
 import { fetchAndValidateProfile } from './profile';
-import { AuthGuardOptions, AuthGuardResult } from '@/hooks/useAuthGuard';
+import { AuthGuardOptions, AuthGuardResult } from './useAuthGuard';
 import { CurrentUser } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';

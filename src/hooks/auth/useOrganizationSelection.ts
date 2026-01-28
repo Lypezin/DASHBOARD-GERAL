@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { supabase } from '@/lib/supabaseClient';
 import { CurrentUser } from '@/types';
 
@@ -57,7 +58,7 @@ export function useOrganizationSelection(isAuthorized: boolean, user: { id: stri
                         }
                     }
                 } catch (error) {
-                    console.error('Erro ao carregar organizações:', error);
+                    safeLog.error('Erro ao carregar organizações:', error);
                 } finally {
                     setIsLoadingOrgs(false);
                 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { User, UserProfile } from '@/hooks/useAdminData';
-import { Organization } from '@/hooks/useOrganizations';
+import { User, UserProfile } from '@/hooks/auth/useAdminData';
+import { Organization } from '@/hooks/auth/useOrganizations';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { AdminUserRow } from './components/AdminUserRow';
