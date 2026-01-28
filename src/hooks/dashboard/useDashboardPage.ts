@@ -32,7 +32,7 @@ export function useDashboardPage() {
   const getInitialTab = (): TabType => {
     const tabParam = searchParams.get('tab');
     // Validate if param is a valid TabType (simple validation)
-    if (tabParam && ['dashboard', 'analise', 'utr', 'entregadores', 'valores', 'evolucao', 'prioridade', 'comparacao', 'marketing', 'marketing_comparacao'].includes(tabParam)) {
+    if (tabParam && ['dashboard', 'analise', 'utr', 'entregadores', 'valores', 'evolucao', 'prioridade', 'comparacao', 'marketing', 'marketing_comparacao', 'resumo'].includes(tabParam)) {
       return tabParam as TabType;
     }
     return 'dashboard';
