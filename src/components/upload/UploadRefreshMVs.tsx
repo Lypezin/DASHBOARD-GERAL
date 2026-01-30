@@ -22,91 +22,73 @@ export function UploadRefreshMVs({ onAutoRefresh }: UploadRefreshMVsProps) {
   } = useUploadRefresh();
 
   return (
-    <div className="mt-8 rounded-xl border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-6 dark:border-amber-800 dark:from-amber-950/30 dark:to-yellow-950/30">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
-          <h3 className="font-bold text-amber-900 dark:text-amber-100 mb-2">
-            🔄 Atualizar Materialized Views
-          </h3>
-          <p className="text-sm text-amber-800 dark:text-amber-200">
-            Após fazer upload de novos dados, clique aqui para atualizar todas as Materialized Views e garantir que os dados estejam atualizados no dashboard.
-          </p>
+    <div className="mt-8 overflow-hidden rounded-2xl border border-amber-200/50 bg-gradient-to-br from-amber-50 to-orange-50 p-1 shadow-lg dark:border-amber-800/50 dark:from-amber-950/30 dark:to-orange-950/20 max-w-4xl mx-auto">
+      <div className="rounded-xl bg-white/60 p-6 backdrop-blur-sm dark:bg-black/20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600 shadow-sm dark:bg-amber-900/50 dark:text-amber-400">
+                <span className="text-xl">🔄</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                  Sincronizar Dados
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Atualize as visualizações para refletir os novos uploads no dashboard.
+                </p>
+              </div>
+            </div>
 
-          {/* Barra de Progresso */}
-          {refreshing && (
-            <div className="mt-4 space-y-2">
-              {total > 0 ? (
-                <>
-                  <div className="overflow-hidden rounded-full bg-amber-200 shadow-inner dark:bg-amber-900">
-                    <div
-                      className="h-3 rounded-full bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 shadow-lg transition-all duration-500"
-                      style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
-                    ></div>
+            {/* Status e Progresso */}
+            <div className="pl-13">
+              {refreshing ? (
+                <div className="space-y-3">
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden dark:bg-slate-800">
+                    <div className="h-full bg-amber-500 transition-all duration-300 rounded-full" style={{ width: `${Math.max(5, progress)}%` }}></div>
                   </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-amber-900 dark:text-amber-100">
-                      {progressLabel || `${completed}/${total} atualizadas`}
-                    </p>
-                    <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-                      {Math.max(0, Math.min(100, progress)).toFixed(1)}% concluído
-                    </p>
+                  <div className="flex justify-between text-xs text-slate-500 font-medium">
+                    <span>Processando...</span>
+                    <span>{Math.round(progress)}% ({completed} de {total})</span>
                   </div>
-                </>
-              ) : (
-                <div className="text-center">
-                  <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-amber-600 border-t-transparent"></div>
-                  <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">
-                    Preparando atualização...
-                  </p>
                 </div>
-              )}
+              ) : message ? (
+                <div className={`text-sm font-medium ${message.includes('✅') ? 'text-emerald-600 dark:text-emerald-400' :
+                  message.includes('❌') ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600'
+                  }`}>
+                  {message}
+                </div>
+              ) : null}
             </div>
-          )}
 
-          {message && (
-            <div
-              className={`mt-3 rounded-lg p-3 text-sm ${message.includes('✅')
-                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200'
-                  : message.includes('❌')
-                    ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-200'
-                    : message.includes('ℹ️')
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-200'
-                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
-                }`}
-            >
-              {message}
-            </div>
-          )}
-
-          {/* Botão para tentar novamente as que falharam */}
-          {failedMVs.length > 0 && !refreshing && (
-            <div className="mt-3">
-              <button
-                onClick={retryFailedMVs}
-                className="w-full transform rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                🔄 Tentar Novamente ({failedMVs.length} que falharam)
+            {failedMVs.length > 0 && !refreshing && (
+              <button onClick={retryFailedMVs} className="text-sm font-semibold text-rose-600 hover:text-rose-700 underline dark:text-rose-400">
+                Tentar novamente ({failedMVs.length} erros)
               </button>
-            </div>
-          )}
+            )}
+          </div>
+
+          <button
+            onClick={refreshAllMVs}
+            disabled={refreshing}
+            className={`
+                relative px-8 py-4 rounded-xl font-bold text-white shadow-lg transition-all transform hover:-translate-y-1 active:translate-y-0
+                ${refreshing ? 'cursor-not-allowed opacity-80' : 'hover:shadow-amber-500/25'}
+                bg-gradient-to-r from-amber-500 to-orange-600
+            `}
+          >
+            {refreshing ? (
+              <span className="flex items-center gap-2">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                Atualizando...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2 text-lg">
+                Atualizar Agora
+              </span>
+            )}
+          </button>
         </div>
-        <button
-          onClick={refreshAllMVs}
-          disabled={refreshing}
-          className="flex-shrink-0 transform rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 px-6 py-3 font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500 disabled:shadow-none"
-        >
-          {refreshing ? (
-            <div className="flex items-center gap-2">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-              <span>Atualizando...</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🔄</span>
-              <span>Atualizar</span>
-            </div>
-          )}
-        </button>
       </div>
     </div>
   );

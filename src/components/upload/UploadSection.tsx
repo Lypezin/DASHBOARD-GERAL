@@ -58,64 +58,86 @@ export const UploadSection = memo(function UploadSection({
   mvRefreshProgress,
   mvRefreshStatus,
 }: UploadSectionProps) {
+
+  const borderColor = variant === 'marketing' ? 'border-purple-200 dark:border-purple-800' :
+    variant === 'valores' ? 'border-emerald-200 dark:border-emerald-800' :
+      'border-blue-200 dark:border-blue-800';
+
+  const shadowColor = variant === 'marketing' ? 'shadow-purple-500/10' :
+    variant === 'valores' ? 'shadow-emerald-500/10' :
+      'shadow-blue-500/10';
+
   return (
-    <Card className="h-full flex flex-col">
-      <UploadHeader title={title} description={description} icon={icon} />
+    <Card className={`h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl ${borderColor} ${shadowColor} backdrop-blur-sm bg-white/50 dark:bg-slate-900/50`}>
+      <div className="relative">
+        {/* Top Accent Line */}
+        <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${variant === 'marketing' ? 'from-purple-400 to-pink-400' :
+            variant === 'valores' ? 'from-emerald-400 to-teal-400' :
+              'from-blue-400 to-indigo-400'
+          }`} />
 
-      <CardContent className="flex-1 flex flex-col gap-4">
+        <UploadHeader title={title} description={description} icon={icon} />
+      </div>
+
+      <CardContent className="flex-1 flex flex-col gap-6 pt-6">
         {/* Área de Upload */}
-        <FileUploadArea
-          files={files}
-          onFileChange={onFileChange}
-          disabled={uploading || disabled}
-          variant={variant}
-          dataAttribute={dataAttribute}
-          maxFiles={maxFiles}
-        />
+        <div className="flex-1 min-h-[200px] flex flex-col justify-center">
+          <FileUploadArea
+            files={files}
+            onFileChange={onFileChange}
+            disabled={uploading || disabled}
+            variant={variant}
+            dataAttribute={dataAttribute}
+            maxFiles={maxFiles}
+          />
+        </div>
 
-        {/* Lista de Arquivos */}
-        <FileList
-          files={files}
-          onRemove={onRemoveFile}
-          disabled={uploading}
-          variant={variant}
-        />
+        <div className="space-y-4">
+          {/* Lista de Arquivos */}
+          <FileList
+            files={files}
+            onRemove={onRemoveFile}
+            disabled={uploading}
+            variant={variant}
+          />
 
-        {/* Botão de Upload */}
-        {/* Botão de Upload */}
-        <UploadActions
-          onUpload={onUpload}
-          uploading={uploading}
-          hasFiles={files.length > 0}
-          variant={variant}
-          fileCount={files.length}
-        />
+          {/* Mensagem de Status */}
+          <UploadMessage
+            message={message}
+            variant={variant}
+          />
 
-        {/* Barra de Progresso */}
-        <UploadProgress
-          progress={progress}
-          progressLabel={progressLabel}
-          variant={variant}
-        />
+          {/* Barra de Progresso - Atualização de MVs */}
+          <UploadMVProgress
+            isRefreshingMVs={isRefreshingMVs}
+            mvRefreshProgress={mvRefreshProgress}
+            mvRefreshStatus={mvRefreshStatus}
+          />
 
-        {/* Barra de Progresso - Atualização de MVs */}
-        <UploadMVProgress
-          isRefreshingMVs={isRefreshingMVs}
-          mvRefreshProgress={mvRefreshProgress}
-          mvRefreshStatus={mvRefreshStatus}
-        />
+          {/* Barra de Progresso */}
+          <UploadProgress
+            progress={progress}
+            progressLabel={progressLabel}
+            variant={variant}
+          />
+        </div>
 
-        {/* Mensagem de Status */}
-        <UploadMessage
-          message={message}
-          variant={variant}
-        />
+        <div className="mt-auto space-y-4">
+          {/* Botão de Upload */}
+          <UploadActions
+            onUpload={onUpload}
+            uploading={uploading}
+            hasFiles={files.length > 0}
+            variant={variant}
+            fileCount={files.length}
+          />
 
-        {/* Informações e Dicas */}
-        <UploadTips tips={tips} />
-
-        {/* Colunas Esperadas */}
-        <UploadExpectedColumns columns={expectedColumns} />
+          {/* Informações e Dicas */}
+          <div className="grid grid-cols-1 gap-2">
+            <UploadTips tips={tips} />
+            <UploadExpectedColumns columns={expectedColumns} />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
