@@ -17,6 +17,15 @@ interface FetchOptions {
 export async function fetchValoresData(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; error: RpcError | null }> {
     const { filterPayload } = options;
 
+    // Check if we need detailed data
+    const isDetailed = filterPayload.detailed === true;
+
+    if (isDetailed) {
+        // Use detailed RPC logic (which wraps the result in { entregadores: ..., total: ... })
+        const detailedResult = await fetchValoresDetalhados(options);
+        return { data: detailedResult.data, error: detailedResult.error };
+    }
+
     const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
     const listarValoresPayload: FilterPayload = {};
 
