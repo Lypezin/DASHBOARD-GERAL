@@ -99,7 +99,7 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
         sortDirection,
         searchTerm,
         isSearching,
-        error: (searchError ? searchError.message : null) || (breakdownError ? breakdownError : null),
+        error: searchError || breakdownError || null,
         totalGeral,
         totalCorridas,
         taxaMediaGeral,
