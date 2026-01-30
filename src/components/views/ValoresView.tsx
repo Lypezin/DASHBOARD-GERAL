@@ -16,6 +16,8 @@ import { staggerContainer, fadeInItem } from '@/utils/animations';
 import { ValoresHeader } from './valores/ValoresHeader';
 import { ValoresError, ValoresEmpty } from './valores/ValoresStates';
 
+import { ValoresBreakdownDisplay } from './valores/ValoresBreakdownDisplay';
+
 const ValoresView = React.memo(function ValoresView({
   valoresData,
   loading,
@@ -42,8 +44,13 @@ const ValoresView = React.memo(function ValoresView({
     totalEntregadores,
     setSearchTerm,
     handleSort,
-    formatarReal
-  } = useValoresData(valoresData, loading);
+    formatarReal,
+    loadMore,
+    hasMore,
+    isLoadingMore,
+    breakdownData,
+    loadingBreakdown
+  } = useValoresData(valoresData, loading, filters);
 
   const handleExport = useCallback(async () => {
     try {
@@ -56,23 +63,24 @@ const ValoresView = React.memo(function ValoresView({
     }
   }, [sortedValores]);
 
-  if (loading) {
+  if (loading && !valoresData) {
     return <DashboardSkeleton contentOnly />;
   }
 
-  if (error) {
+  if (error && !valoresData) {
     return <ValoresError error={error} />;
   }
 
-  if (!valoresData || !Array.isArray(valoresData) || valoresData.length === 0) {
-    return <ValoresEmpty />;
+  if (!valoresData || !Array.isArray(valoresData)) {
+    // Allow empty array to render table (it handles empty state)
+    // but if null/undefined, show empty/loading
+    if (!loading) return <ValoresEmpty />;
+    return <DashboardSkeleton contentOnly />;
   }
-
-
 
   return (
     <motion.div
-      className="space-y-6 animate-fade-in w-full max-w-[1800px] mx-auto"
+      className="space-y-6 animate-fade-in w-full max-w-[1800px] mx-auto pb-10"
       variants={staggerContainer}
       initial="hidden"
       animate="show"
@@ -114,8 +122,20 @@ const ValoresView = React.memo(function ValoresView({
             onSort={handleSort}
             formatarReal={formatarReal}
             isDetailed={filters?.detailed}
+            onLoadMore={loadMore}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
           />
         </motion.div>
+
+        {/* Breakdown Display below Table */}
+        {(filters?.detailed || breakdownData) && (
+          <ValoresBreakdownDisplay
+            data={breakdownData}
+            loading={loadingBreakdown}
+            formatarReal={formatarReal}
+          />
+        )}
       </div>
     </motion.div>
   );

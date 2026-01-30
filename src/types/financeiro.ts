@@ -12,3 +12,15 @@ export interface ValoresData {
     valores: ValoresEntregador[];
     total_geral: number;
 }
+
+export interface ValoresBreakdownItem {
+    turno?: string;
+    sub_praca?: string;
+    total_valor: number;
+    total_corridas: number;
+}
+
+export interface ValoresBreakdown {
+    by_turno: ValoresBreakdownItem[];
+    by_sub_praca: ValoresBreakdownItem[];
+}

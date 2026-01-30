@@ -16,7 +16,7 @@ interface UseTabFetchOrchestratorProps {
     filterPayloadRef: React.MutableRefObject<string>;
     getCached: (params: { tab: string; filterPayload: any }) => TabData | null;
     setCached: (params: { tab: string; filterPayload: any }, data: TabData) => void;
-    fetchWithRetry: (tab: string, payload: any, onSuccess: (data: any) => void, onError: (error: any) => void, shouldContinue: () => boolean) => void;
+    fetchWithRetry: (tab: string, payload: any, onSuccess: (data: any, total?: number) => void, onError: (error: any) => void, shouldContinue: () => boolean) => void;
 }
 
 export function useTabFetchOrchestrator({
@@ -70,9 +70,22 @@ export function useTabFetchOrchestrator({
         isRequestPendingRef.current = true;
         const fetchPromise = new Promise((resolve, reject) => {
             fetchWithRetry(tab, currentPayload,
-                (fetchedData) => {
+                (fetchedData, total) => {
                     if (currentTabRef.current !== tab) { resolve(null); return; }
-                    const processedData = tab === 'valores' ? (Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : []) : (fetchedData as TabData);
+
+                    let processedData: TabData;
+                    if (tab === 'valores') {
+                        const list = Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : [];
+                        // We can also store total in a separate state store if needed, but for now returned data is enough
+                        // For infinite scroll, we usually append. But here we fetch fresh or filter change.
+                        // Infinite scroll logic will be inside the component/hook specific to 'valores'.
+                        processedData = list;
+                        // Hack: attach total to the array to pass it down if needed, or rely on a separate context
+                        if (total !== undefined) (processedData as any).total = total;
+                    } else {
+                        processedData = fetchedData as TabData;
+                    }
+
                     setData(processedData);
                     setCached({ tab, filterPayload: currentPayload }, processedData);
                     isRequestPendingRef.current = false;

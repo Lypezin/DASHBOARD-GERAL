@@ -40,9 +40,12 @@ export const chatService = {
     },
 
     async reactToMessage(msgId: string, userId: string, emoji: string) {
-        const { data: currentMsg } = await supabase.from('chat_messages').select('reactions').eq('id', msgId).single();
-        const updatedReactions = { ...currentMsg?.reactions, [userId]: emoji };
-        await supabase.from('chat_messages').update({ reactions: updatedReactions }).eq('id', msgId);
+        const { error } = await supabase.rpc('toggle_chat_reaction', {
+            message_id: msgId,
+            emoji: emoji
+        });
+
+        if (error) throw error;
     },
 
     async pinMessage(msgId: string, isPinned: boolean) {

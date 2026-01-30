@@ -102,10 +102,10 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
 /**
  * Busca dados detalhados de Valores (com turno e sub)
  */
-export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; error: RpcError | null }> {
+export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; total: number; error: RpcError | null }> {
     const { filterPayload } = options;
 
-    const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
+    const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_limit', 'p_offset'];
     const listarValoresPayload: FilterPayload = {};
 
     for (const key of allowedParams) {
@@ -114,6 +114,10 @@ export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ d
         }
     }
 
+    // Default defaults if not provided (handled by RPC usually but good for explicit intent)
+    if (!('p_limit' in listarValoresPayload)) listarValoresPayload['p_limit'] = 25;
+    if (!('p_offset' in listarValoresPayload)) listarValoresPayload['p_offset'] = 0;
+
     const result = await safeRpc<any>('listar_valores_entregadores_detalhado', listarValoresPayload, {
         timeout: RPC_TIMEOUTS.LONG,
         validateParams: false
@@ -121,10 +125,11 @@ export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ d
 
     if (result.error) {
         safeLog.error('Erro ao buscar valores detalhados:', result.error);
-        return { data: [], error: result.error };
+        return { data: [], total: 0, error: result.error };
     }
 
     let processedData: ValoresEntregador[] = [];
+    let total = 0;
 
     if (result && result.data !== null && result.data !== undefined) {
         if (typeof result.data === 'object' && !Array.isArray(result.data)) {
@@ -132,10 +137,45 @@ export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ d
             if (dataObj && 'entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
                 processedData = dataObj.entregadores;
             }
+            if (dataObj && 'total' in dataObj) {
+                total = Number(dataObj.total) || 0;
+            }
         } else if (Array.isArray(result.data)) {
+            // Fallback for unexpected structure
             processedData = result.data;
+            total = result.data.length;
         }
     }
 
-    return { data: processedData, error: null };
+    return { data: processedData, total, error: null };
+}
+
+/**
+ * Busca breakdown de valores (Turno/Sub)
+ */
+import { ValoresBreakdown } from '@/types/financeiro';
+
+export async function fetchValoresBreakdown(options: FetchOptions): Promise<{ data: ValoresBreakdown | null; error: RpcError | null }> {
+    const { filterPayload } = options;
+
+    const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
+    const breakdownPayload: FilterPayload = {};
+
+    for (const key of allowedParams) {
+        if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
+            breakdownPayload[key] = filterPayload[key];
+        }
+    }
+
+    const result = await safeRpc<ValoresBreakdown>('obter_resumo_valores_breakdown', breakdownPayload, {
+        timeout: RPC_TIMEOUTS.LONG,
+        validateParams: false
+    });
+
+    if (result.error) {
+        safeLog.error('Erro ao buscar breakdown de valores:', result.error);
+        return { data: null, error: result.error };
+    }
+
+    return { data: result.data, error: null };
 }

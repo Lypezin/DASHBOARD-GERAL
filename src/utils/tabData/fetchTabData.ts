@@ -14,7 +14,7 @@ interface FetchOptions {
 /**
  * Busca dados baseado no tipo de tab
  */
-export async function fetchTabData(options: FetchOptions): Promise<{ data: TabData; error: RpcError | null }> {
+export async function fetchTabData(options: FetchOptions): Promise<{ data: TabData; total?: number; error: RpcError | null }> {
     const { tab, filterPayload } = options;
 
     try {
@@ -30,7 +30,8 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
 
             case 'valores':
                 if (filterPayload.detailed) {
-                    return await fetchValoresDetalhados({ filterPayload });
+                    const result = await fetchValoresDetalhados({ filterPayload });
+                    return { data: result.data, total: result.total, error: result.error };
                 }
                 return await fetchValoresData({ filterPayload });
 

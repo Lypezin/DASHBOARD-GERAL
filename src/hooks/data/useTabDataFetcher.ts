@@ -20,7 +20,7 @@ export function useTabDataFetcher() {
   const fetchWithRetry = async (
     tab: string,
     filterPayload: FilterPayload,
-    onSuccess: (data: TabData) => void,
+    onSuccess: (data: TabData, total?: number) => void,
     onError: (error: Error | RpcError) => void,
     shouldContinue: () => boolean
   ): Promise<void> => {
@@ -49,7 +49,7 @@ export function useTabDataFetcher() {
         return;
       }
 
-      onSuccess(result.data);
+      onSuccess(result.data, result.total);
       setLoading(false);
     } catch (error) {
       if (!shouldContinue()) {

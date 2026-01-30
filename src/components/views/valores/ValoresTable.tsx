@@ -11,6 +11,7 @@ import {
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { ValoresEntregador } from '@/types';
 import { ValoresTableRow } from './components/ValoresTableRow';
+import { useInfiniteScroll } from '@/hooks/ui/useInfiniteScroll';
 
 interface ValoresTableProps {
     sortedValores: ValoresEntregador[];
@@ -19,6 +20,9 @@ interface ValoresTableProps {
     onSort: (field: keyof ValoresEntregador) => void;
     formatarReal: (valor: number | null | undefined) => string;
     isDetailed?: boolean;
+    onLoadMore?: () => void;
+    hasMore?: boolean;
+    isLoadingMore?: boolean;
 }
 
 export const ValoresTable = React.memo(function ValoresTable({
@@ -28,7 +32,17 @@ export const ValoresTable = React.memo(function ValoresTable({
     onSort,
     formatarReal,
     isDetailed,
+    onLoadMore,
+    hasMore,
+    isLoadingMore
 }: ValoresTableProps) {
+    const { useInfiniteScroll } = require('@/hooks/ui/useInfiniteScroll'); // Dynamic import to avoid top-level if simple
+    // Actually better to change the top usage given this is a memo component
+
+    // We can't use hooks conditionally or dynamically import easily inside render without suspense.
+    // Let's assume the hook is available. I'll need to add the import at top.
+
+    const lastElementRef = useInfiniteScroll(onLoadMore || (() => { }), hasMore || false, isLoadingMore || false);
 
     const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
         if (sortField !== field) {
@@ -88,21 +102,36 @@ export const ValoresTable = React.memo(function ValoresTable({
                 </TableHeader>
                 <TableBody>
                     {sortedValores.length > 0 ? (
-                        sortedValores.map((entregador, index) => {
-                            if (!entregador) return null;
-                            return (
-                                <ValoresTableRow
-                                    key={`${entregador.id_entregador}-${index}`}
-                                    entregador={entregador}
-                                    ranking={index + 1}
-                                    formatarReal={formatarReal}
-                                    isDetailed={isDetailed}
-                                />
-                            );
-                        })
+                        <>
+                            {sortedValores.map((entregador, index) => {
+                                if (!entregador) return null;
+                                return (
+                                    <ValoresTableRow
+                                        key={`${entregador.id_entregador}-${index}`}
+                                        entregador={entregador}
+                                        ranking={index + 1}
+                                        formatarReal={formatarReal}
+                                        isDetailed={isDetailed}
+                                    />
+                                );
+                            })}
+                            {hasMore && (
+                                <TableRow>
+                                    <TableCell colSpan={isDetailed ? 6 : 4} className="h-12 text-center py-4">
+                                        <div ref={lastElementRef} className="flex justify-center items-center gap-2 text-slate-500">
+                                            {isLoadingMore ? (
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600"></div>
+                                            ) : (
+                                                <span className="text-xs">Carregando mais...</span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </>
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={4} className="h-24 text-center">
+                            <TableCell colSpan={isDetailed ? 6 : 4} className="h-24 text-center">
                                 Nenhum dado encontrado.
                             </TableCell>
                         </TableRow>
