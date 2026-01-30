@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
+import { AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ListChecks, BarChart3 } from 'lucide-react';
 import { OperationalDetailCard } from './components/OperationalDetailCard';
@@ -10,12 +10,14 @@ interface DashboardOperationalDetailProps {
     aderenciaTurno: AderenciaTurno[];
     aderenciaSubPraca: AderenciaSubPraca[];
     aderenciaOrigem: AderenciaOrigem[];
+    aderenciaDia: AderenciaDia[];
 }
 
 export const DashboardOperationalDetail = React.memo(function DashboardOperationalDetail({
     aderenciaTurno,
     aderenciaSubPraca,
     aderenciaOrigem,
+    aderenciaDia,
 }: DashboardOperationalDetailProps) {
     const [viewMode, setViewMode] = useState<ViewMode>('turno');
 
@@ -38,6 +40,13 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
     // Dados para renderização com base no viewMode
     const dataToRender = useMemo(() => {
         switch (viewMode) {
+            case 'dia':
+                return aderenciaDia.map(item => ({
+                    label: item.data ? new Date(item.data + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' }) : 'N/A',
+                    aderencia: item.aderencia_percentual || 0,
+                    horasAEntregar: item.horas_a_entregar || '0',
+                    horasEntregues: item.horas_entregues || '0'
+                }));
             case 'turno':
                 return aderenciaTurno.map(item => ({
                     label: item.turno || 'N/A',
@@ -62,7 +71,7 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
             default:
                 return [];
         }
-    }, [viewMode, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
+    }, [viewMode, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
     return (
         <Card className="border-none shadow-none bg-transparent">

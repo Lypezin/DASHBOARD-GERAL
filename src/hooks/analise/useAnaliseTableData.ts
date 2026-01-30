@@ -17,12 +17,26 @@ export function useAnaliseTableData(
             case 'dia':
                 return aderenciaDia.map(item => {
                     if (item.dia_da_semana) return { ...item, label: item.dia_da_semana };
+                    const rawDate = item.data || (item as any).data_do_periodo;
                     let diaDaSemana = 'N/D';
-                    if (item.data) {
+
+                    if (rawDate) {
                         try {
-                            const dataObj = new Date(item.data.includes('T') ? item.data : item.data + 'T00:00:00');
-                            if (!isNaN(dataObj.getTime())) diaDaSemana = diasDaSemana[dataObj.getDay()] || 'N/D';
-                        } catch (e) { /* ignore */ }
+                            const dateStr = rawDate.includes('T') ? rawDate : rawDate + 'T00:00:00';
+                            const dataObj = new Date(dateStr);
+
+                            if (!isNaN(dataObj.getTime())) {
+                                const dayIndex = dataObj.getDay(); // 0 = Domingo
+                                diaDaSemana = diasDaSemana[dayIndex] || 'N/D';
+                                // Append formatted date for clarity
+                                const formattedDate = dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                                diaDaSemana = `${diaDaSemana} (${formattedDate})`;
+                            } else {
+                                diaDaSemana = rawDate; // Fallback to raw string
+                            }
+                        } catch (e) {
+                            diaDaSemana = rawDate;
+                        }
                     }
                     return { ...item, label: diaDaSemana };
                 });

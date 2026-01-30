@@ -85,6 +85,7 @@ const DashboardView = React.memo(function DashboardView({
           aderenciaTurno={aderenciaTurno}
           aderenciaSubPraca={aderenciaSubPraca}
           aderenciaOrigem={aderenciaOrigem}
+          aderenciaDia={aderenciaDia}
         />
       </section>
     </div>
