@@ -24,29 +24,25 @@ export function UploadHeader({
     onOrgChange
 }: UploadHeaderProps) {
     return (
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-white shadow-xl dark:from-slate-950 dark:to-slate-900">
-            <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-            
-            <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                        Central de Upload
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/50 bg-white/40 p-10 backdrop-blur-xl dark:border-white/5 dark:bg-white/5 shadow-sm">
+            <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-8">
+                <div className="space-y-3">
+                    <h1 className="text-4xl font-light tracking-tight text-slate-900 dark:text-white md:text-5xl">
+                        Central de <span className="font-semibold">Upload</span>
                     </h1>
-                    <p className="max-w-[600px] text-slate-300">
-                        Gerencie e atualize os dados do sistema através de planilhas Excel.
-                        Selecione a categoria abaixo para começar.
+                    <p className="max-w-[500px] text-lg text-slate-500 dark:text-slate-400 font-light leading-relaxed">
+                        Atualize a base de dados do sistema com simplicidade e precisão.
                     </p>
                 </div>
 
                 {/* Seletor de Organização (Visível APENAS para Admins Globais/Master) */}
                 {isAuthorized && user?.id && organizations.length > 0 && (
-                    <div className="flex flex-col gap-2 rounded-xl bg-white/10 p-4 backdrop-blur-md border border-white/10">
-                        <div className="flex items-center gap-2 text-slate-300">
-                            <Building2 className="h-4 w-4" />
-                            <span className="text-xs font-medium uppercase tracking-wider">Organização Alvo</span>
-                        </div>
+                    <div className="flex flex-col gap-2 min-w-[300px]">
+                        <label className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 pl-1">
+                            Organização Alvo
+                        </label>
                         <Select value={selectedOrgId} onValueChange={onOrgChange} disabled={isLoadingOrgs}>
-                            <SelectTrigger className="w-full md:w-[280px] border-white/20 bg-black/20 text-white placeholder:text-white/50 focus:ring-offset-0 focus:ring-white/20">
+                            <SelectTrigger className="h-12 w-full rounded-xl border-slate-200 bg-white/50 text-slate-700 shadow-sm hover:bg-white transition-all focus:ring-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10">
                                 <SelectValue placeholder="Selecione uma organização" />
                             </SelectTrigger>
                             <SelectContent>

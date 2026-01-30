@@ -50,21 +50,21 @@ export function FileUploadArea({
 }: FileUploadAreaProps) {
   const styles = variantStyles[variant];
 
-  // Determinar cores baseadas na variante para os ícones e textos
+  // Ultra-clean color logic
   const activeColor = variant === 'marketing' ? 'text-purple-600 dark:text-purple-400' :
     variant === 'valores' ? 'text-emerald-600 dark:text-emerald-400' :
-      'text-blue-600 dark:text-blue-400';
+      'text-slate-600 dark:text-slate-400';
 
-  const borderColor = variant === 'marketing' ? 'group-hover:border-purple-400 dark:group-hover:border-purple-400' :
-    variant === 'valores' ? 'group-hover:border-emerald-400 dark:group-hover:border-emerald-400' :
-      'group-hover:border-blue-400 dark:group-hover:border-blue-400';
+  const hoverBg = variant === 'marketing' ? 'hover:bg-purple-50/50 dark:hover:bg-purple-900/10' :
+    variant === 'valores' ? 'hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10' :
+      'hover:bg-slate-50/50 dark:hover:bg-slate-900/10';
 
-  const bgColor = variant === 'marketing' ? 'group-hover:bg-purple-50 dark:group-hover:bg-purple-900/10' :
-    variant === 'valores' ? 'group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/10' :
-      'group-hover:bg-blue-50 dark:group-hover:bg-blue-900/10';
+  const borderColor = variant === 'marketing' ? 'hover:border-purple-200 dark:hover:border-purple-800' :
+    variant === 'valores' ? 'hover:border-emerald-200 dark:hover:border-emerald-800' :
+      'hover:border-slate-300 dark:hover:border-slate-700';
 
   return (
-    <div className="relative group w-full">
+    <div className="relative group w-full h-full min-h-[180px]">
       <input
         type="file"
         accept={accept}
@@ -77,50 +77,50 @@ export function FileUploadArea({
 
       <div
         className={`
-          relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed 
-          p-8 text-center transition-all duration-300 ease-in-out
-          ${styles.border} ${styles.bg}
-          ${borderColor} ${bgColor}
-          peer-disabled:opacity-50 peer-disabled:cursor-not-allowed
-          peer-focus:ring-2 peer-focus:ring-offset-2 peer-focus:ring-offset-background
-          ${variant === 'marketing' ? 'peer-focus:ring-purple-500' : variant === 'valores' ? 'peer-focus:ring-emerald-500' : 'peer-focus:ring-blue-500'}
+          flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 
+          bg-slate-50/30 p-8 text-center transition-all duration-300 ease-out
+          dark:border-slate-800 dark:bg-slate-900/20
+          ${hoverBg} ${borderColor}
+          peer-focus:ring-1 peer-focus:ring-offset-1 peer-focus:ring-slate-300
         `}
       >
         {files.length === 0 ? (
-          <div className="space-y-4 transition-transform duration-300 group-hover:-translate-y-1">
-            <div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full shadow-sm transition-shadow duration-300 group-hover:shadow-md ${styles.iconBg}`}>
-              <span className="text-4xl drop-shadow-sm">☁️</span>
+          <div className="space-y-4 group-hover:scale-[1.02] transition-transform duration-300">
+            <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-800`}>
+              <span className="text-3xl opacity-80 group-hover:opacity-100 transition-opacity">☁️</span>
             </div>
-            <div className="space-y-2">
-              <p className={`text-lg font-bold transition-colors ${activeColor}`}>
-                Procurar Arquivos
+            <div className="space-y-1">
+              <p className={`text-base font-semibold ${activeColor}`}>
+                Clique ou arraste
               </p>
-              <p className="text-sm text-muted-foreground">
-                Arraste e solte ou clique para selecionar
+              <p className="text-xs text-slate-400 max-w-[180px] mx-auto leading-relaxed">
+                Suporta: {accept.replace(/\./g, '').toUpperCase()}
+                {maxFiles ? ` (Máx ${maxFiles})` : ''}
               </p>
-            </div>
-
-            <div className="flex flex-col gap-1 text-xs text-muted-foreground/80">
-              <span>Formatos: {accept.replace(/\./g, '').toUpperCase()}</span>
-              {maxFiles && <span>Máximo: {maxFiles} arquivo(s)</span>}
             </div>
 
             {variant === 'marketing' && (
-              <div className="mt-4 rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 inline-block">
-                ⚠️ Substituição Completa
+              <div className="mt-2 inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-[10px] font-medium text-purple-700 dark:border-purple-900/30 dark:bg-purple-900/10 dark:text-purple-300">
+                Substituição Total
+              </div>
+            )}
+
+            {variant === 'valores' && (
+              <div className="mt-2 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-900/10 dark:text-emerald-300">
+                Substituição Total
               </div>
             )}
           </div>
         ) : (
           <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-md dark:bg-slate-800">
-              <span className="text-4xl">📄</span>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100 dark:bg-slate-800 dark:border-slate-700">
+              <span className="text-3xl">📄</span>
             </div>
             <div>
-              <p className={`text-xl font-bold ${activeColor}`}>
+              <p className={`text-lg font-bold ${activeColor}`}>
                 {files.length} arquivo(s)
               </p>
-              <p className="text-sm font-medium text-muted-foreground mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Pronto para envio
               </p>
             </div>
