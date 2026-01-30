@@ -6,9 +6,10 @@ interface ValoresTableRowProps {
     entregador: ValoresEntregador;
     ranking: number;
     formatarReal: (valor: number | null | undefined) => string;
+    isDetailed?: boolean;
 }
 
-export const ValoresTableRow = React.memo(({ entregador, ranking, formatarReal }: ValoresTableRowProps) => {
+export const ValoresTableRow = React.memo(({ entregador, ranking, formatarReal, isDetailed }: ValoresTableRowProps) => {
     const totalTaxas = Number(entregador.total_taxas) || 0;
     const numeroCorridas = Number(entregador.numero_corridas_aceitas) || 0;
     const taxaMedia = Number(entregador.taxa_media) || 0;
@@ -24,6 +25,18 @@ export const ValoresTableRow = React.memo(({ entregador, ranking, formatarReal }
                     <span className="font-medium text-slate-900 dark:text-white truncate max-w-[200px]">{nomeEntregador}</span>
                 </div>
             </TableCell>
+            {isDetailed && (
+                <>
+                    <TableCell className="py-4">
+                        <span className="text-sm text-slate-500">{entregador.turno || '-'}</span>
+                    </TableCell>
+                    <TableCell className="py-4">
+                        <span className="text-sm text-slate-500 truncate max-w-[150px] block" title={entregador.sub_praca || ''}>
+                            {entregador.sub_praca || '-'}
+                        </span>
+                    </TableCell>
+                </>
+            )}
             <TableCell className="text-right py-4">
                 <span className="font-mono font-medium text-emerald-600 dark:text-emerald-400">
                     {formatarReal(totalTaxas)}

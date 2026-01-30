@@ -98,3 +98,44 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
 
     return { data: processedData, error: null };
 }
+
+/**
+ * Busca dados detalhados de Valores (com turno e sub)
+ */
+export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ data: ValoresEntregador[] | null; error: RpcError | null }> {
+    const { filterPayload } = options;
+
+    const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
+    const listarValoresPayload: FilterPayload = {};
+
+    for (const key of allowedParams) {
+        if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
+            listarValoresPayload[key] = filterPayload[key];
+        }
+    }
+
+    const result = await safeRpc<any>('listar_valores_entregadores_detalhado', listarValoresPayload, {
+        timeout: RPC_TIMEOUTS.LONG,
+        validateParams: false
+    });
+
+    if (result.error) {
+        safeLog.error('Erro ao buscar valores detalhados:', result.error);
+        return { data: [], error: result.error };
+    }
+
+    let processedData: ValoresEntregador[] = [];
+
+    if (result && result.data !== null && result.data !== undefined) {
+        if (typeof result.data === 'object' && !Array.isArray(result.data)) {
+            const dataObj = result.data as any;
+            if (dataObj && 'entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
+                processedData = dataObj.entregadores;
+            }
+        } else if (Array.isArray(result.data)) {
+            processedData = result.data;
+        }
+    }
+
+    return { data: processedData, error: null };
+}

@@ -4,6 +4,8 @@ export interface ValoresEntregador {
     total_taxas: number;
     numero_corridas_aceitas: number;
     taxa_media: number;
+    turno?: string | null;
+    sub_praca?: string | null;
 }
 
 export interface ValoresData {

@@ -48,7 +48,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
         case 'entregadores':
             return <EntregadoresMainView entregadoresData={props.entregadoresData} loading={props.loadingTabData} />;
         case 'valores':
-            return <ValoresView valoresData={props.valoresData} loading={props.loadingTabData} />;
+            return <ValoresView valoresData={props.valoresData} loading={props.loadingTabData} filters={props.filters} setFilters={props.setFilters} />;
         case 'prioridade':
             return <PrioridadePromoView entregadoresData={props.prioridadeData} loading={props.loadingTabData} />;
         case 'evolucao':

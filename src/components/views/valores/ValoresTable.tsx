@@ -18,6 +18,7 @@ interface ValoresTableProps {
     sortDirection: 'asc' | 'desc';
     onSort: (field: keyof ValoresEntregador) => void;
     formatarReal: (valor: number | null | undefined) => string;
+    isDetailed?: boolean;
 }
 
 export const ValoresTable = React.memo(function ValoresTable({
@@ -26,6 +27,7 @@ export const ValoresTable = React.memo(function ValoresTable({
     sortDirection,
     onSort,
     formatarReal,
+    isDetailed,
 }: ValoresTableProps) {
 
     const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
@@ -48,6 +50,22 @@ export const ValoresTable = React.memo(function ValoresTable({
                                 <SortIcon field="nome_entregador" />
                             </div>
                         </TableHead>
+                        {isDetailed && (
+                            <>
+                                <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onClick={() => onSort('turno')}>
+                                    <div className="flex items-center gap-2">
+                                        Turno
+                                        <SortIcon field="turno" />
+                                    </div>
+                                </TableHead>
+                                <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onClick={() => onSort('sub_praca')}>
+                                    <div className="flex items-center gap-2">
+                                        Sub-Praça
+                                        <SortIcon field="sub_praca" />
+                                    </div>
+                                </TableHead>
+                            </>
+                        )}
                         <TableHead className="text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onClick={() => onSort('total_taxas')}>
                             <div className="flex items-center justify-end gap-2">
                                 Total
@@ -78,6 +96,7 @@ export const ValoresTable = React.memo(function ValoresTable({
                                     entregador={entregador}
                                     ranking={index + 1}
                                     formatarReal={formatarReal}
+                                    isDetailed={isDetailed}
                                 />
                             );
                         })

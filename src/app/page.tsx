@@ -90,6 +90,7 @@ function DashboardContent() {
                 origens={filters.options.origens}
                 currentUser={auth.currentUser}
                 filters={filters.state}
+                setFilters={filters.setState}
               />
             </main>
           </div>

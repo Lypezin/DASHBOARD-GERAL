@@ -103,5 +103,6 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
         p_data_inicial: dataInicial,
         p_data_final: dataFinal,
         p_organization_id: organizationId,
+        detailed: filters.detailed,
     } as const;
 };

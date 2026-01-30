@@ -19,9 +19,13 @@ import { ValoresError, ValoresEmpty } from './valores/ValoresStates';
 const ValoresView = React.memo(function ValoresView({
   valoresData,
   loading,
+  filters,
+  setFilters,
 }: {
   valoresData: ValoresEntregador[];
   loading: boolean;
+  filters?: any;
+  setFilters?: any;
 }) {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -88,6 +92,8 @@ const ValoresView = React.memo(function ValoresView({
           isExporting={isExporting}
           onExport={handleExport}
           variants={fadeInItem}
+          isDetailed={filters?.detailed}
+          onToggleDetailed={(checked) => setFilters?.({ ...filters, detailed: checked })}
         />
 
         <motion.div variants={fadeInItem}>
@@ -107,6 +113,7 @@ const ValoresView = React.memo(function ValoresView({
             sortDirection={sortDirection}
             onSort={handleSort}
             formatarReal={formatarReal}
+            isDetailed={filters?.detailed}
           />
         </motion.div>
       </div>
