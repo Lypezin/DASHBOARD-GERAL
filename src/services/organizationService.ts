@@ -17,9 +17,10 @@ export async function fetchAllOrganizations(): Promise<{ data: Organization[] | 
         }
 
         return { data: data || [], error: null };
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar organizações';
         if (IS_DEV) safeLog.error('[organizationService] Erro:', err);
-        return { data: null, error: err.message || 'Erro ao carregar organizações' };
+        return { data: null, error: errorMessage };
     }
 }
 
@@ -39,9 +40,10 @@ export async function createNewOrganization(formData: OrganizationFormData): Pro
         }
 
         return { success: true, id: data || undefined };
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro ao criar organização';
         if (IS_DEV) safeLog.error('[organizationService] Erro ao criar:', err);
-        return { success: false, error: err.message || 'Erro ao criar organização' };
+        return { success: false, error: errorMessage };
     }
 }
 
@@ -66,8 +68,9 @@ export async function updateExistingOrganization(
         }
 
         return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar organização';
         if (IS_DEV) safeLog.error('[organizationService] Erro ao atualizar:', err);
-        return { success: false, error: err.message || 'Erro ao atualizar organização' };
+        return { success: false, error: errorMessage };
     }
 }

@@ -24,9 +24,17 @@ export async function deleteAllRecords(
             if (error.code !== 'PGRST116') {
                 throw new Error(`Erro RPC delete: ${error.message}`);
             }
-        } catch (err: any) {
-            if (err.code !== 'PGRST116') throw err;
-            safeLog.info('RPC não disponível, usando fallback...');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            // Check if the error is PGRST116 (RPC not found/available)
+            // If not, log the error and re-throw it.
+            // If it is, log the fallback message.
+            if (typeof err === 'object' && err !== null && 'code' in err && err.code === 'PGRST116') {
+                safeLog.info('RPC não disponível, usando fallback...');
+            } else {
+                safeLog.error(`Erro ao deletar dados de ${table} via RPC: ${errorMessage}`, 'dataDeletion');
+                throw err; // Re-throw other unexpected errors
+            }
         }
     }
 

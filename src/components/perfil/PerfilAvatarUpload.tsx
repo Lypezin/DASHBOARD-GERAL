@@ -1,8 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { usePerfilUpdate } from '@/hooks/perfil/usePerfilUpdate';
 import { validateImageFile } from '@/utils/perfil/validation';
-import { ProfileAvatarDisplay } from './components/ProfileAvatarDisplay';
-import { ProfileAvatarUploader } from './components/ProfileAvatarUploader';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Camera, Loader2, Trash2 } from 'lucide-react';
+import { toast } from "sonner";
 
 interface PerfilAvatarUploadProps {
   avatarUrl: string | null | undefined;
@@ -16,44 +18,32 @@ export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({
   userId,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { uploadAvatar, removeAvatar, uploading, error, success, setError, setSuccess } = usePerfilUpdate();
+  const [isHovered, setIsHovered] = useState(false);
+  const { uploadAvatar, removeAvatar, uploading } = usePerfilUpdate();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const validation = validateImageFile(file);
     if (!validation.valid) {
-      setError(validation.error || 'Arquivo inválido');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleUpload = async () => {
-    const file = fileInputRef.current?.files?.[0];
-    if (!file) {
-      setError('Por favor, selecione uma imagem.');
+      toast.error(validation.error || 'Arquivo inválido');
       return;
     }
 
     try {
+      toast.loading("Enviando foto...", { id: "upload-avatar" });
       const newUrl = await uploadAvatar(file, userId, avatarUrl);
       if (newUrl) {
-        setPreviewUrl(newUrl);
         onAvatarUpdate(newUrl);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
+        toast.success("Foto atualizada!", { id: "upload-avatar" });
       }
-    } catch (err) {
-      // Error já é tratado no hook
+    } catch (error) {
+      toast.error("Erro ao atualizar foto", { id: "upload-avatar" });
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -61,46 +51,63 @@ export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({
     if (!avatarUrl) return;
 
     try {
+      toast.loading("Removendo foto...", { id: "remove-avatar" });
       await removeAvatar(avatarUrl, userId);
-      setPreviewUrl(null);
       onAvatarUpdate(null);
-    } catch (err) {
-      // Error já é tratado no hook
+      toast.success("Foto removida!", { id: "remove-avatar" });
+    } catch (error) {
+      toast.error("Erro ao remover foto", { id: "remove-avatar" });
     }
   };
 
-  const displayUrl = previewUrl || avatarUrl;
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
-    <div>
-      <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Foto de Perfil</h2>
-      {error && (
-        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200">
-          <p className="font-semibold">⚠️ Erro</p>
-          <p className="text-sm mt-1">{error}</p>
-        </div>
-      )}
-      {success && (
-        <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">
-          <p className="font-semibold">✅ Sucesso</p>
-          <p className="text-sm mt-1">{success}</p>
-        </div>
-      )}
-      <div className="flex flex-col sm:flex-row gap-6 items-start">
-        <ProfileAvatarDisplay
-          displayUrl={displayUrl}
-          onRemove={handleRemovePhoto}
-          canRemove={!!displayUrl}
-          uploading={uploading}
-        />
+    <div className="relative group">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        accept="image/jpeg,image/png,image/gif"
+        className="hidden"
+      />
 
-        <ProfileAvatarUploader
-          ref={fileInputRef}
-          onFileSelect={handleFileSelect}
-          onUpload={handleUpload}
-          uploading={uploading}
-          hasPreview={!!previewUrl && previewUrl !== avatarUrl}
-        />
+      <div
+        className="relative"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <Avatar className="h-32 w-32 border-4 border-white dark:border-slate-900 shadow-xl cursor-pointer ring-2 ring-slate-100 dark:ring-slate-800 transition-all hover:ring-blue-500">
+          <AvatarImage src={avatarUrl || ''} alt="Foto de perfil" className="object-cover" />
+          <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-400 text-4xl font-bold">
+            {uploading ? <Loader2 className="h-10 w-10 animate-spin text-blue-600" /> : <Camera className="h-10 w-10" />}
+          </AvatarFallback>
+        </Avatar>
+
+        {/* Upload Overlay */}
+        <div
+          onClick={triggerFileInput}
+          className={`absolute inset-0 bg-black/40 rounded-full flex items-center justify-center cursor-pointer transition-opacity duration-200 ${isHovered && !uploading ? 'opacity-100' : 'opacity-0'}`}
+        >
+          <Camera className="h-8 w-8 text-white drop-shadow-md" />
+        </div>
+
+        {/* Remove Button */}
+        {avatarUrl && !uploading && (
+          <div className="absolute bottom-0 right-0">
+            <Button
+              size="icon"
+              variant="destructive"
+              className="h-8 w-8 rounded-full shadow-md border-2 border-white dark:border-slate-900"
+              onClick={handleRemovePhoto}
+              title="Remover foto"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
