@@ -65,6 +65,21 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-1 opacity-80 text-nowrap">
                                 Meta: {formatarHorasParaHMS(dia.horas_a_entregar || '0')}
                             </span>
+
+                            <div className="grid grid-cols-2 gap-2 w-full mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/50">
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Ofert</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-mono">
+                                        {dia.corridas_ofertadas || 0}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Comp</span>
+                                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                                        {dia.corridas_completadas || 0}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
