@@ -83,6 +83,21 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
         handleSort
     } = useValoresSort(dataToDisplay);
 
+    // Paginação Client-Side
+    const [visibleCount, setVisibleCount] = useState(30);
+
+    // Resetar paginação quando filtros/busca/ordenação mudam
+    useEffect(() => {
+        setVisibleCount(30);
+    }, [filters, searchTerm, sortField, sortDirection, allData]); // allData changed means reload
+
+    const loadMoreClient = useCallback(() => {
+        setVisibleCount(prev => prev + 30);
+    }, []);
+
+    const paginatedValores = sortedValores.slice(0, visibleCount);
+    const hasMoreClient = visibleCount < sortedValores.length;
+
     // Estatísticas (Global Breakdown)
     const { data: breakdownData, loading: loadingBreakdown, error: breakdownError } = useValoresBreakdown(filters, true);
 
@@ -94,7 +109,8 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
     } = useValoresStats(dataToDisplay);
 
     return {
-        sortedValores,
+        sortedValores, // Mantém completo para Exportação
+        paginatedValores, // Fatiado para Exibição na Tabela
         sortField,
         sortDirection,
         searchTerm,
@@ -107,9 +123,9 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
         setSearchTerm,
         handleSort,
         formatarReal,
-        loadMore,
-        hasMore,
-        isLoadingMore,
+        loadMore: loadMoreClient, // Override para usar paginação local
+        hasMore: hasMoreClient,
+        isLoadingMore: false, // Client side é instantâneo
         breakdownData,
         loadingBreakdown
     };

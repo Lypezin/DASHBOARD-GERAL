@@ -33,6 +33,7 @@ const ValoresView = React.memo(function ValoresView({
 
   const {
     sortedValores,
+    paginatedValores,
     sortField,
     sortDirection,
     searchTerm,
@@ -116,7 +117,7 @@ const ValoresView = React.memo(function ValoresView({
 
         <motion.div variants={fadeInItem}>
           <ValoresTable
-            sortedValores={sortedValores}
+            sortedValores={paginatedValores}
             sortField={sortField}
             sortDirection={sortDirection}
             onSort={handleSort}
