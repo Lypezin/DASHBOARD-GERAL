@@ -46,7 +46,7 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({
                     </TableCell>
                     {semanasSelecionadas.map((_, weekIdx) => {
                         const weeklyData = dadosComparacao[weekIdx];
-                        const dayData = weeklyData?.aderencia_dia?.find(d => d.dia_semana === dia);
+                        const dayData = weeklyData?.aderencia_dia?.find(d => d.dia_semana === dia || d.dia === dia);
 
                         // Calculate current value
                         const rawValue = getRawValue(dayData, metric.key);
