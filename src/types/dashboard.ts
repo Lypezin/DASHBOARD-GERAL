@@ -35,6 +35,7 @@ export interface AderenciaDia {
   corridas_completadas?: number;
   taxa_aceitacao?: number;
   taxa_completude?: number;
+  dia?: string;
   dia_da_semana?: string;
   dia_semana?: string;
   dia_iso?: number;

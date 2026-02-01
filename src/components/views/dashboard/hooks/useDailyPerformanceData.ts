@@ -15,11 +15,28 @@ export function useDailyPerformanceData(aderenciaDia: AderenciaDia[]) {
                 // Se já tem dia_da_semana e dia_iso, usa eles
                 if (dia.dia_da_semana && dia.dia_iso) return dia;
 
+                // Se tem a propriedade "dia" vindo do banco, usa ela como dia_da_semana
+                if (dia.dia && !dia.dia_da_semana) {
+                    return {
+                        ...dia,
+                        dia_da_semana: dia.dia
+                    };
+                }
+
                 // Se tem dia_da_semana mas não dia_iso, tenta mapear
                 if (dia.dia_da_semana && !dia.dia_iso) {
                     return {
                         ...dia,
                         dia_iso: mapaDias[dia.dia_da_semana] || 0
+                    };
+                }
+
+                // Se tem a propriedade "dia" e precisamos mapear o ISO
+                if (dia.dia && !dia.dia_iso) {
+                    return {
+                        ...dia,
+                        dia_da_semana: dia.dia,
+                        dia_iso: mapaDias[dia.dia] || 0
                     };
                 }
 
@@ -40,7 +57,7 @@ export function useDailyPerformanceData(aderenciaDia: AderenciaDia[]) {
 
                 return dia;
             })
-            .filter(dia => dia.dia_da_semana) // Garante que temos pelo menos o nome do dia
+            .filter(dia => dia.dia_da_semana || dia.dia) // Garante que temos pelo menos o nome do dia
             .sort((a, b) => (a.dia_iso || 0) - (b.dia_iso || 0));
     }, [aderenciaDia]);
 }

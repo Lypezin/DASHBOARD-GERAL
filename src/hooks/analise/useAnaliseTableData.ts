@@ -17,6 +17,10 @@ export function useAnaliseTableData(
             case 'dia':
                 return aderenciaDia.map(item => {
                     if (item.dia_da_semana) return { ...item, label: item.dia_da_semana };
+
+                    // Fallback para propriedade "dia"
+                    if (item.dia) return { ...item, label: item.dia };
+
                     const rawDate = item.data || (item as any).data_do_periodo;
                     let diaDaSemana = 'N/D';
 
