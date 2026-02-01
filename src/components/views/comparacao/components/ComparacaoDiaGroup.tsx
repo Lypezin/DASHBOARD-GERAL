@@ -61,7 +61,7 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({
                         let variacao: number | null = null;
                         if (weekIdx > 0) {
                             const prevWeeklyData = dadosComparacao[weekIdx - 1];
-                            const prevDayData = prevWeeklyData?.aderencia_dia?.find(d => d.dia_semana === dia);
+                            const prevDayData = prevWeeklyData?.aderencia_dia?.find(d => d.dia_semana === dia || d.dia === dia);
                             const prevValue = getRawValue(prevDayData, metric.key);
 
                             variacao = calculateVariation(rawValue, prevValue, metric);
