@@ -63,6 +63,9 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         🏆 Galeria de Conquistas
+                        <span className="text-[10px] uppercase font-bold tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full animate-pulse ml-1 self-center">
+                            Beta
+                        </span>
                     </DialogTitle>
                     <DialogDescription>
                         Acompanhe seu progresso e conquiste medalhas exclusivas pelo seu uso do sistema.
