@@ -8,6 +8,7 @@ interface ActivityLog {
     entered_at: string;
     exited_at: string | null;
     duration_seconds: number | null;
+    last_seen?: string;
 }
 
 interface UserProfile {
@@ -66,7 +67,7 @@ export function useMonitoringData() {
             const userIds = Array.from(new Set(logs.map(l => l.user_id)));
             const { data: profiles, error: profilesError } = await supabase
                 .from('user_profiles')
-                .select('id, full_name, avatar_url, email') // Assuming columns
+                .select('id, full_name, avatar_url, email')
                 .in('id', userIds);
 
             if (profilesError) console.warn('Error fetching profiles:', profilesError);
@@ -74,15 +75,14 @@ export function useMonitoringData() {
             const profileMap = new Map<string, UserProfile>();
             profiles?.forEach(p => profileMap.set(p.id, p));
 
-            // 1. Processing Active Users (Last 5 mins AND no exit or very recent entry)
-            // A user is active if they have an entry in the last 5 minutes that doesn't have an exit, 
-            // OR the entry is very recent.
-            const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).getTime();
+            // 1. Processing Active Users (Last 2 mins)
+            const twoMinsAgo = new Date(Date.now() - 2 * 60 * 1000).getTime();
 
             // Map to track latest activity per user
             const latestActivity = new Map<string, ActivityLog>();
             logs.forEach(log => {
                 const existing = latestActivity.get(log.user_id);
+                // We want the MOST RECENT log entry
                 if (!existing || new Date(log.entered_at) > new Date(existing.entered_at)) {
                     latestActivity.set(log.user_id, log);
                 }
@@ -90,16 +90,24 @@ export function useMonitoringData() {
 
             const activeUsers = Array.from(latestActivity.values())
                 .filter(log => {
-                    const entryTime = new Date(log.entered_at).getTime();
-                    // Is active if entry is recent AND (not exited OR exited very recently)
-                    // Realistically "currently on tab" means exited_at is null.
-                    return entryTime > fiveMinsAgo && !log.exited_at;
+                    const lastSeenTime = log.last_seen
+                        ? new Date(log.last_seen).getTime()
+                        : new Date(log.entered_at).getTime();
+
+                    // Active if seen in last 2 mins AND (still open OR just closed)
+                    // If exited_at is set, it means they navigated away from that specific page.
+                    // But if it is their LATEST log, they might still be there if the exit was the last thing they did.
+                    // Ideally, if they exist on ANY page without exit, they are online.
+                    // BUT, if they switch pages, old page has exit, new page has entry.
+                    // So we only care if the LATEST log has NO exit key OR is very very recent.
+
+                    return lastSeenTime > twoMinsAgo && !log.exited_at;
                 })
                 .map(log => ({
                     userId: log.user_id,
                     profile: profileMap.get(log.user_id) || null,
                     currentPath: log.path,
-                    lastSeen: log.entered_at
+                    lastSeen: log.last_seen || log.entered_at
                 }));
 
             // 2. Top Pages
@@ -147,9 +155,6 @@ export function useMonitoringData() {
 
         } catch (err: any) {
             console.error('Monitoring fetch error:', err);
-            // Optionally set error only if strict
-            // setError(err.message); 
-            // For now, if table doesn't exist, we just don't show data
             if (err.message && err.message.includes('relation "user_activity_logs" does not exist')) {
                 setError("Tabela de logs não encontrada. Por favor execute o script SQL.");
             } else {

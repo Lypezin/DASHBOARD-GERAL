@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
-import { LucideIcon, Trophy, Flame, User, Search, BarChart3, Upload, Database, Star, LayoutDashboard, Users, TrendingUp, Filter } from 'lucide-react';
+import { LucideIcon, Trophy, Flame, User, Search, BarChart3, Upload, Database, Star, LayoutDashboard, Users, TrendingUp, Filter, Moon, Clock, Download, Eye } from 'lucide-react';
 
 // Map icons from string to component
 export const ICON_MAP: Record<string, LucideIcon> = {
@@ -19,7 +19,11 @@ export const ICON_MAP: Record<string, LucideIcon> = {
     'LayoutDashboard': LayoutDashboard,
     'Users': Users,
     'TrendingUp': TrendingUp,
-    'Filter': Filter
+    'Filter': Filter,
+    'Moon': Moon,
+    'Clock': Clock,
+    'Download': Download,
+    'Eye': Eye
 };
 
 export interface Badge {
