@@ -44,8 +44,8 @@ export const useResumoSemanalLogic = ({
                 const weekB = parseInt(splitB[1]);
 
                 if (!isNaN(yearA) && !isNaN(yearB) && !isNaN(weekA) && !isNaN(weekB)) {
-                    if (yearA !== yearB) return yearA - yearB;
-                    return weekA - weekB;
+                    if (yearA !== yearB) return yearB - yearA;
+                    return weekB - weekA;
                 }
             }
 
@@ -53,10 +53,10 @@ export const useResumoSemanalLogic = ({
             const numB = parseInt(strB);
 
             if (!isNaN(numA) && !isNaN(numB)) {
-                return numA - numB;
+                return numB - numA;
             }
 
-            return strA.localeCompare(strB, undefined, { numeric: true });
+            return strB.localeCompare(strA, undefined, { numeric: true });
         });
 
         const recentWeeks = sortedWeeks.slice(0, 4);
