@@ -12,7 +12,7 @@ import { Badge, ICON_MAP, useGamification } from '@/contexts/GamificationContext
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Trophy } from 'lucide-react';
+import { Trophy, User, Flame } from 'lucide-react';
 
 interface AchievementsDialogProps {
     open: boolean;
@@ -93,28 +93,70 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
 
                                         <div className="space-y-2">
                                             {useGamification().leaderboard.map((entry, index) => (
-                                                <div key={index} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm transition-transform hover:scale-[1.01]">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={cn(
-                                                            "w-8 h-8 flex items-center justify-center rounded-full font-bold",
-                                                            index === 0 ? "bg-yellow-100 text-yellow-600" :
-                                                                index === 1 ? "bg-slate-100 text-slate-600" :
-                                                                    index === 2 ? "bg-orange-100 text-orange-600" :
-                                                                        "bg-slate-50 text-slate-400 font-normal"
-                                                        )}>
-                                                            #{entry.rank}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-semibold text-slate-900 dark:text-slate-100">{entry.user_name}</p>
-                                                            <div className="flex items-center gap-2 text-xs text-slate-500">
-                                                                <span>🔥 {entry.current_streak} dias seguidos</span>
+                                                <div key={index} className="flex flex-col p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm transition-transform hover:scale-[1.01]">
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={cn(
+                                                                "w-8 h-8 flex items-center justify-center rounded-full font-bold",
+                                                                index === 0 ? "bg-yellow-100 text-yellow-600" :
+                                                                    index === 1 ? "bg-slate-100 text-slate-600" :
+                                                                        index === 2 ? "bg-orange-100 text-orange-600" :
+                                                                            "bg-slate-50 text-slate-400 font-normal"
+                                                            )}>
+                                                                #{entry.rank}
+                                                            </div>
+
+                                                            <div className="flex items-center gap-3">
+                                                                {/* Avatar */}
+                                                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden border-2 border-slate-100 dark:border-slate-700">
+                                                                    {entry.avatar_url ? (
+                                                                        <img src={entry.avatar_url} alt={entry.user_name} className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                                                            <User className="w-5 h-5" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="font-semibold text-slate-900 dark:text-slate-100">{entry.user_name}</p>
+                                                                    <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                                                        <div className="flex items-center gap-1 text-xs text-orange-500 font-medium">
+                                                                            <Flame className="w-3 h-3" />
+                                                                            <span>{entry.current_streak} dias</span>
+                                                                        </div>
+                                                                        {entry.pracas && (
+                                                                            <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 border border-slate-200 dark:border-slate-700">
+                                                                                {entry.pracas}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
+
+                                                        <div className="flex items-center gap-2 bg-yellow-50 dark:bg-yellow-900/10 px-3 py-1.5 rounded-full border border-yellow-100 dark:border-yellow-900/30">
+                                                            <Trophy className="w-4 h-4 text-yellow-500" />
+                                                            <span className="font-bold text-yellow-700 dark:text-yellow-400">{entry.total_badges}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Trophy className="w-4 h-4 text-yellow-500" />
-                                                        <span className="font-bold text-slate-900 dark:text-slate-100">{entry.total_badges}</span>
-                                                    </div>
+
+                                                    {/* Mini Galeria de Conquistas */}
+                                                    {entry.badges_list && entry.badges_list.length > 0 && (
+                                                        <div className="mt-2 pl-14 flex items-center gap-1 flex-wrap">
+                                                            {entry.badges_list.slice(0, 8).map((b, i) => {
+                                                                const BadgeIcon = ICON_MAP[b.icon] || ICON_MAP['Star'];
+                                                                return (
+                                                                    <div key={i} title={b.name} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 text-slate-500">
+                                                                        <BadgeIcon className="w-3.5 h-3.5" />
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                            {entry.badges_list.length > 8 && (
+                                                                <span className="text-[10px] text-slate-400 ml-1">+{entry.badges_list.length - 8}</span>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
 

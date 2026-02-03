@@ -34,7 +34,10 @@ export interface Badge {
 interface LeaderboardEntry {
     rank: number;
     user_name: string;
+    avatar_url?: string;
+    pracas?: string;
     total_badges: number;
+    badges_list: { name: string; icon: string; slug: string; category?: string }[];
     current_streak: number;
 }
 
