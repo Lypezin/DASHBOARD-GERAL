@@ -37,7 +37,7 @@ interface LeaderboardEntry {
     avatar_url?: string;
     pracas?: string;
     total_badges: number;
-    badges_list: { name: string; icon: string; slug: string; category?: string }[];
+    badges_list: { name: string; icon: string; slug: string; category?: string; description?: string }[];
     current_streak: number;
 }
 

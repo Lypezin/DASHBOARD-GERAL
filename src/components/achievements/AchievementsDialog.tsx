@@ -143,17 +143,23 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
 
                                                     {/* Mini Galeria de Conquistas */}
                                                     {entry.badges_list && entry.badges_list.length > 0 && (
-                                                        <div className="mt-2 pl-14 flex items-center gap-1 flex-wrap">
+                                                        <div className="mt-4 pl-14 flex items-center gap-2 flex-wrap">
                                                             {entry.badges_list.slice(0, 8).map((b, i) => {
                                                                 const BadgeIcon = ICON_MAP[b.icon] || ICON_MAP['Star'];
                                                                 return (
-                                                                    <div key={i} title={b.name} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 text-slate-500">
-                                                                        <BadgeIcon className="w-3.5 h-3.5" />
+                                                                    <div key={i} className="group/badge relative">
+                                                                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors cursor-help">
+                                                                            <BadgeIcon className="w-4 h-4" />
+                                                                        </div>
+                                                                        {/* Simple Tooltip (CSS based for performance) */}
+                                                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover/badge:opacity-100 pointer-events-none transition-opacity z-50">
+                                                                            {b.name}
+                                                                        </div>
                                                                     </div>
                                                                 )
                                                             })}
                                                             {entry.badges_list.length > 8 && (
-                                                                <span className="text-[10px] text-slate-400 ml-1">+{entry.badges_list.length - 8}</span>
+                                                                <span className="text-xs text-slate-400 ml-1 font-medium pb-1">+{entry.badges_list.length - 8}</span>
                                                             )}
                                                         </div>
                                                     )}
