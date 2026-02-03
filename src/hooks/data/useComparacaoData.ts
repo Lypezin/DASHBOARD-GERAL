@@ -31,7 +31,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
   useEffect(() => {
     // Se a organização ainda está carregando, não inicia busca
     if (isOrgLoading) {
-      console.log('[Comparacao] Aguardando organização carregar...');
+      safeLog.info('[Comparacao] Aguardando organização carregar...');
       return;
     }
 

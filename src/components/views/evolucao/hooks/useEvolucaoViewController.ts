@@ -83,7 +83,7 @@ export function useEvolucaoViewController({
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            console.log('[DEBUG] useEvolucaoViewController params changed:', {
+            safeLog.info('[DEBUG] useEvolucaoViewController params changed:', {
                 anoSelecionado,
                 viewMode,
                 mensalLength: evolucaoMensal?.length,

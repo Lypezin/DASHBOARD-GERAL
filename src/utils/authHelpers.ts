@@ -47,7 +47,7 @@ export function hasOldSupabaseTokens(): boolean {
  * Limpa sessão e storage, redirecionando para login
  */
 export async function signOutAndRedirect(router: { push: (path: string) => void }, redirectPath: string = '/login'): Promise<void> {
-  console.log('🔴 [signOutAndRedirect] Fazendo logout e redirecionando para:', redirectPath);
+  safeLog.info('🔴 [signOutAndRedirect] Fazendo logout e redirecionando para:', redirectPath);
 
   let targetPath = redirectPath;
   if (typeof window !== 'undefined' && redirectPath === '/login') {

@@ -35,11 +35,11 @@ export function useHeaderAuth() {
         setIsLoading(false);
 
         if (sessionResult.action === 'redirect_login') {
-          if (IS_DEV) console.log('[HeaderAuth] Redirecting to login from:', pathname);
+          if (IS_DEV) safeLog.info('[HeaderAuth] Redirecting to login from:', pathname);
           const search = typeof window !== 'undefined' ? window.location.search : '';
           router.push(`/login${search}`);
         } else {
-          if (IS_DEV) console.log('[HeaderAuth] Public page or skip redirect');
+          if (IS_DEV) safeLog.info('[HeaderAuth] Public page or skip redirect');
         }
         return;
       }

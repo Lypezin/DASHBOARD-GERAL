@@ -15,7 +15,7 @@ export const shouldSkipRedirect = (pathname: string) => {
 };
 
 export async function verifyAuthSession(pathname: string) {
-    if (IS_DEV) console.log('[HeaderAuth] Verifying session...');
+    if (IS_DEV) safeLog.info('[HeaderAuth] Verifying session...');
 
     // 1. Verificar Mock
     await checkSupabaseMock();
@@ -24,7 +24,7 @@ export async function verifyAuthSession(pathname: string) {
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
     if (IS_DEV) {
-        console.log('[HeaderAuth] Check result:', {
+        safeLog.info('[HeaderAuth] Check result:', {
             pathname,
             hasUser: !!authUser,
             error: authError?.message

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { DadosProcessados } from '@/utils/apresentacao/dataProcessor';
+import { safeLog } from '@/lib/errorHandler';
 import { DashboardResumoData } from '@/types/dashboard';
 import { MediaSlideData } from '@/types/presentation';
 import SlideMedia from '@/components/apresentacao/slides/SlideMedia';
@@ -94,13 +95,13 @@ export const useApresentacaoSlides = (
     slidesConfig.push(...turnos);
 
     // 9. Origens
-    console.log('[Apresentacao] Building origens slides:', {
+    safeLog.info('[Apresentacao] Building origens slides:', {
       origensVisible: visibleSections.origens,
       origensCount: origensComparativo?.length,
       origensPreview: origensComparativo?.slice(0, 2)
     });
     const origens = buildSlidesOrigem(visibleSections.origens, origensComparativo, { numeroSemana1, numeroSemana2 });
-    console.log('[Apresentacao] Origens slides built:', origens.length);
+    safeLog.info('[Apresentacao] Origens slides built:', origens.length);
     slidesConfig.push(...origens);
 
     // 10. Demanda

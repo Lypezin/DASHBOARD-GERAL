@@ -18,25 +18,29 @@ export async function fetchComparisonMetrics(
         const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser, organizationId, selectedYear);
         const { semanaNumero, anoNumero } = parseWeekString(semana, selectedYear);
 
-        console.log(`[Comparacao] Buscando semana ${semana}:`, {
-            semanaNumero,
-            anoNumero,
-            selectedYear,
-            filtro
-        });
+        if (IS_DEV) {
+            safeLog.info(`[Comparacao] Buscando semana ${semana}:`, {
+                semanaNumero,
+                anoNumero,
+                selectedYear,
+                filtro
+            });
+        }
 
         const { data: rawData, error } = await safeRpc<DashboardResumoData | DashboardResumoData[]>('dashboard_resumo', filtro, {
             timeout: 30000,
             validateParams: true
         });
 
-        console.log(`[Comparacao] Resposta semana ${semana}:`, {
-            hasError: !!error,
-            errorMsg: error?.message,
-            rawDataType: Array.isArray(rawData) ? 'array' : typeof rawData,
-            rawDataLength: Array.isArray(rawData) ? rawData.length : 'N/A',
-            rawDataPreview: rawData
-        });
+        if (IS_DEV) {
+            safeLog.info(`[Comparacao] Resposta semana ${semana}:`, {
+                hasError: !!error,
+                errorMsg: error?.message,
+                rawDataType: Array.isArray(rawData) ? 'array' : typeof rawData,
+                rawDataLength: Array.isArray(rawData) ? rawData.length : 'N/A',
+                rawDataPreview: rawData
+            });
+        }
 
         if (error) throw error;
 
