@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AdminMonitoringTab } from '@/components/admin/tabs/AdminMonitoringTab';
 import { AdminUsersTab } from '@/components/admin/tabs/AdminUsersTab';
 import { AdminOrganizationsTab } from '@/components/admin/tabs/AdminOrganizationsTab';
 import { AdminStats } from '@/components/admin/AdminStats';
@@ -39,7 +40,7 @@ export const AdminContent: React.FC<AdminContentProps> = ({
     createOrganization,
     updateOrganization
 }) => {
-    const [activeTab, setActiveTab] = useState<'users' | 'organizations'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'organizations' | 'monitoring'>('users');
 
     return (
         <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 p-6 md:p-8">
@@ -90,7 +91,7 @@ export const AdminContent: React.FC<AdminContentProps> = ({
 
                 {/* Main Content Area */}
                 <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-                    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'users' | 'organizations')} className="space-y-6">
+                    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-6">
                         <div className="flex items-center justify-between">
                             <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 p-1 h-11">
                                 <TabsTrigger value="users" className="px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm transition-all duration-300">
@@ -103,6 +104,12 @@ export const AdminContent: React.FC<AdminContentProps> = ({
                                     <div className="flex items-center gap-2">
                                         <BuildingIcon className="w-4 h-4" />
                                         <span>Organizações</span>
+                                    </div>
+                                </TabsTrigger>
+                                <TabsTrigger value="monitoring" className="px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-sm transition-all duration-300">
+                                    <div className="flex items-center gap-2">
+                                        <ActivityIcon className="w-4 h-4" />
+                                        <span>Monitoramento</span>
                                     </div>
                                 </TabsTrigger>
                             </TabsList>
@@ -134,6 +141,10 @@ export const AdminContent: React.FC<AdminContentProps> = ({
                                 />
                             </div>
                         </TabsContent>
+
+                        <TabsContent value="monitoring" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                            <AdminMonitoringTab />
+                        </TabsContent>
                     </Tabs>
                 </div>
             </motion.div>
@@ -160,6 +171,25 @@ function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
             <circle cx="9" cy="7" r="4" />
             <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+    )
+}
+
+function ActivityIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
         </svg>
     )
 }

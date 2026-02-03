@@ -6,6 +6,7 @@ import { ThemeProviderWrapper } from "@/components/ThemeProviderWrapper";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { GamificationProvider } from "@/contexts/GamificationContext";
 import { ChunkReloadListener } from "@/components/ChunkReloadListener";
+import { UserActivityTracker } from "@/components/UserActivityTracker";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -43,6 +44,7 @@ export default function RootLayout({
           <OrganizationProvider>
             <GamificationProvider>
               {/* <ChunkReloadListener /> */}
+              <UserActivityTracker />
               <Toaster richColors position="top-right" />
               <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
                 <Header />

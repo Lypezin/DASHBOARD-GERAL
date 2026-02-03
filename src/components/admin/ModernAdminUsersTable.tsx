@@ -26,11 +26,30 @@ export const ModernAdminUsersTable: React.FC<AdminUsersTableProps> = ({
     onToggleAdmin,
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const filteredUsers = users.filter(user =>
         user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+
+    const handlePreviousPage = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    };
+
+    // Reset page when search changes
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     return (
         <div className="space-y-4">
@@ -60,7 +79,7 @@ export const ModernAdminUsersTable: React.FC<AdminUsersTableProps> = ({
                             </tr>
                         </thead>
                         <tbody className="[&_tr:last-child]:border-0">
-                            {filteredUsers.map((user) => (
+                            {paginatedUsers.map((user) => (
                                 <AdminUserRow
                                     key={user.id}
                                     user={user}
@@ -74,6 +93,29 @@ export const ModernAdminUsersTable: React.FC<AdminUsersTableProps> = ({
                             ))}
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between px-2">
+                <div className="text-sm text-muted-foreground">
+                    Página {currentPage} de {totalPages || 1}
+                </div>
+                <div className="flex items-center space-x-2">
+                    <button
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 text-sm font-medium rounded-md border bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Anterior
+                    </button>
+                    <button
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="px-3 py-1 text-sm font-medium rounded-md border bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Próxima
+                    </button>
                 </div>
             </div>
         </div>
