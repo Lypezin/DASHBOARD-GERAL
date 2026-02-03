@@ -2,7 +2,7 @@
  * Utilitários de validação e verificação de tipos.
  */
 
-export const safeNumber = (value: any): number => {
+export const safeNumber = (value: unknown): number => {
     const num = Number(value);
     return isNaN(num) ? 0 : num;
 };

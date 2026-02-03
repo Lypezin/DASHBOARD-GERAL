@@ -1,10 +1,14 @@
+import { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { UserProfile } from '@/hooks/auth/types';
-import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+
+interface SupabaseClientWithRecreate {
+    _recreate?: () => void;
+}
 
 export async function checkSupabaseMock() {
     try {
@@ -16,11 +20,13 @@ export async function checkSupabaseMock() {
             });
         }
 
-        if (runtimeUrl?.includes('placeholder.supabase.co') && typeof (supabase as any)._recreate === 'function') {
+        const supabaseClient = supabase as unknown as SupabaseClientWithRecreate;
+
+        if (runtimeUrl?.includes('placeholder.supabase.co') && typeof supabaseClient._recreate === 'function') {
             if (IS_DEV) {
                 safeLog.warn('[Header] Cliente Supabase está usando mock, tentando recriar...');
             }
-            (supabase as any)._recreate();
+            supabaseClient._recreate?.();
             await new Promise(resolve => setTimeout(resolve, 500));
         }
     } catch (clientErr) {
@@ -30,9 +36,9 @@ export async function checkSupabaseMock() {
     }
 }
 
-export async function fetchUserProfileWithRetry(): Promise<{ profile: UserProfile | null; error: any }> {
+export async function fetchUserProfileWithRetry(): Promise<{ profile: UserProfile | null; error: PostgrestError | Error | null }> {
     let profile: UserProfile | null = null;
-    let profileError: any = null;
+    let profileError: PostgrestError | Error | null = null;
 
     try {
         const result = await safeRpc<UserProfile>('get_current_user_profile', {}, {
@@ -40,9 +46,9 @@ export async function fetchUserProfileWithRetry(): Promise<{ profile: UserProfil
             validateParams: false
         });
         profile = result.data;
-        profileError = result.error;
+        profileError = result.error as PostgrestError | Error | null;
     } catch (err) {
-        profileError = err;
+        profileError = err as Error;
         if (IS_DEV) safeLog.warn('Erro ao buscar perfil (primeira tentativa):', err);
     }
 
@@ -55,20 +61,22 @@ export async function fetchUserProfileWithRetry(): Promise<{ profile: UserProfil
                 validateParams: false
             });
             profile = retryResult.data;
-            profileError = retryResult.error;
+            profileError = retryResult.error as PostgrestError | Error | null;
         } catch (retryErr) {
-            profileError = retryErr;
+            profileError = retryErr as Error;
         }
     }
 
     return { profile, error: profileError };
 }
 
-export function isTemporaryError(error: any): boolean {
+export function isTemporaryError(error: unknown): boolean {
     if (!error) return false;
 
-    const errorCode = error?.code || '';
-    const errorMessage = String(error?.message || '');
+    // Type guard basic check
+    const errObj = error as { code?: string; message?: string };
+    const errorCode = errObj.code || '';
+    const errorMessage = String(errObj.message || '');
 
     return errorCode === 'TIMEOUT' ||
         errorMessage.includes('timeout') ||

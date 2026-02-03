@@ -74,11 +74,24 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
     return { inserted: insertedRows, errors };
 }
 
-async function insertViaRpc(table: string, batch: any[], rpcName: string, batchNum: number, errors: string[], currentInserted: number) {
+interface RpcBatchResult {
+    inserted: number;
+    errors: number;
+    error_messages: string[];
+}
+
+async function insertViaRpc<T extends Record<string, unknown>>(
+    table: string,
+    batch: T[],
+    rpcName: string,
+    batchNum: number,
+    errors: string[],
+    currentInserted: number
+) {
     // Preparar dados para JSONB
     const dadosJsonb = batch.map(item => {
         const clean: Record<string, unknown> = {};
-        for (const [key, value] of Object.entries(item as Record<string, unknown>)) {
+        for (const [key, value] of Object.entries(item)) {
             clean[key] = (value === undefined || value === null) ? null : value;
         }
         return clean;
@@ -90,7 +103,7 @@ async function insertViaRpc(table: string, batch: any[], rpcName: string, batchN
         // Tentar fallback se for 403 ou funcao nao encontrada
         if (rpcError.code === 'PGRST301' || rpcError.message?.includes('403') || rpcError.code === 'PGRST116') {
             safeLog.warn(`Fallback para inserção direta no lote ${batchNum}`);
-            const { error: directErr } = await supabase.from(table).insert(batch, { count: 'exact' });
+            const { error: directErr } = await supabase.from(table).insert(batch as any, { count: 'exact' });
             if (directErr) throw new Error(`Erro insert fallback: ${directErr.message}`);
             return; // Sucesso fallback
         }
@@ -98,22 +111,38 @@ async function insertViaRpc(table: string, batch: any[], rpcName: string, batchN
     }
 
     // Processar resultado RPC
-    const result = rpcResult as any;
-    if (result?.errors > 0) {
-        (result.error_messages as string[] || []).forEach(msg => errors.push(`Lote ${batchNum}: ${msg}`));
+    const result = rpcResult as unknown as RpcBatchResult;
+    if (result && result.errors > 0) {
+        (result.error_messages || []).forEach(msg => errors.push(`Lote ${batchNum}: ${msg}`));
     }
 }
 
-async function insertDirectly(table: string, batch: any[], batchNum: number, returnData: boolean, errors: string[]) {
-    const opts: any = { count: 'exact' };
-    if (returnData) opts.select = '*';
+async function insertDirectly<T extends Record<string, unknown>>(
+    table: string,
+    batch: T[],
+    batchNum: number,
+    returnData: boolean,
+    errors: string[]
+) {
+    const opts: { count: 'exact' | 'estimated' | 'planned'; select?: string } = { count: 'exact' };
 
-    const { error } = await supabase.from(table).insert(batch, opts);
+    // NOTA: supabase.from().insert() typings podem reclamar se passarmos T[] direto sem 'any'
+    // porque T não é garantia de corresponder à tabela. Usando 'as any' SÓ no batch para o supabase
+    // mas mantendo tipagem segura no resto da função.
+    const query = supabase.from(table).insert(batch as any, opts);
+
+    if (returnData) {
+        query.select();
+    }
+
+    const { error } = await query;
     if (error) throw new Error(`Erro insert direto: ${error.message}`);
 }
 
-function handleBatchError(error: any, batchNum: number, errors: string[]) {
-    const msg = error?.message || `Erro desconhecido lote ${batchNum}`;
+function handleBatchError(error: unknown, batchNum: number, errors: string[]) {
+    // Basic Error Handling
+    const err = error as { message?: string } | null;
+    const msg = err?.message || `Erro desconhecido lote ${batchNum}`;
     errors.push(msg);
     safeLog.error(`Erro no lote ${batchNum}:`, error);
 }
