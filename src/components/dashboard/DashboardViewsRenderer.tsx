@@ -73,8 +73,19 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
 
   // Track Tab Views
   useEffect(() => {
-    if (activeTab === 'comparacao') {
-      registerInteraction('view_comparacao');
+    switch (activeTab) {
+      case 'comparacao':
+        registerInteraction('view_comparacao');
+        break;
+      case 'resumo':
+        registerInteraction('view_resumo');
+        break;
+      case 'entregadores':
+        registerInteraction('view_entregadores');
+        break;
+      case 'evolucao':
+        registerInteraction('view_evolucao');
+        break;
     }
   }, [activeTab, registerInteraction]);
 

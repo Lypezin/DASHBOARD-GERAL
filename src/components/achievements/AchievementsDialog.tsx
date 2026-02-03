@@ -12,6 +12,7 @@ import { Badge, ICON_MAP, useGamification } from '@/contexts/GamificationContext
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Trophy } from 'lucide-react';
 
 interface AchievementsDialogProps {
     open: boolean;
@@ -71,6 +72,7 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
                 <div className="flex-1 overflow-hidden mt-4">
                     <Tabs defaultValue="todos" className="w-full h-full flex flex-col">
                         <TabsList className="mb-4">
+                            <TabsTrigger value="ranking">🏆 Ranking Global</TabsTrigger>
                             <TabsTrigger value="todos">Todas ({unlockedBadges.length}/{badges.length})</TabsTrigger>
                             {categories.map(cat => (
                                 <TabsTrigger key={cat} value={cat} className="capitalize">
@@ -81,6 +83,49 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
 
                         <div className="flex-1 overflow-hidden relative">
                             <ScrollArea className="h-[50vh]">
+                                <TabsContent value="ranking" className="mt-0">
+                                    <div className="space-y-4 p-1">
+                                        {/* Header do Ranking */}
+                                        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg p-6 text-white text-center mb-6 shadow-lg">
+                                            <h3 className="text-2xl font-bold mb-2">Quadro de Líderes</h3>
+                                            <p className="opacity-90">Veja quem são os usuários mais engajados do sistema.</p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            {useGamification().leaderboard.map((entry, index) => (
+                                                <div key={index} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm transition-transform hover:scale-[1.01]">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={cn(
+                                                            "w-8 h-8 flex items-center justify-center rounded-full font-bold",
+                                                            index === 0 ? "bg-yellow-100 text-yellow-600" :
+                                                                index === 1 ? "bg-slate-100 text-slate-600" :
+                                                                    index === 2 ? "bg-orange-100 text-orange-600" :
+                                                                        "bg-slate-50 text-slate-400 font-normal"
+                                                        )}>
+                                                            #{entry.rank}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-semibold text-slate-900 dark:text-slate-100">{entry.user_name}</p>
+                                                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                                <span>🔥 {entry.current_streak} dias seguidos</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Trophy className="w-4 h-4 text-yellow-500" />
+                                                        <span className="font-bold text-slate-900 dark:text-slate-100">{entry.total_badges}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            {useGamification().leaderboard.length === 0 && (
+                                                <div className="text-center p-8 text-slate-400">
+                                                    Nenhum dado de ranking disponível ainda.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </TabsContent>
                                 <TabsContent value="todos" className="mt-0">
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1">
                                         {badges.map(renderBadgeCard)}

@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
-import { LucideIcon, Trophy, Flame, User, Search, BarChart3, Upload, Database, Star } from 'lucide-react';
+import { LucideIcon, Trophy, Flame, User, Search, BarChart3, Upload, Database, Star, LayoutDashboard, Users, TrendingUp, Filter } from 'lucide-react';
 
 // Map icons from string to component
 export const ICON_MAP: Record<string, LucideIcon> = {
@@ -15,7 +15,11 @@ export const ICON_MAP: Record<string, LucideIcon> = {
     'BarChart3': BarChart3,
     'Upload': Upload,
     'Database': Database,
-    'Star': Star
+    'Star': Star,
+    'LayoutDashboard': LayoutDashboard,
+    'Users': Users,
+    'TrendingUp': TrendingUp,
+    'Filter': Filter
 };
 
 export interface Badge {
@@ -27,11 +31,20 @@ export interface Badge {
     category?: string;
 }
 
+interface LeaderboardEntry {
+    rank: number;
+    user_name: string;
+    total_badges: number;
+    current_streak: number;
+}
+
 interface GamificationContextType {
     badges: Badge[];
     unlockedBadges: Badge[];
     recentUnlock: Badge | null;
-    registerInteraction: (type: 'login' | 'view_comparacao' | 'upload') => Promise<void>;
+    leaderboard: LeaderboardEntry[];
+    registerInteraction: (type: 'login' | 'view_comparacao' | 'upload' | 'view_resumo' | 'view_entregadores' | 'view_evolucao' | 'filter_change') => Promise<void>;
+    refreshLeaderboard: () => Promise<void>;
 }
 
 const GamificationContext = createContext<GamificationContextType | undefined>(undefined);
@@ -40,11 +53,20 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     const [badges, setBadges] = useState<Badge[]>([]);
     const [unlockedBadges, setUnlockedBadges] = useState<Badge[]>([]);
     const [recentUnlock, setRecentUnlock] = useState<Badge | null>(null);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+
+    // Fetch Leaderboard
+    const refreshLeaderboard = useCallback(async () => {
+        const { data } = await supabase.rpc('get_gamification_leaderboard');
+        if (data) setLeaderboard(data);
+    }, []);
 
     // Fetch initial state
     const fetchState = useCallback(async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+
+        refreshLeaderboard();
 
         // 1. Get all definitions
         const { data: allBadges } = await supabase.from('gamification_badges').select('*');
@@ -67,7 +89,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     }, []);
 
     // Register interaction
-    const registerInteraction = useCallback(async (type: 'login' | 'view_comparacao' | 'upload') => {
+    const registerInteraction = useCallback(async (type: 'login' | 'view_comparacao' | 'upload' | 'view_resumo' | 'view_entregadores' | 'view_evolucao' | 'filter_change') => {
         try {
             const { data, error } = await supabase.rpc('register_interaction', { p_interaction_type: type });
 
@@ -138,7 +160,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     }, [fetchState, registerInteraction]);
 
     return (
-        <GamificationContext.Provider value={{ badges, unlockedBadges, recentUnlock, registerInteraction }}>
+        <GamificationContext.Provider value={{ badges, unlockedBadges, recentUnlock, registerInteraction, leaderboard, refreshLeaderboard }}>
             {children}
         </GamificationContext.Provider>
     );

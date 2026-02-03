@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Filters } from '@/types';
 import { parseArrayParam, parseNumberParam, parseNumberArrayParam } from '@/utils/urlParsers';
+import { useGamification } from '@/contexts/GamificationContext';
 
 interface UseDashboardFiltersOptions {
     anosDisponiveis?: number[];
@@ -55,6 +56,7 @@ export function useDashboardFilters({ anosDisponiveis, setAnoEvolucao }: UseDash
     };
 
     const [filters, setFilters] = useState<Filters>(getInitialFilters);
+    const { registerInteraction } = useGamification();
 
     const filtersProtectedRef = useRef(false);
     const filtersInitializedRef = useRef(false);
@@ -101,7 +103,9 @@ export function useDashboardFilters({ anosDisponiveis, setAnoEvolucao }: UseDash
         // Usar replace para não poluir o histórico com cada mudança pequena
         router.replace(url, { scroll: false });
 
-    }, [filters, pathname, router, searchParams]);
+        registerInteraction('filter_change');
+
+    }, [filters, pathname, router, searchParams, registerInteraction]);
 
     const setFiltersProtected = useCallback((newFilters: Filters | ((prev: Filters) => Filters)) => {
         const isFunction = typeof newFilters === 'function';
