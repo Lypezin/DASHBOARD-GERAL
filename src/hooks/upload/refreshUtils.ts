@@ -101,6 +101,12 @@ const scheduleBackgroundRefresh = (setRefreshState: SetRefreshState) => {
                 timeout: 600000,
                 validateParams: false
             });
+
+            // Explicitly refresh UTR stats to ensure it's up to date
+            await safeRpc('refresh_single_mv_with_progress', { mv_name_param: 'mv_utr_stats' }, {
+                timeout: 300000,
+                validateParams: false
+            });
             if (IS_DEV) {
                 safeLog.info('Refresh de MVs secundárias iniciado em background');
             }

@@ -67,6 +67,11 @@ export function useManualRefresh() {
                 mvs.push({ mv_name: 'mv_aderencia_agregada', priority: 1 } as unknown as PendingMV);
             }
 
+            // Ensure utr exists
+            if (!mvs.some((m: PendingMV) => m.mv_name === 'mv_utr_stats')) {
+                mvs.push({ mv_name: 'mv_utr_stats', priority: 1 } as unknown as PendingMV);
+            }
+
             await runBatch(mvs);
         } catch (err: any) {
             setState(p => ({ ...p, refreshing: false, message: `❌ Erro: ${err.message}` }));
