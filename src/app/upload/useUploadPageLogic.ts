@@ -11,9 +11,12 @@ import {
 } from '@/constants/upload';
 import { marketingTransformers, valoresCidadeTransformers } from '@/utils/uploadTransformers';
 
+import { useGamification } from '@/contexts/GamificationContext';
+
 export const useUploadPageLogic = () => {
     const { loading, isAuthorized, user } = useUploadAuth();
     const [showRetry, setShowRetry] = useState(false);
+    const { registerInteraction } = useGamification();
 
     // Generic State Hooks
     const marketingState = useGenericUploadState();
@@ -42,7 +45,8 @@ export const useUploadPageLogic = () => {
 
     // Hook para upload de corridas
     const corridasUpload = useCorridasUpload({
-        organizationId: selectedOrgId
+        organizationId: selectedOrgId,
+        onUploadSuccess: () => registerInteraction('upload')
     });
 
     // Hook genérico para upload de Marketing
@@ -77,6 +81,7 @@ export const useUploadPageLogic = () => {
     const handleMarketingUpload = async () => {
         await marketingUpload.uploadFiles(marketingState.files);
         if (!marketingUpload.uploading) {
+            registerInteraction('upload');
             marketingState.clearFiles('marketing');
         }
     };
@@ -84,6 +89,7 @@ export const useUploadPageLogic = () => {
     const handleValoresCidadeUpload = async () => {
         await valoresCidadeUpload.uploadFiles(valoresCidadeState.files);
         if (!valoresCidadeUpload.uploading) {
+            registerInteraction('upload');
             valoresCidadeState.clearFiles('valores-cidade');
         }
     };

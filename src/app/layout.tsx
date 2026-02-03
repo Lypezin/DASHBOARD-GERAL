@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { ThemeProviderWrapper } from "@/components/ThemeProviderWrapper";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
+import { GamificationProvider } from "@/contexts/GamificationContext";
 import { ChunkReloadListener } from "@/components/ChunkReloadListener";
 import { Toaster } from "sonner";
 
@@ -40,12 +41,14 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <ThemeProviderWrapper>
           <OrganizationProvider>
-            {/* <ChunkReloadListener /> */}
-            <Toaster richColors position="top-right" />
-            <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-              <Header />
-              <main className="flex-1 transition-all duration-300">{children}</main>
-            </div>
+            <GamificationProvider>
+              {/* <ChunkReloadListener /> */}
+              <Toaster richColors position="top-right" />
+              <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+                <Header />
+                <main className="flex-1 transition-all duration-300">{children}</main>
+              </div>
+            </GamificationProvider>
           </OrganizationProvider>
         </ThemeProviderWrapper>
       </body>

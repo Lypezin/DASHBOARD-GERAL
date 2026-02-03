@@ -9,9 +9,10 @@ import { useUploadProcessor } from '@/hooks/upload/useUploadProcessor';
 
 interface UseCorridasUploadProps {
   organizationId?: string;
+  onUploadSuccess?: () => void;
 }
 
-export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {}) {
+export function useCorridasUpload({ organizationId, onUploadSuccess }: UseCorridasUploadProps = {}) {
   const { files, handleFileChange, removeFile, clearFiles } = useFileSelection();
   const { state, setState, processUpload } = useUploadProcessor(organizationId);
   const { startAutoRefresh, isRefreshing, refreshProgress, refreshStatus } = useUploadRefresh();
@@ -24,6 +25,7 @@ export function useCorridasUpload({ organizationId }: UseCorridasUploadProps = {
     processUpload(files, () => {
       clearFiles();
       startAutoRefresh(true);
+      if (onUploadSuccess) onUploadSuccess();
     });
   };
 

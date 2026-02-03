@@ -62,10 +62,21 @@ interface DashboardViewsRendererProps {
 
 
 
+import { useGamification } from '@/contexts/GamificationContext';
+
 export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer(props: DashboardViewsRendererProps) {
   const { activeTab, chartReady } = props;
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [previousTab, setPreviousTab] = useState(activeTab);
+
+  const { registerInteraction } = useGamification();
+
+  // Track Tab Views
+  useEffect(() => {
+    if (activeTab === 'comparacao') {
+      registerInteraction('view_comparacao');
+    }
+  }, [activeTab, registerInteraction]);
 
   useEffect(() => {
     if (previousTab !== activeTab) {
