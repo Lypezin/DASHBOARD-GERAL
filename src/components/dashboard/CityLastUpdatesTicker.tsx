@@ -10,7 +10,19 @@ import { RefreshCw } from 'lucide-react';
 export function CityLastUpdatesTicker() {
     const { data, loading } = useCityLastUpdates();
 
-    if (loading || data.length === 0) return null;
+    if (loading) {
+        return <div className="p-4 text-xs text-center text-slate-500">Carregando atualizações...</div>;
+    }
+
+    if (!data || data.length === 0) {
+        return (
+            <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 text-sm mb-6">
+                <strong>Debug:</strong> Nenhuma atualização encontrada.
+                <br />
+                Verifique se o script SQL foi executado e se existem dados na tabela <code>dados_corridas</code>.
+            </div>
+        );
+    }
 
     return (
         <div className="w-full mb-6">
