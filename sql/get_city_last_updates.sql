@@ -27,7 +27,7 @@ BEGIN
     RETURN QUERY
     SELECT 
         dc.praca::text AS city,
-        to_char(MAX(dc.data_inicio), 'YYYY-MM-DD"T"HH24:MI:SS') AS last_update_date
+        to_char(MAX(dc.data_do_periodo), 'YYYY-MM-DD"T"HH24:MI:SS') AS last_update_date
     FROM dados_corridas dc
     WHERE (v_org_filter IS NULL OR dc.organization_id = v_org_filter)
     GROUP BY dc.praca
