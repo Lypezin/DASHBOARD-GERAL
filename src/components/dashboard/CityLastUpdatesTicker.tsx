@@ -34,7 +34,7 @@ export function CityLastUpdatesTicker() {
                                     <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
                                     <span>
                                         {item.last_update_date
-                                            ? format(parseISO(item.last_update_date), "dd 'de' MMM, HH:mm", { locale: ptBR })
+                                            ? format(parseISO(item.last_update_date), "dd 'de' MMM", { locale: ptBR })
                                             : 'N/A'}
                                     </span>
                                 </div>
