@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSupabase } from '@/components/supabase-provider';
+import { supabase } from '@/lib/supabaseClient';
 
 interface CityUpdateInfo {
   city: string;
@@ -7,7 +7,6 @@ interface CityUpdateInfo {
 }
 
 export function useCityLastUpdates() {
-  const { supabase } = useSupabase();
   const [data, setData] = useState<CityUpdateInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +15,7 @@ export function useCityLastUpdates() {
       try {
         const { data: updates, error } = await supabase
           .rpc('get_city_last_updates');
-        
+
         if (error) {
           console.error('Error fetching city updates:', error);
           return;
@@ -33,7 +32,7 @@ export function useCityLastUpdates() {
     }
 
     fetchUpdates();
-  }, [supabase]);
+  }, []);
 
   return { data, loading };
 }
