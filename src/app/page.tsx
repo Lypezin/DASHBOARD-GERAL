@@ -9,39 +9,12 @@ import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingSt
 import { DashboardErrorState } from '@/components/dashboard/DashboardErrorState';
 import { DashboardAuthLoading } from '@/components/dashboard/DashboardAuthLoading';
 import { OnlineUsersSidebar } from '@/components/OnlineUsersSidebar';
-import type { AderenciaSemanal } from '@/types';
+import { CityLastUpdatesTicker } from '@/components/dashboard/CityLastUpdatesTicker';
 
-export default function DashboardPage() {
-  return (
-    <React.Suspense fallback={<DashboardLoadingState />}>
-      <DashboardContent />
-    </React.Suspense>
-  );
-}
+// ... existing imports
 
-
-
-function DashboardContent() {
-  const { auth, ui, filters, data } = useDashboardPage();
-
-  // Mostrar loading enquanto verifica autenticação
-  if (auth.isCheckingAuth) {
-    return <DashboardAuthLoading />;
-  }
-
-  // Se não estiver autenticado, não renderizar nada (já foi redirecionado)
-  if (!auth.isAuthenticated) {
-    return null;
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">
-      <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-        {ui.loading && <DashboardLoadingState />}
-        {ui.error && <DashboardErrorState error={ui.error} />}
-
-        {!ui.loading && !ui.error && (
-          <div className="space-y-4 animate-fade-in">
+            <CityLastUpdatesTicker />
+            
             <DashboardFiltersContainer
               filters={filters.state}
               setFilters={filters.setState}
@@ -93,10 +66,10 @@ function DashboardContent() {
                 setFilters={filters.setState}
               />
             </main>
-          </div>
+          </div >
         )}
-      </div>
-      <OnlineUsersSidebar currentUser={auth.currentUser} currentTab={ui.activeTab} />
-    </div>
+      </div >
+  <OnlineUsersSidebar currentUser={auth.currentUser} currentTab={ui.activeTab} />
+    </div >
   );
 }
