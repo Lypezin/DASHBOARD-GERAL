@@ -6,6 +6,7 @@ import { RPC_TIMEOUTS } from '@/constants/config';
 import { fetchValoresFallback } from '../fallbacks';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
+import { buildFilterPayload } from './fetcherUtils';
 
 interface FetchOptions {
     filterPayload: FilterPayload;
@@ -27,13 +28,7 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
     }
 
     const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
-    const listarValoresPayload: FilterPayload = {};
-
-    for (const key of allowedParams) {
-        if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
-            listarValoresPayload[key] = filterPayload[key];
-        }
-    }
+    const listarValoresPayload = buildFilterPayload(filterPayload, allowedParams);
 
     const result = await safeRpc<any>('listar_valores_entregadores', listarValoresPayload, {
         timeout: RPC_TIMEOUTS.LONG,
@@ -115,13 +110,7 @@ export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ d
     const { filterPayload } = options;
 
     const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_limit', 'p_offset'];
-    const listarValoresPayload: FilterPayload = {};
-
-    for (const key of allowedParams) {
-        if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
-            listarValoresPayload[key] = filterPayload[key];
-        }
-    }
+    const listarValoresPayload = buildFilterPayload(filterPayload, allowedParams);
 
     // Default defaults if not provided (handled by RPC usually but good for explicit intent)
     if (!('p_limit' in listarValoresPayload)) listarValoresPayload['p_limit'] = 25;
@@ -168,13 +157,7 @@ export async function fetchValoresBreakdown(options: FetchOptions): Promise<{ da
     const { filterPayload } = options;
 
     const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
-    const breakdownPayload: FilterPayload = {};
-
-    for (const key of allowedParams) {
-        if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
-            breakdownPayload[key] = filterPayload[key];
-        }
-    }
+    const breakdownPayload = buildFilterPayload(filterPayload, allowedParams);
 
     const result = await safeRpc<ValoresBreakdown>('obter_resumo_valores_breakdown', breakdownPayload, {
         timeout: RPC_TIMEOUTS.LONG,

@@ -36,12 +36,6 @@ export const ValoresTable = React.memo(function ValoresTable({
     hasMore,
     isLoadingMore
 }: ValoresTableProps) {
-    const { useInfiniteScroll } = require('@/hooks/ui/useInfiniteScroll'); // Dynamic import to avoid top-level if simple
-    // Actually better to change the top usage given this is a memo component
-
-    // We can't use hooks conditionally or dynamically import easily inside render without suspense.
-    // Let's assume the hook is available. I'll need to add the import at top.
-
     const lastElementRef = useInfiniteScroll(onLoadMore || (() => { }), hasMore || false, isLoadingMore || false);
 
     const SortIcon = ({ field }: { field: keyof ValoresEntregador }) => {
