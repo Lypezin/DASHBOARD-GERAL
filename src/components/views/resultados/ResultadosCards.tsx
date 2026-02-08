@@ -4,6 +4,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Send, CheckCircle2, TrendingUp } from 'lucide-react';
 import { AtendenteCard, AtendenteData } from './AtendenteCard';
+import { ResultadosStatusCard } from './components/ResultadosStatusCard';
 
 interface ResultadosCardsProps {
   totalEnviado: number;
@@ -23,76 +24,34 @@ export const ResultadosCards = React.memo(function ResultadosCards({
       {/* Cards de Totais - Grid 3 colunas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card Total Enviado */}
-        <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-500 group overflow-hidden relative bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 dark:from-emerald-600 dark:via-emerald-700 dark:to-teal-700">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="absolute -top-4 -right-4 p-3 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110 group-hover:rotate-12 duration-500">
-            <Send className="w-24 h-24 text-white" />
-          </div>
-          <div className="p-5 z-10 relative">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-emerald-100 mb-2 flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-200 animate-pulse" />
-                  Total Enviado
-                </p>
-                <p className="text-4xl font-bold text-white font-mono tracking-tight drop-shadow-lg">
-                  {totalEnviado.toLocaleString('pt-BR')}
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
-                <Send className="h-7 w-7 text-white" />
-              </div>
-            </div>
-          </div>
-        </Card>
+        <ResultadosStatusCard
+          title="Total Enviado"
+          value={totalEnviado.toLocaleString('pt-BR')}
+          icon={Send}
+          gradient="from-emerald-500 via-emerald-600 to-teal-600 dark:from-emerald-600 dark:via-emerald-700 dark:to-teal-700"
+          textColor="text-emerald-100"
+          pulseColor="bg-emerald-200"
+        />
 
         {/* Card Total Liberado */}
-        <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-500 group overflow-hidden relative bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 dark:from-blue-600 dark:via-blue-700 dark:to-indigo-700">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="absolute -top-4 -right-4 p-3 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110 group-hover:rotate-12 duration-500">
-            <CheckCircle2 className="w-24 h-24 text-white" />
-          </div>
-          <div className="p-5 z-10 relative">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-100 mb-2 flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-blue-200 animate-pulse" />
-                  Total Liberado
-                </p>
-                <p className="text-4xl font-bold text-white font-mono tracking-tight drop-shadow-lg">
-                  {totalLiberado.toLocaleString('pt-BR')}
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
-                <CheckCircle2 className="h-7 w-7 text-white" />
-              </div>
-            </div>
-          </div>
-        </Card>
+        <ResultadosStatusCard
+          title="Total Liberado"
+          value={totalLiberado.toLocaleString('pt-BR')}
+          icon={CheckCircle2}
+          gradient="from-blue-500 via-blue-600 to-indigo-600 dark:from-blue-600 dark:via-blue-700 dark:to-indigo-700"
+          textColor="text-blue-100"
+          pulseColor="bg-blue-200"
+        />
 
         {/* Card Taxa de Conversão */}
-        <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-500 group overflow-hidden relative bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-600 dark:from-violet-600 dark:via-purple-700 dark:to-fuchsia-700">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="absolute -top-4 -right-4 p-3 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110 group-hover:rotate-12 duration-500">
-            <TrendingUp className="w-24 h-24 text-white" />
-          </div>
-          <div className="p-5 z-10 relative">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-100 mb-2 flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-purple-200 animate-pulse" />
-                  Taxa de Conversão
-                </p>
-                <p className="text-4xl font-bold text-white font-mono tracking-tight drop-shadow-lg">
-                  {taxaConversao}%
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
-                <TrendingUp className="h-7 w-7 text-white" />
-              </div>
-            </div>
-          </div>
-        </Card>
+        <ResultadosStatusCard
+          title="Taxa de Conversão"
+          value={`${taxaConversao}%`}
+          icon={TrendingUp}
+          gradient="from-violet-500 via-purple-600 to-fuchsia-600 dark:from-violet-600 dark:via-purple-700 dark:to-fuchsia-700"
+          textColor="text-purple-100"
+          pulseColor="bg-purple-200"
+        />
       </div>
 
       {/* Separador Visual Premium */}
