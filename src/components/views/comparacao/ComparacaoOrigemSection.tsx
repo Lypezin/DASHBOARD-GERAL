@@ -1,9 +1,8 @@
 import React from 'react';
 import { DashboardResumoData } from '@/types';
-import { ViewToggleButton } from '../ViewToggleButton';
 import { ComparacaoCharts } from './ComparacaoCharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Globe } from 'lucide-react';
+import { Globe, FileSpreadsheet, BarChart2 } from 'lucide-react';
 import { ComparacaoOrigemTable } from './ComparacaoOrigemTable';
 
 interface ComparacaoOrigemSectionProps {
@@ -28,36 +27,54 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
   }
 
   return (
-    <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-      <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+    <Card className="relative overflow-hidden border-none shadow-xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
+      {/* Decorative gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/5 via-transparent to-rose-500/5 pointer-events-none" />
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-fuchsia-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <CardHeader className="relative z-10 pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-center sm:text-left">
-            <div className="flex items-center justify-center gap-2 sm:justify-start">
-              <Globe className="h-5 w-5 text-fuchsia-500" />
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+          <div className="flex items-center gap-3 justify-center sm:justify-start">
+            <div className="p-2.5 bg-gradient-to-br from-fuchsia-500 to-rose-600 rounded-xl shadow-lg shadow-fuchsia-500/20">
+              <Globe className="h-5 w-5 text-white" />
+            </div>
+            <div className="text-center sm:text-left">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
                 Comparação por Origem
               </CardTitle>
+              <CardDescription className="text-slate-500 dark:text-slate-400">
+                Avalie corridas e aderência por origem entre as semanas
+              </CardDescription>
             </div>
-            <CardDescription className="mt-1 text-slate-500 dark:text-slate-400">
-              Avalie corridas e aderência por origem entre as semanas selecionadas
-            </CardDescription>
           </div>
-          <div className="flex justify-center gap-2 sm:justify-end">
-            <ViewToggleButton
-              active={viewMode === 'table'}
+
+          <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-xl justify-center">
+            <button
               onClick={() => onViewModeChange('table')}
-              label="Tabela"
-            />
-            <ViewToggleButton
-              active={viewMode === 'chart'}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${viewMode === 'table'
+                  ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              Tabela
+            </button>
+            <button
               onClick={() => onViewModeChange('chart')}
-              label="Gráfico"
-            />
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${viewMode === 'chart'
+                  ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+            >
+              <BarChart2 className="w-4 h-4" />
+              Gráfico
+            </button>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
+      <CardContent className="relative z-10 p-0">
         {viewMode === 'table' ? (
           <ComparacaoOrigemTable
             semanasSelecionadas={semanasSelecionadas}
@@ -78,3 +95,4 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
     </Card>
   );
 };
+
