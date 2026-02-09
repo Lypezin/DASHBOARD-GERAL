@@ -4,8 +4,10 @@ import { Trophy } from 'lucide-react';
 import React from 'react';
 import { Badge } from '@/types/gamification';
 
+import { useCallback } from 'react';
+
 export const useGamificationCelebration = () => {
-    const triggerCelebration = (badge: Badge) => {
+    const triggerCelebration = useCallback((badge: Badge) => {
         // 1. Confetti
         confetti({
             particleCount: 100,
@@ -27,7 +29,7 @@ export const useGamificationCelebration = () => {
                 </div>
             </div>
         ), { duration: 5000 });
-    };
+    }, []);
 
     return { triggerCelebration };
 };

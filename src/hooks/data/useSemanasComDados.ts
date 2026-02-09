@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 
+import { useOrganization } from '@/contexts/OrganizationContext';
+
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 /**
@@ -10,6 +12,7 @@ const IS_DEV = process.env.NODE_ENV === 'development';
  * Usa a mesma fonte de dados que listar_todas_semanas() (mv_dashboard_resumo)
  */
 export function useSemanasComDados(ano: number | null) {
+    const { organization } = useOrganization();
     const [semanas, setSemanas] = useState<number[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -25,7 +28,10 @@ export function useSemanasComDados(ano: number | null) {
                 // Usa RPC otimizado que já retorna apenas as semanas distintas e ordenadas
                 // Evita trafegar dados desnecessários de toda a view
                 const { data, error } = await supabase
-                    .rpc('get_available_weeks', { p_ano_iso: ano });
+                    .rpc('get_available_weeks', {
+                        p_ano_iso: ano,
+                        p_organization_id: organization?.id
+                    });
 
                 if (error) {
                     if (IS_DEV) safeLog.error('Erro ao buscar semanas com dados:', error);
@@ -49,7 +55,7 @@ export function useSemanasComDados(ano: number | null) {
         };
 
         fetchSemanasComDados();
-    }, [ano]);
+    }, [ano, organization?.id]);
 
     return { semanasComDados: semanas, loadingSemanasComDados: loading };
 }
