@@ -95,3 +95,5 @@ export const ResumoTable = React.memo(({ data, isLoading }: ResumoTableProps) =>
         </div>
     );
 });
+
+ResumoTable.displayName = 'ResumoTable';

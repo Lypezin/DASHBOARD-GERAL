@@ -49,7 +49,7 @@ export async function fetchCorridasBatch(ids: string[]) {
 
     for (let i = 0; i < ids.length; i += BATCH_SIZE) {
         const batchIds = ids.slice(i, i + BATCH_SIZE);
-        let corridasQuery = supabase
+        const corridasQuery = supabase
             .from('dados_corridas')
             .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo, tempo_disponivel_escalado_segundos')
             .in('id_da_pessoa_entregadora', batchIds)
