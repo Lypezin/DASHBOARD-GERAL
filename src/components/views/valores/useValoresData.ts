@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import { safeLog } from '@/lib/errorHandler';
 import { ValoresEntregador } from '@/types';
 import { useValoresSearch } from './hooks/useValoresSearch';
 import { useValoresSort } from './hooks/useValoresSort';
@@ -60,7 +61,7 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
             }
 
         } catch (e) {
-            console.error('Error loading more items', e);
+            safeLog.error('Error loading more items', e);
         } finally {
             setIsLoadingMore(false);
         }

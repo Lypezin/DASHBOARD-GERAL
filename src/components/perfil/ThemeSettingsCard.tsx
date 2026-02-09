@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 
-export const ThemeSettingsCard: React.FC = () => {
+export const ThemeSettingsCard = React.memo(function ThemeSettingsCard() {
     const { theme, toggleTheme } = useTheme();
 
     return (
@@ -38,4 +38,4 @@ export const ThemeSettingsCard: React.FC = () => {
             </CardContent>
         </Card>
     );
-};
+});

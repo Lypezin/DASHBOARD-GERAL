@@ -9,7 +9,7 @@ interface EvolucaoStatsCardsProps {
   anoSelecionado: number;
 }
 
-export const EvolucaoStatsCards: React.FC<EvolucaoStatsCardsProps> = ({
+export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({
   dadosAtivos,
   viewMode,
   anoSelecionado,
@@ -18,9 +18,12 @@ export const EvolucaoStatsCards: React.FC<EvolucaoStatsCardsProps> = ({
     return null;
   }
 
-  const totalCorridas = dadosAtivos.reduce((sum, d) => sum + ((d as any).corridas_completadas || (d as any).total_corridas || 0), 0);
-  const totalHoras = dadosAtivos.reduce((sum, d) => sum + d.total_segundos, 0) / 3600;
-  const mediaCorridas = dadosAtivos.length > 0 ? totalCorridas / dadosAtivos.length : 0;
+  const { totalCorridas, totalHoras, mediaCorridas } = React.useMemo(() => {
+    const tCorridas = dadosAtivos.reduce((sum, d) => sum + ((d as any).corridas_completadas || (d as any).total_corridas || 0), 0);
+    const tHoras = dadosAtivos.reduce((sum, d) => sum + d.total_segundos, 0) / 3600;
+    const mCorridas = dadosAtivos.length > 0 ? tCorridas / dadosAtivos.length : 0;
+    return { totalCorridas: tCorridas, totalHoras: tHoras, mediaCorridas: mCorridas };
+  }, [dadosAtivos]);
 
   // Hero Card Component
   const HeroCard = ({
@@ -108,4 +111,4 @@ export const EvolucaoStatsCards: React.FC<EvolucaoStatsCardsProps> = ({
       />
     </div>
   );
-};
+});

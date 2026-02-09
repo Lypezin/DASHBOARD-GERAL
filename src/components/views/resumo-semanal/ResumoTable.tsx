@@ -19,7 +19,15 @@ interface ResumoTableProps {
     isLoading: boolean;
 }
 
-export const ResumoTable = ({ data, isLoading }: ResumoTableProps) => {
+export const ResumoTable = React.memo(({ data, isLoading }: ResumoTableProps) => {
+    const totals = React.useMemo(() => {
+        return {
+            pedidos: data.reduce((sum, row) => sum + row.pedidos, 0),
+            drivers: data.reduce((sum, row) => sum + row.drivers, 0),
+            sh: data.reduce((sum, row) => sum + row.sh, 0),
+        };
+    }, [data]);
+
     return (
         <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden">
             <Table>
@@ -61,13 +69,13 @@ export const ResumoTable = ({ data, isLoading }: ResumoTableProps) => {
                                 </div>
                             </TableCell>
                             <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
-                                {formatNumber(data.reduce((sum, row) => sum + row.pedidos, 0))}
+                                {formatNumber(totals.pedidos)}
                             </TableCell>
                             <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
-                                {formatNumber(data.reduce((sum, row) => sum + row.drivers, 0))}
+                                {formatNumber(totals.drivers)}
                             </TableCell>
                             <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
-                                {formatNumber(data.reduce((sum, row) => sum + row.sh, 0))}
+                                {formatNumber(totals.sh)}
                             </TableCell>
                             <TableCell className="text-right text-slate-400">—</TableCell>
                             <TableCell className="text-right text-slate-400">—</TableCell>
@@ -86,4 +94,4 @@ export const ResumoTable = ({ data, isLoading }: ResumoTableProps) => {
             </Table>
         </div>
     );
-};
+});

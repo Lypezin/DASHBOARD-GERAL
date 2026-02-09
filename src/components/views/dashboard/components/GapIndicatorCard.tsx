@@ -6,7 +6,7 @@ interface GapIndicatorCardProps {
     gap: string;
 }
 
-export const GapIndicatorCard: React.FC<GapIndicatorCardProps> = ({ gap }) => {
+export const GapIndicatorCard = React.memo(function GapIndicatorCard({ gap }: GapIndicatorCardProps) {
     return (
         <Card className="md:col-span-2 border-none shadow-md bg-gradient-to-r from-rose-50 to-white dark:from-rose-950/30 dark:to-slate-900 relative overflow-hidden">
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500"></div>
@@ -25,4 +25,4 @@ export const GapIndicatorCard: React.FC<GapIndicatorCardProps> = ({ gap }) => {
             </CardContent>
         </Card>
     );
-};
+});

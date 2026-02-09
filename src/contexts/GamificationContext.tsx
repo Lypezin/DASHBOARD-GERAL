@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { safeLog } from '@/lib/errorHandler';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { LucideIcon, Trophy, Flame, User, Search, BarChart3, Upload, Database, Star, LayoutDashboard, Users, TrendingUp, Filter, Moon, Clock, Download, Eye } from 'lucide-react';
@@ -101,7 +102,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             const { data, error } = await supabase.rpc('register_interaction', { p_interaction_type: type });
 
             if (error) {
-                console.error('Error registering interaction:', error);
+                safeLog.error('Error registering interaction:', error);
                 return;
             }
 
@@ -124,7 +125,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
                 });
             }
         } catch (e) {
-            console.error('Gamification error:', e);
+            safeLog.error('Gamification error:', e);
         }
     }, []);
 

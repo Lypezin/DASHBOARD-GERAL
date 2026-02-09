@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { safeLog } from '@/lib/errorHandler';
 
 interface CityUpdateInfo {
   city: string;
@@ -17,7 +18,7 @@ export function useCityLastUpdates() {
           .rpc('get_city_last_updates');
 
         if (error) {
-          console.error('Error fetching city updates:', error);
+          safeLog.error('Error fetching city updates:', error);
           return;
         }
 
@@ -25,7 +26,7 @@ export function useCityLastUpdates() {
           setData(updates as CityUpdateInfo[]);
         }
       } catch (err) {
-        console.error('Unexpected error fetching updates:', err);
+        safeLog.error('Unexpected error fetching updates:', err);
       } finally {
         setLoading(false);
       }

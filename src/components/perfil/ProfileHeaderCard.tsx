@@ -10,7 +10,7 @@ interface ProfileHeaderCardProps {
     onAvatarUpdate: (newUrl: string | null) => void;
 }
 
-export const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({ user, onAvatarUpdate }) => {
+export const ProfileHeaderCard = React.memo(function ProfileHeaderCard({ user, onAvatarUpdate }: ProfileHeaderCardProps) {
     return (
         <Card className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
             <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-600 relative">
@@ -47,4 +47,4 @@ export const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({ user, onAv
             </CardContent>
         </Card>
     );
-};
+});

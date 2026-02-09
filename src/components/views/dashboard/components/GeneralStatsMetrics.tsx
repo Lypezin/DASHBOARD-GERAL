@@ -12,7 +12,7 @@ interface GeneralStatsMetricsProps {
     };
 }
 
-export const GeneralStatsMetrics: React.FC<GeneralStatsMetricsProps> = ({ stats }) => {
+export const GeneralStatsMetrics = React.memo(function GeneralStatsMetrics({ stats }: GeneralStatsMetricsProps) {
     return (
         <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -57,4 +57,4 @@ export const GeneralStatsMetrics: React.FC<GeneralStatsMetricsProps> = ({ stats 
             )}
         </div>
     );
-};
+});

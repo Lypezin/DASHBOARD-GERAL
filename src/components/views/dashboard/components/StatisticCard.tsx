@@ -24,7 +24,7 @@ interface StatisticCardProps {
     bgGlowColor: string;
 }
 
-export const StatisticCard: React.FC<StatisticCardProps> = ({
+export const StatisticCard = React.memo(function StatisticCard({
     title,
     value,
     tooltipText,
@@ -35,7 +35,7 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({
     gradientTo,
     iconColor,
     bgGlowColor
-}) => {
+}: StatisticCardProps) {
     return (
         <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 group relative overflow-hidden">
             <div className={`absolute right-0 top-0 w-32 h-32 rounded-full -mr-10 -mt-10 blur-2xl opacity-50 group-hover:opacity-100 transition-opacity ${bgGlowColor}`}></div>
@@ -70,4 +70,4 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({
             </CardContent>
         </Card>
     );
-};
+});

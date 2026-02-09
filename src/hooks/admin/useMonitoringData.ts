@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { safeLog } from '@/lib/errorHandler';
 
 interface ActivityLog {
     id: string;
@@ -70,7 +71,7 @@ export function useMonitoringData() {
                 .select('id, full_name, avatar_url, email')
                 .in('id', userIds);
 
-            if (profilesError) console.warn('Error fetching profiles:', profilesError);
+            if (profilesError) safeLog.warn('Error fetching profiles:', profilesError);
 
             const profileMap = new Map<string, UserProfile>();
             profiles?.forEach(p => profileMap.set(p.id, p));
@@ -154,7 +155,7 @@ export function useMonitoringData() {
             });
 
         } catch (err: any) {
-            console.error('Monitoring fetch error:', err);
+            safeLog.error('Monitoring fetch error:', err);
             if (err.message && err.message.includes('relation "user_activity_logs" does not exist')) {
                 setError("Tabela de logs não encontrada. Por favor execute o script SQL.");
             } else {

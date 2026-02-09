@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Shield } from 'lucide-react';
 
-export const AdminHeader: React.FC = () => {
+export const AdminHeader = React.memo(function AdminHeader() {
     return (
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
 
@@ -34,4 +34,4 @@ export const AdminHeader: React.FC = () => {
             </div>
         </div>
     );
-};
+});

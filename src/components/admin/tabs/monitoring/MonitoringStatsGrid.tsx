@@ -10,7 +10,14 @@ interface MonitoringStatsGridProps {
     };
 }
 
-export function MonitoringStatsGrid({ stats }: MonitoringStatsGridProps) {
+export const MonitoringStatsGrid = React.memo(function MonitoringStatsGrid({ stats }: MonitoringStatsGridProps) {
+    const { totalVisits, totalTimeSeconds } = React.useMemo(() => {
+        return {
+            totalVisits: stats.userTime.reduce((acc, curl) => acc + curl.totalVisits, 0),
+            totalTimeSeconds: stats.userTime.reduce((acc, curl) => acc + curl.totalTimeSeconds, 0)
+        };
+    }, [stats.userTime]);
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="bg-gradient-to-br from-green-50 to-white dark:from-slate-900 dark:to-slate-900 border-green-200/50">
@@ -35,7 +42,7 @@ export function MonitoringStatsGrid({ stats }: MonitoringStatsGridProps) {
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">
-                        {stats.userTime.reduce((acc, curl) => acc + curl.totalVisits, 0)}
+                        {totalVisits}
                     </div>
                     <p className="text-xs text-muted-foreground">Visualizações de página</p>
                 </CardContent>
@@ -50,11 +57,11 @@ export function MonitoringStatsGrid({ stats }: MonitoringStatsGridProps) {
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">
-                        {formatDuration(stats.userTime.reduce((acc, curl) => acc + curl.totalTimeSeconds, 0))}
+                        {formatDuration(totalTimeSeconds)}
                     </div>
                     <p className="text-xs text-muted-foreground">Tempo somado de todos usuários</p>
                 </CardContent>
             </Card>
         </div>
     );
-}
+});

@@ -44,19 +44,18 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   };
 
   // Calcular estatísticas antes dos early returns
-  const totalEntregadores = sortedEntregadores.length;
-  const aderenciaMedia = totalEntregadores > 0
-    ? sortedEntregadores.reduce((sum, e) => sum + e.aderencia_percentual, 0) / totalEntregadores
-    : 0;
-  const rejeicaoMedia = totalEntregadores > 0
-    ? sortedEntregadores.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / totalEntregadores
-    : 0;
-  const totalCorridasCompletadas = totalEntregadores > 0
-    ? sortedEntregadores.reduce((sum, e) => sum + (e.corridas_completadas || 0), 0)
-    : 0;
-  const totalSegundos = totalEntregadores > 0
-    ? sortedEntregadores.reduce((sum, e) => sum + (e.total_segundos || 0), 0)
-    : 0;
+  const stats = React.useMemo(() => {
+    const total = sortedEntregadores.length;
+    if (total === 0) return { totalEntregadores: 0, aderenciaMedia: 0, rejeicaoMedia: 0, totalCorridasCompletadas: 0, totalSegundos: 0 };
+
+    return {
+      totalEntregadores: total,
+      aderenciaMedia: sortedEntregadores.reduce((sum, e) => sum + e.aderencia_percentual, 0) / total,
+      rejeicaoMedia: sortedEntregadores.reduce((sum, e) => sum + e.rejeicao_percentual, 0) / total,
+      totalCorridasCompletadas: sortedEntregadores.reduce((sum, e) => sum + (e.corridas_completadas || 0), 0),
+      totalSegundos: sortedEntregadores.reduce((sum, e) => sum + (e.total_segundos || 0), 0)
+    };
+  }, [sortedEntregadores]);
 
   if (loading) {
     return <DashboardSkeleton contentOnly />;
@@ -95,11 +94,11 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
       </div>
 
       <EntregadoresMainStatsCards
-        totalEntregadores={totalEntregadores}
-        aderenciaMedia={aderenciaMedia}
-        rejeicaoMedia={rejeicaoMedia}
-        totalCorridas={totalCorridasCompletadas}
-        totalHoras={formatarHorasParaHMS(totalSegundos / 3600)}
+        totalEntregadores={stats.totalEntregadores}
+        aderenciaMedia={stats.aderenciaMedia}
+        rejeicaoMedia={stats.rejeicaoMedia}
+        totalCorridas={stats.totalCorridasCompletadas}
+        totalHoras={formatarHorasParaHMS(stats.totalSegundos / 3600)}
       />
 
       <EntregadoresMainSearch
