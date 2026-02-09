@@ -42,7 +42,7 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
         switch (viewMode) {
             case 'dia':
                 return aderenciaDia.map(item => ({
-                    label: item.data ? new Date(item.data + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' }) : 'N/A',
+                    label: item.data ? new Date(item.data + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' }) : (item.dia_da_semana || item.dia || 'N/A'),
                     aderencia: item.aderencia_percentual || 0,
                     horasAEntregar: item.horas_a_entregar || '0',
                     horasEntregues: item.horas_entregues || '0'

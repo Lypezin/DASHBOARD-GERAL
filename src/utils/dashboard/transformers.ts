@@ -24,7 +24,7 @@ const mapAdherenceData = (data: RawAderenciaItem[], isDia: boolean = false): (Pr
         };
 
         if (isDia) {
-            mapped.dia_da_semana = item.dia_da_semana || item.dia_semana;
+            mapped.dia_da_semana = (item.dia_da_semana || item.dia_semana || item.dia) as string | undefined;
             return enrichAderenciaDia(mapped as unknown as AderenciaDia);
         }
 
