@@ -26,14 +26,14 @@ const SectionWrapper = ({ children, title, description, icon: Icon, gradient }: 
     icon: any;
     gradient: string;
 }) => (
-    <Card className="relative overflow-hidden border-none shadow-xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
+    <Card className="relative overflow-hidden border-none shadow-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl">
         <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none`} />
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
 
-        <CardHeader className="relative z-10 pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <CardHeader className="relative z-10 pb-6">
             <div className="flex items-center justify-center gap-3">
-                <div className={`p-2.5 bg-gradient-to-br ${gradient.replace('/5', '')} rounded-xl shadow-lg`}>
+                <div className={`p-3 bg-gradient-to-br ${gradient.replace('/5', '')} rounded-2xl shadow-lg`}>
                     <Icon className="h-5 w-5 text-white" />
                 </div>
                 <div className="text-center">

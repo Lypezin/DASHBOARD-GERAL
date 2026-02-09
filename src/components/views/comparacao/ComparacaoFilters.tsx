@@ -39,16 +39,16 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="relative overflow-hidden border-none shadow-xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
+      <Card className="relative overflow-hidden border-none shadow-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl">
         {/* Decorative gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none" />
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <CardHeader className="relative z-10 pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <CardHeader className="relative z-10 pb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg shadow-purple-500/20">
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg shadow-purple-500/30">
                 <Search className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -67,7 +67,7 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   onClick={onClearSemanas}
-                  className="px-3 py-2 text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all duration-200 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-rose-900/20 flex items-center gap-1.5"
+                  className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-all duration-200 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-rose-900/20 flex items-center gap-1.5"
                 >
                   <X className="w-3.5 h-3.5" />
                   Limpar
@@ -76,7 +76,7 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
               <button
                 onClick={onMostrarApresentacao}
                 disabled={semanasSelecionadas.length !== 2 || dadosComparacaoLength !== 2}
-                className="group px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2"
+                className="group px-5 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-2xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2"
                 title={semanasSelecionadas.length !== 2 ? 'Selecione exatamente 2 semanas para gerar a apresentação' : 'Gerar apresentação em PDF'}
               >
                 <Presentation className="w-4 h-4" />
@@ -114,7 +114,7 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                     Semanas para Comparar
                   </label>
                   {semanasSelecionadas.length > 0 && (
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
                       {semanasSelecionadas.length} selecionada{semanasSelecionadas.length > 1 ? 's' : ''}
                     </span>
                   )}

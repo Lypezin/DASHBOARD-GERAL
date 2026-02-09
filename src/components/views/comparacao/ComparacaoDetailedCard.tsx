@@ -20,15 +20,15 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
     onViewModeChange
 }) => {
     return (
-        <Card className="relative overflow-hidden border-none shadow-xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl">
+        <Card className="relative overflow-hidden border-none shadow-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl">
             {/* Decorative gradient background */}
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 pointer-events-none" />
             <div className="absolute -top-32 -right-32 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <CardHeader className="relative z-10 pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
+            <CardHeader className="relative z-10 pb-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/20">
+                        <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg shadow-indigo-500/30">
                             <FileSpreadsheet className="h-5 w-5 text-white" />
                         </div>
                         <div>
@@ -41,12 +41,12 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
                         </div>
                     </div>
 
-                    <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-xl">
+                    <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-2xl">
                         <button
                             onClick={() => onViewModeChange('table')}
                             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${viewMode === 'table'
-                                    ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                                ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                         >
                             <FileSpreadsheet className="w-4 h-4" />
@@ -55,8 +55,8 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
                         <button
                             onClick={() => onViewModeChange('chart')}
                             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${viewMode === 'chart'
-                                    ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                                ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                         >
                             <BarChart2 className="w-4 h-4" />
