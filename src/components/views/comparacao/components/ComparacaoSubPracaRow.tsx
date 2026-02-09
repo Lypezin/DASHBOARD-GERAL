@@ -18,9 +18,9 @@ interface ComparacaoSubPracaRowProps {
 export const ComparacaoSubPracaRow = React.memo(({ subPraca, index, semanasSelecionadas, dadosPorSubPraca }: ComparacaoSubPracaRowProps) => {
     return (
         <TableRow
-            className={`${index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'} hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors`}
+            className={`${index % 2 === 0 ? 'bg-white/70 dark:bg-slate-900/70' : 'bg-slate-50/60 dark:bg-slate-900/40'} hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-all border-b border-slate-200/30 dark:border-slate-700/30`}
         >
-            <TableCell className="font-medium text-slate-700 dark:text-slate-300 pl-6 border-r border-slate-100 dark:border-slate-800 text-xs sm:text-sm">
+            <TableCell className="sticky left-0 z-10 bg-inherit backdrop-blur-sm font-semibold text-slate-800 dark:text-slate-200 pl-4 sm:pl-6 border-r border-slate-200/50 dark:border-slate-700/50 text-xs sm:text-sm">
                 {subPraca}
             </TableCell>
             {semanasSelecionadas.map((_, idx) => {
@@ -51,19 +51,19 @@ export const ComparacaoSubPracaRow = React.memo(({ subPraca, index, semanasSelec
                 return (
                     <React.Fragment key={idx}>
                         {/* Meta */}
-                        <TableCell className="text-center text-slate-500 dark:text-slate-400 text-xs border-l border-slate-100 dark:border-slate-800 tabular-nums">
+                        <TableCell className="text-center text-slate-500 dark:text-slate-400 text-xs border-l border-slate-200/30 dark:border-slate-700/30 tabular-nums bg-blue-50/20 dark:bg-blue-900/10 font-medium">
                             {metric.meta}
                         </TableCell>
                         {/* Entregue */}
-                        <TableCell className="text-center text-slate-600 dark:text-slate-300 font-medium text-xs tabular-nums">
+                        <TableCell className="text-center text-slate-700 dark:text-slate-200 font-semibold text-xs tabular-nums bg-emerald-50/20 dark:bg-emerald-900/10">
                             {metric.entregue}
                         </TableCell>
                         {/* Aderência */}
-                        <TableCell className="text-center text-slate-700 dark:text-slate-200 font-bold text-xs tabular-nums">
+                        <TableCell className="text-center text-slate-900 dark:text-white font-bold text-xs tabular-nums bg-purple-50/20 dark:bg-purple-900/10">
                             {valor.toFixed(1)}%
                         </TableCell>
                         {/* Variação */}
-                        <TableCell className="text-center border-r border-slate-200 dark:border-slate-800">
+                        <TableCell className="text-center bg-slate-50/30 dark:bg-slate-800/30">
                             {idx > 0 && !isSame ? (
                                 <VariacaoBadge variacao={variacao ?? 0} className="mx-auto scale-90" />
                             ) : idx > 0 ? (

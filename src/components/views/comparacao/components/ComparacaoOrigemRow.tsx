@@ -13,9 +13,9 @@ interface ComparacaoOrigemRowProps {
 export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSelecionadas, dadosPorOrigem }: ComparacaoOrigemRowProps) => {
     return (
         <TableRow
-            className={index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/30 dark:bg-slate-900/50'}
+            className={`${index % 2 === 0 ? 'bg-white/70 dark:bg-slate-900/70' : 'bg-slate-50/60 dark:bg-slate-900/40'} hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-all border-b border-slate-200/30 dark:border-slate-700/30`}
         >
-            <TableCell className="font-medium text-slate-700 dark:text-slate-300 pl-6">
+            <TableCell className="sticky left-0 z-10 bg-inherit backdrop-blur-sm font-semibold text-slate-800 dark:text-slate-200 pl-4 sm:pl-6 border-r border-slate-200/50 dark:border-slate-700/50 text-sm">
                 {origem}
             </TableCell>
             {semanasSelecionadas.map((_, idx) => {
@@ -35,7 +35,7 @@ export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSeleciona
 
                 return (
                     <React.Fragment key={idx}>
-                        <TableCell className="text-center text-slate-600 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800">
+                        <TableCell className="text-center text-slate-700 dark:text-slate-200 font-semibold border-l border-slate-200/30 dark:border-slate-700/30 text-sm">
                             {valor.toFixed(1)}%
                         </TableCell>
                         <TableCell className="text-center">

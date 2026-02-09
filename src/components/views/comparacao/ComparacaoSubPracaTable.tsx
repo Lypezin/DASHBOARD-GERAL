@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Map } from 'lucide-react';
 import { ComparacaoSubPracaRow, SubPracaMetric } from './components/ComparacaoSubPracaRow';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -39,7 +38,6 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
   subPracasOrdenadas.forEach((sp) => {
     dadosPorSubPraca[sp] = {};
     dadosComparacao.forEach((dado, idx) => {
-      // ... inside map loop
       const spData = dado.aderencia_sub_praca?.find((x) => x.sub_praca === sp);
 
       let entregueStr = spData?.horas_entregues || '-';
@@ -63,77 +61,69 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
   });
 
   return (
-    <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 pb-4">
-        <div className="flex items-center gap-2">
-          <Map className="h-5 w-5 text-emerald-500" />
-          <div>
-            <CardTitle className="text-base font-semibold text-slate-900 dark:text-white">
-              Detalhamento por Sub-Praça
-            </CardTitle>
-            <CardDescription className="text-xs text-slate-500 hidden sm:block">
-              Comparativo detalhado de aderência por região (sub-praça)
-            </CardDescription>
-          </div>
+    <div className="w-full">
+      {/* Legend */}
+      <div className="flex flex-wrap gap-2 mb-4 px-1">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Meta: Horas planejadas</span>
         </div>
-        <div className="flex gap-2">
-          <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-            Meta: Horas planejadas
-          </span>
-          <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-            Entregue: Horas realizadas
-          </span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Entregue: Horas realizadas</span>
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent border-b border-slate-200 dark:border-slate-800">
-                <TableHead rowSpan={2} className="w-[180px] text-slate-900 dark:text-white font-semibold pl-6 border-r border-slate-100 dark:border-slate-800">
-                  Sub-Praça
-                </TableHead>
-                {semanasSelecionadas.map((semana) => {
-                  const semanaStr = String(semana).replace('W', '');
-                  return (
-                    <TableHead key={semana} colSpan={4} className="text-center font-bold text-slate-900 dark:text-white border-l border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+      </div>
+
+      {/* Responsive Table */}
+      <div className="overflow-x-auto rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30">
+              <TableHead rowSpan={2} className="sticky left-0 z-20 bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-sm w-[140px] sm:w-[180px] text-slate-900 dark:text-white font-bold pl-4 sm:pl-6 border-r border-slate-200/50 dark:border-slate-700/50">
+                Sub-Praça
+              </TableHead>
+              {semanasSelecionadas.map((semana) => {
+                const semanaStr = String(semana).replace('W', '');
+                return (
+                  <TableHead key={semana} colSpan={4} className="text-center font-bold text-slate-900 dark:text-white border-l border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-900/20 dark:to-blue-900/20 min-w-[280px]">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/60 dark:bg-slate-800/60 rounded-full text-sm">
                       Semana {semanaStr}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-              <TableRow className="hover:bg-transparent">
-                {semanasSelecionadas.map((semana) => (
-                  <React.Fragment key={`subheader-${semana}`}>
-                    <TableHead className="text-center font-medium text-slate-500 h-9 text-[10px] uppercase tracking-wider border-l border-slate-100 dark:border-slate-800 min-w-[70px]">Meta</TableHead>
-                    <TableHead className="text-center font-medium text-slate-500 h-9 text-[10px] uppercase tracking-wider min-w-[70px]">Entregue</TableHead>
-                    <TableHead className="text-center font-medium text-slate-500 h-9 text-[10px] uppercase tracking-wider min-w-[70px]">Aderência</TableHead>
-                    <TableHead className="text-center font-medium text-slate-500 h-9 text-[10px] uppercase tracking-wider border-r border-slate-200 dark:border-slate-800 min-w-[70px]">Var</TableHead>
-                  </React.Fragment>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {subPracasOrdenadas.map((subPraca, index) => (
-                <ComparacaoSubPracaRow
-                  key={subPraca}
-                  subPraca={subPraca}
-                  index={index}
-                  semanasSelecionadas={semanasSelecionadas}
-                  dadosPorSubPraca={dadosPorSubPraca}
-                />
+                    </span>
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+            <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50">
+              {semanasSelecionadas.map((semana) => (
+                <React.Fragment key={`subheader-${semana}`}>
+                  <TableHead className="text-center font-semibold text-slate-600 dark:text-slate-300 h-9 text-[10px] sm:text-xs uppercase tracking-wider border-l border-slate-200/30 dark:border-slate-700/30 min-w-[60px] sm:min-w-[70px] bg-blue-50/30 dark:bg-blue-900/10">Meta</TableHead>
+                  <TableHead className="text-center font-semibold text-slate-600 dark:text-slate-300 h-9 text-[10px] sm:text-xs uppercase tracking-wider min-w-[60px] sm:min-w-[70px] bg-emerald-50/30 dark:bg-emerald-900/10">Entregue</TableHead>
+                  <TableHead className="text-center font-semibold text-slate-600 dark:text-slate-300 h-9 text-[10px] sm:text-xs uppercase tracking-wider min-w-[60px] sm:min-w-[70px] bg-purple-50/30 dark:bg-purple-900/10">Aderência</TableHead>
+                  <TableHead className="text-center font-semibold text-slate-600 dark:text-slate-300 h-9 text-[10px] sm:text-xs uppercase tracking-wider min-w-[50px] sm:min-w-[60px] bg-slate-50/30 dark:bg-slate-800/30">Var</TableHead>
+                </React.Fragment>
               ))}
-              {subPracasOrdenadas.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={semanasSelecionadas.length * 4 + 1} className="text-center py-6 text-slate-500">
-                    Nenhum dado de sub-praça disponível para as semanas selecionadas.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {subPracasOrdenadas.map((subPraca, index) => (
+              <ComparacaoSubPracaRow
+                key={subPraca}
+                subPraca={subPraca}
+                index={index}
+                semanasSelecionadas={semanasSelecionadas}
+                dadosPorSubPraca={dadosPorSubPraca}
+              />
+            ))}
+            {subPracasOrdenadas.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={semanasSelecionadas.length * 4 + 1} className="text-center py-8 text-slate-500 dark:text-slate-400">
+                  Nenhum dado de sub-praça disponível para as semanas selecionadas.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 };

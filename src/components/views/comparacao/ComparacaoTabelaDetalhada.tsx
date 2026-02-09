@@ -18,17 +18,17 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
   semanasSelecionadas,
 }) => {
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800">
+    <div className="overflow-x-auto rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
       <Table>
         <ComparacaoTabelaHeader semanasSelecionadas={semanasSelecionadas} />
-        <TableBody className="divide-y divide-slate-100 dark:divide-slate-800">
+        <TableBody className="divide-y divide-slate-100/50 dark:divide-slate-800/50">
           <ComparingTableRow
             label="Aderência Geral"
             icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
             data={dadosComparacao}
             getValue={(d) => d?.aderencia_semanal?.[0]?.aderencia_percentual ?? 0}
             formatValue={(v) => (
-              <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-sm font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+              <span className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-500 to-cyan-600 px-3 py-1 text-sm font-bold text-white shadow-md shadow-blue-500/25">
                 {v.toFixed(1)}%
               </span>
             )}
@@ -38,11 +38,11 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
 
           <ComparingTableRow
             label="Corridas Ofertadas"
-            icon={<Megaphone className="h-4 w-4 text-slate-500" />}
+            icon={<Megaphone className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
             data={dadosComparacao}
             getValue={(d) => d?.total_ofertadas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
-            valueClassName="text-slate-600 dark:text-slate-400"
+            valueClassName="text-slate-700 dark:text-slate-300 font-semibold"
             isEven={false}
           />
 
@@ -52,7 +52,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             data={dadosComparacao}
             getValue={(d) => d?.total_aceitas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
-            valueClassName="text-emerald-600 dark:text-emerald-400"
+            valueClassName="text-emerald-700 dark:text-emerald-300 font-semibold"
             isEven={true}
           />
 
@@ -62,7 +62,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             data={dadosComparacao}
             getValue={(d) => d?.total_rejeitadas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
-            valueClassName="text-rose-600 dark:text-rose-400"
+            valueClassName="text-rose-700 dark:text-rose-300 font-semibold"
             invertVariationColors
             isEven={false}
           />
@@ -73,16 +73,17 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             data={dadosComparacao}
             getValue={(d) => d?.total_completadas ?? 0}
             formatValue={(v) => v.toLocaleString('pt-BR')}
-            valueClassName="text-purple-600 dark:text-purple-400"
+            valueClassName="text-purple-700 dark:text-purple-300 font-semibold"
             isEven={true}
           />
 
           <ComparingTableRow
             label="Taxa de Aceitação"
-            icon={<Percent className="h-4 w-4 text-slate-500" />}
+            icon={<Percent className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
             data={dadosComparacao}
             getValue={(d) => d?.total_ofertadas ? ((d.total_aceitas ?? 0) / d.total_ofertadas) * 100 : 0}
             formatValue={(v) => `${v.toFixed(1)}%`}
+            valueClassName="text-slate-700 dark:text-slate-300 font-semibold"
             showVariation={false}
             isEven={false}
           />
@@ -93,7 +94,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             data={dadosComparacao}
             getValue={(d) => converterHorasParaDecimal(getWeeklyHours(d, 'horas_planejadas'))}
             formatValue={(v) => formatarHorasParaHMS(v)}
-            valueClassName="font-mono text-amber-600 dark:text-amber-400"
+            valueClassName="font-mono text-amber-700 dark:text-amber-300 font-semibold"
             showVariation={false}
             isEven={true}
           />
@@ -104,7 +105,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
             data={dadosComparacao}
             getValue={(d) => converterHorasParaDecimal(getWeeklyHours(d, 'horas_entregues'))}
             formatValue={(v) => formatarHorasParaHMS(v)}
-            valueClassName="font-mono text-blue-600 dark:text-blue-400"
+            valueClassName="font-mono text-blue-700 dark:text-blue-300 font-semibold"
             showVariation={false}
             isEven={false}
           />

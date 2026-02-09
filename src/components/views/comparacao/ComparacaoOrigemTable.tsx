@@ -9,8 +9,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { MapPin } from 'lucide-react';
 import { ComparacaoOrigemRow } from './components/ComparacaoOrigemRow';
 
 interface ComparacaoOrigemTableProps {
@@ -44,64 +42,49 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
     });
 
     return (
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-purple-500" />
-                    <div>
-                        <CardTitle className="text-base font-semibold text-slate-900 dark:text-white">
-                            Detalhamento por Origem
-                        </CardTitle>
-                        <CardDescription className="text-xs text-slate-500">
-                            Performance comparativa por origem de tráfego
-                        </CardDescription>
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="hover:bg-transparent">
-                                <TableHead className="w-[180px] text-slate-900 dark:text-white font-semibold pl-6">
-                                    Origem
-                                </TableHead>
-                                {semanasSelecionadas.map((semana) => {
-                                    const semanaStr = String(semana).replace('W', '');
-                                    return (
-                                        <React.Fragment key={semana}>
-                                            <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 border-l border-slate-200 dark:border-slate-800 min-w-[100px]">
-                                                Semana {semanaStr}
-                                            </TableHead>
-                                            <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 min-w-[80px]">
-                                                Var %
-                                            </TableHead>
-                                        </React.Fragment>
-                                    );
-                                })}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {origensOrdenadas.map((origem, index) => (
-                                <ComparacaoOrigemRow
-                                    key={origem}
-                                    origem={origem}
-                                    index={index}
-                                    semanasSelecionadas={semanasSelecionadas}
-                                    dadosPorOrigem={dadosPorOrigem}
-                                />
-                            ))}
-                            {origensOrdenadas.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={semanasSelecionadas.length * 2 + 1} className="text-center py-6 text-slate-500">
-                                        Nenhum dado de origem disponível para as semanas selecionadas.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </CardContent>
-        </Card>
+        <div className="overflow-x-auto rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+            <Table>
+                <TableHeader>
+                    <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30">
+                        <TableHead className="sticky left-0 z-20 bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-sm w-[140px] sm:w-[180px] text-slate-900 dark:text-white font-bold pl-4 sm:pl-6 border-r border-slate-200/50 dark:border-slate-700/50">
+                            Origem
+                        </TableHead>
+                        {semanasSelecionadas.map((semana) => {
+                            const semanaStr = String(semana).replace('W', '');
+                            return (
+                                <React.Fragment key={semana}>
+                                    <TableHead className="text-center font-bold text-slate-900 dark:text-white border-l border-slate-200/50 dark:border-slate-700/50 min-w-[100px] bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-900/20 dark:to-blue-900/20">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/60 dark:bg-slate-800/60 rounded-full text-sm">
+                                            Semana {semanaStr}
+                                        </span>
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold text-slate-600 dark:text-slate-300 min-w-[80px] bg-slate-50/30 dark:bg-slate-800/30">
+                                        <span className="text-xs">Var %</span>
+                                    </TableHead>
+                                </React.Fragment>
+                            );
+                        })}
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {origensOrdenadas.map((origem, index) => (
+                        <ComparacaoOrigemRow
+                            key={origem}
+                            origem={origem}
+                            index={index}
+                            semanasSelecionadas={semanasSelecionadas}
+                            dadosPorOrigem={dadosPorOrigem}
+                        />
+                    ))}
+                    {origensOrdenadas.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={semanasSelecionadas.length * 2 + 1} className="text-center py-8 text-slate-500 dark:text-slate-400">
+                                Nenhum dado de origem disponível para as semanas selecionadas.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+        </div>
     );
 };
