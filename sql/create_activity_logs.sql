@@ -9,6 +9,14 @@ CREATE TABLE IF NOT EXISTS public.user_activity_logs (
     last_seen TIMESTAMPTZ DEFAULT now()
 );
 
+-- Garantir que a coluna last_seen existe (caso a tabela já existisse sem ela)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_activity_logs' AND column_name = 'last_seen') THEN
+        ALTER TABLE public.user_activity_logs ADD COLUMN last_seen TIMESTAMPTZ DEFAULT now();
+    END IF;
+END $$;
+
 -- Índices para melhor performance
 CREATE INDEX IF NOT EXISTS idx_user_activity_user_id ON public.user_activity_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_activity_created_at ON public.user_activity_logs(entered_at);
@@ -16,6 +24,11 @@ CREATE INDEX IF NOT EXISTS idx_user_activity_path ON public.user_activity_logs(p
 
 -- Habilitar RLS
 ALTER TABLE public.user_activity_logs ENABLE ROW LEVEL SECURITY;
+
+-- Remover políticas antigas para evitar erro de duplicidade
+DROP POLICY IF EXISTS "Users can insert their own logs" ON public.user_activity_logs;
+DROP POLICY IF EXISTS "Users can update their own logs" ON public.user_activity_logs;
+DROP POLICY IF EXISTS "Admins can view all logs" ON public.user_activity_logs;
 
 -- Política para usuários inserirem seus próprios logs
 CREATE POLICY "Users can insert their own logs"

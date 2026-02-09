@@ -65,16 +65,18 @@ export function UserActivityTracker() {
                                 .from('user_activity_logs')
                                 .update({ last_seen: new Date().toISOString() })
                                 .eq('id', visitIdRef.current)
-                                .then();
+                                .then(({ error }) => {
+                                    if (error) console.error('Heartbeat error:', error);
+                                });
                         }
                     }, 30000); // 30 seconds
 
                 } else {
-                    // silently fail if table doesn't exist
+                    console.error('Failed to start activity session:', error);
                     visitIdRef.current = null;
                 }
             } catch (e) {
-                // silently fail
+                console.error('Error in UserActivityTracker:', e);
             }
         };
 
