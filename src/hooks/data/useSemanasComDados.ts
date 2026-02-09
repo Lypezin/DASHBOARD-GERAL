@@ -22,15 +22,10 @@ export function useSemanasComDados(ano: number | null) {
         const fetchSemanasComDados = async () => {
             setLoading(true);
             try {
-                // Busca diretamente da view materializada mv_dashboard_resumo
-                // que é a mesma fonte usada por listar_todas_semanas()
-                // Filtra por ano_iso para pegar só semanas do ano selecionado
+                // Usa RPC otimizado que já retorna apenas as semanas distintas e ordenadas
+                // Evita trafegar dados desnecessários de toda a view
                 const { data, error } = await supabase
-                    .from('mv_dashboard_resumo')
-                    .select('semana_iso, ano_iso')
-                    .eq('ano_iso', ano)
-                    .not('semana_iso', 'is', null)
-                    .order('semana_iso', { ascending: false });
+                    .rpc('get_available_weeks', { p_ano_iso: ano });
 
                 if (error) {
                     if (IS_DEV) safeLog.error('Erro ao buscar semanas com dados:', error);
@@ -39,16 +34,9 @@ export function useSemanasComDados(ano: number | null) {
                 }
 
                 if (data && Array.isArray(data) && data.length > 0) {
-                    // Extrai semanas únicas
-                    const semanasUnicas = [...new Set(
-                        data
-                            .map((row: { semana_iso: number }) => row.semana_iso)
-                            .filter((s): s is number => typeof s === 'number' && !isNaN(s))
-                    )];
-
-                    // Ordena decrescente (semana mais recente primeiro)
-                    semanasUnicas.sort((a, b) => b - a);
-                    setSemanas(semanasUnicas);
+                    // O RPC já retorna [{ semana_iso: 52 }, ...] ordenado
+                    const semanasOtimizadas = data.map((d: { semana_iso: number }) => d.semana_iso);
+                    setSemanas(semanasOtimizadas);
                 } else {
                     setSemanas([]);
                 }
