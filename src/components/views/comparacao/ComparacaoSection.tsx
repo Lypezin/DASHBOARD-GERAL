@@ -36,12 +36,12 @@ export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <CardHeader className="relative z-10 pb-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3 justify-center sm:justify-start">
+          <div className="flex flex-col gap-4 items-center">
+            <div className="flex items-center gap-3">
               <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl shadow-lg shadow-blue-500/30">
                 {icon}
               </div>
-              <div className="text-center sm:text-left">
+              <div className="text-center">
                 <CardTitle className="text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
                   {title}
                 </CardTitle>
@@ -51,7 +51,7 @@ export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-2xl justify-center">
+            <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-2xl">
               <button
                 onClick={() => onViewModeChange('table')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${viewMode === 'table'

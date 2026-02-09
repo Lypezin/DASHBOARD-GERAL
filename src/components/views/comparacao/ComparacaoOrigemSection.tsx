@@ -34,12 +34,12 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
       <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <CardHeader className="relative z-10 pb-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3 justify-center sm:justify-start">
+        <div className="flex flex-col gap-4 items-center">
+          <div className="flex items-center gap-3">
             <div className="p-3 bg-gradient-to-br from-fuchsia-500 to-rose-600 rounded-2xl shadow-lg shadow-fuchsia-500/30">
               <Globe className="h-5 w-5 text-white" />
             </div>
-            <div className="text-center sm:text-left">
+            <div className="text-center">
               <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
                 Comparação por Origem
               </CardTitle>
@@ -49,7 +49,7 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
             </div>
           </div>
 
-          <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-2xl justify-center">
+          <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-2xl">
             <button
               onClick={() => onViewModeChange('table')}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${viewMode === 'table'
