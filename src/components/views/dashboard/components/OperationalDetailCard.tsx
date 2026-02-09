@@ -15,6 +15,12 @@ interface DetailData {
     aderencia: number;
     horasAEntregar: number | string;
     horasEntregues: number | string;
+    metrics?: {
+        ofertadas: number;
+        aceitas: number;
+        completadas: number;
+        rejeitadas: number;
+    };
 }
 
 interface OperationalDetailCardProps {
@@ -40,80 +46,95 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
             : 'bg-gradient-to-br from-white to-rose-50/50 dark:from-slate-900 dark:to-rose-900/10';
 
     const Icon = isMidPerf ? TrendingUp : TrendingDown;
-    const iconColor = isHighPerf ? 'text-emerald-500' : isMidPerf ? 'text-blue-500' : 'text-rose-500';
 
     return (
         <TooltipProvider>
-            <Card className={`border-none shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group ${bgGradient}`}>
-                <div className={`absolute top-0 right-0 p-3 opacity-[0.05] group-hover:opacity-10 transition-opacity`}>
-                    <Icon className="w-24 h-24 text-current transform -rotate-12" />
-                </div>
-
-                <CardContent className="p-5 relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center gap-2 max-w-[70%]">
-                            <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 truncate tracking-tight" title={data.label}>
-                                {data.label}
-                            </h3>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button className="text-slate-400 hover:text-blue-500 transition-colors focus:outline-none">
-                                        <Info className="w-3.5 h-3.5" />
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="font-semibold">{data.label}</p>
-                                    <p className="text-xs text-muted-foreground">Performance detalhada</p>
-                                </TooltipContent>
-                            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Card className={`border-none shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group ${bgGradient} cursor-help`}>
+                        <div className={`absolute top-0 right-0 p-3 opacity-[0.05] group-hover:opacity-10 transition-opacity`}>
+                            <Icon className="w-24 h-24 text-current transform -rotate-12" />
                         </div>
-                        <Badge variant={isHighPerf ? 'default' : isMidPerf ? 'secondary' : 'destructive'} className="text-xs h-6 px-2 font-bold shadow-sm">
-                            {data.aderencia.toFixed(1)}%
-                        </Badge>
+
+                        <CardContent className="p-5 relative z-10">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-2 max-w-[70%]">
+                                    <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 truncate tracking-tight" title={data.label}>
+                                        {data.label}
+                                    </h3>
+                                </div>
+                                <Badge variant={isHighPerf ? 'default' : isMidPerf ? 'secondary' : 'destructive'} className="text-xs h-6 px-2 font-bold shadow-sm">
+                                    {data.aderencia.toFixed(1)}%
+                                </Badge>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Progress Bar */}
+                                <div className="space-y-1.5">
+                                    <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
+                                        <span>Progresso</span>
+                                        <span className={statusColor}>{Math.min(data.aderencia, 100).toFixed(0)}%</span>
+                                    </div>
+                                    <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                                        <div
+                                            className={`h-full ${barColor} rounded-full shadow-sm transition-all duration-1000 relative`}
+                                            style={{ width: `${Math.min(data.aderencia, 100)}%` }}
+                                        >
+                                            <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Metrics Grid */}
+                                <div className="grid grid-cols-2 gap-3 pt-1">
+                                    <div className="bg-white/60 dark:bg-slate-800/60 rounded-lg p-2.5 border border-slate-100 dark:border-slate-700/50 backdrop-blur-sm shadow-sm group-hover:bg-white/80 dark:group-hover:bg-slate-800/80 transition-colors">
+                                        <div className="flex items-center gap-1.5 mb-1 text-slate-500 dark:text-slate-400">
+                                            <Clock className="w-3 h-3" />
+                                            <span className="text-[10px] uppercase font-bold tracking-wider">Meta</span>
+                                        </div>
+                                        <span className="font-mono font-bold text-slate-700 dark:text-slate-200 text-sm block truncate">
+                                            {formatarHorasParaHMS(data.horasAEntregar)}
+                                        </span>
+                                    </div>
+
+                                    <div className="bg-white/60 dark:bg-slate-800/60 rounded-lg p-2.5 border border-slate-100 dark:border-slate-700/50 backdrop-blur-sm shadow-sm group-hover:bg-white/80 dark:group-hover:bg-slate-800/80 transition-colors">
+                                        <div className="flex items-center gap-1.5 mb-1 text-emerald-600 dark:text-emerald-400">
+                                            <CheckCircle2 className="w-3 h-3" />
+                                            <span className="text-[10px] uppercase font-bold tracking-wider">Real</span>
+                                        </div>
+                                        <span className={`font-mono font-bold text-sm block truncate ${statusColor}`}>
+                                            {formatarHorasParaHMS(data.horasEntregues)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="p-3 bg-slate-900 text-slate-50 border-slate-800 dark:bg-slate-950 dark:border-slate-800">
+                    <div className="space-y-2">
+                        <p className="font-bold border-b border-slate-700 pb-1 mb-2 text-xs uppercase tracking-wider text-slate-400">Métricas de Corrida</p>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                            <div className="flex justify-between gap-2">
+                                <span className="text-slate-400">Ofertadas:</span>
+                                <span className="font-mono font-bold">{data.metrics?.ofertadas || 0}</span>
+                            </div>
+                            <div className="flex justify-between gap-2">
+                                <span className="text-emerald-400">Aceitas:</span>
+                                <span className="font-mono font-bold">{data.metrics?.aceitas || 0}</span>
+                            </div>
+                            <div className="flex justify-between gap-2">
+                                <span className="text-blue-400">Completadas:</span>
+                                <span className="font-mono font-bold">{data.metrics?.completadas || 0}</span>
+                            </div>
+                            <div className="flex justify-between gap-2">
+                                <span className="text-rose-400">Rejeitadas:</span>
+                                <span className="font-mono font-bold">{data.metrics?.rejeitadas || 0}</span>
+                            </div>
+                        </div>
                     </div>
-
-                    <div className="space-y-4">
-                        {/* Progress Bar */}
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-                                <span>Progresso</span>
-                                <span className={statusColor}>{Math.min(data.aderencia, 100).toFixed(0)}%</span>
-                            </div>
-                            <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
-                                <div
-                                    className={`h-full ${barColor} rounded-full shadow-sm transition-all duration-1000 relative`}
-                                    style={{ width: `${Math.min(data.aderencia, 100)}%` }}
-                                >
-                                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Metrics Grid */}
-                        <div className="grid grid-cols-2 gap-3 pt-1">
-                            <div className="bg-white/60 dark:bg-slate-800/60 rounded-lg p-2.5 border border-slate-100 dark:border-slate-700/50 backdrop-blur-sm shadow-sm group-hover:bg-white/80 dark:group-hover:bg-slate-800/80 transition-colors">
-                                <div className="flex items-center gap-1.5 mb-1 text-slate-500 dark:text-slate-400">
-                                    <Clock className="w-3 h-3" />
-                                    <span className="text-[10px] uppercase font-bold tracking-wider">Meta</span>
-                                </div>
-                                <span className="font-mono font-bold text-slate-700 dark:text-slate-200 text-sm block truncate">
-                                    {formatarHorasParaHMS(data.horasAEntregar)}
-                                </span>
-                            </div>
-
-                            <div className="bg-white/60 dark:bg-slate-800/60 rounded-lg p-2.5 border border-slate-100 dark:border-slate-700/50 backdrop-blur-sm shadow-sm group-hover:bg-white/80 dark:group-hover:bg-slate-800/80 transition-colors">
-                                <div className="flex items-center gap-1.5 mb-1 text-emerald-600 dark:text-emerald-400">
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    <span className="text-[10px] uppercase font-bold tracking-wider">Real</span>
-                                </div>
-                                <span className={`font-mono font-bold text-sm block truncate ${statusColor}`}>
-                                    {formatarHorasParaHMS(data.horasEntregues)}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                </TooltipContent>
+            </Tooltip>
         </TooltipProvider>
     );
 };

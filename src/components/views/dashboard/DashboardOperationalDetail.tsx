@@ -45,28 +45,52 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
                     label: item.data ? new Date(item.data + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' }) : (item.dia_da_semana || item.dia || 'N/A'),
                     aderencia: item.aderencia_percentual || 0,
                     horasAEntregar: item.horas_a_entregar || '0',
-                    horasEntregues: item.horas_entregues || '0'
+                    horasEntregues: item.horas_entregues || '0',
+                    metrics: {
+                        ofertadas: item.corridas_ofertadas || 0,
+                        aceitas: item.corridas_aceitas || 0,
+                        completadas: item.corridas_completadas || 0,
+                        rejeitadas: item.corridas_rejeitadas || 0
+                    }
                 }));
             case 'turno':
                 return aderenciaTurno.map(item => ({
                     label: item.turno || 'N/A',
                     aderencia: item.aderencia_percentual || 0,
                     horasAEntregar: item.horas_a_entregar || '0',
-                    horasEntregues: item.horas_entregues || '0'
+                    horasEntregues: item.horas_entregues || '0',
+                    metrics: {
+                        ofertadas: item.corridas_ofertadas || 0,
+                        aceitas: item.corridas_aceitas || 0,
+                        completadas: item.corridas_completadas || 0,
+                        rejeitadas: item.corridas_rejeitadas || 0
+                    }
                 }));
             case 'sub_praca':
                 return aderenciaSubPraca.map(item => ({
                     label: item.sub_praca || 'N/A',
                     aderencia: item.aderencia_percentual || 0,
                     horasAEntregar: item.horas_a_entregar || '0',
-                    horasEntregues: item.horas_entregues || '0'
+                    horasEntregues: item.horas_entregues || '0',
+                    metrics: {
+                        ofertadas: item.corridas_ofertadas || 0,
+                        aceitas: item.corridas_aceitas || 0,
+                        completadas: item.corridas_completadas || 0,
+                        rejeitadas: item.corridas_rejeitadas || 0
+                    }
                 }));
             case 'origem':
                 return aderenciaOrigem.map(item => ({
                     label: item.origem || 'N/A',
                     aderencia: item.aderencia_percentual || 0,
                     horasAEntregar: item.horas_a_entregar || '0',
-                    horasEntregues: item.horas_entregues || '0'
+                    horasEntregues: item.horas_entregues || '0',
+                    metrics: {
+                        ofertadas: item.corridas_ofertadas || 0,
+                        aceitas: item.corridas_aceitas || 0,
+                        completadas: item.corridas_completadas || 0,
+                        rejeitadas: item.corridas_rejeitadas || 0
+                    }
                 }));
             default:
                 return [];
