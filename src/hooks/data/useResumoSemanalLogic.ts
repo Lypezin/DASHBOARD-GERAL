@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { EvolucaoSemanal, AderenciaSemanal, UtrSemanal } from '@/types';
-import { ResumoLocalData } from './useResumoDrivers';
+import { ResumoLocalData } from '@/utils/data/driverTransformers';
+import { useResumoLocalData } from './useResumoDrivers';
 import { ResumoTableRow } from '@/components/views/resumo-semanal/ResumoTable';
 
 interface UseResumoSemanalLogicProps {

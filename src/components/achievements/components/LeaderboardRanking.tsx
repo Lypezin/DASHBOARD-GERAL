@@ -1,7 +1,8 @@
 import React from 'react';
 import { Trophy, User, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ICON_MAP, useGamification } from '@/contexts/GamificationContext';
+import { useGamification } from '@/contexts/GamificationContext';
+import { ICON_MAP } from '@/contexts/gamification/icons';
 
 export const LeaderboardRanking = () => {
     const { leaderboard } = useGamification();

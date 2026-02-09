@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/contexts/GamificationContext';
 import { cn } from '@/lib/utils';
-import { ICON_MAP } from '@/contexts/GamificationContext';
+import { ICON_MAP } from '@/contexts/gamification/icons';
 
 interface BadgeCardProps {
     badge: Badge;
