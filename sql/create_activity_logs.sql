@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS public.user_activity_logs (
     path TEXT NOT NULL,
     entered_at TIMESTAMPTZ DEFAULT now(),
     exited_at TIMESTAMPTZ,
-    duration_seconds INTEGER
+    duration_seconds INTEGER,
+    last_seen TIMESTAMPTZ DEFAULT now()
 );
 
 -- Índices para melhor performance
