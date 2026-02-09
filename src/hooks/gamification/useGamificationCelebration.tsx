@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { Trophy } from 'lucide-react';
 import React from 'react';
-import { Badge } from '@/contexts/GamificationContext';
+import { Badge } from '@/types/gamification';
 
 export const useGamificationCelebration = () => {
     const triggerCelebration = (badge: Badge) => {

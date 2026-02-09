@@ -8,8 +8,9 @@ import {
     DialogTitle,
     DialogDescription,
 } from '@/components/ui/dialog';
-import { Badge, useGamification } from '@/contexts/GamificationContext';
+import { useGamification } from '@/contexts/GamificationContext';
 import { ICON_MAP } from '@/contexts/gamification/icons';
+import { Badge } from '@/types/gamification';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"

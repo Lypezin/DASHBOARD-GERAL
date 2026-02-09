@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge } from '@/contexts/GamificationContext';
+import { Badge } from '@/types/gamification';
 import { cn } from '@/lib/utils';
 import { ICON_MAP } from '@/contexts/gamification/icons';
 
