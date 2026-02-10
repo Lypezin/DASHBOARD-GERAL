@@ -2,9 +2,18 @@ import React, { useState } from 'react';
 import { formatWeekLabel } from '@/utils/timeHelpers';
 import { MetricDetailDialog } from './MetricDetailDialog';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUpRight, ArrowDownRight, RotateCcw, ChevronDown, ChevronUp, AlertCircle, Calendar } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, RotateCcw, ChevronDown, AlertCircle, Calendar, Clock, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WeeklyData } from './EntradaSaidaCard';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
 
 interface EntradaSaidaRowProps {
     item: WeeklyData;
@@ -33,6 +42,12 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
         saidas: { bg: 'bg-rose-100 dark:bg-rose-900/30', icon: 'text-rose-600 dark:text-rose-400', text: 'text-rose-700 dark:text-rose-300', textLight: 'text-rose-600/70' },
     };
 
+    const hasOrigins = item.retomada_origins && Object.keys(item.retomada_origins).length > 0;
+    const sortedOrigins = hasOrigins
+        ? Object.entries(item.retomada_origins!).sort((a, b) => b[0].localeCompare(a[0]))
+        : [];
+    const totalRetomada = item.retomada_total || 0;
+
     return (
         <motion.div
             layout
@@ -51,44 +66,97 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                         <h4 className="text-base font-bold text-slate-800 dark:text-slate-100 leading-tight group-hover:text-indigo-600 transition-colors">
                             {formatWeekLabel(item.semana)}
                         </h4>
-                        {/* Label removed as per user request */}
                     </div>
                 </div>
 
                 {/* Metrics Row */}
                 <div className="flex-1 grid grid-cols-3 gap-8 px-4 border-l border-r border-slate-100 dark:border-slate-800/50">
                     <Stat label="Entradas" value={item.entradas_total || item.entradas} color={colors.entradas} icon={ArrowUpRight} />
-                    <div className="relative group/tooltip">
-                        <Stat label="Retomada" value={item.retomada_total || 0} color={colors.retomada} icon={RotateCcw} />
-                        {item.retomada_origins && Object.keys(item.retomada_origins).length > 0 && (
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-800 text-white text-xs rounded-lg p-3 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
-                                <div className="font-bold mb-2 border-b border-slate-700 pb-1">Última Atividade:</div>
-                                <div className="space-y-1">
-                                    {Object.entries(item.retomada_origins)
-                                        .sort((a, b) => b[0].localeCompare(a[0])) // Sort by week descending
-                                        .map(([week, count]) => (
-                                            <div key={week} className="flex justify-between">
-                                                <span className="text-slate-300">{formatWeekLabel(week)}:</span>
-                                                <span className="font-bold">{count}</span>
-                                            </div>
-                                        ))}
-                                </div>
-                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
-                            </div>
+
+                    {/* Retomada with clickable origins */}
+                    <div className="relative">
+                        <Stat label="Retomada" value={totalRetomada} color={colors.retomada} icon={RotateCcw} />
+                        {hasOrigins && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <button
+                                        className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 bg-indigo-100 text-indigo-600 rounded-full text-[9px] font-bold border-2 border-white dark:border-slate-900 shadow-sm hover:bg-indigo-200 hover:scale-110 transition-all cursor-pointer z-20"
+                                        onClick={(e) => e.stopPropagation()}
+                                        title="Ver semanas de origem"
+                                    >
+                                        <Clock className="w-3 h-3" />
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-sm">
+                                    <DialogHeader>
+                                        <DialogTitle className="flex items-center gap-2 text-indigo-600">
+                                            <RotateCcw className="h-5 w-5" />
+                                            Origem da Retomada — {formatWeekLabel(item.semana)}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            {totalRetomada} entregadores retornaram. De quais semanas eles vieram:
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-2 mt-2">
+                                        {sortedOrigins.map(([week, count], idx) => {
+                                            const percent = Math.round((Number(count) / totalRetomada) * 100);
+                                            return (
+                                                <div key={week} className="relative overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800 p-3">
+                                                    {/* Progress bar background */}
+                                                    <div
+                                                        className="absolute inset-0 bg-indigo-100/60 dark:bg-indigo-900/20 rounded-xl transition-all duration-500"
+                                                        style={{ width: `${percent}%` }}
+                                                    />
+                                                    <div className="relative flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300'}`}>
+                                                                {idx + 1}
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                                                    {formatWeekLabel(week)}
+                                                                </span>
+                                                                <span className="text-[10px] text-slate-400 ml-1.5">
+                                                                    última atividade
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 font-bold tabular-nums">
+                                                                {count}
+                                                            </Badge>
+                                                            <span className="text-[11px] text-slate-400 font-medium tabular-nums w-10 text-right">
+                                                                {percent}%
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                        <Users className="w-4 h-4 text-indigo-500" />
+                                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                                            Total: <b className="text-indigo-600">{totalRetomada}</b> retornaram em {formatWeekLabel(item.semana)}
+                                        </span>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         )}
                     </div>
+
                     <div className="relative">
                         <Stat label="Saídas" value={item.saidas_total || item.saidas} color={colors.saidas} icon={ArrowDownRight} />
                         {item.saidas_novos > 0 && (
-                            <div className="absolute -top-1 -right-2 flex items-center justify-center h-5 w-5 bg-amber-100 text-amber-600 rounded-full text-[10px] font-bold border border-white dark:border-slate-900 shadow-sm" title={`${item.saidas_novos} desistências`}>!</div>
+                            <div className="absolute -top-1 -right-2 flex items-center justify-center h-5 w-5 bg-amber-100 text-amber-600 rounded-full text-[10px] font-bold border-2 border-white dark:border-slate-900 shadow-sm" title={`${item.saidas_novos} desistências`}>!</div>
                         )}
                     </div>
                 </div>
 
                 {/* Balance & Base Ativa */}
-                <div className="flex items-center gap-4 min-w-[240px] justify-end">
+                <div className="flex items-center gap-4 min-w-[260px] justify-end">
                     {/* Saldo */}
-                    <div className={`flex flex-col items-center`}>
+                    <div className="flex flex-col items-center">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Saldo</span>
                         <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${item.saldo >= 0 ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20'}`}>
                             {item.saldo >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
@@ -169,26 +237,27 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>
                                         <span className="text-[10px] text-emerald-600 font-bold block mb-1">Entradas</span>
-                                        <div className="text-xs text-slate-600 bg-white px-2 py-1 rounded border border-slate-100 shadow-sm">
+                                        <div className="text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm">
                                             Mkt: <b>{item.entradas_marketing}</b><br />Ops: <b>{item.entradas_total ? item.entradas_total - (item.entradas_marketing || 0) : 0}</b>
                                         </div>
                                     </div>
                                     <div>
                                         <span className="text-[10px] text-indigo-600 font-bold block mb-1">Retomada</span>
-                                        <div className="text-xs text-slate-600 bg-white px-2 py-1 rounded border border-slate-100 shadow-sm">
+                                        <div className="text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm">
                                             Mkt: <b>{item.retomada_marketing}</b><br />Ops: <b>{(item.retomada_total || 0) - (item.retomada_marketing || 0)}</b>
                                         </div>
                                     </div>
                                     <div>
                                         <span className="text-[10px] text-rose-600 font-bold block mb-1">Saídas</span>
-                                        <div className="text-xs text-slate-600 bg-white px-2 py-1 rounded border border-slate-100 shadow-sm">
+                                        <div className="text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm">
                                             Mkt: <b>{item.saidas_marketing}</b><br />Ops: <b>{item.saidas_total ? item.saidas_total - (item.saidas_marketing || 0) : 0}</b>
                                         </div>
                                     </div>
                                 </div>
                                 {item.saidas_novos > 0 && (
-                                    <div className="mt-2 text-[11px] text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100 inline-block">
-                                        ⚠️ <b>{item.saidas_novos}</b> saíram antes de 30 corridas.
+                                    <div className="mt-2 text-[11px] text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg border border-amber-100 dark:border-amber-900/30 inline-flex items-center gap-1.5">
+                                        <AlertCircle className="w-3.5 h-3.5" />
+                                        <b>{item.saidas_novos}</b> saíram antes de 30 corridas.
                                     </div>
                                 )}
                             </div>
