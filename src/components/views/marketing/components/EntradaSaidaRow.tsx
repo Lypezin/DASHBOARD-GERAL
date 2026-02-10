@@ -36,53 +36,51 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
     return (
         <motion.div
             layout
-            className={`group relative overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200 ${isFirst ? 'shadow-md ring-1 ring-indigo-50 dark:ring-indigo-900/20' : 'shadow-sm'}`}
+            className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 transition-all duration-300 hover:shadow-lg hover:border-indigo-100 dark:hover:border-indigo-900/30 ${isFirst ? 'shadow-md ring-1 ring-indigo-50 dark:ring-indigo-900/20' : 'shadow-sm'}`}
         >
-            {isFirst && <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-500" />}
-
             <div
-                className="p-4 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 cursor-pointer"
+                className="p-5 flex flex-col sm:flex-row items-center gap-4 sm:gap-8 cursor-pointer relative z-10"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 {/* Week & Date */}
-                <div className="flex items-center gap-4 min-w-[140px]">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${isFirst ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
-                        <Calendar className="w-5 h-5" />
+                <div className="flex items-center gap-4 min-w-[150px]">
+                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-colors duration-300 ${isFirst ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 dark:bg-slate-800 dark:text-slate-500'}`}>
+                        <Calendar className="w-6 h-6" />
                     </div>
                     <div>
-                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">
+                        <h4 className="text-base font-bold text-slate-800 dark:text-slate-100 leading-tight group-hover:text-indigo-600 transition-colors">
                             {formatWeekLabel(item.semana)}
                         </h4>
-                        <span className="text-xs text-slate-500 font-medium">
+                        <span className="text-xs text-slate-500 font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full mt-1 inline-block">
                             {item.semana}
                         </span>
                     </div>
                 </div>
 
                 {/* Metrics Row */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-100 dark:border-slate-800 px-6 mx-2">
+                <div className="flex-1 grid grid-cols-3 gap-8 px-4 border-l border-r border-slate-100 dark:border-slate-800/50">
                     <Stat label="Entradas" value={item.entradas_total || item.entradas} color={colors.entradas} icon={ArrowUpRight} />
                     <Stat label="Retomada" value={item.retomada_total || 0} color={colors.retomada} icon={RotateCcw} />
-                    <Stat label="Saídas" value={item.saidas_total || item.saidas} color={colors.saidas} icon={ArrowDownRight} />
+                    <div className="relative">
+                        <Stat label="Saídas" value={item.saidas_total || item.saidas} color={colors.saidas} icon={ArrowDownRight} />
+                        {item.saidas_novos > 0 && (
+                            <div className="absolute -top-1 -right-2 flex items-center justify-center h-5 w-5 bg-amber-100 text-amber-600 rounded-full text-[10px] font-bold border border-white dark:border-slate-900 shadow-sm" title={`${item.saidas_novos} desistências`}>!</div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Balance & Actions */}
-                <div className="flex items-center gap-4 min-w-[120px] justify-end">
-                    {/* Desistencias Alert */}
-                    {item.saidas_novos > 0 && (
-                        <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1 rounded-full border border-amber-100 dark:border-amber-900/30" title={`${item.saidas_novos} desistências (novos)`}>
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span className="text-xs font-bold">-{item.saidas_novos}</span>
+                <div className="flex items-center gap-6 min-w-[140px] justify-end">
+                    <div className={`flex flex-col items-end`}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Saldo</span>
+                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg ${item.saldo >= 0 ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20'}`}>
+                            {item.saldo >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                            <span className="text-lg font-bold tabular-nums">{Math.abs(item.saldo)}</span>
                         </div>
-                    )}
-
-                    <div className={`flex flex-col items-end px-3 py-1 rounded-lg ${item.saldo >= 0 ? 'bg-indigo-50 text-indigo-700' : 'bg-amber-50 text-amber-700'}`}>
-                        <span className="text-[10px] font-bold uppercase opacity-70">Saldo</span>
-                        <span className="text-lg font-bold tabular-nums">{item.saldo > 0 ? '+' : ''}{item.saldo}</span>
                     </div>
 
-                    <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center bg-slate-50 dark:bg-slate-800 transition-all duration-300 ${isExpanded ? 'rotate-180 bg-slate-100' : ''}`}>
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
                     </div>
                 </div>
             </div>
@@ -96,46 +94,71 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                         exit={{ height: 0, opacity: 0 }}
                         className="bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800"
                     >
-                        <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
-                            {/* Detailed Lists or Actions */}
-                            <div className="flex justify-center gap-4">
-                                <span className="text-xs font-medium text-slate-500">Ver Listas:</span>
-                                {item.entradas > 0 && (
-                                    <MetricDetailDialog
-                                        type="entradas"
-                                        weekLabel={formatWeekLabel(item.semana)}
-                                        count={item.entradas}
-                                        marketingNames={item.nomes_entradas_marketing}
-                                        operacionalNames={item.nomes_entradas_operacional}
-                                    />
-                                )}
-                                {(item.retomada_total || 0) > 0 && (
-                                    <MetricDetailDialog
-                                        type="retomada"
-                                        weekLabel={formatWeekLabel(item.semana)}
-                                        count={item.retomada_total || 0}
-                                        marketingNames={item.nomes_retomada_marketing}
-                                        operacionalNames={item.nomes_retomada_operacional}
-                                    />
-                                )}
-                                {(item.saidas > 0) && (
-                                    <MetricDetailDialog
-                                        type="saidas"
-                                        weekLabel={formatWeekLabel(item.semana)}
-                                        count={item.saidas}
-                                        marketingNames={item.nomes_saidas_marketing}
-                                        operacionalNames={item.nomes_saidas_operacional}
-                                        marketingNovosNames={item.nomes_saidas_novos_marketing}
-                                        operacionalNovosNames={item.nomes_saidas_novos_operacional}
-                                    />
-                                )}
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+                            {/* Detailed Lists Actions */}
+                            <div className="space-y-3">
+                                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400">Listas Detalhadas</h5>
+                                <div className="flex flex-wrap gap-3">
+                                    {item.entradas > 0 && (
+                                        <MetricDetailDialog
+                                            type="entradas"
+                                            weekLabel={formatWeekLabel(item.semana)}
+                                            count={item.entradas}
+                                            marketingNames={item.nomes_entradas_marketing}
+                                            operacionalNames={item.nomes_entradas_operacional}
+                                        />
+                                    )}
+                                    {(item.retomada_total || 0) > 0 && (
+                                        <MetricDetailDialog
+                                            type="retomada"
+                                            weekLabel={formatWeekLabel(item.semana)}
+                                            count={item.retomada_total || 0}
+                                            marketingNames={item.nomes_retomada_marketing}
+                                            operacionalNames={item.nomes_retomada_operacional}
+                                        />
+                                    )}
+                                    {(item.saidas > 0) && (
+                                        <MetricDetailDialog
+                                            type="saidas"
+                                            weekLabel={formatWeekLabel(item.semana)}
+                                            count={item.saidas}
+                                            marketingNames={item.nomes_saidas_marketing}
+                                            operacionalNames={item.nomes_saidas_operacional}
+                                            marketingNovosNames={item.nomes_saidas_novos_marketing}
+                                            operacionalNovosNames={item.nomes_saidas_novos_operacional}
+                                        />
+                                    )}
+                                </div>
                             </div>
 
-                            {/* Breakdown Stats (Mkt vs Ops) could go here if needed, keeping it simple for now */}
-                            <div className="col-span-2 flex justify-end gap-6 text-xs text-slate-500">
-                                <div><span className="font-semibold">Entradas:</span> Mkt {item.entradas_marketing} | Ops {item.entradas_total ? item.entradas_total - (item.entradas_marketing || 0) : 0}</div>
-                                <div><span className="font-semibold">Retomada:</span> Mkt {item.retomada_marketing} | Ops {(item.retomada_total || 0) - (item.retomada_marketing || 0)}</div>
-                                <div><span className="font-semibold">Saídas:</span> Mkt {item.saidas_marketing} | Ops {item.saidas_total ? item.saidas_total - (item.saidas_marketing || 0) : 0}</div>
+                            {/* Breakdown Stats */}
+                            <div className="space-y-3">
+                                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400">Composição (Mkt / Ops)</h5>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <span className="text-[10px] text-emerald-600 font-bold block mb-1">Entradas</span>
+                                        <div className="text-xs text-slate-600 bg-white px-2 py-1 rounded border border-slate-100 shadow-sm">
+                                            Mkt: <b>{item.entradas_marketing}</b><br />Ops: <b>{item.entradas_total ? item.entradas_total - (item.entradas_marketing || 0) : 0}</b>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-indigo-600 font-bold block mb-1">Retomada</span>
+                                        <div className="text-xs text-slate-600 bg-white px-2 py-1 rounded border border-slate-100 shadow-sm">
+                                            Mkt: <b>{item.retomada_marketing}</b><br />Ops: <b>{(item.retomada_total || 0) - (item.retomada_marketing || 0)}</b>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-rose-600 font-bold block mb-1">Saídas</span>
+                                        <div className="text-xs text-slate-600 bg-white px-2 py-1 rounded border border-slate-100 shadow-sm">
+                                            Mkt: <b>{item.saidas_marketing}</b><br />Ops: <b>{item.saidas_total ? item.saidas_total - (item.saidas_marketing || 0) : 0}</b>
+                                        </div>
+                                    </div>
+                                </div>
+                                {item.saidas_novos > 0 && (
+                                    <div className="mt-2 text-[11px] text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100 inline-block">
+                                        ⚠️ <b>{item.saidas_novos}</b> saíram antes de 30 corridas.
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </motion.div>

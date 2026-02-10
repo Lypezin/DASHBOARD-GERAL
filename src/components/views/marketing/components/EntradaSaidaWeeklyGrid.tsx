@@ -34,14 +34,27 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                     <p className="text-slate-500 dark:text-slate-400">Nenhum dado encontrado para o período selecionado.</p>
                 </div>
             ) : (
-                <div className="flex flex-col gap-3">
-                    {sortedWeeklyData.map((item, index) => (
-                        <EntradaSaidaRow
-                            key={item.semana}
-                            item={item}
-                            isFirst={index === 0}
-                        />
-                    ))}
+                <div className="space-y-2">
+                    {/* Header Row */}
+                    <div className="hidden sm:flex items-center gap-8 px-9 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <div className="min-w-[150px]">Semana</div>
+                        <div className="flex-1 grid grid-cols-3 gap-8 px-4 text-center">
+                            <div>Entradas</div>
+                            <div>Retomada</div>
+                            <div>Saídas</div>
+                        </div>
+                        <div className="min-w-[140px] text-right pr-12">Saldo</div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                        {sortedWeeklyData.map((item, index) => (
+                            <EntradaSaidaRow
+                                key={item.semana}
+                                item={item}
+                                isFirst={index === 0}
+                            />
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
