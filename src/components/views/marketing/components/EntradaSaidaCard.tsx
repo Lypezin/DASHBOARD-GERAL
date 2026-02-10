@@ -21,6 +21,11 @@ export interface WeeklyData {
     nomes_saidas_operacional?: string[];
     nomes_saidas_novos_marketing?: string[];
     nomes_saidas_novos_operacional?: string[];
+    // Retomada
+    retomada_total?: number;
+    retomada_marketing?: number;
+    nomes_retomada_marketing?: string[];
+    nomes_retomada_operacional?: string[];
 }
 
 interface EntradaSaidaCardProps {
@@ -44,11 +49,17 @@ export const EntradaSaidaCard: React.FC<EntradaSaidaCardProps> = ({ item, isFirs
             <EntradaSaidaHeader semana={item.semana} isFirst={isFirst} />
 
             {/* Métricas */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-3 gap-2 mb-4">
                 <MetricBlock
                     type="entradas"
                     marketing={item.entradas_marketing || 0}
                     total={item.entradas_total || item.entradas}
+                />
+
+                <MetricBlock
+                    type="retomada"
+                    marketing={item.retomada_marketing || 0}
+                    total={item.retomada_total || 0}
                 />
 
                 <MetricBlock
@@ -88,6 +99,16 @@ export const EntradaSaidaCard: React.FC<EntradaSaidaCardProps> = ({ item, isFirs
                             count={item.entradas}
                             marketingNames={item.nomes_entradas_marketing}
                             operacionalNames={item.nomes_entradas_operacional}
+                        />
+                    )}
+
+                    {(item.retomada_total || 0) > 0 && (
+                        <MetricDetailDialog
+                            type="retomada"
+                            weekLabel={formatWeekLabel(item.semana)}
+                            count={item.retomada_total || 0}
+                            marketingNames={item.nomes_retomada_marketing}
+                            operacionalNames={item.nomes_retomada_operacional}
                         />
                     )}
 

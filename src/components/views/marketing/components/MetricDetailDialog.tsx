@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Eye, ArrowUpRight, ArrowDownRight, RotateCcw } from 'lucide-react';
 import { MetricDetailList } from './MetricDetailList';
 
 interface MetricDetailDialogProps {
-    type: 'entradas' | 'saidas';
+    type: 'entradas' | 'saidas' | 'retomada';
     weekLabel: string;
     count: number;
     marketingNames?: string[];
@@ -33,9 +33,21 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
     operacionalNovosNames = []
 }) => {
     const isEntrada = type === 'entradas';
-    const colorClass = isEntrada ? 'text-emerald-600' : 'text-rose-600';
-    const hoverBgClass = isEntrada ? 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'hover:bg-rose-50 dark:hover:bg-rose-900/20';
-    const Icon = isEntrada ? ArrowUpRight : ArrowDownRight;
+    const isRetomada = type === 'retomada';
+
+    let colorClass = isEntrada ? 'text-emerald-600' : 'text-rose-600';
+    let hoverBgClass = isEntrada ? 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'hover:bg-rose-50 dark:hover:bg-rose-900/20';
+    let Icon = isEntrada ? ArrowUpRight : ArrowDownRight;
+    let titleText = isEntrada ? 'Entradas' : 'Saídas';
+    let descriptionText = isEntrada ? 'entregadores ativos nesta semana.' : 'entregadores inativos nesta semana.';
+
+    if (isRetomada) {
+        colorClass = 'text-indigo-600';
+        hoverBgClass = 'hover:bg-indigo-50 dark:hover:bg-indigo-900/20';
+        Icon = RotateCcw;
+        titleText = 'Retomada';
+        descriptionText = 'entregadores que retornaram à base nesta semana.';
+    }
 
     const hasNoRecords = !marketingNames.length && !operacionalNames.length && !marketingNovosNames.length && !operacionalNovosNames.length;
     const hasNovos = marketingNovosNames.length > 0 || operacionalNovosNames.length > 0;
@@ -55,10 +67,10 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
                 <DialogHeader>
                     <DialogTitle className={`flex items-center gap-2 ${colorClass}`}>
                         <Icon className="h-5 w-5" />
-                        {isEntrada ? 'Entradas' : 'Saídas'} - {weekLabel}
+                        {titleText} - {weekLabel}
                     </DialogTitle>
                     <DialogDescription>
-                        {count} entregadores {isEntrada ? 'ativos' : 'inativos'} nesta semana.
+                        {count} {descriptionText}
                     </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className="h-[300px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">

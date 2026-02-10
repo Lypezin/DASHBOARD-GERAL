@@ -12,15 +12,20 @@ export const useEntradaSaidaTotals = (data: any[]) => {
             saidas_operacional: acc.saidas_operacional + (Number(curr.saidas_operacional) || 0),
 
             saidas_novos: acc.saidas_novos + (Number(curr.saidas_novos) || 0),
+
+            retomada_total: (acc.retomada_total || 0) + (Number(curr.retomada_total) || 0),
+            retomada_marketing: (acc.retomada_marketing || 0) + (Number(curr.retomada_marketing) || 0),
+            retomada_operacional: (acc.retomada_operacional || 0) + (Number(curr.retomada_operacional) || 0),
         }), {
             entradas_total: 0, entradas_marketing: 0, entradas_operacional: 0,
             saidas_total: 0, saidas_marketing: 0, saidas_operacional: 0,
-            saidas_novos: 0
+            saidas_novos: 0,
+            retomada_total: 0, retomada_marketing: 0, retomada_operacional: 0
         });
 
-        const saldo_total = totals.entradas_total - totals.saidas_total;
-        const saldo_marketing = totals.entradas_marketing - totals.saidas_marketing;
-        const saldo_operacional = totals.entradas_operacional - totals.saidas_operacional;
+        const saldo_total = (totals.entradas_total + totals.retomada_total) - totals.saidas_total;
+        const saldo_marketing = (totals.entradas_marketing + totals.retomada_marketing) - totals.saidas_marketing;
+        const saldo_operacional = (totals.entradas_operacional + totals.retomada_operacional) - totals.saidas_operacional;
 
         const formatPercent = (part: number, total: number) => {
             if (!total) return '0%';

@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface MetricBlockProps {
-    type: 'entradas' | 'saidas';
+    type: 'entradas' | 'saidas' | 'retomada';
     marketing: number;
     total: number;
     operacional?: number; // optional if not pre-calculated, but good to pass in
@@ -9,33 +9,42 @@ interface MetricBlockProps {
 
 export const MetricBlock: React.FC<MetricBlockProps> = ({ type, marketing, total, operacional }) => {
     const isEntrada = type === 'entradas';
+    const isRetomada = type === 'retomada';
     // Calculate operacional if not provided (assume total >= marketing)
     const opsValue = operacional !== undefined ? operacional : Math.max(0, total - marketing);
 
-    const bgColor = isEntrada ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-rose-50 dark:bg-rose-900/20';
-    const titleColor = isEntrada ? 'text-emerald-600/70 dark:text-emerald-400/70' : 'text-rose-600/70 dark:text-rose-400/70';
+    let bgColor = isEntrada ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-rose-50 dark:bg-rose-900/20';
+    let titleColor = isEntrada ? 'text-emerald-600/70 dark:text-emerald-400/70' : 'text-rose-600/70 dark:text-rose-400/70';
+    let mktDotColor = isEntrada ? 'bg-emerald-500' : 'bg-rose-500';
+    let mktTextColor = isEntrada ? 'text-emerald-700/70 dark:text-emerald-400/70' : 'text-rose-700/70 dark:text-rose-400/70';
+    let mktValueColor = isEntrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400';
+    let opsDotColor = isEntrada ? 'bg-emerald-300' : 'bg-rose-300';
+    let opsTextColor = isEntrada ? 'text-emerald-700/70 dark:text-emerald-400/70' : 'text-rose-700/70 dark:text-rose-400/70';
+    let opsValueColor = isEntrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400';
+    let footerBorder = isEntrada ? 'border-emerald-200/50 dark:border-emerald-800/30' : 'border-rose-200/50 dark:border-rose-800/30';
+    let totalLabelColor = isEntrada ? 'text-emerald-800/60 dark:text-emerald-300/60' : 'text-rose-800/60 dark:text-rose-300/60';
+    let totalValueColor = isEntrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400';
+    let sign = isEntrada || isRetomada ? '+' : '-';
+    let titleLabel = isEntrada ? 'Entradas' : (isRetomada ? 'Retomada' : 'Saídas');
 
-    // Mkt styles
-    const mktDotColor = isEntrada ? 'bg-emerald-500' : 'bg-rose-500';
-    const mktTextColor = isEntrada ? 'text-emerald-700/70 dark:text-emerald-400/70' : 'text-rose-700/70 dark:text-rose-400/70';
-    const mktValueColor = isEntrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400';
-
-    // Ops styles
-    const opsDotColor = isEntrada ? 'bg-emerald-300' : 'bg-rose-300';
-    const opsTextColor = isEntrada ? 'text-emerald-700/70 dark:text-emerald-400/70' : 'text-rose-700/70 dark:text-rose-400/70';
-    const opsValueColor = isEntrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400';
-
-    // Footer styles
-    const footerBorder = isEntrada ? 'border-emerald-200/50 dark:border-emerald-800/30' : 'border-rose-200/50 dark:border-rose-800/30';
-    const totalLabelColor = isEntrada ? 'text-emerald-800/60 dark:text-emerald-300/60' : 'text-rose-800/60 dark:text-rose-300/60';
-    const totalValueColor = isEntrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400';
-
-    const sign = isEntrada ? '+' : '-';
+    if (isRetomada) {
+        bgColor = 'bg-indigo-50 dark:bg-indigo-900/20';
+        titleColor = 'text-indigo-600/70 dark:text-indigo-400/70';
+        mktDotColor = 'bg-indigo-500';
+        mktTextColor = 'text-indigo-700/70 dark:text-indigo-400/70';
+        mktValueColor = 'text-indigo-700 dark:text-indigo-400';
+        opsDotColor = 'bg-indigo-300';
+        opsTextColor = 'text-indigo-700/70 dark:text-indigo-400/70';
+        opsValueColor = 'text-indigo-700 dark:text-indigo-400';
+        footerBorder = 'border-indigo-200/50 dark:border-indigo-800/30';
+        totalLabelColor = 'text-indigo-800/60 dark:text-indigo-300/60';
+        totalValueColor = 'text-indigo-700 dark:text-indigo-400';
+    }
 
     return (
         <div className={`rounded-xl ${bgColor} p-3 pt-2`}>
             <p className={`text-[10px] uppercase tracking-wider font-semibold ${titleColor} mb-2 text-center`}>
-                {isEntrada ? 'Entradas' : 'Saídas'}
+                {titleLabel}
             </p>
 
             <div className="space-y-1 mb-2">

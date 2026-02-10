@@ -40,6 +40,8 @@ export const useChartOptions = () => {
                             // Para Saídas, mostrar valor absoluto (pois plotamos negativo)
                             if (context.dataset.label === 'Saídas') {
                                 label += Math.abs(context.parsed.y);
+                            } else if (context.dataset.label === 'Retomada') {
+                                label += context.parsed.y;
                             } else {
                                 // Para Saldo e Entradas, mostrar valor real (pode ser negativo)
                                 label += context.parsed.y;
@@ -59,6 +61,7 @@ export const useChartOptions = () => {
                 border: {
                     display: false,
                 },
+                stacked: true,
                 ticks: {
                     font: { size: 11 },
                     color: 'rgb(148, 163, 184)',
@@ -76,6 +79,7 @@ export const useChartOptions = () => {
                 border: {
                     display: false,
                 },
+                stacked: true,
                 ticks: {
                     font: { size: 11 },
                     color: 'rgb(148, 163, 184)',

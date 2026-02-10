@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDownRight, ArrowUpRight, TrendingUp, TrendingDown, Users, Megaphone } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, TrendingUp, TrendingDown, Users, Megaphone, RotateCcw } from 'lucide-react';
 import { useEntradaSaidaTotals } from '../hooks/useEntradaSaidaTotals';
 import { MarketingStatsCard } from './MarketingStatsCard';
 
@@ -11,7 +11,7 @@ export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ 
     const { totals, saldo_total, saldo_marketing, saldo_operacional, formatPercent } = useEntradaSaidaTotals(data);
 
     return (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
             {/* ENTRADAS */}
             <MarketingStatsCard
                 title="Entradas"
@@ -30,6 +30,28 @@ export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ 
                         label: 'Operacional',
                         value: totals.entradas_operacional,
                         percent: formatPercent(totals.entradas_operacional, totals.entradas_total),
+                        icon: <Users className="w-3.5 h-3.5" />
+                    }
+                ]}
+            />
+            {/* RETOMADA */}
+            <MarketingStatsCard
+                title="Retomada"
+                value={totals.retomada_total}
+                subtitle="Retornaram à base"
+                icon={<RotateCcw className="h-5 w-5" />}
+                colorTheme="blue"
+                breakdown={[
+                    {
+                        label: 'Marketing',
+                        value: totals.retomada_marketing,
+                        percent: formatPercent(totals.retomada_marketing, totals.retomada_total),
+                        icon: <Megaphone className="w-3.5 h-3.5" />
+                    },
+                    {
+                        label: 'Operacional',
+                        value: totals.retomada_operacional,
+                        percent: formatPercent(totals.retomada_operacional, totals.retomada_total),
                         icon: <Users className="w-3.5 h-3.5" />
                     }
                 ]}

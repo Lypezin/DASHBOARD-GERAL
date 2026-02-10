@@ -41,6 +41,18 @@ export const useChartData = (data: any[]) => {
                 },
                 {
                     type: 'bar' as const,
+                    label: 'Retomada',
+                    data: sortedData.map(d => d.retomada_total || 0),
+                    backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    order: 1,
+                    yAxisID: 'y',
+                },
+                {
+                    type: 'bar' as const,
                     label: 'Saídas',
                     data: sortedData.map(d => -d.saidas),
                     backgroundColor: 'rgba(244, 63, 94, 0.85)',
