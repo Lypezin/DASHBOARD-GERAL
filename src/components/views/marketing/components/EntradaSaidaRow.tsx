@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { formatWeekLabel } from '@/utils/timeHelpers';
 import { MetricDetailDialog } from './MetricDetailDialog';
-import { ArrowUpRight, ArrowDownRight, RotateCcw, ChevronDown, AlertCircle, Calendar, Clock, Users, UserX, Eye, Megaphone, Wrench } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, RotateCcw, ChevronDown, AlertCircle, Calendar, Users, UserX, Eye, Megaphone, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WeeklyData } from './EntradaSaidaCard';
 import {
@@ -75,16 +75,23 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
 
                     {/* Retomada with clickable origins */}
                     <div className="relative">
-                        <Stat label="Retomada" value={totalRetomada} color={colors.retomada} icon={RotateCcw} />
-                        {hasOrigins && (
+                        {hasOrigins ? (
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <button
-                                        className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 bg-indigo-100 text-indigo-600 rounded-full text-[9px] font-bold border-2 border-white dark:border-slate-900 shadow-sm hover:bg-indigo-200 hover:scale-110 transition-all cursor-pointer z-20"
+                                        className="flex flex-col items-center justify-center min-w-[80px] cursor-pointer group/retomada rounded-xl px-2 py-1 -mx-2 -my-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all"
                                         onClick={(e) => e.stopPropagation()}
-                                        title="Ver semanas de origem"
                                     >
-                                        <Clock className="w-3 h-3" />
+                                        <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-600/70 mb-0.5">Retomada</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="p-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+                                                <RotateCcw className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                                            </div>
+                                            <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300 tabular-nums">{totalRetomada}</span>
+                                        </div>
+                                        <span className="text-[9px] font-semibold text-indigo-500 dark:text-indigo-400 mt-0.5 opacity-70 group-hover/retomada:opacity-100 transition-opacity flex items-center gap-0.5">
+                                            ver origens <ChevronDown className="w-2.5 h-2.5 -rotate-90" />
+                                        </span>
                                     </button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-[380px] p-0 gap-0 rounded-2xl">
@@ -142,6 +149,8 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                                     </div>
                                 </DialogContent>
                             </Dialog>
+                        ) : (
+                            <Stat label="Retomada" value={totalRetomada} color={colors.retomada} icon={RotateCcw} />
                         )}
                     </div>
 
