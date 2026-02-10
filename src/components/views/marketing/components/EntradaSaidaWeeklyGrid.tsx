@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { EntradaSaidaCard, WeeklyData } from './EntradaSaidaCard';
+import { EntradaSaidaRow } from './EntradaSaidaRow';
+import { WeeklyData } from './EntradaSaidaCard';
 
 interface EntradaSaidaWeeklyGridProps {
     data: WeeklyData[];
@@ -33,9 +34,9 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                     <p className="text-slate-500 dark:text-slate-400">Nenhum dado encontrado para o período selecionado.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="flex flex-col gap-3">
                     {sortedWeeklyData.map((item, index) => (
-                        <EntradaSaidaCard
+                        <EntradaSaidaRow
                             key={item.semana}
                             item={item}
                             isFirst={index === 0}

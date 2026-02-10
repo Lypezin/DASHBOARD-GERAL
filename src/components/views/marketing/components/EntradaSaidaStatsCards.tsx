@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDownRight, ArrowUpRight, TrendingUp, TrendingDown, Users, Megaphone, RotateCcw } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, TrendingUp, TrendingDown, Users, Megaphone, RotateCcw, AlertCircle } from 'lucide-react';
 import { useEntradaSaidaTotals } from '../hooks/useEntradaSaidaTotals';
 import { MarketingStatsCard } from './MarketingStatsCard';
 
@@ -11,7 +11,7 @@ export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ 
     const { totals, saldo_total, saldo_marketing, saldo_operacional, formatPercent } = useEntradaSaidaTotals(data);
 
     return (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {/* ENTRADAS */}
             <MarketingStatsCard
                 title="Entradas"
@@ -34,6 +34,7 @@ export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ 
                     }
                 ]}
             />
+
             {/* RETOMADA */}
             <MarketingStatsCard
                 title="Retomada"
@@ -57,7 +58,7 @@ export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ 
                 ]}
             />
 
-            {/* SAÍDAS */}
+            {/* SAÍDAS (Inclui Novos) */}
             <MarketingStatsCard
                 title="Saídas"
                 value={totals.saidas_total}
@@ -76,6 +77,11 @@ export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ 
                         value: totals.saidas_operacional,
                         percent: formatPercent(totals.saidas_operacional, totals.saidas_total),
                         icon: <Users className="w-3.5 h-3.5" />
+                    },
+                    {
+                        label: 'Novos (Desist.)',
+                        value: totals.saidas_novos,
+                        icon: <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
                     }
                 ]}
             />
@@ -91,16 +97,6 @@ export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ 
                     { label: 'Mkt', value: `${saldo_marketing > 0 ? '+' : ''}${saldo_marketing}` },
                     { label: 'Ops', value: `${saldo_operacional > 0 ? '+' : ''}${saldo_operacional}` }
                 ]}
-            />
-
-            {/* SALDO NOVICE */}
-            <MarketingStatsCard
-                title="Novos (Desist.)"
-                value={totals.saidas_novos}
-                subtitle="Não Maturados (<30)"
-                icon={<ArrowDownRight className="h-5 w-5" />}
-                colorTheme="orange"
-                footerText="Entregadores que saíram antes de completar 30 corridas."
             />
         </div>
     );
