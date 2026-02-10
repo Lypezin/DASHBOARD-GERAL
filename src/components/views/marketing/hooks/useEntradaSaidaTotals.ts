@@ -23,9 +23,17 @@ export const useEntradaSaidaTotals = (data: any[]) => {
             retomada_total: 0, retomada_marketing: 0, retomada_operacional: 0
         });
 
-        const saldo_total = (totals.entradas_total + totals.retomada_total) - totals.saidas_total;
-        const saldo_marketing = (totals.entradas_marketing + totals.retomada_marketing) - totals.saidas_marketing;
-        const saldo_operacional = (totals.entradas_operacional + totals.retomada_operacional) - totals.saidas_operacional;
+        // SALDO: Entradas - Saídas (SEM Retomada)
+        const saldo_total = totals.entradas_total - totals.saidas_total;
+        const saldo_marketing = totals.entradas_marketing - totals.saidas_marketing;
+        const saldo_operacional = totals.entradas_operacional - totals.saidas_operacional;
+
+        // BASE ATIVA: último valor disponível (semana mais recente com dados)
+        const lastWeekWithData = [...data].reverse().find(w => Number(w.base_ativa || 0) > 0);
+        const base_ativa = lastWeekWithData ? Number(lastWeekWithData.base_ativa) : 0;
+
+        // VARIAÇÃO TOTAL: soma de todas as variações no período
+        const variacao_total = data.reduce((sum: number, curr: any) => sum + (Number(curr.variacao_base) || 0), 0);
 
         const formatPercent = (part: number, total: number) => {
             if (!total) return '0%';
@@ -37,6 +45,8 @@ export const useEntradaSaidaTotals = (data: any[]) => {
             saldo_total,
             saldo_marketing,
             saldo_operacional,
+            base_ativa,
+            variacao_total,
             formatPercent
         };
     }, [data]);

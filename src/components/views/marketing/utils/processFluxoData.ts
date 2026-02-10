@@ -27,6 +27,8 @@ export interface FluxoEntregadores {
     nomes_retomada_marketing: string[];
     nomes_retomada_operacional: string[];
     retomada_origins?: Record<string, number>;
+    base_ativa: number;
+    variacao_base: number;
 }
 
 export const processFluxoData = (rawData: any[]): FluxoEntregadores[] => {
@@ -60,6 +62,8 @@ export const processFluxoData = (rawData: any[]): FluxoEntregadores[] => {
             retomada_origins: item.retomada_origins || {},
 
             saldo: Number(item.saldo),
+            base_ativa: Number(item.base_ativa || 0),
+            variacao_base: Number(item.variacao_base || 0),
 
             // Legacy compatibility
             entradas: Number(item.entradas_total),

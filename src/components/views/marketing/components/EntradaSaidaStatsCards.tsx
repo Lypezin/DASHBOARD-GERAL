@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDownRight, ArrowUpRight, TrendingUp, TrendingDown, Users, Megaphone, RotateCcw, AlertCircle } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, TrendingUp, TrendingDown, Users, Megaphone, RotateCcw, AlertCircle, Activity } from 'lucide-react';
 import { useEntradaSaidaTotals } from '../hooks/useEntradaSaidaTotals';
 import { MarketingStatsCard } from './MarketingStatsCard';
 
@@ -8,10 +8,10 @@ interface EntradaSaidaStatsCardsProps {
 }
 
 export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ data }) => {
-    const { totals, saldo_total, saldo_marketing, saldo_operacional, formatPercent } = useEntradaSaidaTotals(data);
+    const { totals, saldo_total, saldo_marketing, saldo_operacional, base_ativa, variacao_total, formatPercent } = useEntradaSaidaTotals(data);
 
     return (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
             {/* ENTRADAS */}
             <MarketingStatsCard
                 title="Entradas"
@@ -58,7 +58,7 @@ export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ 
                 ]}
             />
 
-            {/* SAÍDAS (Inclui Novos) */}
+            {/* SAÍDAS */}
             <MarketingStatsCard
                 title="Saídas"
                 value={totals.saidas_total}
@@ -86,16 +86,34 @@ export const EntradaSaidaStatsCards: React.FC<EntradaSaidaStatsCardsProps> = ({ 
                 ]}
             />
 
-            {/* SALDO TOTAL */}
+            {/* SALDO (Entradas - Saídas, sem Retomada) */}
             <MarketingStatsCard
-                title="Saldo Total"
+                title="Saldo Novos"
                 value={`${saldo_total > 0 ? '+' : ''}${saldo_total}`}
-                subtitle="Crescimento Líquido"
+                subtitle="Entradas − Saídas"
                 icon={saldo_total >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
                 colorTheme={saldo_total >= 0 ? 'indigo' : 'amber'}
                 breakdown={[
                     { label: 'Mkt', value: `${saldo_marketing > 0 ? '+' : ''}${saldo_marketing}` },
                     { label: 'Ops', value: `${saldo_operacional > 0 ? '+' : ''}${saldo_operacional}` }
+                ]}
+            />
+
+            {/* BASE ATIVA */}
+            <MarketingStatsCard
+                title="Base Ativa"
+                value={base_ativa.toLocaleString('pt-BR')}
+                subtitle="Última semana"
+                icon={<Activity className="h-5 w-5" />}
+                colorTheme={variacao_total >= 0 ? 'blue' : 'amber'}
+                breakdown={[
+                    {
+                        label: 'Variação',
+                        value: `${variacao_total > 0 ? '+' : ''}${variacao_total}`,
+                        icon: variacao_total >= 0
+                            ? <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                            : <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
+                    }
                 ]}
             />
         </div>

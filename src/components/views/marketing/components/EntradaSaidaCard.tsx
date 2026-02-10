@@ -27,6 +27,8 @@ export interface WeeklyData {
     nomes_retomada_marketing: string[];
     nomes_retomada_operacional: string[];
     retomada_origins?: Record<string, number>;
+    base_ativa: number;
+    variacao_base: number;
 }
 
 interface EntradaSaidaCardProps {

@@ -85,15 +85,31 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                     </div>
                 </div>
 
-                {/* Balance & Actions */}
-                <div className="flex items-center gap-6 min-w-[140px] justify-end">
-                    <div className={`flex flex-col items-end`}>
+                {/* Balance & Base Ativa */}
+                <div className="flex items-center gap-4 min-w-[240px] justify-end">
+                    {/* Saldo */}
+                    <div className={`flex flex-col items-center`}>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Saldo</span>
-                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg ${item.saldo >= 0 ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20'}`}>
-                            {item.saldo >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                            <span className="text-lg font-bold tabular-nums">{Math.abs(item.saldo)}</span>
+                        <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${item.saldo >= 0 ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20'}`}>
+                            {item.saldo >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                            <span className="text-sm font-bold tabular-nums">{item.saldo > 0 ? '+' : ''}{item.saldo}</span>
                         </div>
                     </div>
+
+                    {/* Base Ativa */}
+                    {item.base_ativa > 0 && (
+                        <div className="flex flex-col items-center">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Base Ativa</span>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-50 dark:bg-cyan-900/20">
+                                <span className="text-sm font-bold tabular-nums text-cyan-700 dark:text-cyan-300">{item.base_ativa.toLocaleString('pt-BR')}</span>
+                                {item.variacao_base !== 0 && (
+                                    <span className={`text-[10px] font-bold tabular-nums ${item.variacao_base > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                        {item.variacao_base > 0 ? '▲' : '▼'}{Math.abs(item.variacao_base)}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     <div className={`h-8 w-8 rounded-full flex items-center justify-center bg-slate-50 dark:bg-slate-800 transition-all duration-300 ${isExpanded ? 'rotate-180 bg-slate-100' : ''}`}>
                         <ChevronDown className="w-4 h-4 text-slate-400" />
