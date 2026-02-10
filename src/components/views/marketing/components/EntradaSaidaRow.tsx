@@ -36,7 +36,7 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
     return (
         <motion.div
             layout
-            className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 transition-all duration-300 hover:shadow-lg hover:border-indigo-100 dark:hover:border-indigo-900/30 ${isFirst ? 'shadow-md ring-1 ring-indigo-50 dark:ring-indigo-900/20' : 'shadow-sm'}`}
+            className={`group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 transition-all duration-300 hover:shadow-lg hover:border-indigo-100 dark:hover:border-indigo-900/30 ${isFirst ? 'shadow-md ring-1 ring-indigo-50 dark:ring-indigo-900/20' : 'shadow-sm'}`}
         >
             <div
                 className="p-5 flex flex-col sm:flex-row items-center gap-4 sm:gap-8 cursor-pointer relative z-10"
