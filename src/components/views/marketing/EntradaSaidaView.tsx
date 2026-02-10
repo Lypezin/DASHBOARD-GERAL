@@ -1,10 +1,8 @@
 import React from 'react';
 import { useEntradaSaidaData } from './useEntradaSaidaData';
-import { Activity, Download, FileSpreadsheet } from 'lucide-react';
+import { Activity, FileSpreadsheet } from 'lucide-react';
 import { EntradaSaidaStatsCards } from './components/EntradaSaidaStatsCards';
 import { EntradaSaidaWeeklyGrid } from './components/EntradaSaidaWeeklyGrid';
-import { EntradaSaidaChart } from './components/EntradaSaidaChart';
-import { EntradaSaidaMonthlyChart } from './components/EntradaSaidaMonthlyChart';
 import { Button } from '@/components/ui/button';
 import * as XLSX from 'xlsx';
 import { motion, Variants } from 'framer-motion';
@@ -31,6 +29,9 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
             'Saídas Mkt': item.saidas_marketing,
             'Saídas Ops': item.saidas_operacional,
             'Saldo': item.saldo,
+            'Base Ativa': item.base_ativa,
+            'Variação Base': item.variacao_base,
+            'Retomada': item.retomada_total,
             'Desistências Novos': item.saidas_novos,
             'Saldo Mkt': Number(item.entradas_marketing) - Number(item.saidas_marketing),
             'Saldo Ops': Number(item.entradas_operacional) - Number(item.saidas_operacional)
@@ -40,7 +41,6 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Fluxo Semanal");
 
-        // Generate filename with current date
         const dateStr = new Date().toISOString().split('T')[0];
         XLSX.writeFile(wb, `fluxo_entregadores_marketing_${dateStr}.xlsx`);
     };
@@ -88,7 +88,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
 
     return (
         <motion.div
-            className="space-y-8"
+            className="space-y-8 max-w-7xl mx-auto"
             variants={container}
             initial="hidden"
             animate="show"
@@ -97,7 +97,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                 <Button
                     onClick={handleExport}
                     variant="outline"
-                    className="gap-2 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm"
+                    className="gap-2 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700"
                 >
                     <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
                     Exportar Excel
@@ -110,11 +110,6 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
 
             <motion.div variants={item}>
                 <EntradaSaidaWeeklyGrid data={data} />
-            </motion.div>
-
-            <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-6" variants={item}>
-                <EntradaSaidaChart data={data} />
-                <EntradaSaidaMonthlyChart data={data} />
             </motion.div>
         </motion.div>
     );
