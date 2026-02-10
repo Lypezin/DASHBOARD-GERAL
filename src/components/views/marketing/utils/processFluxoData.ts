@@ -26,6 +26,7 @@ export interface FluxoEntregadores {
     retomada_operacional: number;
     nomes_retomada_marketing: string[];
     nomes_retomada_operacional: string[];
+    retomada_origins?: Record<string, number>;
 }
 
 export const processFluxoData = (rawData: any[]): FluxoEntregadores[] => {
@@ -49,13 +50,14 @@ export const processFluxoData = (rawData: any[]): FluxoEntregadores[] => {
             saidas_novos_operacional: Number(item.saidas_novos_total) - (item.nomes_saidas_novos_mkt ? item.nomes_saidas_novos_mkt.length : 0),
             nomes_saidas_novos_marketing: item.nomes_saidas_novos_mkt || [],
             nomes_saidas_novos_operacional: item.nomes_saidas_novos_ops || [],
-            
+
             // Retomada
             retomada_total: Number(item.retomada_total || 0),
             retomada_marketing: Number(item.retomada_mkt_count || 0),
             retomada_operacional: Number(item.retomada_total || 0) - Number(item.retomada_mkt_count || 0),
             nomes_retomada_marketing: item.nomes_retomada_mkt || [],
             nomes_retomada_operacional: item.nomes_retomada_ops || [],
+            retomada_origins: item.retomada_origins || {},
 
             saldo: Number(item.saldo),
 
