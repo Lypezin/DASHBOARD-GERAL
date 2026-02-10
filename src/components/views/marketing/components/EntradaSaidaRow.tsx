@@ -58,7 +58,25 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                 {/* Metrics Row */}
                 <div className="flex-1 grid grid-cols-3 gap-8 px-4 border-l border-r border-slate-100 dark:border-slate-800/50">
                     <Stat label="Entradas" value={item.entradas_total || item.entradas} color={colors.entradas} icon={ArrowUpRight} />
-                    <Stat label="Retomada" value={item.retomada_total || 0} color={colors.retomada} icon={RotateCcw} />
+                    <div className="relative group/tooltip">
+                        <Stat label="Retomada" value={item.retomada_total || 0} color={colors.retomada} icon={RotateCcw} />
+                        {item.retomada_origins && Object.keys(item.retomada_origins).length > 0 && (
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-800 text-white text-xs rounded-lg p-3 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                                <div className="font-bold mb-2 border-b border-slate-700 pb-1">Última Atividade:</div>
+                                <div className="space-y-1">
+                                    {Object.entries(item.retomada_origins)
+                                        .sort((a, b) => b[0].localeCompare(a[0])) // Sort by week descending
+                                        .map(([week, count]) => (
+                                            <div key={week} className="flex justify-between">
+                                                <span className="text-slate-300">{formatWeekLabel(week)}:</span>
+                                                <span className="font-bold">{count}</span>
+                                            </div>
+                                        ))}
+                                </div>
+                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
+                            </div>
+                        )}
+                    </div>
                     <div className="relative">
                         <Stat label="Saídas" value={item.saidas_total || item.saidas} color={colors.saidas} icon={ArrowDownRight} />
                         {item.saidas_novos > 0 && (

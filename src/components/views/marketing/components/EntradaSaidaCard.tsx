@@ -22,10 +22,11 @@ export interface WeeklyData {
     nomes_saidas_novos_marketing?: string[];
     nomes_saidas_novos_operacional?: string[];
     // Retomada
-    retomada_total?: number;
+    retomada_total: number;
     retomada_marketing?: number;
-    nomes_retomada_marketing?: string[];
-    nomes_retomada_operacional?: string[];
+    nomes_retomada_marketing: string[];
+    nomes_retomada_operacional: string[];
+    retomada_origins?: Record<string, number>;
 }
 
 interface EntradaSaidaCardProps {

@@ -94,18 +94,19 @@ export function useDashboardFilters({ anosDisponiveis, setAnoEvolucao }: UseDash
         updateParam('dataInicial', filters.dataInicial);
         updateParam('dataFinal', filters.dataFinal);
 
-        // 'tab' e outros params (como 'comp_semanas') são preservados automaticamente
-        // pois iniciamos com searchParams.toString()
-
         const queryString = params.toString();
         const url = queryString ? `${pathname}?${queryString}` : pathname;
 
-        // Usar replace para não poluir o histórico com cada mudança pequena
-        router.replace(url, { scroll: false });
+        // FIX: Usar history.replaceState para evitar refresh/reload do Next.js ao trocar de tab
+        // router.replace causa re-render que pode resetar estado se não tratado com Suspense
+        window.history.replaceState(null, '', url);
+
+        // Opcional: Manter router.replace apenas se precisar de Shallow Routing real do Next
+        // mas history.replaceState é mais seguro para "apenas mudar a URL visualmente" sem side-effects
 
         registerInteraction('filter_change');
 
-    }, [filters, pathname, router, searchParams, registerInteraction]);
+    }, [filters, pathname, searchParams, registerInteraction]);
 
     const setFiltersProtected = useCallback((newFilters: Filters | ((prev: Filters) => Filters)) => {
         const isFunction = typeof newFilters === 'function';
