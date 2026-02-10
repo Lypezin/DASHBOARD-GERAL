@@ -63,8 +63,8 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
                     <Eye className="h-3.5 w-3.5" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
-                <DialogHeader>
+            <DialogContent className="max-w-md p-0 gap-0 rounded-2xl">
+                <DialogHeader className="p-5 pb-3">
                     <DialogTitle className={`flex items-center gap-2 ${colorClass}`}>
                         <Icon className="h-5 w-5" />
                         {titleText} - {weekLabel}
@@ -73,7 +73,7 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
                         {count} {descriptionText}
                     </DialogDescription>
                 </DialogHeader>
-                <ScrollArea className="h-[300px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
+                <ScrollArea className="max-h-[60vh] w-full px-5 pb-4">
                     <div className="space-y-4">
                         {hasNoRecords && (
                             <div className="text-sm text-slate-500 text-center py-4">Nenhum registro.</div>
