@@ -51,9 +51,7 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                         <h4 className="text-base font-bold text-slate-800 dark:text-slate-100 leading-tight group-hover:text-indigo-600 transition-colors">
                             {formatWeekLabel(item.semana)}
                         </h4>
-                        <span className="text-xs text-slate-500 font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full mt-1 inline-block">
-                            {item.semana}
-                        </span>
+                        {/* Label removed as per user request */}
                     </div>
                 </div>
 
