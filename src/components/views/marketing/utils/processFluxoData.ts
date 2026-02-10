@@ -94,5 +94,13 @@ export const processFluxoData = (rawData: any[]): FluxoEntregadores[] => {
     // Filter out CURRENT WEEK
     filteredData = filteredData.filter(item => item.semana !== currentWeekIso);
 
+    // Filter out empty placeholder weeks (all metrics zero)
+    filteredData = filteredData.filter(item =>
+        item.entradas_total > 0 ||
+        item.saidas_total > 0 ||
+        (item.retomada_total || 0) > 0 ||
+        item.base_ativa > 0
+    );
+
     return filteredData;
 };
