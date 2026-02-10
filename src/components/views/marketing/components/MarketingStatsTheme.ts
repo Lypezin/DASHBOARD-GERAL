@@ -38,6 +38,8 @@ export const getPremiumStyles = (themeName: string) => {
         case 'rose': return { text: 'text-rose-600 dark:text-rose-400', bg: 'bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-900', iconBg: 'bg-rose-100 dark:bg-rose-900/40' };
         case 'amber': return { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/20 dark:to-slate-900', iconBg: 'bg-amber-100 dark:bg-amber-900/40' };
         case 'orange': return { text: 'text-orange-600 dark:text-orange-400', bg: 'bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/20 dark:to-slate-900', iconBg: 'bg-orange-100 dark:bg-orange-900/40' };
-        case 'indigo': default: return { text: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-900', iconBg: 'bg-indigo-100 dark:bg-indigo-900/40' };
+        case 'indigo': return { text: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-900', iconBg: 'bg-indigo-100 dark:bg-indigo-900/40' };
+        case 'blue': return { text: 'text-blue-600 dark:text-blue-400', bg: 'bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-900', iconBg: 'bg-blue-100 dark:bg-blue-900/40' };
+        default: return { text: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-900', iconBg: 'bg-indigo-100 dark:bg-indigo-900/40' };
     }
 };

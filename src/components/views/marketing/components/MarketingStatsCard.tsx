@@ -7,7 +7,7 @@ interface MarketingStatsCardProps {
     value: number | string;
     subtitle: string;
     icon: React.ReactNode;
-    colorTheme: 'emerald' | 'rose' | 'indigo' | 'amber' | 'orange';
+    colorTheme: 'emerald' | 'rose' | 'indigo' | 'amber' | 'orange' | 'blue';
     breakdown?: {
         label: string;
         value: number | string;
