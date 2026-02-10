@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { formatWeekLabel } from '@/utils/timeHelpers';
 import { MetricDetailDialog } from './MetricDetailDialog';
-import { ArrowUpRight, ArrowDownRight, RotateCcw, ChevronDown, AlertCircle, Calendar, Clock, Users } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, RotateCcw, ChevronDown, AlertCircle, Calendar, Clock, Users, UserX, Eye, Megaphone, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WeeklyData } from './EntradaSaidaCard';
 import {
@@ -46,6 +46,10 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
         : [];
     const totalRetomada = item.retomada_total || 0;
 
+    const entradas_ops = (item.entradas_total || 0) - (item.entradas_marketing || 0);
+    const saidas_ops = (item.saidas_total || 0) - (item.saidas_marketing || 0);
+    const retomada_ops = totalRetomada - (item.retomada_marketing || 0);
+
     return (
         <motion.div
             layout
@@ -84,7 +88,6 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                                     </button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-[380px] p-0 gap-0 rounded-2xl">
-                                    {/* Header */}
                                     <div className="p-5 pb-3">
                                         <DialogHeader>
                                             <DialogTitle className="flex items-center gap-2 text-indigo-600 text-base">
@@ -98,8 +101,6 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                                             </DialogDescription>
                                         </DialogHeader>
                                     </div>
-
-                                    {/* Scrollable list */}
                                     <ScrollArea className="max-h-[50vh] px-5">
                                         <div className="space-y-1.5 pb-3">
                                             {sortedOrigins.map(([week, count], idx) => {
@@ -133,8 +134,6 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                                             })}
                                         </div>
                                     </ScrollArea>
-
-                                    {/* Footer */}
                                     <div className="flex items-center gap-2 px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 rounded-b-2xl">
                                         <Users className="w-3.5 h-3.5 text-indigo-500" />
                                         <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -191,13 +190,100 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="bg-slate-50/50 dark:bg-slate-800/20 border-t border-slate-100 dark:border-slate-800"
+                        transition={{ duration: 0.25, ease: 'easeInOut' }}
+                        className="overflow-hidden"
                     >
-                        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                            {/* Detailed Lists */}
-                            <div className="space-y-2.5">
-                                <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Listas Detalhadas</h5>
-                                <div className="flex flex-wrap gap-2">
+                        <div className="border-t border-slate-100 dark:border-slate-800 bg-gradient-to-b from-slate-50/80 to-white dark:from-slate-800/30 dark:to-slate-900">
+                            <div className="p-6 space-y-5">
+
+                                {/* Mini metrics row */}
+                                <div className="grid grid-cols-4 gap-3">
+                                    {/* Entradas breakdown */}
+                                    <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-emerald-100 dark:border-emerald-900/30 p-3 text-center">
+                                        <div className="flex items-center justify-center gap-1.5 mb-2">
+                                            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Entradas</span>
+                                        </div>
+                                        <div className="text-xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums mb-1">
+                                            {item.entradas_total || item.entradas}
+                                        </div>
+                                        <div className="flex items-center justify-center gap-3 text-[11px]">
+                                            <span className="flex items-center gap-1 text-slate-500">
+                                                <Megaphone className="w-3 h-3 text-blue-400" />
+                                                <b className="text-slate-700 dark:text-slate-200">{item.entradas_marketing}</b>
+                                            </span>
+                                            <span className="flex items-center gap-1 text-slate-500">
+                                                <Wrench className="w-3 h-3 text-slate-400" />
+                                                <b className="text-slate-700 dark:text-slate-200">{entradas_ops}</b>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Retomada breakdown */}
+                                    <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-indigo-100 dark:border-indigo-900/30 p-3 text-center">
+                                        <div className="flex items-center justify-center gap-1.5 mb-2">
+                                            <RotateCcw className="w-3.5 h-3.5 text-indigo-500" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Retomada</span>
+                                        </div>
+                                        <div className="text-xl font-bold text-indigo-700 dark:text-indigo-300 tabular-nums mb-1">
+                                            {totalRetomada}
+                                        </div>
+                                        <div className="flex items-center justify-center gap-3 text-[11px]">
+                                            <span className="flex items-center gap-1 text-slate-500">
+                                                <Megaphone className="w-3 h-3 text-blue-400" />
+                                                <b className="text-slate-700 dark:text-slate-200">{item.retomada_marketing}</b>
+                                            </span>
+                                            <span className="flex items-center gap-1 text-slate-500">
+                                                <Wrench className="w-3 h-3 text-slate-400" />
+                                                <b className="text-slate-700 dark:text-slate-200">{retomada_ops}</b>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Saídas breakdown */}
+                                    <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-rose-100 dark:border-rose-900/30 p-3 text-center">
+                                        <div className="flex items-center justify-center gap-1.5 mb-2">
+                                            <ArrowDownRight className="w-3.5 h-3.5 text-rose-500" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600">Saídas</span>
+                                        </div>
+                                        <div className="text-xl font-bold text-rose-700 dark:text-rose-300 tabular-nums mb-1">
+                                            {item.saidas_total || item.saidas}
+                                        </div>
+                                        <div className="flex items-center justify-center gap-3 text-[11px]">
+                                            <span className="flex items-center gap-1 text-slate-500">
+                                                <Megaphone className="w-3 h-3 text-blue-400" />
+                                                <b className="text-slate-700 dark:text-slate-200">{item.saidas_marketing}</b>
+                                            </span>
+                                            <span className="flex items-center gap-1 text-slate-500">
+                                                <Wrench className="w-3 h-3 text-slate-400" />
+                                                <b className="text-slate-700 dark:text-slate-200">{saidas_ops}</b>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Desistências */}
+                                    <div className={`bg-white dark:bg-slate-800/80 rounded-xl border p-3 text-center ${item.saidas_novos > 0 ? 'border-amber-200 dark:border-amber-900/30' : 'border-slate-100 dark:border-slate-800'}`}>
+                                        <div className="flex items-center justify-center gap-1.5 mb-2">
+                                            <UserX className="w-3.5 h-3.5 text-amber-500" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Desistências</span>
+                                        </div>
+                                        <div className={`text-xl font-bold tabular-nums mb-1 ${item.saidas_novos > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-400'}`}>
+                                            {item.saidas_novos}
+                                        </div>
+                                        {item.saidas_novos > 0 && (item.saidas_total || item.saidas) > 0 && (
+                                            <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                                                {Math.round((item.saidas_novos / (item.saidas_total || item.saidas)) * 100)}% das saídas
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Action buttons row */}
+                                <div className="flex items-center gap-3 pt-1">
+                                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">
+                                        <Eye className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" />
+                                        Ver nomes:
+                                    </span>
                                     {item.entradas > 0 && (
                                         <MetricDetailDialog
                                             type="entradas"
@@ -228,40 +314,6 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                                         />
                                     )}
                                 </div>
-                            </div>
-
-                            {/* Breakdown Stats */}
-                            <div className="space-y-2.5">
-                                <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Composição (Mkt / Ops)</h5>
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
-                                        <span className="text-[10px] text-emerald-600 font-bold block mb-1">Entradas</span>
-                                        <div className="text-xs text-slate-600 dark:text-slate-300 space-y-0.5">
-                                            <div>Mkt: <b>{item.entradas_marketing}</b></div>
-                                            <div>Ops: <b>{item.entradas_total ? item.entradas_total - (item.entradas_marketing || 0) : 0}</b></div>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
-                                        <span className="text-[10px] text-indigo-600 font-bold block mb-1">Retomada</span>
-                                        <div className="text-xs text-slate-600 dark:text-slate-300 space-y-0.5">
-                                            <div>Mkt: <b>{item.retomada_marketing}</b></div>
-                                            <div>Ops: <b>{(item.retomada_total || 0) - (item.retomada_marketing || 0)}</b></div>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
-                                        <span className="text-[10px] text-rose-600 font-bold block mb-1">Saídas</span>
-                                        <div className="text-xs text-slate-600 dark:text-slate-300 space-y-0.5">
-                                            <div>Mkt: <b>{item.saidas_marketing}</b></div>
-                                            <div>Ops: <b>{item.saidas_total ? item.saidas_total - (item.saidas_marketing || 0) : 0}</b></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {item.saidas_novos > 0 && (
-                                    <div className="text-[11px] text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg border border-amber-100 dark:border-amber-900/30 inline-flex items-center gap-1.5">
-                                        <AlertCircle className="w-3.5 h-3.5" />
-                                        <b>{item.saidas_novos}</b> saíram antes de 30 corridas.
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </motion.div>
