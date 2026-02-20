@@ -109,8 +109,17 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         checkLogin();
     }, [fetchState, registerInteraction]);
 
+    const contextValue = React.useMemo(() => ({
+        badges,
+        unlockedBadges,
+        recentUnlock,
+        registerInteraction,
+        leaderboard,
+        refreshLeaderboard
+    }), [badges, unlockedBadges, recentUnlock, registerInteraction, leaderboard, refreshLeaderboard]);
+
     return (
-        <GamificationContext.Provider value={{ badges, unlockedBadges, recentUnlock, registerInteraction, leaderboard, refreshLeaderboard }}>
+        <GamificationContext.Provider value={contextValue}>
             {children}
         </GamificationContext.Provider>
     );
