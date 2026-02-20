@@ -1,171 +1,60 @@
-/**
- * Hook para gerenciar estado principal da página do dashboard
- * Extraído de src/app/page.tsx para melhor organização
- */
-
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-
+import { useState } from 'react';
 import { useDashboardData } from './useDashboardData';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { useDashboardKeys } from './useDashboardKeys';
 import { useUserActivity } from '@/hooks/auth/useUserActivity';
-import { TabType } from '@/types';
 import { useDashboardFilters } from './useDashboardFilters';
 import { useEvolutionAutoSelect } from '@/hooks/data/useEvolutionAutoSelect';
 import { useChartRegistration } from './useChartRegistration';
 import { useDashboardAuthWrapper } from './useDashboardAuthWrapper';
+import { useDashboardTabs } from './useDashboardTabs';
 
 export function useDashboardPage() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  // Auth Logic
   const { isCheckingAuth, isAuthenticated, currentUser } = useDashboardAuthWrapper();
-
-  // Chart Registration
   const chartReady = useChartRegistration();
+  const { activeTab, handleTabChange } = useDashboardTabs();
 
-  // Initialize activeTab from URL or default to 'dashboard'
-  const getInitialTab = (): TabType => {
-    const tabParam = searchParams.get('tab');
-    // Validate if param is a valid TabType (simple validation)
-    if (tabParam && ['dashboard', 'analise', 'utr', 'entregadores', 'valores', 'evolucao', 'prioridade', 'comparacao', 'marketing', 'marketing_comparacao', 'resumo'].includes(tabParam)) {
-      return tabParam as TabType;
-    }
-    return 'dashboard';
-  };
-
-  const [activeTab, setActiveTabState] = useState<TabType>(getInitialTab);
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
-
   const { filters, setFilters } = useDashboardFilters();
 
-  // Sync activeTab with URL
-  const setActiveTab = useCallback((newTab: TabType) => {
-    setActiveTabState(newTab);
+  const dashboardFetch = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
+  const { anosDisponiveis, semanasDisponiveis, pracas, subPracas, origens, turnos } = dashboardFetch;
 
-    const params = new URLSearchParams(searchParams.toString());
-    if (newTab === 'dashboard') {
-      params.delete('tab');
-    } else {
-      params.set('tab', newTab);
-    }
+  useEvolutionAutoSelect({ filters, setFilters, anosDisponiveis: anosDisponiveis || [], anoEvolucao, setAnoEvolucao });
 
-    const queryString = params.toString();
-    const url = queryString ? `${pathname}?${queryString}` : pathname;
-    router.replace(url, { scroll: false });
-  }, [pathname, router, searchParams]);
-
-  // Update activeTab if URL changes externally (e.g. back button)
-  useEffect(() => {
-    const urlTab = getInitialTab();
-    if (urlTab !== activeTab) {
-      setActiveTabState(urlTab);
-    }
-  }, [searchParams]);
-
-  // 1. Obter dados (incluindo anosDisponiveis)
-  const {
-    totals,
-    aderenciaSemanal,
-    aderenciaDia,
-    aderenciaTurno,
-    aderenciaSubPraca,
-    aderenciaOrigem,
-    anosDisponiveis,
-    semanasDisponiveis,
-    pracas,
-    subPracas,
-    origens,
-    turnos,
-    loading,
-    error,
-    evolucaoMensal,
-    evolucaoSemanal,
-    utrSemanal,
-    loadingEvolucao,
-    aderenciaGeral
-  } = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
-
-  // 2. Usar o hook de lógica de evolução (não controla estado, apenas side-effects)
-  useEvolutionAutoSelect({
-    filters,
-    setFilters,
-    anosDisponiveis: anosDisponiveis || [],
-    anoEvolucao,
-    setAnoEvolucao
-  });
-
-  // Reutilizar lógica centralizada de chaves e payload
   const { filterPayload } = useDashboardKeys(filters, currentUser);
-
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
-
-  // Mapeia os dados do useTabData para as props dos componentes de view
-  const { utrData, entregadoresData, valoresData, prioridadeData } = useTabDataMapper({
-    activeTab,
-    tabData,
-  });
+  const { utrData, entregadoresData, valoresData, prioridadeData } = useTabDataMapper({ activeTab, tabData });
 
   useUserActivity(activeTab, filters, currentUser);
 
-  // Função para mudar de aba
-  const handleTabChange = useCallback((tab: TabType) => {
-    setActiveTab(tab);
-  }, []);
-
   const dashboardData = {
-    aderenciaGeral,
-    aderenciaSemanal,
-    aderenciaDia,
-    aderenciaTurno,
-    aderenciaSubPraca,
-    aderenciaOrigem,
-    totals,
+    aderenciaGeral: dashboardFetch.aderenciaGeral,
+    aderenciaSemanal: dashboardFetch.aderenciaSemanal,
+    aderenciaDia: dashboardFetch.aderenciaDia,
+    aderenciaTurno: dashboardFetch.aderenciaTurno,
+    aderenciaSubPraca: dashboardFetch.aderenciaSubPraca,
+    aderenciaOrigem: dashboardFetch.aderenciaOrigem,
+    totals: dashboardFetch.totals,
   };
 
   return {
-    auth: {
-      isCheckingAuth,
-      isAuthenticated,
-      currentUser,
-    },
-    ui: {
-      activeTab,
-      handleTabChange,
-      chartReady,
-      loading,
-      error,
-    },
+    auth: { isCheckingAuth, isAuthenticated, currentUser },
+    ui: { activeTab, handleTabChange, chartReady, loading: dashboardFetch.loading, error: dashboardFetch.error },
     filters: {
       state: filters,
       setState: setFilters,
-      options: {
-        anos: anosDisponiveis,
-        semanas: semanasDisponiveis,
-        pracas,
-        subPracas,
-        origens,
-        turnos,
-      },
+      options: { anos: anosDisponiveis, semanas: semanasDisponiveis, pracas, subPracas, origens, turnos },
     },
     data: {
       dashboard: dashboardData,
-      tabs: {
-        utrData,
-        entregadoresData,
-        valoresData,
-        prioridadeData,
-        loading: loadingTabData,
-      },
+      tabs: { utrData, entregadoresData, valoresData, prioridadeData, loading: loadingTabData },
       evolution: {
-        mensal: evolucaoMensal,
-        semanal: evolucaoSemanal,
-        utrSemanal,
-        loading: loadingEvolucao,
+        mensal: dashboardFetch.evolucaoMensal,
+        semanal: dashboardFetch.evolucaoSemanal,
+        utrSemanal: dashboardFetch.utrSemanal,
+        loading: dashboardFetch.loadingEvolucao,
         anoSelecionado: anoEvolucao,
         setAno: setAnoEvolucao,
         anosOptions: anosDisponiveis,

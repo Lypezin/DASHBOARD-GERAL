@@ -1,7 +1,0 @@
-CREATE OR REPLACE FUNCTION public.refresh_all_mvs_manual()\
- RETURNS json\
- LANGUAGE plpgsql\
- SECURITY DEFINER\
- SET search_path TO 'public'\
- SET statement_timeout TO '0'\
-AS $function$

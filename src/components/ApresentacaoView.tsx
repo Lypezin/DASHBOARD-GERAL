@@ -1,22 +1,17 @@
 import React from 'react';
 import { DashboardResumoData } from '@/types';
-import { useApresentacaoData } from '@/hooks/apresentacao/useApresentacaoData';
-import { useApresentacaoSlides } from '@/hooks/apresentacao/useApresentacaoSlides';
 import { ApresentacaoPreview } from './apresentacao/ApresentacaoPreview';
 import { ApresentacaoWebMode } from './apresentacao/ApresentacaoWebMode';
 import { PresentationContext } from '@/contexts/PresentationContext';
 import { MediaManagerModal } from './apresentacao/components/MediaManagerModal';
 import { PresentationManager } from './apresentacao/components/PresentationManager';
 import { SavePresentationDialog } from './apresentacao/components/SavePresentationDialog';
-import { useApresentacaoController } from '@/hooks/apresentacao/useApresentacaoController';
-import { useSavedPresentations } from '@/hooks/apresentacao/useSavedPresentations';
 import { PresentationEditorProvider } from '@/components/apresentacao/context/PresentationEditorContext';
-import { usePresentationNavigation } from '@/hooks/apresentacao/usePresentationNavigation';
-import { usePresentationManagerActions } from '@/hooks/apresentacao/usePresentationManagerActions';
+import { useApresentacaoFacade } from '@/hooks/apresentacao/useApresentacaoFacade';
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
-  utrComparacao: any[]; // UtrComparacaoItem[]
+  utrComparacao: any[];
   semanasSelecionadas: string[];
   pracaSelecionada: string | null;
   anoSelecionado?: number;
@@ -25,116 +20,57 @@ interface ApresentacaoViewProps {
   onSemanasChange?: (semanas: string[]) => void;
 }
 
-const ApresentacaoView: React.FC<ApresentacaoViewProps> = ({
-  dadosComparacao,
-  utrComparacao,
-  semanasSelecionadas,
-  pracaSelecionada,
-  anoSelecionado,
-  onClose,
-  onPracaChange,
-  onSemanasChange,
-}) => {
-  const { state, actions } = useApresentacaoController({
-    praca: pracaSelecionada,
-    ano: anoSelecionado,
-    semanas: semanasSelecionadas
-  });
+const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
+  const facade = useApresentacaoFacade(props);
+
   const {
-    currentSlide, viewMode, visibleSections,
-    mediaSlides, isMediaManagerOpen, orderedPresentationSlides
-  } = state;
-  const {
-    setCurrentSlide, setViewMode,
-    setIsMediaManagerOpen, setOrderedPresentationSlides, setMediaSlides,
-    handleUpdateMediaSlide, handleAddMediaSlide, handleDeleteMediaSlide, toggleSection
-  } = actions;
+    state, actions, savedPresentations, isLoadingSaves, deletePresentation,
+    isManagersOpen, setIsManagersOpen, isSaveDialogOpen, setIsSaveDialogOpen,
+    handleSavePresentation, handleLoadPresentation, dadosBasicos, slides,
+    goToNextSlide, goToPrevSlide, initialOrder
+  } = facade;
 
-  // Saved Presentations Logic
-  const { savedPresentations, loading: isLoadingSaves, savePresentation, deletePresentation } = useSavedPresentations();
-  const [isManagersOpen, setIsManagersOpen] = React.useState(false);
-  const [isSaveDialogOpen, setIsSaveDialogOpen] = React.useState(false);
-
-  // Extracted Actions
-  const { handleSavePresentation, handleLoadPresentation } = usePresentationManagerActions({
-    savePresentation,
-    mediaSlides,
-    visibleSections,
-    pracaSelecionada,
-    anoSelecionado,
-    semanasSelecionadas,
-    setMediaSlides,
-    setVisibleSections: actions.setVisibleSections,
-    setIsManagersOpen,
-    onPracaChange,
-    onSemanasChange
-  });
-
-  const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas, anoSelecionado);
-  const { numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 } = dadosBasicos;
-
-  const slides = useApresentacaoSlides(
-    dadosProcessados,
-    dadosComparacao,
-    utrComparacao,
-    numeroSemana1,
-    numeroSemana2,
-    periodoSemana1,
-    periodoSemana2,
-    pracaSelecionada,
-    visibleSections,
-    mediaSlides,
-    handleUpdateMediaSlide
-  );
-
-  // Extracted Navigation
-  const { goToNextSlide, goToPrevSlide } = usePresentationNavigation(slides, setCurrentSlide);
-
-  const isWebMode = viewMode === 'web_presentation';
-
-  // Calculate initial order from slides
-  const initialOrder = React.useMemo(() => slides.map(s => s.key), [slides]);
+  const isWebMode = state.viewMode === 'web_presentation';
 
   return (
     <PresentationEditorProvider initialOrder={initialOrder}>
       <PresentationContext.Provider value={{ isWebMode }}>
-        {viewMode === 'web_presentation' ? (
+        {isWebMode ? (
           <ApresentacaoWebMode
-            slides={orderedPresentationSlides.length > 0 ? orderedPresentationSlides : slides}
-            onClose={() => setViewMode('preview')}
+            slides={state.orderedPresentationSlides.length > 0 ? state.orderedPresentationSlides : slides}
+            onClose={() => actions.setViewMode('preview')}
           />
         ) : (
           <ApresentacaoPreview
             slides={slides}
-            currentSlide={currentSlide}
-            onSlideChange={setCurrentSlide}
+            currentSlide={state.currentSlide}
+            onSlideChange={actions.setCurrentSlide}
             onNext={goToNextSlide}
             onPrev={goToPrevSlide}
-            onClose={onClose}
-            numeroSemana1={numeroSemana1}
-            numeroSemana2={numeroSemana2}
-            visibleSections={visibleSections}
-            onToggleSection={toggleSection}
+            onClose={props.onClose}
+            numeroSemana1={dadosBasicos.numeroSemana1}
+            numeroSemana2={dadosBasicos.numeroSemana2}
+            visibleSections={state.visibleSections}
+            onToggleSection={actions.toggleSection}
             onStartPresentation={(orderedSlides) => {
-              setOrderedPresentationSlides(orderedSlides);
-              setViewMode('web_presentation');
+              actions.setOrderedPresentationSlides(orderedSlides);
+              actions.setViewMode('web_presentation');
             }}
-            mediaSlides={mediaSlides}
-            onUpdateMediaSlide={handleUpdateMediaSlide}
-            onAddMediaSlide={handleAddMediaSlide}
-            onDeleteMediaSlide={handleDeleteMediaSlide}
+            mediaSlides={state.mediaSlides}
+            onUpdateMediaSlide={actions.handleUpdateMediaSlide}
+            onAddMediaSlide={actions.handleAddMediaSlide}
+            onDeleteMediaSlide={actions.handleDeleteMediaSlide}
             onManageClick={() => setIsManagersOpen(true)}
             onSaveClick={() => setIsSaveDialogOpen(true)}
           />
         )}
 
         <MediaManagerModal
-          isOpen={isMediaManagerOpen}
-          onClose={() => setIsMediaManagerOpen(false)}
-          mediaSlides={mediaSlides}
-          onUpdateSlides={setMediaSlides}
+          isOpen={state.isMediaManagerOpen}
+          onClose={() => actions.setIsMediaManagerOpen(false)}
+          mediaSlides={state.mediaSlides}
+          onUpdateSlides={actions.setMediaSlides}
         />
-
         <PresentationManager
           isOpen={isManagersOpen}
           onClose={() => setIsManagersOpen(false)}

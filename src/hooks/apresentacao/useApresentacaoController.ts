@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { MediaSlideData } from '@/types/presentation';
+import { useMediaSlides } from './useMediaSlides';
 
 interface UseApresentacaoControllerProps {
     praca: string | null;
@@ -14,7 +14,6 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const router = useRouter();
     const pathname = usePathname();
 
-    // Generate specific storage key based on context
     const getStorageKey = (type: 'slides' | 'sections') => {
         const pracaKey = praca ? praca.replace(/\s+/g, '_').toLowerCase() : 'geral';
         const semanasKey = semanas.sort().join('-');
@@ -22,16 +21,20 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
         return `dashboard_presentation_${type}_${anoKey}_${pracaKey}_${semanasKey}`;
     };
 
-    const getInitialViewMode = () => {
-        return searchParams.get('comp_apres_mode') === 'web_presentation'
-            ? 'web_presentation'
-            : 'preview';
-    };
+    const getInitialViewMode = () => searchParams.get('comp_apres_mode') === 'web_presentation' ? 'web_presentation' : 'preview';
 
     const [currentSlide, setCurrentSlide] = useState(0);
     const [viewMode, setViewMode] = useState<'preview' | 'web_presentation'>(getInitialViewMode);
+    const [isMediaManagerOpen, setIsMediaManagerOpen] = useState(false);
+    const [orderedPresentationSlides, setOrderedPresentationSlides] = useState<Array<{ key: string; render: (visible: boolean) => React.ReactNode }>>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
 
-    // Sync to URL
+    const [visibleSections, setVisibleSections] = useState({
+        capa: true, 'aderencia-geral': true, 'sub-pracas': true,
+        'aderencia-diaria': true, turnos: true, origens: true,
+        demanda: true, 'capa-final': true,
+    });
+
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
         let changed = false;
@@ -46,96 +49,26 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
             changed = true;
         }
 
-        if (changed) {
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-        }
+        if (changed) router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     }, [viewMode, pathname, router, searchParams]);
 
-    const [visibleSections, setVisibleSections] = useState({
-        capa: true,
-        'aderencia-geral': true,
-        'sub-pracas': true,
-        'aderencia-diaria': true,
-        turnos: true,
-        origens: true,
-        demanda: true,
-        'capa-final': true,
-    });
+    const sectionsKey = getStorageKey('sections');
+    const slidesKey = getStorageKey('slides');
 
-    const [mediaSlides, setMediaSlides] = useState<MediaSlideData[]>([]);
-    const [isMediaManagerOpen, setIsMediaManagerOpen] = useState(false);
-    const [orderedPresentationSlides, setOrderedPresentationSlides] = useState<Array<{ key: string; render: (visible: boolean) => React.ReactNode }>>([]);
-    const [isLoaded, setIsLoaded] = useState(false);
-
-    // Load from localStorage on mount or when key changes
     useEffect(() => {
-        const slidesKey = getStorageKey('slides');
-        const sectionsKey = getStorageKey('sections');
-
-        const savedSlides = localStorage.getItem(slidesKey);
         const savedSections = localStorage.getItem(sectionsKey);
-
-        if (savedSlides) {
-            try {
-                setMediaSlides(JSON.parse(savedSlides));
-            } catch (e) {
-                safeLog.error('Error parsing saved slides:', e);
-                setMediaSlides([]);
-            }
-        } else {
-            setMediaSlides([]); // Reset if no saved data for this context
-        }
-
         if (savedSections) {
-            try {
-                setVisibleSections(JSON.parse(savedSections));
-            } catch (e) {
-                safeLog.error('Error parsing saved sections:', e);
-            }
-        } else {
-            // Reset to defaults if needed, or keep previous state? 
-            // Ideally reset to defaults for a new context, but keeping existing logic for now.
-            // Actually, if we switch contexts, we should probably reset visibleSections to default if nothing saved.
-            // But the original code initialized state with defaults.
-            // We'll trust the initial state is good enough if nothing is saved.
+            try { setVisibleSections(JSON.parse(savedSections)); }
+            catch (e) { safeLog.error('Error parsing saved sections:', e); }
         }
-
         setIsLoaded(true);
-    }, [praca, ano, JSON.stringify(semanas)]); // Re-run when context changes
-
-    // Save to localStorage when changes occur
-    useEffect(() => {
-        if (isLoaded) {
-            const slidesKey = getStorageKey('slides');
-            localStorage.setItem(slidesKey, JSON.stringify(mediaSlides));
-        }
-    }, [mediaSlides, isLoaded, praca, ano, JSON.stringify(semanas)]);
+    }, [sectionsKey]);
 
     useEffect(() => {
-        if (isLoaded) {
-            const sectionsKey = getStorageKey('sections');
-            localStorage.setItem(sectionsKey, JSON.stringify(visibleSections));
-        }
-    }, [visibleSections, isLoaded, praca, ano, JSON.stringify(semanas)]);
+        if (isLoaded) localStorage.setItem(sectionsKey, JSON.stringify(visibleSections));
+    }, [visibleSections, isLoaded, sectionsKey]);
 
-    const handleUpdateMediaSlide = useCallback((id: string, updates: Partial<MediaSlideData>) => {
-        setMediaSlides(prev => prev.map(slide =>
-            slide.id === id ? { ...slide, ...updates } : slide
-        ));
-    }, []);
-
-    const handleAddMediaSlide = useCallback(() => {
-        const newSlide: MediaSlideData = {
-            id: Math.random().toString(36).substr(2, 9),
-            title: 'Novo Slide',
-            elements: []
-        };
-        setMediaSlides(prev => [...prev, newSlide]);
-    }, []);
-
-    const handleDeleteMediaSlide = useCallback((id: string) => {
-        setMediaSlides(prev => prev.filter(s => s.id !== id));
-    }, []);
+    const mediaSlidesHook = useMediaSlides({ storageKey: slidesKey, isLoaded });
 
     const toggleSection = useCallback((section: string) => {
         setVisibleSections(prev => ({ ...prev, [section]: !prev[section as keyof typeof prev] }));
@@ -143,23 +76,17 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
 
     return {
         state: {
-            currentSlide,
-            viewMode,
-            visibleSections,
-            mediaSlides,
-            isMediaManagerOpen,
-            orderedPresentationSlides
+            currentSlide, viewMode, visibleSections,
+            mediaSlides: mediaSlidesHook.mediaSlides,
+            isMediaManagerOpen, orderedPresentationSlides
         },
         actions: {
-            setCurrentSlide,
-            setViewMode,
-            setVisibleSections,
-            setMediaSlides,
-            setIsMediaManagerOpen,
-            setOrderedPresentationSlides,
-            handleUpdateMediaSlide,
-            handleAddMediaSlide,
-            handleDeleteMediaSlide,
+            setCurrentSlide, setViewMode, setVisibleSections,
+            setMediaSlides: mediaSlidesHook.setMediaSlides,
+            setIsMediaManagerOpen, setOrderedPresentationSlides,
+            handleUpdateMediaSlide: mediaSlidesHook.handleUpdateMediaSlide,
+            handleAddMediaSlide: mediaSlidesHook.handleAddMediaSlide,
+            handleDeleteMediaSlide: mediaSlidesHook.handleDeleteMediaSlide,
             toggleSection
         }
     };
