@@ -24,20 +24,19 @@ BEGIN
         WHERE id = v_user_id;
     END IF;
 
-    -- Optimized query:
+    -- Optimized query using Materialized View:
     -- 1. Filters by organization if present (using index if available)
-    -- 2. Restricts to the last 6 months to avoid full table scan on 1.6M+ rows
+    -- 2. Restricts to the last 6 months to avoid full table scan
     -- 3. Uses MAX directly with GROUP BY, which handles large datasets better than complex joins
     RETURN QUERY
     SELECT 
         dc.praca::text AS city,
         to_char(MAX(dc.data_do_periodo), 'YYYY-MM-DD"T"HH24:MI:SS') AS last_update_date
-    FROM dados_corridas dc
+    FROM mv_dashboard_resumo dc
     WHERE 
         -- Organization filter
         (v_org_filter IS NULL OR dc.organization_id = v_org_filter)
         -- Date optimization: Look back only 6 months. 
-        -- This drastically reduces the number of rows scanned if data_do_periodo is indexed (it usually is).
         AND dc.data_do_periodo >= (CURRENT_DATE - INTERVAL '6 months')::date
     GROUP BY dc.praca
     ORDER BY city;

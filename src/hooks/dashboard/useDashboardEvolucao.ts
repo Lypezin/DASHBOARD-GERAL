@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
@@ -19,6 +19,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
   const [error, setError] = useState<Error | null>(null);
 
   const { isLoading: isOrgLoading } = useOrganization();
+  const lastFetchSignature = useRef<string | null>(null);
 
   useEffect(() => {
     if (isOrgLoading) return;
@@ -30,6 +31,13 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
 
     // Se ano não definido, não buscar
     if (!anoEvolucao) return;
+
+    const currentSignature = JSON.stringify({ filterPayload, anoEvolucao });
+
+    // Evita refetch desnecessário se mudou só a tab ativa iterando local
+    if (lastFetchSignature.current === currentSignature && evolucaoMensal && evolucaoSemanal) {
+      return;
+    }
 
     let mounted = true;
 
@@ -78,6 +86,8 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
         setEvolucaoMensal(mensalRes.data);
         setEvolucaoSemanal(semanalRes.data);
         setUtrSemanal(utrRes.data);
+
+        lastFetchSignature.current = currentSignature;
 
       } catch (err: any) {
         if (mounted) {
