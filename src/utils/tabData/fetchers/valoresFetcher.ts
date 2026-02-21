@@ -75,8 +75,18 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
 
     let processedData: ValoresEntregador[] = [];
     if (result?.data) {
-        if (typeof result.data === 'object' && !Array.isArray(result.data)) {
-            const dataObj = result.data as { entregadores?: ValoresEntregador[]; valores?: ValoresEntregador[] } | null;
+        let parsedData = result.data;
+        if (Array.isArray(parsedData) && parsedData.length > 0) {
+            // Se for [{ listar_valores_entregadores: ... }] ou [{ entregadores: ... }]
+            parsedData = parsedData[0];
+        }
+
+        if (parsedData && parsedData.listar_valores_entregadores) {
+            parsedData = parsedData.listar_valores_entregadores;
+        }
+
+        if (typeof parsedData === 'object' && !Array.isArray(parsedData)) {
+            const dataObj = parsedData as { entregadores?: ValoresEntregador[]; valores?: ValoresEntregador[] } | null;
             if (dataObj && 'entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
                 processedData = dataObj.entregadores;
             } else if (dataObj && 'valores' in dataObj && Array.isArray(dataObj.valores)) {
@@ -84,8 +94,8 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
             } else {
                 safeLog.warn('[fetchValoresData] Estrutura inesperada:', dataObj);
             }
-        } else if (Array.isArray(result.data)) {
-            processedData = result.data;
+        } else if (Array.isArray(parsedData)) {
+            processedData = parsedData as ValoresEntregador[];
         }
     }
 

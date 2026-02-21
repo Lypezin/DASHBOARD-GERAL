@@ -73,13 +73,20 @@ export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrDa
 
     let utrData: UtrData | null = null;
 
-    if (result && result.data) {
-        if (typeof result.data === 'object' && !Array.isArray(result.data)) {
-            utrData = result.data as UtrData;
-        } else {
-            safeLog.warn('[fetchUtrData] Estrutura de dados inesperada:', result.data);
-            utrData = null;
-        }
+    let parsedData = result.data;
+    if (Array.isArray(parsedData) && parsedData.length > 0) {
+        parsedData = parsedData[0];
+    }
+
+    if (parsedData && parsedData.calcular_utr_completo) {
+        parsedData = parsedData.calcular_utr_completo;
+    }
+
+    if (typeof parsedData === 'object' && !Array.isArray(parsedData)) {
+        utrData = parsedData as UtrData;
+    } else {
+        safeLog.warn('[fetchUtrData] Estrutura de dados inesperada:', result.data);
+        utrData = null;
     }
 
     if (IS_DEV || true) safeLog.info('[UTR Fetcher] Dados recebidos do RPC:', { utrData: result.data });
