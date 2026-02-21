@@ -43,7 +43,11 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     }
 
     if (['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing'].includes(activeTab)) {
-      setData(null); return;
+      setData(null);
+      // Atualizar refs mesmo para tabs excluídas para detecção correta de mudança de tab
+      previousTabRef.current = activeTab;
+      currentTabRef.current = activeTab;
+      return;
     }
 
     const previousTab = previousTabRef.current || '';
@@ -60,11 +64,18 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     if (debounceTimeoutRef.current) { clearTimeout(debounceTimeoutRef.current); debounceTimeoutRef.current = null; }
     if (tabChanged) cancel();
 
-    debounceTimeoutRef.current = setTimeout(() => {
-      if (currentTabRef.current === activeTab && filterPayloadRef.current === filterPayloadStr) {
-        fetchDataForTab(activeTab);
-      }
-    }, DELAYS.DEBOUNCE);
+    if (tabChanged) {
+      // Mudança de tab: buscar imediatamente (sem debounce)
+      // Isso garante que loading=true seja setado antes do fim da transição (300ms)
+      fetchDataForTab(activeTab);
+    } else {
+      // Mudança de filtro: usar debounce para evitar re-fetches rápidos
+      debounceTimeoutRef.current = setTimeout(() => {
+        if (currentTabRef.current === activeTab && filterPayloadRef.current === filterPayloadStr) {
+          fetchDataForTab(activeTab);
+        }
+      }, DELAYS.DEBOUNCE);
+    }
 
     return () => {
       if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
