@@ -40,6 +40,7 @@ export function useTabDataFetcher() {
       const result = await fetchTabData({ tab, filterPayload });
 
       if (!shouldContinue()) {
+        onError(new Error('Aborted'));
         return;
       }
 
@@ -53,6 +54,7 @@ export function useTabDataFetcher() {
       setLoading(false);
     } catch (error) {
       if (!shouldContinue()) {
+        onError(new Error('Aborted'));
         return;
       }
       safeLog.error('Erro ao buscar dados:', error);
