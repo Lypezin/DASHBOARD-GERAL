@@ -1,21 +1,22 @@
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { UtrData, EntregadoresData, ValoresEntregador, CurrentUser } from '@/types';
 import { useCache } from './useCache';
-import { useTabDataFetcher } from './useTabDataFetcher';
 import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { useTabFetchOrchestrator } from '@/hooks/dashboard/useTabFetchOrchestrator';
+import type { FilterPayload } from '@/types/filters';
+import { fetchTabData } from '@/utils/tabData/fetchTabData';
 
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 
+// Tabs que gerenciam seus próprios dados (Dashboard, Análise, etc.)
+const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing', 'resumo'];
+
 export function useTabData(activeTab: string, filterPayload: object, currentUser?: CurrentUser | null) {
   const [data, setData] = useState<TabData>(null);
-  const currentTabRef = useRef<string>(activeTab);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const filterPayloadRef = useRef<string>('');
-  const previousTabRef = useRef<string>('');
-  const isRequestPendingRef = useRef<boolean>(false);
+  const [loading, setLoading] = useState(false);
+  const fetchIdRef = useRef(0); // Simple incrementing ID to track the latest fetch
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isLoading: isOrgLoading } = useOrganization();
 
@@ -24,67 +25,104 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     getCacheKey: (params) => `${params.tab}-${JSON.stringify(params.filterPayload)}`,
   });
 
-  const { fetchWithRetry, cancel, loading } = useTabDataFetcher();
   const filterPayloadStr = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
 
-  const { fetchDataForTab } = useTabFetchOrchestrator({
-    setData,
-    currentTabRef,
-    isRequestPendingRef,
-    filterPayloadRef,
-    getCached,
-    setCached,
-    fetchWithRetry
-  });
+  const fetchData = useCallback(async (tab: string, payload: FilterPayload, fetchId: number) => {
+    // Check cache first
+    const cached = getCached({ tab, filterPayload: payload });
+    if (cached !== null) {
+      // Only set data if this is still the latest fetch
+      if (fetchIdRef.current === fetchId) {
+        setData(tab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);
+        setLoading(false);
+      }
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await fetchTabData({ tab, filterPayload: payload });
+
+      // After await: check if this is STILL the latest fetch
+      if (fetchIdRef.current !== fetchId) return; // Stale — discard silently
+
+      if (result.error) {
+        // Set empty data on error
+        if (tab === 'entregadores' || tab === 'prioridade') setData({ entregadores: [], total: 0 });
+        else if (tab === 'valores') setData([]);
+        else setData(null);
+        setLoading(false);
+        return;
+      }
+
+      let processedData: TabData;
+      if (tab === 'valores') {
+        const list = Array.isArray(result.data) ? result.data as ValoresEntregador[] : [];
+        if (result.total !== undefined) (list as any).total = result.total;
+        processedData = list;
+      } else {
+        processedData = result.data as TabData;
+      }
+
+      setData(processedData);
+      setCached({ tab, filterPayload: payload }, processedData);
+      setLoading(false);
+    } catch (error) {
+      if (fetchIdRef.current !== fetchId) return; // Stale — discard
+
+      const msg = error instanceof Error ? error.message : '';
+      if (msg === 'RETRY_500' || msg === 'RETRY_RATE_LIMIT') {
+        // Retry after delay
+        const delay = msg === 'RETRY_500' ? DELAYS.RETRY_500 : DELAYS.RETRY_RATE_LIMIT;
+        setTimeout(() => {
+          if (fetchIdRef.current === fetchId) {
+            fetchData(tab, payload, fetchId);
+          }
+        }, delay);
+        return;
+      }
+
+      // Set empty data on error
+      if (tab === 'entregadores' || tab === 'prioridade') setData({ entregadores: [], total: 0 });
+      else if (tab === 'valores') setData([]);
+      else setData(null);
+      setLoading(false);
+    }
+  }, [getCached, setCached]);
 
   useEffect(() => {
-    if (isOrgLoading) {
-      return;
+    // Clear any pending debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
     }
 
-    if (['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing'].includes(activeTab)) {
+    // Wait for org context to load
+    if (isOrgLoading) return;
+
+    // Tabs that manage their own data
+    if (SELF_MANAGED_TABS.includes(activeTab)) {
+      fetchIdRef.current++; // Invalidate any in-flight fetch
       setData(null);
-      // Atualizar refs mesmo para tabs excluídas para detecção correta de mudança de tab
-      previousTabRef.current = activeTab;
-      currentTabRef.current = activeTab;
+      setLoading(false);
       return;
     }
 
-    const previousTab = previousTabRef.current || '';
-    const previousPayload = filterPayloadRef.current;
-    const filterPayloadChanged = previousPayload !== filterPayloadStr;
-    const tabChanged = previousTab !== activeTab;
+    // Increment fetch ID — this invalidates any previous in-flight fetch
+    const currentFetchId = ++fetchIdRef.current;
+    const payload = JSON.parse(filterPayloadStr) as FilterPayload;
 
-    previousTabRef.current = activeTab;
-    currentTabRef.current = activeTab;
-
-    if (!tabChanged && !filterPayloadChanged) return;
-
-    filterPayloadRef.current = filterPayloadStr;
-    if (debounceTimeoutRef.current) { clearTimeout(debounceTimeoutRef.current); debounceTimeoutRef.current = null; }
-    if (tabChanged) cancel();
-
-    if (tabChanged) {
-      // Mudança de tab: buscar imediatamente (sem debounce)
-      // Isso garante que loading=true seja setado antes do fim da transição (300ms)
-      fetchDataForTab(activeTab);
-    } else {
-      // Mudança de filtro: usar debounce para evitar re-fetches rápidos
-      debounceTimeoutRef.current = setTimeout(() => {
-        if (currentTabRef.current === activeTab && filterPayloadRef.current === filterPayloadStr) {
-          fetchDataForTab(activeTab);
-        }
-      }, DELAYS.DEBOUNCE);
-    }
+    // Fetch immediately — no debounce for tab changes, simple and reliable
+    fetchData(activeTab, payload, currentFetchId);
 
     return () => {
-      // Only clear debounce timers in cleanup — do NOT cancel() in-flight requests here.
-      // cancel() is already called on line 67 when tabChanged=true.
-      // Calling cancel() in cleanup kills requests on React re-renders (e.g. parent state changes),
-      // and the re-run of this effect sees tabChanged=false → skips fetch → data never loads.
-      if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
     };
-  }, [activeTab, filterPayloadStr, isOrgLoading]);
+  }, [activeTab, filterPayloadStr, isOrgLoading, fetchData]);
 
   return { data, loading };
 }
