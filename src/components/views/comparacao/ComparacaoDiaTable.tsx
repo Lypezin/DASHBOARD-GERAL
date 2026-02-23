@@ -20,7 +20,7 @@ export const ComparacaoDiaTable = React.memo<ComparacaoDiaTableProps>(({
   ];
 
   return (
-    <Card className="border-none shadow-xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl ring-1 ring-slate-200/50 dark:ring-slate-800/50 overflow-hidden transition-all duration-300">
+    <Card className="border-none shadow-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl ring-1 ring-slate-200/50 dark:ring-slate-800/50 overflow-hidden transition-all duration-300">
       <div className="flex flex-col gap-1 px-6 py-5 border-b border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 rounded-xl ring-1 ring-indigo-500/20 dark:ring-indigo-500/30">

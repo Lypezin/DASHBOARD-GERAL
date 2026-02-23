@@ -20,10 +20,9 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
     onViewModeChange
 }) => {
     return (
-        <Card className="relative overflow-hidden border-none shadow-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl ring-1 ring-slate-200/50 dark:ring-slate-800/50 transition-all duration-300 hover:shadow-2xl">
+        <Card className="relative overflow-hidden border-none shadow-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl ring-1 ring-slate-200/50 dark:ring-slate-800/50 transition-all duration-300">
             {/* Decorative gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 pointer-events-none" />
-            <div className="absolute -top-32 -right-32 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 opacity-50 pointer-events-none" />
 
             <CardHeader className="relative z-10 pb-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

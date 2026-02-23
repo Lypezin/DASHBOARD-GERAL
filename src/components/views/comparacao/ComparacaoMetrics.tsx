@@ -47,13 +47,8 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
     colorTo: string;
     iconColor: string;
   }) => (
-    <Card className="relative overflow-hidden border-none shadow-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl group transition-all duration-300 hover:shadow-2xl">
-      <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-5 group-hover:opacity-10 transition-opacity duration-500`} />
-
-      {/* Background Decorative Icon */}
-      <div className="absolute -right-6 -bottom-6 opacity-5 transform rotate-12 group-hover:scale-110 transition-transform duration-700">
-        <Icon className={`w-36 h-36 ${iconColor}`} />
-      </div>
+    <Card className="relative overflow-hidden border-none shadow-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl group transition-all duration-300">
+      <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-[0.03] transition-opacity duration-500`} />
 
       <CardContent className="p-6 relative z-10">
         <div className="flex justify-between items-start mb-4">

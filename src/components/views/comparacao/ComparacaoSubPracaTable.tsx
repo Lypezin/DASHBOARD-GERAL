@@ -75,7 +75,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
       </div>
 
       {/* Responsive Table */}
-      <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200/50 dark:ring-slate-700/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm">
+      <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200/50 dark:ring-slate-700/50 bg-white/80 dark:bg-slate-900/80 shadow-sm">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-800/40">
@@ -96,10 +96,10 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
             <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50">
               {semanasSelecionadas.map((semana) => (
                 <React.Fragment key={`subheader-${semana}`}>
-                  <TableHead className="text-center font-semibold text-slate-500 dark:text-slate-400 h-10 text-[10px] sm:text-xs uppercase tracking-wider border-l border-slate-200/30 dark:border-slate-700/30 min-w-[60px] sm:min-w-[70px] bg-blue-50/20 dark:bg-blue-900/10">Meta</TableHead>
-                  <TableHead className="text-center font-semibold text-slate-500 dark:text-slate-400 h-10 text-[10px] sm:text-xs uppercase tracking-wider min-w-[60px] sm:min-w-[70px] bg-emerald-50/20 dark:bg-emerald-900/10">Entregue</TableHead>
-                  <TableHead className="text-center font-semibold text-slate-500 dark:text-slate-400 h-10 text-[10px] sm:text-xs uppercase tracking-wider min-w-[60px] sm:min-w-[70px] bg-purple-50/20 dark:bg-purple-900/10">Aderência</TableHead>
-                  <TableHead className="text-center font-semibold text-slate-500 dark:text-slate-400 h-10 text-[10px] sm:text-xs uppercase tracking-wider min-w-[50px] sm:min-w-[60px] bg-slate-50/20 dark:bg-slate-800/20">Var</TableHead>
+                  <TableHead className="text-center font-semibold text-blue-600 dark:text-blue-400 h-10 text-[10px] sm:text-xs uppercase tracking-wider border-l border-slate-200/30 dark:border-slate-700/30 min-w-[60px] sm:min-w-[70px]">Meta</TableHead>
+                  <TableHead className="text-center font-semibold text-emerald-600 dark:text-emerald-400 h-10 text-[10px] sm:text-xs uppercase tracking-wider min-w-[60px] sm:min-w-[70px]">Entregue</TableHead>
+                  <TableHead className="text-center font-semibold text-purple-600 dark:text-purple-400 h-10 text-[10px] sm:text-xs uppercase tracking-wider min-w-[60px] sm:min-w-[70px]">Aderência</TableHead>
+                  <TableHead className="text-center font-semibold text-slate-500 dark:text-slate-400 h-10 text-[10px] sm:text-xs uppercase tracking-wider min-w-[50px] sm:min-w-[60px]">Var</TableHead>
                 </React.Fragment>
               ))}
             </TableRow>

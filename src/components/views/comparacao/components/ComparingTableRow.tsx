@@ -73,14 +73,6 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
                                     {formatValue(rawValue)}
                                 </span>
                             </div>
-
-                            {/* Visual Bar Background */}
-                            <div className="absolute bottom-0 left-0 h-1 bg-blue-500/10 dark:bg-blue-400/10 w-full">
-                                <div
-                                    className="h-full bg-blue-500/50 dark:bg-blue-400/50 transition-all duration-500"
-                                    style={{ width: `${percentage}%` }}
-                                />
-                            </div>
                         </TableCell>
                         {idx > 0 && (
                             <TableCell className="text-center w-[80px] p-0">

@@ -42,7 +42,7 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
     });
 
     return (
-        <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200/50 dark:ring-slate-700/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm">
+        <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200/50 dark:ring-slate-700/50 bg-white/80 dark:bg-slate-900/80 shadow-sm">
             <Table>
                 <TableHeader>
                     <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-800/40">
@@ -53,12 +53,12 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
                             const semanaStr = String(semana).replace('W', '');
                             return (
                                 <React.Fragment key={semana}>
-                                    <TableHead className="text-center font-bold text-slate-900 dark:text-white border-l border-slate-200/50 dark:border-slate-700/50 min-w-[100px] bg-gradient-to-r from-purple-50/40 to-blue-50/40 dark:from-purple-900/20 dark:to-blue-900/20">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/60 dark:bg-slate-800/60 rounded-full text-sm shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+                                    <TableHead className="text-center font-bold text-slate-900 dark:text-white border-l border-slate-200/50 dark:border-slate-700/50 min-w-[100px]">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800/60 rounded-full text-sm shadow-sm ring-1 ring-black/5 dark:ring-white/5">
                                             Semana {semanaStr}
                                         </span>
                                     </TableHead>
-                                    <TableHead className="text-center font-semibold text-slate-500 dark:text-slate-400 min-w-[80px] bg-slate-50/20 dark:bg-slate-800/20">
+                                    <TableHead className="text-center font-semibold text-slate-500 dark:text-slate-400 min-w-[80px]">
                                         <span className="text-xs uppercase tracking-wider">Var %</span>
                                     </TableHead>
                                 </React.Fragment>
