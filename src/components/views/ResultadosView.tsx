@@ -1,4 +1,4 @@
-import 'use client';
+"use client";
 
 import React from 'react';
 import { ResultadosFilters } from './resultados/ResultadosFilters';
