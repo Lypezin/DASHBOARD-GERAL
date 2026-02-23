@@ -20,17 +20,17 @@ export const ComparacaoDiaTable = React.memo<ComparacaoDiaTableProps>(({
   ];
 
   return (
-    <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      <div className="flex flex-col gap-1 px-6 py-5 border-b border-slate-100 dark:border-slate-800/60 transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+    <Card className="border-none shadow-xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl ring-1 ring-slate-200/50 dark:ring-slate-800/50 overflow-hidden transition-all duration-300">
+      <div className="flex flex-col gap-1 px-6 py-5 border-b border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 rounded-xl ring-1 ring-indigo-500/20 dark:ring-indigo-500/30">
             <Calendar className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
               Detalhamento Diário
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
               Performance de aderência dia a dia
             </p>
           </div>

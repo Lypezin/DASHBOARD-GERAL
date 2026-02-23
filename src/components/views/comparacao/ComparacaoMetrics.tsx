@@ -47,8 +47,8 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
     colorTo: string;
     iconColor: string;
   }) => (
-    <Card className="relative overflow-hidden border-none shadow-lg group">
-      <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-10 group-hover:opacity-20 transition-opacity duration-500`} />
+    <Card className="relative overflow-hidden border-none shadow-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl group transition-all duration-300 hover:shadow-2xl">
+      <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-5 group-hover:opacity-10 transition-opacity duration-500`} />
 
       {/* Background Decorative Icon */}
       <div className="absolute -right-6 -bottom-6 opacity-5 transform rotate-12 group-hover:scale-110 transition-transform duration-700">
@@ -57,16 +57,16 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
 
       <CardContent className="p-6 relative z-10">
         <div className="flex justify-between items-start mb-4">
-          <div className={`p-3 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 ${iconColor}`}>
+          <div className={`p-3 rounded-2xl bg-white/80 dark:bg-slate-800/80 shadow-sm ring-1 ring-black/5 dark:ring-white/10 backdrop-blur-md ${iconColor} group-hover:scale-110 transition-transform duration-300`}>
             <Icon className="w-6 h-6" />
           </div>
           {trend && (
-            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md bg-white/50 border border-white/60
-                        ${trend === 'up' ? 'text-emerald-600' : trend === 'down' ? 'text-rose-600' : 'text-slate-500'}
+            <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm backdrop-blur-md bg-white/60 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/60 transition-colors duration-300
+                        ${trend === 'up' ? 'text-emerald-600 dark:text-emerald-400' : trend === 'down' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}
                     `}>
-              {trend === 'up' && <TrendingUp className="w-3 h-3" />}
-              {trend === 'down' && <TrendingDown className="w-3 h-3" />}
-              {trend === 'neutral' && <Minus className="w-3 h-3" />}
+              {trend === 'up' && <TrendingUp className="w-3.5 h-3.5" />}
+              {trend === 'down' && <TrendingDown className="w-3.5 h-3.5" />}
+              {trend === 'neutral' && <Minus className="w-3.5 h-3.5" />}
               {trendValue}
             </div>
           )}

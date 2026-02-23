@@ -18,7 +18,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
   semanasSelecionadas,
 }) => {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+    <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200/50 dark:ring-slate-700/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm">
       <Table>
         <ComparacaoTabelaHeader semanasSelecionadas={semanasSelecionadas} />
         <TableBody className="divide-y divide-slate-100/50 dark:divide-slate-800/50">

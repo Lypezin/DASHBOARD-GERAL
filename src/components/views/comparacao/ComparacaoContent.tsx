@@ -26,23 +26,25 @@ const SectionWrapper = ({ children, title, description, icon: Icon, gradient }: 
     icon: any;
     gradient: string;
 }) => (
-    <Card className="relative overflow-hidden border-none shadow-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl">
+    <Card className="relative overflow-hidden border-none shadow-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl ring-1 ring-slate-200/50 dark:ring-slate-800/50 transition-all duration-300 hover:shadow-2xl">
         <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none`} />
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 dark:bg-white/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-white/10 dark:bg-white/5 rounded-full blur-3xl pointer-events-none" />
 
         <CardHeader className="relative z-10 pb-6">
-            <div className="flex items-center justify-center gap-3">
-                <div className={`p-3 bg-gradient-to-br ${gradient.replace('/5', '')} rounded-2xl shadow-lg`}>
-                    <Icon className="h-5 w-5 text-white" />
-                </div>
-                <div className="text-center">
-                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                        {title}
-                    </CardTitle>
-                    <CardDescription className="text-slate-500 dark:text-slate-400">
-                        {description}
-                    </CardDescription>
+            <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className={`p-3.5 bg-gradient-to-br ${gradient.replace('/5', '')} rounded-2xl shadow-lg ring-1 ring-white/20 dark:ring-white/10 group-hover:scale-105 transition-transform duration-300`}>
+                        <Icon className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                        <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent tracking-tight">
+                            {title}
+                        </CardTitle>
+                        <CardDescription className="text-slate-500 dark:text-slate-400 font-medium font-sans">
+                            {description}
+                        </CardDescription>
+                    </div>
                 </div>
             </div>
         </CardHeader>
