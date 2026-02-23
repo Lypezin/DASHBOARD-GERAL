@@ -85,8 +85,8 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
               {semanasSelecionadas.map((semana) => {
                 const semanaStr = String(semana).replace('W', '');
                 return (
-                  <TableHead key={semana} colSpan={4} className="text-center font-bold text-slate-900 dark:text-white border-l border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-purple-50/40 to-blue-50/40 dark:from-purple-900/20 dark:to-blue-900/20 min-w-[280px]">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/60 dark:bg-slate-800/60 rounded-full text-sm shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+                  <TableHead key={semana} colSpan={4} className="text-center font-bold text-slate-900 dark:text-white border-l border-slate-200/50 dark:border-slate-700/50 min-w-[280px]">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800/60 rounded-full text-sm shadow-sm ring-1 ring-black/5 dark:ring-white/5">
                       Semana {semanaStr}
                     </span>
                   </TableHead>

@@ -19,7 +19,7 @@ export const ComparacaoTabelaHeader: React.FC<ComparacaoTabelaHeaderProps> = ({ 
                             Semana {semana}
                         </TableHead>
                         {idx > 0 && (
-                            <TableHead className="text-center text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-900/10 w-[100px]">
+                            <TableHead className="text-center text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 w-[100px]">
                                 vs S{semanasSelecionadas[idx - 1]}
                             </TableHead>
                         )}
