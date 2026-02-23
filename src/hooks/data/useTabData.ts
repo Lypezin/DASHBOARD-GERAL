@@ -78,9 +78,11 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     }
 
     return () => {
+      // Only clear debounce timers in cleanup — do NOT cancel() in-flight requests here.
+      // cancel() is already called on line 67 when tabChanged=true.
+      // Calling cancel() in cleanup kills requests on React re-renders (e.g. parent state changes),
+      // and the re-run of this effect sees tabChanged=false → skips fetch → data never loads.
       if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
-      cancel();
-      isRequestPendingRef.current = false;
     };
   }, [activeTab, filterPayloadStr, isOrgLoading]);
 
