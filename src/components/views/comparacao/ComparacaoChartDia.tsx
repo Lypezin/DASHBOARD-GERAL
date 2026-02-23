@@ -60,8 +60,8 @@ export const ComparacaoChartDia: React.FC<ComparacaoChartDiaProps> = ({
                         padding: 12,
                         boxPadding: 6,
                         usePointStyle: true,
-                        bodyFont: { size: 13, weight: 'normal' },
-                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13, weight: 'normal' as const },
+                        titleFont: { size: 14, weight: 'bold' as const },
                         callbacks: {
                             label: (context: any) => `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`
                         }

@@ -66,9 +66,23 @@ export const ComparacaoChartOrigem: React.FC<ComparacaoChartOrigemProps> = ({
     const origemChartOptions = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+            mode: 'index' as const,
+            intersect: false,
+        },
         plugins: {
             legend: { position: 'top' as const },
             tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#1e293b',
+                bodyColor: '#334155',
+                borderColor: 'rgba(226, 232, 240, 1)',
+                borderWidth: 1,
+                padding: 12,
+                boxPadding: 6,
+                usePointStyle: true,
+                bodyFont: { size: 13, weight: 'normal' as const },
+                titleFont: { size: 14, weight: 'bold' as const },
                 callbacks: {
                     label: (context: any) => {
                         if (context.dataset?.yAxisID === 'y1') {
@@ -82,9 +96,11 @@ export const ComparacaoChartOrigem: React.FC<ComparacaoChartOrigemProps> = ({
         scales: {
             y: {
                 beginAtZero: true,
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
                 title: {
                     display: true,
                     text: 'Corridas Completadas',
+                    color: '#64748b'
                 },
             },
             y1: {
@@ -101,8 +117,12 @@ export const ComparacaoChartOrigem: React.FC<ComparacaoChartOrigemProps> = ({
                 title: {
                     display: true,
                     text: 'Aderência (%)',
+                    color: '#64748b'
                 },
             },
+            x: {
+                grid: { display: false }
+            }
         },
     }), []);
 

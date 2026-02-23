@@ -16,13 +16,17 @@ export const createComparacaoChartOptions = () => ({
             }
         },
         tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            padding: 15,
-            titleFont: { size: 15, weight: 'bold' as const },
-            bodyFont: { size: 14 },
-            bodySpacing: 8,
-            borderColor: 'rgba(255, 255, 255, 0.1)',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            titleColor: '#1e293b',
+            bodyColor: '#334155',
+            borderColor: 'rgba(226, 232, 240, 1)',
             borderWidth: 1,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            titleFont: { size: 14, weight: 'bold' as const },
+            bodyFont: { size: 13, weight: 'normal' as const },
+            bodySpacing: 8,
             callbacks: {
                 label: (context: any) => {
                     const label = context.dataset.label || '';
