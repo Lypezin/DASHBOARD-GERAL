@@ -3,7 +3,8 @@
 import React from 'react';
 import { MarketingDateFilter } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
-import { Filter, Calendar, Send, CheckCircle2 } from 'lucide-react';
+import { Filter, Calendar, Send, CheckCircle2, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 
 interface ResultadosFiltersProps {
@@ -13,6 +14,8 @@ interface ResultadosFiltersProps {
   onFiltroLiberacaoChange: (filter: MarketingDateFilter) => void;
   onFiltroEnviadosChange: (filter: MarketingDateFilter) => void;
   onFiltroEnviadosLiberadosChange: (filter: MarketingDateFilter) => void;
+  onExport?: () => void;
+  hasData?: boolean;
 }
 
 export const ResultadosFilters = React.memo(function ResultadosFilters({
@@ -22,11 +25,13 @@ export const ResultadosFilters = React.memo(function ResultadosFilters({
   onFiltroLiberacaoChange,
   onFiltroEnviadosChange,
   onFiltroEnviadosLiberadosChange,
+  onExport,
+  hasData
 }: ResultadosFiltersProps) {
   return (
     <Card className="border-none shadow-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl overflow-hidden">
       {/* Header com gradiente */}
-      <div className="px-5 py-3 bg-gradient-to-r from-slate-50 via-purple-50/50 to-slate-50 dark:from-slate-800/50 dark:via-purple-900/20 dark:to-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+      <div className="px-5 py-3 bg-gradient-to-r from-slate-50 via-purple-50/50 to-slate-50 dark:from-slate-800/50 dark:via-purple-900/20 dark:to-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/40">
             <Filter className="h-4 w-4 text-purple-600 dark:text-purple-400" />
@@ -35,6 +40,19 @@ export const ResultadosFilters = React.memo(function ResultadosFilters({
             Filtros de Data
           </span>
         </div>
+
+        {onExport && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExport}
+            disabled={!hasData}
+            className="flex items-center gap-2 text-slate-700 dark:text-slate-300 h-8"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Exportar Excel</span>
+          </Button>
+        )}
       </div>
       <CardContent className="p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

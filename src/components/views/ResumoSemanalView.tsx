@@ -1,4 +1,3 @@
-
 import React, { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EvolucaoSemanal, AderenciaSemanal, UtrSemanal } from '@/types';
@@ -8,6 +7,7 @@ import { useResumoPracasFilter } from '@/hooks/data/useResumoPracasFilter';
 import { useResumoSemanalLogic } from '@/hooks/data/useResumoSemanalLogic';
 import { ResumoFilters } from './resumo-semanal/ResumoFilters';
 import { ResumoTable } from './resumo-semanal/ResumoTable';
+import { exportarResumoSemanalParaExcel } from './resumo-semanal/ResumoSemanalExcelExport';
 
 interface ResumoSemanalViewProps {
     evolucaoSemanal: EvolucaoSemanal[];
@@ -74,6 +74,10 @@ export const ResumoSemanalView = ({
         });
     }, [displayRows]);
 
+    const handleExportTable = useCallback(() => {
+        exportarResumoSemanalParaExcel(displayRows);
+    }, [displayRows]);
+
     return (
         <div className="space-y-6 w-full max-w-[1400px] mx-auto p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Card className="border-none shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
@@ -88,6 +92,7 @@ export const ResumoSemanalView = ({
                         onFilterToggle={togglePraca}
                         onClearFilter={clearFilter}
                         onCopyTable={handleCopyTable}
+                        onExportTable={handleExportTable}
                         hasData={displayRows.length > 0}
                     />
                 </CardHeader>

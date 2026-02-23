@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Download } from 'lucide-react';
 
 interface ResumoFiltersProps {
     selectedPracas: string[];
@@ -9,6 +9,7 @@ interface ResumoFiltersProps {
     onFilterToggle: (praca: string) => void;
     onClearFilter: () => void;
     onCopyTable: () => void;
+    onExportTable: () => void;
     hasData: boolean;
 }
 
@@ -18,6 +19,7 @@ export const ResumoFilters = ({
     onFilterToggle,
     onClearFilter,
     onCopyTable,
+    onExportTable,
     hasData
 }: ResumoFiltersProps) => {
     const [filterOpen, setFilterOpen] = useState(false);
@@ -31,6 +33,16 @@ export const ResumoFilters = ({
 
     return (
         <div className="flex items-center gap-2">
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={onExportTable}
+                disabled={!hasData}
+                className="flex items-center gap-2 text-slate-700 dark:text-slate-300"
+            >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Exportar Excel</span>
+            </Button>
             <Button
                 variant="outline"
                 size="sm"

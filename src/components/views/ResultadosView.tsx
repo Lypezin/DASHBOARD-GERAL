@@ -1,4 +1,4 @@
-'use client';
+import 'use client';
 
 import React from 'react';
 import { ResultadosFilters } from './resultados/ResultadosFilters';
@@ -6,6 +6,7 @@ import { ResultadosCards } from './resultados/ResultadosCards';
 import { useResultadosData } from './resultados/useResultadosData';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { motion, Variants } from 'framer-motion';
+import { exportarResultadosParaExcel } from './resultados/ResultadosExcelExport';
 
 const ResultadosView = React.memo(function ResultadosView() {
   const {
@@ -16,6 +17,10 @@ const ResultadosView = React.memo(function ResultadosView() {
     filters,
     handleFilterChange
   } = useResultadosData();
+
+  const handleExport = React.useCallback(() => {
+    exportarResultadosParaExcel(atendentesData);
+  }, [atendentesData]);
 
   if (loading) {
     return (
@@ -73,6 +78,8 @@ const ResultadosView = React.memo(function ResultadosView() {
           onFiltroLiberacaoChange={(filter) => handleFilterChange('filtroLiberacao', filter)}
           onFiltroEnviadosChange={(filter) => handleFilterChange('filtroEnviados', filter)}
           onFiltroEnviadosLiberadosChange={(filter) => handleFilterChange('filtroEnviadosLiberados', filter)}
+          onExport={handleExport}
+          hasData={atendentesData && atendentesData.length > 0}
         />
       </motion.div>
 
