@@ -45,17 +45,38 @@ export const ComparacaoChartDia: React.FC<ComparacaoChartDiaProps> = ({
             }} options={{
                 responsive: true,
                 maintainAspectRatio: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 plugins: {
                     legend: { position: 'top' as const },
                     tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        titleColor: '#1e293b',
+                        bodyColor: '#334155',
+                        borderColor: 'rgba(226, 232, 240, 1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        boxPadding: 6,
+                        usePointStyle: true,
+                        bodyFont: { size: 13, weight: 'normal' },
+                        titleFont: { size: 14, weight: 'bold' },
                         callbacks: {
                             label: (context: any) => `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`
                         }
                     }
                 },
                 scales: {
-                    y: { beginAtZero: true, ticks: { callback: (value: any) => `${value}%` } },
-                    x: { ticks: { font: { size: 11 } } }
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        ticks: { callback: (value: any) => `${value}%` }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    }
                 }
             }} />
         </div>

@@ -35,22 +35,22 @@ export const ComparacaoUtrSection: React.FC<ComparacaoUtrSectionProps> = ({
   }
 
   return (
-    <Card className="relative overflow-hidden border-none shadow-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl">
+    <Card className="relative overflow-hidden border-none shadow-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl ring-1 ring-slate-200/50 dark:ring-slate-800/50 transition-all duration-300 hover:shadow-2xl">
       {/* Decorative gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-indigo-500/5 pointer-events-none" />
       <div className="absolute -top-24 -right-24 w-48 h-48 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <CardHeader className="relative z-10 pb-6">
-        <div className="flex items-center gap-3 justify-center">
-          <div className="p-3 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl shadow-lg shadow-violet-500/30">
+        <div className="flex items-center gap-4 justify-center">
+          <div className="p-3.5 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl shadow-lg shadow-violet-500/30 ring-1 ring-white/20 dark:ring-white/10 group-hover:scale-105 transition-transform duration-300">
             <Target className="h-5 w-5 text-white" />
           </div>
           <div className="text-center">
-            <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+            <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent tracking-tight">
               UTR - Utilização de Tempo Real
             </CardTitle>
-            <CardDescription className="text-slate-500 dark:text-slate-400">
+            <CardDescription className="text-slate-500 dark:text-slate-400 font-medium font-sans">
               Indicador de eficiência na utilização do tempo disponível
             </CardDescription>
           </div>
@@ -58,9 +58,9 @@ export const ComparacaoUtrSection: React.FC<ComparacaoUtrSectionProps> = ({
       </CardHeader>
 
       <CardContent className="relative z-10 p-0">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200/50 dark:ring-slate-700/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm mx-6 mb-6">
           <table className="w-full">
-            <thead className="bg-slate-50/80 dark:bg-slate-800/50">
+            <thead className="bg-slate-50/40 dark:bg-slate-800/40">
               <tr className="border-b border-slate-200/50 dark:border-slate-700/50">
                 <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Métrica</th>
                 {semanasSelecionadas.map((semana) => (
