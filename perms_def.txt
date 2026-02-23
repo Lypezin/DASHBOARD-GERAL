@@ -1,0 +1,122 @@
+
+--- ORIGINAL get_subpracas_by_praca ---
+-- Nome: get_subpracas_by_praca
+CREATE OR REPLACE FUNCTION public.get_subpracas_by_praca(p_pracas text[])
+ RETURNS SETOF text
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT mv.sub_praca
+    FROM public.mv_dashboard_resumo mv
+    WHERE mv.praca IS NOT NULL
+      AND mv.sub_praca IS NOT NULL
+      AND (p_pracas IS NULL OR array_length(p_pracas, 1) IS NULL OR mv.praca = ANY(p_pracas))
+    ORDER BY mv.sub_praca;
+END;
+$function$
+;
+
+--- ORIGINAL get_turnos_by_praca ---
+-- Nome: get_turnos_by_praca
+CREATE OR REPLACE FUNCTION public.get_turnos_by_praca(p_pracas text[])
+ RETURNS SETOF text
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT mv.turno
+    FROM public.mv_dashboard_resumo mv
+    WHERE mv.praca IS NOT NULL
+      AND mv.turno IS NOT NULL
+      AND (p_pracas IS NULL OR array_length(p_pracas, 1) IS NULL OR mv.praca = ANY(p_pracas))
+    ORDER BY mv.turno;
+END;
+$function$
+;
+
+--- ORIGINAL get_origens_by_praca ---
+-- Nome: get_origens_by_praca
+CREATE OR REPLACE FUNCTION public.get_origens_by_praca(p_pracas text[])
+ RETURNS SETOF text
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT mv.origem
+    FROM public.mv_dashboard_resumo mv
+    WHERE mv.praca IS NOT NULL
+      AND mv.origem IS NOT NULL
+      AND (p_pracas IS NULL OR array_length(p_pracas, 1) IS NULL OR mv.praca = ANY(p_pracas))
+    ORDER BY mv.origem;
+END;
+$function$
+;
+
+--- CURRENT DB DEFS ---
+
+--- DB get_origens_by_praca ---
+Security Definer: false
+CREATE OR REPLACE FUNCTION public.get_origens_by_praca(p_pracas text[])
+ RETURNS SETOF text
+ LANGUAGE plpgsql
+ STABLE
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT mv.origem
+    FROM public.mv_dashboard_resumo mv
+    WHERE mv.praca IS NOT NULL
+      AND mv.origem IS NOT NULL
+      AND (p_pracas IS NULL OR array_length(p_pracas, 1) IS NULL OR mv.praca = ANY(p_pracas))
+    ORDER BY mv.origem;
+END;
+$function$
+
+
+--- DB get_subpracas_by_praca ---
+Security Definer: false
+CREATE OR REPLACE FUNCTION public.get_subpracas_by_praca(p_pracas text[])
+ RETURNS SETOF text
+ LANGUAGE plpgsql
+ STABLE
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT mv.sub_praca
+    FROM public.mv_dashboard_resumo mv
+    WHERE mv.praca IS NOT NULL
+      AND mv.sub_praca IS NOT NULL
+      AND (p_pracas IS NULL OR array_length(p_pracas, 1) IS NULL OR mv.praca = ANY(p_pracas))
+    ORDER BY mv.sub_praca;
+END;
+$function$
+
+
+--- DB get_turnos_by_praca ---
+Security Definer: false
+CREATE OR REPLACE FUNCTION public.get_turnos_by_praca(p_pracas text[])
+ RETURNS SETOF text
+ LANGUAGE plpgsql
+ STABLE
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT mv.turno
+    FROM public.mv_dashboard_resumo mv
+    WHERE mv.praca IS NOT NULL
+      AND mv.turno IS NOT NULL
+      AND (p_pracas IS NULL OR array_length(p_pracas, 1) IS NULL OR mv.praca = ANY(p_pracas))
+    ORDER BY mv.turno;
+END;
+$function$
+
+
+--- PERMS ON mv_dashboard_resumo for authenticated ---
+[]
