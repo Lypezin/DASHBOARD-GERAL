@@ -11,6 +11,8 @@ import { exportarEntregadoresMainParaExcel } from './entregadores/EntregadoresMa
 import { safeLog } from '@/lib/errorHandler';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { useEntregadoresMainSort } from './entregadores/hooks/useEntregadoresMainSort';
+import { TopBottomPerformers } from './entregadores/TopBottomPerformers';
+import { CorrelationScatter } from './analise/CorrelationScatter';
 
 import { formatarHorasParaHMS } from '@/utils/formatters';
 
@@ -105,6 +107,10 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
       />
+
+      <TopBottomPerformers entregadores={sortedEntregadores} />
+
+      <CorrelationScatter entregadores={sortedEntregadores} />
 
       <EntregadoresMainTable
         sortedEntregadores={sortedEntregadores}

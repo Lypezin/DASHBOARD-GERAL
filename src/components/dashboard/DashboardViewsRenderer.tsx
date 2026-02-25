@@ -57,7 +57,7 @@ const tabTransition = {
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -8 },
-  transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as number[] },
+  transition: { duration: 0.3 },
 };
 
 export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer(props: DashboardViewsRendererProps) {
