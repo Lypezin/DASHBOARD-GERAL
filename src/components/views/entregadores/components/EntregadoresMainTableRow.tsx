@@ -25,7 +25,10 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
 
     return (
         <TooltipProvider delayDuration={0}>
-            <div className="grid grid-cols-10 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[1100px]">
+            <div
+                className="grid grid-cols-10 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[1100px] cursor-pointer"
+                onClick={() => onClick?.(entregador)}
+            >
                 {/* Health Score Badge */}
                 <div className="flex justify-center">
                     <HealthBadge grade={hs.grade} score={hs.score} />

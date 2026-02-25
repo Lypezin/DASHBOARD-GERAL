@@ -11,6 +11,7 @@ interface EntregadoresMainTableProps {
     sortDirection: 'asc' | 'desc';
     onSort: (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => void;
     searchTerm: string;
+    onRowClick?: (entregador: Entregador) => void;
 }
 
 export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
@@ -19,6 +20,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
     sortDirection,
     onSort,
     searchTerm,
+    onRowClick,
 }: EntregadoresMainTableProps) {
 
     return (
@@ -55,6 +57,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                     <EntregadoresMainTableRow
                                         key={entregador.id_entregador}
                                         entregador={entregador}
+                                        onClick={onRowClick}
                                     />
                                 ))}
                             </div>

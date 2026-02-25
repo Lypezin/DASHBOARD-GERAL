@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Entregador, EntregadoresData } from '@/types';
 import { Users, Download } from 'lucide-react';
 import { EntregadoresMainStatsCards } from './entregadores/EntregadoresMainStatsCards';
@@ -13,6 +13,7 @@ import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { useEntregadoresMainSort } from './entregadores/hooks/useEntregadoresMainSort';
 import { TopBottomPerformers } from './entregadores/TopBottomPerformers';
 import { CorrelationScatter } from './analise/CorrelationScatter';
+import { EntregadorProfileDialog } from './entregadores/EntregadorProfileDialog';
 
 import { formatarHorasParaHMS } from '@/utils/formatters';
 
@@ -33,6 +34,13 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   } = useEntregadoresMainSort(entregadoresData);
 
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedEntregador, setSelectedEntregador] = useState<Entregador | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const handleRowClick = useCallback((entregador: Entregador) => {
+    setSelectedEntregador(entregador);
+    setProfileOpen(true);
+  }, []);
 
   const handleExport = async () => {
     try {
@@ -118,6 +126,13 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
         sortDirection={sortDirection}
         onSort={handleSort}
         searchTerm={searchTerm}
+        onRowClick={handleRowClick}
+      />
+
+      <EntregadorProfileDialog
+        entregador={selectedEntregador}
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
       />
     </div>
   );
