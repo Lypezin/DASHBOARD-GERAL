@@ -4,7 +4,7 @@ import { useDashboardDimensions } from '@/hooks/dashboard/useDashboardDimensions
 import { fetchComparisonMetrics } from '@/hooks/comparacao/useComparisonMetrics';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { DashboardResumoData } from '@/types';
+import { DashboardResumoData, AderenciaDia } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 
 export interface ComparisonMetricData {
@@ -14,7 +14,7 @@ export interface ComparisonMetricData {
     format: 'number' | 'percent' | 'hours';
 }
 
-export function useWeekComparison() {
+export function useWeekComparison(aderenciaDia?: AderenciaDia[]) {
     const { filters } = useDashboardFilters();
     const { semanasDisponiveis, loadingDimensions } = useDashboardDimensions();
     const { organizationId, isLoading: isOrgLoading } = useOrganization();
@@ -27,75 +27,60 @@ export function useWeekComparison() {
 
     // Identificar a semana atual e anterior
     const weeksToCompare = useMemo(() => {
-        if (loadingDimensions || !semanasDisponiveis || semanasDisponiveis.length === 0) {
-            return null;
-        }
-
         let targetWeekStr = '';
+        let targetYear = filters.ano || new Date().getFullYear();
 
-        // Tenta pegar a maior semana selecionada nos filtros
+        // 1. Tenta pegar a maior semana selecionada nos filtros manuais
         const filterSemanas = filters.semanas || [];
         if (filterSemanas.length > 0) {
-            targetWeekStr = filterSemanas.length > 0 ? String(Math.max(...filterSemanas)) : '';
+            targetWeekStr = String(Math.max(...filterSemanas));
         } else if (filters.semana) {
             targetWeekStr = String(filters.semana);
         }
+        // 2. Se nÃ£o houver filtro manual, calculamos a ultima semana com base nos dados exibidos `aderenciaDia`
+        else if (aderenciaDia && aderenciaDia.length > 0) {
+            const validDates = aderenciaDia
+                .map(d => d.data || d.dia)
+                .filter(Boolean)
+                .sort();
 
-        // Vamos extrair numero da semana de todas as disponíveis
-        const parsedWeeks = semanasDisponiveis.map(s => {
-            const match = String(s).match(/(?:(\d{4})-W)?(\d+)/);
-            if (match) {
-                return { original: s, ano: match[1] ? parseInt(match[1]) : (filters.ano || new Date().getFullYear()), semana: parseInt(match[2]) };
-            }
-            return { original: s, ano: filters.ano || new Date().getFullYear(), semana: parseInt(String(s)) };
-        }).filter(w => !isNaN(w.semana)).sort((a, b) => {
-            if (a.ano !== b.ano) return b.ano - a.ano; // decrescente ano
-            return b.semana - a.semana; // decrescente semana
-        });
+            if (validDates.length > 0) {
+                // "2026-02-22" ou similar
+                let latestDateStr = validDates[validDates.length - 1];
+                if (latestDateStr) {
+                    try {
+                        // Garantindo timezone UTC para evitar que 00:00 retorne dia incorreto
+                        const d = new Date(latestDateStr.includes('T') ? latestDateStr : `${latestDateStr}T00:00:00Z`);
+                        targetYear = d.getUTCFullYear();
 
-        if (parsedWeeks.length === 0) return null;
+                        // CÃ¡lculo padronizado da ISO Week Date
+                        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+                        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                        const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
 
-        let targetWeekObj = parsedWeeks[0];
-
-        if (targetWeekStr) {
-            const targetNum = parseInt(targetWeekStr);
-            const found = parsedWeeks.find(w => w.semana === targetNum);
-            if (found) {
-                targetWeekObj = found;
-            } else {
-                targetWeekObj = { original: targetWeekStr, ano: filters.ano || new Date().getFullYear(), semana: targetNum };
-                parsedWeeks.push(targetWeekObj); // adiciona para reordenar
-                parsedWeeks.sort((a, b) => {
-                    if (a.ano !== b.ano) return b.ano - a.ano;
-                    return b.semana - a.semana;
-                });
+                        targetWeekStr = String(weekNo);
+                    } catch (e) {
+                        safeLog.warn('Failed to parse date for ISO week: ', latestDateStr);
+                    }
+                }
             }
         }
 
-        // Encontrar o indice na lista ordenada
-        const idx = parsedWeeks.findIndex(w => w.ano === targetWeekObj.ano && w.semana === targetWeekObj.semana);
-        let previousWeekObj = null;
+        // Se por algum motivo nÃ£o conseguir determinar (ex: sem dados carregados ainda), aborta
+        if (!targetWeekStr) return null;
 
-        if (idx !== -1 && idx + 1 < parsedWeeks.length) {
-            // A lista tá descendente, então idx + 1 é a semana anterior
-            previousWeekObj = parsedWeeks[idx + 1];
-        } else {
-            // Calcula matematicamente se não encontrou na lista
-            if (targetWeekObj.semana > 1) {
-                previousWeekObj = { original: String(targetWeekObj.semana - 1), ano: targetWeekObj.ano, semana: targetWeekObj.semana - 1 };
-            } else {
-                previousWeekObj = { original: '52', ano: targetWeekObj.ano - 1, semana: 52 };
-            }
-        }
+        const targetNum = parseInt(targetWeekStr);
+        let previousNum = targetNum > 1 ? targetNum - 1 : 52;
+        let previousYear = targetNum > 1 ? targetYear : targetYear - 1;
 
         return {
-            current: targetWeekObj.original,
-            previous: previousWeekObj.original,
-            currentLabel: `Semana ${targetWeekObj.semana}`,
-            previousLabel: `Semana ${previousWeekObj.semana}`
+            current: String(targetNum),
+            previous: String(previousNum),
+            currentLabel: `Semana ${targetNum}`,
+            previousLabel: `Semana ${previousNum}`
         };
 
-    }, [filters.semanas, filters.semana, filters.ano, semanasDisponiveis, loadingDimensions]);
+    }, [filters.semanas, filters.semana, filters.ano, aderenciaDia]);
 
     useEffect(() => {
         if (!weeksToCompare || isOrgLoading) {
