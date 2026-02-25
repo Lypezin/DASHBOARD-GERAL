@@ -63,12 +63,10 @@ const DashboardView = React.memo(function DashboardView({
         </Button>
       </div>
 
-      {/* #2 — Comparativo Período Atual vs Anterior */}
-      {aderenciaDia.length >= 4 && (
-        <section>
-          <MonthComparisonCards aderenciaDia={aderenciaDia} />
-        </section>
-      )}
+      {/* #2 — Comparativo Semanal (Última Selecionada vs Anterior) */}
+      <section>
+        <MonthComparisonCards />
+      </section>
 
       {/* Aderência Geral - Design Profissional Clean */}
       <section>
