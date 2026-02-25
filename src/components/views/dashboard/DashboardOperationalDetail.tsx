@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ListChecks, BarChart3 } from 'lucide-react';
 import { OperationalDetailCard } from './components/OperationalDetailCard';
 import { OperationalViewToggle, ViewMode } from './components/OperationalViewToggle';
+import { BenchmarkPracas } from '../comparacao/BenchmarkPracas';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 interface DashboardOperationalDetailProps {
@@ -120,19 +121,34 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
 
             <CardContent className="p-0">
                 {dataToRender.length > 0 ? (
-                    <motion.div
-                        key={viewMode}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                        variants={container}
-                        initial="hidden"
-                        animate="show"
-                    >
-                        {dataToRender.map((item, index) => (
-                            <motion.div key={`${viewMode}-${index}`} variants={itemVariant}>
-                                <OperationalDetailCard data={item} />
+                    <div className="space-y-6">
+                        <motion.div
+                            key={viewMode}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                            variants={container}
+                            initial="hidden"
+                            animate="show"
+                        >
+                            {dataToRender.map((item, index) => (
+                                <motion.div key={`${viewMode}-${index}`} variants={itemVariant}>
+                                    <OperationalDetailCard data={item} />
+                                </motion.div>
+                            ))}
+                        </motion.div>
+
+                        {viewMode === 'sub_praca' && aderenciaSubPraca.length > 1 && (
+                            <motion.div
+                                variants={itemVariant}
+                                initial="hidden"
+                                animate="show"
+                                className="pt-2"
+                            >
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <BenchmarkPracas subPracas={aderenciaSubPraca} />
+                                </div>
                             </motion.div>
-                        ))}
-                    </motion.div>
+                        )}
+                    </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
                         <BarChart3 className="h-12 w-12 mb-3 opacity-20" />

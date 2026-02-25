@@ -23,7 +23,10 @@ function getMetric(sp: AderenciaSubPraca, metric: BenchmarkMetric): number {
         case 'aderencia': return sp.aderencia_percentual || 0;
         case 'completadas': return sp.corridas_completadas || 0;
         case 'ofertadas': return sp.corridas_ofertadas || 0;
-        case 'aceitacao': return sp.taxa_aceitacao || 0;
+        case 'aceitacao':
+            return (sp.corridas_ofertadas && sp.corridas_ofertadas > 0)
+                ? ((sp.corridas_aceitas || 0) / sp.corridas_ofertadas) * 100
+                : 0;
     }
 }
 

@@ -4,7 +4,6 @@ import { DashboardGeneralStats } from './dashboard/DashboardGeneralStats';
 import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance';
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
 import { MonthComparisonCards } from './dashboard/components/MonthComparisonCards';
-import { BenchmarkPracas } from './comparacao/BenchmarkPracas';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { exportarDashboardParaExcel } from './dashboard/DashboardExcelExport';
@@ -97,19 +96,6 @@ const DashboardView = React.memo(function DashboardView({
           aderenciaDia={aderenciaDia}
         />
       </section>
-
-      {/* #19 — Benchmark por Praça */}
-      {aderenciaSubPraca.length > 1 && (
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Rankings & Análises</h2>
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <BenchmarkPracas subPracas={aderenciaSubPraca} />
-          </div>
-        </section>
-      )}
     </div>
   );
 });
