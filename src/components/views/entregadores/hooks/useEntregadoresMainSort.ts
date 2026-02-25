@@ -22,6 +22,7 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
     const [sortField, setSortField] = useState<keyof Entregador | 'percentual_aceitas' | 'percentual_completadas'>(getInitialSortField);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(getInitialSortDirection);
     const [searchTerm, setSearchTerm] = useState(getInitialSearchTerm);
+    const [showInactiveOnly, setShowInactiveOnly] = useState(false);
 
     // Sync to URL
     useEffect(() => {
@@ -60,6 +61,10 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
             );
         }
 
+        if (showInactiveOnly) {
+            filtered = filtered.filter(e => (e.corridas_completadas || 0) === 0);
+        }
+
         // Ordenar
         const sorted = [...filtered].sort((a, b) => {
             let aValue: number | string;
@@ -88,7 +93,7 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
         });
 
         return sorted;
-    }, [entregadoresData, searchTerm, sortField, sortDirection]);
+    }, [entregadoresData, searchTerm, sortField, sortDirection, showInactiveOnly]);
 
     const handleSort = (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => {
         if (sortField === field) {
@@ -105,6 +110,8 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
         sortDirection,
         searchTerm,
         setSearchTerm,
+        showInactiveOnly,
+        setShowInactiveOnly,
         handleSort
     };
 }

@@ -30,6 +30,8 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     sortDirection,
     searchTerm,
     setSearchTerm,
+    showInactiveOnly,
+    setShowInactiveOnly,
     handleSort
   } = useEntregadoresMainSort(entregadoresData);
 
@@ -114,6 +116,8 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
       <EntregadoresMainSearch
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        showInactiveOnly={showInactiveOnly}
+        onShowInactiveOnlyChange={setShowInactiveOnly}
       />
 
       <TopBottomPerformers entregadores={sortedEntregadores} />
