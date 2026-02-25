@@ -31,6 +31,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     aderenciaTurno={props.aderenciaTurno}
                     aderenciaSubPraca={props.aderenciaSubPraca}
                     aderenciaOrigem={props.aderenciaOrigem}
+                    totals={props.totals}
                 />
             );
         case 'analise':

@@ -1,22 +1,38 @@
 
-import React from 'react';
-import { AderenciaSemanal } from '@/types';
+import React, { useMemo } from 'react';
+import { AderenciaSemanal, AderenciaDia } from '@/types';
 import { motion } from 'framer-motion';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useGeneralStats } from './hooks/useGeneralStats';
 import { GeneralStatsScoreCard } from './components/GeneralStatsScoreCard';
 import { GeneralStatsMetrics } from './components/GeneralStatsMetrics';
+import { converterHorasParaDecimal } from '@/utils/formatters';
 
 interface DashboardGeneralStatsProps {
     aderenciaGeral?: AderenciaSemanal;
+    aderenciaDia?: AderenciaDia[];
 }
 
 export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
     aderenciaGeral,
+    aderenciaDia,
 }: DashboardGeneralStatsProps) {
 
     // Calcular gap de performance using custom hook
     const stats = useGeneralStats(aderenciaGeral);
+
+    // Extract sparkline data from aderenciaDia
+    const sparklineData = useMemo(() => {
+        if (!aderenciaDia || aderenciaDia.length < 2) return { planejado: undefined, entregue: undefined };
+
+        // Use last 8 days max for sparkline
+        const days = aderenciaDia.slice(-8);
+
+        return {
+            planejado: days.map(d => d.segundos_planejados || converterHorasParaDecimal(d.horas_a_entregar || '0') * 3600),
+            entregue: days.map(d => d.segundos_realizados || converterHorasParaDecimal(d.horas_entregues || '0') * 3600),
+        };
+    }, [aderenciaDia]);
 
     if (!stats) return null;
 
@@ -35,7 +51,11 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
                 />
 
                 {/* Metrics Grid */}
-                <GeneralStatsMetrics stats={stats} />
+                <GeneralStatsMetrics
+                    stats={stats}
+                    sparklinePlanejado={sparklineData.planejado}
+                    sparklineEntregue={sparklineData.entregue}
+                />
             </motion.div>
         </TooltipProvider>
     );

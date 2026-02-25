@@ -6,6 +6,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Sparkline } from '@/components/ui/Sparkline';
 
 interface StatisticCardProps {
     title: string;
@@ -22,6 +23,8 @@ interface StatisticCardProps {
     gradientTo: string;
     iconColor: string;
     bgGlowColor: string;
+    sparklineData?: number[];
+    sparklineColor?: string;
 }
 
 export const StatisticCard = React.memo(function StatisticCard({
@@ -34,7 +37,9 @@ export const StatisticCard = React.memo(function StatisticCard({
     gradientFrom,
     gradientTo,
     iconColor,
-    bgGlowColor
+    bgGlowColor,
+    sparklineData,
+    sparklineColor
 }: StatisticCardProps) {
     return (
         <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 group relative overflow-hidden">
@@ -63,6 +68,17 @@ export const StatisticCard = React.memo(function StatisticCard({
                             <span>{badge.text}</span>
                         </div>
                     </div>
+                    {sparklineData && sparklineData.length >= 2 && (
+                        <div className="pt-2">
+                            <Sparkline
+                                data={sparklineData}
+                                width={100}
+                                height={24}
+                                color={sparklineColor || '#3b82f6'}
+                                strokeWidth={1.5}
+                            />
+                        </div>
+                    )}
                 </div>
                 <div className={`p-4 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
                     <Icon className={`w-8 h-8 ${iconColor}`} />

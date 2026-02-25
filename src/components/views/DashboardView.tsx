@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
+import { AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, Totals } from '@/types';
 import { DashboardGeneralStats } from './dashboard/DashboardGeneralStats';
 import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance';
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
+import { MonthComparisonCards } from './dashboard/components/MonthComparisonCards';
+import { ConversionFunnel } from './dashboard/components/ConversionFunnel';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { exportarDashboardParaExcel } from './dashboard/DashboardExcelExport';
@@ -14,12 +16,14 @@ const DashboardView = React.memo(function DashboardView({
   aderenciaTurno,
   aderenciaSubPraca,
   aderenciaOrigem,
+  totals,
 }: {
   aderenciaGeral?: AderenciaSemanal;
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
   aderenciaSubPraca: AderenciaSubPraca[];
   aderenciaOrigem: AderenciaOrigem[];
+  totals?: Totals;
 }) {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -61,10 +65,29 @@ const DashboardView = React.memo(function DashboardView({
         </Button>
       </div>
 
+      {/* #2 — Comparativo Período Atual vs Anterior */}
+      {aderenciaDia.length >= 4 && (
+        <section>
+          <MonthComparisonCards aderenciaDia={aderenciaDia} />
+        </section>
+      )}
+
       {/* Aderência Geral - Design Profissional Clean */}
       <section>
-        <DashboardGeneralStats aderenciaGeral={aderenciaGeral} />
+        <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
       </section>
+
+      {/* #5 — Funil de Conversão */}
+      {totals && totals.ofertadas > 0 && (
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ConversionFunnel
+            ofertadas={totals.ofertadas}
+            aceitas={totals.aceitas}
+            completadas={totals.completadas}
+            rejeitadas={totals.rejeitadas}
+          />
+        </section>
+      )}
 
       {/* Aderência por Dia da Semana */}
       <section className="space-y-4">

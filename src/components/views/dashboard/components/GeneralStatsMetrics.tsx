@@ -10,9 +10,11 @@ interface GeneralStatsMetricsProps {
         gap: string | null;
         statusColor: string;
     };
+    sparklinePlanejado?: number[];
+    sparklineEntregue?: number[];
 }
 
-export const GeneralStatsMetrics = React.memo(function GeneralStatsMetrics({ stats }: GeneralStatsMetricsProps) {
+export const GeneralStatsMetrics = React.memo(function GeneralStatsMetrics({ stats, sparklinePlanejado, sparklineEntregue }: GeneralStatsMetricsProps) {
     return (
         <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -31,6 +33,8 @@ export const GeneralStatsMetrics = React.memo(function GeneralStatsMetrics({ sta
                 gradientTo="to-blue-100 dark:to-blue-800/20"
                 iconColor="text-blue-600 dark:text-blue-400"
                 bgGlowColor="bg-blue-50 dark:bg-blue-900/10"
+                sparklineData={sparklinePlanejado}
+                sparklineColor="#3b82f6"
             />
 
             {/* Tempo Entregue */}
@@ -49,6 +53,8 @@ export const GeneralStatsMetrics = React.memo(function GeneralStatsMetrics({ sta
                 gradientTo="to-emerald-100 dark:to-emerald-800/20"
                 iconColor="text-emerald-600 dark:text-emerald-400"
                 bgGlowColor="bg-emerald-50 dark:bg-emerald-900/10"
+                sparklineData={sparklineEntregue}
+                sparklineColor="#10b981"
             />
 
             {/* Gap Indicator */}
