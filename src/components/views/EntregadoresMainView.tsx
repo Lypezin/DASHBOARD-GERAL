@@ -12,7 +12,6 @@ import { safeLog } from '@/lib/errorHandler';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { useEntregadoresMainSort } from './entregadores/hooks/useEntregadoresMainSort';
 import { TopBottomPerformers } from './entregadores/TopBottomPerformers';
-import { CorrelationScatter } from './analise/CorrelationScatter';
 import { EntregadorProfileDialog } from './entregadores/EntregadorProfileDialog';
 
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -130,8 +129,6 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
       />
 
       <TopBottomPerformers entregadores={sortedEntregadores} />
-
-      <CorrelationScatter entregadores={sortedEntregadores} />
 
       <EntregadorProfileDialog
         entregador={selectedEntregador}
