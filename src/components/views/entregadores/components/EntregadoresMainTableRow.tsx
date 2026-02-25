@@ -8,10 +8,12 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface EntregadoresTableRowProps {
     entregador: Entregador;
+    onClick?: (entregador: Entregador) => void;
 }
 
 export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTableRow({
-    entregador
+    entregador,
+    onClick,
 }: EntregadoresTableRowProps) {
     const horas = (entregador.total_segundos || 0) / 3600;
     const hs = calculateHealthScore(
