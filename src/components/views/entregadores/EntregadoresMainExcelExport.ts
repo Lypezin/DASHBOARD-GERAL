@@ -2,6 +2,7 @@ import { Entregador } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from './EntregadoresUtils';
+import { formatarHorasParaHMS } from '@/utils/formatters';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -18,6 +19,7 @@ export async function exportarEntregadoresMainParaExcel(entregadores: Entregador
             const dadosExportacao = entregadores.map(e => ({
                 'ID Entregador': e.id_entregador,
                 'Nome': e.nome_entregador,
+                'Horas': formatarHorasParaHMS((e.total_segundos || 0) / 3600),
                 'Ofertadas': e.corridas_ofertadas,
                 'Aceitas': e.corridas_aceitas,
                 'Rejeitadas': e.corridas_rejeitadas,
@@ -34,6 +36,7 @@ export async function exportarEntregadoresMainParaExcel(entregadores: Entregador
             const colWidths = [
                 { wch: 15 }, // ID
                 { wch: 35 }, // Nome
+                { wch: 15 }, // Horas
                 { wch: 10 }, // Ofertadas
                 { wch: 10 }, // Aceitas
                 { wch: 10 }, // Rejeitadas

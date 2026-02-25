@@ -55,7 +55,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                                     </div>
 
                                     <div className={`text-2xl font-bold font-mono tracking-tight ${statusColor}`}>
-                                        {Math.round(aderencia)}%
+                                        {aderencia.toFixed(2)}%
                                     </div>
                                 </div>
 

@@ -66,7 +66,7 @@ export function CircularProgress({
             </span>
           )}
           <span className="text-2xl font-bold text-slate-900 dark:text-white">
-            {clampedValue.toFixed(1)}%
+            {clampedValue.toFixed(2)}%
           </span>
         </div>
       )}
