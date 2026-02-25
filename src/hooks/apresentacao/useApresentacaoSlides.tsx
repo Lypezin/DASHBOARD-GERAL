@@ -141,7 +141,8 @@ export const useApresentacaoSlides = (
     periodoSemana2,
     pracaSelecionada,
     mediaSlides,
-    utrComparacao
+    utrComparacao,
+    onUpdateMediaSlide
   ]);
 
   return slides;
