@@ -68,7 +68,7 @@ export async function exportarPrioridadeParaExcel(
         if (IS_DEV) {
             safeLog.info(`✅ Arquivo Excel exportado: ${nomeArquivo} (${dadosExportacao.length} registros)`);
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         safeLog.error('Erro ao exportar para Excel:', err);
         throw new Error('Erro ao exportar dados para Excel. Por favor, tente novamente.');
     }

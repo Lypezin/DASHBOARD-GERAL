@@ -12,7 +12,7 @@ export async function exportarEntregadoresParaExcel(
   try {
     // Carregar xlsx dinamicamente
     const XLSX = await loadXLSX();
-    
+
     // Preparar dados para exportação
     const dadosExportacao = entregadores.map((entregador) => ({
       'ID Entregador': entregador.id_entregador,
@@ -27,8 +27,8 @@ export async function exportarEntregadoresParaExcel(
       'Dias sem Rodar': entregador.dias_sem_rodar === null || entregador.dias_sem_rodar === undefined
         ? 'N/A'
         : entregador.dias_sem_rodar === 0
-        ? 'Hoje'
-        : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`,
+          ? 'Hoje'
+          : `${entregador.dias_sem_rodar} dia${entregador.dias_sem_rodar !== 1 ? 's' : ''}`,
       'Rodando': entregador.total_completadas > 30 ? 'SIM' : 'NÃO',
     }));
 
@@ -66,7 +66,7 @@ export async function exportarEntregadoresParaExcel(
     if (IS_DEV) {
       safeLog.info(`✅ Arquivo Excel exportado: ${nomeArquivo} (${dadosExportacao.length} registros)`);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     safeLog.error('Erro ao exportar para Excel:', err);
     throw new Error('Erro ao exportar dados para Excel. Por favor, tente novamente.');
   }

@@ -53,9 +53,9 @@ export function useResultadosData() {
                 );
                 setAtendentesData(atendentesComCusto);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             safeLog.error('Erro ao buscar dados de Resultados:', err);
-            setError(err.message || 'Erro ao carregar dados de Resultados');
+            setError(err instanceof Error ? err.message : 'Erro ao carregar dados de Resultados');
         } finally {
             setLoading(false);
         }

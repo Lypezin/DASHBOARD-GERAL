@@ -26,11 +26,11 @@ export function useResetPassword() {
             if (error) throw error;
 
             setState({ loading: false, error: null, success: true });
-        } catch (err: any) {
+        } catch (err: unknown) {
             safeLog.error('Erro ao redefinir senha:', err);
             setState({
                 loading: false,
-                error: err.message || 'Ocorreu um erro ao redefinir sua senha. Tente novamente.',
+                error: err instanceof Error ? err.message : 'Ocorreu um erro ao redefinir sua senha. Tente novamente.',
                 success: false,
             });
         }

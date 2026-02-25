@@ -91,10 +91,10 @@ export function useResumoSemanalData({ filterPayload, activeTab }: UseResumoSema
 
                 setAderenciaSemanalV2(aderenciaSemanal);
 
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (mounted) {
                     safeLog.error('[useResumoSemanalData] Erro:', err);
-                    setError(err);
+                    setError(err instanceof Error ? err : new Error('Erro desconhecido'));
                 }
             } finally {
                 if (mounted) setLoading(false);

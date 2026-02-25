@@ -29,9 +29,9 @@ export function useValoresBreakdown(filterPayload: FilterPayload, enabled: boole
                         setData(result.data);
                     }
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (isMounted) {
-                    setError(err.message || 'Erro desconhecido');
+                    setError(err instanceof Error ? err.message : 'Erro desconhecido');
                 }
             } finally {
                 if (isMounted) {

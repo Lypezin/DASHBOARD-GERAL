@@ -83,7 +83,7 @@ export function useCustoPorLiberado() {
       );
 
       return atendentesComCusto;
-    } catch (err: any) {
+    } catch (err: unknown) {
       safeLog.error('Erro ao buscar custo por liberado:', err);
       return atendentesDataAtual;
     }

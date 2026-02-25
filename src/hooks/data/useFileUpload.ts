@@ -74,9 +74,9 @@ export function useFileUpload(options: FileUploadOptions) {
           });
           totalInserted += inserted;
           successCount++;
-        } catch (err: any) {
+        } catch (err: unknown) {
           errorCount++;
-          lastError = err.message || String(err);
+          lastError = err instanceof Error ? err.message : String(err);
           setState(p => ({ ...p, message: `Erro em ${file.name}: ${lastError}` }));
           safeLog.error(`Erro arquivo ${file.name}`, err);
         }
@@ -92,9 +92,10 @@ export function useFileUpload(options: FileUploadOptions) {
 
       if (refreshRpcFunction) triggerConcurrentRefresh(refreshRpcFunction);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       safeLog.error('Erro geral upload', err);
-      setState(p => ({ ...p, message: `Erro: ${err.message}` }));
+      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+      setState(p => ({ ...p, message: `Erro: ${msg}` }));
     } finally {
       setState(p => ({ ...p, uploading: false }));
     }

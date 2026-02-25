@@ -83,9 +83,9 @@ export function useLogin() {
       // Login bem-sucedido
       router.push('/');
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       safeLog.error('Erro no login:', err);
-      setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
+      setError(err instanceof Error ? err.message : 'Erro ao fazer login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
     }

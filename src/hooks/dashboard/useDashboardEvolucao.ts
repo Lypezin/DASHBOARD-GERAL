@@ -89,10 +89,10 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
 
         lastFetchSignature.current = currentSignature;
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (mounted) {
           safeLog.error('[useDashboardEvolucao] Erro ao buscar evolução:', err);
-          setError(err);
+          setError(err instanceof Error ? err : new Error('Erro desconhecido'));
         }
       } finally {
         if (mounted) setLoading(false);

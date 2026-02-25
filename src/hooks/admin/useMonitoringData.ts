@@ -42,12 +42,13 @@ export function useMonitoringData() {
                 userTime: processUserTime(logs, profileMap)
             });
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             safeLog.error('Monitoring fetch error:', err);
-            if (err.message?.includes('relation "user_activity_logs" does not exist')) {
+            const msg = err instanceof Error ? err.message : '';
+            if (msg.includes('relation "user_activity_logs" does not exist')) {
                 setError("Tabela de logs não encontrada. Por favor execute o script SQL.");
             } else {
-                setError(err.message);
+                setError(msg || 'Erro ao carregar dados de monitoramento');
             }
         } finally {
             setLoading(false);

@@ -17,7 +17,7 @@ export const PrioridadeHeader: React.FC<PrioridadeHeaderProps> = ({ sortedEntreg
     const exportarParaExcel = async () => {
         try {
             await exportarPrioridadeParaExcel(sortedEntregadores);
-        } catch (err: any) {
+        } catch (err: unknown) {
             safeLog.error('Erro ao exportar para Excel:', err);
             alert('Erro ao exportar dados para Excel. Por favor, tente novamente.');
         }

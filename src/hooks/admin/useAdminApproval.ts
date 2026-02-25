@@ -70,8 +70,8 @@ export function useAdminApproval(
 
             cancelApproval();
             fetchData();
-        } catch (err: any) {
-            const errorMessage = err?.message || err?.toString() || 'Ocorreu um erro. Tente novamente mais tarde.';
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : (typeof err === 'object' && err !== null ? String(err) : 'Ocorreu um erro. Tente novamente mais tarde.');
             if (IS_DEV) {
                 safeLog.error('Erro ao aprovar usuário:', {
                     error: err,

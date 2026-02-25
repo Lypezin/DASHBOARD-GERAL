@@ -76,9 +76,9 @@ export const useMarketingDriverDetails = ({
                 setData(prev => [...prev, ...result.data]);
             }
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             safeLog.error("Error fetching details:", err);
-            setError("Erro ao carregar detalhes.");
+            setError(err instanceof Error ? err.message : 'Erro ao carregar detalhes.');
         } finally {
             setLoading(false);
         }

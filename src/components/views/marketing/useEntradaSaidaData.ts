@@ -58,9 +58,9 @@ export function useEntradaSaidaData({ dataInicial, dataFinal, organizationId, pr
                 const filteredData = processFluxoData(rawData);
 
                 setData(filteredData);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 safeLog.error('Erro ao buscar fluxo de entregadores:', err);
-                setError(err.message || 'Erro ao carregar dados.');
+                setError(err instanceof Error ? err.message : 'Erro ao carregar dados.');
             } finally {
                 setLoading(false);
             }

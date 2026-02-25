@@ -72,10 +72,10 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
                 setDriversData(driversResult.data || []);
                 setPedidosData(pedidosResult.data || []);
 
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (mounted) {
                     safeLog.error('[useResumoLocalData] Error:', err);
-                    setError(err);
+                    setError(err instanceof Error ? err : new Error('Erro desconhecido'));
                 }
             } finally {
                 if (mounted) setLoading(false);

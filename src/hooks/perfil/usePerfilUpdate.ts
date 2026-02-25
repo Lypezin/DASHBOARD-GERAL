@@ -20,9 +20,9 @@ export const usePerfilUpdate = () => {
       await updateUserName(user.id, newName.trim());
       setSuccess('Nome atualizado com sucesso!');
       onSuccess?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
       safeLog.error('Erro atualizar nome:', err);
-      setError(err.message || 'Erro ao atualizar nome.');
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar nome.');
     } finally {
       setSavingName(false);
     }
@@ -37,9 +37,9 @@ export const usePerfilUpdate = () => {
       const url = await updateUserAvatar(user.id, file, currentAvatarUrl);
       setSuccess('Foto atualizada com sucesso!');
       return url;
-    } catch (err: any) {
+    } catch (err: unknown) {
       safeLog.error('Erro upload:', err);
-      setError(err.message || 'Erro ao atualizar foto.');
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar foto.');
       throw err;
     } finally {
       setUploading(false);
@@ -54,9 +54,9 @@ export const usePerfilUpdate = () => {
 
       await removeUserAvatar(user.id, currentAvatarUrl);
       setSuccess('Foto removida com sucesso!');
-    } catch (err: any) {
+    } catch (err: unknown) {
       safeLog.error('Erro remover foto:', err);
-      setError(err.message || 'Erro ao remover foto.');
+      setError(err instanceof Error ? err.message : 'Erro ao remover foto.');
       throw err;
     } finally {
       setUploading(false);

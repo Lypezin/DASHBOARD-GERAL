@@ -26,9 +26,9 @@ export function useMarketingData() {
             ]);
             setTotals(t);
             setCitiesData(c);
-        } catch (err: any) {
+        } catch (err: unknown) {
             safeLog.error('Erro buscar dados Marketing:', err);
-            setError(err.message || 'Erro ao carregar dados');
+            setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
         } finally {
             setLoading(false);
         }

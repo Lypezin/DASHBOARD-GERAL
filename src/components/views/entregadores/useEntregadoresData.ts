@@ -62,9 +62,9 @@ export function useEntregadoresData() {
             );
 
             setEntregadores(data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             safeLog.error('Erro ao buscar entregadores:', err);
-            setError(err.message || 'Erro ao carregar entregadores');
+            setError(err instanceof Error ? err.message : 'Erro ao carregar entregadores');
         } finally {
             setLoading(false);
         }

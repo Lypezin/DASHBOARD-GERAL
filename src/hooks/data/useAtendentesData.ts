@@ -59,9 +59,9 @@ export function useAtendentesData() {
       // Fallback para queries diretas
       return await fetchFallbackData(filters);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       safeLog.error('Erro ao buscar dados dos atendentes:', err);
-      setError(err.message || 'Erro ao buscar dados dos atendentes');
+      setError(err instanceof Error ? err.message : 'Erro ao buscar dados dos atendentes');
       throw err;
     } finally {
       setLoading(false);

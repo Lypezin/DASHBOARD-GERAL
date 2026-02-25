@@ -73,8 +73,9 @@ export function useManualRefresh() {
             }
 
             await runBatch(mvs);
-        } catch (err: any) {
-            setState(p => ({ ...p, refreshing: false, message: `❌ Erro: ${err.message}` }));
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+            setState(p => ({ ...p, refreshing: false, message: `❌ Erro: ${msg}` }));
             safeLog.error('Erro refresh all:', err);
         }
     }, [runBatch]);

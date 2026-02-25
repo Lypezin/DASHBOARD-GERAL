@@ -57,8 +57,8 @@ export function useOrganizationFetcher() {
             } else {
                 setOrganization(null);
             }
-        } catch (err: any) {
-            const errorMessage = err.message || 'Erro ao carregar organização';
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar organização';
             if (IS_DEV) {
                 safeLog.error('[OrganizationContext] Erro:', err);
             }

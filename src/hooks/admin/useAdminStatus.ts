@@ -26,8 +26,9 @@ export function useAdminStatus(fetchData: () => void) {
 
             if (error) throw error;
             fetchData();
-        } catch (err: any) {
-            alert('Erro ao revogar acesso: ' + err.message);
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+            alert('Erro ao revogar acesso: ' + msg);
         }
     };
 
@@ -91,11 +92,11 @@ export function useAdminStatus(fetchData: () => void) {
                 safeLog.info('Status de admin alterado com sucesso:', { userId, make_admin: !currentIsAdmin, data });
             }
             fetchData();
-        } catch (err: any) {
+        } catch (err: unknown) {
             if (IS_DEV) {
                 safeLog.error('Erro inesperado ao alterar admin:', err);
             }
-            const errorMessage = err?.message || err?.toString() || 'Ocorreu um erro. Tente novamente mais tarde.';
+            const errorMessage = err instanceof Error ? err.message : (typeof err === 'object' && err !== null ? String(err) : 'Ocorreu um erro. Tente novamente mais tarde.');
             alert('Erro ao alterar status de admin: ' + errorMessage);
         }
     };

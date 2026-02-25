@@ -76,9 +76,9 @@ export const useValoresCidadeData = (
       setCustoPorLiberado(totalLiberados > 0 ? totalValorEnviados / totalLiberados : 0);
       setQuantidadeLiberados(totalLiberados);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       safeLog.error('Erro ao buscar dados de Valores por Cidade:', err);
-      setError(err.message || 'Erro ao carregar dados de Valores por Cidade');
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados de Valores por Cidade');
     } finally {
       setLoading(false);
     }

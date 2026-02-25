@@ -46,7 +46,7 @@ export function useCityLastUpdates() {
             }
             globalPromise = null;
             return globalCache;
-          } catch (err: any) {
+          } catch (err: unknown) {
             safeLog.error('Unexpected error fetching updates:', err);
             globalPromise = null;
             return null;

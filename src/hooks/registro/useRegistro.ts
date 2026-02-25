@@ -42,14 +42,14 @@ export function useRegistro() {
       if (signUpError) throw signUpError;
 
       setSuccess(true);
-      
+
       // Redirecionar após 10 segundos
       setTimeout(() => {
         router.push('/login');
       }, 10000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       safeLog.error('Erro no registro:', err);
-      setError(err.message || 'Erro ao criar conta. Tente novamente.');
+      setError(err instanceof Error ? err.message : 'Erro ao criar conta. Tente novamente.');
     } finally {
       setLoading(false);
     }

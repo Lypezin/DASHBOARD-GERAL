@@ -32,7 +32,7 @@ export async function fetchEntregadoresFallback(
             searchTerm
         );
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         safeLog.error('Erro no fallback ao buscar entregadores:', err);
         throw err;
     }

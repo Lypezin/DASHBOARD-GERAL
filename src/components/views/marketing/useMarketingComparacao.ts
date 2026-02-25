@@ -81,14 +81,14 @@ export function useMarketingComparacao(
 
             setData(result || []);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Check if this is still the active request
             if (currentRequestId !== requestIdRef.current) {
                 return;
             }
 
             safeLog.error('Erro ao buscar comparação marketing:', err);
-            setError(err.message || 'Erro ao carregar dados');
+            setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
         } finally {
             if (currentRequestId === requestIdRef.current) {
                 setLoading(false);

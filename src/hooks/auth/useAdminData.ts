@@ -96,9 +96,9 @@ export function useAdminData() {
         }
         setPracasDisponiveis([]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (IS_DEV) safeLog.error('Erro ao carregar dados:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setLoading(false);
     }

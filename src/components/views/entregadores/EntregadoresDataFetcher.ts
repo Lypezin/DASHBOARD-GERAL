@@ -57,7 +57,7 @@ export async function fetchEntregadores(
     if (IS_DEV) safeLog.info(`✅ ${data.length} entregador(es) encontrado(s)`);
 
     return data;
-  } catch (err: any) {
+  } catch (err: unknown) {
     safeLog.error('❌ ERRO GERAL fetchEntregadores:', err);
     safeLog.error('Erro ao buscar entregadores:', err);
     throw err;

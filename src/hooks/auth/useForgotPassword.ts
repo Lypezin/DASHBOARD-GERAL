@@ -26,11 +26,11 @@ export function useForgotPassword() {
             if (error) throw error;
 
             setState({ loading: false, error: null, success: true });
-        } catch (err: any) {
+        } catch (err: unknown) {
             safeLog.error('Erro ao enviar email de recuperação:', err);
             setState({
                 loading: false,
-                error: err.message || 'Ocorreu um erro ao enviar o email. Tente novamente.',
+                error: err instanceof Error ? err.message : 'Ocorreu um erro ao enviar o email. Tente novamente.',
                 success: false,
             });
         }
