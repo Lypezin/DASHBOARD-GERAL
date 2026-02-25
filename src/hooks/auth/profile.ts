@@ -72,7 +72,7 @@ export async function fetchAndValidateProfile(
         // Se fetchUserProfile, armazenar perfil
         if (fetchUserProfile && profile) {
             // Se for admin ou master sem organization_id, manter null para acesso total
-            let organizationId = profile.organization_id || null;
+            const organizationId = profile.organization_id || null;
 
             if (IS_DEV) {
                 safeLog.info('[useAuthGuard] Perfil obtido:', {
