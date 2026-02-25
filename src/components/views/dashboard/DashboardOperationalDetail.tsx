@@ -120,7 +120,24 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
             </CardHeader>
 
             <CardContent className="p-0">
-                {dataToRender.length > 0 ? (
+                {viewMode === 'ranking' ? (
+                    aderenciaSubPraca.length > 0 ? (
+                        <motion.div
+                            variants={itemVariant}
+                            initial="hidden"
+                            animate="show"
+                        >
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <BenchmarkPracas subPracas={aderenciaSubPraca} />
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                            <BarChart3 className="h-12 w-12 mb-3 opacity-20" />
+                            <p className="text-sm font-medium">Nenhum dado de ranking disponível</p>
+                        </div>
+                    )
+                ) : dataToRender.length > 0 ? (
                     <div className="space-y-6">
                         <motion.div
                             key={viewMode}
@@ -135,19 +152,6 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
                                 </motion.div>
                             ))}
                         </motion.div>
-
-                        {viewMode === 'sub_praca' && aderenciaSubPraca.length > 1 && (
-                            <motion.div
-                                variants={itemVariant}
-                                initial="hidden"
-                                animate="show"
-                                className="pt-2"
-                            >
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <BenchmarkPracas subPracas={aderenciaSubPraca} />
-                                </div>
-                            </motion.div>
-                        )}
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">

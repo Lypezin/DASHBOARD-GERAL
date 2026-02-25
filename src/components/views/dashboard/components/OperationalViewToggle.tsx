@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ViewMode = 'dia' | 'turno' | 'sub_praca' | 'origem';
+export type ViewMode = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'ranking';
 
 interface OperationalViewToggleProps {
     viewMode: ViewMode;
@@ -10,7 +10,7 @@ interface OperationalViewToggleProps {
 export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({ viewMode, onViewModeChange }) => {
     return (
         <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
-            {(['dia', 'turno', 'sub_praca', 'origem'] as const).map((mode) => (
+            {(['dia', 'turno', 'sub_praca', 'origem', 'ranking'] as const).map((mode) => (
                 <button
                     key={mode}
                     onClick={() => onViewModeChange(mode)}
@@ -19,7 +19,7 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({ vi
                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                         }`}
                 >
-                    {mode === 'sub_praca' ? 'Sub Praça' : mode.charAt(0).toUpperCase() + mode.slice(1)}
+                    {mode === 'sub_praca' ? 'Sub Praça' : mode === 'ranking' ? 'Ranking Sub Praça' : mode.charAt(0).toUpperCase() + mode.slice(1)}
                 </button>
             ))}
         </div>

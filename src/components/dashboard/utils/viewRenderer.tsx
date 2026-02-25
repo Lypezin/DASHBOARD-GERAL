@@ -27,6 +27,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
             return (
                 <DashboardView
                     aderenciaGeral={props.aderenciaGeral}
+                    aderenciaSemanal={props.aderenciaSemanal}
                     aderenciaDia={props.aderenciaDia}
                     aderenciaTurno={props.aderenciaTurno}
                     aderenciaSubPraca={props.aderenciaSubPraca}

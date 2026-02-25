@@ -4,7 +4,7 @@ import { useDashboardDimensions } from '@/hooks/dashboard/useDashboardDimensions
 import { fetchComparisonMetrics } from '@/hooks/comparacao/useComparisonMetrics';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { DashboardResumoData, AderenciaDia } from '@/types';
+import { DashboardResumoData, AderenciaSemanal } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 
 export interface ComparisonMetricData {
@@ -14,7 +14,7 @@ export interface ComparisonMetricData {
     format: 'number' | 'percent' | 'hours';
 }
 
-export function useWeekComparison(aderenciaDia?: AderenciaDia[]) {
+export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
     const { filters } = useDashboardFilters();
     const { semanasDisponiveis, loadingDimensions } = useDashboardDimensions();
     const { organizationId, isLoading: isOrgLoading } = useOrganization();
@@ -37,31 +37,21 @@ export function useWeekComparison(aderenciaDia?: AderenciaDia[]) {
         } else if (filters.semana) {
             targetWeekStr = String(filters.semana);
         }
-        // 2. Se nÃ£o houver filtro manual, calculamos a ultima semana com base nos dados exibidos `aderenciaDia`
-        else if (aderenciaDia && aderenciaDia.length > 0) {
-            const validDates = aderenciaDia
-                .map(d => d.data || d.dia)
+        // 2. Se não houver filtro manual, calculamos a ultima semana com base nos dados exibidos `aderenciaSemanal`
+        else if (aderenciaSemanal && aderenciaSemanal.length > 0) {
+            // aderenciaSemanal vem da API com o campo `semana` que pode ser "2026-W08", "8", etc.
+            const weekStrings = aderenciaSemanal
+                .map(s => s.semana)
                 .filter(Boolean)
-                .sort();
+                // Ignorar a linha de total Geral se houver
+                .filter(s => s !== 'Geral');
 
-            if (validDates.length > 0) {
-                // "2026-02-22" ou similar
-                let latestDateStr = validDates[validDates.length - 1];
-                if (latestDateStr) {
-                    try {
-                        // Garantindo timezone UTC para evitar que 00:00 retorne dia incorreto
-                        const d = new Date(latestDateStr.includes('T') ? latestDateStr : `${latestDateStr}T00:00:00Z`);
-                        targetYear = d.getUTCFullYear();
-
-                        // CÃ¡lculo padronizado da ISO Week Date
-                        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-                        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-                        const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-
-                        targetWeekStr = String(weekNo);
-                    } catch (e) {
-                        safeLog.warn('Failed to parse date for ISO week: ', latestDateStr);
-                    }
+            if (weekStrings.length > 0) {
+                // Pega a string de semana e tenta extrair os digitos do final. Ex: "2026-W08" -> "08" -> "8"
+                const lastWeekStr = weekStrings[weekStrings.length - 1];
+                const match = String(lastWeekStr).match(/(\d+)$/);
+                if (match) {
+                    targetWeekStr = match[1];
                 }
             }
         }

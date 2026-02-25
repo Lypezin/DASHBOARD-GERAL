@@ -11,12 +11,14 @@ import { safeLog } from '@/lib/errorHandler';
 
 const DashboardView = React.memo(function DashboardView({
   aderenciaGeral,
+  aderenciaSemanal,
   aderenciaDia,
   aderenciaTurno,
   aderenciaSubPraca,
   aderenciaOrigem,
 }: {
   aderenciaGeral?: AderenciaSemanal;
+  aderenciaSemanal: AderenciaSemanal[];
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
   aderenciaSubPraca: AderenciaSubPraca[];
@@ -63,9 +65,9 @@ const DashboardView = React.memo(function DashboardView({
       </div>
 
       {/* #2 — Comparativo Semanal (Última Selecionada vs Anterior) */}
-      {aderenciaDia.length > 0 && (
+      {aderenciaSemanal.length > 0 && (
         <section>
-          <MonthComparisonCards aderenciaDia={aderenciaDia} />
+          <MonthComparisonCards aderenciaSemanal={aderenciaSemanal} />
         </section>
       )}
 
