@@ -70,7 +70,7 @@ export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
             previousLabel: `Semana ${previousNum}`
         };
 
-    }, [filters.semanas, filters.semana, filters.ano, aderenciaDia]);
+    }, [filters.semanas, filters.semana, filters.ano, aderenciaSemanal]);
 
     useEffect(() => {
         if (!weeksToCompare || isOrgLoading) {
