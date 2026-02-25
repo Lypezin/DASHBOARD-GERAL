@@ -4,6 +4,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useWeekComparison } from '../hooks/useWeekComparison';
+import { AderenciaDia } from '@/types';
+
+interface MonthComparisonCardsProps {
+    aderenciaDia: AderenciaDia[];
+}
 
 function formatValue(val: number, format: 'number' | 'percent' | 'hours'): string {
     if (format === 'percent') return `${val.toFixed(1)}%`;
@@ -15,8 +20,10 @@ function formatValue(val: number, format: 'number' | 'percent' | 'hours'): strin
     return val.toLocaleString('pt-BR');
 }
 
-export const MonthComparisonCards = React.memo(function MonthComparisonCards() {
-    const { metrics, loading, currentWeekLabel, previousWeekLabel } = useWeekComparison();
+export const MonthComparisonCards = React.memo(function MonthComparisonCards({
+    aderenciaDia
+}: MonthComparisonCardsProps) {
+    const { metrics, loading, currentWeekLabel, previousWeekLabel } = useWeekComparison(aderenciaDia);
 
     if (loading) {
         return (

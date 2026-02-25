@@ -120,10 +120,6 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
         onShowInactiveOnlyChange={setShowInactiveOnly}
       />
 
-      <TopBottomPerformers entregadores={sortedEntregadores} />
-
-      <CorrelationScatter entregadores={sortedEntregadores} />
-
       <EntregadoresMainTable
         sortedEntregadores={sortedEntregadores}
         sortField={sortField}
@@ -132,6 +128,10 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
         searchTerm={searchTerm}
         onRowClick={handleRowClick}
       />
+
+      <TopBottomPerformers entregadores={sortedEntregadores} />
+
+      <CorrelationScatter entregadores={sortedEntregadores} />
 
       <EntregadorProfileDialog
         entregador={selectedEntregador}
