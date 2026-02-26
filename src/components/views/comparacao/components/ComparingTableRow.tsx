@@ -5,7 +5,7 @@ import { TableRow, TableCell } from '@/components/ui/table';
 
 interface ComparingTableRowProps {
     label: string;
-    icon: React.ReactNode;
+    icon?: React.ReactNode;
     data: DashboardResumoData[];
     getValue: (item: DashboardResumoData) => number;
     formatValue: (value: number) => React.ReactNode;
@@ -23,62 +23,42 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
     formatValue,
     showVariation = true,
     invertVariationColors = false,
-    valueClassName = "text-slate-600 dark:text-slate-400",
+    valueClassName = "text-slate-700 dark:text-slate-200",
     isEven = false,
 }) => {
-    const values = data.map(getValue);
-
     return (
         <TableRow className={`
-            transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/50
-            ${!isEven ? 'bg-slate-50/40 dark:bg-slate-900/30' : 'bg-white dark:bg-slate-900'}
+            transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50
+            ${isEven ? 'bg-slate-50/50 dark:bg-slate-800/20' : ''}
         `}>
-            <TableCell className="font-semibold text-slate-800 dark:text-slate-200 py-4">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                        {icon}
-                    </div>
+            <TableCell className="text-sm font-medium text-slate-700 dark:text-slate-300 py-3 pl-5">
+                <div className="flex items-center gap-2">
+                    {icon && icon}
                     {label}
                 </div>
             </TableCell>
             {data.map((dados, idx) => {
                 const rawValue = getValue(dados);
-
                 let variacao: number | null = null;
 
                 if (idx > 0 && showVariation) {
-                    const dadosAnterior = data[idx - 1];
-                    const rawValueAnterior = getValue(dadosAnterior);
-
-                    const currentNum = rawValue;
-                    const prevNum = rawValueAnterior;
-
-                    if (prevNum > 0) {
-                        variacao = ((currentNum - prevNum) / prevNum) * 100;
-                    } else if (currentNum > 0) {
-                        variacao = 100;
-                    } else {
-                        variacao = 0;
-                    }
+                    const prevValue = getValue(data[idx - 1]);
+                    if (prevValue > 0) variacao = ((rawValue - prevValue) / prevValue) * 100;
+                    else if (rawValue > 0) variacao = 100;
+                    else variacao = 0;
                 }
 
                 return (
                     <React.Fragment key={idx}>
-                        <TableCell className="text-center text-sm border-l border-slate-100 dark:border-slate-800/50 p-0 h-full align-middle">
-                            <div className="py-4 px-2 flex flex-col items-center justify-center">
-                                <span className={`font-medium ${valueClassName}`}>
-                                    {formatValue(rawValue)}
-                                </span>
-                            </div>
+                        <TableCell className={`text-center text-sm border-l border-slate-100 dark:border-slate-800 py-3 ${valueClassName}`}>
+                            {formatValue(rawValue)}
                         </TableCell>
                         {idx > 0 && (
-                            <TableCell className="text-center w-[80px] p-0">
+                            <TableCell className="text-center w-[70px] py-3 px-1">
                                 {variacao !== null ? (
-                                    <div className="flex justify-center">
-                                        <VariacaoBadge variacao={variacao} className="scale-90" invertColors={invertVariationColors} />
-                                    </div>
+                                    <VariacaoBadge variacao={variacao} className="scale-90 mx-auto" invertColors={invertVariationColors} />
                                 ) : (
-                                    <span className="text-slate-300 dark:text-slate-700">•</span>
+                                    <span className="text-slate-300 dark:text-slate-700">–</span>
                                 )}
                             </TableCell>
                         )}

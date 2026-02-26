@@ -20,7 +20,6 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
     dadosComparacao,
     semanasSelecionadas,
 }) => {
-    // 1. Extrair todas as origens disponíveis
     const todasOrigens = new Set<string>();
     dadosComparacao.forEach((d) => {
         if (d.aderencia_origem && Array.isArray(d.aderencia_origem)) {
@@ -31,7 +30,6 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
     });
     const origensOrdenadas = Array.from(todasOrigens).sort();
 
-    // 2. Mapear dados
     const dadosPorOrigem: Record<string, Record<number, number>> = {};
     origensOrdenadas.forEach((origem) => {
         dadosPorOrigem[origem] = {};
@@ -45,21 +43,19 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
         <div className="overflow-x-auto">
             <Table>
                 <TableHeader>
-                    <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/60 dark:bg-slate-800/40">
-                        <TableHead className="sticky left-0 z-20 bg-white dark:bg-slate-900 w-[140px] sm:w-[180px] text-slate-900 dark:text-white font-bold pl-4 sm:pl-6 border-r border-slate-200/50 dark:border-slate-700/50">
+                    <TableRow className="hover:bg-transparent bg-slate-50/80 dark:bg-slate-800/30">
+                        <TableHead className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-900 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-5 min-w-[140px] border-r border-slate-100 dark:border-slate-800">
                             Origem
                         </TableHead>
                         {semanasSelecionadas.map((semana) => {
                             const semanaStr = String(semana).replace('W', '');
                             return (
                                 <React.Fragment key={semana}>
-                                    <TableHead className="text-center font-bold text-slate-900 dark:text-white border-l border-slate-200/50 dark:border-slate-700/50 min-w-[100px]">
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-semibold">
-                                            Semana {semanaStr}
-                                        </span>
+                                    <TableHead className="text-center text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 border-l border-slate-100 dark:border-slate-800 min-w-[90px]">
+                                        Sem. {semanaStr}
                                     </TableHead>
-                                    <TableHead className="text-center font-semibold text-slate-500 dark:text-slate-400 min-w-[80px]">
-                                        <span className="text-xs uppercase tracking-wider">Var %</span>
+                                    <TableHead className="text-center text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 min-w-[70px]">
+                                        Var
                                     </TableHead>
                                 </React.Fragment>
                             );
@@ -78,8 +74,8 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
                     ))}
                     {origensOrdenadas.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={semanasSelecionadas.length * 2 + 1} className="text-center py-8 text-slate-500 dark:text-slate-400">
-                                Nenhum dado de origem disponível para as semanas selecionadas.
+                            <TableCell colSpan={semanasSelecionadas.length * 2 + 1} className="text-center py-8 text-sm text-slate-400">
+                                Nenhum dado de origem disponível.
                             </TableCell>
                         </TableRow>
                     )}

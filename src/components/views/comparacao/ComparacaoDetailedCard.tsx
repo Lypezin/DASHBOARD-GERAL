@@ -1,8 +1,6 @@
 import React from 'react';
 import { ComparacaoTabelaDetalhada } from './ComparacaoTabelaDetalhada';
 import { ComparacaoCharts } from './ComparacaoCharts';
-import { FileSpreadsheet } from 'lucide-react';
-import { SectionCard } from './components/SectionCard';
 import { ViewModeToggle } from './components/ViewModeToggle';
 
 interface ComparacaoDetailedCardProps {
@@ -19,13 +17,13 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
     onViewModeChange
 }) => {
     return (
-        <SectionCard
-            title="Análise Detalhada"
-            description="Métricas comparativas entre semanas selecionadas"
-            accentColor="bg-indigo-500"
-            actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />}
-            noPadding
-        >
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                    Análise Detalhada
+                </h3>
+                <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
+            </div>
             {viewMode === 'table' ? (
                 <ComparacaoTabelaDetalhada
                     dadosComparacao={dadosComparacao}
@@ -41,6 +39,6 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
                     />
                 </div>
             )}
-        </SectionCard>
+        </div>
     );
 };

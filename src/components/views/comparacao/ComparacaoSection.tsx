@@ -2,7 +2,6 @@ import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { ComparacaoCharts } from './ComparacaoCharts';
 import { ComparacaoDiaTable } from './components/ComparacaoDiaTable';
-import { SectionCard } from './components/SectionCard';
 import { ViewModeToggle } from './components/ViewModeToggle';
 
 interface ComparacaoSectionProps {
@@ -20,7 +19,6 @@ interface ComparacaoSectionProps {
 
 export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
   title,
-  description,
   type,
   dadosComparacao,
   semanasSelecionadas,
@@ -29,13 +27,11 @@ export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
 }) => {
   if (type === 'dia') {
     return (
-      <SectionCard
-        title={title}
-        description={description}
-        accentColor="bg-blue-500"
-        actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />}
-        noPadding
-      >
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />
+        </div>
         {viewMode === 'table' ? (
           <ComparacaoDiaTable
             semanasSelecionadas={semanasSelecionadas}
@@ -51,9 +47,8 @@ export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
             />
           </div>
         )}
-      </SectionCard>
+      </div>
     );
   }
-
   return null;
 };

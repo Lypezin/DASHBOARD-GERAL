@@ -2,7 +2,6 @@ import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { ComparacaoCharts } from './ComparacaoCharts';
 import { ComparacaoSubPracaTable } from './ComparacaoSubPracaTable';
-import { SectionCard } from './components/SectionCard';
 import { ViewModeToggle } from './components/ViewModeToggle';
 
 interface ComparacaoSubPracaSectionProps {
@@ -23,13 +22,11 @@ export const ComparacaoSubPracaSection: React.FC<ComparacaoSubPracaSectionProps>
   }
 
   return (
-    <SectionCard
-      title="Por Sub-Praça"
-      description="Aderência e horas por região"
-      accentColor="bg-purple-500"
-      actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />}
-      noPadding
-    >
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Por Sub-Praça</h3>
+        <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />
+      </div>
       {viewMode === 'table' ? (
         <ComparacaoSubPracaTable
           dadosComparacao={dadosComparacao}
@@ -45,6 +42,6 @@ export const ComparacaoSubPracaSection: React.FC<ComparacaoSubPracaSectionProps>
           />
         </div>
       )}
-    </SectionCard>
+    </div>
   );
 };

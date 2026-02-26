@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { fadeInItem, staggerContainer } from '@/utils/animations';
-import { Calendar, TrendingUp } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { ComparacaoMetrics } from './ComparacaoMetrics';
 import { ComparacaoSection } from './ComparacaoSection';
 import { ComparacaoSubPracaSection } from './ComparacaoSubPracaSection';
@@ -10,7 +10,6 @@ import { ComparacaoOrigemSection } from './ComparacaoOrigemSection';
 import { ComparacaoUtrSection } from './ComparacaoUtrSection';
 import { ComparacaoDiaTable } from './ComparacaoDiaTable';
 import { ComparacaoDetailedCard } from './ComparacaoDetailedCard';
-import { SectionCard } from './components/SectionCard';
 
 interface ComparacaoContentProps {
     data: any;
@@ -27,17 +26,17 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
 
     return (
         <motion.div
-            className="space-y-5"
+            className="space-y-4"
             variants={staggerContainer}
             initial="hidden"
             animate="show"
         >
-            {/* Hero Metrics — KPI Cards */}
+            {/* KPI Cards */}
             <motion.div variants={fadeInItem}>
                 <ComparacaoMetrics dadosComparacao={data.dadosComparacao} />
             </motion.div>
 
-            {/* Detailed Analysis — Table/Chart toggle */}
+            {/* Detailed Analysis */}
             <motion.div variants={fadeInItem}>
                 <ComparacaoDetailedCard
                     dadosComparacao={data.dadosComparacao}
@@ -47,28 +46,21 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 />
             </motion.div>
 
-            {/* Daily Breakdown Table */}
+            {/* Daily */}
             <motion.div variants={fadeInItem}>
-                <SectionCard
-                    title="Detalhamento Diário"
-                    description="Performance de aderência dia a dia por semana"
-                    accentColor="bg-emerald-500"
-                    noPadding
-                >
-                    <ComparacaoDiaTable
-                        dadosComparacao={data.dadosComparacao}
-                        semanasSelecionadas={state.semanasSelecionadas}
-                    />
-                </SectionCard>
+                <ComparacaoDiaTable
+                    dadosComparacao={data.dadosComparacao}
+                    semanasSelecionadas={state.semanasSelecionadas}
+                />
             </motion.div>
 
-            {/* Two-column: Day of Week + Sub-Praça */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            {/* Side by side: Day + Sub-Praça */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <motion.div variants={fadeInItem}>
                     <ComparacaoSection
                         title="Aderência por Dia"
                         icon={<Calendar className="h-5 w-5" />}
-                        description="Performance por dia da semana"
+                        description=""
                         type="dia"
                         dadosComparacao={data.dadosComparacao}
                         semanasSelecionadas={state.semanasSelecionadas}
@@ -87,7 +79,7 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 </motion.div>
             </div>
 
-            {/* Full Width: Origem */}
+            {/* Origem */}
             <motion.div variants={fadeInItem}>
                 <ComparacaoOrigemSection
                     dadosComparacao={data.dadosComparacao}
@@ -99,7 +91,7 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 />
             </motion.div>
 
-            {/* UTR with Ring Charts */}
+            {/* UTR */}
             <motion.div variants={fadeInItem}>
                 <ComparacaoUtrSection
                     utrComparacao={data.utrComparacao}

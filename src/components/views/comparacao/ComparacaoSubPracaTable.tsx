@@ -79,16 +79,14 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-800/40">
-              <TableHead rowSpan={2} className="sticky left-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md w-[140px] sm:w-[180px] text-slate-900 dark:text-white font-bold pl-4 sm:pl-6 border-r border-slate-200/50 dark:border-slate-700/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">
+              <TableHead rowSpan={2} className="sticky left-0 z-20 bg-white dark:bg-slate-900 w-[140px] sm:w-[180px] text-sm font-medium text-slate-700 dark:text-slate-300 pl-5 border-r border-slate-100 dark:border-slate-800">
                 Sub-Praça
               </TableHead>
               {semanasSelecionadas.map((semana) => {
                 const semanaStr = String(semana).replace('W', '');
                 return (
-                  <TableHead key={semana} colSpan={4} className="text-center font-bold text-slate-900 dark:text-white border-l border-slate-200/50 dark:border-slate-700/50 min-w-[280px]">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800/60 rounded-full text-sm shadow-sm ring-1 ring-black/5 dark:ring-white/5">
-                      Semana {semanaStr}
-                    </span>
+                  <TableHead key={semana} colSpan={4} className="text-center text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 border-l border-slate-100 dark:border-slate-800 min-w-[280px]">
+                    Sem. {semanaStr}
                   </TableHead>
                 );
               })}
