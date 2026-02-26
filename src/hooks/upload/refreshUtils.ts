@@ -39,11 +39,12 @@ export const performRefresh = async (
             safeLog.info(`✅ ${timeContext} - Iniciando refresh ${force ? 'FORÇADO' : 'automático'} de MVs`);
         }
 
-        setRefreshState(prev => ({ ...prev, progress: 30, status: 'Atualizando views críticas...' }));
+        const refreshAll = force;
+        setRefreshState(prev => ({ ...prev, progress: 30, status: refreshAll ? 'Atualizando TODAS as views...' : 'Atualizando views críticas...' }));
 
         const { data, error } = await safeRpc<RefreshPrioritizedResult>(
             'refresh_mvs_prioritized',
-            { refresh_critical_only: true },
+            { refresh_critical_only: !refreshAll },
             {
                 timeout: 300000,
                 validateParams: false
@@ -55,19 +56,17 @@ export const performRefresh = async (
         if (error) {
             const errorCode = error?.code;
             const is404 = errorCode === 'PGRST116' || errorCode === '42883' || error?.message?.includes('404');
-            if (!is404 && IS_DEV) {
-                safeLog.warn('Refresh prioritário não disponível, será processado automaticamente');
+            if (!is404) {
+                safeLog.warn(`Refresh prioritário falhou (${errorCode}): ${error?.message || 'erro desconhecido'}`);
             }
-        } else if (data?.success && IS_DEV) {
+        } else if (data?.success) {
             logRefreshSuccess(data);
         }
 
         scheduleBackgroundRefresh(setRefreshState);
 
     } catch (e) {
-        if (IS_DEV) {
-            safeLog.warn('Refresh prioritário não disponível, será processado automaticamente');
-        }
+        safeLog.warn('Refresh prioritário não disponível, será processado automaticamente', e);
         setRefreshState({ isRefreshing: false, progress: 0, status: 'Erro ao atualizar (tentará automaticamente)' });
     }
 };
@@ -107,13 +106,9 @@ const scheduleBackgroundRefresh = (setRefreshState: SetRefreshState) => {
                 timeout: 300000,
                 validateParams: false
             });
-            if (IS_DEV) {
-                safeLog.info('Refresh de MVs secundárias iniciado em background');
-            }
+            safeLog.info('✅ Refresh de MVs secundárias concluído em background');
         } catch (e) {
-            if (IS_DEV) {
-                safeLog.warn('Refresh de MVs secundárias não disponível, será processado automaticamente');
-            }
+            safeLog.warn('⚠️ Refresh de MVs secundárias falhou:', e);
         } finally {
             setRefreshState({ isRefreshing: false, progress: 100, status: 'Concluído' });
         }
