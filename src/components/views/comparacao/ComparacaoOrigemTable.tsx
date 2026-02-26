@@ -42,11 +42,11 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
     });
 
     return (
-        <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200/50 dark:ring-slate-700/50 bg-white/80 dark:bg-slate-900/80 shadow-sm">
+        <div className="overflow-x-auto">
             <Table>
                 <TableHeader>
-                    <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-800/40">
-                        <TableHead className="sticky left-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md w-[140px] sm:w-[180px] text-slate-900 dark:text-white font-bold pl-4 sm:pl-6 border-r border-slate-200/50 dark:border-slate-700/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">
+                    <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/60 dark:bg-slate-800/40">
+                        <TableHead className="sticky left-0 z-20 bg-white dark:bg-slate-900 w-[140px] sm:w-[180px] text-slate-900 dark:text-white font-bold pl-4 sm:pl-6 border-r border-slate-200/50 dark:border-slate-700/50">
                             Origem
                         </TableHead>
                         {semanasSelecionadas.map((semana) => {
@@ -54,7 +54,7 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
                             return (
                                 <React.Fragment key={semana}>
                                     <TableHead className="text-center font-bold text-slate-900 dark:text-white border-l border-slate-200/50 dark:border-slate-700/50 min-w-[100px]">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800/60 rounded-full text-sm shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-semibold">
                                             Semana {semanaStr}
                                         </span>
                                     </TableHead>

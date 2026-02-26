@@ -18,17 +18,17 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
   semanasSelecionadas,
 }) => {
   return (
-    <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200/50 dark:ring-slate-700/50 bg-white/80 dark:bg-slate-900/80 shadow-sm">
+    <div className="overflow-x-auto">
       <Table>
         <ComparacaoTabelaHeader semanasSelecionadas={semanasSelecionadas} />
-        <TableBody className="divide-y divide-slate-100/50 dark:divide-slate-800/50">
+        <TableBody className="divide-y divide-slate-100 dark:divide-slate-800/50">
           <ComparingTableRow
             label="Aderência Geral"
             icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
             data={dadosComparacao}
             getValue={(d) => d?.aderencia_semanal?.[0]?.aderencia_percentual ?? 0}
             formatValue={(v) => (
-              <span className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-500 to-cyan-600 px-3 py-1 text-sm font-bold text-white shadow-md shadow-blue-500/25">
+              <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-3 py-0.5 text-sm font-bold text-blue-700 dark:text-blue-300">
                 {v.toFixed(1)}%
               </span>
             )}

@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { fadeInItem, staggerContainer } from '@/utils/animations';
-import { Calendar, MapPin, Navigation, Clock, BarChart3, TrendingUp } from 'lucide-react';
+import { Calendar, TrendingUp } from 'lucide-react';
 import { ComparacaoMetrics } from './ComparacaoMetrics';
 import { ComparacaoSection } from './ComparacaoSection';
 import { ComparacaoSubPracaSection } from './ComparacaoSubPracaSection';
@@ -10,48 +10,13 @@ import { ComparacaoOrigemSection } from './ComparacaoOrigemSection';
 import { ComparacaoUtrSection } from './ComparacaoUtrSection';
 import { ComparacaoDiaTable } from './ComparacaoDiaTable';
 import { ComparacaoDetailedCard } from './ComparacaoDetailedCard';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { SectionCard } from './components/SectionCard';
 
 interface ComparacaoContentProps {
     data: any;
     state: any;
     actions: any;
 }
-
-// Section wrapper component for consistent styling
-const SectionWrapper = ({ children, title, description, icon: Icon, gradient }: {
-    children: React.ReactNode;
-    title: string;
-    description: string;
-    icon: any;
-    gradient: string;
-}) => (
-    <Card className="relative overflow-hidden border-none shadow-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl ring-1 ring-slate-200/50 dark:ring-slate-800/50 transition-all duration-300">
-        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-50 pointer-events-none`} />
-
-        <CardHeader className="relative z-10 pb-6">
-            <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <div className={`p-3.5 bg-gradient-to-br ${gradient.replace('/5', '')} rounded-2xl shadow-lg ring-1 ring-white/20 dark:ring-white/10 group-hover:scale-105 transition-transform duration-300`}>
-                        <Icon className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                        <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent tracking-tight">
-                            {title}
-                        </CardTitle>
-                        <CardDescription className="text-slate-500 dark:text-slate-400 font-medium font-sans">
-                            {description}
-                        </CardDescription>
-                    </div>
-                </div>
-            </div>
-        </CardHeader>
-
-        <CardContent className="relative z-10 p-6">
-            {children}
-        </CardContent>
-    </Card>
-);
 
 export const ComparacaoContent = React.memo(function ComparacaoContent({
     data,
@@ -62,7 +27,7 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
 
     return (
         <motion.div
-            className="space-y-8"
+            className="space-y-6"
             variants={staggerContainer}
             initial="hidden"
             animate="show"
@@ -84,26 +49,27 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
 
             {/* Daily Comparison Table */}
             <motion.div variants={fadeInItem}>
-                <SectionWrapper
+                <SectionCard
                     title="Comparativo por Semana"
                     description="Análise detalhada das métricas semanais"
-                    icon={TrendingUp}
-                    gradient="from-emerald-500/5 via-transparent to-teal-500/5"
+                    icon={<TrendingUp className="h-5 w-5" />}
+                    iconColor="text-emerald-600 dark:text-emerald-400"
+                    noPadding
                 >
                     <ComparacaoDiaTable
                         dadosComparacao={data.dadosComparacao}
                         semanasSelecionadas={state.semanasSelecionadas}
                     />
-                </SectionWrapper>
+                </SectionCard>
             </motion.div>
 
             {/* Grid Layout for Analysis Sections */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* Day of Week Section */}
                 <motion.div variants={fadeInItem}>
                     <ComparacaoSection
                         title="Aderência por Dia"
-                        icon={<Calendar className="h-5 w-5 text-blue-500" />}
+                        icon={<Calendar className="h-5 w-5" />}
                         description="Performance distribuída pelos dias da semana"
                         type="dia"
                         dadosComparacao={data.dadosComparacao}
@@ -145,5 +111,3 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
         </motion.div>
     );
 });
-
-

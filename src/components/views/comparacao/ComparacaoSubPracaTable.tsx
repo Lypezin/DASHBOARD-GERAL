@@ -75,7 +75,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
       </div>
 
       {/* Responsive Table */}
-      <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200/50 dark:ring-slate-700/50 bg-white/80 dark:bg-slate-900/80 shadow-sm">
+      <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-800/40">
