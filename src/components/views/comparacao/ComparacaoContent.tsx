@@ -54,30 +54,28 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 />
             </motion.div>
 
-            {/* Side by side: Day + Sub-Praça */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <motion.div variants={fadeInItem}>
-                    <ComparacaoSection
-                        title="Aderência por Dia"
-                        icon={<Calendar className="h-5 w-5" />}
-                        description=""
-                        type="dia"
-                        dadosComparacao={data.dadosComparacao}
-                        semanasSelecionadas={state.semanasSelecionadas}
-                        viewMode={state.viewModeDia}
-                        onViewModeChange={actions.setViewModeDia}
-                    />
-                </motion.div>
+            {/* Stacked: Day + Sub-Praça */}
+            <motion.div variants={fadeInItem}>
+                <ComparacaoSection
+                    title="Aderência por Dia"
+                    icon={<Calendar className="h-5 w-5" />}
+                    description=""
+                    type="dia"
+                    dadosComparacao={data.dadosComparacao}
+                    semanasSelecionadas={state.semanasSelecionadas}
+                    viewMode={state.viewModeDia}
+                    onViewModeChange={actions.setViewModeDia}
+                />
+            </motion.div>
 
-                <motion.div variants={fadeInItem}>
-                    <ComparacaoSubPracaSection
-                        dadosComparacao={data.dadosComparacao}
-                        semanasSelecionadas={state.semanasSelecionadas}
-                        viewMode={state.viewModeSubPraca}
-                        onViewModeChange={actions.setViewModeSubPraca}
-                    />
-                </motion.div>
-            </div>
+            <motion.div variants={fadeInItem}>
+                <ComparacaoSubPracaSection
+                    dadosComparacao={data.dadosComparacao}
+                    semanasSelecionadas={state.semanasSelecionadas}
+                    viewMode={state.viewModeSubPraca}
+                    onViewModeChange={actions.setViewModeSubPraca}
+                />
+            </motion.div>
 
             {/* Origem */}
             <motion.div variants={fadeInItem}>

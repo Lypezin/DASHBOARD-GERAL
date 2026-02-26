@@ -8,20 +8,27 @@ interface ComparacaoDiaHeaderProps {
 export const ComparacaoDiaHeader: React.FC<ComparacaoDiaHeaderProps> = ({ semanasSelecionadas }) => {
     return (
         <TableHeader>
-            <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[180px] text-slate-900 dark:text-white font-semibold pl-6">
-                    Dia da Semana
+            <TableRow className="hover:bg-transparent bg-slate-50/80 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
+                {/* Dia da Semana — fixed col */}
+                <TableHead className="w-[130px] text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider pl-5">
+                    Dia
                 </TableHead>
-                {semanasSelecionadas.map((semana) => {
+                {/* Métrica label col */}
+                <TableHead className="text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider min-w-[130px]">
+                    Métrica
+                </TableHead>
+                {semanasSelecionadas.map((semana, idx) => {
                     const semanaStr = String(semana).replace('W', '');
                     return (
                         <React.Fragment key={semana}>
-                            <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 border-l border-slate-200 dark:border-slate-800 min-w-[100px]">
-                                Semana {semanaStr}
+                            <TableHead className="text-center text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider border-l border-slate-100 dark:border-slate-800 min-w-[100px]">
+                                Sem. {semanaStr}
                             </TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300 min-w-[80px]">
-                                Var %
-                            </TableHead>
+                            {idx > 0 && (
+                                <TableHead className="text-center text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider w-[70px]">
+                                    Var
+                                </TableHead>
+                            )}
                         </React.Fragment>
                     );
                 })}

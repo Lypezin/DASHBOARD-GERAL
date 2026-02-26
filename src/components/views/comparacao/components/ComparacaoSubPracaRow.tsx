@@ -20,7 +20,7 @@ export const ComparacaoSubPracaRow = React.memo(({ subPraca, index, semanasSelec
         <TableRow
             className={`${index % 2 === 0 ? 'bg-white/70 dark:bg-slate-900/70' : 'bg-slate-50/60 dark:bg-slate-900/40'} hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-all border-b border-slate-200/30 dark:border-slate-700/30`}
         >
-            <TableCell className="sticky left-0 z-10 bg-inherit backdrop-blur-sm font-semibold text-slate-800 dark:text-slate-200 pl-4 sm:pl-6 border-r border-slate-200/50 dark:border-slate-700/50 text-xs sm:text-sm">
+            <TableCell className="sticky left-0 z-10 bg-white dark:bg-slate-900 font-medium text-sm text-slate-800 dark:text-slate-200 pl-5 border-r border-slate-100 dark:border-slate-800 py-3">
                 {subPraca}
             </TableCell>
             {semanasSelecionadas.map((_, idx) => {
