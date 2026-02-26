@@ -6,6 +6,7 @@
 import { useUploadRefresh } from './useUploadRefresh';
 import { useFileSelection } from '@/hooks/upload/useFileSelection';
 import { useUploadProcessor } from '@/hooks/upload/useUploadProcessor';
+import { safeLog } from '@/lib/errorHandler';
 
 interface UseCorridasUploadProps {
   organizationId?: string;
@@ -24,6 +25,7 @@ export function useCorridasUpload({ organizationId, onUploadSuccess }: UseCorrid
   const handleUpload = () => {
     processUpload(files, () => {
       clearFiles();
+      safeLog.info('[Corridas] Sucesso! Disparando auto-refresh de MVs com force=true...');
       startAutoRefresh(true);
       if (onUploadSuccess) onUploadSuccess();
     });

@@ -97,7 +97,12 @@ export function useUploadProcessor(organizationId?: string) {
             uploading: false
         }));
 
-        if (errorCount === 0) onSuccess();
+        if (errorCount === 0) {
+            safeLog.info('[Upload] Upload concluído com sucesso, chamando onSuccess (auto-refresh MVs)...');
+            onSuccess();
+        } else {
+            safeLog.warn(`[Upload] Upload concluído com ${errorCount} erro(s), auto-refresh NÃO será disparado`);
+        }
 
     }, [organizationId]);
 

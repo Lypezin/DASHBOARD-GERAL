@@ -4,8 +4,6 @@ import { safeLog } from '@/lib/errorHandler';
 import { isLowUsageTime, getTimeContextMessage } from '@/utils/timeHelpers';
 import { performRefresh } from './refreshUtils';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
-
 export function useMVRefreshLogic() {
     const [refreshState, setRefreshState] = useState({
         isRefreshing: false,
@@ -18,22 +16,24 @@ export function useMVRefreshLogic() {
             const isLowUsage = isLowUsageTime();
             const timeContext = getTimeContextMessage();
 
-            if (!isLowUsage && !force && IS_DEV) {
-                safeLog.info(`⏰ ${timeContext} - Refresh automático será adiado para horário de baixo uso`);
-                safeLog.info('💡 Dica: Use o botão "Atualizar Materialized Views" para forçar refresh imediato');
+            safeLog.info(`[MV Refresh] Disparado - force=${force}, isLowUsage=${isLowUsage}, timeContext=${timeContext}`);
+
+            if (!isLowUsage && !force) {
+                safeLog.info('[MV Refresh] Adiado - não é horário de baixo uso e não foi forçado');
                 return;
             }
 
             setRefreshState({ isRefreshing: true, progress: 5, status: 'Iniciando atualização de dados...' });
 
-            setTimeout(() => {
-                performRefresh(force, isLowUsage, timeContext, setRefreshState);
-            }, 2000);
+            safeLog.info('[MV Refresh] Iniciando performRefresh...');
+
+            // Executar diretamente sem setTimeout para garantir execução imediata
+            await performRefresh(force, isLowUsage, timeContext, setRefreshState);
+
+            safeLog.info('[MV Refresh] performRefresh concluído');
         } catch (e) {
-            if (IS_DEV) {
-                safeLog.warn('Erro ao iniciar refresh de MVs');
-            }
-            setRefreshState({ isRefreshing: false, progress: 0, status: 'Erro' });
+            safeLog.error('[MV Refresh] Erro ao iniciar refresh de MVs:', e);
+            setRefreshState({ isRefreshing: false, progress: 0, status: 'Erro ao atualizar MVs' });
         }
     }, []);
 

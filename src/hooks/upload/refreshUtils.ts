@@ -3,8 +3,6 @@ import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import type { RefreshPrioritizedResult } from '@/types/upload';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
-
 export interface RefreshState {
     isRefreshing: boolean;
     progress: number;
@@ -20,28 +18,28 @@ export const performRefresh = async (
     setRefreshState: SetRefreshState
 ) => {
     try {
+        safeLog.info(`[performRefresh] Iniciando - force=${force}, isLowUsage=${isLowUsage}`);
         setRefreshState(prev => ({ ...prev, progress: 10, status: 'Preparando views...' }));
 
-        await safeRpc('refresh_mvs_after_bulk_insert', { delay_seconds: 5 }, {
+        safeLog.info('[performRefresh] Passo 1: Chamando refresh_mvs_after_bulk_insert...');
+        const bulkResult = await safeRpc('refresh_mvs_after_bulk_insert', { delay_seconds: 5 }, {
             timeout: 30000,
             validateParams: false
         });
+        safeLog.info(`[performRefresh] Passo 1 concluído: data=${JSON.stringify(bulkResult.data)}, error=${JSON.stringify(bulkResult.error)}`);
 
         if (!isLowUsage && !force) {
-            if (IS_DEV) {
-                safeLog.info('✅ MVs marcadas como pendentes. Refresh será feito em horário de baixo uso ou manualmente.');
-            }
+            safeLog.info('[performRefresh] Refresh adiado - não é horário de baixo uso e não foi forçado');
             setRefreshState({ isRefreshing: false, progress: 0, status: '' });
             return;
         }
 
-        if (IS_DEV) {
-            safeLog.info(`✅ ${timeContext} - Iniciando refresh ${force ? 'FORÇADO' : 'automático'} de MVs`);
-        }
+        safeLog.info(`[performRefresh] Passo 2: ${timeContext} - Iniciando refresh ${force ? 'FORÇADO (TODAS MVs)' : 'automático (só críticas)'}`);
 
         const refreshAll = force;
         setRefreshState(prev => ({ ...prev, progress: 30, status: refreshAll ? 'Atualizando TODAS as views...' : 'Atualizando views críticas...' }));
 
+        safeLog.info(`[performRefresh] Passo 3: Chamando refresh_mvs_prioritized com refresh_critical_only=${!refreshAll}...`);
         const { data, error } = await safeRpc<RefreshPrioritizedResult>(
             'refresh_mvs_prioritized',
             { refresh_critical_only: !refreshAll },
@@ -50,6 +48,7 @@ export const performRefresh = async (
                 validateParams: false
             }
         );
+        safeLog.info(`[performRefresh] Passo 3 concluído: success=${data?.success}, error=${error ? JSON.stringify(error) : 'none'}`);
 
         setRefreshState(prev => ({ ...prev, progress: 70, status: 'Processando views secundárias...' }));
 
