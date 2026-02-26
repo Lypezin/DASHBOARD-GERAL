@@ -27,17 +27,17 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
 
     return (
         <motion.div
-            className="space-y-6"
+            className="space-y-5"
             variants={staggerContainer}
             initial="hidden"
             animate="show"
         >
-            {/* Hero Metrics */}
+            {/* Hero Metrics — KPI Cards */}
             <motion.div variants={fadeInItem}>
                 <ComparacaoMetrics dadosComparacao={data.dadosComparacao} />
             </motion.div>
 
-            {/* Detailed Analysis Card */}
+            {/* Detailed Analysis — Table/Chart toggle */}
             <motion.div variants={fadeInItem}>
                 <ComparacaoDetailedCard
                     dadosComparacao={data.dadosComparacao}
@@ -47,13 +47,12 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 />
             </motion.div>
 
-            {/* Daily Comparison Table */}
+            {/* Daily Breakdown Table */}
             <motion.div variants={fadeInItem}>
                 <SectionCard
-                    title="Comparativo por Semana"
-                    description="Análise detalhada das métricas semanais"
-                    icon={<TrendingUp className="h-5 w-5" />}
-                    iconColor="text-emerald-600 dark:text-emerald-400"
+                    title="Detalhamento Diário"
+                    description="Performance de aderência dia a dia por semana"
+                    accentColor="bg-emerald-500"
                     noPadding
                 >
                     <ComparacaoDiaTable
@@ -63,14 +62,13 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 </SectionCard>
             </motion.div>
 
-            {/* Grid Layout for Analysis Sections */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                {/* Day of Week Section */}
+            {/* Two-column: Day of Week + Sub-Praça */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                 <motion.div variants={fadeInItem}>
                     <ComparacaoSection
                         title="Aderência por Dia"
                         icon={<Calendar className="h-5 w-5" />}
-                        description="Performance distribuída pelos dias da semana"
+                        description="Performance por dia da semana"
                         type="dia"
                         dadosComparacao={data.dadosComparacao}
                         semanasSelecionadas={state.semanasSelecionadas}
@@ -79,7 +77,6 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                     />
                 </motion.div>
 
-                {/* Sub-praça Section */}
                 <motion.div variants={fadeInItem}>
                     <ComparacaoSubPracaSection
                         dadosComparacao={data.dadosComparacao}
@@ -90,7 +87,7 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 </motion.div>
             </div>
 
-            {/* Full Width Sections */}
+            {/* Full Width: Origem */}
             <motion.div variants={fadeInItem}>
                 <ComparacaoOrigemSection
                     dadosComparacao={data.dadosComparacao}
@@ -102,6 +99,7 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 />
             </motion.div>
 
+            {/* UTR with Ring Charts */}
             <motion.div variants={fadeInItem}>
                 <ComparacaoUtrSection
                     utrComparacao={data.utrComparacao}

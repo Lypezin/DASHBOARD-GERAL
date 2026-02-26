@@ -21,9 +21,8 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
     return (
         <SectionCard
             title="Análise Detalhada"
-            description="Visão granular de todas as métricas por semana"
-            icon={<FileSpreadsheet className="h-5 w-5" />}
-            iconColor="text-indigo-600 dark:text-indigo-400"
+            description="Métricas comparativas entre semanas selecionadas"
+            accentColor="bg-indigo-500"
             actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />}
             noPadding
         >
@@ -33,7 +32,7 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
                     semanasSelecionadas={semanasSelecionadas}
                 />
             ) : (
-                <div className="p-6">
+                <div className="p-5">
                     <ComparacaoCharts
                         dadosComparacao={dadosComparacao}
                         semanasSelecionadas={semanasSelecionadas}

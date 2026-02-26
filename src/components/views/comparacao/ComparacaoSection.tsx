@@ -2,7 +2,6 @@ import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { ComparacaoCharts } from './ComparacaoCharts';
 import { ComparacaoDiaTable } from './components/ComparacaoDiaTable';
-import { Calendar } from 'lucide-react';
 import { SectionCard } from './components/SectionCard';
 import { ViewModeToggle } from './components/ViewModeToggle';
 
@@ -21,7 +20,6 @@ interface ComparacaoSectionProps {
 
 export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
   title,
-  icon,
   description,
   type,
   dadosComparacao,
@@ -34,8 +32,7 @@ export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
       <SectionCard
         title={title}
         description={description}
-        icon={icon}
-        iconColor="text-blue-600 dark:text-blue-400"
+        accentColor="bg-blue-500"
         actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />}
         noPadding
       >
@@ -45,7 +42,7 @@ export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
             dadosComparacao={dadosComparacao}
           />
         ) : (
-          <div className="p-6">
+          <div className="p-5">
             <ComparacaoCharts
               dadosComparacao={dadosComparacao}
               semanasSelecionadas={semanasSelecionadas}

@@ -1,7 +1,6 @@
 import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { ComparacaoCharts } from './ComparacaoCharts';
-import { MapPin } from 'lucide-react';
 import { ComparacaoSubPracaTable } from './ComparacaoSubPracaTable';
 import { SectionCard } from './components/SectionCard';
 import { ViewModeToggle } from './components/ViewModeToggle';
@@ -26,9 +25,8 @@ export const ComparacaoSubPracaSection: React.FC<ComparacaoSubPracaSectionProps>
   return (
     <SectionCard
       title="Por Sub-Praça"
-      description="Análise por região"
-      icon={<MapPin className="h-5 w-5" />}
-      iconColor="text-purple-600 dark:text-purple-400"
+      description="Aderência e horas por região"
+      accentColor="bg-purple-500"
       actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />}
       noPadding
     >
@@ -38,7 +36,7 @@ export const ComparacaoSubPracaSection: React.FC<ComparacaoSubPracaSectionProps>
           semanasSelecionadas={semanasSelecionadas}
         />
       ) : (
-        <div className="p-6">
+        <div className="p-5">
           <ComparacaoCharts
             dadosComparacao={dadosComparacao}
             semanasSelecionadas={semanasSelecionadas}

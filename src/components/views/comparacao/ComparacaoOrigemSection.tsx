@@ -1,7 +1,6 @@
 import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { ComparacaoCharts } from './ComparacaoCharts';
-import { Globe } from 'lucide-react';
 import { ComparacaoOrigemTable } from './ComparacaoOrigemTable';
 import { SectionCard } from './components/SectionCard';
 import { ViewModeToggle } from './components/ViewModeToggle';
@@ -29,9 +28,8 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
   return (
     <SectionCard
       title="Comparação por Origem"
-      description="Avalie corridas e aderência por origem entre as semanas"
-      icon={<Globe className="h-5 w-5" />}
-      iconColor="text-rose-600 dark:text-rose-400"
+      description="Aderência por origem entre as semanas"
+      accentColor="bg-rose-500"
       actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />}
       noPadding
     >
@@ -41,7 +39,7 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
           dadosComparacao={dadosComparacao}
         />
       ) : (
-        <div className="p-6">
+        <div className="p-5">
           <ComparacaoCharts
             dadosComparacao={dadosComparacao}
             semanasSelecionadas={semanasSelecionadas}
