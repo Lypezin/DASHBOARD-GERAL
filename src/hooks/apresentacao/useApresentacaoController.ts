@@ -14,11 +14,13 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const router = useRouter();
     const pathname = usePathname();
 
+    const SECTIONS_VERSION = 'v2'; // Incremente ao mudar defaults de seções
     const getStorageKey = (type: 'slides' | 'sections') => {
         const pracaKey = praca ? praca.replace(/\s+/g, '_').toLowerCase() : 'geral';
         const semanasKey = semanas.sort().join('-');
         const anoKey = ano || new Date().getFullYear();
-        return `dashboard_presentation_${type}_${anoKey}_${pracaKey}_${semanasKey}`;
+        const versionSuffix = type === 'sections' ? `_${SECTIONS_VERSION}` : '';
+        return `dashboard_presentation_${type}_${anoKey}_${pracaKey}_${semanasKey}${versionSuffix}`;
     };
 
     const getInitialViewMode = () => searchParams.get('comp_apres_mode') === 'web_presentation' ? 'web_presentation' : 'preview';
