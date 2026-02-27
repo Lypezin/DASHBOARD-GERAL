@@ -30,9 +30,10 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const [isLoaded, setIsLoaded] = useState(false);
 
     const [visibleSections, setVisibleSections] = useState({
-        capa: true, 'aderencia-geral': true, 'sub-pracas': true,
-        'aderencia-diaria': true, turnos: true, origens: true,
-        demanda: true, 'capa-final': true,
+        capa: true, 'resumo-ia': true, 'aderencia-geral': true,
+        ranking: true, 'sub-pracas': true,
+        'aderencia-diaria': true, utr: true, turnos: true,
+        origens: true, demanda: true, 'capa-final': true,
     });
 
     useEffect(() => {
@@ -58,7 +59,11 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     useEffect(() => {
         const savedSections = localStorage.getItem(sectionsKey);
         if (savedSections) {
-            try { setVisibleSections(JSON.parse(savedSections)); }
+            try {
+                const parsed = JSON.parse(savedSections);
+                // Merge com defaults para que novas seções apareçam mesmo em sessões antigas
+                setVisibleSections(prev => ({ ...prev, ...parsed }));
+            }
             catch (e) { safeLog.error('Error parsing saved sections:', e); }
         }
         setIsLoaded(true);

@@ -18,12 +18,16 @@ interface PresentationSectionToggleProps {
 
 const SECTION_LABELS: Record<string, string> = {
     capa: 'Capa',
+    'resumo-ia': 'Resumo IA',
     'aderencia-geral': 'Aderência Geral',
+    ranking: 'Ranking',
     'sub-pracas': 'Sub-praças',
     'aderencia-diaria': 'Detalhamento Diário',
+    utr: 'UTR',
     turnos: 'Turnos',
     origens: 'Origens',
     demanda: 'Demanda e Rejeições',
+    'capa-final': 'Capa Final',
 };
 
 export const PresentationSectionToggle: React.FC<PresentationSectionToggleProps> = ({
