@@ -1,8 +1,10 @@
 import React from 'react';
 import { FilterOption } from '@/types';
 import FiltroSelect from '@/components/FiltroSelect';
-import { Presentation, X, Sparkles } from 'lucide-react';
+import { Presentation, X } from 'lucide-react';
 import { ComparacaoWeekSelector } from './components/ComparacaoWeekSelector';
+import { ComparacaoSectionSelector } from './components/ComparacaoSectionSelector';
+import { SecoesVisiveis } from './hooks/useComparacaoFilters';
 import { motion } from 'framer-motion';
 
 interface ComparacaoFiltersProps {
@@ -17,6 +19,8 @@ interface ComparacaoFiltersProps {
   onMostrarApresentacao: () => void;
   loading: boolean;
   dadosComparacaoLength: number;
+  secoesVisiveis: SecoesVisiveis;
+  onToggleSecao: (secao: keyof SecoesVisiveis) => void;
 }
 
 export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
@@ -31,6 +35,8 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
   onMostrarApresentacao,
   loading,
   dadosComparacaoLength,
+  secoesVisiveis,
+  onToggleSecao,
 }) => {
   return (
     <motion.div
@@ -50,6 +56,10 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ComparacaoSectionSelector
+            secoesVisiveis={secoesVisiveis}
+            onToggleSecao={onToggleSecao}
+          />
           {semanasSelecionadas.length > 0 && (
             <button
               onClick={onClearSemanas}

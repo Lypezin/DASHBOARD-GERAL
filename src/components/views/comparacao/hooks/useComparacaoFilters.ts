@@ -5,6 +5,28 @@ import { CurrentUser } from '@/types';
 
 export type ViewMode = 'table' | 'chart';
 
+export interface SecoesVisiveis {
+    metricas: boolean;
+    detalhada: boolean;
+    por_dia: boolean;
+    aderencia_dia: boolean;
+    sub_praca: boolean;
+    por_origem: boolean;
+    origem_detalhada: boolean;
+    utr: boolean;
+}
+
+const SECOES_PADRAO: SecoesVisiveis = {
+    metricas: true,
+    detalhada: true,
+    por_dia: true,
+    aderencia_dia: true,
+    sub_praca: true,
+    por_origem: true,
+    origem_detalhada: true,
+    utr: true,
+};
+
 export function useComparacaoFilters(currentUser: CurrentUser | null) {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -80,6 +102,13 @@ export function useComparacaoFilters(currentUser: CurrentUser | null) {
     const [viewModeSubPraca, setViewModeSubPraca] = useState<ViewMode>('table');
     const [viewModeOrigem, setViewModeOrigem] = useState<ViewMode>('table');
 
+    // Estado para controlar seções visíveis
+    const [secoesVisiveis, setSecoesVisiveis] = useState<SecoesVisiveis>(SECOES_PADRAO);
+
+    const toggleSecao = useCallback((secao: keyof SecoesVisiveis) => {
+        setSecoesVisiveis(prev => ({ ...prev, [secao]: !prev[secao] }));
+    }, []);
+
     const toggleSemana = useCallback((semana: number | string) => {
         setSemanasSelecionadas(prev => {
             let semanaStr = String(semana);
@@ -121,6 +150,9 @@ export function useComparacaoFilters(currentUser: CurrentUser | null) {
         viewModeOrigem,
         setViewModeOrigem,
         toggleSemana,
-        shouldDisablePracaFilter
+        shouldDisablePracaFilter,
+        secoesVisiveis,
+        setSecoesVisiveis,
+        toggleSecao
     };
 }

@@ -4,7 +4,7 @@ import { FilterOption, CurrentUser } from '@/types';
 import { useComparacaoData } from '@/hooks/data/useComparacaoData';
 import { useComparacaoChartRegistration } from './useComparacaoChart';
 import { useComparacaoMemo } from './useComparacaoMemo';
-import { useComparacaoFilters, ViewMode } from './useComparacaoFilters';
+import { useComparacaoFilters, ViewMode, SecoesVisiveis } from './useComparacaoFilters';
 
 interface UseComparacaoViewControllerProps {
     semanas: string[];
@@ -15,7 +15,7 @@ interface UseComparacaoViewControllerProps {
     anoSelecionado?: number;
 }
 
-export type { ViewMode };
+export type { ViewMode, SecoesVisiveis };
 
 export function useComparacaoViewController({
     semanas,
@@ -38,7 +38,9 @@ export function useComparacaoViewController({
         viewModeOrigem,
         setViewModeOrigem,
         toggleSemana,
-        shouldDisablePracaFilter
+        shouldDisablePracaFilter,
+        secoesVisiveis,
+        toggleSecao
     } = useComparacaoFilters(currentUser);
 
     // Usar hook de dados
@@ -85,7 +87,8 @@ export function useComparacaoViewController({
             loading,
             error,
             shouldDisablePracaFilter,
-            anoSelecionado
+            anoSelecionado,
+            secoesVisiveis
         },
         data: {
             dadosComparacao,
@@ -103,7 +106,8 @@ export function useComparacaoViewController({
             setViewModeOrigem,
             toggleSemana,
             setSemanasSelecionadas,
-            limparSemanas: () => setSemanasSelecionadas([])
+            limparSemanas: () => setSemanasSelecionadas([]),
+            toggleSecao
         }
     };
 }

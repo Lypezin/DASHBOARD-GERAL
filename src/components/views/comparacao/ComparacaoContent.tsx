@@ -7,6 +7,7 @@ import { ComparacaoMetrics } from './ComparacaoMetrics';
 import { ComparacaoSection } from './ComparacaoSection';
 import { ComparacaoSubPracaSection } from './ComparacaoSubPracaSection';
 import { ComparacaoOrigemSection } from './ComparacaoOrigemSection';
+import { ComparacaoOrigemDetalhada } from './ComparacaoOrigemDetalhada';
 import { ComparacaoUtrSection } from './ComparacaoUtrSection';
 import { ComparacaoDiaTable } from './ComparacaoDiaTable';
 import { ComparacaoDetailedCard } from './ComparacaoDetailedCard';
@@ -24,6 +25,8 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
 }: ComparacaoContentProps) {
     if (data.dadosComparacao.length === 0) return null;
 
+    const sv = state.secoesVisiveis;
+
     return (
         <motion.div
             className="space-y-4"
@@ -32,70 +35,94 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
             animate="show"
         >
             {/* KPI Cards */}
-            <motion.div variants={fadeInItem}>
-                <ComparacaoMetrics dadosComparacao={data.dadosComparacao} />
-            </motion.div>
+            {sv.metricas && (
+                <motion.div variants={fadeInItem}>
+                    <ComparacaoMetrics dadosComparacao={data.dadosComparacao} />
+                </motion.div>
+            )}
 
             {/* Detailed Analysis */}
-            <motion.div variants={fadeInItem}>
-                <ComparacaoDetailedCard
-                    dadosComparacao={data.dadosComparacao}
-                    semanasSelecionadas={state.semanasSelecionadas}
-                    viewMode={state.viewModeDetalhada}
-                    onViewModeChange={actions.setViewModeDetalhada}
-                />
-            </motion.div>
+            {sv.detalhada && (
+                <motion.div variants={fadeInItem}>
+                    <ComparacaoDetailedCard
+                        dadosComparacao={data.dadosComparacao}
+                        semanasSelecionadas={state.semanasSelecionadas}
+                        viewMode={state.viewModeDetalhada}
+                        onViewModeChange={actions.setViewModeDetalhada}
+                    />
+                </motion.div>
+            )}
 
             {/* Daily */}
-            <motion.div variants={fadeInItem}>
-                <ComparacaoDiaTable
-                    dadosComparacao={data.dadosComparacao}
-                    semanasSelecionadas={state.semanasSelecionadas}
-                />
-            </motion.div>
+            {sv.por_dia && (
+                <motion.div variants={fadeInItem}>
+                    <ComparacaoDiaTable
+                        dadosComparacao={data.dadosComparacao}
+                        semanasSelecionadas={state.semanasSelecionadas}
+                    />
+                </motion.div>
+            )}
 
             {/* Stacked: Day + Sub-Praça */}
-            <motion.div variants={fadeInItem}>
-                <ComparacaoSection
-                    title="Aderência por Dia"
-                    icon={<Calendar className="h-5 w-5" />}
-                    description=""
-                    type="dia"
-                    dadosComparacao={data.dadosComparacao}
-                    semanasSelecionadas={state.semanasSelecionadas}
-                    viewMode={state.viewModeDia}
-                    onViewModeChange={actions.setViewModeDia}
-                />
-            </motion.div>
+            {sv.aderencia_dia && (
+                <motion.div variants={fadeInItem}>
+                    <ComparacaoSection
+                        title="Aderência por Dia"
+                        icon={<Calendar className="h-5 w-5" />}
+                        description=""
+                        type="dia"
+                        dadosComparacao={data.dadosComparacao}
+                        semanasSelecionadas={state.semanasSelecionadas}
+                        viewMode={state.viewModeDia}
+                        onViewModeChange={actions.setViewModeDia}
+                    />
+                </motion.div>
+            )}
 
-            <motion.div variants={fadeInItem}>
-                <ComparacaoSubPracaSection
-                    dadosComparacao={data.dadosComparacao}
-                    semanasSelecionadas={state.semanasSelecionadas}
-                    viewMode={state.viewModeSubPraca}
-                    onViewModeChange={actions.setViewModeSubPraca}
-                />
-            </motion.div>
+            {sv.sub_praca && (
+                <motion.div variants={fadeInItem}>
+                    <ComparacaoSubPracaSection
+                        dadosComparacao={data.dadosComparacao}
+                        semanasSelecionadas={state.semanasSelecionadas}
+                        viewMode={state.viewModeSubPraca}
+                        onViewModeChange={actions.setViewModeSubPraca}
+                    />
+                </motion.div>
+            )}
 
             {/* Origem */}
-            <motion.div variants={fadeInItem}>
-                <ComparacaoOrigemSection
-                    dadosComparacao={data.dadosComparacao}
-                    semanasSelecionadas={state.semanasSelecionadas}
-                    viewMode={state.viewModeOrigem}
-                    onViewModeChange={actions.setViewModeOrigem}
-                    origensDisponiveis={data.origensDisponiveis}
-                    totalColunasOrigem={data.totalColunasOrigem}
-                />
-            </motion.div>
+            {sv.por_origem && (
+                <motion.div variants={fadeInItem}>
+                    <ComparacaoOrigemSection
+                        dadosComparacao={data.dadosComparacao}
+                        semanasSelecionadas={state.semanasSelecionadas}
+                        viewMode={state.viewModeOrigem}
+                        onViewModeChange={actions.setViewModeOrigem}
+                        origensDisponiveis={data.origensDisponiveis}
+                        totalColunasOrigem={data.totalColunasOrigem}
+                    />
+                </motion.div>
+            )}
+
+            {/* Análise Detalhada por Origem */}
+            {sv.origem_detalhada && (
+                <motion.div variants={fadeInItem}>
+                    <ComparacaoOrigemDetalhada
+                        dadosComparacao={data.dadosComparacao}
+                        semanasSelecionadas={state.semanasSelecionadas}
+                    />
+                </motion.div>
+            )}
 
             {/* UTR */}
-            <motion.div variants={fadeInItem}>
-                <ComparacaoUtrSection
-                    utrComparacao={data.utrComparacao}
-                    semanasSelecionadas={state.semanasSelecionadas}
-                />
-            </motion.div>
+            {sv.utr && (
+                <motion.div variants={fadeInItem}>
+                    <ComparacaoUtrSection
+                        utrComparacao={data.utrComparacao}
+                        semanasSelecionadas={state.semanasSelecionadas}
+                    />
+                </motion.div>
+            )}
         </motion.div>
     );
 });

@@ -44,6 +44,8 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                     onMostrarApresentacao={() => actions.setMostrarApresentacao(true)}
                     loading={state.loading}
                     dadosComparacaoLength={data.dadosComparacao.length}
+                    secoesVisiveis={state.secoesVisiveis}
+                    onToggleSecao={actions.toggleSecao}
                 />
             </motion.div>
 
