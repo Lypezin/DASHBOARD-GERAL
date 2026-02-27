@@ -12,6 +12,7 @@ import { processarDias } from './processors/dias';
 import { processarTurnos } from './processors/turnos';
 import { processarOrigens } from './processors/origens';
 import { processarDemanda } from './processors/demanda';
+import { processarDemandaOrigem, DemandaOrigemItem } from './processors/demandaOrigem';
 
 // Re-exportar helpers e tipos para compatibilidade
 export * from './processors/common';
@@ -41,6 +42,7 @@ export interface DadosProcessados {
   turnosComparativo: any[];
   origensComparativo: any[];
   demandaItens: any[];
+  demandaOrigemItens: DemandaOrigemItem[];
 }
 
 export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProcessados | null => {
@@ -88,6 +90,9 @@ export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProces
   // Processar Demanda
   const demandaItens = processarDemanda(dadosBasicos);
 
+  // Processar Demanda por Origem
+  const demandaOrigemItens = processarDemandaOrigem(dadosBasicos);
+
   return {
     resumoSemana1,
     resumoSemana2,
@@ -98,5 +103,6 @@ export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProces
     turnosComparativo,
     origensComparativo,
     demandaItens,
+    demandaOrigemItens,
   };
 };

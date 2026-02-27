@@ -26,6 +26,7 @@ const SECTION_LABELS: Record<string, string> = {
     utr: 'UTR',
     turnos: 'Turnos',
     origens: 'Origens',
+    'demanda-origem': 'Demanda por Origem',
     demanda: 'Demanda e Rejeições',
     'capa-final': 'Capa Final',
 };

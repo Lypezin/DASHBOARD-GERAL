@@ -33,7 +33,7 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
         capa: true, 'resumo-ia': true, 'aderencia-geral': true,
         ranking: true, 'sub-pracas': true,
         'aderencia-diaria': true, utr: true, turnos: true,
-        origens: true, demanda: true, 'capa-final': true,
+        origens: true, 'demanda-origem': true, demanda: true, 'capa-final': true,
     });
 
     useEffect(() => {

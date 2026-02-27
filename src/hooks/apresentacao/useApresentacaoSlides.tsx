@@ -16,6 +16,7 @@ import {
   buildSlidesTurnos,
   buildSlidesOrigem,
   buildSlideDemanda,
+  buildSlidesDemandaOrigem,
   SlideConfig
 } from './utils/slideBuilders';
 
@@ -35,9 +36,10 @@ export const useApresentacaoSlides = (
     'ranking': true,
     'sub-pracas': true,
     'aderencia-diaria': true,
-    'utr': true, // Add default true
+    'utr': true,
     turnos: true,
     origens: true,
+    'demanda-origem': true,
     demanda: true,
   },
   mediaSlides: MediaSlideData[] = [],
@@ -49,7 +51,7 @@ export const useApresentacaoSlides = (
     }
 
     const slidesConfig: SlideConfig[] = [];
-    const { subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, demandaItens } = dadosProcessados;
+    const { subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, demandaItens, demandaOrigemItens } = dadosProcessados;
 
     // 1. Capa
     const capa = buildSlideCapa(visibleSections.capa, { pracaSelecionada, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 });
@@ -107,6 +109,14 @@ export const useApresentacaoSlides = (
     // 10. Demanda
     const demanda = buildSlideDemanda(visibleSections.demanda, demandaItens, { numeroSemana1, numeroSemana2 });
     if (demanda) slidesConfig.push(demanda);
+
+    // 10.1 Demanda por Origem
+    const demandaOrigem = buildSlidesDemandaOrigem(
+      visibleSections['demanda-origem'],
+      demandaOrigemItens ?? [],
+      { numeroSemana1, numeroSemana2 }
+    );
+    slidesConfig.push(...demandaOrigem);
 
     // 11. Mídias
     mediaSlides.forEach((slideData, index) => {
