@@ -7,17 +7,9 @@ import { fetchPracasWithFallback } from '@/hooks/admin/utils/pracasFetcher';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export interface User {
-  id: string;
-  full_name: string;
-  email: string;
-  is_admin: boolean;
-  is_approved: boolean;
-  assigned_pracas: string[];
-  role?: 'admin' | 'marketing' | 'user' | 'master';
-  created_at: string;
-  approved_at: string | null;
-  organization_id?: string | null;
-  avatar_url?: string;
+  id: string; full_name: string; email: string; is_admin: boolean; is_approved: boolean;
+  assigned_pracas: string[]; role?: 'admin' | 'marketing' | 'user' | 'master';
+  created_at: string; approved_at: string | null; organization_id?: string | null; avatar_url?: string;
 }
 export function useAdminData() {
   const [users, setUsers] = useState<User[]>([]);
@@ -104,12 +96,5 @@ export function useAdminData() {
     }
   };
 
-  return {
-    users,
-    pendingUsers,
-    pracasDisponiveis,
-    loading,
-    error,
-    fetchData,
-  };
+  return { users, pendingUsers, pracasDisponiveis, loading, error, fetchData };
 }

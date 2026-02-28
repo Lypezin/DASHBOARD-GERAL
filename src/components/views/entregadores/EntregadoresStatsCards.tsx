@@ -6,27 +6,14 @@ import { Users, Clock, Bike, CheckCircle2, XCircle, PlayCircle, StopCircle, Layo
 import { StatCard } from './components/StatCard';
 
 interface EntregadoresStatsCardsProps {
-  totalEntregadores: number;
-  totalSegundos: number;
-  totalOfertadas: number;
-  totalAceitas: number;
-  totalCompletadas: number;
-  totalRejeitadas: number;
-  totalRodandoSim: number;
-  totalRodandoNao: number;
+  totalEntregadores: number; totalSegundos: number; totalOfertadas: number; totalAceitas: number;
+  totalCompletadas: number; totalRejeitadas: number; totalRodandoSim: number; totalRodandoNao: number;
   formatarSegundosParaHoras: (segundos: number) => string;
 }
 
 export const EntregadoresStatsCards = React.memo(function EntregadoresStatsCards({
-  totalEntregadores,
-  totalSegundos,
-  totalOfertadas,
-  totalAceitas,
-  totalCompletadas,
-  totalRejeitadas,
-  totalRodandoSim,
-  totalRodandoNao,
-  formatarSegundosParaHoras,
+  totalEntregadores, totalSegundos, totalOfertadas, totalAceitas,
+  totalCompletadas, totalRejeitadas, totalRodandoSim, totalRodandoNao, formatarSegundosParaHoras,
 }: EntregadoresStatsCardsProps) {
 
   return (

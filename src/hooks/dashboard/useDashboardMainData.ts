@@ -1,17 +1,8 @@
-/**
- * Hook para buscar dados principais do dashboard
- * Separa lógica de busca de dados principais (totais, aderências)
- */
+/** Hook para buscar dados principais do dashboard */
 
 import { useState, useMemo } from 'react';
-import {
-  Totals,
-  AderenciaSemanal,
-  AderenciaDia,
-  AderenciaTurno,
-  AderenciaSubPraca,
-  AderenciaOrigem,
-  DimensoesDashboard,
+import type {
+  Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, DimensoesDashboard,
 } from '@/types';
 import { useDashboardDataFetcher } from './useDashboardDataFetcher';
 import { useDashboardCache, getInitialCacheData } from './useDashboardCache';
@@ -21,14 +12,9 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 
-interface UseDashboardMainDataOptions {
-  filterPayload: FilterPayload;
-  onError?: (error: Error | RpcError) => void;
-}
+interface UseDashboardMainDataOptions { filterPayload: FilterPayload; onError?: (error: Error | RpcError) => void; }
 
-/**
- * Hook para buscar dados principais do dashboard
- */
+/** Hook para buscar dados principais do dashboard */
 export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const { filterPayload, onError } = options;
   const { isLoading: isOrgLoading } = useOrganization();
@@ -54,14 +40,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
 
   const { fetchDashboardData, loading, error } = useDashboardDataFetcher({ filterPayload, onError });
 
-  const {
-    checkCache,
-    updateCache,
-    clearCache,
-    previousPayloadRef,
-    isFirstExecutionRef,
-    pendingPayloadKeyRef
-  } = useDashboardCache();
+  const { checkCache, updateCache, clearCache, previousPayloadRef, isFirstExecutionRef, pendingPayloadKeyRef } = useDashboardCache();
 
   // Criar uma string estável do payload para usar como dependência
   const payloadKey = useMemo(() => JSON.stringify(filterPayload), [
@@ -102,15 +81,5 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     shouldFetch: !isOrgLoading
   }, payloadKey);
 
-  return {
-    totals,
-    aderenciaSemanal,
-    aderenciaDia,
-    aderenciaTurno,
-    aderenciaSubPraca,
-    aderenciaOrigem,
-    dimensoes,
-    loading: loading || isOrgLoading,
-    error,
-  };
+  return { totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, dimensoes, loading: loading || isOrgLoading, error };
 }

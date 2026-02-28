@@ -4,29 +4,16 @@ import { SlideHeader } from './components/SlideHeader';
 import { DayCard, DiaSemanaResumo } from './components/DayCard';
 
 interface DiaSemanaComparado extends DiaSemanaResumo {
-  diferencaHoras: string;
-  diferencaHorasPositiva: boolean;
-  diferencaPercentualHoras: string;
-  diferencaPercentualHorasPositiva: boolean;
-  diferencaAderencia: string;
-  diferencaAderenciaPositiva: boolean;
+  diferencaHoras: string; diferencaHorasPositiva: boolean; diferencaPercentualHoras: string;
+  diferencaPercentualHorasPositiva: boolean; diferencaAderencia: string; diferencaAderenciaPositiva: boolean;
 }
 
 interface SlideAderenciaDiariaProps {
-  isVisible: boolean;
-  numeroSemana1: string;
-  numeroSemana2: string;
-  semana1Dias: DiaSemanaResumo[];
-  semana2Dias: DiaSemanaComparado[];
+  isVisible: boolean; numeroSemana1: string; numeroSemana2: string;
+  semana1Dias: DiaSemanaResumo[]; semana2Dias: DiaSemanaComparado[];
 }
 
-const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({
-  isVisible,
-  numeroSemana1,
-  numeroSemana2,
-  semana1Dias,
-  semana2Dias,
-}) => {
+const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({ isVisible, numeroSemana1, numeroSemana2, semana1Dias, semana2Dias }) => {
   return (
     <SlideWrapper isVisible={isVisible} style={{ padding: '8px 16px' }}>
       <SlideHeader

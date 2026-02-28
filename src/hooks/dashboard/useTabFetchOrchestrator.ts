@@ -1,4 +1,3 @@
-
 import { useRef } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
@@ -10,25 +9,16 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 
 interface UseTabFetchOrchestratorProps {
-    setData: React.Dispatch<React.SetStateAction<TabData>>;
-    currentTabRef: React.MutableRefObject<string>;
-    isRequestPendingRef: React.MutableRefObject<boolean>;
-    filterPayloadRef: React.MutableRefObject<string>;
+    setData: React.Dispatch<React.SetStateAction<TabData>>; currentTabRef: React.MutableRefObject<string>;
+    isRequestPendingRef: React.MutableRefObject<boolean>; filterPayloadRef: React.MutableRefObject<string>;
     getCached: (params: { tab: string; filterPayload: any }) => TabData | null;
     setCached: (params: { tab: string; filterPayload: any }, data: TabData) => void;
     fetchWithRetry: (tab: string, payload: any, onSuccess: (data: any, total?: number) => void, onError: (error: any) => void, shouldContinue: () => boolean) => void;
 }
 
 export function useTabFetchOrchestrator({
-    setData,
-    currentTabRef,
-    isRequestPendingRef,
-    filterPayloadRef,
-    getCached,
-    setCached,
-    fetchWithRetry
+    setData, currentTabRef, isRequestPendingRef, filterPayloadRef, getCached, setCached, fetchWithRetry
 }: UseTabFetchOrchestratorProps) {
-
     const fetchDataForTab = async (tab: string) => {
         if (currentTabRef.current !== tab || isRequestPendingRef.current) return;
 

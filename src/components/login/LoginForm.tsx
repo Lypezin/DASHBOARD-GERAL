@@ -1,7 +1,4 @@
-/**
- * Componente de formulário de login
- * Extraído de src/app/login/page.tsx
- */
+/** Componente de formulário de login - Extraído de src/app/login/page.tsx */
 
 import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
@@ -12,17 +9,9 @@ import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { LoginHeader } from './components/LoginHeader';
 import { LoginFields } from './components/LoginFields';
 
-interface LoginFormProps {
-  loading: boolean;
-  error: string | null;
-  onSubmit: (formData: LoginFormData) => void;
-}
+interface LoginFormProps { loading: boolean; error: string | null; onSubmit: (formData: LoginFormData) => void; }
 
-export const LoginForm = React.memo(function LoginForm({
-  loading,
-  error,
-  onSubmit,
-}: LoginFormProps) {
+export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmit }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

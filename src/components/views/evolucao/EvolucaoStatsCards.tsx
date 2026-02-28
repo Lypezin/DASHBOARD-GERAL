@@ -3,17 +3,9 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { Card, CardContent } from '@/components/ui/card';
 import { Car, Clock, BarChart2, Calendar } from 'lucide-react';
 
-interface EvolucaoStatsCardsProps {
-  dadosAtivos: any[];
-  viewMode: 'mensal' | 'semanal';
-  anoSelecionado: number;
-}
+interface EvolucaoStatsCardsProps { dadosAtivos: any[]; viewMode: 'mensal' | 'semanal'; anoSelecionado: number; }
 
-export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({
-  dadosAtivos,
-  viewMode,
-  anoSelecionado,
-}) => {
+export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAtivos, viewMode, anoSelecionado }) => {
   const { totalCorridas, totalHoras, mediaCorridas } = React.useMemo(() => {
     const tCorridas = dadosAtivos.reduce((sum, d) => sum + ((d as any).corridas_completadas || (d as any).total_corridas || 0), 0);
     const tHoras = dadosAtivos.reduce((sum, d) => sum + d.total_segundos, 0) / 3600;
@@ -26,22 +18,8 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({
   }
 
   // Hero Card Component
-  const HeroCard = ({
-    title,
-    value,
-    subtext,
-    icon: Icon,
-    colorFrom,
-    colorTo,
-    iconColor,
-  }: {
-    title: string;
-    value: string | number;
-    subtext: string;
-    icon: any;
-    colorFrom: string;
-    colorTo: string;
-    iconColor: string;
+  const HeroCard = ({ title, value, subtext, icon: Icon, colorFrom, colorTo, iconColor }: {
+    title: string; value: string | number; subtext: string; icon: any; colorFrom: string; colorTo: string; iconColor: string;
   }) => (
     <Card className="relative overflow-hidden border-none shadow-lg group">
       <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-10 group-hover:opacity-20 transition-opacity duration-500`} />

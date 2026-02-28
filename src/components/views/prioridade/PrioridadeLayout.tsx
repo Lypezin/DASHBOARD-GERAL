@@ -7,57 +7,22 @@ import { PrioridadeFilters } from './PrioridadeFilters';
 import { PrioridadeSearch } from './PrioridadeSearch';
 import { PrioridadeStatsCards } from './PrioridadeStatsCards';
 import { PrioridadeTable } from './PrioridadeTable';
-
-
 interface PrioridadeLayoutProps {
-    // State
-    sortedEntregadores: any[];
-    dataFiltradaLength: number;
-    sortField: any;
-    sortDirection: any;
-    searchTerm: string;
-    isSearching: boolean;
-    filtroAderencia: any;
-    filtroRejeicao: any;
-    filtroCompletadas: any;
-    filtroAceitas: any;
-    stats: any;
-
-    // Actions
-    onSearchChange: (val: string) => void;
-    onClearSearch: () => void;
-    onAderenciaChange: (val: any) => void;
-    onRejeicaoChange: (val: any) => void;
-    onCompletadasChange: (val: any) => void;
-    onAceitasChange: (val: any) => void;
-    onClearFilters: () => void;
-    onSort: (field: any) => void;
+    sortedEntregadores: any[]; dataFiltradaLength: number; sortField: any; sortDirection: any;
+    searchTerm: string; isSearching: boolean; filtroAderencia: any; filtroRejeicao: any;
+    filtroCompletadas: any; filtroAceitas: any; stats: any;
+    onSearchChange: (val: string) => void; onClearSearch: () => void;
+    onAderenciaChange: (val: any) => void; onRejeicaoChange: (val: any) => void;
+    onCompletadasChange: (val: any) => void; onAceitasChange: (val: any) => void;
+    onClearFilters: () => void; onSort: (field: any) => void;
 }
 
 export const PrioridadeLayout = React.memo(function PrioridadeLayout({
-    sortedEntregadores,
-    dataFiltradaLength,
-    sortField,
-    sortDirection,
-    searchTerm,
-    isSearching,
-    filtroAderencia,
-    filtroRejeicao,
-    filtroCompletadas,
-    filtroAceitas,
-    stats,
-    onSearchChange,
-    onClearSearch,
-    onAderenciaChange,
-    onRejeicaoChange,
-    onCompletadasChange,
-    onAceitasChange,
-    onClearFilters,
-    onSort
+    sortedEntregadores, dataFiltradaLength, sortField, sortDirection, searchTerm, isSearching,
+    filtroAderencia, filtroRejeicao, filtroCompletadas, filtroAceitas, stats,
+    onSearchChange, onClearSearch, onAderenciaChange, onRejeicaoChange,
+    onCompletadasChange, onAceitasChange, onClearFilters, onSort
 }: PrioridadeLayoutProps) {
-
-
-
     return (
         <motion.div
             className="space-y-8 pb-8 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8"

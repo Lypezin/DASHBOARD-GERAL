@@ -3,15 +3,10 @@ import { Trophy, User, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ICON_MAP } from '@/contexts/gamification/icons';
 
-interface LeaderboardRankingRowProps {
-    entry: any; // Type from GamificationContext LeaderboardEntry
-    index: number;
-}
+interface LeaderboardRankingRowProps { entry: any; index: number; }
 
 export const LeaderboardRankingRow: React.FC<LeaderboardRankingRowProps> = ({ entry, index }) => {
-    const isTop1 = index === 0;
-    const isTop2 = index === 1;
-    const isTop3 = index === 2;
+    const [isTop1, isTop2, isTop3] = [index === 0, index === 1, index === 2];
 
     return (
         <div

@@ -8,35 +8,17 @@ import { SecoesVisiveis } from './hooks/useComparacaoFilters';
 import { motion } from 'framer-motion';
 
 interface ComparacaoFiltersProps {
-  pracas: FilterOption[];
-  todasSemanas: (number | string)[];
-  semanasSelecionadas: string[];
-  pracaSelecionada: string | null;
-  shouldDisablePracaFilter: boolean;
-  onPracaChange: (praca: string | null) => void;
-  onToggleSemana: (semana: number | string) => void;
-  onClearSemanas: () => void;
-  onMostrarApresentacao: () => void;
-  loading: boolean;
-  dadosComparacaoLength: number;
-  secoesVisiveis: SecoesVisiveis;
-  onToggleSecao: (secao: keyof SecoesVisiveis) => void;
+  pracas: FilterOption[]; todasSemanas: (number | string)[]; semanasSelecionadas: string[];
+  pracaSelecionada: string | null; shouldDisablePracaFilter: boolean;
+  onPracaChange: (praca: string | null) => void; onToggleSemana: (semana: number | string) => void;
+  onClearSemanas: () => void; onMostrarApresentacao: () => void; loading: boolean; dadosComparacaoLength: number;
+  secoesVisiveis: SecoesVisiveis; onToggleSecao: (secao: keyof SecoesVisiveis) => void;
 }
 
 export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
-  pracas,
-  todasSemanas,
-  semanasSelecionadas,
-  pracaSelecionada,
-  shouldDisablePracaFilter,
-  onPracaChange,
-  onToggleSemana,
-  onClearSemanas,
-  onMostrarApresentacao,
-  loading,
-  dadosComparacaoLength,
-  secoesVisiveis,
-  onToggleSecao,
+  pracas, todasSemanas, semanasSelecionadas, pracaSelecionada, shouldDisablePracaFilter,
+  onPracaChange, onToggleSemana, onClearSemanas, onMostrarApresentacao,
+  loading, dadosComparacaoLength, secoesVisiveis, onToggleSecao,
 }) => {
   return (
     <motion.div

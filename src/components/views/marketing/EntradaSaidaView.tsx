@@ -7,12 +7,7 @@ import { Button } from '@/components/ui/button';
 import * as XLSX from 'xlsx';
 import { motion, Variants } from 'framer-motion';
 
-interface EntradaSaidaViewProps {
-    dataInicial: string | null;
-    dataFinal: string | null;
-    organizationId?: string;
-    praca?: string | null;
-}
+interface EntradaSaidaViewProps { dataInicial: string | null; dataFinal: string | null; organizationId?: string; praca?: string | null; }
 
 export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial, dataFinal, organizationId, praca }) => {
     const { data, loading, error } = useEntradaSaidaData({ dataInicial, dataFinal, organizationId, praca });
@@ -71,15 +66,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
         );
     }
 
-    const container: Variants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
+    const container: Variants = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } };
 
     const item: Variants = {
         hidden: { opacity: 0, y: 20 },

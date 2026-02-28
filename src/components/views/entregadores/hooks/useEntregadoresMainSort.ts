@@ -8,16 +8,9 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
     const router = useRouter();
     const pathname = usePathname();
 
-    // Init from URL
-    const getInitialSortField = () => {
-        return (searchParams.get('ent_sort') as any) || 'aderencia_percentual';
-    };
-    const getInitialSortDirection = () => {
-        return (searchParams.get('ent_dir') as 'asc' | 'desc') || 'desc';
-    };
-    const getInitialSearchTerm = () => {
-        return searchParams.get('ent_search') || '';
-    };
+    const getInitialSortField = () => (searchParams.get('ent_sort') as any) || 'aderencia_percentual';
+    const getInitialSortDirection = () => (searchParams.get('ent_dir') as 'asc' | 'desc') || 'desc';
+    const getInitialSearchTerm = () => searchParams.get('ent_search') || '';
 
     const [sortField, setSortField] = useState<keyof Entregador | 'percentual_aceitas' | 'percentual_completadas'>(getInitialSortField);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(getInitialSortDirection);
@@ -104,14 +97,5 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
         }
     };
 
-    return {
-        sortedEntregadores,
-        sortField,
-        sortDirection,
-        searchTerm,
-        setSearchTerm,
-        showInactiveOnly,
-        setShowInactiveOnly,
-        handleSort
-    };
+    return { sortedEntregadores, sortField, sortDirection, searchTerm, setSearchTerm, showInactiveOnly, setShowInactiveOnly, handleSort };
 }

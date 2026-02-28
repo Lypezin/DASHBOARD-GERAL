@@ -1,10 +1,5 @@
 import { converterHorasParaDecimal, formatarHorasParaHMS } from '@/utils/formatters';
-import {
-    calcularDiferenca,
-    calcularDiferencaPercentual,
-    formatarDiferenca,
-    formatarDiferencaPercentual,
-} from './common';
+import { calcularDiferenca, calcularDiferencaPercentual, formatarDiferenca, formatarDiferencaPercentual } from './common';
 import { DadosBasicos } from './basicData';
 
 // Normalize key for robust matching (strips accents, spaces, punctuation)
@@ -94,21 +89,9 @@ export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
                 horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
             },
             variacoes: [
-                {
-                    label: 'Δ Horas',
-                    valor: formatarDiferenca(diffHoras, true),
-                    positivo: diffHoras >= 0,
-                },
-                {
-                    label: '% Horas',
-                    valor: formatarDiferencaPercentual(diffHorasPercent),
-                    positivo: diffHorasPercent >= 0,
-                },
-                {
-                    label: '% Aderência',
-                    valor: formatarDiferencaPercentual(diffAderenciaPercent),
-                    positivo: diffAderenciaPercent >= 0,
-                },
+                { label: 'Δ Horas', valor: formatarDiferenca(diffHoras, true), positivo: diffHoras >= 0 },
+                { label: '% Horas', valor: formatarDiferencaPercentual(diffHorasPercent), positivo: diffHorasPercent >= 0 },
+                { label: '% Aderência', valor: formatarDiferencaPercentual(diffAderenciaPercent), positivo: diffAderenciaPercent >= 0 },
             ],
         };
     });
