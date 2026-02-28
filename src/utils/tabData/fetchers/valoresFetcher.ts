@@ -39,14 +39,11 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
     if (result.error) {
         const is500 = is500Error(result.error);
         const isRateLimit = isRateLimitError(result.error);
-
         if (is500) {
             try {
                 const fallbackData = await fetchValoresFallback(listarValoresPayload);
                 if (fallbackData && fallbackData.length > 0) return { data: fallbackData, error: null };
-            } catch (fallbackError) {
-                safeLog.error('Erro no fallback ao buscar valores:', fallbackError);
-            }
+            } catch (fallbackError) { safeLog.error('Erro no fallback ao buscar valores:', fallbackError); }
             throw new Error('RETRY_500');
         }
 
@@ -59,14 +56,8 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
             try {
                 const fallbackData = await fetchValoresFallback(listarValoresPayload);
                 if (fallbackData && fallbackData.length > 0) return { data: fallbackData, error: null };
-            } catch (fallbackError) {
-                safeLog.error('Erro no fallback ao buscar valores:', fallbackError);
-            }
-
-            return {
-                data: [],
-                error: { message: 'A função de listar valores não está disponível. Entre em contato com o administrador.', code: 'FUNCTION_NOT_FOUND' }
-            };
+            } catch (fallbackError) { safeLog.error('Erro no fallback ao buscar valores:', fallbackError); }
+            return { data: [], error: { message: 'A função não está disponível.', code: 'FUNCTION_NOT_FOUND' } };
         }
 
         safeLog.error('Erro ao buscar valores:', result.error);

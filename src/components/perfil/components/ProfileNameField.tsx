@@ -18,16 +18,8 @@ export const ProfileNameField: React.FC<ProfileNameFieldProps> = ({ userId, curr
     const { updateFullName, savingName } = usePerfilUpdate();
 
     const handleSaveName = async () => {
-        if (!editedName.trim()) {
-            toast.error("O nome não pode estar vazio.");
-            return;
-        }
-
-        if (editedName.trim() === currentName) {
-            setIsEditingName(false);
-            return;
-        }
-
+        if (!editedName.trim()) return toast.error("O nome não pode estar vazio.");
+        if (editedName.trim() === currentName) return setIsEditingName(false);
         await updateFullName(editedName, userId, () => {
             toast.success("Nome atualizado com sucesso!");
             setIsEditingName(false);
@@ -48,30 +40,12 @@ export const ProfileNameField: React.FC<ProfileNameFieldProps> = ({ userId, curr
                     <div className="flex gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
                         <div className="relative flex-1">
                             <User className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
-                            <Input
-                                id="fullName"
-                                value={editedName}
-                                onChange={(e) => setEditedName(e.target.value)}
-                                disabled={savingName}
-                                className="pl-10"
-                                placeholder="Seu nome completo"
-                            />
+                            <Input id="fullName" value={editedName} onChange={(e) => setEditedName(e.target.value)} disabled={savingName} className="pl-10" placeholder="Seu nome completo" />
                         </div>
-                        <Button
-                            onClick={handleSaveName}
-                            disabled={savingName}
-                            size="icon"
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                        >
+                        <Button onClick={handleSaveName} disabled={savingName} size="icon" className="bg-green-600 hover:bg-green-700 text-white">
                             {savingName ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                         </Button>
-                        <Button
-                            onClick={handleCancel}
-                            disabled={savingName}
-                            size="icon"
-                            variant="outline"
-                            className="hover:bg-slate-100 dark:hover:bg-slate-800"
-                        >
+                        <Button onClick={handleCancel} disabled={savingName} size="icon" variant="outline" className="hover:bg-slate-100 dark:hover:bg-slate-800">
                             <X className="h-4 w-4" />
                         </Button>
                     </div>

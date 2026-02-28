@@ -30,19 +30,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             className={cn("flex flex-col max-w-[85%] group relative mb-2", isMe ? "ml-auto items-end" : "mr-auto items-start")}
         >
             {/* Action Buttons (CSS Hover) */}
-            <div className={cn(
-                "absolute -top-3 flex items-center gap-0.5 bg-white shadow-sm border border-slate-200 rounded-full p-0.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
-                isMe ? "right-0" : "left-0"
-            )}>
-                <button onClick={(e) => { e.stopPropagation(); onReact(msg.id, '👍'); }} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-blue-500 transition-colors" title="Curtir">
-                    <Smile size={12} />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); onReply(msg); }} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-blue-500 transition-colors" title="Responder">
-                    <Reply size={12} />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); onPin(msg.id, !msg.isPinned); }} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-blue-500 transition-colors" title={msg.isPinned ? "Desafixar" : "Fixar"}>
-                    <Pin size={12} className={cn(msg.isPinned ? "fill-orange-400 text-orange-400" : "")} />
-                </button>
+            <div className={cn("absolute -top-3 flex items-center gap-0.5 bg-white shadow-sm border border-slate-200 rounded-full p-0.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200", isMe ? "right-0" : "left-0")}>
+                <button onClick={(e) => { e.stopPropagation(); onReact(msg.id, '👍'); }} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-blue-500 transition-colors" title="Curtir"><Smile size={12} /></button>
+                <button onClick={(e) => { e.stopPropagation(); onReply(msg); }} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-blue-500 transition-colors" title="Responder"><Reply size={12} /></button>
+                <button onClick={(e) => { e.stopPropagation(); onPin(msg.id, !msg.isPinned); }} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-blue-500 transition-colors" title={msg.isPinned ? "Desafixar" : "Fixar"}><Pin size={12} className={cn(msg.isPinned ? "fill-orange-400 text-orange-400" : "")} /></button>
             </div>
 
             {/* Reply Context */}

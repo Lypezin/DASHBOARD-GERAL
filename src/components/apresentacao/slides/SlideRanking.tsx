@@ -29,11 +29,7 @@ const PodiumStep: React.FC<{
     return (
         <div className={`flex flex-col items-center justify-end ${isActive ? 'animate-slide-up' : 'opacity-0'} ${delay}`}>
             {/* Avatar / Icon Placeholder */}
-            <div className={`mb-4 rounded-full flex items-center justify-center shadow-lg font-bold text-white
-        ${position === 1 ? 'w-24 h-24 text-3xl bg-yellow-400 ring-4 ring-yellow-200' :
-                    position === 2 ? 'w-20 h-20 text-2xl bg-slate-300 ring-4 ring-slate-100' :
-                        'w-20 h-20 text-2xl bg-amber-600 ring-4 ring-amber-200'}
-      `}>
+            <div className={`mb-4 rounded-full flex items-center justify-center shadow-lg font-bold text-white ${position === 1 ? 'w-24 h-24 text-3xl bg-yellow-400 ring-4 ring-yellow-200' : position === 2 ? 'w-20 h-20 text-2xl bg-slate-300 ring-4 ring-slate-100' : 'w-20 h-20 text-2xl bg-amber-600 ring-4 ring-amber-200'}`}>
                 {position}º
             </div>
 

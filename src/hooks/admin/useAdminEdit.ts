@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { executeAdminRpc } from '@/utils/adminHelpers';
 import { User } from '@/hooks/auth/useAdminData';
+import { buildUserUpdatePayload } from './utils/adminEditPayload';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -42,60 +43,25 @@ export function useAdminEdit(fetchData: () => void) {
                     p_organization_id: selectedOrganizationId,
                 },
                 async () => {
-                    const updateData: any = {
-                        assigned_pracas: selectedRole === 'marketing' ? [] : selectedPracas
-                    };
-
-                    if (selectedRole) {
-                        updateData.role = selectedRole;
-                        updateData.is_admin = (selectedRole === 'admin' || selectedRole === 'master');
-                    }
-
-                    if (selectedOrganizationId) {
-                        updateData.organization_id = selectedOrganizationId;
-                    }
-
-                    return supabase
-                        .from('user_profiles')
-                        .update(updateData)
-                        .eq('id', editingUser.id);
+                    const updateData = buildUserUpdatePayload(selectedRole, selectedPracas, selectedOrganizationId);
+                    return supabase.from('user_profiles').update(updateData).eq('id', editingUser.id);
                 }
             );
 
             if (error) throw error;
-
             cancelEdit();
             fetchData();
         } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message : (typeof err === 'object' && err !== null ? String(err) : 'Ocorreu um erro. Tente novamente mais tarde.');
+            const errMsg = err instanceof Error ? err.message : String(err);
             if (IS_DEV) {
-                safeLog.error('Erro ao atualizar praças:', {
-                    error: err,
-                    user_id: editingUser?.id,
-                    pracas: selectedPracas,
-                    role: selectedRole,
-                    errorMessage
-                });
+                safeLog.error('Erro ao atualizar praças:', { error: err, user_id: editingUser?.id, errMsg });
             }
-            alert('Erro ao atualizar praças: ' + errorMessage);
+            alert('Erro ao atualizar praças: ' + errMsg);
         }
     };
 
     return {
-        editState: {
-            editingUser,
-            selectedPracas,
-            selectedRole,
-            selectedOrganizationId,
-            showEditModal,
-        },
-        editActions: {
-            setSelectedPracas,
-            setSelectedRole,
-            setSelectedOrganizationId,
-            startEdit,
-            saveEdit,
-            cancelEdit
-        }
+        editState: { editingUser, selectedPracas, selectedRole, selectedOrganizationId, showEditModal },
+        editActions: { setSelectedPracas, setSelectedRole, setSelectedOrganizationId, startEdit, saveEdit, cancelEdit }
     };
 }

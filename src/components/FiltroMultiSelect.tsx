@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
+import { useClickOutside } from '@/hooks/ui/useClickOutside';
 
 type FilterOption = {
   value: string;
@@ -18,34 +19,17 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node) &&
-        dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [wrapperRef]);
-
-
-
+  const closeDropdown = useCallback(() => setIsOpen(false), []);
+  const refsToCheck = useRef([wrapperRef, dropdownRef]);
+  useClickOutside(refsToCheck.current, closeDropdown);
 
   const handleSelect = (value: string) => {
-    // Evitar duplicatas: verificar se já existe
     const isAlreadySelected = selected.includes(value);
-
     const newSelected = isAlreadySelected
       ? selected.filter(item => item !== value)
       : [...selected, value];
-
     onSelectionChange(newSelected);
-  };
-
-
-
-  return (
+  }; return (
     <div className="flex flex-col gap-1 sm:gap-1.5 relative" ref={wrapperRef}>
       <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">{label}</span>
       <div className="relative">

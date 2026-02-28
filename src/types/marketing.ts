@@ -90,14 +90,9 @@ export interface ValoresCidadePorCidade {
   valor_total: number;
   custo_por_liberado?: number;
   quantidade_liberados?: number;
-  valor_total_enviados?: number; // Valor total no período de Enviados para calcular faltam
+  valor_total_enviados?: number; // Valor total no período de Enviados
 }
 
-// Mapeamento de IDs de atendentes para nomes
 export const MAPEAMENTO_ATENDENTES: { [key: string]: string } = {
-  '6905': 'Carol',
-  '4182': 'Mellisa',
-  '6976': 'Beatriz',
-  '5447': 'Fernanda',
+  '6905': 'Carol', '4182': 'Mellisa', '6976': 'Beatriz', '5447': 'Fernanda',
 };
-

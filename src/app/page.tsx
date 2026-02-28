@@ -23,15 +23,8 @@ export default function DashboardPage() {
 function DashboardContent() {
   const { auth, ui, filters, data } = useDashboardPage();
 
-  // Mostrar loading enquanto verifica autenticação
-  if (auth.isCheckingAuth) {
-    return <DashboardAuthLoading />;
-  }
-
-  // Se não estiver autenticado, não renderizar nada (já foi redirecionado)
-  if (!auth.isAuthenticated) {
-    return null;
-  }
+  if (auth.isCheckingAuth) return <DashboardAuthLoading />;
+  if (!auth.isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">

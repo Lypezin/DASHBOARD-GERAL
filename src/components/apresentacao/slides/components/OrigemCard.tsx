@@ -4,23 +4,11 @@ import { buildTimeTextStyle } from '../../utils';
 import { VariationBadge } from './VariationBadge';
 import { WeekComparisonCircle } from './WeekComparisonCircle';
 
-interface VariacaoResumo {
-    label: string;
-    valor: string;
-    positivo: boolean;
-}
-
+interface VariacaoResumo { label: string; valor: string; positivo: boolean; }
 interface OrigemComparativo {
-    nome: string;
-    horasPlanejadas: string;
-    semana1: {
-        aderencia: number;
-        horasEntregues: string;
-    };
-    semana2: {
-        aderencia: number;
-        horasEntregues: string;
-    };
+    nome: string; horasPlanejadas: string;
+    semana1: { aderencia: number; horasEntregues: string; };
+    semana2: { aderencia: number; horasEntregues: string; };
     variacoes: VariacaoResumo[];
 }
 

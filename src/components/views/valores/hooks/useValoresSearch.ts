@@ -1,34 +1,20 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { ValoresEntregador } from '@/types';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
+import { useUrlSearchSync } from '@/hooks/ui/useUrlSearchSync';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useValoresSearch(valoresData: ValoresEntregador[] | null) {
     const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
-
     const getInitialSearchTerm = () => searchParams.get('val_search') || '';
 
     const [searchTerm, setSearchTerm] = useState(getInitialSearchTerm);
     const [searchResults, setSearchResults] = useState<ValoresEntregador[]>([]);
 
-    // Sync to URL
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams.toString());
-        if (searchTerm) {
-            if (params.get('val_search') !== searchTerm) {
-                params.set('val_search', searchTerm);
-                router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-            }
-        } else if (params.has('val_search')) {
-            params.delete('val_search');
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-        }
-    }, [searchTerm, pathname, router, searchParams]);
+    useUrlSearchSync('val_search', searchTerm);
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);

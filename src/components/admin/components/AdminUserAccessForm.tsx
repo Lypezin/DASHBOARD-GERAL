@@ -24,15 +24,8 @@ interface AdminUserAccessFormProps {
 }
 
 export const AdminUserAccessForm: React.FC<AdminUserAccessFormProps> = ({
-    pracasDisponiveis,
-    organizations,
-    selectedPracas,
-    selectedRole,
-    selectedOrganizationId,
-    onPracasChange,
-    onRoleChange,
-    onOrganizationChange,
-    hideOrganization = false,
+    pracasDisponiveis, organizations, selectedPracas, selectedRole,
+    selectedOrganizationId, onPracasChange, onRoleChange, onOrganizationChange, hideOrganization = false,
 }) => {
     const togglePracaSelection = (praca: string) => {
         if (selectedPracas.includes(praca)) {
