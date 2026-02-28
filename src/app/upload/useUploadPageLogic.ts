@@ -5,10 +5,7 @@ import { useFileUpload } from '@/hooks/data/useFileUpload';
 import { useGenericUploadState } from '@/hooks/upload/useGenericUploadState';
 import { useOrganization } from '@/hooks/auth/useOrganization';
 import { useOrganizationSelection } from '@/hooks/auth/useOrganizationSelection';
-import {
-    MARKETING_COLUMN_MAP,
-    VALORES_CIDADE_COLUMN_MAP,
-} from '@/constants/upload';
+import { MARKETING_COLUMN_MAP, VALORES_CIDADE_COLUMN_MAP } from '@/constants/upload';
 import { marketingTransformers, valoresCidadeTransformers } from '@/utils/uploadTransformers';
 
 import { useGamification } from '@/contexts/GamificationContext';
@@ -22,13 +19,7 @@ export const useUploadPageLogic = () => {
     const marketingState = useGenericUploadState();
     const valoresCidadeState = useGenericUploadState();
 
-    // Hook para seleção de organização
-    const {
-        organizations,
-        selectedOrgId,
-        setSelectedOrgId,
-        isLoadingOrgs
-    } = useOrganizationSelection(isAuthorized, user);
+    const { organizations, selectedOrgId, setSelectedOrgId, isLoadingOrgs } = useOrganizationSelection(isAuthorized, user);
 
     // Mostrar botão de retry se o loading demorar muito
     useEffect(() => {
@@ -95,20 +86,8 @@ export const useUploadPageLogic = () => {
     };
 
     return {
-        loading,
-        isAuthorized,
-        user,
-        showRetry,
-        organizations,
-        selectedOrgId,
-        setSelectedOrgId,
-        isLoadingOrgs,
-        marketingState,
-        valoresCidadeState,
-        corridasUpload,
-        marketingUpload,
-        valoresCidadeUpload,
-        handleMarketingUpload,
-        handleValoresCidadeUpload
+        loading, isAuthorized, user, showRetry, organizations, selectedOrgId, setSelectedOrgId, isLoadingOrgs,
+        marketingState, valoresCidadeState, corridasUpload, marketingUpload, valoresCidadeUpload,
+        handleMarketingUpload, handleValoresCidadeUpload
     };
 };

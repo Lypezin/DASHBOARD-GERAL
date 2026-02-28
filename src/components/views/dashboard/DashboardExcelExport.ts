@@ -5,17 +5,11 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-// Helper local para formatação
-const formatarPorcentagem = (valor: number) => {
-    return (valor / 100).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 1 });
-};
+const formatarPorcentagem = (valor: number) => (valor / 100).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 1 });
 
 export async function exportarDashboardParaExcel(
-    aderenciaGeral: AderenciaSemanal | undefined,
-    aderenciaDia: AderenciaDia[],
-    aderenciaTurno: AderenciaTurno[],
-    aderenciaSubPraca: AderenciaSubPraca[],
-    aderenciaOrigem: AderenciaOrigem[]
+    aderenciaGeral: AderenciaSemanal | undefined, aderenciaDia: AderenciaDia[],
+    aderenciaTurno: AderenciaTurno[], aderenciaSubPraca: AderenciaSubPraca[], aderenciaOrigem: AderenciaOrigem[]
 ): Promise<void> {
     try {
         const XLSX = await loadXLSX();
@@ -23,8 +17,6 @@ export async function exportarDashboardParaExcel(
 
         // 1. Aba: Resumo Geral
         if (aderenciaGeral) {
-            // Tenta usar as strings prontos (HH:MM:SS) se existirem, senão calcula dos segundos
-            // Isso corrige o problema de vir zerado quando não tem filtro de semana (onde segundos podem não vir, mas a string vem)
             let horasRealizadas = aderenciaGeral.horas_entregues;
             if (!horasRealizadas || horasRealizadas === '00:00:00') {
                 horasRealizadas = formatarHorasParaHMS((aderenciaGeral.segundos_realizados || 0) / 3600);

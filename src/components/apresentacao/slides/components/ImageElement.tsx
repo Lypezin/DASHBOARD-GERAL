@@ -3,20 +3,11 @@ import { motion } from 'framer-motion';
 import { SlideElement } from '@/types/presentation';
 
 interface ImageElementProps {
-    element: SlideElement;
-    canDrag: boolean;
-    isSelected: boolean;
-    onSelect: (id: string) => void;
-    onUpdate: (id: string, updates: Partial<SlideElement>) => void;
+    element: SlideElement; canDrag: boolean; isSelected: boolean;
+    onSelect: (id: string) => void; onUpdate: (id: string, updates: Partial<SlideElement>) => void;
 }
 
-export const ImageElement: React.FC<ImageElementProps> = ({
-    element: el,
-    canDrag,
-    isSelected,
-    onSelect,
-    onUpdate
-}) => {
+export const ImageElement: React.FC<ImageElementProps> = ({ element: el, canDrag, isSelected, onSelect, onUpdate }) => {
     return (
         <motion.div
             key={el.id}

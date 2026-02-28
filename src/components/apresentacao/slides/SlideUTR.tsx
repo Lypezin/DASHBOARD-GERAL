@@ -5,25 +5,11 @@ import { cn } from '@/lib/utils';
 import { Target, AlertTriangle } from 'lucide-react';
 import { UtrData } from '@/types';
 
-interface UtrComparacaoItem {
-    semana: string;
-    utr: UtrData | null;
-}
+interface UtrComparacaoItem { semana: string; utr: UtrData | null; }
 
-interface SlideUTRProps {
-    isVisible: boolean;
-    numeroSemana1: string;
-    numeroSemana2: string;
-    utrComparacao: UtrComparacaoItem[];
-}
+interface SlideUTRProps { isVisible: boolean; numeroSemana1: string; numeroSemana2: string; utrComparacao: UtrComparacaoItem[]; }
 
-const SlideUTR: React.FC<SlideUTRProps> = ({
-    isVisible,
-    numeroSemana1,
-    numeroSemana2,
-    utrComparacao,
-}) => {
-
+const SlideUTR: React.FC<SlideUTRProps> = ({ isVisible, numeroSemana1, numeroSemana2, utrComparacao }) => {
     const renderContent = () => {
         if (!utrComparacao || utrComparacao.length === 0) {
             return (
@@ -82,10 +68,7 @@ const SlideUTR: React.FC<SlideUTRProps> = ({
                                                 </span>
                                             ) : (
                                                 <div className="flex flex-col items-center gap-2">
-                                                    <span className="text-4xl font-extrabold text-blue-600">
-                                                        {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}
-                                                    </span>
-                                                    {/* Optional: Add bar/progress indicator here if desired */}
+                                                    {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}
                                                 </div>
                                             )}
                                         </td>

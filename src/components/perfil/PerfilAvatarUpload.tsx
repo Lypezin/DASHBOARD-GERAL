@@ -6,17 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Camera, Loader2, Trash2 } from 'lucide-react';
 import { toast } from "sonner";
 
-interface PerfilAvatarUploadProps {
-  avatarUrl: string | null | undefined;
-  onAvatarUpdate: (newUrl: string | null) => void;
-  userId: string;
-}
+interface PerfilAvatarUploadProps { avatarUrl: string | null | undefined; onAvatarUpdate: (newUrl: string | null) => void; userId: string; }
 
-export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({
-  avatarUrl,
-  onAvatarUpdate,
-  userId,
-}) => {
+export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({ avatarUrl, onAvatarUpdate, userId }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const { uploadAvatar, removeAvatar, uploading } = usePerfilUpdate();

@@ -14,15 +14,8 @@ export function useEntregadoresData() {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
 
-    // Filters
-    const [filtroRodouDia, setFiltroRodouDia] = useState<MarketingDateFilter>({
-        dataInicial: null,
-        dataFinal: null,
-    });
-    const [filtroDataInicio, setFiltroDataInicio] = useState<MarketingDateFilter>({
-        dataInicial: null,
-        dataFinal: null,
-    });
+    const [filtroRodouDia, setFiltroRodouDia] = useState<MarketingDateFilter>({ dataInicial: null, dataFinal: null });
+    const [filtroDataInicio, setFiltroDataInicio] = useState<MarketingDateFilter>({ dataInicial: null, dataFinal: null });
     const [cidadeSelecionada, setCidadeSelecionada] = useState<string>('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
@@ -74,13 +67,7 @@ export function useEntregadoresData() {
         fetchEntregadoresFn();
     }, [fetchEntregadoresFn]);
 
-    // Use extracted hooks for logic
-    const {
-        sortField,
-        sortDirection,
-        handleSort,
-        entregadoresFiltrados
-    } = useEntregadoresFilterSort(entregadores, searchTerm);
+    const { sortField, sortDirection, handleSort, entregadoresFiltrados } = useEntregadoresFilterSort(entregadores, searchTerm);
 
     const totais = useEntregadoresTotals(entregadoresFiltrados);
 
@@ -91,25 +78,9 @@ export function useEntregadoresData() {
     }, []);
 
     return {
-        entregadores,
-        entregadoresFiltrados,
-        loading: loading || isOrgLoading, // Expose combined loading state
-        error,
-        searchTerm,
-        sortField,
-        sortDirection,
-        filtroRodouDia,
-        filtroDataInicio,
-        cidadeSelecionada,
-        totais,
-        setSearchTerm,
-        setFiltroRodouDia,
-        setFiltroDataInicio,
-        setCidadeSelecionada,
-        handleSort,
-        fetchEntregadoresFn,
-        formatarSegundosParaHoras,
-        setLoading,
-        setError
+        entregadores, entregadoresFiltrados, loading: loading || isOrgLoading, error, searchTerm,
+        sortField, sortDirection, filtroRodouDia, filtroDataInicio, cidadeSelecionada, totais,
+        setSearchTerm, setFiltroRodouDia, setFiltroDataInicio, setCidadeSelecionada,
+        handleSort, fetchEntregadoresFn, formatarSegundosParaHoras, setLoading, setError
     };
 }

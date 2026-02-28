@@ -1,22 +1,12 @@
-
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import type { RefreshPrioritizedResult } from '@/types/upload';
 
-export interface RefreshState {
-    isRefreshing: boolean;
-    progress: number;
-    status: string;
-}
+export interface RefreshState { isRefreshing: boolean; progress: number; status: string; }
 
 export type SetRefreshState = (state: RefreshState | ((prev: RefreshState) => RefreshState)) => void;
 
-export const performRefresh = async (
-    force: boolean,
-    isLowUsage: boolean,
-    timeContext: string,
-    setRefreshState: SetRefreshState
-) => {
+export const performRefresh = async (force: boolean, isLowUsage: boolean, timeContext: string, setRefreshState: SetRefreshState) => {
     try {
         safeLog.info(`[performRefresh] Iniciando - force=${force}, isLowUsage=${isLowUsage}`);
         setRefreshState(prev => ({ ...prev, progress: 10, status: 'Preparando views...' }));

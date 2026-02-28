@@ -14,23 +14,12 @@ import { useMediaActions } from './hooks/useMediaActions';
 
 interface ApresentacaoPreviewProps {
   slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
-  currentSlide: number;
-  onSlideChange: (index: number) => void;
-  onNext: () => void;
-  onPrev: () => void;
-  onClose: () => void;
-  numeroSemana1: string;
-  numeroSemana2: string;
-  visibleSections: Record<string, boolean>;
-  onToggleSection: (section: string) => void;
+  currentSlide: number; onSlideChange: (index: number) => void; onNext: () => void; onPrev: () => void; onClose: () => void;
+  numeroSemana1: string; numeroSemana2: string; visibleSections: Record<string, boolean>; onToggleSection: (section: string) => void;
   onStartPresentation: (orderedSlides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>) => void;
-  mediaSlides?: MediaSlideData[];
-  onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void;
-  onAddMediaSlide?: () => void;
-  onDeleteMediaSlide?: (id: string) => void;
-  onManageMedia?: () => void; // Deprecated
-  onSaveClick?: () => void;
-  onManageClick?: () => void;
+  mediaSlides?: MediaSlideData[]; onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void;
+  onAddMediaSlide?: () => void; onDeleteMediaSlide?: (id: string) => void; onManageMedia?: () => void;
+  onSaveClick?: () => void; onManageClick?: () => void;
 }
 
 const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({

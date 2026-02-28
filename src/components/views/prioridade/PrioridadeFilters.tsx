@@ -3,27 +3,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Filter, X } from 'lucide-react';
 
 interface PrioridadeFiltersProps {
-  filtroAderencia: string;
-  filtroRejeicao: string;
-  filtroCompletadas: string;
-  filtroAceitas: string;
-  onAderenciaChange: (value: string) => void;
-  onRejeicaoChange: (value: string) => void;
-  onCompletadasChange: (value: string) => void;
-  onAceitasChange: (value: string) => void;
-  onClearFilters: () => void;
+  filtroAderencia: string; filtroRejeicao: string; filtroCompletadas: string; filtroAceitas: string;
+  onAderenciaChange: (value: string) => void; onRejeicaoChange: (value: string) => void;
+  onCompletadasChange: (value: string) => void; onAceitasChange: (value: string) => void; onClearFilters: () => void;
 }
 
 export const PrioridadeFilters: React.FC<PrioridadeFiltersProps> = ({
-  filtroAderencia,
-  filtroRejeicao,
-  filtroCompletadas,
-  filtroAceitas,
-  onAderenciaChange,
-  onRejeicaoChange,
-  onCompletadasChange,
-  onAceitasChange,
-  onClearFilters,
+  filtroAderencia, filtroRejeicao, filtroCompletadas, filtroAceitas,
+  onAderenciaChange, onRejeicaoChange, onCompletadasChange, onAceitasChange, onClearFilters,
 }) => {
   const hasFilters = filtroAderencia || filtroRejeicao || filtroCompletadas || filtroAceitas;
 

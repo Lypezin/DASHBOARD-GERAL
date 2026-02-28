@@ -1,9 +1,4 @@
-
-/**
- * Converte formato HH:MM:SS ou número para horas decimais
- * @param valor - String no formato HH:MM:SS ou número (decimal ou string numérica)
- * @returns Número em horas decimais
- */
+/** Converte formato HH:MM:SS ou número para horas decimais */
 export function converterHorasParaDecimal(valor: string | number): number {
     if (typeof valor === 'number') return valor;
     if (!valor || valor === '0' || valor === '00:00:00') return 0;
@@ -33,10 +28,7 @@ export function converterHorasParaDecimal(valor: string | number): number {
 }
 
 export function formatarHorasParaHMS(horasDecimais: string | number): string {
-    // Se já for string no formato HH:MM:SS, retornar como está
-    if (typeof horasDecimais === 'string' && horasDecimais.includes(':')) {
-        return horasDecimais;
-    }
+    if (typeof horasDecimais === 'string' && horasDecimais.includes(':')) return horasDecimais;
 
     const horas = typeof horasDecimais === 'string' ? parseFloat(horasDecimais) : horasDecimais;
 
@@ -52,7 +44,7 @@ export function formatarHorasParaHMS(horasDecimais: string | number): string {
 
 // Formata horas grandes para exibição compacta (ex: 890.5k)
 export function formatarHorasCompacta(horasDecimais: string | number): string {
-    // Se já for string no formato HH:MM:SS, converter primeiro
+    // Se já for string HH:MM:SS, converter primeiro
     let horas: number;
     if (typeof horasDecimais === 'string' && horasDecimais.includes(':')) {
         const parts = horasDecimais.split(':');
@@ -79,10 +71,7 @@ export function formatarHorasCompacta(horasDecimais: string | number): string {
     return horas.toFixed(1);
 }
 
-/**
- * Formata strings de tempo longas para exibição compacta.
- * Converte formatos como "20199:55:12" para "20.199h" para melhor visualização.
- */
+/** Formata strings de tempo longas para exibição compacta (ex: "20199:55:12" -> "20.199h") */
 export const formatCompactTime = (timeString: string): string => {
     if (!timeString || typeof timeString !== 'string') return '0h';
 
@@ -105,7 +94,7 @@ export const formatCompactTime = (timeString: string): string => {
         return `${hours}h`;
     }
 
-    // Para valores normais, mostre horas e minutos se relevante
+    // Valores normais: horas e minutos se relevante
     if (minutes > 0 && hours < 100) {
         return `${hours}h${minutes.toString().padStart(2, '0')}`;
     }

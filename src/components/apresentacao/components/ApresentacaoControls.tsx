@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Check, FilePlus, FolderOpen, Save } from 'lucide-react';
@@ -6,33 +5,15 @@ import { PresentationSectionToggle } from './PresentationSectionToggle';
 import { PresentationNavigation } from './PresentationNavigation';
 
 interface ApresentacaoControlsProps {
-    currentSlide: number;
-    totalSlides: number;
-    onPrev: () => void;
-    onNext: () => void;
-    onClose: () => void;
-    onGeneratePDF: () => void;
-    onStartPresentation: () => void;
-    isGenerating: boolean;
-    visibleSections: Record<string, boolean>;
-    onToggleSection: (section: string) => void;
-    onManageMedia?: () => void;
-    onSaveClick?: () => void;
-    onManageClick?: () => void;
+    currentSlide: number; totalSlides: number; onPrev: () => void; onNext: () => void;
+    onClose: () => void; onGeneratePDF: () => void; onStartPresentation: () => void; isGenerating: boolean;
+    visibleSections: Record<string, boolean>; onToggleSection: (section: string) => void;
+    onManageMedia?: () => void; onSaveClick?: () => void; onManageClick?: () => void;
 }
 
 export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
-    currentSlide,
-    totalSlides,
-    onPrev,
-    onNext,
-    onClose,
-    onStartPresentation,
-    visibleSections,
-    onToggleSection,
-    onManageMedia,
-    onSaveClick,
-    onManageClick
+    currentSlide, totalSlides, onPrev, onNext, onClose, onStartPresentation,
+    visibleSections, onToggleSection, onManageMedia, onSaveClick, onManageClick
 }) => {
     return (
         <div className="sticky top-0 bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
