@@ -11,21 +11,56 @@ interface AnaliseMetricCardsProps {
     totalHorasEntregues: number;
 }
 
-/* Glass panel card com glow-line gradient no bottom */
-const glassStyle: React.CSSProperties = {
-    background: 'rgba(22, 31, 48, 0.6)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
+/* Cores hardcoded para o Tailwind safelist (classes dinâmicas) */
+const colorMap = {
+    orange: {
+        iconBg: 'bg-orange-500/10 dark:bg-orange-500/10',
+        iconText: 'text-orange-500 dark:text-orange-400',
+        barFrom: 'from-orange-500',
+        barTo: 'to-orange-400',
+        glowBorder: 'group-hover:shadow-orange-500/20',
+        rateText: 'text-orange-500 dark:text-orange-400',
+        borderAccent: 'border-orange-500/20',
+    },
+    blue: {
+        iconBg: 'bg-blue-500/10 dark:bg-blue-500/10',
+        iconText: 'text-blue-500 dark:text-blue-400',
+        barFrom: 'from-blue-500',
+        barTo: 'to-blue-400',
+        glowBorder: 'group-hover:shadow-blue-500/20',
+        rateText: 'text-blue-500 dark:text-blue-400',
+        borderAccent: 'border-blue-500/20',
+    },
+    emerald: {
+        iconBg: 'bg-emerald-500/10 dark:bg-emerald-500/10',
+        iconText: 'text-emerald-600 dark:text-emerald-400',
+        barFrom: 'from-emerald-500',
+        barTo: 'to-emerald-400',
+        glowBorder: 'group-hover:shadow-emerald-500/20',
+        rateText: 'text-emerald-600 dark:text-emerald-400',
+        borderAccent: 'border-emerald-500/20',
+    },
+    rose: {
+        iconBg: 'bg-rose-500/10 dark:bg-rose-500/10',
+        iconText: 'text-rose-500 dark:text-rose-400',
+        barFrom: 'from-rose-500',
+        barTo: 'to-rose-400',
+        glowBorder: 'group-hover:shadow-rose-500/20',
+        rateText: 'text-rose-500 dark:text-rose-400',
+        borderAccent: 'border-rose-500/20',
+    },
+    violet: {
+        iconBg: 'bg-violet-500/10 dark:bg-violet-500/10',
+        iconText: 'text-violet-500 dark:text-violet-400',
+        barFrom: 'from-violet-500',
+        barTo: 'to-violet-400',
+        glowBorder: 'group-hover:shadow-violet-500/20',
+        rateText: 'text-violet-500 dark:text-violet-400',
+        borderAccent: 'border-violet-500/20',
+    },
 };
 
-const glowLineColors: Record<string, string> = {
-    orange: 'linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.5), transparent)',
-    blue: 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent)',
-    emerald: 'linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent)',
-    rose: 'linear-gradient(90deg, transparent, rgba(244, 63, 94, 0.5), transparent)',
-    violet: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent)',
-};
+type AccentColor = keyof typeof colorMap;
 
 export const AnaliseMetricCards: React.FC<AnaliseMetricCardsProps> = ({
     totals,
@@ -45,49 +80,49 @@ export const AnaliseMetricCards: React.FC<AnaliseMetricCardsProps> = ({
         title: string;
         value: string;
         icon: any;
-        accentColor: string;
+        accentColor: AccentColor;
         progress?: { value: number; label: string }
-    }) => (
-        <div
-            className="rounded-xl p-5 relative overflow-hidden group hover:brightness-110 transition-all duration-300"
-            style={glassStyle}
-        >
-            {/* Icon badge */}
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-2 bg-${accentColor}-500/10 rounded-lg text-${accentColor}-400`}>
-                    <Icon className="w-6 h-6" />
+    }) => {
+        const c = colorMap[accentColor];
+        return (
+            <div className={`
+                group relative rounded-xl p-5 overflow-hidden transition-all duration-300
+                bg-white dark:bg-slate-800/50
+                border border-slate-200 dark:border-slate-700/50
+                hover:border-slate-300 dark:hover:border-slate-600
+                hover:shadow-lg dark:hover:shadow-2xl ${c.glowBorder}
+            `}>
+                {/* Icon badge */}
+                <div className="flex justify-between items-start mb-4">
+                    <div className={`p-2.5 rounded-xl ${c.iconBg}`}>
+                        <Icon className={`w-5 h-5 ${c.iconText}`} />
+                    </div>
                 </div>
-            </div>
 
-            {/* Value */}
-            <div className={progress ? 'space-y-1 mb-3' : 'space-y-1'}>
-                <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">{title}</p>
-                <p className="text-3xl font-bold text-white tracking-tight">{value}</p>
-            </div>
+                {/* Title + Value */}
+                <div className={progress ? 'space-y-1 mb-4' : 'space-y-1'}>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{title}</p>
+                    <p className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{value}</p>
+                </div>
 
-            {/* Progress bar */}
-            {progress && (
-                <>
-                    <div className="w-full bg-slate-700/30 h-1.5 rounded-full overflow-hidden">
-                        <div
-                            className={`bg-gradient-to-r from-${accentColor}-600 to-${accentColor}-400 h-full rounded-full transition-all duration-1000`}
-                            style={{ width: `${Math.min(progress.value, 100)}%` }}
-                        />
+                {/* Progress bar + Rate */}
+                {progress && (
+                    <div className="space-y-2">
+                        <div className="w-full bg-slate-200 dark:bg-slate-700/50 h-1.5 rounded-full overflow-hidden">
+                            <div
+                                className={`bg-gradient-to-r ${c.barFrom} ${c.barTo} h-full rounded-full transition-all duration-1000 ease-out`}
+                                style={{ width: `${Math.min(progress.value, 100)}%` }}
+                            />
+                        </div>
+                        <div className="flex justify-between text-[11px] font-medium">
+                            <span className="text-slate-400 dark:text-slate-500">{progress.label}</span>
+                            <span className={c.rateText}>{progress.value.toFixed(1)}%</span>
+                        </div>
                     </div>
-                    <div className="flex justify-between mt-2 text-[10px] text-slate-500 font-mono">
-                        <span>{progress.label}</span>
-                        <span className={`text-${accentColor}-400`}>{progress.value.toFixed(1)}%</span>
-                    </div>
-                </>
-            )}
-
-            {/* Glow line at bottom */}
-            <div
-                className="absolute bottom-0 left-0 right-0 h-[1px] opacity-60 group-hover:opacity-100 transition-opacity"
-                style={{ background: glowLineColors[accentColor] || glowLineColors.blue }}
-            />
-        </div>
-    );
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
