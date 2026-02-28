@@ -1,5 +1,5 @@
 /**
- * Componente para tabs de seleção de tabela - Design Stitch MCP
+ * AnaliseTableTabs - Design Elite Enterprise (Linear/Vercel style)
  */
 
 import React from 'react';
@@ -23,20 +23,14 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
   ];
 
   return (
-    <div
-      className="p-1 rounded-lg flex overflow-x-auto max-w-full"
-      style={{
-        background: 'rgba(30, 41, 59, 0.6)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-      }}
-    >
+    <div className="bg-[#161f30] p-1 rounded-lg flex items-center border border-[#232f48]">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTableChange(tab.id)}
-          className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap ${activeTable === tab.id
-              ? 'bg-slate-700 text-white shadow'
-              : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+          className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${activeTable === tab.id
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white'
             }`}
         >
           {tab.label}

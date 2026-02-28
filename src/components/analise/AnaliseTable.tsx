@@ -1,5 +1,5 @@
 /**
- * Componente genérico de tabela de análise - Design Stitch MCP
+ * AnaliseTable - Design Elite Enterprise (Stripe-inspired data table)
  */
 
 import React from 'react';
@@ -28,25 +28,19 @@ export const AnaliseTable = React.memo(function AnaliseTable({
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr
-            className="text-xs uppercase tracking-wider text-slate-400 font-semibold"
-            style={{
-              background: 'rgba(30, 41, 59, 0.6)',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            }}
-          >
-            <th className="px-6 py-4">{labelColumn}</th>
-            <th className="px-6 py-4">Horas Entregues</th>
-            <th className="px-6 py-4">Ofertadas</th>
-            <th className="px-6 py-4">Aceitas</th>
-            <th className="px-6 py-4">Rejeitadas</th>
-            <th className="px-6 py-4">Completadas</th>
-            <th className="px-6 py-4">% Aceit.</th>
-            <th className="px-6 py-4">% Rej.</th>
-            <th className="px-6 py-4">% Comp.</th>
+          <tr className="border-b border-white/5" style={{ background: 'rgba(22, 31, 48, 0.5)' }}>
+            <th className="py-4 pl-6 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{labelColumn}</th>
+            <th className="py-4 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Horas</th>
+            <th className="py-4 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Ofertadas</th>
+            <th className="py-4 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Aceitas</th>
+            <th className="py-4 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Rejeitadas</th>
+            <th className="py-4 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Completadas</th>
+            <th className="py-4 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">% Aceit.</th>
+            <th className="py-4 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">% Rej.</th>
+            <th className="py-4 px-4 pr-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">% Comp.</th>
           </tr>
         </thead>
-        <tbody className="text-sm text-slate-200" style={{ borderColor: 'rgba(255, 255, 255, 0.08)' }}>
+        <tbody className="divide-y divide-white/5">
           {data.map((item, index) => (
             <AnaliseTableRow key={index} item={item} />
           ))}
