@@ -8,25 +8,14 @@ import { Button } from '@/components/ui/button';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 
 interface ResultadosFiltersProps {
-  filtroLiberacao: MarketingDateFilter;
-  filtroEnviados: MarketingDateFilter;
-  filtroEnviadosLiberados: MarketingDateFilter;
-  onFiltroLiberacaoChange: (filter: MarketingDateFilter) => void;
-  onFiltroEnviadosChange: (filter: MarketingDateFilter) => void;
-  onFiltroEnviadosLiberadosChange: (filter: MarketingDateFilter) => void;
-  onExport?: () => void;
-  hasData?: boolean;
+  filtroLiberacao: MarketingDateFilter; filtroEnviados: MarketingDateFilter; filtroEnviadosLiberados: MarketingDateFilter;
+  onFiltroLiberacaoChange: (filter: MarketingDateFilter) => void; onFiltroEnviadosChange: (filter: MarketingDateFilter) => void;
+  onFiltroEnviadosLiberadosChange: (filter: MarketingDateFilter) => void; onExport?: () => void; hasData?: boolean;
 }
 
 export const ResultadosFilters = React.memo(function ResultadosFilters({
-  filtroLiberacao,
-  filtroEnviados,
-  filtroEnviadosLiberados,
-  onFiltroLiberacaoChange,
-  onFiltroEnviadosChange,
-  onFiltroEnviadosLiberadosChange,
-  onExport,
-  hasData
+  filtroLiberacao, filtroEnviados, filtroEnviadosLiberados, onFiltroLiberacaoChange,
+  onFiltroEnviadosChange, onFiltroEnviadosLiberadosChange, onExport, hasData
 }: ResultadosFiltersProps) {
   return (
     <Card className="border-none shadow-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl overflow-hidden">

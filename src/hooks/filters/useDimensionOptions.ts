@@ -33,16 +33,10 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
                             label: String(typeof item === 'object' && item !== null ? (item.sub_praca || Object.values(item)[0]) : item)
                         })));
                     } else {
-                        // Fallback filtering logic
-                        const subPracasDoDashboard = Array.isArray(dimensoes.sub_pracas)
-                            ? dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) }))
-                            : [];
+                        const subPracasDoDashboard = Array.isArray(dimensoes.sub_pracas) ? dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
                         setSubPracas(subPracasDoDashboard.filter((sp) => {
                             const subPracaValue = sp.value.toUpperCase();
-                            return currentUser.assigned_pracas.some((praca) => {
-                                const pracaValue = praca.toUpperCase();
-                                return subPracaValue.includes(pracaValue) || subPracaValue.startsWith(pracaValue);
-                            });
+                            return currentUser.assigned_pracas.some((praca) => subPracaValue.includes(praca.toUpperCase()) || subPracaValue.startsWith(praca.toUpperCase()));
                         }));
                     }
 

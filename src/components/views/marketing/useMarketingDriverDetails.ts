@@ -7,33 +7,16 @@ import { useMarketingExcelExport } from './hooks/useMarketingExcelExport';
 
 const LIMIT = 50;
 
-interface UseMarketingDriverDetailsProps {
-    isOpen: boolean;
-    semanaIso: string;
-    organizationId: string | null;
-    praca?: string | null;
-    activeTab: 'marketing' | 'operacional';
-}
+interface UseMarketingDriverDetailsProps { isOpen: boolean; semanaIso: string; organizationId: string | null; praca?: string | null; activeTab: 'marketing' | 'operacional'; }
 
-export const useMarketingDriverDetails = ({
-    isOpen,
-    semanaIso,
-    organizationId,
-    praca,
-    activeTab
-}: UseMarketingDriverDetailsProps) => {
+export const useMarketingDriverDetails = ({ isOpen, semanaIso, organizationId, praca, activeTab }: UseMarketingDriverDetailsProps) => {
     const [data, setData] = useState<EntregadorMarketing[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
 
-    const { exportLoading, handleExport } = useMarketingExcelExport({
-        semanaIso,
-        organizationId,
-        activeTab,
-        praca
-    });
+    const { exportLoading, handleExport } = useMarketingExcelExport({ semanaIso, organizationId, activeTab, praca });
 
     const getWeekRange = useCallback((iso: string) => {
         if (!iso) return { start: '', end: '' };
@@ -95,14 +78,5 @@ export const useMarketingDriverDetails = ({
         loadData(nextPage, false);
     };
 
-    return {
-        data,
-        loading: loading || exportLoading,
-        error,
-        totalCount,
-        loadData,
-        handleLoadMore,
-        getWeekRange,
-        handleExport
-    };
+    return { data, loading: loading || exportLoading, error, totalCount, loadData, handleLoadMore, getWeekRange, handleExport };
 };

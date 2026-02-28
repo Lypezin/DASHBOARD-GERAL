@@ -41,42 +41,26 @@ export function useFiltroBar({
     }, [setFilters, currentUser]);
 
     const handleToggleModo = useCallback(() => {
-        if (IS_DEV) {
-            safeLog.info('[FiltroBar] handleToggleModo chamado');
-        }
+        if (IS_DEV) safeLog.info('[FiltroBar] handleToggleModo chamado');
         try {
             setFilters((prev) => {
                 if (!prev) {
-                    if (IS_DEV) {
-                        safeLog.warn('[FiltroBar] handleToggleModo: prev é null/undefined');
-                    }
+                    if (IS_DEV) safeLog.warn('[FiltroBar] handleToggleModo: prev é null/undefined');
                     return prev;
                 }
                 const novoModo: 'ano_semana' | 'intervalo' = (prev.filtroModo ?? 'ano_semana') === 'ano_semana' ? 'intervalo' : 'ano_semana';
-                if (IS_DEV) {
-                    safeLog.info('[FiltroBar] Trocando modo:', {
-                        modoAtual: prev.filtroModo,
-                        novoModo,
-                    });
-                }
+                if (IS_DEV) safeLog.info('[FiltroBar] Trocando modo:', { modoAtual: prev.filtroModo, novoModo });
                 const newFilters: Filters = {
-                    ...prev,
-                    filtroModo: novoModo,
-                    // Limpar filtros do modo anterior
-                    ano: novoModo === 'intervalo' ? null : prev.ano,
-                    semana: novoModo === 'intervalo' ? null : prev.semana,
+                    ...prev, filtroModo: novoModo,
+                    ano: novoModo === 'intervalo' ? null : prev.ano, semana: novoModo === 'intervalo' ? null : prev.semana,
                     semanas: novoModo === 'intervalo' ? [] : prev.semanas ?? [],
                     dataInicial: novoModo === 'ano_semana' ? null : prev.dataInicial ?? null,
                     dataFinal: novoModo === 'ano_semana' ? null : prev.dataFinal ?? null,
                 };
-                if (IS_DEV) {
-                    safeLog.info('[FiltroBar] Novos filters após toggle:', newFilters);
-                }
+                if (IS_DEV) safeLog.info('[FiltroBar] Novos filters após toggle:', newFilters);
                 return newFilters;
             });
-        } catch (error) {
-            safeLog.error('[FiltroBar] Erro em handleToggleModo:', error);
-        }
+        } catch (error) { safeLog.error('[FiltroBar] Erro em handleToggleModo:', error); }
     }, [setFilters]);
 
     const hasActiveFilters = useMemo(() => {

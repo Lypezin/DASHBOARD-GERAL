@@ -4,18 +4,11 @@ import { safeLog } from '@/lib/errorHandler';
 import { getDateRangeFromWeek } from '@/utils/timeHelpers';
 
 interface UseMarketingExcelExportProps {
-    semanaIso: string;
-    organizationId: string | null;
-    activeTab: 'marketing' | 'operacional';
-    praca?: string | null;
+    semanaIso: string; organizationId: string | null;
+    activeTab: 'marketing' | 'operacional'; praca?: string | null;
 }
 
-export function useMarketingExcelExport({
-    semanaIso,
-    organizationId,
-    activeTab,
-    praca
-}: UseMarketingExcelExportProps) {
+export function useMarketingExcelExport({ semanaIso, organizationId, activeTab, praca }: UseMarketingExcelExportProps) {
     const [exportLoading, setExportLoading] = useState(false);
 
     const getWeekRange = (iso: string) => {

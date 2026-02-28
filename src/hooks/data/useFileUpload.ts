@@ -7,21 +7,14 @@ import { processUploadFile } from '@/utils/fileProcessing/fileProcessor';
 import { triggerConcurrentRefresh } from '@/utils/fileProcessing/viewRefresher';
 
 export interface FileUploadOptions {
-  tableName: string;
-  excelConfig: ExcelProcessConfig;
-  overwrite?: boolean;
-  deleteRpcFunction?: string;
-  insertOptions?: BatchInsertOptions;
-  refreshRpcFunction?: string;
-  organizationId?: string;
+  tableName: string; excelConfig: ExcelProcessConfig; overwrite?: boolean;
+  deleteRpcFunction?: string; insertOptions?: BatchInsertOptions;
+  refreshRpcFunction?: string; organizationId?: string;
 }
 
 export interface UploadState {
-  uploading: boolean;
-  progress: number;
-  progressLabel: string;
-  message: string;
-  currentFileIndex: number;
+  uploading: boolean; progress: number; progressLabel: string;
+  message: string; currentFileIndex: number;
 }
 
 export function useFileUpload(options: FileUploadOptions) {

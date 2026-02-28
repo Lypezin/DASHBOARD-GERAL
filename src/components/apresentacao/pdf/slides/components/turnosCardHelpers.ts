@@ -9,13 +9,8 @@ import {
 import { criarGraficoCircular, obterSeta } from '../../helpers';
 
 export const buildTurnoTitle = (nome: string) => ({
-    text: nome,
-    fontSize: 22,
-    bold: true,
-    color: COR_TEXTO,
-    alignment: 'center',
-    margin: [0, 15, 0, 20] as [number, number, number, number],
-    characterSpacing: 0.5,
+    text: nome, fontSize: 22, bold: true, color: COR_TEXTO, alignment: 'center',
+    margin: [0, 15, 0, 20] as [number, number, number, number], characterSpacing: 0.5,
 });
 
 export const buildChartsColumns = (
@@ -40,12 +35,7 @@ export const buildChartsColumns = (
                 characterSpacing: 0.5,
                 margin: [0, 0, 0, 12] as [number, number, number, number],
             },
-            {
-                svg: grafico,
-                width: graficoSize,
-                alignment: 'center',
-                margin: [0, 0, 0, 12] as [number, number, number, number],
-            },
+            { svg: grafico, width: graficoSize, alignment: 'center', margin: [0, 0, 0, 12] as [number, number, number, number] },
             {
                 text: 'ENTREGUE',
                 fontSize: 9,

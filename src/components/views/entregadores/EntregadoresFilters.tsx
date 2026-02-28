@@ -9,27 +9,17 @@ import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import { CIDADES as CIDADES_MARKETING } from '@/constants/marketing';
 
 interface EntregadoresFiltersProps {
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
-  cidadeSelecionada: string;
-  onCidadeChange: (value: string) => void;
-  filtroRodouDia: MarketingDateFilter;
-  onFiltroRodouDiaChange: (filter: MarketingDateFilter) => void;
-  filtroDataInicio: MarketingDateFilter;
-  onFiltroDataInicioChange: (filter: MarketingDateFilter) => void;
+  searchTerm: string; onSearchChange: (value: string) => void;
+  cidadeSelecionada: string; onCidadeChange: (value: string) => void;
+  filtroRodouDia: MarketingDateFilter; onFiltroRodouDiaChange: (filter: MarketingDateFilter) => void;
+  filtroDataInicio: MarketingDateFilter; onFiltroDataInicioChange: (filter: MarketingDateFilter) => void;
 }
 
 const CIDADES = ['', ...CIDADES_MARKETING];
 
 export const EntregadoresFilters = React.memo(function EntregadoresFilters({
-  searchTerm,
-  onSearchChange,
-  cidadeSelecionada,
-  onCidadeChange,
-  filtroRodouDia,
-  onFiltroRodouDiaChange,
-  filtroDataInicio,
-  onFiltroDataInicioChange,
+  searchTerm, onSearchChange, cidadeSelecionada, onCidadeChange,
+  filtroRodouDia, onFiltroRodouDiaChange, filtroDataInicio, onFiltroDataInicioChange,
 }: EntregadoresFiltersProps) {
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm">

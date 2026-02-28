@@ -15,12 +15,7 @@ export function useAdminStatus(fetchData: () => void) {
                 { user_id: userId },
                 async () => supabase
                     .from('user_profiles')
-                    .update({
-                        is_approved: false,
-                        status: 'pending',
-                        role: 'user',
-                        assigned_pracas: []
-                    })
+                    .update({ is_approved: false, status: 'pending', role: 'user', assigned_pracas: [] })
                     .eq('id', userId)
             );
 
@@ -39,22 +34,15 @@ export function useAdminStatus(fetchData: () => void) {
         try {
             const { data, error } = await executeAdminRpc(
                 'set_user_admin',
-                {
-                    user_id: userId,
-                    make_admin: !currentIsAdmin,
-                }
+                { user_id: userId, make_admin: !currentIsAdmin }
             );
 
             if (error) {
                 if (IS_DEV) {
                     safeLog.error('Erro detalhado ao alterar admin:', {
-                        error,
-                        userId,
-                        make_admin: !currentIsAdmin,
-                        errorCode: (error as any)?.code,
-                        errorMessage: (error as any)?.message,
-                        errorDetails: (error as any)?.details,
-                        errorHint: (error as any)?.hint
+                        error, userId, make_admin: !currentIsAdmin,
+                        errorCode: (error as any)?.code, errorMessage: (error as any)?.message,
+                        errorDetails: (error as any)?.details, errorHint: (error as any)?.hint
                     });
                 }
 

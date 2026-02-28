@@ -2,21 +2,13 @@ import React from 'react';
 import SlideWrapper from '../SlideWrapper';
 
 interface SlideCapaProps {
-  isVisible: boolean;
-  pracaSelecionada: string | null;
-  numeroSemana1: string;
-  numeroSemana2: string;
-  periodoSemana1: string;
-  periodoSemana2: string;
+  isVisible: boolean; pracaSelecionada: string | null;
+  numeroSemana1: string; numeroSemana2: string;
+  periodoSemana1: string; periodoSemana2: string;
 }
 
 const SlideCapa: React.FC<SlideCapaProps> = ({
-  isVisible,
-  pracaSelecionada,
-  numeroSemana1,
-  numeroSemana2,
-  periodoSemana1,
-  periodoSemana2,
+  isVisible, pracaSelecionada, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2,
 }) => {
   return (
     <SlideWrapper

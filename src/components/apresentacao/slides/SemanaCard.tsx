@@ -1,20 +1,11 @@
 import React from 'react';
 import { buildTimeTextStyle } from '../utils';
 
-interface SemanaResumo {
-    numeroSemana: string;
-    aderencia: number;
-    horasPlanejadas: string;
-    horasEntregues: string;
-}
+interface SemanaResumo { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string; }
 
 import { useAnimatedProgress } from '@/hooks/ui/useAnimatedProgress';
 
-interface SemanaCardProps {
-    semana: SemanaResumo;
-    isHighlighted?: boolean;
-    isActive?: boolean;
-}
+interface SemanaCardProps { semana: SemanaResumo; isHighlighted?: boolean; isActive?: boolean; }
 
 const buildCircleDasharray = (valor: number) => {
     const clamped = Math.max(0, Math.min(100, valor));
@@ -44,26 +35,8 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = 
                     style={{ transform: 'rotate(-90deg)' }}
                 >
                     {/* Background circle */}
-                    <circle
-                        cx="90"
-                        cy="90"
-                        r="80"
-                        stroke="#e2e8f0"
-                        strokeWidth="14"
-                        fill="none"
-                    />
-                    {/* Progress circle */}
-                    <circle
-                        cx="90"
-                        cy="90"
-                        r="80"
-                        stroke={isHighlighted ? "#2563eb" : "#38bdf8"}
-                        strokeWidth="14"
-                        fill="none"
-                        strokeDasharray={buildCircleDasharray(animatedAderencia)}
-                        strokeLinecap="round"
-                        className="transition-all duration-1000 ease-out"
-                    />
+                    <circle cx="90" cy="90" r="80" stroke="#e2e8f0" strokeWidth="14" fill="none" />
+                    <circle cx="90" cy="90" r="80" stroke={isHighlighted ? "#2563eb" : "#38bdf8"} strokeWidth="14" fill="none" strokeDasharray={buildCircleDasharray(animatedAderencia)} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
                 </svg>
 
                 {/* Centered text container */}

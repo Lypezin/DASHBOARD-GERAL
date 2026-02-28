@@ -17,90 +17,14 @@ const marketingLoading = (
   </div>
 );
 
-export const DashboardView = dynamic(
-  () => import('@/components/views/DashboardView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
-
-export const MarketingView = dynamic(
-  () => import('@/components/views/MarketingView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => marketingLoading,
-  }
-);
-
-export const AnaliseView = dynamic(
-  () => import('@/components/views/AnaliseView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
-
-export const UtrView = dynamic(
-  () => import('@/components/views/UtrView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
-
-export const EvolucaoView = dynamic(
-  () => import('@/components/views/EvolucaoView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
-
-export const ValoresView = dynamic(
-  () => import('@/components/views/ValoresView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
-
-export const EntregadoresMainView = dynamic(
-  () => import('@/components/views/EntregadoresMainView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
-
-export const PrioridadePromoView = dynamic(
-  () => import('@/components/views/PrioridadePromoView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
-
-export const ComparacaoView = dynamic(
-  () => import('@/components/views/ComparacaoView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
-
-export const MarketingComparacaoView = dynamic(
-  () => import('@/components/views/marketing/MarketingComparacaoView').then(mod => ({ default: mod.default })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
-
-export const ResumoSemanalView = dynamic(
-  () => import('@/components/views/ResumoSemanalView').then(mod => ({ default: mod.ResumoSemanalView })),
-  {
-    ssr: false,
-    loading: () => defaultLoading,
-  }
-);
+export const DashboardView = dynamic(() => import('@/components/views/DashboardView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
+export const MarketingView = dynamic(() => import('@/components/views/MarketingView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => marketingLoading });
+export const AnaliseView = dynamic(() => import('@/components/views/AnaliseView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
+export const UtrView = dynamic(() => import('@/components/views/UtrView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
+export const EvolucaoView = dynamic(() => import('@/components/views/EvolucaoView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
+export const ValoresView = dynamic(() => import('@/components/views/ValoresView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
+export const EntregadoresMainView = dynamic(() => import('@/components/views/EntregadoresMainView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
+export const PrioridadePromoView = dynamic(() => import('@/components/views/PrioridadePromoView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
+export const ComparacaoView = dynamic(() => import('@/components/views/ComparacaoView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
+export const MarketingComparacaoView = dynamic(() => import('@/components/views/marketing/MarketingComparacaoView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
+export const ResumoSemanalView = dynamic(() => import('@/components/views/ResumoSemanalView').then(mod => ({ default: mod.ResumoSemanalView })), { ssr: false, loading: () => defaultLoading });

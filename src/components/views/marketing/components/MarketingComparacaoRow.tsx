@@ -7,21 +7,10 @@ import { ComparisonMetricCell } from './ComparisonMetricCell';
 import { extractWeekNumber } from '@/utils/timeHelpers';
 
 interface ComparacaoRow {
-    semana_iso: string;
-    segundos_ops: number;
-    segundos_mkt: number;
-    ofertadas_ops: number;
-    ofertadas_mkt: number;
-    aceitas_ops: number;
-    aceitas_mkt: number;
-    concluidas_ops: number;
-    concluidas_mkt: number;
-    rejeitadas_ops: number;
-    rejeitadas_mkt: number;
-    valor_ops?: number;
-    valor_mkt?: number;
-    entregadores_ops?: number;
-    entregadores_mkt?: number;
+    semana_iso: string; segundos_ops: number; segundos_mkt: number;
+    ofertadas_ops: number; ofertadas_mkt: number; aceitas_ops: number; aceitas_mkt: number;
+    concluidas_ops: number; concluidas_mkt: number; rejeitadas_ops: number; rejeitadas_mkt: number;
+    valor_ops?: number; valor_mkt?: number; entregadores_ops?: number; entregadores_mkt?: number;
 }
 
 interface MarketingComparacaoRowProps {

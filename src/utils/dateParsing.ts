@@ -41,28 +41,19 @@ export function convertDDMMYYYYToDate(dateStr: string | number | null | undefine
     const cleaned = dateStr.trim();
     if (cleaned === '' || cleaned === 'null' || cleaned === 'NULL') return null;
 
-    // Formato DD/MM/YYYY
     const ddmmyyyyMatch = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (ddmmyyyyMatch) {
         const [, day, month, year] = ddmmyyyyMatch;
-        const dayNum = parseInt(day, 10);
-        const monthNum = parseInt(month, 10);
-        const yearNum = parseInt(year, 10);
-
-        // Validar data
+        const [dayNum, monthNum, yearNum] = [parseInt(day, 10), parseInt(month, 10), parseInt(year, 10)];
         if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12 && yearNum >= 1900 && yearNum <= 2100) {
             return `${yearNum}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
         }
     }
 
-    // Formato DD-MM-YYYY
     const ddmmyyyyMatch2 = cleaned.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
     if (ddmmyyyyMatch2) {
         const [, day, month, year] = ddmmyyyyMatch2;
-        const dayNum = parseInt(day, 10);
-        const monthNum = parseInt(month, 10);
-        const yearNum = parseInt(year, 10);
-
+        const [dayNum, monthNum, yearNum] = [parseInt(day, 10), parseInt(month, 10), parseInt(year, 10)];
         if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12 && yearNum >= 1900 && yearNum <= 2100) {
             return `${yearNum}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
         }
@@ -92,10 +83,8 @@ export function convertDDMMYYYYToDate(dateStr: string | number | null | undefine
         // Tentar parse direto
         const date = new Date(cleaned);
         if (!isNaN(date.getTime())) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+            const [y, m, d] = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')];
+            return `${y}-${m}-${d}`;
         }
     } catch (e) {
         // Ignorar erro

@@ -8,14 +8,10 @@ interface SecaoItem {
 }
 
 const SECOES: SecaoItem[] = [
-    { id: 'metricas', label: 'Cards de Métricas' },
-    { id: 'detalhada', label: 'Análise Detalhada' },
-    { id: 'por_dia', label: 'Tabela por Dia' },
-    { id: 'aderencia_dia', label: 'Aderência por Dia' },
-    { id: 'sub_praca', label: 'Por Sub-Praça' },
-    { id: 'por_origem', label: 'Por Origem' },
-    { id: 'origem_detalhada', label: 'Análise Detalhada por Origem' },
-    { id: 'utr', label: 'UTR' },
+    { id: 'metricas', label: 'Cards de Métricas' }, { id: 'detalhada', label: 'Análise Detalhada' },
+    { id: 'por_dia', label: 'Tabela por Dia' }, { id: 'aderencia_dia', label: 'Aderência por Dia' },
+    { id: 'sub_praca', label: 'Por Sub-Praça' }, { id: 'por_origem', label: 'Por Origem' },
+    { id: 'origem_detalhada', label: 'Análise Detalhada por Origem' }, { id: 'utr', label: 'UTR' },
 ];
 
 interface ComparacaoSectionSelectorProps {
@@ -80,16 +76,16 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                                     className="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left"
                                 >
                                     <span className={`flex-shrink-0 flex items-center justify-center w-4 h-4 rounded border transition-colors ${isVisible
-                                            ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white'
-                                            : 'bg-transparent border-slate-300 dark:border-slate-600'
+                                        ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white'
+                                        : 'bg-transparent border-slate-300 dark:border-slate-600'
                                         }`}>
                                         {isVisible && (
                                             <Check className={`w-2.5 h-2.5 ${isVisible ? 'text-white dark:text-slate-900' : ''}`} />
                                         )}
                                     </span>
                                     <span className={`text-sm transition-colors ${isVisible
-                                            ? 'text-slate-900 dark:text-white font-medium'
-                                            : 'text-slate-400 dark:text-slate-500'
+                                        ? 'text-slate-900 dark:text-white font-medium'
+                                        : 'text-slate-400 dark:text-slate-500'
                                         }`}>
                                         {secao.label}
                                     </span>

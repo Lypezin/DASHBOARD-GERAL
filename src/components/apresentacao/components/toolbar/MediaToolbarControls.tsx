@@ -1,24 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import {
-    Bold,
-    Italic,
-    Palette,
-    Type as TypeSize,
-    Highlighter
-} from 'lucide-react';
+import { Bold, Italic, Palette, Type as TypeSize, Highlighter } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SlideElement } from '@/types/presentation';
 
-interface MediaToolbarControlsProps {
-    selectedElement: SlideElement;
-    onUpdateElement?: (updates: Partial<SlideElement>) => void;
-}
+interface MediaToolbarControlsProps { selectedElement: SlideElement; onUpdateElement?: (updates: Partial<SlideElement>) => void; }
 
-export const MediaToolbarControls: React.FC<MediaToolbarControlsProps> = ({
-    selectedElement,
-    onUpdateElement
-}) => {
+export const MediaToolbarControls: React.FC<MediaToolbarControlsProps> = ({ selectedElement, onUpdateElement }) => {
     if (!onUpdateElement) return null;
 
     const handleStyleUpdate = (key: keyof NonNullable<SlideElement['style']>, value: string) => {

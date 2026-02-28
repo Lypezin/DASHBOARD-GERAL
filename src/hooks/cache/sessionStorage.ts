@@ -5,9 +5,7 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 const SESSION_STORAGE_PREFIX = 'dashboard_cache_v2_';
 const MAX_SESSION_STORAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
-/**
- * Obtém dados do sessionStorage se válidos
- */
+/** Obtém dados do sessionStorage se válidos */
 export function getFromSessionStorage<T>(key: string, ttl: number): T | null {
     if (typeof window === 'undefined') return null;
 
@@ -16,9 +14,7 @@ export function getFromSessionStorage<T>(key: string, ttl: number): T | null {
         if (!stored) return null;
 
         const entry: CacheEntry<T> = JSON.parse(stored);
-        if (isCacheValid(entry, ttl)) {
-            return entry.data;
-        }
+        if (isCacheValid(entry, ttl)) return entry.data;
 
         // Remover se expirado
         sessionStorage.removeItem(`${SESSION_STORAGE_PREFIX}${key}`);
@@ -31,9 +27,7 @@ export function getFromSessionStorage<T>(key: string, ttl: number): T | null {
     }
 }
 
-/**
- * Limpa entradas expiradas do sessionStorage
- */
+/** Limpa entradas expiradas do sessionStorage */
 export function cleanupSessionStorage(): void {
     if (typeof window === 'undefined') return;
 
@@ -64,9 +58,7 @@ export function cleanupSessionStorage(): void {
     }
 }
 
-/**
- * Armazena dados no sessionStorage
- */
+/** Armazena dados no sessionStorage */
 export function setToSessionStorage<T>(key: string, data: T, ttl: number): void {
     if (typeof window === 'undefined') return;
 

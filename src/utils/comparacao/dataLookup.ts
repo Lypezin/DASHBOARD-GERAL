@@ -46,14 +46,10 @@ export function findDayData(
 
         // Tentativa 2: Match por dia_iso
         if (d.dia_iso) {
-            const mapIso: Record<number, string> = {
-                1: 'segunda', 2: 'terca', 3: 'quarta', 4: 'quinta', 5: 'sexta', 6: 'sabado', 7: 'domingo'
-            };
+            const mapIso: Record<number, string> = { 1: 'segunda', 2: 'terca', 3: 'quarta', 4: 'quinta', 5: 'sexta', 6: 'sabado', 7: 'domingo' };
             const keyIso = mapIso[d.dia_iso];
             const mapDiasRef: Record<string, string> = {
-                'segunda': 'segunda', 'terça': 'terca', 'terca': 'terca',
-                'quarta': 'quarta', 'quinta': 'quinta', 'sexta': 'sexta',
-                'sábado': 'sabado', 'sabado': 'sabado', 'domingo': 'domingo'
+                'segunda': 'segunda', 'terça': 'terca', 'terca': 'terca', 'quarta': 'quarta', 'quinta': 'quinta', 'sexta': 'sexta', 'sábado': 'sabado', 'sabado': 'sabado', 'domingo': 'domingo'
             };
             const keyRefNorm = mapDiasRef[diaRefNorm] || diaRefNorm;
             if (keyIso && keyIso === keyRefNorm) return true;

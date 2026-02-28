@@ -3,38 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Users, Car, BarChart3 } from 'lucide-react';
 
 interface ValoresStatsCardsProps {
-    totalGeral: number;
-    totalEntregadores: number;
-    totalCorridas: number;
-    taxaMediaGeral: number;
-    formatarReal: (valor: number | null | undefined) => string;
+    totalGeral: number; totalEntregadores: number; totalCorridas: number;
+    taxaMediaGeral: number; formatarReal: (valor: number | null | undefined) => string;
 }
 
 export const ValoresStatsCards = React.memo(function ValoresStatsCards({
-    totalGeral,
-    totalEntregadores,
-    totalCorridas,
-    taxaMediaGeral,
-    formatarReal,
+    totalGeral, totalEntregadores, totalCorridas, taxaMediaGeral, formatarReal,
 }: ValoresStatsCardsProps) {
 
     // Reusable Premium Stat Card
-    const StatCard = ({
-        title,
-        icon: Icon,
-        value,
-        subtext,
-        colorClass,
-        bgClass,
-        iconBgClass
-    }: {
-        title: string;
-        icon: any;
-        value: string | number;
-        subtext: string;
-        colorClass: string;
-        bgClass: string;
-        iconBgClass: string;
+    const StatCard = ({ title, icon: Icon, value, subtext, colorClass, bgClass, iconBgClass }: {
+        title: string; icon: any; value: string | number; subtext: string;
+        colorClass: string; bgClass: string; iconBgClass: string;
     }) => (
         <Card className="border-none shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800">
             <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${bgClass} opacity-10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110 duration-500`} />

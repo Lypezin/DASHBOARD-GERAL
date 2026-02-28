@@ -1,11 +1,6 @@
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { safeLog } from '@/lib/errorHandler';
-import {
-  calcularDiferenca,
-  calcularDiferencaPercentual,
-  formatarDiferenca,
-  formatarDiferencaPercentual,
-} from './processors/common';
+import { calcularDiferenca, calcularDiferencaPercentual, formatarDiferenca, formatarDiferencaPercentual } from './processors/common';
 import { DadosBasicos } from './processors/basicData';
 import { processarSubPracas } from './processors/subPracas';
 import { processarDias } from './processors/dias';

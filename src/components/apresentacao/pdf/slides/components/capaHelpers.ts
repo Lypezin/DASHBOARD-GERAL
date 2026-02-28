@@ -6,17 +6,7 @@ import {
 } from '../../constants';
 
 export const buildTopDecoration = () => ({
-    canvas: [
-        {
-            type: 'line',
-            x1: 340,
-            y1: 0,
-            x2: 500,
-            y2: 0,
-            lineWidth: 3,
-            lineColor: COR_PRIMARIA_CLARA,
-        },
-    ],
+    canvas: [{ type: 'line', x1: 340, y1: 0, x2: 500, y2: 0, lineWidth: 3, lineColor: COR_PRIMARIA_CLARA }],
     margin: [0, 0, 0, 30] as [number, number, number, number],
 });
 
@@ -31,17 +21,7 @@ export const buildMainTitle = () => ({
 });
 
 export const buildDivider = () => ({
-    canvas: [
-        {
-            type: 'line',
-            x1: 340,
-            y1: 0,
-            x2: 500,
-            y2: 0,
-            lineWidth: 3,
-            lineColor: COR_PRIMARIA_CLARA,
-        },
-    ],
+    canvas: [{ type: 'line', x1: 340, y1: 0, x2: 500, y2: 0, lineWidth: 3, lineColor: COR_PRIMARIA_CLARA }],
     margin: [0, 0, 0, 40] as [number, number, number, number],
 });
 

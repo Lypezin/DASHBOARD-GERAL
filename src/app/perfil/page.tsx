@@ -21,20 +21,16 @@ export default function PerfilPage() {
     refreshUser();
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 p-6 md:p-8 space-y-8">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-8 w-48" />
-          <div className="grid gap-6 md:grid-cols-[300px_1fr]">
-            <Skeleton className="h-[400px] w-full rounded-xl" />
-            <Skeleton className="h-[400px] w-full rounded-xl" />
-          </div>
+  if (loading) return (
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 p-6 md:p-8 space-y-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+          <Skeleton className="h-[400px] w-full rounded-xl" /> <Skeleton className="h-[400px] w-full rounded-xl" />
         </div>
       </div>
-    );
-  }
-
+    </div>
+  );
   if (!user) return null;
 
   return (

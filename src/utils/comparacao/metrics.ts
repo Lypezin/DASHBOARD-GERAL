@@ -23,13 +23,9 @@ export function getMetricValue(obj: MetricItem | null | undefined, metricKey: st
     const safeObj = obj as Record<string, string | number | undefined | null>;
 
     const keyMap: Record<string, string[]> = {
-        'corridas_ofertadas': ['corridas_ofertadas', 'ofertadas', 'total_ofertadas', 'qtd_ofertadas'],
-        'corridas_aceitas': ['corridas_aceitas', 'aceitas', 'total_aceitas', 'qtd_aceitas'],
-        'corridas_rejeitadas': ['corridas_rejeitadas', 'rejeitadas', 'total_rejeitadas', 'qtd_rejeitadas'],
-        'corridas_completadas': ['corridas_completadas', 'completadas', 'total_completadas', 'qtd_completadas'],
-        'aderencia_percentual': ['aderencia_percentual', 'aderencia', 'taxa_aderencia', 'percentual_aderencia'],
-        'taxa_aceitacao': ['taxa_aceitacao', 'aceitacao', 'percentual_aceitacao'],
-        'taxa_completude': ['taxa_completude', 'completude', 'percentual_completude']
+        'corridas_ofertadas': ['corridas_ofertadas', 'ofertadas', 'total_ofertadas', 'qtd_ofertadas'], 'corridas_aceitas': ['corridas_aceitas', 'aceitas', 'total_aceitas', 'qtd_aceitas'],
+        'corridas_rejeitadas': ['corridas_rejeitadas', 'rejeitadas', 'total_rejeitadas', 'qtd_rejeitadas'], 'corridas_completadas': ['corridas_completadas', 'completadas', 'total_completadas', 'qtd_completadas'],
+        'aderencia_percentual': ['aderencia_percentual', 'aderencia', 'taxa_aderencia', 'percentual_aderencia'], 'taxa_aceitacao': ['taxa_aceitacao', 'aceitacao', 'percentual_aceitacao'], 'taxa_completude': ['taxa_completude', 'completude', 'percentual_completude']
     };
 
     if (safeObj[metricKey] != null) return Number(safeObj[metricKey]);

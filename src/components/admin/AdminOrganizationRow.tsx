@@ -2,36 +2,14 @@
 import React from 'react';
 import { Organization } from '@/contexts/OrganizationContext';
 import { useOrganizations } from '@/hooks/auth/useOrganizations';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-    MoreHorizontal,
-    Edit,
-    Power,
-    PowerOff,
-    Users,
-    Building2
-} from 'lucide-react';
+import { MoreHorizontal, Edit, Power, PowerOff, Users, Building2 } from 'lucide-react';
 
-interface AdminOrganizationRowProps {
-    org: Organization;
-    onEdit: (org: Organization) => void;
-    onToggleActive: (org: Organization) => void;
-}
+interface AdminOrganizationRowProps { org: Organization; onEdit: (org: Organization) => void; onToggleActive: (org: Organization) => void; }
 
-export const AdminOrganizationRow: React.FC<AdminOrganizationRowProps> = ({
-    org,
-    onEdit,
-    onToggleActive,
-}) => {
+export const AdminOrganizationRow: React.FC<AdminOrganizationRowProps> = ({ org, onEdit, onToggleActive }) => {
     return (
         <tr
             className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"

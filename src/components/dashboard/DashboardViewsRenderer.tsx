@@ -8,49 +8,19 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import type {
-  Totals,
-  AderenciaSemanal,
-  AderenciaDia,
-  AderenciaTurno,
-  AderenciaSubPraca,
-  AderenciaOrigem,
-  FilterOption,
-  CurrentUser,
-  TabType,
-  DashboardFilters,
+  Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem,
+  FilterOption, CurrentUser, TabType, DashboardFilters,
 } from '@/types';
 import { needsChartReady, renderActiveView } from './utils/viewRenderer';
 import { useGamification } from '@/contexts/GamificationContext';
 
 interface DashboardViewsRendererProps {
-  activeTab: TabType;
-  chartReady: boolean;
-  aderenciaGeral?: AderenciaSemanal;
-  aderenciaSemanal?: AderenciaSemanal[];
-  aderenciaDia: AderenciaDia[];
-  aderenciaTurno: AderenciaTurno[];
-  aderenciaSubPraca: AderenciaSubPraca[];
-  aderenciaOrigem: AderenciaOrigem[];
-  totals?: Totals;
-  utrData: any;
-  loadingTabData: boolean;
-  entregadoresData: any;
-  valoresData: any;
-  prioridadeData: any;
-  evolucaoMensal: any;
-  evolucaoSemanal: any;
-  loadingEvolucao: boolean;
-  anoSelecionado: number;
-  anosDisponiveis: number[];
-  onAnoChange: (ano: number) => void;
-  semanas: string[];
-  pracas: FilterOption[];
-  subPracas: FilterOption[];
-  origens: FilterOption[];
-  currentUser: CurrentUser | null;
-  filters: DashboardFilters;
-  setFilters?: (filters: DashboardFilters) => void;
-  utrSemanal?: any[];
+  activeTab: TabType; chartReady: boolean; aderenciaGeral?: AderenciaSemanal; aderenciaSemanal?: AderenciaSemanal[];
+  aderenciaDia: AderenciaDia[]; aderenciaTurno: AderenciaTurno[]; aderenciaSubPraca: AderenciaSubPraca[]; aderenciaOrigem: AderenciaOrigem[];
+  totals?: Totals; utrData: any; loadingTabData: boolean; entregadoresData: any; valoresData: any; prioridadeData: any;
+  evolucaoMensal: any; evolucaoSemanal: any; loadingEvolucao: boolean; anoSelecionado: number; anosDisponiveis: number[];
+  onAnoChange: (ano: number) => void; semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[]; origens: FilterOption[];
+  currentUser: CurrentUser | null; filters: DashboardFilters; setFilters?: (filters: DashboardFilters) => void; utrSemanal?: any[];
 }
 
 const tabTransition = {
@@ -66,18 +36,10 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
 
   useEffect(() => {
     switch (activeTab) {
-      case 'comparacao':
-        registerInteraction('view_comparacao');
-        break;
-      case 'resumo':
-        registerInteraction('view_resumo');
-        break;
-      case 'entregadores':
-        registerInteraction('view_entregadores');
-        break;
-      case 'evolucao':
-        registerInteraction('view_evolucao');
-        break;
+      case 'comparacao': registerInteraction('view_comparacao'); break;
+      case 'resumo': registerInteraction('view_resumo'); break;
+      case 'entregadores': registerInteraction('view_entregadores'); break;
+      case 'evolucao': registerInteraction('view_evolucao'); break;
     }
   }, [activeTab, registerInteraction]);
 

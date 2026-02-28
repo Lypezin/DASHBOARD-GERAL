@@ -10,19 +10,10 @@ import { exportarDashboardParaExcel } from './dashboard/DashboardExcelExport';
 import { safeLog } from '@/lib/errorHandler';
 
 const DashboardView = React.memo(function DashboardView({
-  aderenciaGeral,
-  aderenciaSemanal,
-  aderenciaDia,
-  aderenciaTurno,
-  aderenciaSubPraca,
-  aderenciaOrigem,
+  aderenciaGeral, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem,
 }: {
-  aderenciaGeral?: AderenciaSemanal;
-  aderenciaSemanal: AderenciaSemanal[];
-  aderenciaDia: AderenciaDia[];
-  aderenciaTurno: AderenciaTurno[];
-  aderenciaSubPraca: AderenciaSubPraca[];
-  aderenciaOrigem: AderenciaOrigem[];
+  aderenciaGeral?: AderenciaSemanal; aderenciaSemanal: AderenciaSemanal[]; aderenciaDia: AderenciaDia[];
+  aderenciaTurno: AderenciaTurno[]; aderenciaSubPraca: AderenciaSubPraca[]; aderenciaOrigem: AderenciaOrigem[];
 }) {
   const [isExporting, setIsExporting] = useState(false);
 

@@ -5,12 +5,8 @@ import { is500Error, isRateLimitError } from './validation';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export interface RpcRetryOptions {
-    maxRetries?: number;
-    initialDelay?: number;
-    maxDelay?: number;
-    backoffMultiplier?: number;
-    retryOn500?: boolean;
-    retryOnRateLimit?: boolean;
+    maxRetries?: number; initialDelay?: number; maxDelay?: number;
+    backoffMultiplier?: number; retryOn500?: boolean; retryOnRateLimit?: boolean;
     onRetry?: (attempt: number, error: RpcError) => void;
 }
 
@@ -19,13 +15,7 @@ export async function handleRpcErrorWithRetry(
     retryFn: () => Promise<any>,
     options: RpcRetryOptions = {}
 ): Promise<{ shouldRetry: boolean; delay?: number }> {
-    const {
-        initialDelay = 2000,
-        maxDelay = 10000,
-        retryOn500 = true,
-        retryOnRateLimit = true,
-        onRetry
-    } = options;
+    const { initialDelay = 2000, maxDelay = 10000, retryOn500 = true, retryOnRateLimit = true, onRetry } = options;
 
     const is500 = is500Error(error);
     const isRateLimit = isRateLimitError(error);
@@ -56,15 +46,7 @@ export async function executeWithRpcRetry<T>(
     options: RpcRetryOptions = {}
 ): Promise<{ data: T | null; error: RpcError | null }> {
 
-    const {
-        maxRetries = 3,
-        initialDelay = 2000,
-        maxDelay = 10000,
-        backoffMultiplier = 2,
-        retryOn500 = true,
-        retryOnRateLimit = true,
-        onRetry
-    } = options;
+    const { maxRetries = 3, initialDelay = 2000, maxDelay = 10000, backoffMultiplier = 2, retryOn500 = true, retryOnRateLimit = true, onRetry } = options;
 
     let lastError: RpcError | null = null;
     let delay = initialDelay;

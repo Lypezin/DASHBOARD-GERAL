@@ -85,22 +85,8 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     };
 
     return {
-        isOpen, setIsOpen,
-        onlineUsersData,
-        searchTerm, setSearchTerm,
-        myCustomStatus, setMyCustomStatus,
-        notifications,
-        activeChatUser, setActiveChatUser,
-        chatInput, setChatInput,
-        replyingTo, setReplyingTo,
-        chatEndRef,
-        unreadCounts,
-        fileInputRef,
-        activeMessages,
-        filteredUsers,
-        formatTimeOnline,
-        totalUnread,
-        onlineUsers,
-        handleFileUpload
+        isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm, myCustomStatus, setMyCustomStatus, notifications, activeChatUser, setActiveChatUser,
+        chatInput, setChatInput, replyingTo, setReplyingTo, chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers, formatTimeOnline,
+        totalUnread, onlineUsers, handleFileUpload
     };
 }

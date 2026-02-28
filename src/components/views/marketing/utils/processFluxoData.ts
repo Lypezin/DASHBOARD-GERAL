@@ -1,34 +1,13 @@
 export interface FluxoEntregadores {
-    semana: string;
-    entradas: number;
-    saidas: number;
-    entradas_total: number;
-    entradas_marketing: number;
-    entradas_operacional: number;
-    saidas_total: number;
-    saidas_marketing: number;
-    saidas_operacional: number;
-    saidas_novos: number;
-    saidas_novos_operacional: number;
-    saldo: number;
-    nomes_entradas: string[];
-    nomes_saidas: string[];
-    nomes_saidas_novos: string[];
-    nomes_entradas_marketing: string[];
-    nomes_saidas_marketing: string[];
-    nomes_saidas_novos_marketing: string[];
-    nomes_entradas_operacional: string[];
-    nomes_saidas_operacional: string[];
-    nomes_saidas_novos_operacional: string[];
-    // Retomada (Returning Drivers)
-    retomada_total: number;
-    retomada_marketing: number;
-    retomada_operacional: number;
-    nomes_retomada_marketing: string[];
-    nomes_retomada_operacional: string[];
-    retomada_origins?: Record<string, number>;
-    base_ativa: number;
-    variacao_base: number;
+    semana: string; entradas: number; saidas: number;
+    entradas_total: number; entradas_marketing: number; entradas_operacional: number;
+    saidas_total: number; saidas_marketing: number; saidas_operacional: number; saidas_novos: number; saidas_novos_operacional: number;
+    saldo: number; nomes_entradas: string[]; nomes_saidas: string[]; nomes_saidas_novos: string[];
+    nomes_entradas_marketing: string[]; nomes_saidas_marketing: string[]; nomes_saidas_novos_marketing: string[];
+    nomes_entradas_operacional: string[]; nomes_saidas_operacional: string[]; nomes_saidas_novos_operacional: string[];
+    retomada_total: number; retomada_marketing: number; retomada_operacional: number;
+    nomes_retomada_marketing: string[]; nomes_retomada_operacional: string[]; retomada_origins?: Record<string, number>;
+    base_ativa: number; variacao_base: number;
 }
 
 export const processFluxoData = (rawData: any[]): FluxoEntregadores[] => {

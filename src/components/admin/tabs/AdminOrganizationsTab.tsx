@@ -6,20 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Plus, AlertCircle } from 'lucide-react';
 
 interface AdminOrganizationsTabProps {
-    organizations: Organization[];
-    loading: boolean;
-    error: string | null;
+    organizations: Organization[]; loading: boolean; error: string | null;
     createOrganization: (data: { name: string; slug: string; max_users: number }) => Promise<OrganizationOperationResult>;
     updateOrganization: (id: string, data: Partial<Organization>) => Promise<OrganizationOperationResult>;
 }
 
-export function AdminOrganizationsTab({
-    organizations,
-    loading,
-    error,
-    createOrganization,
-    updateOrganization
-}: AdminOrganizationsTabProps) {
+export function AdminOrganizationsTab({ organizations, loading, error, createOrganization, updateOrganization }: AdminOrganizationsTabProps) {
 
     const [showOrgModal, setShowOrgModal] = useState(false);
     const [editingOrg, setEditingOrg] = useState<Organization | null>(null);

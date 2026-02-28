@@ -1,23 +1,12 @@
-/**
- * Hook dedicado para buscar dados do resumo semanal com filtro local de praça
- * Busca drivers, pedidos e SH filtrados pelas praças selecionadas
- */
-
+/** Hook dedicado para buscar dados do resumo semanal com filtro local de praça */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
-
 import { mergeDriversAndPedidosData, DriversData, PedidosData } from '@/utils/data/driverTransformers';
 
-// ...
-
-interface UseResumoLocalDataOptions {
-    ano: number;
-    pracas: string[];
-    activeTab: string;
-}
+interface UseResumoLocalDataOptions { ano: number; pracas: string[]; activeTab: string; }
 
 export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDataOptions) {
     const [driversData, setDriversData] = useState<DriversData[]>([]);

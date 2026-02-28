@@ -41,27 +41,10 @@ export const criarCardDia = (
             // Horas entregues
             {
                 stack: [
-                    {
-                        text: 'ENTREGUE',
-                        fontSize: 8,
-                        color: COR_SUBTITULO,
-                        alignment: 'center',
-                        bold: true,
-                        characterSpacing: 0.3,
-                        margin: [0, 0, 0, 3],
-                    },
-                    {
-                        text: dia.horasEntregues,
-                        fontSize: 11,
-                        bold: true,
-                        color: COR_VERDE,
-                        alignment: 'center',
-                    },
+                    { text: 'ENTREGUE', fontSize: 8, color: COR_SUBTITULO, alignment: 'center', bold: true, characterSpacing: 0.3, margin: [0, 0, 0, 3] },
+                    { text: dia.horasEntregues, fontSize: 11, bold: true, color: COR_VERDE, alignment: 'center' },
                 ],
-                fillColor: '#ffffff',
-                borderRadius: 6,
-                padding: [6, 5],
-                margin: [4, 0, 4, 4],
+                fillColor: '#ffffff', borderRadius: 6, padding: [6, 5], margin: [4, 0, 4, 4],
             },
             // Diferenças (se existirem) com setas Unicode
             ...(temDiferencas && diferencas

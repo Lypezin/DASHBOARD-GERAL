@@ -7,12 +7,7 @@ import { BarChart3, ChevronDown } from 'lucide-react';
 
 type BenchmarkMetric = 'aderencia' | 'completadas' | 'ofertadas' | 'aceitacao';
 
-const metricLabels: Record<BenchmarkMetric, string> = {
-    aderencia: 'Aderência %',
-    completadas: 'Completadas',
-    ofertadas: 'Ofertadas',
-    aceitacao: 'Taxa Aceitação',
-};
+const metricLabels: Record<BenchmarkMetric, string> = { aderencia: 'Aderência %', completadas: 'Completadas', ofertadas: 'Ofertadas', aceitacao: 'Taxa Aceitação' };
 
 interface BenchmarkPracasProps {
     subPracas: AderenciaSubPraca[];
@@ -23,16 +18,12 @@ function getMetric(sp: AderenciaSubPraca, metric: BenchmarkMetric): number {
         case 'aderencia': return sp.aderencia_percentual || 0;
         case 'completadas': return sp.corridas_completadas || 0;
         case 'ofertadas': return sp.corridas_ofertadas || 0;
-        case 'aceitacao':
-            return (sp.corridas_ofertadas && sp.corridas_ofertadas > 0)
-                ? ((sp.corridas_aceitas || 0) / sp.corridas_ofertadas) * 100
-                : 0;
+        case 'aceitacao': return (sp.corridas_ofertadas && sp.corridas_ofertadas > 0) ? ((sp.corridas_aceitas || 0) / sp.corridas_ofertadas) * 100 : 0;
     }
 }
 
 function formatMetric(val: number, metric: BenchmarkMetric): string {
-    if (metric === 'aderencia' || metric === 'aceitacao') return `${val.toFixed(1)}%`;
-    return val.toLocaleString('pt-BR');
+    return (metric === 'aderencia' || metric === 'aceitacao') ? `${val.toFixed(1)}%` : val.toLocaleString('pt-BR');
 }
 
 export const BenchmarkPracas = React.memo(function BenchmarkPracas({ subPracas }: BenchmarkPracasProps) {

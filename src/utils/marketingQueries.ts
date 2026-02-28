@@ -33,51 +33,19 @@ export function ensureMarketingDateFilter(filter: MarketingDateFilter): Marketin
   };
 }
 
-/**
- * Constrói uma query com filtro de data para queries do Supabase.
- * Se não há filtro aplicado, retorna apenas registros onde a data não é null.
- * Se há filtro, aplica intervalo de datas (gte para data inicial, lte para data final).
- *
- * @param query A query do Supabase a ser modificada.
- * @param dateColumn O nome da coluna de data na tabela.
- * @param filter O filtro de data contendo dataInicial e/ou dataFinal.
- * @returns A query modificada com os filtros de data aplicados.
- * @example
- * const query = supabase.from('dados_marketing').select('*');
- * const filteredQuery = buildDateFilterQuery(query, 'data_envio', { dataInicial: '2024-01-01', dataFinal: '2024-01-31' });
- */
-// Supabase query builder type is complex - using any is acceptable here
+/** Constrói uma query modificada com filtros de data */
 export function buildDateFilterQuery(
   query: any,
   dateColumn: string,
   filter: MarketingDateFilter
 ): typeof query {
-  // Garantir que sempre há um filtro de data (aplica padrão de 30 dias se não houver)
   const safeFilter = ensureMarketingDateFilter(filter);
-  
-  // Aplicar filtros de data
-  if (safeFilter.dataInicial) {
-    query = query.gte(dateColumn, safeFilter.dataInicial);
-  }
-  if (safeFilter.dataFinal) {
-    // Usar lte para incluir o dia final completo
-    query = query.lte(dateColumn, safeFilter.dataFinal);
-  }
-  
+  if (safeFilter.dataInicial) query = query.gte(dateColumn, safeFilter.dataInicial);
+  if (safeFilter.dataFinal) query = query.lte(dateColumn, safeFilter.dataFinal);
   return query;
 }
 
-/**
- * Constrói uma query com filtro de cidade para queries do Supabase.
- * Trata casos especiais para Santo André, São Bernardo e ABC 2.0.
- *
- * @param query A query do Supabase a ser modificada.
- * @param cidade O nome da cidade para filtrar.
- * @returns A query modificada com o filtro de cidade aplicado.
- * @example
- * const query = supabase.from('dados_marketing').select('*');
- * const filteredQuery = buildCityQuery(query, 'Santo André');
- */
+/** Constrói query modificada com filtro de localização ABC e suas sub-praças */
 // Supabase query builder type is complex - using any is acceptable here
 export function buildCityQuery(query: any, cidade: string): typeof query {
   if (cidade === 'Santo André') {

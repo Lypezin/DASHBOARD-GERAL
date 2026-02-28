@@ -17,15 +17,9 @@ export async function fetchAndValidateProfile(
         // ... (lines 17-74 are unchanged)
 
         const { data: profile, error: profileError } = await safeRpc<{
-            is_approved: boolean;
-            is_admin: boolean;
-            assigned_pracas: string[];
-            role?: 'admin' | 'marketing' | 'user' | 'master';
-            organization_id?: string | null;
-        }>('get_current_user_profile', {}, {
-            timeout: RPC_TIMEOUTS.FAST,
-            validateParams: false
-        });
+            is_approved: boolean; is_admin: boolean; assigned_pracas: string[];
+            role?: 'admin' | 'marketing' | 'user' | 'master'; organization_id?: string | null;
+        }>('get_current_user_profile', {}, { timeout: RPC_TIMEOUTS.FAST, validateParams: false });
 
         if (profileError) {
             // ... error handling

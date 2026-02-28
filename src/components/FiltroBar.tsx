@@ -12,25 +12,11 @@ import { FilterClearButton } from './dashboard/filters/FilterClearButton';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 const FiltroBar = React.memo(function FiltroBar({
-  filters,
-  setFilters,
-  anos,
-  semanas,
-  pracas,
-  subPracas,
-  origens,
-  turnos,
-  currentUser,
+  filters, setFilters, anos, semanas, pracas, subPracas, origens, turnos, currentUser,
 }: {
-  filters: Filters;
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
-  anos: number[];
-  semanas: string[];
-  pracas: FilterOption[];
-  subPracas: FilterOption[];
-  origens: FilterOption[];
-  turnos: FilterOption[];
-  currentUser: CurrentUser | null;
+  filters: Filters; setFilters: React.Dispatch<React.SetStateAction<Filters>>;
+  anos: number[]; semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[];
+  origens: FilterOption[]; turnos: FilterOption[]; currentUser: CurrentUser | null;
 }) {
   const {
     handleChange,

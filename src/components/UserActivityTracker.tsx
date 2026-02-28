@@ -30,11 +30,7 @@ export function UserActivityTracker() {
                 // Fire and forget update
                 supabase
                     .from('user_activity_logs')
-                    .update({
-                        exited_at: new Date().toISOString(),
-                        duration_seconds: duration,
-                        last_seen: new Date().toISOString()
-                    })
+                    .update({ exited_at: new Date().toISOString(), duration_seconds: duration, last_seen: new Date().toISOString() })
                     .eq('id', visitIdRef.current)
                     .then(); // ignore result
             }
@@ -46,12 +42,7 @@ export function UserActivityTracker() {
                 // If it fails, we fall back? No, this is fire and forget mostly.
                 const { data, error } = await supabase
                     .from('user_activity_logs')
-                    .insert({
-                        user_id: user.id,
-                        path: pathname,
-                        entered_at: new Date().toISOString(),
-                        last_seen: new Date().toISOString()
-                    })
+                    .insert({ user_id: user.id, path: pathname, entered_at: new Date().toISOString(), last_seen: new Date().toISOString() })
                     .select('id')
                     .single();
 
@@ -93,11 +84,7 @@ export function UserActivityTracker() {
                 const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
                 supabase
                     .from('user_activity_logs')
-                    .update({
-                        exited_at: new Date().toISOString(),
-                        duration_seconds: duration,
-                        last_seen: new Date().toISOString()
-                    })
+                    .update({ exited_at: new Date().toISOString(), duration_seconds: duration, last_seen: new Date().toISOString() })
                     .eq('id', visitIdRef.current)
                     .then();
             }

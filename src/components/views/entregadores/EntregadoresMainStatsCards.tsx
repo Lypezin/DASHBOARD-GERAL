@@ -2,21 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, CheckCircle2, XCircle, Truck, Clock } from 'lucide-react';
 
-interface EntregadoresMainStatsCardsProps {
-    totalEntregadores: number;
-    aderenciaMedia: number;
-    rejeicaoMedia: number;
-    totalCorridas: number;
-    totalHoras: string;
-}
+interface EntregadoresMainStatsCardsProps { totalEntregadores: number; aderenciaMedia: number; rejeicaoMedia: number; totalCorridas: number; totalHoras: string; }
 
-export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainStatsCards({
-    totalEntregadores,
-    aderenciaMedia,
-    rejeicaoMedia,
-    totalCorridas,
-    totalHoras,
-}: EntregadoresMainStatsCardsProps) {
+export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainStatsCards({ totalEntregadores, aderenciaMedia, rejeicaoMedia, totalCorridas, totalHoras }: EntregadoresMainStatsCardsProps) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Total Entregadores */}

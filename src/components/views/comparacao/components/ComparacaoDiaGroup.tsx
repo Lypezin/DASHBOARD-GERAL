@@ -2,26 +2,11 @@ import React from 'react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { VariacaoBadge } from '@/components/VariacaoBadge';
 import { DashboardResumoData } from '@/types';
-import {
-    COMPARACAO_METRICS,
-    getRawValue,
-    formatValue,
-    calculateVariation
-} from '../utils/comparacaoHelpers';
+import { COMPARACAO_METRICS, getRawValue, formatValue, calculateVariation } from '../utils/comparacaoHelpers';
 
-interface ComparacaoDiaGroupProps {
-    dia: string;
-    diaIdx: number;
-    semanasSelecionadas: (number | string)[];
-    dadosComparacao: DashboardResumoData[];
-}
+interface ComparacaoDiaGroupProps { dia: string; diaIdx: number; semanasSelecionadas: (number | string)[]; dadosComparacao: DashboardResumoData[]; }
 
-export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({
-    dia,
-    diaIdx,
-    semanasSelecionadas,
-    dadosComparacao
-}) => {
+export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({ dia, diaIdx, semanasSelecionadas, dadosComparacao }) => {
     return (
         <React.Fragment key={dia}>
             {COMPARACAO_METRICS.map((metric, metricIdx) => (

@@ -88,14 +88,10 @@ export function useUserActivity(
   useEffect(() => {
     if (!currentUserRef.current || !sessionId) return;
 
-    const loginTimeout = setTimeout(() => {
-      registrarAtividade('login', { dispositivo: 'web' }, activeTabRef.current, filtersRef.current);
-    }, 500);
+    const loginTimeout = setTimeout(() => registrarAtividade('login', { dispositivo: 'web' }, activeTabRef.current, filtersRef.current), 500);
 
     const heartbeat = setInterval(() => {
-      if (currentUserRef.current && isPageVisible && sessionId) {
-        registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
-      }
+      if (currentUserRef.current && isPageVisible && sessionId) registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
     }, 60000);
 
     return () => { clearTimeout(loginTimeout); clearInterval(heartbeat); };
