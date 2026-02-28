@@ -9,7 +9,7 @@ import type { AnaliseItem } from '@/hooks/analise/useAnaliseTaxas';
 
 interface AnaliseTableProps {
   data: (AnaliseItem & { label: string })[];
-  labelColumn: string; // "Dia", "Turno", "Sub Praça", "Origem"
+  labelColumn: string;
 }
 
 export const AnaliseTable = React.memo(function AnaliseTable({
@@ -26,40 +26,40 @@ export const AnaliseTable = React.memo(function AnaliseTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-      <table className="w-full">
-        <thead className="bg-slate-50/50 dark:bg-slate-800/50">
-          <tr className="border-b border-slate-100 dark:border-slate-800">
-            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+    <div className="overflow-x-auto">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="border-b border-slate-200 dark:border-slate-700/50 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50">
+            <th className="px-6 py-4 font-semibold">
               {labelColumn}
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th className="px-6 py-4 font-semibold">
               Horas Entregues
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th className="px-6 py-4 font-semibold">
               Ofertadas
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th className="px-6 py-4 font-semibold">
               Aceitas
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th className="px-6 py-4 font-semibold">
               Rejeitadas
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th className="px-6 py-4 font-semibold">
               Completadas
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th className="px-6 py-4 font-semibold">
               % Aceit.
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th className="px-6 py-4 font-semibold">
               % Rej.
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th className="px-6 py-4 font-semibold">
               % Comp.
             </th>
           </tr>
         </thead>
-        <tbody className="divide-none">
+        <tbody className="text-sm font-medium text-slate-700 dark:text-slate-300 divide-y divide-slate-200 dark:divide-slate-800">
           {data.map((item, index) => (
             <AnaliseTableRow key={index} item={item} />
           ))}
@@ -70,4 +70,3 @@ export const AnaliseTable = React.memo(function AnaliseTable({
 });
 
 AnaliseTable.displayName = 'AnaliseTable';
-

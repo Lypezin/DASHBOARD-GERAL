@@ -24,14 +24,14 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
   ];
 
   return (
-    <div className="flex gap-2 flex-wrap bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg self-start sm:self-auto overflow-x-auto max-w-full">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTableChange(tab.id)}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${activeTable === tab.id
-              ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeTable === tab.id
+            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
         >
           {tab.label}
@@ -42,4 +42,3 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
 });
 
 AnaliseTableTabs.displayName = 'AnaliseTableTabs';
-

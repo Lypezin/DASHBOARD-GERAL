@@ -2,7 +2,6 @@ import React from 'react';
 import { Megaphone, CheckCircle2, XCircle, Flag, Clock } from 'lucide-react';
 import { Totals } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
-import { Card, CardContent } from '@/components/ui/card';
 
 interface AnaliseMetricCardsProps {
     totals: Totals;
@@ -20,125 +19,92 @@ export const AnaliseMetricCards: React.FC<AnaliseMetricCardsProps> = ({
     totalHorasEntregues
 }) => {
 
-    // Hero Card Component
     const HeroCard = ({
         title,
         value,
-        subtext,
         icon: Icon,
-        colorFrom,
-        colorTo,
-        iconColor,
+        iconBgColor,
+        iconTextColor,
         progress
     }: {
         title: string;
         value: string;
-        subtext: string;
         icon: any;
-        colorFrom: string;
-        colorTo: string;
-        iconColor: string;
-        progress?: { value: number, color: string }
+        iconBgColor: string;
+        iconTextColor: string;
+        progress?: { value: number; color: string; textColor: string }
     }) => (
-        <Card className="relative overflow-hidden border-none shadow-lg group">
-            <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-10 group-hover:opacity-20 transition-opacity duration-500`} />
-
-            <div className="absolute -right-6 -bottom-6 opacity-5 transform rotate-12 group-hover:scale-110 transition-transform duration-700">
-                <Icon className={`w-36 h-36 ${iconColor}`} />
+        <div className="bg-white dark:bg-[#1a2332]/60 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow relative group overflow-hidden">
+            {/* Ghost Icon */}
+            <div className="absolute right-0 top-0 p-4 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
+                <Icon className={`w-16 h-16 ${iconTextColor}`} />
             </div>
 
-            <CardContent className="p-6 relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                    <div className={`p-3 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 ${iconColor}`}>
-                        <Icon className="w-6 h-6" />
+            <div className="flex flex-col gap-1 relative z-10">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className={`p-1.5 rounded-lg ${iconBgColor}`}>
+                        <Icon className={`w-[18px] h-[18px] ${iconTextColor}`} />
                     </div>
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</p>
                 </div>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{value}</p>
 
-                <div className="space-y-1">
-                    <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</h3>
-                    <div className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 font-mono">
-                        {value}
-                    </div>
-
-                    {progress ? (
-                        <div className="mt-3">
-                            <div className="flex justify-between text-xs text-slate-500 mb-1">
-                                <span>{subtext}</span>
-                                <span className={iconColor}>{progress.value.toFixed(1)}%</span>
-                            </div>
-                            <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full ${progress.color} transition-all duration-1000`}
-                                    style={{ width: `${Math.min(progress.value, 100)}%` }}
-                                />
-                            </div>
+                {progress && (
+                    <div className="flex items-center gap-2 mt-2">
+                        <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                                className={`h-full ${progress.color} rounded-full transition-all duration-1000`}
+                                style={{ width: `${Math.min(progress.value, 100)}%` }}
+                            />
                         </div>
-                    ) : (
-                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">{subtext}</p>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+                        <span className={`text-xs font-semibold ${progress.textColor}`}>
+                            {progress.value.toFixed(1)}%
+                        </span>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Horas Entregues */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             <HeroCard
                 title="Horas Entregues"
                 icon={Clock}
                 value={formatarHorasParaHMS(totalHorasEntregues)}
-                subtext="Total de horas realizadas"
-                colorFrom="from-amber-400"
-                colorTo="to-orange-600"
-                iconColor="text-orange-600"
+                iconBgColor="bg-orange-500/20"
+                iconTextColor="text-orange-500"
             />
-
-            {/* Ofertadas */}
             <HeroCard
                 title="Ofertadas"
                 icon={Megaphone}
                 value={totals.ofertadas.toLocaleString('pt-BR')}
-                subtext="Corridas ofertadas"
-                colorFrom="from-blue-400"
-                colorTo="to-indigo-600"
-                iconColor="text-blue-600"
+                iconBgColor="bg-blue-500/20"
+                iconTextColor="text-blue-500"
             />
-
-            {/* Aceitas */}
             <HeroCard
                 title="Aceitas"
                 icon={CheckCircle2}
                 value={totals.aceitas.toLocaleString('pt-BR')}
-                subtext="Taxa de Aceitação"
-                colorFrom="from-emerald-400"
-                colorTo="to-teal-600"
-                iconColor="text-emerald-600"
-                progress={{ value: taxaAceitacao, color: 'bg-emerald-500' }}
+                iconBgColor="bg-emerald-500/20"
+                iconTextColor="text-emerald-500"
+                progress={{ value: taxaAceitacao, color: 'bg-emerald-500', textColor: 'text-emerald-500' }}
             />
-
-            {/* Rejeitadas */}
             <HeroCard
                 title="Rejeitadas"
                 icon={XCircle}
                 value={totals.rejeitadas.toLocaleString('pt-BR')}
-                subtext="Taxa de Rejeição"
-                colorFrom="from-rose-400"
-                colorTo="to-red-600"
-                iconColor="text-rose-600"
-                progress={{ value: taxaRejeicao, color: 'bg-rose-500' }}
+                iconBgColor="bg-rose-500/20"
+                iconTextColor="text-rose-500"
+                progress={{ value: taxaRejeicao, color: 'bg-rose-500', textColor: 'text-rose-500' }}
             />
-
-            {/* Completadas */}
             <HeroCard
                 title="Completadas"
                 icon={Flag}
                 value={totals.completadas.toLocaleString('pt-BR')}
-                subtext="Taxa de Completude"
-                colorFrom="from-violet-400"
-                colorTo="to-purple-600"
-                iconColor="text-purple-600"
-                progress={{ value: taxaCompletude, color: 'bg-purple-500' }}
+                iconBgColor="bg-purple-500/20"
+                iconTextColor="text-purple-500"
+                progress={{ value: taxaCompletude, color: 'bg-purple-500', textColor: 'text-purple-500' }}
             />
         </div>
     );
