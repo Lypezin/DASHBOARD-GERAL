@@ -2,8 +2,6 @@
 import React from 'react';
 import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
 import { AnaliseMetricCards } from './analise/components/AnaliseMetricCards';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 
 import { useAnaliseViewController } from './analise/useAnaliseViewController';
@@ -58,23 +56,12 @@ const AnaliseView = React.memo(function AnaliseView({
 
   return (
     <motion.div
-      className="space-y-8 pb-8 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8"
+      className="flex flex-col gap-10 pb-8 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      <motion.div className="flex justify-end" variants={item}>
-        <Button
-          variant="outline"
-          onClick={handleExport}
-          disabled={isExporting}
-          className="gap-2 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm transition-all hover:shadow-md"
-        >
-          <Download className="h-4 w-4" />
-          {isExporting ? 'Exportando...' : 'Exportar Excel'}
-        </Button>
-      </motion.div>
-
+      {/* KPI Cards Section */}
       <motion.div variants={item}>
         <AnaliseMetricCards
           totals={totals}
@@ -85,13 +72,15 @@ const AnaliseView = React.memo(function AnaliseView({
         />
       </motion.div>
 
-      {/* Análise Detalhada - Tabelas */}
+      {/* Análise Detalhada - Tabelas com Exportar integrado */}
       <motion.div variants={item}>
         <AnaliseDetailedCard
           activeTable={activeTable}
           onTableChange={handleTableChange}
           tableData={tableData}
           labelColumn={labelColumn}
+          isExporting={isExporting}
+          onExport={handleExport}
         />
       </motion.div>
     </motion.div>

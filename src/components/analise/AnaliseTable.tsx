@@ -1,6 +1,5 @@
 /**
- * Componente genérico de tabela de análise
- * Extraído de src/components/views/AnaliseView.tsx
+ * Componente genérico de tabela de análise - Design Stitch MCP
  */
 
 import React from 'react';
@@ -29,37 +28,25 @@ export const AnaliseTable = React.memo(function AnaliseTable({
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="border-b border-slate-200 dark:border-slate-700/50 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50">
-            <th className="px-6 py-4 font-semibold">
-              {labelColumn}
-            </th>
-            <th className="px-6 py-4 font-semibold">
-              Horas Entregues
-            </th>
-            <th className="px-6 py-4 font-semibold">
-              Ofertadas
-            </th>
-            <th className="px-6 py-4 font-semibold">
-              Aceitas
-            </th>
-            <th className="px-6 py-4 font-semibold">
-              Rejeitadas
-            </th>
-            <th className="px-6 py-4 font-semibold">
-              Completadas
-            </th>
-            <th className="px-6 py-4 font-semibold">
-              % Aceit.
-            </th>
-            <th className="px-6 py-4 font-semibold">
-              % Rej.
-            </th>
-            <th className="px-6 py-4 font-semibold">
-              % Comp.
-            </th>
+          <tr
+            className="text-xs uppercase tracking-wider text-slate-400 font-semibold"
+            style={{
+              background: 'rgba(30, 41, 59, 0.6)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <th className="px-6 py-4">{labelColumn}</th>
+            <th className="px-6 py-4">Horas Entregues</th>
+            <th className="px-6 py-4">Ofertadas</th>
+            <th className="px-6 py-4">Aceitas</th>
+            <th className="px-6 py-4">Rejeitadas</th>
+            <th className="px-6 py-4">Completadas</th>
+            <th className="px-6 py-4">% Aceit.</th>
+            <th className="px-6 py-4">% Rej.</th>
+            <th className="px-6 py-4">% Comp.</th>
           </tr>
         </thead>
-        <tbody className="text-sm font-medium text-slate-700 dark:text-slate-300 divide-y divide-slate-200 dark:divide-slate-800">
+        <tbody className="text-sm text-slate-200" style={{ borderColor: 'rgba(255, 255, 255, 0.08)' }}>
           {data.map((item, index) => (
             <AnaliseTableRow key={index} item={item} />
           ))}
