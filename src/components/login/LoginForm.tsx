@@ -16,22 +16,10 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({ email, password });
-  }, [email, password, onSubmit]);
-
-  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  }, []);
-
-  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  }, []);
-
-  const toggleShowPassword = useCallback(() => {
-    setShowPassword(prev => !prev);
-  }, []);
+  const handleSubmit = useCallback((e: React.FormEvent) => { e.preventDefault(); onSubmit({ email, password }); }, [email, password, onSubmit]);
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value), []);
+  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value), []);
+  const toggleShowPassword = useCallback(() => setShowPassword(prev => !prev), []);
 
   return (
     <>
@@ -47,33 +35,11 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        <LoginFields
-          email={email}
-          onEmailChange={handleEmailChange}
-          password={password}
-          onPasswordChange={handlePasswordChange}
-          showPassword={showPassword}
-          onTogglePassword={toggleShowPassword}
-          loading={loading}
-        />
+        <LoginFields email={email} onEmailChange={handleEmailChange} password={password} onPasswordChange={handlePasswordChange} showPassword={showPassword} onTogglePassword={toggleShowPassword} loading={loading} />
 
         {/* Submit Button */}
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white h-11 px-8 shadow-lg shadow-blue-500/25 border-0"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Entrando...
-            </>
-          ) : (
-            <>
-              Entrar
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          )}
+        <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white h-11 px-8 shadow-lg shadow-blue-500/25 border-0">
+          {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Entrando...</> : <>Entrar <ArrowRight className="ml-2 h-4 w-4" /></>}
         </Button>
       </form>
 
@@ -92,13 +58,7 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
       {/* Register Link */}
       <div className="text-center">
         <p className="text-sm text-slate-400">
-          Não tem uma conta?{' '}
-          <Link
-            href="/registro"
-            className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
-          >
-            Criar conta
-          </Link>
+          Não tem uma conta?{' '}<Link href="/registro" className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors">Criar conta</Link>
         </p>
       </div>
     </>

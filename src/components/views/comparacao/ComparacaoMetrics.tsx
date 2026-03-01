@@ -1,8 +1,9 @@
 import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatters';
-import { getWeeklyHours } from '@/utils/comparacaoHelpers';
-import { TrendingUp, TrendingDown, Minus, ArrowRight } from 'lucide-react';
+import { useComparacaoAggregations } from './hooks/useComparacaoAggregations';
+import { VariationBadge } from './components/VariationBadge';
+import { ArrowRight } from 'lucide-react';
 
 interface ComparacaoMetricsProps {
   dadosComparacao: DashboardResumoData[];
@@ -11,49 +12,17 @@ interface ComparacaoMetricsProps {
 export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
   dadosComparacao,
 }) => {
-  const aderencias = dadosComparacao.map(d => d?.aderencia_semanal?.[0]?.aderencia_percentual ?? 0);
-  const aderenciaMedia = Number((aderencias.reduce((a, b) => a + b, 0) / (aderencias.length || 1)).toFixed(1));
-
-  const corridasPorSemana = dadosComparacao.map(d => d?.total_completadas ?? 0);
-  const totalCorridas = corridasPorSemana.reduce((a, b) => a + b, 0);
-
-  const horasDecimais = dadosComparacao.map(d => converterHorasParaDecimal(getWeeklyHours(d, 'horas_entregues')));
-  const horasTotalDecimal = horasDecimais.reduce((a, b) => a + b, 0);
-  const horasEntregues = formatarHorasParaHMS(horasTotalDecimal.toString());
-
-  const ofertadas = dadosComparacao.reduce((sum, d) => sum + (d?.total_ofertadas ?? 0), 0);
-  const aceitas = dadosComparacao.reduce((sum, d) => sum + (d?.total_aceitas ?? 0), 0);
-  const taxaAceitacao = ofertadas > 0 ? ((aceitas / ofertadas) * 100).toFixed(1) : '0.0';
-
-  // Compute variation between first and last week
-  const getVariation = (values: number[]) => {
-    if (values.length < 2) return null;
-    const first = values[0];
-    const last = values[values.length - 1];
-    if (first === 0 && last === 0) return 0;
-    if (first === 0) return 100;
-    return ((last - first) / first) * 100;
-  };
-
-  const aderenciaVar = getVariation(aderencias);
-  const corridasVar = getVariation(corridasPorSemana);
-
-  const VariationBadge = ({ value }: { value: number | null }) => {
-    if (value === null) return null;
-    const isUp = value > 0.5;
-    const isDown = value < -0.5;
-    return (
-      <span className={`inline-flex items-center gap-0.5 text-xs font-medium tabular-nums ${isUp ? 'text-emerald-600 dark:text-emerald-400' :
-          isDown ? 'text-red-600 dark:text-red-400' :
-            'text-slate-400'
-        }`}>
-        {isUp && <TrendingUp className="w-3 h-3" />}
-        {isDown && <TrendingDown className="w-3 h-3" />}
-        {!isUp && !isDown && <Minus className="w-3 h-3" />}
-        {isUp ? '+' : ''}{value.toFixed(1)}%
-      </span>
-    );
-  };
+  const {
+    aderenciaMedia,
+    totalCorridas,
+    horasEntregues,
+    taxaAceitacao,
+    corridasPorSemana,
+    aderenciaVar,
+    corridasVar,
+    ofertadas,
+    aceitas
+  } = useComparacaoAggregations(dadosComparacao);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

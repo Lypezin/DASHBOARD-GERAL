@@ -12,34 +12,18 @@ interface AtendenteCardProps {
   fotoUrl?: string | null;
 }
 
-// Função para obter iniciais do nome
 function getIniciais(nome: string): string {
-  const partes = nome.trim().split(' ');
-  if (partes.length >= 2) {
-    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
-  }
-  return nome.substring(0, 2).toUpperCase();
+  const p = nome.trim().split(' ');
+  return p.length >= 2 ? (p[0][0] + p[p.length - 1][0]).toUpperCase() : nome.substring(0, 2).toUpperCase();
 }
 
 // Função para obter cor baseada no nome (para avatar)
 function getAvatarColor(nome: string): string {
-  const cores = [
-    'from-purple-500 to-pink-500',
-    'from-blue-500 to-cyan-500',
-    'from-emerald-500 to-teal-500',
-    'from-orange-500 to-amber-500',
-    'from-indigo-500 to-purple-500',
-  ];
-  const hash = nome.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return cores[hash % cores.length];
+  const cores = ['from-purple-500 to-pink-500', 'from-blue-500 to-cyan-500', 'from-emerald-500 to-teal-500', 'from-orange-500 to-amber-500', 'from-indigo-500 to-purple-500'];
+  return cores[nome.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % cores.length];
 }
 
-const AtendenteCard: React.FC<AtendenteCardProps> = ({
-  nome,
-  enviado,
-  liberado,
-  fotoUrl,
-}) => {
+const AtendenteCard: React.FC<AtendenteCardProps> = ({ nome, enviado, liberado, fotoUrl }) => {
   const iniciais = getIniciais(nome);
   const avatarColor = getAvatarColor(nome);
 
@@ -51,28 +35,11 @@ const AtendenteCard: React.FC<AtendenteCardProps> = ({
           {/* Avatar com foto ou iniciais */}
           <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatarColor} text-lg font-bold text-white shadow-sm overflow-hidden`}>
             {fotoUrl ? (
-              <Image
-                src={fotoUrl}
-                alt={nome}
-                width={64}
-                height={64}
-                quality={95}
-                priority
-                className="h-full w-full object-cover"
-                unoptimized={fotoUrl.includes('supabase.co')}
-                onError={(e) => {
-                  // Fallback para iniciais se a imagem falhar
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent) {
-                    parent.innerHTML = iniciais;
-                  }
-                }}
-              />
-            ) : (
-              iniciais
-            )}
+              <Image src={fotoUrl} alt={nome} width={64} height={64} quality={95} priority className="h-full w-full object-cover" unoptimized={fotoUrl.includes('supabase.co')} onError={(e) => {
+                const target = e.target as HTMLImageElement; target.style.display = 'none';
+                if (target.parentElement) target.parentElement.innerHTML = iniciais;
+              }} />
+            ) : (iniciais)}
           </div>
 
           {/* Nome */}

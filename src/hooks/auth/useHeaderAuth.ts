@@ -33,21 +33,14 @@ export function useHeaderAuth() {
       if (!sessionResult.success) {
         setHasTriedAuth(true);
         setIsLoading(false);
-
         if (sessionResult.action === 'redirect_login') {
-          if (IS_DEV) safeLog.info('[HeaderAuth] Redirecting to login from:', pathname);
-          const search = typeof window !== 'undefined' ? window.location.search : '';
-          router.push(`/login${search}`);
-        } else {
-          if (IS_DEV) safeLog.info('[HeaderAuth] Public page or skip redirect');
-        }
+          if (IS_DEV) safeLog.info('[HeaderAuth] Redirect to login from:', pathname);
+          router.push(`/login${typeof window !== 'undefined' ? window.location.search : ''}`);
+        } else if (IS_DEV) safeLog.info('[HeaderAuth] Public page or skip redirect');
         return;
       }
 
-      if (shouldSkipRedirect(pathname)) {
-        setHasTriedAuth(true);
-        setIsLoading(false);
-      }
+      if (shouldSkipRedirect(pathname)) { setHasTriedAuth(true); setIsLoading(false); }
 
       setHasTriedAuth(true);
 
@@ -61,13 +54,8 @@ export function useHeaderAuth() {
       setUser(profileResult.profile!);
 
       // 7. Sincronizar (não bloqueante)
-      try {
-        await syncOrganizationIdToMetadata();
-      } catch (err) {
-        if (IS_DEV) {
-          safeLog.warn('[Header] Erro ao sincronizar organization_id (não bloqueante):', err);
-        }
-      }
+      try { await syncOrganizationIdToMetadata(); }
+      catch (err) { if (IS_DEV) safeLog.warn('[Header] Erro ao sincronizar organization_id (não bloqueante):', err); }
     } catch (err) {
       if (IS_DEV) safeLog.error('[Header] Erro inesperado ao verificar usuário:', err);
       setIsLoading(false);
@@ -86,31 +74,19 @@ export function useHeaderAuth() {
   useEffect(() => {
     loadingTimeoutRef.current = setTimeout(() => {
       if (isLoading) {
-        if (IS_DEV) {
-          safeLog.warn('[Header] Timeout de loading atingido (3s), mostrando header mesmo sem usuário');
-        }
+        if (IS_DEV) safeLog.warn('[Header] Timeout atingido (3s), exibindo header publicamente');
         setIsLoading(false);
       }
     }, 3000);
-
     checkUser();
-
-    return () => {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
-    };
+    return () => { if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current); };
   }, [checkUser]);
 
   const handleLogout = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      safeLog.error('Erro ao fazer logout:', error);
-    }
+      if (error) throw error;
+    } catch (error) { safeLog.error('Erro ao fazer logout:', error); }
   }, []);
 
   return {

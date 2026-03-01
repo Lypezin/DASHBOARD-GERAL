@@ -12,80 +12,40 @@ const SUB_PRACAS_PER_PAGE = 3;
 const TURNOS_PER_PAGE = 2;
 const ORIGENS_PER_PAGE = 3;
 
-export const buildSlidesSubPracas = (
-    visible: boolean,
-    subPracasComparativo: any[],
-    props: { numeroSemana1: string; numeroSemana2: string }
-): SlideConfig[] => {
+export const buildSlidesSubPracas = (visible: boolean, subPracasComparativo: any[], props: { numeroSemana1: string; numeroSemana2: string }): SlideConfig[] => {
     if (!visible) return [];
     const slides: SlideConfig[] = [];
     const subPracasPaginas = chunkArray(subPracasComparativo, SUB_PRACAS_PER_PAGE);
-
     subPracasPaginas.forEach((pagina, indice) => {
         slides.push({
             key: `sub-pracas-${indice}`,
-            render: (isVisible) => (
-                <SlideSubPracas
-                    isVisible={isVisible}
-                    numeroSemana1={props.numeroSemana1}
-                    numeroSemana2={props.numeroSemana2}
-                    paginaAtual={indice + 1}
-                    totalPaginas={subPracasPaginas.length}
-                    itens={pagina}
-                />
-            ),
+            render: (v) => <SlideSubPracas isVisible={v} numeroSemana1={props.numeroSemana1} numeroSemana2={props.numeroSemana2} paginaAtual={indice + 1} totalPaginas={subPracasPaginas.length} itens={pagina} />,
         });
     });
     return slides;
 };
 
-export const buildSlidesTurnos = (
-    visible: boolean,
-    turnosComparativo: any[],
-    props: { numeroSemana1: string; numeroSemana2: string }
-): SlideConfig[] => {
+export const buildSlidesTurnos = (visible: boolean, turnosComparativo: any[], props: { numeroSemana1: string; numeroSemana2: string }): SlideConfig[] => {
     if (!visible) return [];
     const slides: SlideConfig[] = [];
     const turnosPaginas = chunkArray(turnosComparativo, TURNOS_PER_PAGE);
     turnosPaginas.forEach((pagina, indice) => {
         slides.push({
             key: `turnos-${indice}`,
-            render: (isVisible) => (
-                <SlideTurnos
-                    isVisible={isVisible}
-                    numeroSemana1={props.numeroSemana1}
-                    numeroSemana2={props.numeroSemana2}
-                    paginaAtual={indice + 1}
-                    totalPaginas={turnosPaginas.length}
-                    itens={pagina}
-                />
-            ),
+            render: (v) => <SlideTurnos isVisible={v} numeroSemana1={props.numeroSemana1} numeroSemana2={props.numeroSemana2} paginaAtual={indice + 1} totalPaginas={turnosPaginas.length} itens={pagina} />,
         });
     });
     return slides;
 };
 
-export const buildSlidesOrigem = (
-    visible: boolean,
-    origensComparativo: any[],
-    props: { numeroSemana1: string; numeroSemana2: string }
-): SlideConfig[] => {
+export const buildSlidesOrigem = (visible: boolean, origensComparativo: any[], props: { numeroSemana1: string; numeroSemana2: string }): SlideConfig[] => {
     if (!visible) return [];
     const slides: SlideConfig[] = [];
     const origensPaginas = chunkArray(origensComparativo, ORIGENS_PER_PAGE);
     origensPaginas.forEach((pagina, indice) => {
         slides.push({
             key: `origens-${indice}`,
-            render: (isVisible) => (
-                <SlideOrigem
-                    isVisible={isVisible}
-                    numeroSemana1={props.numeroSemana1}
-                    numeroSemana2={props.numeroSemana2}
-                    paginaAtual={indice + 1}
-                    totalPaginas={origensPaginas.length}
-                    itens={pagina}
-                />
-            ),
+            render: (v) => <SlideOrigem isVisible={v} numeroSemana1={props.numeroSemana1} numeroSemana2={props.numeroSemana2} paginaAtual={indice + 1} totalPaginas={origensPaginas.length} itens={pagina} />,
         });
     });
     return slides;
@@ -93,27 +53,14 @@ export const buildSlidesOrigem = (
 
 const DEMANDA_ORIGEM_PER_PAGE = 1;
 
-export const buildSlidesDemandaOrigem = (
-    visible: boolean,
-    demandaOrigemItens: DemandaOrigemItem[],
-    props: { numeroSemana1: string; numeroSemana2: string }
-): SlideConfig[] => {
+export const buildSlidesDemandaOrigem = (visible: boolean, demandaOrigemItens: DemandaOrigemItem[], props: { numeroSemana1: string; numeroSemana2: string }): SlideConfig[] => {
     if (!visible || demandaOrigemItens.length === 0) return [];
     const slides: SlideConfig[] = [];
     const paginas = chunkArray(demandaOrigemItens, DEMANDA_ORIGEM_PER_PAGE);
     paginas.forEach((pagina, indice) => {
         slides.push({
             key: `demanda-origem-${indice}`,
-            render: (isVisible) => (
-                <SlideDemandaOrigem
-                    isVisible={isVisible}
-                    numeroSemana1={props.numeroSemana1}
-                    numeroSemana2={props.numeroSemana2}
-                    paginaAtual={indice + 1}
-                    totalPaginas={paginas.length}
-                    itens={pagina}
-                />
-            ),
+            render: (v) => <SlideDemandaOrigem isVisible={v} numeroSemana1={props.numeroSemana1} numeroSemana2={props.numeroSemana2} paginaAtual={indice + 1} totalPaginas={paginas.length} itens={pagina} />,
         });
     });
     return slides;

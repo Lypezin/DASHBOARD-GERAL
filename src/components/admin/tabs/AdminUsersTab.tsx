@@ -11,47 +11,13 @@ import { AlertCircle } from 'lucide-react';
 import { AdminLoadingSkeleton } from '@/components/admin/AdminLoadingSkeleton';
 
 interface AdminUsersTabProps {
-    currentUser: UserProfile | null;
-    users: User[];
-    pendingUsers: User[];
-    pracasDisponiveis: string[];
-    loading: boolean;
-    error: string | null;
-    fetchData: () => Promise<void>;
-    organizations: Organization[];
+    currentUser: UserProfile | null; users: User[]; pendingUsers: User[]; pracasDisponiveis: string[];
+    loading: boolean; error: string | null; fetchData: () => Promise<void>; organizations: Organization[];
 }
 
-export function AdminUsersTab({
-    currentUser,
-    users,
-    pendingUsers,
-    pracasDisponiveis,
-    loading,
-    error,
-    fetchData,
-    organizations
-}: AdminUsersTabProps) {
+export function AdminUsersTab({ currentUser, users, pendingUsers, pracasDisponiveis, loading, error, fetchData, organizations }: AdminUsersTabProps) {
 
-    const {
-        selectedUser,
-        selectedPracas,
-        selectedRole,
-        selectedOrganizationId,
-        showModal,
-        showEditModal,
-        editingUser,
-        setSelectedPracas,
-        setSelectedRole,
-        setSelectedOrganizationId,
-        handleApproveUser,
-        handleSaveApproval,
-        handleCancelApproval,
-        handleEditPracas,
-        handleSaveEditPracas,
-        handleCancelEdit,
-        handleRevokeAccess,
-        handleToggleAdmin,
-    } = useAdminActions(currentUser, fetchData);
+    const { selectedUser, selectedPracas, selectedRole, selectedOrganizationId, showModal, showEditModal, editingUser, setSelectedPracas, setSelectedRole, setSelectedOrganizationId, handleApproveUser, handleSaveApproval, handleCancelApproval, handleEditPracas, handleSaveEditPracas, handleCancelEdit, handleRevokeAccess, handleToggleAdmin } = useAdminActions(currentUser, fetchData);
 
     if (loading) {
         return <AdminLoadingSkeleton />;

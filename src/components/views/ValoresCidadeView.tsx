@@ -9,14 +9,7 @@ import { ValoresCidadeFilters } from './valoresCidade/ValoresCidadeFilters';
 import { ValoresCidadeCards } from './valoresCidade/ValoresCidadeCards';
 
 const ValoresCidadeView = React.memo(function ValoresCidadeView() {
-  const {
-    isAuthenticated,
-    password,
-    passwordError,
-    loading: authLoading,
-    setPassword,
-    handlePasswordSubmit,
-  } = useValoresCidadeAuth();
+  const { isAuthenticated, password, passwordError, loading: authLoading, setPassword, handlePasswordSubmit } = useValoresCidadeAuth();
 
   // Inicializar filtros do SessionStorage se disponível, ou usar padrão
   const [filter, setFilter] = useState<ValoresCidadeDateFilter>(() => {
@@ -35,13 +28,7 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
     return { dataInicial: null, dataFinal: null };
   });
 
-  const {
-    loading,
-    error,
-    cidadesData,
-    totalGeral,
-    custoPorLiberado,
-  } = useValoresCidadeData(isAuthenticated, filter, filterEnviados);
+  const { loading, error, cidadesData, totalGeral, custoPorLiberado } = useValoresCidadeData(isAuthenticated, filter, filterEnviados);
 
   const handleFilterChange = (newFilter: ValoresCidadeDateFilter) => {
     setFilter(newFilter);
@@ -53,19 +40,7 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
     sessionStorage.setItem('valores_cidade_filter_enviados', JSON.stringify(newFilter));
   };
 
-  if (!isAuthenticated) {
-    return (
-      <ValoresCidadeAuth
-        password={password}
-        passwordError={passwordError}
-        loading={authLoading}
-        onPasswordChange={(value) => {
-          setPassword(value);
-        }}
-        onSubmit={handlePasswordSubmit}
-      />
-    );
-  }
+  if (!isAuthenticated) return <ValoresCidadeAuth password={password} passwordError={passwordError} loading={authLoading} onPasswordChange={setPassword} onSubmit={handlePasswordSubmit} />;
 
   if (loading) {
     return (

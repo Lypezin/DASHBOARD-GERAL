@@ -4,12 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { motion, Variants } from 'framer-motion';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { AderenciaDia } from '@/types';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DailyPerformanceTooltip } from './DailyPerformanceTooltip';
+
+import { DailyCorridasMetrics } from './DailyCorridasMetrics';
 
 interface DailyPerformanceCardProps {
     dia: AderenciaDia;
@@ -75,49 +73,17 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                                             Meta: {formatarHorasParaHMS(dia.horas_a_entregar || '0')}
                                         </span>
 
-                                        <div className="grid grid-cols-2 gap-2 w-full mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/50">
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Ofert</span>
-                                                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-mono">
-                                                    {dia.corridas_ofertadas || 0}
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Comp</span>
-                                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                                                    {dia.corridas_completadas || 0}
-                                                </span>
-                                            </div>
-                                        </div>
+                                        <DailyCorridasMetrics
+                                            ofertadas={dia.corridas_ofertadas}
+                                            completadas={dia.corridas_completadas}
+                                        />
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
                     </motion.div>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="p-3 bg-slate-900 text-slate-50 border-slate-800 dark:bg-slate-950 dark:border-slate-800">
-                    <div className="space-y-2">
-                        <p className="font-bold border-b border-slate-700 pb-1 mb-2 text-xs uppercase tracking-wider text-slate-400">Métricas de Corrida</p>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                            <div className="flex justify-between gap-2">
-                                <span className="text-slate-400">Ofertadas:</span>
-                                <span className="font-mono font-bold">{dia.corridas_ofertadas || 0}</span>
-                            </div>
-                            <div className="flex justify-between gap-2">
-                                <span className="text-emerald-400">Aceitas:</span>
-                                <span className="font-mono font-bold">{dia.corridas_aceitas || 0}</span>
-                            </div>
-                            <div className="flex justify-between gap-2">
-                                <span className="text-blue-400">Completadas:</span>
-                                <span className="font-mono font-bold">{dia.corridas_completadas || 0}</span>
-                            </div>
-                            <div className="flex justify-between gap-2">
-                                <span className="text-rose-400">Rejeitadas:</span>
-                                <span className="font-mono font-bold">{dia.corridas_rejeitadas || 0}</span>
-                            </div>
-                        </div>
-                    </div>
-                </TooltipContent>
+                <DailyPerformanceTooltip dia={dia} />
             </Tooltip>
         </TooltipProvider>
     );

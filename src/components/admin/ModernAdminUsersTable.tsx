@@ -6,6 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { AdminUserRow } from './components/AdminUserRow';
 
+import { useAdminUsersPagination } from './hooks/useAdminUsersPagination';
+import { AdminUsersPaginationControls } from './components/AdminUsersPaginationControls';
+
 interface AdminUsersTableProps {
     users: User[];
     organizations: Organization[];
@@ -25,31 +28,15 @@ export const ModernAdminUsersTable: React.FC<AdminUsersTableProps> = ({
     onRevokeAccess,
     onToggleAdmin,
 }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
-
-    const filteredUsers = users.filter(user =>
-        user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
-
-    const handlePreviousPage = () => {
-        setCurrentPage((prev) => Math.max(prev - 1, 1));
-    };
-
-    const handleNextPage = () => {
-        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-    };
-
-    // Reset page when search changes
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm]);
+    const {
+        searchTerm,
+        setSearchTerm,
+        currentPage,
+        totalPages,
+        paginatedUsers,
+        handlePreviousPage,
+        handleNextPage,
+    } = useAdminUsersPagination(users);
 
     return (
         <div className="space-y-4">
@@ -96,28 +83,12 @@ export const ModernAdminUsersTable: React.FC<AdminUsersTableProps> = ({
                 </div>
             </div>
 
-            {/* Pagination Controls */}
-            <div className="flex items-center justify-between px-2">
-                <div className="text-sm text-muted-foreground">
-                    Página {currentPage} de {totalPages || 1}
-                </div>
-                <div className="flex items-center space-x-2">
-                    <button
-                        onClick={handlePreviousPage}
-                        disabled={currentPage === 1}
-                        className="px-3 py-1 text-sm font-medium rounded-md border bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Anterior
-                    </button>
-                    <button
-                        onClick={handleNextPage}
-                        disabled={currentPage === totalPages || totalPages === 0}
-                        className="px-3 py-1 text-sm font-medium rounded-md border bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Próxima
-                    </button>
-                </div>
-            </div>
+            <AdminUsersPaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPrevious={handlePreviousPage}
+                onNext={handleNextPage}
+            />
         </div>
     );
 };

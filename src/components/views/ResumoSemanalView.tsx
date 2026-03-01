@@ -9,6 +9,9 @@ import { ResumoFilters } from './resumo-semanal/ResumoFilters';
 import { ResumoTable } from './resumo-semanal/ResumoTable';
 import { exportarResumoSemanalParaExcel } from './resumo-semanal/ResumoSemanalExcelExport';
 
+import { handleCopyTable as copyTableHelper } from './resumo-semanal/utils/copyHelpers';
+import { SelectedPracasTags } from './resumo-semanal/SelectedPracasTags';
+
 interface ResumoSemanalViewProps {
     evolucaoSemanal: EvolucaoSemanal[];
     aderenciaSemanal: AderenciaSemanal[];
@@ -51,27 +54,8 @@ export const ResumoSemanalView = ({
     const displayRows = processedData;
     const isLoading = loading || loadingLocal;
 
-    // Copy table content (without week column, headers, or totals)
     const handleCopyTable = useCallback(() => {
-        if (displayRows.length === 0) return;
-
-        // Data rows only (no headers, no totals)
-        const rows = displayRows.map(row => [
-            formatNumber(row.pedidos),
-            formatNumber(row.drivers),
-            formatNumber(row.sh),
-            formatPercent(row.aderenciaMedia),
-            formatNumber(row.utr, 2),
-            formatPercent(row.aderencia),
-            formatPercent(row.rejeite)
-        ].join('\t'));
-
-        const tableText = rows.join('\n');
-
-        navigator.clipboard.writeText(tableText).then(() => {
-            // Toast notification could be added here if needed, 
-            // but the button inside ResumoFilters handles its own state for "Copied!"
-        });
+        copyTableHelper(displayRows);
     }, [displayRows]);
 
     const handleExportTable = useCallback(() => {
@@ -97,23 +81,7 @@ export const ResumoSemanalView = ({
                     />
                 </CardHeader>
 
-                {/* Selected Praças Tags */}
-                {selectedPracas.length > 0 && (
-                    <div className="px-6 pb-2 flex flex-wrap gap-2">
-                        {selectedPracas.map(praca => (
-                            <span
-                                key={praca}
-                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50"
-                                onClick={() => togglePraca(praca)}
-                            >
-                                {praca}
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </span>
-                        ))}
-                    </div>
-                )}
+                <SelectedPracasTags selectedPracas={selectedPracas} togglePraca={togglePraca} />
 
                 <CardContent>
                     <ResumoTable data={displayRows} isLoading={!!isLoading} />

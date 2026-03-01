@@ -9,26 +9,9 @@ import SlideRanking from '@/components/apresentacao/slides/SlideRanking';
 import SlideAderenciaDiaria from '@/components/apresentacao/slides/SlideAderenciaDiaria';
 import SlideDemanda from '@/components/apresentacao/slides/SlideDemandaRejeicoes';
 
-export const buildSlideCapa = (
-    visible: boolean,
-    props: {
-        pracaSelecionada: string | null;
-        numeroSemana1: string;
-        numeroSemana2: string;
-        periodoSemana1: string;
-        periodoSemana2: string;
-    }
-): SlideConfig | null => {
+export const buildSlideCapa = (visible: boolean, props: { pracaSelecionada: string | null; numeroSemana1: string; numeroSemana2: string; periodoSemana1: string; periodoSemana2: string; }): SlideConfig | null => {
     if (!visible) return null;
-    return {
-        key: 'capa',
-        render: (isVisible) => (
-            <SlideCapa
-                isVisible={isVisible}
-                {...props}
-            />
-        ),
-    };
+    return { key: 'capa', render: (isVisible) => <SlideCapa isVisible={isVisible} {...props} /> };
 };
 
 export const buildSlideResumoIA = (
@@ -43,23 +26,10 @@ export const buildSlideResumoIA = (
     };
 };
 
-export const buildSlideAderenciaGeral = (
-    visible: boolean,
-    dadosProcessados: DadosProcessados
-): SlideConfig | null => {
+export const buildSlideAderenciaGeral = (visible: boolean, dadosProcessados: DadosProcessados): SlideConfig | null => {
     if (!visible) return null;
     const { resumoSemana1, resumoSemana2, variacaoResumo } = dadosProcessados;
-    return {
-        key: 'aderencia-geral',
-        render: (isVisible) => (
-            <SlideAderenciaGeral
-                isVisible={isVisible}
-                semana1={resumoSemana1}
-                semana2={resumoSemana2}
-                variacao={variacaoResumo}
-            />
-        ),
-    };
+    return { key: 'aderencia-geral', render: (v) => <SlideAderenciaGeral isVisible={v} semana1={resumoSemana1} semana2={resumoSemana2} variacao={variacaoResumo} /> };
 };
 
 export const buildSlideRanking = (
@@ -79,25 +49,9 @@ export const buildSlideRanking = (
     };
 };
 
-export const buildSlideAderenciaDiaria = (
-    visible: boolean,
-    props: {
-        numeroSemana1: string;
-        numeroSemana2: string;
-        semana1Dias: any[];
-        semana2Dias: any[];
-    }
-): SlideConfig | null => {
+export const buildSlideAderenciaDiaria = (visible: boolean, props: { numeroSemana1: string; numeroSemana2: string; semana1Dias: any[]; semana2Dias: any[]; }): SlideConfig | null => {
     if (!visible) return null;
-    return {
-        key: 'aderencia-diaria',
-        render: (isVisible) => (
-            <SlideAderenciaDiaria
-                isVisible={isVisible}
-                {...props}
-            />
-        ),
-    };
+    return { key: 'aderencia-diaria', render: (v) => <SlideAderenciaDiaria isVisible={v} {...props} /> };
 };
 
 export const buildSlideDemanda = (

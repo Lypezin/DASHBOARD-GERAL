@@ -5,35 +5,16 @@ import { convertDDMMYYYYToDate } from '../uploadHelpers';
  * Transformadores comuns para reutilização em processamento de Excel
  */
 export const commonTransformers = {
-    /**
-     * Transforma data DD/MM/YYYY para YYYY-MM-DD
-     */
+    /** Transforma data DD/MM/YYYY para YYYY-MM-DD */
     date: (value: unknown, rowIndex: number): string | null => {
-        const originalValue = value;
-        const converted = convertDDMMYYYYToDate(
-            typeof value === 'string' || typeof value === 'number' || value === null || value === undefined
-                ? value
-                : String(value)
-        );
-        if (!converted) {
-            return null; // Permitir null para campos opcionais
-        }
-        return converted;
+        const converted = convertDDMMYYYYToDate(typeof value === 'string' || typeof value === 'number' || value == null ? value : String(value));
+        return converted || null;
     },
 
-    /**
-     * Transforma data obrigatória (lança erro se inválida)
-     */
+    /** Transforma data obrigatória (lança erro se inválida) */
     requiredDate: (value: unknown, rowIndex: number): string => {
-        const originalValue = value;
-        const converted = convertDDMMYYYYToDate(
-            typeof value === 'string' || typeof value === 'number' || value === null || value === undefined
-                ? value
-                : String(value)
-        );
-        if (!converted) {
-            throw new Error(`Data inválida: ${originalValue}`);
-        }
+        const converted = convertDDMMYYYYToDate(typeof value === 'string' || typeof value === 'number' || value == null ? value : String(value));
+        if (!converted) throw new Error(`Data inválida: ${value}`);
         return converted;
     },
 
@@ -100,21 +81,14 @@ export const commonTransformers = {
      */
     rodando: (value: unknown, rowIndex: number): string | null => {
         if (value && typeof value === 'string') {
-            const normalized = value.trim().toLowerCase();
-            if (normalized === 'sim' || normalized === 's' || normalized === 'yes' || normalized === 'y' || normalized === '1' || normalized === 'true') {
-                return 'Sim';
-            } else if (normalized === 'não' || normalized === 'nao' || normalized === 'n' || normalized === 'no' || normalized === '0' || normalized === 'false' || normalized === '') {
-                return 'Não';
-            } else {
-                return value.trim() || null;
-            }
+            const n = value.trim().toLowerCase();
+            if (['sim', 's', 'yes', 'y', '1', 'true'].includes(n)) return 'Sim';
+            if (['não', 'nao', 'n', 'no', '0', 'false', ''].includes(n)) return 'Não';
+            return value.trim() || null;
         } else if (value) {
-            const numValue = Number(value);
-            if (numValue === 1 || numValue === 1.0) {
-                return 'Sim';
-            } else if (numValue === 0 || numValue === 0.0) {
-                return 'Não';
-            }
+            const num = Number(value);
+            if (num === 1) return 'Sim';
+            if (num === 0) return 'Não';
         }
         return null;
     },

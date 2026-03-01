@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+
 import { safeLog } from '@/lib/errorHandler';
+import { fetchDashboardEvolucaoData } from './utils/fetchEvolucao';
 import { DELAYS } from '@/constants/config';
 import type { FilterPayload } from '@/types/filters';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -46,46 +47,13 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
         setLoading(true);
         setError(null);
 
-        const params = {
-          p_ano: anoEvolucao,
-          p_organization_id: filterPayload.p_organization_id,
-          p_praca: filterPayload.p_praca,
-          p_sub_praca: filterPayload.p_sub_praca,
-          p_origem: filterPayload.p_origem,
-          p_turno: filterPayload.p_turno,
-          // Arrays
-          p_sub_pracas: filterPayload.p_sub_pracas,
-          p_origens: filterPayload.p_origens,
-          p_turnos: filterPayload.p_turnos,
-        };
-
-        if (process.env.NODE_ENV === 'development') {
-          safeLog.info('[useDashboardEvolucao] Buscando dados de evolução:', params);
-        }
-
-        const [mensalRes, semanalRes, utrRes] = await Promise.all([
-          supabase.rpc('dashboard_evolucao_mensal', params),
-          supabase.rpc('dashboard_evolucao_semanal', params),
-          supabase.rpc('dashboard_utr_semanal', params)
-        ]);
-
-        if (process.env.NODE_ENV === 'development') {
-          safeLog.info('[useDashboardEvolucao] Dados recebidos:', {
-            mensalLength: mensalRes.data?.length,
-            semanalLength: semanalRes.data?.length,
-            ano: params.p_ano
-          });
-        }
+        const { mensalData, semanalData, utrData } = await fetchDashboardEvolucaoData(filterPayload, anoEvolucao, activeTab);
 
         if (!mounted) return;
 
-        if (mensalRes.error) throw mensalRes.error;
-        if (semanalRes.error) throw semanalRes.error;
-        if (utrRes.error && activeTab === 'utr') throw utrRes.error; // UTR might be optional for other tabs
-
-        setEvolucaoMensal(mensalRes.data);
-        setEvolucaoSemanal(semanalRes.data);
-        setUtrSemanal(utrRes.data);
+        setEvolucaoMensal(mensalData);
+        setEvolucaoSemanal(semanalData);
+        setUtrSemanal(utrData);
 
         lastFetchSignature.current = currentSignature;
 

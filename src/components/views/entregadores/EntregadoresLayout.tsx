@@ -9,47 +9,14 @@ import { EntregadoresTable } from './EntregadoresTable';
 import { EntregadoresEmptyState } from './components/EntregadoresStates';
 
 interface EntregadoresLayoutProps {
-    // Data
-    entregadores: any[];
-    entregadoresFiltrados: any[];
-    totais: any;
-    searchTerm: string;
-    cidadeSelecionada: string;
-    filtroRodouDia: any;
-    filtroDataInicio: any;
-    sortField: any;
-    sortDirection: any;
-
-    // Actions
-    onSearchChange: (value: string) => void;
-    onCidadeChange: (value: string) => void;
-    onFiltroRodouDiaChange: (value: any) => void;
-    onFiltroDataInicioChange: (value: any) => void;
-    onSort: (field: any) => void;
-    onExport: () => void;
-
-    // Utils
+    entregadores: any[]; entregadoresFiltrados: any[]; totais: any;
+    searchTerm: string; cidadeSelecionada: string; filtroRodouDia: any; filtroDataInicio: any; sortField: any; sortDirection: any;
+    onSearchChange: (value: string) => void; onCidadeChange: (value: string) => void; onFiltroRodouDiaChange: (value: any) => void;
+    onFiltroDataInicioChange: (value: any) => void; onSort: (field: any) => void; onExport: () => void;
     formatarSegundosParaHoras: (seconds: number) => string;
 }
 
-export const EntregadoresLayout = React.memo(function EntregadoresLayout({
-    entregadores,
-    entregadoresFiltrados,
-    totais,
-    searchTerm,
-    cidadeSelecionada,
-    filtroRodouDia,
-    filtroDataInicio,
-    sortField,
-    sortDirection,
-    onSearchChange,
-    onCidadeChange,
-    onFiltroRodouDiaChange,
-    onFiltroDataInicioChange,
-    onSort,
-    onExport,
-    formatarSegundosParaHoras
-}: EntregadoresLayoutProps) {
+export const EntregadoresLayout = React.memo(function EntregadoresLayout({ entregadores, entregadoresFiltrados, totais, searchTerm, cidadeSelecionada, filtroRodouDia, filtroDataInicio, sortField, sortDirection, onSearchChange, onCidadeChange, onFiltroRodouDiaChange, onFiltroDataInicioChange, onSort, onExport, formatarSegundosParaHoras }: EntregadoresLayoutProps) {
 
 
 
@@ -71,16 +38,7 @@ export const EntregadoresLayout = React.memo(function EntregadoresLayout({
 
             {/* Filtros */}
             <motion.div variants={fadeInItem}>
-                <EntregadoresFilters
-                    searchTerm={searchTerm}
-                    onSearchChange={onSearchChange}
-                    cidadeSelecionada={cidadeSelecionada}
-                    onCidadeChange={onCidadeChange}
-                    filtroRodouDia={filtroRodouDia}
-                    onFiltroRodouDiaChange={onFiltroRodouDiaChange}
-                    filtroDataInicio={filtroDataInicio}
-                    onFiltroDataInicioChange={onFiltroDataInicioChange}
-                />
+                <EntregadoresFilters searchTerm={searchTerm} onSearchChange={onSearchChange} cidadeSelecionada={cidadeSelecionada} onCidadeChange={onCidadeChange} filtroRodouDia={filtroRodouDia} onFiltroRodouDiaChange={onFiltroRodouDiaChange} filtroDataInicio={filtroDataInicio} onFiltroDataInicioChange={onFiltroDataInicioChange} />
             </motion.div>
 
             {/* Cartões de Total */}

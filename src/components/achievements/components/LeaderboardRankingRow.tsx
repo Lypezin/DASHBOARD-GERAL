@@ -9,15 +9,7 @@ export const LeaderboardRankingRow: React.FC<LeaderboardRankingRowProps> = ({ en
     const [isTop1, isTop2, isTop3] = [index === 0, index === 1, index === 2];
 
     return (
-        <div
-            className={cn(
-                "relative flex flex-col p-3 rounded-xl border transition-all hover:shadow-md",
-                isTop1 ? "bg-gradient-to-br from-yellow-50 to-white border-yellow-200 dark:from-yellow-900/10 dark:to-slate-900 dark:border-yellow-500/30" :
-                    isTop2 ? "bg-gradient-to-br from-slate-50 to-white border-slate-300 dark:from-slate-800/50 dark:to-slate-900 dark:border-slate-600" :
-                        isTop3 ? "bg-gradient-to-br from-orange-50 to-white border-orange-200 dark:from-orange-900/10 dark:to-slate-900 dark:border-orange-500/30" :
-                            "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm"
-            )}
-        >
+        <div className={cn("relative flex flex-col p-3 rounded-xl border transition-all hover:shadow-md", isTop1 ? "bg-gradient-to-br from-yellow-50 to-white border-yellow-200 dark:from-yellow-900/10 dark:to-slate-900 dark:border-yellow-500/30" : isTop2 ? "bg-gradient-to-br from-slate-50 to-white border-slate-300 dark:from-slate-800/50 dark:to-slate-900 dark:border-slate-600" : isTop3 ? "bg-gradient-to-br from-orange-50 to-white border-orange-200 dark:from-orange-900/10 dark:to-slate-900 dark:border-orange-500/30" : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm")}>
             {isTop1 && (
                 <div className="absolute -top-2 -right-2 transform rotate-12">
                     <span className="text-2xl animate-pulse filter drop-shadow-md">👑</span>
@@ -26,28 +18,11 @@ export const LeaderboardRankingRow: React.FC<LeaderboardRankingRowProps> = ({ en
 
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className={cn(
-                        "w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full font-bold text-sm shadow-sm",
-                        isTop1 ? "bg-yellow-400 text-yellow-900" :
-                            isTop2 ? "bg-slate-300 text-slate-800" :
-                                isTop3 ? "bg-orange-300 text-orange-900" :
-                                    "bg-slate-100 dark:bg-slate-800 text-slate-500"
-                    )}>
-                        #{entry.rank}
-                    </div>
+                    <div className={cn("w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full font-bold text-sm shadow-sm", isTop1 ? "bg-yellow-400 text-yellow-900" : isTop2 ? "bg-slate-300 text-slate-800" : isTop3 ? "bg-orange-300 text-orange-900" : "bg-slate-100 dark:bg-slate-800 text-slate-500")}>#{entry.rank}</div>
 
                     <div className="flex items-center gap-3">
-                        <div className={cn(
-                            "w-10 h-10 rounded-full overflow-hidden border-2",
-                            isTop1 ? "border-yellow-400 shadow-sm" : "border-slate-100 dark:border-slate-700"
-                        )}>
-                            {entry.avatar_url ? (
-                                <img src={entry.avatar_url} alt={entry.user_name} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400">
-                                    <User className="w-5 h-5" />
-                                </div>
-                            )}
+                        <div className={cn("w-10 h-10 rounded-full overflow-hidden border-2", isTop1 ? "border-yellow-400 shadow-sm" : "border-slate-100 dark:border-slate-700")}>
+                            {entry.avatar_url ? <img src={entry.avatar_url} alt={entry.user_name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400"><User className="w-5 h-5" /></div>}
                         </div>
 
                         <div>
