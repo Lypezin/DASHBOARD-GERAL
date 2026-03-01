@@ -1,14 +1,14 @@
-import * as XLSX from 'xlsx';
+import { loadXLSX } from '@/lib/xlsxClient';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 import { ResumoTableRow } from './ResumoTable';
 
-export const exportarResumoSemanalParaExcel = (displayRows: ResumoTableRow[]) => {
-    if (!displayRows || displayRows.length === 0) {
+export const handleExportExcelResumoSemanal = async (dados: ResumoTableRow[], dataAgregacao: string, showToast?: (t: { title: string, variant: 'success' | 'destructive' }) => void) => {
+    if (!dados || dados.length === 0) {
         alert("Sem dados para exportar.");
         return;
     }
 
-    const exportData = displayRows.map((row) => ({
+    const exportData = dados.map((row) => ({
         "Semana": row.semana_label || row.label,
         "Pedidos": row.pedidos,
         "Drivers": row.drivers,
@@ -19,6 +19,7 @@ export const exportarResumoSemanalParaExcel = (displayRows: ResumoTableRow[]) =>
         "Rejeite (%)": Number(row.rejeite.toFixed(2)),
     }));
 
+    const XLSX = await loadXLSX();
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
 
@@ -36,7 +37,7 @@ export const exportarResumoSemanalParaExcel = (displayRows: ResumoTableRow[]) =>
     worksheet['!cols'] = colWidths;
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "Resumo Semanal");
-    
-    const dataAgregacao = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(workbook, `Resumo_Semanal_${dataAgregacao}.xlsx`);
+
+    const safeDate = dataAgregacao || new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `Resumo_Semanal_${safeDate}.xlsx`);
 };

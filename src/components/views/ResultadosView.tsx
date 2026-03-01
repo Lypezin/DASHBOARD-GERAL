@@ -7,7 +7,7 @@ import { useResultadosData } from './resultados/useResultadosData';
 import { ResultadosErrorState } from './resultados/ResultadosErrorState';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { motion, Variants } from 'framer-motion';
-import { exportarResultadosParaExcel } from './resultados/ResultadosExcelExport';
+import { handleExportExcelResultados } from './resultados/ResultadosExcelExport';
 
 const ResultadosView = React.memo(function ResultadosView() {
   const {
@@ -20,7 +20,7 @@ const ResultadosView = React.memo(function ResultadosView() {
   } = useResultadosData();
 
   const handleExport = React.useCallback(() => {
-    exportarResultadosParaExcel(atendentesData);
+    handleExportExcelResultados(atendentesData, new Date().toISOString().split('T')[0]);
   }, [atendentesData]);
 
   if (loading) {

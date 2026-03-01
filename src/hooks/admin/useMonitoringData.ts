@@ -18,7 +18,7 @@ export function useMonitoringData() {
             const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
             const { data: logs, error: logsError } = await supabase
                 .from('user_activity_logs')
-                .select('*')
+                .select('user_id, entered_at, last_seen, exited_at, path, duration_seconds')
                 .gte('entered_at', yesterday)
                 .order('entered_at', { ascending: false });
 

@@ -4,7 +4,7 @@ import { Activity, FileSpreadsheet } from 'lucide-react';
 import { EntradaSaidaStatsCards } from './components/EntradaSaidaStatsCards';
 import { EntradaSaidaWeeklyGrid } from './components/EntradaSaidaWeeklyGrid';
 import { Button } from '@/components/ui/button';
-import * as XLSX from 'xlsx';
+import { loadXLSX } from '@/lib/xlsxClient';
 import { motion, Variants } from 'framer-motion';
 
 interface EntradaSaidaViewProps { dataInicial: string | null; dataFinal: string | null; organizationId?: string; praca?: string | null; }
@@ -12,7 +12,7 @@ interface EntradaSaidaViewProps { dataInicial: string | null; dataFinal: string 
 export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial, dataFinal, organizationId, praca }) => {
     const { data, loading, error } = useEntradaSaidaData({ dataInicial, dataFinal, organizationId, praca });
 
-    const handleExport = () => {
+    const handleExport = async () => {
         if (!data || data.length === 0) return;
 
         const formattedData = data.map(item => ({
@@ -22,6 +22,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
             'Saldo Mkt': Number(item.entradas_marketing) - Number(item.saidas_marketing), 'Saldo Ops': Number(item.entradas_operacional) - Number(item.saidas_operacional)
         }));
 
+        const XLSX = await loadXLSX();
         const ws = XLSX.utils.json_to_sheet(formattedData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Fluxo Semanal");

@@ -22,7 +22,7 @@ export function useGamificationState() {
 
         refreshLeaderboard();
 
-        const { data: allBadges } = await supabase.from('gamification_badges').select('*');
+        const { data: allBadges } = await supabase.from('gamification_badges').select('slug, name, description, icon, category');
         const { data: unlocked } = await supabase.from('gamification_user_badges').select('badge_slug, unlocked_at').eq('user_id', user.id);
 
         if (allBadges) setBadges(allBadges);

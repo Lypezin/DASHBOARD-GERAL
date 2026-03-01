@@ -1,5 +1,3 @@
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { SLIDE_WIDTH, SLIDE_HEIGHT } from '@/components/apresentacao/constants';
 
 // A4 Landscape dimensions in mm
@@ -23,6 +21,7 @@ export async function captureSlide(
     }
 
     // Use html2canvas to capture the slide
+    const html2canvas = (await import('html2canvas')).default;
     const canvas = await html2canvas(slideElement, {
         scale: SCALE_FACTOR,
         useCORS: true,
@@ -49,7 +48,8 @@ export async function captureSlide(
 /**
  * Creates a PDF from captured slide canvases
  */
-export function createPDFFromCanvases(canvases: HTMLCanvasElement[]): jsPDF {
+export async function createPDFFromCanvases(canvases: HTMLCanvasElement[]): Promise<any> {
+    const { jsPDF } = await import('jspdf');
     // Create PDF in landscape A4
     const pdf = new jsPDF({
         orientation: 'landscape',

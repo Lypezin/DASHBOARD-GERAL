@@ -52,7 +52,7 @@ export async function gerarPDFFromSlides(
     }
 
     // Create PDF from captured canvases
-    const pdf = createPDFFromCanvases(canvases);
+    const pdf = await createPDFFromCanvases(canvases);
 
     // Download the PDF
     pdf.save(filename);
@@ -88,6 +88,6 @@ export async function gerarPDFSequential(
         await new Promise((resolve) => setTimeout(resolve, 50));
     }
 
-    const pdf = createPDFFromCanvases(canvases);
+    const pdf = await createPDFFromCanvases(canvases);
     pdf.save(filename);
 }

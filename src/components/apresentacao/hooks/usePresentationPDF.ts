@@ -1,7 +1,5 @@
 import { useState, useRef, RefObject } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { SLIDE_HEIGHT, SLIDE_WIDTH } from '../constants';
 
 const A4_WIDTH_MM = 297;
@@ -22,6 +20,9 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
         setGeneratingProgress({ current: 0, total: slides.length });
 
         try {
+            const { jsPDF } = await import('jspdf');
+            const html2canvas = (await import('html2canvas')).default;
+
             const pdf = new jsPDF({
                 orientation: 'landscape',
                 unit: 'mm',

@@ -1,14 +1,14 @@
-import * as XLSX from 'xlsx';
+import { loadXLSX } from '@/lib/xlsxClient';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 import { AtendenteData } from './AtendenteCard';
 
-export const exportarResultadosParaExcel = (atendentes: AtendenteData[]) => {
-    if (!atendentes || atendentes.length === 0) {
+export const handleExportExcelResultados = async (dadosResultados: AtendenteData[], dataAgregacao: string, showToast?: (t: { title: string, variant: 'success' | 'destructive' }) => void) => {
+    if (!dadosResultados || dadosResultados.length === 0) {
         alert("Sem dados para exportar.");
         return;
     }
 
-    const exportData = atendentes.map((atendente) => {
+    const excelData = dadosResultados.map((atendente) => {
         const conversao = atendente.enviado > 0
             ? (atendente.liberado / atendente.enviado) * 100
             : 0;
@@ -23,7 +23,8 @@ export const exportarResultadosParaExcel = (atendentes: AtendenteData[]) => {
         };
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const XLSX = await loadXLSX();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
 
     // Setup columns width
@@ -39,6 +40,6 @@ export const exportarResultadosParaExcel = (atendentes: AtendenteData[]) => {
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "Resultados");
 
-    const dataAgregacao = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(workbook, `Resultados_${dataAgregacao}.xlsx`);
+    const safeDate = dataAgregacao || new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `Resultados_${safeDate}.xlsx`);
 };

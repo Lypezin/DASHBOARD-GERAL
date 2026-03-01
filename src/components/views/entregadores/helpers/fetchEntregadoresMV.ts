@@ -12,7 +12,7 @@ export async function fetchEntregadoresMV(
     try {
         let mvQuery = supabase
             .from('mv_entregadores_marketing')
-            .select('*');
+            .select('id_entregador, nome, total_ofertadas, total_aceitas, total_completadas, total_rejeitadas, total_segundos, ultima_data, dias_sem_rodar, regiao_atuacao');
 
         // Aplicar filtros na MV
         if (cidadeSelecionada) {

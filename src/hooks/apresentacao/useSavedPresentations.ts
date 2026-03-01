@@ -23,7 +23,7 @@ export function useSavedPresentations() {
         try {
             setLoading(true);
             const { data: { user } } = await supabase.auth.getUser();
-            let query = supabase.from('presentations').select('*').eq('organization_id', organization.id);
+            let query = supabase.from('presentations').select('id, name, slides, sections, filters, created_at').eq('organization_id', organization.id);
             if (user?.id) query = query.contains('filters', { user_id: user.id });
             const { data, error } = await query.order('created_at', { ascending: false });
             if (error) throw error;

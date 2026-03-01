@@ -7,7 +7,7 @@ import { useResumoPracasFilter } from '@/hooks/data/useResumoPracasFilter';
 import { useResumoSemanalLogic } from '@/hooks/data/useResumoSemanalLogic';
 import { ResumoFilters } from './resumo-semanal/ResumoFilters';
 import { ResumoTable } from './resumo-semanal/ResumoTable';
-import { exportarResumoSemanalParaExcel } from './resumo-semanal/ResumoSemanalExcelExport';
+import { handleExportExcelResumoSemanal } from './resumo-semanal/ResumoSemanalExcelExport';
 
 import { handleCopyTable as copyTableHelper } from './resumo-semanal/utils/copyHelpers';
 import { SelectedPracasTags } from './resumo-semanal/SelectedPracasTags';
@@ -59,7 +59,7 @@ export const ResumoSemanalView = ({
     }, [displayRows]);
 
     const handleExportTable = useCallback(() => {
-        exportarResumoSemanalParaExcel(displayRows);
+        handleExportExcelResumoSemanal(displayRows, new Date().toISOString().split('T')[0]);
     }, [displayRows]);
 
     return (
