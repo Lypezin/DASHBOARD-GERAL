@@ -9,9 +9,7 @@ type BenchmarkMetric = 'aderencia' | 'completadas' | 'ofertadas' | 'aceitacao';
 
 const metricLabels: Record<BenchmarkMetric, string> = { aderencia: 'Aderência %', completadas: 'Completadas', ofertadas: 'Ofertadas', aceitacao: 'Taxa Aceitação' };
 
-interface BenchmarkPracasProps {
-    subPracas: AderenciaSubPraca[];
-}
+interface BenchmarkPracasProps { subPracas: AderenciaSubPraca[]; }
 
 function getMetric(sp: AderenciaSubPraca, metric: BenchmarkMetric): number {
     switch (metric) {

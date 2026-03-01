@@ -4,42 +4,14 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, CheckCircle2, Target } from 'lucide-react';
 
-interface CustoPorLiberadoCardProps {
-  cidade: string;
-  custoPorLiberado: number;
-  quantidadeLiberados: number;
-  valorTotalEnviados: number;
-  color?: 'blue' | 'green' | 'purple' | 'orange';
-}
+interface CustoPorLiberadoCardProps { cidade: string; custoPorLiberado: number; quantidadeLiberados: number; valorTotalEnviados: number; color?: 'blue' | 'green' | 'purple' | 'orange'; }
 
-const CustoPorLiberadoCard: React.FC<CustoPorLiberadoCardProps> = ({
-  cidade,
-  custoPorLiberado,
-  quantidadeLiberados,
-  valorTotalEnviados,
-  color = 'purple',
-}) => {
+const CustoPorLiberadoCard: React.FC<CustoPorLiberadoCardProps> = ({ cidade, custoPorLiberado, quantidadeLiberados, valorTotalEnviados, color = 'purple' }) => {
   const colorClasses: Record<string, { gradient: string; bg: string; text: string }> = {
-    blue: {
-      gradient: 'from-blue-500 to-cyan-500',
-      bg: 'bg-blue-50 dark:bg-blue-950/30',
-      text: 'text-blue-700 dark:text-blue-300',
-    },
-    green: {
-      gradient: 'from-emerald-500 to-teal-500',
-      bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-      text: 'text-emerald-700 dark:text-emerald-300',
-    },
-    purple: {
-      gradient: 'from-violet-500 to-purple-500',
-      bg: 'bg-purple-50 dark:bg-purple-950/30',
-      text: 'text-purple-700 dark:text-purple-300',
-    },
-    orange: {
-      gradient: 'from-orange-500 to-amber-500',
-      bg: 'bg-orange-50 dark:bg-orange-950/30',
-      text: 'text-orange-700 dark:text-orange-300',
-    },
+    blue: { gradient: 'from-blue-500 to-cyan-500', bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-700 dark:text-blue-300' },
+    green: { gradient: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-700 dark:text-emerald-300' },
+    purple: { gradient: 'from-violet-500 to-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/30', text: 'text-purple-700 dark:text-purple-300' },
+    orange: { gradient: 'from-orange-500 to-amber-500', bg: 'bg-orange-50 dark:bg-orange-950/30', text: 'text-orange-700 dark:text-orange-300' },
   };
 
   const colors = colorClasses[color];

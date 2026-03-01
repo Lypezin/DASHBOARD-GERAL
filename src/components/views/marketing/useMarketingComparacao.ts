@@ -4,36 +4,13 @@ import { safeLog } from '@/lib/errorHandler';
 import { useAuth } from '@/hooks/auth/useAuth';
 
 export interface MarketingComparisonData {
-    semana_iso: string;
-    // Hours
-    segundos_ops: number;
-    segundos_mkt: number;
-    // Offered
-    ofertadas_ops: number;
-    ofertadas_mkt: number;
-    // Accepted
-    aceitas_ops: number;
-    aceitas_mkt: number;
-    // Completed
-    concluidas_ops: number;
-    concluidas_mkt: number;
-    // Rejected
-    rejeitadas_ops: number;
-    rejeitadas_mkt: number;
-    // Values (taxas)
-    valor_ops: number;
-    valor_mkt: number;
-    // Drivers (entregadores)
-    entregadores_ops: number;
-    entregadores_mkt: number;
+    semana_iso: string; segundos_ops: number; segundos_mkt: number;
+    ofertadas_ops: number; ofertadas_mkt: number; aceitas_ops: number; aceitas_mkt: number;
+    concluidas_ops: number; concluidas_mkt: number; rejeitadas_ops: number; rejeitadas_mkt: number;
+    valor_ops: number; valor_mkt: number; entregadores_ops: number; entregadores_mkt: number;
 }
 
-export function useMarketingComparacao(
-    dataInicial: string,
-    dataFinal: string,
-    organizationId: string | undefined,
-    praca: string | null
-) {
+export function useMarketingComparacao(dataInicial: string, dataFinal: string, organizationId: string | undefined, praca: string | null) {
     const [data, setData] = useState<MarketingComparisonData[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -51,12 +28,7 @@ export function useMarketingComparacao(
             setLoading(true);
             setError(null);
 
-            const params = {
-                data_inicial: dataInicial,
-                data_final: dataFinal,
-                p_organization_id: organizationId,
-                p_praca: praca
-            };
+            const params = { data_inicial: dataInicial, data_final: dataFinal, p_organization_id: organizationId, p_praca: praca };
 
             const { data: result, error: rpcError } = await safeRpc<MarketingComparisonData[]>(
                 'get_marketing_comparison_weekly',

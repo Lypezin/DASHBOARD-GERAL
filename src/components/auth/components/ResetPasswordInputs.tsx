@@ -22,16 +22,8 @@ interface ResetPasswordInputsProps {
 }
 
 export const ResetPasswordInputs = React.memo(function ResetPasswordInputs({
-    password,
-    setPassword,
-    confirmPassword,
-    setConfirmPassword,
-    showPassword,
-    setShowPassword,
-    showConfirmPassword,
-    setShowConfirmPassword,
-    loading,
-    passwordStrength
+    password, setPassword, confirmPassword, setConfirmPassword, showPassword,
+    setShowPassword, showConfirmPassword, setShowConfirmPassword, loading, passwordStrength
 }: ResetPasswordInputsProps) {
     return (
         <div className="space-y-4">

@@ -5,33 +5,15 @@ import { SlideSidebarItemEdit } from './item/SlideSidebarItemEdit';
 import { SlideSidebarItemDisplay } from './item/SlideSidebarItemDisplay';
 
 interface SlideSidebarItemProps {
-    slideKey: string;
-    index: number;
-    displayName: string;
-    isActive: boolean;
-    isMediaSlide: boolean;
-    mediaId: string | null;
-    onSelect: () => void;
-    onDragStart: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
-    onDragEnter: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
-    onDragEnd: () => void;
-    onUpdateTitle?: (id: string, newTitle: string) => void;
-    onDelete?: (id: string) => void;
+    slideKey: string; index: number; displayName: string; isActive: boolean; isMediaSlide: boolean; mediaId: string | null;
+    onSelect: () => void; onDragStart: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+    onDragEnter: (e: React.DragEvent<HTMLDivElement>, index: number) => void; onDragEnd: () => void;
+    onUpdateTitle?: (id: string, newTitle: string) => void; onDelete?: (id: string) => void;
 }
 
 export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
-    slideKey,
-    index,
-    displayName,
-    isActive,
-    isMediaSlide,
-    mediaId,
-    onSelect,
-    onDragStart,
-    onDragEnter,
-    onDragEnd,
-    onUpdateTitle,
-    onDelete
+    slideKey, index, displayName, isActive, isMediaSlide, mediaId,
+    onSelect, onDragStart, onDragEnter, onDragEnd, onUpdateTitle, onDelete
 }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState('');

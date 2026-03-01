@@ -6,13 +6,7 @@ import { useAllWeeks } from '@/hooks/comparacao/useAllWeeks';
 import { fetchComparisonMetrics } from '@/hooks/comparacao/useComparisonMetrics';
 import { fetchComparisonUtr } from '@/hooks/comparacao/useComparisonUtr';
 
-interface UseComparacaoDataOptions {
-  semanas: string[];
-  semanasSelecionadas: string[];
-  pracaSelecionada: string | null;
-  currentUser: CurrentUser | null;
-  anoSelecionado?: number;
-}
+interface UseComparacaoDataOptions { semanas: string[]; semanasSelecionadas: string[]; pracaSelecionada: string | null; currentUser: CurrentUser | null; anoSelecionado?: number; }
 
 export function useComparacaoData(options: UseComparacaoDataOptions) {
   const { semanasSelecionadas, pracaSelecionada, currentUser, semanas, anoSelecionado } = options;
@@ -102,11 +96,5 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
 
 
-  return {
-    loading: loading || isOrgLoading,
-    error,
-    dadosComparacao,
-    utrComparacao,
-    todasSemanas,
-  };
+  return { loading: loading || isOrgLoading, error, dadosComparacao, utrComparacao, todasSemanas };
 }

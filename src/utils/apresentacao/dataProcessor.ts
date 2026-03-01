@@ -14,30 +14,11 @@ export * from './processors/common';
 export * from './processors/basicData';
 
 export interface DadosProcessados {
-  resumoSemana1: {
-    numeroSemana: string;
-    aderencia: number;
-    horasPlanejadas: string;
-    horasEntregues: string;
-  };
-  resumoSemana2: {
-    numeroSemana: string;
-    aderencia: number;
-    horasPlanejadas: string;
-    horasEntregues: string;
-  };
-  variacaoResumo: {
-    horasDiferenca: string;
-    horasPercentual: string;
-    positiva: boolean;
-  };
-  subPracasComparativo: any[];
-  semana1Dias: any[];
-  semana2Dias: any[];
-  turnosComparativo: any[];
-  origensComparativo: any[];
-  demandaItens: any[];
-  demandaOrigemItens: DemandaOrigemItem[];
+  resumoSemana1: { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string; };
+  resumoSemana2: { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string; };
+  variacaoResumo: { horasDiferenca: string; horasPercentual: string; positiva: boolean; };
+  subPracasComparativo: any[]; semana1Dias: any[]; semana2Dias: any[];
+  turnosComparativo: any[]; origensComparativo: any[]; demandaItens: any[]; demandaOrigemItens: DemandaOrigemItem[];
 }
 
 export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProcessados | null => {
@@ -88,16 +69,5 @@ export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProces
   // Processar Demanda por Origem
   const demandaOrigemItens = processarDemandaOrigem(dadosBasicos);
 
-  return {
-    resumoSemana1,
-    resumoSemana2,
-    variacaoResumo,
-    subPracasComparativo,
-    semana1Dias,
-    semana2Dias,
-    turnosComparativo,
-    origensComparativo,
-    demandaItens,
-    demandaOrigemItens,
-  };
+  return { resumoSemana1, resumoSemana2, variacaoResumo, subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, demandaItens, demandaOrigemItens };
 };

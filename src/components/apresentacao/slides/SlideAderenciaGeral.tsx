@@ -3,32 +3,13 @@ import SlideWrapper from '../SlideWrapper';
 import { buildTimeTextStyle } from '../utils';
 import { SemanaCard } from './SemanaCard';
 
-interface SemanaResumo {
-  numeroSemana: string;
-  aderencia: number;
-  horasPlanejadas: string;
-  horasEntregues: string;
-}
+interface SemanaResumo { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string; }
 
-interface VariacaoResumo {
-  horasDiferenca: string;
-  horasPercentual: string;
-  positiva: boolean;
-}
+interface VariacaoResumo { horasDiferenca: string; horasPercentual: string; positiva: boolean; }
 
-interface SlideAderenciaGeralProps {
-  isVisible: boolean;
-  semana1: SemanaResumo;
-  semana2: SemanaResumo;
-  variacao: VariacaoResumo;
-}
+interface SlideAderenciaGeralProps { isVisible: boolean; semana1: SemanaResumo; semana2: SemanaResumo; variacao: VariacaoResumo; }
 
-const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({
-  isVisible,
-  semana1,
-  semana2,
-  variacao,
-}) => {
+const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({ isVisible, semana1, semana2, variacao }) => {
   if (!semana1 || !semana2 || !variacao) {
     return null;
   }

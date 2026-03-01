@@ -7,24 +7,17 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 export async function updateUserName(userId: string, newName: string) {
     // 1. RPC Check/Update (Optional/Logging)
     try {
-        const { error: rpcError } = await safeRpc('update_user_full_name', {
-            p_user_id: userId,
-            p_full_name: newName
-        }, { timeout: 30000 });
+        const { error: rpcError } = await safeRpc('update_user_full_name', { p_user_id: userId, p_full_name: newName }, { timeout: 30000 });
         if (IS_DEV && rpcError) safeLog.warn('update_user_full_name RPC info:', rpcError);
     } catch (e) { /* ignore */ }
 
     // 2. Auth Update
-    const { error: updateError } = await supabase.auth.updateUser({
-        data: { full_name: newName }
-    });
+    const { error: updateError } = await supabase.auth.updateUser({ data: { full_name: newName } });
     if (updateError) throw updateError;
 
     // 3. Table Upsert
     try {
-        const { error: profileError } = await supabase
-            .from('user_profiles')
-            .upsert({ id: userId, full_name: newName, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+        const { error: profileError } = await supabase.from('user_profiles').upsert({ id: userId, full_name: newName, updated_at: new Date().toISOString() }, { onConflict: 'id' });
         if (profileError && IS_DEV) safeLog.warn('user_profiles upsert error:', profileError);
     } catch (e) { /* ignore */ }
 
@@ -56,9 +49,7 @@ export async function updateUserAvatar(userId: string, file: File, currentUrl?: 
     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
     // 3. Update Table
-    const { error: dbError } = await supabase.from('user_profiles').upsert({
-        id: userId, avatar_url: publicUrl, updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
+    const { error: dbError } = await supabase.from('user_profiles').upsert({ id: userId, avatar_url: publicUrl, updated_at: new Date().toISOString() }, { onConflict: 'id' });
 
     if (dbError) {
         // Fallback to RPC
@@ -78,9 +69,7 @@ export async function removeUserAvatar(userId: string, currentUrl: string) {
     await removeFileFromStorage(userId, currentUrl);
 
     // 2. Update Table
-    const { error: dbError } = await supabase.from('user_profiles').upsert({
-        id: userId, avatar_url: null, updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
+    const { error: dbError } = await supabase.from('user_profiles').upsert({ id: userId, avatar_url: null, updated_at: new Date().toISOString() }, { onConflict: 'id' });
 
     if (dbError) {
         await safeRpc('update_user_avatar', { p_user_id: userId, p_avatar_url: null });

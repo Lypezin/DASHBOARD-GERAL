@@ -2,32 +2,12 @@
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 
-export interface OperacionalExportRow {
-    id_entregador: string;
-    nome: string;
-    praca: string | null;
-    total_segundos: number;
-    total_ofertadas: number;
-    total_aceitas: number;
-    total_completadas: number;
-    total_rejeitadas: number;
-}
+export interface OperacionalExportRow { id_entregador: string; nome: string; praca: string | null; total_segundos: number; total_ofertadas: number; total_aceitas: number; total_completadas: number; total_rejeitadas: number; }
 
-export interface FetchOperacionalExportParams {
-    organizationId: string | null;
-    startDate: string;
-    endDate: string;
-    praca?: string | null;
-}
+export interface FetchOperacionalExportParams { organizationId: string | null; startDate: string; endDate: string; praca?: string | null; }
 
-/**
- * Fetches aggregated data from dados_corridas for Operacional export
- * This function queries dados_corridas directly to get praca information
- * which is not returned by get_entregadores_details for OPERATIONAL type
- */
-export async function fetchOperacionalExportData(
-    params: FetchOperacionalExportParams
-): Promise<OperacionalExportRow[]> {
+/** Fetches aggregated data from dados_corridas for Operacional export */
+export async function fetchOperacionalExportData(params: FetchOperacionalExportParams): Promise<OperacionalExportRow[]> {
     try {
         let query = supabase
             .from('dados_corridas')

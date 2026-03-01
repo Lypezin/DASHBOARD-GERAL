@@ -5,22 +5,10 @@ import { processCorridasFile } from '@/utils/processors/corridasProcessor';
 import { insertInBatches } from '@/utils/dbHelpers';
 import { BATCH_SIZE } from '@/constants/upload';
 
-export interface UploadState {
-    uploading: boolean;
-    message: string;
-    progress: number;
-    progressLabel: string;
-    currentFileIndex: number;
-}
+export interface UploadState { uploading: boolean; message: string; progress: number; progressLabel: string; currentFileIndex: number; }
 
 export function useUploadProcessor(organizationId?: string) {
-    const [state, setState] = useState<UploadState>({
-        uploading: false,
-        message: '',
-        progress: 0,
-        progressLabel: '',
-        currentFileIndex: 0,
-    });
+    const [state, setState] = useState<UploadState>({ uploading: false, message: '', progress: 0, progressLabel: '', currentFileIndex: 0 });
 
     const processUpload = useCallback(async (files: File[], onSuccess: () => void) => {
         if (files.length === 0) {

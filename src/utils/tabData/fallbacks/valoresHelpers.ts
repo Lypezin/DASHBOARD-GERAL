@@ -4,12 +4,7 @@ import { FilterPayload } from '@/types/filters';
 import { QUERY_LIMITS } from '@/constants/config';
 import { ensureDateFilter } from '@/utils/queryOptimization';
 
-export interface ValoresMapItem {
-    id_entregador: string;
-    nome_entregador: string;
-    total_taxas: number;
-    numero_corridas_aceitas: number;
-}
+export interface ValoresMapItem { id_entregador: string; nome_entregador: string; total_taxas: number; numero_corridas_aceitas: number; }
 
 export function buildValoresQuery(payload: FilterPayload) {
     const safePayload = ensureDateFilter(payload);
@@ -97,12 +92,7 @@ export function processValoresData(data: any[]): ValoresMapItem[] {
             existing.total_taxas += taxas;
             existing.numero_corridas_aceitas += corridas;
         } else {
-            valoresMap.set(id, {
-                id_entregador: id,
-                nome_entregador: nome,
-                total_taxas: taxas,
-                numero_corridas_aceitas: corridas,
-            });
+            valoresMap.set(id, { id_entregador: id, nome_entregador: nome, total_taxas: taxas, numero_corridas_aceitas: corridas });
         }
     }
 

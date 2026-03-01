@@ -8,21 +8,9 @@ const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
 const SCALE_FACTOR = 1.15;
 
-interface UsePresentationPDFProps {
-    slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
-    numeroSemana1: string;
-    numeroSemana2: string;
-    contentRef: RefObject<HTMLDivElement>;
-    captureContainerRef: RefObject<HTMLDivElement>;
-}
+interface UsePresentationPDFProps { slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>; numeroSemana1: string; numeroSemana2: string; contentRef: RefObject<HTMLDivElement>; captureContainerRef: RefObject<HTMLDivElement>; }
 
-export const usePresentationPDF = ({
-    slides,
-    numeroSemana1,
-    numeroSemana2,
-    contentRef,
-    captureContainerRef
-}: UsePresentationPDFProps) => {
+export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, contentRef, captureContainerRef }: UsePresentationPDFProps) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
     const [capturingIndex, setCapturingIndex] = useState<number | null>(null);
@@ -103,10 +91,5 @@ export const usePresentationPDF = ({
         }
     };
 
-    return {
-        isGenerating,
-        generatingProgress,
-        capturingIndex,
-        generatePDF
-    };
+    return { isGenerating, generatingProgress, capturingIndex, generatePDF };
 };

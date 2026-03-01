@@ -6,27 +6,17 @@ import { RpcParams, SanitizedRpcParams, RpcError } from '@/types/rpc';
 export function sanitizeParams(params: RpcParams): SanitizedRpcParams {
     const sanitized = { ...params };
 
-    // Limitar arrays
     if (sanitized.p_sub_praca && Array.isArray(sanitized.p_sub_praca)) {
         sanitized.p_sub_praca = sanitized.p_sub_praca.slice(0, 50).join(',');
-    } else if (typeof sanitized.p_sub_praca === 'string' && sanitized.p_sub_praca.includes(',')) {
-        const items = sanitized.p_sub_praca.split(',').slice(0, 50);
-        sanitized.p_sub_praca = items.join(',');
-    }
+    } else if (typeof sanitized.p_sub_praca === 'string' && sanitized.p_sub_praca.includes(',')) { sanitized.p_sub_praca = sanitized.p_sub_praca.split(',').slice(0, 50).join(','); }
 
     if (sanitized.p_origem && Array.isArray(sanitized.p_origem)) {
         sanitized.p_origem = sanitized.p_origem.slice(0, 50).join(',');
-    } else if (typeof sanitized.p_origem === 'string' && sanitized.p_origem.includes(',')) {
-        const items = sanitized.p_origem.split(',').slice(0, 50);
-        sanitized.p_origem = items.join(',');
-    }
+    } else if (typeof sanitized.p_origem === 'string' && sanitized.p_origem.includes(',')) { sanitized.p_origem = sanitized.p_origem.split(',').slice(0, 50).join(','); }
 
     if (sanitized.p_turno && Array.isArray(sanitized.p_turno)) {
         sanitized.p_turno = sanitized.p_turno.slice(0, 50).join(',');
-    } else if (typeof sanitized.p_turno === 'string' && sanitized.p_turno.includes(',')) {
-        const items = sanitized.p_turno.split(',').slice(0, 50);
-        sanitized.p_turno = items.join(',');
-    }
+    } else if (typeof sanitized.p_turno === 'string' && sanitized.p_turno.includes(',')) { sanitized.p_turno = sanitized.p_turno.split(',').slice(0, 50).join(','); }
 
     // Validar números
     if (sanitized.p_ano !== undefined && sanitized.p_ano !== null) {

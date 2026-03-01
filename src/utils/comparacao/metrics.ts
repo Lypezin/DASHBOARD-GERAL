@@ -9,13 +9,7 @@ import {
 import { converterHorasParaDecimal, formatarHorasParaHMS } from '@/utils/formatters';
 
 // Union type for all possible metric sources
-export type MetricItem =
-    | AderenciaSemanal
-    | AderenciaDia
-    | AderenciaTurno
-    | AderenciaSubPraca
-    | AderenciaOrigem
-    | Record<string, unknown>;
+export type MetricItem = AderenciaSemanal | AderenciaDia | AderenciaTurno | AderenciaSubPraca | AderenciaOrigem | Record<string, unknown>;
 
 export function getMetricValue(obj: MetricItem | null | undefined, metricKey: string): number {
     if (!obj) return 0;

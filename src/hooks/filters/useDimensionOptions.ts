@@ -88,12 +88,5 @@ function mapToOptions(arr: any[]) {
 }
 
 function processFallbackSubPracas(dimensoes: DimensoesDashboard, currentUser: CurrentUser) {
-    const all = mapToOptions(dimensoes.sub_pracas);
-    return all.filter(sp => {
-        const val = sp.value.toUpperCase();
-        return currentUser.assigned_pracas.some(praca => {
-            const pVal = praca.toUpperCase();
-            return val.includes(pVal) || val.startsWith(pVal);
-        });
-    });
+    return mapToOptions(dimensoes.sub_pracas).filter(sp => currentUser.assigned_pracas.some(praca => sp.value.toUpperCase().includes(praca.toUpperCase()) || sp.value.toUpperCase().startsWith(praca.toUpperCase())));
 }

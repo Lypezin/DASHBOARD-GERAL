@@ -5,42 +5,15 @@ import { SlideHeader } from './components/SlideHeader';
 import { VariationBadge } from './components/VariationBadge';
 import { WeekCircle } from './components/WeekCircle';
 
-interface TurnoResumo {
-  aderencia: number;
-  horasEntregues: string;
-}
+interface TurnoResumo { aderencia: number; horasEntregues: string; }
 
-interface VariacaoResumo {
-  label: string;
-  valor: string;
-  positivo: boolean;
-}
+interface VariacaoResumo { label: string; valor: string; positivo: boolean; }
 
-interface TurnoComparativo {
-  nome: string;
-  horasPlanejadas: string;
-  semana1: TurnoResumo;
-  semana2: TurnoResumo;
-  variacoes: VariacaoResumo[];
-}
+interface TurnoComparativo { nome: string; horasPlanejadas: string; semana1: TurnoResumo; semana2: TurnoResumo; variacoes: VariacaoResumo[]; }
 
-interface SlideTurnosProps {
-  isVisible: boolean;
-  numeroSemana1: string;
-  numeroSemana2: string;
-  paginaAtual: number;
-  totalPaginas: number;
-  itens: TurnoComparativo[];
-}
+interface SlideTurnosProps { isVisible: boolean; numeroSemana1: string; numeroSemana2: string; paginaAtual: number; totalPaginas: number; itens: TurnoComparativo[]; }
 
-const SlideTurnos: React.FC<SlideTurnosProps> = ({
-  isVisible,
-  numeroSemana1,
-  numeroSemana2,
-  paginaAtual,
-  totalPaginas,
-  itens,
-}) => {
+const SlideTurnos: React.FC<SlideTurnosProps> = ({ isVisible, numeroSemana1, numeroSemana2, paginaAtual, totalPaginas, itens }) => {
   const [selectedItem, setSelectedItem] = React.useState<TurnoComparativo | null>(null);
 
   return (

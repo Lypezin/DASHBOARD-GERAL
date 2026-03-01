@@ -1,16 +1,9 @@
-/**
- * Utilitários para otimização de queries e redução de Disk IO
- * 
- * ⚠️ IMPORTANTE: Estas funções garantem que queries grandes sempre tenham
- * filtros de data para evitar scans completos na tabela dados_corridas (1.6M linhas)
- */
+/** Utilitários para otimização de queries e redução de Disk IO. ⚠️ IMPORTANTE: Estas funções garantem que queries grandes sempre tenham filtros de data para evitar scans completos na tabela dados_corridas (1.6M linhas) */
 
 import { safeLog } from '@/lib/errorHandler';
 import type { FilterPayload } from '@/types/filters';
 
-/**
- * Verifica se há filtro de data no payload
- */
+/** Verifica se há filtro de data no payload */
 export function hasDateFilter(payload: FilterPayload): boolean {
   return !!(
     payload.p_data_inicial ||
@@ -20,14 +13,7 @@ export function hasDateFilter(payload: FilterPayload): boolean {
   );
 }
 
-/**
- * Adiciona filtro de data padrão seguro se não houver filtro explícito
- * 
- * Filtro padrão: últimos 30 dias (reduz drasticamente o número de linhas lidas)
- * 
- * ⚠️ Esta função NÃO bloqueia queries, apenas adiciona um filtro seguro
- * para evitar scans completos na tabela de 1.6M linhas
- */
+/** Adiciona filtro de data padrão seguro se não houver filtro explícito (últimos 30 dias). ⚠️ Esta função NÃO bloqueia queries, apenas adiciona um filtro seguro para evitar scans completos na tabela de 1.6M linhas */
 export function ensureDateFilter(payload: FilterPayload): FilterPayload & { _dateFilterAutoAdded?: boolean } {
   // Se já tem filtro de data, retorna sem modificar
   if (hasDateFilter(payload)) {
@@ -57,16 +43,12 @@ export function ensureDateFilter(payload: FilterPayload): FilterPayload & { _dat
   return payloadComFiltro;
 }
 
-/**
- * Valida se a query tem filtro de data (apenas para logging/warning)
- * 
- * Esta função NÃO bloqueia queries, apenas registra warning
- */
+/** Valida se a query tem filtro de data (apenas para logging/warning). NÃO bloqueia queries, apenas registra warning */
 export function validateDateFilter(payload: FilterPayload, context: string = 'query'): void {
   if (!hasDateFilter(payload)) {
     safeLog.warn(
       `⚠️ [DISK IO] ${context} executada sem filtro de data explícito - pode causar scan completo na tabela`,
-      { 
+      {
         context,
         payloadKeys: Object.keys(payload),
         recommendation: 'Sempre incluir filtro de data (p_data_inicial, p_data_final, p_ano ou p_semana)'
@@ -75,14 +57,7 @@ export function validateDateFilter(payload: FilterPayload, context: string = 'qu
   }
 }
 
-/**
- * Aplica filtro de data padrão em uma query Supabase
- * 
- * @param query - Query Supabase builder
- * @param payload - Payload com filtros
- * @param dateColumn - Nome da coluna de data (padrão: 'data_do_periodo')
- * @returns Query com filtro de data aplicado
- */
+/** Aplica filtro de data padrão em uma query Supabase */
 // Supabase query builder type is complex - using any is acceptable here
 export function applySafeDateFilter(
   query: any,

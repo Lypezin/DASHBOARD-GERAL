@@ -5,25 +5,11 @@ import { motion } from 'framer-motion';
 import { ArrowRight, TrendingDown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
-interface FunnelStage {
-    label: string;
-    value: number;
-    color: string;
-}
+interface FunnelStage { label: string; value: number; color: string; }
 
-interface ConversionFunnelProps {
-    ofertadas: number;
-    aceitas: number;
-    completadas: number;
-    rejeitadas: number;
-}
+interface ConversionFunnelProps { ofertadas: number; aceitas: number; completadas: number; rejeitadas: number; }
 
-export const ConversionFunnel = React.memo(function ConversionFunnel({
-    ofertadas,
-    aceitas,
-    completadas,
-    rejeitadas,
-}: ConversionFunnelProps) {
+export const ConversionFunnel = React.memo(function ConversionFunnel({ ofertadas, aceitas, completadas, rejeitadas }: ConversionFunnelProps) {
     if (ofertadas === 0) return null;
 
     const stages: FunnelStage[] = [
