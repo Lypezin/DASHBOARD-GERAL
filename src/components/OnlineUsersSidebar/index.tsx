@@ -48,13 +48,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
 
             <SidebarContainer isOpen={isOpen}>
                 {/* Hidden File Input */}
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*,application/pdf"
-                    onChange={handleFileUpload}
-                />
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} />
 
                 <ChatWindow
                     currentUser={currentUser}
