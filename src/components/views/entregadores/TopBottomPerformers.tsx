@@ -38,6 +38,15 @@ function formatMetric(val: number, metric: SortMetric): string {
     }
 }
 
+const PerformerRow = ({ e, i, metric, rank, highlightTop = false, hs }: { e: Entregador, i: number, metric: SortMetric, rank: number, highlightTop?: boolean, hs: any }) => (
+    <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+        <span className={`w-5 text-center text-xs font-bold ${highlightTop ? 'text-amber-500' : 'text-slate-400'}`}>{rank}</span>
+        <div className="flex-1 min-w-0"><p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{e.nome_entregador}</p></div>
+        <HealthBadge grade={hs.grade} score={hs.score} />
+        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums w-20 text-right">{formatMetric(getMetricValue(e, metric), metric)}</span>
+    </div>
+);
+
 export const TopBottomPerformers = React.memo(function TopBottomPerformers({
     entregadores,
 }: TopBottomPerformersProps) {
@@ -88,23 +97,9 @@ export const TopBottomPerformers = React.memo(function TopBottomPerformers({
                             <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Top 10 — {metricLabels[metric]}</span>
                         </div>
                         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {top10.map((e, i) => {
-                                const hs = calculateHealthScore(e.aderencia_percentual, e.corridas_completadas, e.corridas_ofertadas, e.total_segundos);
-                                return (
-                                    <div key={e.id_entregador} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <span className={`w-5 text-center text-xs font-bold ${i < 3 ? 'text-amber-500' : 'text-slate-400'}`}>
-                                            {i + 1}
-                                        </span>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{e.nome_entregador}</p>
-                                        </div>
-                                        <HealthBadge grade={hs.grade} score={hs.score} />
-                                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums w-20 text-right">
-                                            {formatMetric(getMetricValue(e, metric), metric)}
-                                        </span>
-                                    </div>
-                                );
-                            })}
+                            {top10.map((e, i) => (
+                                <PerformerRow key={e.id_entregador} e={e} i={i} metric={metric} rank={i + 1} highlightTop={i < 3} hs={calculateHealthScore(e.aderencia_percentual, e.corridas_completadas, e.corridas_ofertadas, e.total_segundos)} />
+                            ))}
                         </div>
                     </div>
 
@@ -115,23 +110,9 @@ export const TopBottomPerformers = React.memo(function TopBottomPerformers({
                             <span className="text-sm font-semibold text-rose-700 dark:text-rose-300">Bottom 10 — {metricLabels[metric]}</span>
                         </div>
                         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {bottom10.map((e, i) => {
-                                const hs = calculateHealthScore(e.aderencia_percentual, e.corridas_completadas, e.corridas_ofertadas, e.total_segundos);
-                                return (
-                                    <div key={e.id_entregador} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <span className="w-5 text-center text-xs font-bold text-slate-400">
-                                            {entregadores.length - i}
-                                        </span>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{e.nome_entregador}</p>
-                                        </div>
-                                        <HealthBadge grade={hs.grade} score={hs.score} />
-                                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums w-20 text-right">
-                                            {formatMetric(getMetricValue(e, metric), metric)}
-                                        </span>
-                                    </div>
-                                );
-                            })}
+                            {bottom10.map((e, i) => (
+                                <PerformerRow key={e.id_entregador} e={e} i={i} metric={metric} rank={entregadores.length - i} hs={calculateHealthScore(e.aderencia_percentual, e.corridas_completadas, e.corridas_ofertadas, e.total_segundos)} />
+                            ))}
                         </div>
                     </div>
                 </div>

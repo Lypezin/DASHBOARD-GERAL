@@ -92,44 +92,14 @@ export const UploadSection = memo(function UploadSection({
         </div>
 
         <div className="space-y-6">
-          {/* Lista de Arquivos */}
-          <FileList
-            files={files}
-            onRemove={onRemoveFile}
-            disabled={uploading}
-            variant={variant}
-          />
-
-          {/* Mensagem de Status */}
-          <UploadMessage
-            message={message}
-            variant={variant}
-          />
-
-          {/* Configuração de MV */}
-          <UploadMVProgress
-            isRefreshingMVs={isRefreshingMVs}
-            mvRefreshProgress={mvRefreshProgress}
-            mvRefreshStatus={mvRefreshStatus}
-          />
-
-          {/* Barra de Progresso */}
-          <UploadProgress
-            progress={progress}
-            progressLabel={progressLabel}
-            variant={variant}
-          />
+          <FileList files={files} onRemove={onRemoveFile} disabled={uploading} variant={variant} />
+          <UploadMessage message={message} variant={variant} />
+          <UploadMVProgress isRefreshingMVs={isRefreshingMVs} mvRefreshProgress={mvRefreshProgress} mvRefreshStatus={mvRefreshStatus} />
+          <UploadProgress progress={progress} progressLabel={progressLabel} variant={variant} />
         </div>
 
         <div className="mt-auto space-y-6">
-          {/* Botão de Upload */}
-          <UploadActions
-            onUpload={onUpload}
-            uploading={uploading}
-            hasFiles={files.length > 0}
-            variant={variant}
-            fileCount={files.length}
-          />
+          <UploadActions onUpload={onUpload} uploading={uploading} hasFiles={files.length > 0} variant={variant} fileCount={files.length} />
 
           {/* Informações e Dicas - Less intrusive */}
           <div className="space-y-3 opacity-80 hover:opacity-100 transition-opacity">

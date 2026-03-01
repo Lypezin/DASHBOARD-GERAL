@@ -115,22 +115,10 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
                     <div className="space-y-2">
                         <p className="font-bold border-b border-slate-700 pb-1 mb-2 text-xs uppercase tracking-wider text-slate-400">Métricas de Corrida</p>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                            <div className="flex justify-between gap-2">
-                                <span className="text-slate-400">Ofertadas:</span>
-                                <span className="font-mono font-bold">{data.metrics?.ofertadas || 0}</span>
-                            </div>
-                            <div className="flex justify-between gap-2">
-                                <span className="text-emerald-400">Aceitas:</span>
-                                <span className="font-mono font-bold">{data.metrics?.aceitas || 0}</span>
-                            </div>
-                            <div className="flex justify-between gap-2">
-                                <span className="text-blue-400">Completadas:</span>
-                                <span className="font-mono font-bold">{data.metrics?.completadas || 0}</span>
-                            </div>
-                            <div className="flex justify-between gap-2">
-                                <span className="text-rose-400">Rejeitadas:</span>
-                                <span className="font-mono font-bold">{data.metrics?.rejeitadas || 0}</span>
-                            </div>
+                            <div className="flex justify-between gap-2"><span className="text-slate-400">Ofertadas:</span><span className="font-mono font-bold">{data.metrics?.ofertadas || 0}</span></div>
+                            <div className="flex justify-between gap-2"><span className="text-emerald-400">Aceitas:</span><span className="font-mono font-bold">{data.metrics?.aceitas || 0}</span></div>
+                            <div className="flex justify-between gap-2"><span className="text-blue-400">Completadas:</span><span className="font-mono font-bold">{data.metrics?.completadas || 0}</span></div>
+                            <div className="flex justify-between gap-2"><span className="text-rose-400">Rejeitadas:</span><span className="font-mono font-bold">{data.metrics?.rejeitadas || 0}</span></div>
                         </div>
                     </div>
                 </TooltipContent>
