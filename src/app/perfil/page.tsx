@@ -61,10 +61,7 @@ export default function PerfilPage() {
               transition={{ delay: 0.2 }}
               className="space-y-6"
             >
-              <ProfileHeaderCard
-                user={user}
-                onAvatarUpdate={handleAvatarUpdate}
-              />
+              <ProfileHeaderCard user={user} onAvatarUpdate={handleAvatarUpdate} />
 
               {/* Theme Settings Card */}
               <ThemeSettingsCard />
@@ -82,11 +79,7 @@ export default function PerfilPage() {
                   <CardDescription>Gerencie suas informações pessoais</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <PerfilUserInfo
-                    user={user}
-                    memberSince={memberSince}
-                    onProfileUpdate={refreshUser}
-                  />
+                  <PerfilUserInfo user={user} memberSince={memberSince} onProfileUpdate={refreshUser} />
                 </CardContent>
               </Card>
             </motion.div>

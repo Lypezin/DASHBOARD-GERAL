@@ -24,12 +24,7 @@ export function useUserActivity(
     currentUserRef.current = currentUser;
   }, [activeTab, filters, currentUser]);
 
-  const registrarAtividade = useCallback(async (
-    action_type: string,
-    action_details: Record<string, unknown> | string = {},
-    tab_name: string | null = null,
-    filters_applied: DashboardFilters | Record<string, unknown> = {}
-  ) => {
+  const registrarAtividade = useCallback(async (action_type: string, action_details: Record<string, unknown> | string = {}, tab_name: string | null = null, filters_applied: DashboardFilters | Record<string, unknown> = {}) => {
     if (!currentUserRef.current || !sessionId) return;
 
     try {
@@ -62,11 +57,8 @@ export function useUserActivity(
 
     const hasActiveFilters = Object.values(filtersRef.current).some(v => v != null && (Array.isArray(v) ? v.length > 0 : true));
     if (hasActiveFilters) {
-      filterTimeout.current = setTimeout(() => {
-        registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current);
-      }, 300);
+      filterTimeout.current = setTimeout(() => registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current), 300);
     }
-
     return () => { if (filterTimeout.current) clearTimeout(filterTimeout.current); };
   }, [filters, sessionId, registrarAtividade]);
 

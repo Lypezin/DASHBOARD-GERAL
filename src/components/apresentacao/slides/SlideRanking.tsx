@@ -14,11 +14,7 @@ interface SlideRankingProps {
     itens: RankingItem[];
 }
 
-const PodiumStep: React.FC<{
-    item: RankingItem;
-    position: 1 | 2 | 3;
-    isActive: boolean
-}> = ({ item, position, isActive }) => {
+const PodiumStep: React.FC<{ item: RankingItem; position: 1 | 2 | 3; isActive: boolean }> = ({ item, position, isActive }) => {
     const height = position === 1 ? 'h-64' : position === 2 ? 'h-48' : 'h-32';
     const color = position === 1 ? 'bg-yellow-400' : position === 2 ? 'bg-slate-300' : 'bg-amber-600';
     const delay = position === 1 ? 'delay-500' : position === 2 ? 'delay-200' : 'delay-300';

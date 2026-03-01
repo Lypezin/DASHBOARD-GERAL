@@ -27,11 +27,7 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        };
+        const handleClick = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
@@ -83,10 +79,7 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                                             <Check className={`w-2.5 h-2.5 ${isVisible ? 'text-white dark:text-slate-900' : ''}`} />
                                         )}
                                     </span>
-                                    <span className={`text-sm transition-colors ${isVisible
-                                        ? 'text-slate-900 dark:text-white font-medium'
-                                        : 'text-slate-400 dark:text-slate-500'
-                                        }`}>
+                                    <span className={`text-sm transition-colors ${isVisible ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
                                         {secao.label}
                                     </span>
                                 </button>

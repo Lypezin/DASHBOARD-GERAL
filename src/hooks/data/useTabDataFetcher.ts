@@ -59,24 +59,13 @@ export function useTabDataFetcher() {
       }
       safeLog.error('Erro ao buscar dados:', error);
 
-      const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
-        ? error.message
-        : '';
+      const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' ? error.message : '';
       if (errorMessage === 'RETRY_500') {
-        retryTimeoutRef.current = setTimeout(() => {
-          if (shouldContinue()) {
-            fetchWithRetry(tab, filterPayload, onSuccess, onError, shouldContinue);
-          }
-        }, DELAYS.RETRY_500);
+        retryTimeoutRef.current = setTimeout(() => { if (shouldContinue()) fetchWithRetry(tab, filterPayload, onSuccess, onError, shouldContinue); }, DELAYS.RETRY_500);
         return;
       }
-
       if (errorMessage === 'RETRY_RATE_LIMIT') {
-        retryTimeoutRef.current = setTimeout(() => {
-          if (shouldContinue()) {
-            fetchWithRetry(tab, filterPayload, onSuccess, onError, shouldContinue);
-          }
-        }, DELAYS.RETRY_RATE_LIMIT);
+        retryTimeoutRef.current = setTimeout(() => { if (shouldContinue()) fetchWithRetry(tab, filterPayload, onSuccess, onError, shouldContinue); }, DELAYS.RETRY_RATE_LIMIT);
         return;
       }
 
