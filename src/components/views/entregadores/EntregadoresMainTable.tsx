@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Users, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users } from 'lucide-react';
 import { Entregador } from '@/types';
 import { EntregadoresMainTableHeader } from './components/EntregadoresMainTableHeader';
 import { EntregadoresMainTableRow } from './components/EntregadoresMainTableRow';
+import { EntregadoresPagination } from './components/EntregadoresPagination';
 
 interface EntregadoresMainTableProps {
     sortedEntregadores: Entregador[];
@@ -91,35 +91,13 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                 </div>
             </CardContent>
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <CardFooter className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 p-4">
-                    <div className="text-sm text-slate-500">
-                        Mostrando {((currentPage - 1) * ITEMS_PER_PAGE) + 1} a {Math.min(currentPage * ITEMS_PER_PAGE, sortedEntregadores.length)} de {sortedEntregadores.length} resultados
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1}
-                        >
-                            <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-                        </Button>
-                        <div className="text-sm font-medium px-2">
-                            Página {currentPage} de {totalPages}
-                        </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            disabled={currentPage === totalPages}
-                        >
-                            Próxima <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                    </div>
-                </CardFooter>
-            )}
+            <EntregadoresPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={sortedEntregadores.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+            />
         </Card>
     );
 });

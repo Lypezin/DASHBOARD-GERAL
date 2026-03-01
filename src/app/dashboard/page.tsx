@@ -18,101 +18,59 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-    const { auth, ui, filters: filtersGroup, data } = useDashboardPage();
+    const { auth, ui, filters: fGroup, data } = useDashboardPage();
 
-    // Destructure for easier access
-    const { isCheckingAuth, isAuthenticated, currentUser } = auth;
-    const { activeTab, handleTabChange, chartReady, loading, error } = ui;
-    const { state: filters, setState: setFilters, options } = filtersGroup;
-    const {
-        anos: anosDisponiveis,
-        semanas: semanasDisponiveis,
-        pracas,
-        subPracas,
-        origens,
-        turnos
-    } = options;
-
-    // Dashboard data
-    const {
-        aderenciaGeral,
-        aderenciaDia,
-        aderenciaTurno,
-        aderenciaSubPraca,
-        aderenciaOrigem,
-        totals
-    } = data.dashboard;
-
-    // Tab data
-    const {
-        utrData,
-        entregadoresData,
-        valoresData,
-        prioridadeData,
-        loading: loadingTabData
-    } = data.tabs;
-
-    // Evolution data
-    const {
-        mensal: evolucaoMensal,
-        semanal: evolucaoSemanal,
-        loading: loadingEvolucao,
-        anoSelecionado,
-        setAno: setAnoEvolucao
-    } = data.evolution;
-
-    if (isCheckingAuth) return <DashboardAuthLoading />;
-    if (!isAuthenticated) return null;
+    if (auth.isCheckingAuth) return <DashboardAuthLoading />;
+    if (!auth.isAuthenticated) return null;
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">
             <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-                {loading && <DashboardLoadingState />}
-                {error && <DashboardErrorState error={error} />}
+                {ui.loading && <DashboardLoadingState />}
+                {ui.error && <DashboardErrorState error={ui.error} />}
 
-                {!loading && !error && (
+                {!ui.loading && !ui.error && (
                     <div className="space-y-4 animate-fade-in">
                         <DashboardHeader
-                            filters={filters}
-                            setFilters={setFilters}
-                            anosDisponiveis={anosDisponiveis}
-                            semanasDisponiveis={semanasDisponiveis}
-                            pracas={pracas}
-                            subPracas={subPracas}
-                            origens={origens}
-                            turnos={turnos}
-                            currentUser={currentUser}
-                            activeTab={activeTab}
-                            onTabChange={handleTabChange}
+                            filters={fGroup.state}
+                            setFilters={fGroup.setState}
+                            anosDisponiveis={fGroup.options.anos}
+                            semanasDisponiveis={fGroup.options.semanas}
+                            pracas={fGroup.options.pracas}
+                            subPracas={fGroup.options.subPracas}
+                            origens={fGroup.options.origens}
+                            turnos={fGroup.options.turnos}
+                            currentUser={auth.currentUser}
+                            activeTab={ui.activeTab}
+                            onTabChange={ui.handleTabChange}
                         />
-
                         <main>
                             <DashboardViewsRenderer
-                                activeTab={activeTab}
-                                chartReady={chartReady}
-                                aderenciaGeral={aderenciaGeral as AderenciaSemanal | undefined}
-                                aderenciaDia={aderenciaDia}
-                                aderenciaTurno={aderenciaTurno}
-                                aderenciaSubPraca={aderenciaSubPraca}
-                                aderenciaOrigem={aderenciaOrigem}
-                                totals={totals || undefined}
-                                utrData={utrData}
-                                loadingTabData={loadingTabData}
-                                entregadoresData={entregadoresData}
-                                valoresData={valoresData}
-                                prioridadeData={prioridadeData}
-                                evolucaoMensal={evolucaoMensal}
-                                evolucaoSemanal={evolucaoSemanal}
-                                loadingEvolucao={loadingEvolucao}
-                                anoSelecionado={anoSelecionado}
-                                anosDisponiveis={anosDisponiveis}
-                                onAnoChange={setAnoEvolucao}
-                                semanas={semanasDisponiveis}
-                                pracas={pracas}
-                                subPracas={subPracas}
-                                origens={origens}
-                                currentUser={currentUser}
-                                filters={filters}
+                                activeTab={ui.activeTab}
+                                chartReady={ui.chartReady}
+                                aderenciaGeral={data.dashboard.aderenciaGeral as AderenciaSemanal | undefined}
+                                aderenciaDia={data.dashboard.aderenciaDia}
+                                aderenciaTurno={data.dashboard.aderenciaTurno}
+                                aderenciaSubPraca={data.dashboard.aderenciaSubPraca}
+                                aderenciaOrigem={data.dashboard.aderenciaOrigem}
+                                totals={data.dashboard.totals || undefined}
+                                utrData={data.tabs.utrData}
+                                loadingTabData={data.tabs.loading}
+                                entregadoresData={data.tabs.entregadoresData}
+                                valoresData={data.tabs.valoresData}
+                                prioridadeData={data.tabs.prioridadeData}
+                                evolucaoMensal={data.evolution.mensal}
+                                evolucaoSemanal={data.evolution.semanal}
+                                loadingEvolucao={data.evolution.loading}
+                                anoSelecionado={data.evolution.anoSelecionado}
+                                anosDisponiveis={fGroup.options.anos}
+                                onAnoChange={data.evolution.setAno}
+                                semanas={fGroup.options.semanas}
+                                pracas={fGroup.options.pracas}
+                                subPracas={fGroup.options.subPracas}
+                                origens={fGroup.options.origens}
+                                currentUser={auth.currentUser}
+                                filters={fGroup.state}
                             />
                         </main>
                     </div>

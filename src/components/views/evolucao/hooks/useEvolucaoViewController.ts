@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { EvolucaoMensal, EvolucaoSemanal } from '@/types';
 import { registerChartJS } from '@/lib/chartConfig';
 import { safeLog } from '@/lib/errorHandler';
@@ -7,6 +7,7 @@ import { calculateYAxisRange } from '@/utils/charts';
 import { processEvolucaoData, createChartData } from '../EvolucaoDataProcessor';
 import { createEvolucaoChartOptions } from '../EvolucaoChartConfig';
 import { useThemeDetector } from '@/hooks/ui/useThemeDetector';
+import { useEvolucaoUrlSync } from './useEvolucaoUrlSync';
 
 export function useEvolucaoViewController({
     evolucaoMensal,
@@ -20,8 +21,6 @@ export function useEvolucaoViewController({
     anoSelecionado: number;
 }) {
     const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
 
     const getInitialViewMode = () => {
         const mode = searchParams.get('evo_mode');
@@ -53,33 +52,7 @@ export function useEvolucaoViewController({
         }
     }, []);
 
-    // Sync to URL
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams.toString());
-        let changed = false;
-
-        if (viewMode !== 'mensal') {
-            if (params.get('evo_mode') !== viewMode) { params.set('evo_mode', viewMode); changed = true; }
-        } else if (params.has('evo_mode')) { params.delete('evo_mode'); changed = true; }
-
-        const metricsArray = Array.from(selectedMetrics);
-        const metricsStr = metricsArray.join(',');
-
-        // Default is 'completadas'. If it is exactly default, clean URL? 
-        // Or cleaner: only write if different from default?
-        // Let's write if different from default or if exists.
-        // Actually, explicit is better.
-
-        if (metricsArray.length === 1 && metricsArray[0] === 'completadas') {
-            if (params.has('evo_metrics')) { params.delete('evo_metrics'); changed = true; }
-        } else {
-            if (params.get('evo_metrics') !== metricsStr) { params.set('evo_metrics', metricsStr); changed = true; }
-        }
-
-        if (changed) {
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-        }
-    }, [viewMode, selectedMetrics, pathname, router, searchParams]);
+    useEvolucaoUrlSync(viewMode, selectedMetrics);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {

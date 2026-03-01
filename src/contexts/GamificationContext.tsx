@@ -1,15 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { ICON_MAP } from './gamification/icons';
 import { useGamificationCelebration } from '@/hooks/gamification/useGamificationCelebration';
-// ... imports
-
-// ... imports
-
 import { Badge, LeaderboardEntry } from '@/types/gamification';
+import { useGamificationState } from './hooks/useGamificationState';
 
 interface GamificationContextType {
     badges: Badge[];
@@ -23,100 +20,11 @@ interface GamificationContextType {
 const GamificationContext = createContext<GamificationContextType | undefined>(undefined);
 
 export function GamificationProvider({ children }: { children: React.ReactNode }) {
-    const [badges, setBadges] = useState<Badge[]>([]);
-    const [unlockedBadges, setUnlockedBadges] = useState<Badge[]>([]);
-    const [recentUnlock, setRecentUnlock] = useState<Badge | null>(null);
-    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-    const { triggerCelebration } = useGamificationCelebration();
+    const gamificationState = useGamificationState();
 
-    // Fetch Leaderboard
-    const refreshLeaderboard = useCallback(async () => {
-        const { data } = await supabase.rpc('get_gamification_leaderboard');
-        if (data) setLeaderboard(data);
-    }, []);
-
-    // Fetch initial state
-    const fetchState = useCallback(async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        refreshLeaderboard();
-
-        // 1. Get all definitions
-        const { data: allBadges } = await supabase.from('gamification_badges').select('*');
-
-        // 2. Get unlocked
-        const { data: unlocked } = await supabase.from('gamification_user_badges').select('badge_slug, unlocked_at').eq('user_id', user.id);
-
-        if (allBadges) setBadges(allBadges);
-
-        if (allBadges && unlocked) {
-            const unlockedSlugs = new Set(unlocked.map(u => u.badge_slug));
-            const unlockedList = allBadges
-                .filter(b => unlockedSlugs.has(b.slug))
-                .map(b => ({
-                    ...b,
-                    unlocked_at: unlocked.find(u => u.badge_slug === b.slug)?.unlocked_at
-                }));
-            setUnlockedBadges(unlockedList);
-        }
-    }, [refreshLeaderboard]);
-
-    // Register interaction
-    const registerInteraction = useCallback(async (type: 'login' | 'view_comparacao' | 'upload' | 'view_resumo' | 'view_entregadores' | 'view_evolucao' | 'filter_change') => {
-        try {
-            const { data, error } = await supabase.rpc('register_interaction', { p_interaction_type: type });
-
-            if (error) {
-                safeLog.error('Error registering interaction:', error);
-                return;
-            }
-
-            if (data && data.length > 0) {
-                // New badges unlocked!
-                data.forEach((newBadge: any) => {
-                    const badgeObj = {
-                        slug: newBadge.new_badge_slug,
-                        name: newBadge.new_badge_name,
-                        description: newBadge.new_badge_description,
-                        icon: newBadge.new_badge_icon,
-                        unlocked_at: new Date().toISOString()
-                    };
-
-                    setUnlockedBadges(prev => [...prev, badgeObj]);
-                    setRecentUnlock(badgeObj);
-
-                    // Trigger effects
-                    triggerCelebration(badgeObj);
-                });
-            }
-        } catch (e) {
-            safeLog.error('Gamification error:', e);
-        }
-    }, [triggerCelebration]);
-
-    // Initial load & Login Registration
-    useEffect(() => {
-        fetchState();
-
-        // Auto-register login interaction if authenticated
-        const checkLogin = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                registerInteraction('login');
-            }
-        };
-        checkLogin();
-    }, [fetchState, registerInteraction]);
-
-    const contextValue = React.useMemo(() => ({
-        badges,
-        unlockedBadges,
-        recentUnlock,
-        registerInteraction,
-        leaderboard,
-        refreshLeaderboard
-    }), [badges, unlockedBadges, recentUnlock, registerInteraction, leaderboard, refreshLeaderboard]);
+    const contextValue = useMemo(() => ({
+        ...gamificationState
+    }), [gamificationState]);
 
     return (
         <GamificationContext.Provider value={contextValue}>

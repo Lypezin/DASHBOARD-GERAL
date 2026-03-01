@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Calendar, X, Check } from 'lucide-react';
 import { useDateFilterState } from '@/hooks/filters/useDateFilterState';
+import { MarketingDateField } from './MarketingDateField';
 
 interface MarketingDateFilterProps {
   label: string;
@@ -63,34 +64,22 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
 
       <CardContent className="space-y-3 px-4 pb-3">
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor={`data-inicial-${label}`} className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-              De
-            </Label>
-            <Input
-              id={`data-inicial-${label}`}
-              type="date"
-              value={tempDataInicial}
-              onChange={handleDataInicialChange}
-              min={dataMinima}
-              max={hoje}
-              className="h-9 text-xs bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor={`data-final-${label}`} className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-              Até
-            </Label>
-            <Input
-              id={`data-final-${label}`}
-              type="date"
-              value={tempDataFinal}
-              onChange={handleDataFinalChange}
-              min={tempDataInicial || dataMinima}
-              max={hoje}
-              className="h-9 text-xs bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
-            />
-          </div>
+          <MarketingDateField
+            id={`data-inicial-${label}`}
+            label="De"
+            value={tempDataInicial}
+            onChange={handleDataInicialChange}
+            min={dataMinima}
+            max={hoje}
+          />
+          <MarketingDateField
+            id={`data-final-${label}`}
+            label="Até"
+            value={tempDataFinal}
+            onChange={handleDataFinalChange}
+            min={tempDataInicial || dataMinima}
+            max={hoje}
+          />
         </div>
       </CardContent>
 
@@ -101,10 +90,10 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
           size="sm"
           variant={temAlteracao ? "default" : "secondary"}
           className={`w-full h-9 text-xs font-semibold transition-all ${temAlteracao
-              ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md shadow-purple-500/20'
-              : temFiltro
-                ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                : ''
+            ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md shadow-purple-500/20'
+            : temFiltro
+              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+              : ''
             }`}
           type="button"
         >
