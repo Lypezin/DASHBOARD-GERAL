@@ -32,45 +32,22 @@ export function buildValoresQuery(payload: FilterPayload) {
         query = query.gte('data_do_periodo', anoInicio).lte('data_do_periodo', anoFim);
     }
 
-    if (safePayload.p_data_inicial) {
-        query = query.gte('data_do_periodo', safePayload.p_data_inicial);
-    }
-
-    if (safePayload.p_data_final) {
-        query = query.lte('data_do_periodo', safePayload.p_data_final);
-    }
+    if (safePayload.p_data_inicial) query = query.gte('data_do_periodo', safePayload.p_data_inicial);
+    if (safePayload.p_data_final) query = query.lte('data_do_periodo', safePayload.p_data_final);
 
     if (safePayload.p_praca) {
-        const pracas = typeof safePayload.p_praca === 'string'
-            ? safePayload.p_praca.split(',').map((p: string) => p.trim())
-            : [String(safePayload.p_praca).trim()];
-        if (pracas.length === 1) {
-            query = query.eq('praca', pracas[0]);
-        } else {
-            query = query.in('praca', pracas);
-        }
+        const pracas = typeof safePayload.p_praca === 'string' ? safePayload.p_praca.split(',').map((p: string) => p.trim()) : [String(safePayload.p_praca).trim()];
+        query = pracas.length === 1 ? query.eq('praca', pracas[0]) : query.in('praca', pracas);
     }
 
     if (safePayload.p_sub_praca) {
-        const subPracas = typeof safePayload.p_sub_praca === 'string'
-            ? safePayload.p_sub_praca.split(',').map((p: string) => p.trim())
-            : [String(safePayload.p_sub_praca).trim()];
-        if (subPracas.length === 1) {
-            query = query.eq('sub_praca', subPracas[0]);
-        } else {
-            query = query.in('sub_praca', subPracas);
-        }
+        const subPracas = typeof safePayload.p_sub_praca === 'string' ? safePayload.p_sub_praca.split(',').map((p: string) => p.trim()) : [String(safePayload.p_sub_praca).trim()];
+        query = subPracas.length === 1 ? query.eq('sub_praca', subPracas[0]) : query.in('sub_praca', subPracas);
     }
 
     if (safePayload.p_origem) {
-        const origens = typeof safePayload.p_origem === 'string'
-            ? safePayload.p_origem.split(',').map((o: string) => o.trim())
-            : [String(safePayload.p_origem).trim()];
-        if (origens.length === 1) {
-            query = query.eq('origem', origens[0]);
-        } else {
-            query = query.in('origem', origens);
-        }
+        const origens = typeof safePayload.p_origem === 'string' ? safePayload.p_origem.split(',').map((o: string) => o.trim()) : [String(safePayload.p_origem).trim()];
+        query = origens.length === 1 ? query.eq('origem', origens[0]) : query.in('origem', origens);
     }
 
     return query.limit(QUERY_LIMITS.AGGREGATION_MAX);

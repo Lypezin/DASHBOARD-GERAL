@@ -14,13 +14,11 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const router = useRouter();
     const pathname = usePathname();
 
-    const SECTIONS_VERSION = 'v2'; // Incremente ao mudar defaults de seções
+    const SECTIONS_VERSION = 'v2';
     const getStorageKey = (type: 'slides' | 'sections') => {
         const pracaKey = praca ? praca.replace(/\s+/g, '_').toLowerCase() : 'geral';
-        const semanasKey = semanas.sort().join('-');
-        const anoKey = ano || new Date().getFullYear();
-        const versionSuffix = type === 'sections' ? `_${SECTIONS_VERSION}` : '';
-        return `dashboard_presentation_${type}_${anoKey}_${pracaKey}_${semanasKey}${versionSuffix}`;
+        const strOpts = `${ano || new Date().getFullYear()}_${pracaKey}_${semanas.sort().join('-')}`;
+        return `dashboard_presentation_${type}_${strOpts}${type === 'sections' ? `_${SECTIONS_VERSION}` : ''}`;
     };
 
     const getInitialViewMode = () => searchParams.get('comp_apres_mode') === 'web_presentation' ? 'web_presentation' : 'preview';
@@ -32,10 +30,8 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const [isLoaded, setIsLoaded] = useState(false);
 
     const [visibleSections, setVisibleSections] = useState({
-        capa: true, 'resumo-ia': false, 'aderencia-geral': true,
-        ranking: false, 'sub-pracas': true,
-        'aderencia-diaria': true, utr: true, turnos: true,
-        origens: true, 'demanda-origem': true, demanda: true, 'capa-final': true,
+        capa: true, 'resumo-ia': false, 'aderencia-geral': true, ranking: false, 'sub-pracas': true,
+        'aderencia-diaria': true, utr: true, turnos: true, origens: true, 'demanda-origem': true, demanda: true, 'capa-final': true,
     });
 
     useEffect(() => {
@@ -43,14 +39,8 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
         let changed = false;
 
         if (viewMode === 'web_presentation') {
-            if (params.get('comp_apres_mode') !== 'web_presentation') {
-                params.set('comp_apres_mode', 'web_presentation');
-                changed = true;
-            }
-        } else if (params.has('comp_apres_mode')) {
-            params.delete('comp_apres_mode');
-            changed = true;
-        }
+            if (params.get('comp_apres_mode') !== 'web_presentation') { params.set('comp_apres_mode', 'web_presentation'); changed = true; }
+        } else if (params.has('comp_apres_mode')) { params.delete('comp_apres_mode'); changed = true; }
 
         if (changed) router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     }, [viewMode, pathname, router, searchParams]);
@@ -61,11 +51,7 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     useEffect(() => {
         const savedSections = localStorage.getItem(sectionsKey);
         if (savedSections) {
-            try {
-                const parsed = JSON.parse(savedSections);
-                // Merge com defaults para que novas seções apareçam mesmo em sessões antigas
-                setVisibleSections(prev => ({ ...prev, ...parsed }));
-            }
+            try { setVisibleSections(prev => ({ ...prev, ...JSON.parse(savedSections) })); }
             catch (e) { safeLog.error('Error parsing saved sections:', e); }
         }
         setIsLoaded(true);
@@ -82,19 +68,10 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     }, []);
 
     return {
-        state: {
-            currentSlide, viewMode, visibleSections,
-            mediaSlides: mediaSlidesHook.mediaSlides,
-            isMediaManagerOpen, orderedPresentationSlides
-        },
+        state: { currentSlide, viewMode, visibleSections, mediaSlides: mediaSlidesHook.mediaSlides, isMediaManagerOpen, orderedPresentationSlides },
         actions: {
-            setCurrentSlide, setViewMode, setVisibleSections,
-            setMediaSlides: mediaSlidesHook.setMediaSlides,
-            setIsMediaManagerOpen, setOrderedPresentationSlides,
-            handleUpdateMediaSlide: mediaSlidesHook.handleUpdateMediaSlide,
-            handleAddMediaSlide: mediaSlidesHook.handleAddMediaSlide,
-            handleDeleteMediaSlide: mediaSlidesHook.handleDeleteMediaSlide,
-            toggleSection
+            setCurrentSlide, setViewMode, setVisibleSections, setMediaSlides: mediaSlidesHook.setMediaSlides, setIsMediaManagerOpen, setOrderedPresentationSlides,
+            handleUpdateMediaSlide: mediaSlidesHook.handleUpdateMediaSlide, handleAddMediaSlide: mediaSlidesHook.handleAddMediaSlide, handleDeleteMediaSlide: mediaSlidesHook.handleDeleteMediaSlide, toggleSection
         }
     };
 }

@@ -38,54 +38,22 @@ export function useAdminData() {
       }
 
       if (usersPromise.status === 'fulfilled' && !usersPromise.value.error) {
-        const rawUsers = usersPromise.value.data || [];
-        // Merge avatars
-        const mergedUsers = rawUsers.map(u => ({
-          ...u,
-          avatar_url: profilesMap.get(u.id) || u.avatar_url
-        }));
-        setUsers(mergedUsers);
+        setUsers((usersPromise.value.data || []).map(u => ({ ...u, avatar_url: profilesMap.get(u.id) || u.avatar_url })));
       } else {
-        if (IS_DEV) {
-          const errorMsg = usersPromise.status === 'fulfilled'
-            ? usersPromise.value.error
-            : usersPromise.status === 'rejected'
-              ? usersPromise.reason
-              : 'Erro desconhecido';
-          safeLog.warn('Erro ao buscar usuários:', errorMsg);
-        }
+        if (IS_DEV) safeLog.warn('Erro ao buscar usuários:', usersPromise.status === 'fulfilled' ? usersPromise.value.error : 'Erro desconhecido');
         setUsers([]);
       }
 
       if (pendingPromise.status === 'fulfilled' && !pendingPromise.value.error) {
-        // Pending users usually don't have profiles yet, but we can try mapping if needed
-        const rawPending = pendingPromise.value.data || [];
-        const mergedPending = rawPending.map(u => ({
-          ...u,
-          avatar_url: profilesMap.get(u.id) || u.avatar_url
-        }));
-        setPendingUsers(mergedPending);
+        setPendingUsers((pendingPromise.value.data || []).map(u => ({ ...u, avatar_url: profilesMap.get(u.id) || u.avatar_url })));
       } else {
-        if (IS_DEV) {
-          const errorMsg = pendingPromise.status === 'fulfilled'
-            ? pendingPromise.value.error
-            : pendingPromise.status === 'rejected'
-              ? pendingPromise.reason
-              : 'Erro desconhecido';
-          safeLog.warn('Erro ao buscar usuários pendentes:', errorMsg);
-        }
+        if (IS_DEV) safeLog.warn('Erro ao buscar usuários pendentes:', pendingPromise.status === 'fulfilled' ? pendingPromise.value.error : 'Erro desconhecido');
         setPendingUsers([]);
       }
 
-      if (pracasPromise.status === 'fulfilled') {
-        setPracasDisponiveis(pracasPromise.value);
-      } else {
-        if (IS_DEV) {
-          const errorMsg = pracasPromise.status === 'rejected'
-            ? pracasPromise.reason
-            : 'Erro desconhecido';
-          safeLog.warn('Erro ao buscar praças:', errorMsg);
-        }
+      if (pracasPromise.status === 'fulfilled') setPracasDisponiveis(pracasPromise.value);
+      else {
+        if (IS_DEV) safeLog.warn('Erro ao buscar praças:', pracasPromise.status === 'rejected' ? pracasPromise.reason : 'Erro desconhecido');
         setPracasDisponiveis([]);
       }
     } catch (err: unknown) {

@@ -1,13 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useGamification } from '@/contexts/GamificationContext';
 import { ICON_MAP } from '@/contexts/gamification/icons';
 import { Badge } from '@/types/gamification';
@@ -35,14 +29,9 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
             <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-                        🏆 Galeria de Conquistas
-                        <span className="text-[10px] uppercase font-bold tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full animate-pulse ml-1 self-center">
-                            Beta
-                        </span>
+                        🏆 Galeria de Conquistas <span className="text-[10px] uppercase font-bold tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full animate-pulse ml-1 self-center">Beta</span>
                     </DialogTitle>
-                    <DialogDescription>
-                        Acompanhe seu progresso e conquiste medalhas exclusivas pelo seu uso do sistema.
-                    </DialogDescription>
+                    <DialogDescription>Acompanhe seu progresso e conquiste medalhas exclusivas pelo seu uso do sistema.</DialogDescription>
                 </DialogHeader>
 
                 <div className="flex-1 overflow-hidden mt-4">
@@ -60,32 +49,20 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
                         <div className="flex-1 overflow-hidden relative">
                             <ScrollArea className="h-[50vh]">
                                 <TabsContent value="ranking" className="mt-0">
-                                    <TabsContent value="ranking" className="mt-0">
-                                        <LeaderboardRanking />
-                                    </TabsContent>
+                                    <TabsContent value="ranking" className="mt-0"><LeaderboardRanking /></TabsContent>
                                 </TabsContent>
                                 <TabsContent value="todos" className="mt-0">
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1">
-                                        {badges.map(badge => (
-                                            <BadgeCard
-                                                key={badge.slug}
-                                                badge={badge}
-                                                isUnlocked={isBadgeUnlocked(badge.slug)}
-                                                unlockedAt={getUnlockedInfo(badge.slug)?.unlocked_at}
-                                            />
+                                        {badges.map(b => (
+                                            <BadgeCard key={b.slug} badge={b} isUnlocked={isBadgeUnlocked(b.slug)} unlockedAt={getUnlockedInfo(b.slug)?.unlocked_at} />
                                         ))}
                                     </div>
                                 </TabsContent>
                                 {categories.map(cat => (
                                     <TabsContent key={cat} value={cat} className="mt-0">
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1">
-                                            {badges.filter(b => b.category === cat).map(badge => (
-                                                <BadgeCard
-                                                    key={badge.slug}
-                                                    badge={badge}
-                                                    isUnlocked={isBadgeUnlocked(badge.slug)}
-                                                    unlockedAt={getUnlockedInfo(badge.slug)?.unlocked_at}
-                                                />
+                                            {badges.filter(b => b.category === cat).map(b => (
+                                                <BadgeCard key={b.slug} badge={b} isUnlocked={isBadgeUnlocked(b.slug)} unlockedAt={getUnlockedInfo(b.slug)?.unlocked_at} />
                                             ))}
                                         </div>
                                     </TabsContent>

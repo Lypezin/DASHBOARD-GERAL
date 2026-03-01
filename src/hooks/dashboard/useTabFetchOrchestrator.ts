@@ -27,21 +27,15 @@ export function useTabFetchOrchestrator({
 
         if (!checkRateLimit(queueKey)) return;
 
-        const pendingPromise = getPendingRequest(queueKey);
         if (pendingPromise) {
             pendingPromise.then((fetchedData) => {
                 if (currentTabRef.current !== tab) return;
-                const processedData = tab === 'valores'
-                    ? (Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : [])
-                    : (fetchedData as TabData);
+                const processedData = tab === 'valores' ? (Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : []) : (fetchedData as TabData);
                 setData(processedData);
                 setCached({ tab, filterPayload: currentPayload }, processedData);
                 isRequestPendingRef.current = false;
             }).catch(() => {
-                if (currentTabRef.current === tab) {
-                    handleFetchError(tab);
-                    isRequestPendingRef.current = false;
-                }
+                if (currentTabRef.current === tab) { handleFetchError(tab); isRequestPendingRef.current = false; }
             });
             return;
         }
@@ -65,12 +59,7 @@ export function useTabFetchOrchestrator({
 
                     let processedData: TabData;
                     if (tab === 'valores') {
-                        const list = Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : [];
-                        // We can also store total in a separate state store if needed, but for now returned data is enough
-                        // For infinite scroll, we usually append. But here we fetch fresh or filter change.
-                        // Infinite scroll logic will be inside the component/hook specific to 'valores'.
-                        processedData = list;
-                        // Hack: attach total to the array to pass it down if needed, or rely on a separate context
+                        processedData = Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : [];
                         if (total !== undefined) (processedData as any).total = total;
                     } else {
                         processedData = fetchedData as TabData;
@@ -84,8 +73,7 @@ export function useTabFetchOrchestrator({
                 (error) => {
                     if (currentTabRef.current === tab) {
                         if (IS_DEV) safeLog.error(`❌ Erro dados tab ${tab}:`, error);
-                        handleFetchError(tab);
-                        isRequestPendingRef.current = false;
+                        handleFetchError(tab); isRequestPendingRef.current = false;
                     }
                     reject(error);
                 },

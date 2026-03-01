@@ -24,29 +24,17 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
   useEffect(() => {
     // Se a organização ainda está carregando, não inicia busca
-    if (isOrgLoading) {
-      safeLog.info('[Comparacao] Aguardando organização carregar...');
-      return;
-    }
+    if (isOrgLoading) { safeLog.info('[Comparacao] Aguardando organização carregar...'); return; }
 
     let isMounted = true;
 
     const fetchData = async () => {
-      safeLog.info('[Comparacao] fetchData iniciado', {
-        semanasSelecionadas,
-        pracaSelecionada,
-        anoSelecionado,
-        organizationId,
-        currentUserRole: currentUser?.role,
-        currentUserPracas: currentUser?.assigned_pracas
-      });
+      safeLog.info('[Comparacao] fetchData iniciado', { semanasSelecionadas, pracaSelecionada, anoSelecionado, organizationId, currentUserRole: currentUser?.role, currentUserPracas: currentUser?.assigned_pracas });
 
       // Só busca se tiver pelo menos 2 semanas selecionadas (regra original)
       if (!semanasSelecionadas || semanasSelecionadas.length < 2) {
         safeLog.info('[Comparacao] Menos de 2 semanas selecionadas, retornando vazio');
-        setDadosComparacao([]);
-        setUtrComparacao([]);
-        setLoading(false);
+        setDadosComparacao([]); setUtrComparacao([]); setLoading(false);
         return;
       }
 
@@ -60,30 +48,14 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado)
         ]);
 
-        safeLog.info('[Comparacao] Dados recebidos:', {
-          dadosLength: dados?.length,
-          dadosPreview: dados?.map(d => ({
-            total_ofertadas: d?.total_ofertadas,
-            total_aceitas: d?.total_aceitas,
-            aderencia_semanal: d?.aderencia_semanal?.length,
-            aderencia_dia: d?.aderencia_dia?.length
-          })),
-          utrsLength: utrs?.length
-        });
+        safeLog.info('[Comparacao] Dados recebidos:', { dadosLength: dados?.length, utrsLength: utrs?.length, dadosPreview: dados?.map(d => ({ total_ofertadas: d?.total_ofertadas, aderencia_semanal: d?.aderencia_semanal?.length })) });
 
-        if (isMounted) {
-          setDadosComparacao(dados);
-          setUtrComparacao(utrs);
-        }
+        if (isMounted) { setDadosComparacao(dados); setUtrComparacao(utrs); }
       } catch (error: any) {
         safeLog.error('[Comparacao] Erro ao buscar dados:', error);
-        if (isMounted) {
-          setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
-        }
+        if (isMounted) setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 

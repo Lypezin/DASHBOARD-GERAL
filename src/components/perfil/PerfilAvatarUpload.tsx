@@ -18,10 +18,7 @@ export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({ avatarUr
     if (!file) return;
 
     const validation = validateImageFile(file);
-    if (!validation.valid) {
-      toast.error(validation.error || 'Arquivo inválido');
-      return;
-    }
+    if (!validation.valid) return toast.error(validation.error || 'Arquivo inválido');
 
     try {
       toast.loading("Enviando foto...", { id: "upload-avatar" });
@@ -33,9 +30,7 @@ export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({ avatarUr
     } catch (error) {
       toast.error("Erro ao atualizar foto", { id: "upload-avatar" });
     } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -52,25 +47,10 @@ export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({ avatarUr
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-
   return (
     <div className="relative group">
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        accept="image/jpeg,image/png,image/gif"
-        className="hidden"
-      />
-
-      <div
-        className="relative"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/jpeg,image/png,image/gif" className="hidden" />
+      <div className="relative" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         <Avatar className="h-32 w-32 border-4 border-white dark:border-slate-900 shadow-xl cursor-pointer ring-2 ring-slate-100 dark:ring-slate-800 transition-all hover:ring-blue-500">
           <AvatarImage src={avatarUrl || ''} alt="Foto de perfil" className="object-cover" />
           <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-400 text-4xl font-bold">
@@ -79,23 +59,14 @@ export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({ avatarUr
         </Avatar>
 
         {/* Upload Overlay */}
-        <div
-          onClick={triggerFileInput}
-          className={`absolute inset-0 bg-black/40 rounded-full flex items-center justify-center cursor-pointer transition-opacity duration-200 ${isHovered && !uploading ? 'opacity-100' : 'opacity-0'}`}
-        >
+        <div onClick={() => fileInputRef.current?.click()} className={`absolute inset-0 bg-black/40 rounded-full flex items-center justify-center cursor-pointer transition-opacity duration-200 ${isHovered && !uploading ? 'opacity-100' : 'opacity-0'}`}>
           <Camera className="h-8 w-8 text-white drop-shadow-md" />
         </div>
 
         {/* Remove Button */}
         {avatarUrl && !uploading && (
           <div className="absolute bottom-0 right-0">
-            <Button
-              size="icon"
-              variant="destructive"
-              className="h-8 w-8 rounded-full shadow-md border-2 border-white dark:border-slate-900"
-              onClick={handleRemovePhoto}
-              title="Remover foto"
-            >
+            <Button size="icon" variant="destructive" className="h-8 w-8 rounded-full shadow-md border-2 border-white dark:border-slate-900" onClick={handleRemovePhoto} title="Remover foto">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

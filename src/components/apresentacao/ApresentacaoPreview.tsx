@@ -23,26 +23,18 @@ interface ApresentacaoPreviewProps {
 }
 
 const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
-  slides, currentSlide, onSlideChange, onClose, numeroSemana1, numeroSemana2,
-  visibleSections, onToggleSection, onStartPresentation, mediaSlides,
-  onUpdateMediaSlide, onAddMediaSlide, onDeleteMediaSlide, onSaveClick, onManageClick
+  slides, currentSlide, onSlideChange, onClose, numeroSemana1, numeroSemana2, visibleSections, onToggleSection, onStartPresentation, mediaSlides, onUpdateMediaSlide, onAddMediaSlide, onDeleteMediaSlide, onSaveClick, onManageClick
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const captureContainerRef = useRef<HTMLDivElement>(null);
   const { selectedElementId, setSelectedElementId } = usePresentationEditor();
 
-  const { orderedSlides, handleNext, handlePrev, isGenerating, generatingProgress, capturingIndex, generatePDF } = usePreviewController({
-    slides, currentSlide, onSlideChange, numeroSemana1, numeroSemana2, contentRef, captureContainerRef
-  });
+  const { orderedSlides, handleNext, handlePrev, isGenerating, generatingProgress, capturingIndex, generatePDF } = usePreviewController({ slides, currentSlide, onSlideChange, numeroSemana1, numeroSemana2, contentRef, captureContainerRef });
 
   const activeSlideKey = orderedSlides[currentSlide]?.key;
-  const activeMediaSlide = activeSlideKey && activeSlideKey.startsWith('media-') && mediaSlides
-    ? mediaSlides.find(m => `media-${m.id}` === activeSlideKey)
-    : null;
+  const activeMediaSlide = activeSlideKey && activeSlideKey.startsWith('media-') && mediaSlides ? mediaSlides.find(m => `media-${m.id}` === activeSlideKey) : null;
 
-  const { handleUpdateElement, handleAddText, handleAddImage, handleDeleteSelection } = useMediaActions({
-    activeMediaSlide, onUpdateMediaSlide: onUpdateMediaSlide as any, selectedElementId, setSelectedElementId
-  });
+  const { handleUpdateElement, handleAddText, handleAddImage, handleDeleteSelection } = useMediaActions({ activeMediaSlide, onUpdateMediaSlide: onUpdateMediaSlide as any, selectedElementId, setSelectedElementId });
 
   return (
     <>
@@ -95,8 +87,5 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = (props) =
   }, []);
   const initialOrder = useMemo(() => props.slides.map(s => s.key), [props.slides]);
   if (!mounted) return null;
-  return createPortal(
-    <ApresentacaoPreviewContent {...props} />,
-    document.body
-  );
+  return createPortal(<ApresentacaoPreviewContent {...props} />, document.body);
 };

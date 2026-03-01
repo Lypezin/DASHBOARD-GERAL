@@ -61,22 +61,16 @@ export const performRefresh = async (force: boolean, isLowUsage: boolean, timeCo
 };
 
 const logRefreshSuccess = (data: RefreshPrioritizedResult) => {
-    const duration = data.total_duration_seconds
-        ? `${(data.total_duration_seconds / 60).toFixed(1)} min`
-        : 'N/A';
+    const duration = data.total_duration_seconds ? `${(data.total_duration_seconds / 60).toFixed(1)} min` : 'N/A';
     const viewsCount = data.views_refreshed || 0;
     safeLog.info(`✅ Refresh de MVs críticas concluído: ${viewsCount} MVs em ${duration}`);
 
     if (data.results) {
         data.results.forEach((result) => {
             if (result.success) {
-                const mvDuration = result.duration_seconds
-                    ? `${result.duration_seconds.toFixed(1)}s`
-                    : 'N/A';
+                const mvDuration = result.duration_seconds ? `${result.duration_seconds.toFixed(1)}s` : 'N/A';
                 safeLog.info(`  - ${result.view}: ${result.method || 'NORMAL'} em ${mvDuration}`);
-            } else {
-                safeLog.warn(`  - ${result.view}: FALHOU`);
-            }
+            } else safeLog.warn(`  - ${result.view}: FALHOU`);
         });
     }
 };
@@ -85,21 +79,12 @@ const scheduleBackgroundRefresh = (setRefreshState: SetRefreshState) => {
     setTimeout(async () => {
         try {
             setRefreshState(prev => ({ ...prev, progress: 90, status: 'Finalizando...' }));
-            await safeRpc('refresh_pending_mvs', {}, {
-                timeout: 600000,
-                validateParams: false
-            });
-
+            await safeRpc('refresh_pending_mvs', {}, { timeout: 600000, validateParams: false });
             // Explicitly refresh UTR stats to ensure it's up to date
-            await safeRpc('refresh_single_mv_with_progress', { mv_name_param: 'mv_utr_stats' }, {
-                timeout: 300000,
-                validateParams: false
-            });
+            await safeRpc('refresh_single_mv_with_progress', { mv_name_param: 'mv_utr_stats' }, { timeout: 300000, validateParams: false });
             safeLog.info('✅ Refresh de MVs secundárias concluído em background');
         } catch (e) {
             safeLog.warn('⚠️ Refresh de MVs secundárias falhou:', e);
-        } finally {
-            setRefreshState({ isRefreshing: false, progress: 100, status: 'Concluído' });
-        }
+        } finally { setRefreshState({ isRefreshing: false, progress: 100, status: 'Concluído' }); }
     }, 5000);
 };

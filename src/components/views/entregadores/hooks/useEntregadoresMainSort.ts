@@ -44,57 +44,28 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
 
         let filtered = entregadoresData.entregadores;
 
-        // Aplicar filtro de busca
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
-            filtered = filtered.filter(
-                (e) =>
-                    e.nome_entregador.toLowerCase().includes(term) ||
-                    e.id_entregador.toLowerCase().includes(term)
-            );
+            filtered = filtered.filter((e) => e.nome_entregador.toLowerCase().includes(term) || e.id_entregador.toLowerCase().includes(term));
         }
-
-        if (showInactiveOnly) {
-            filtered = filtered.filter(e => (e.corridas_completadas || 0) === 0);
-        }
+        if (showInactiveOnly) filtered = filtered.filter(e => (e.corridas_completadas || 0) === 0);
 
         // Ordenar
-        const sorted = [...filtered].sort((a, b) => {
-            let aValue: number | string;
-            let bValue: number | string;
+        return [...filtered].sort((a, b) => {
+            let aVal: number | string = 0, bVal: number | string = 0;
+            if (sortField === 'percentual_aceitas') { aVal = calcularPercentualAceitas(a); bVal = calcularPercentualAceitas(b); }
+            else if (sortField === 'percentual_completadas') { aVal = calcularPercentualCompletadas(a); bVal = calcularPercentualCompletadas(b); }
+            else { aVal = a[sortField] ?? 0; bVal = b[sortField] ?? 0; }
 
-            if (sortField === 'percentual_aceitas') {
-                aValue = calcularPercentualAceitas(a);
-                bValue = calcularPercentualAceitas(b);
-            } else if (sortField === 'percentual_completadas') {
-                aValue = calcularPercentualCompletadas(a);
-                bValue = calcularPercentualCompletadas(b);
-            } else {
-                aValue = a[sortField] ?? 0;
-                bValue = b[sortField] ?? 0;
-            }
-
-            if (typeof aValue === 'string' && typeof bValue === 'string') {
-                return sortDirection === 'asc'
-                    ? aValue.localeCompare(bValue)
-                    : bValue.localeCompare(aValue);
-            }
-
-            return sortDirection === 'asc'
-                ? (aValue as number) - (bValue as number)
-                : (bValue as number) - (aValue as number);
+            if (typeof aVal === 'string' && typeof bVal === 'string') return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            return sortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
         });
 
-        return sorted;
     }, [entregadoresData, searchTerm, sortField, sortDirection, showInactiveOnly]);
 
     const handleSort = (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => {
-        if (sortField === field) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortField(field);
-            setSortDirection('desc');
-        }
+        if (sortField === field) setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        else { setSortField(field); setSortDirection('desc'); }
     };
 
     return { sortedEntregadores, sortField, sortDirection, searchTerm, setSearchTerm, showInactiveOnly, setShowInactiveOnly, handleSort };

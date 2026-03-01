@@ -1,17 +1,6 @@
-/**
- * Componente de tabela virtualizada usando react-window
- * 
- * ⚠️ NOTA: Este componente foi criado como base para virtualização de tabelas grandes.
- * Para usar, é necessário:
- * 1. Instalar @types/react-window se necessário
- * 2. Ajustar altura de linha conforme necessário
- * 3. Testar com dados reais
- * 
- * Benefícios:
- * - Renderiza apenas linhas visíveis (reduz DOM nodes em 90-95%)
- * - Melhor performance com listas grandes (centenas/milhares de linhas)
- * - Scroll suave mesmo com muitos dados
- */
+/** Componente de tabela virtualizada usando react-window
+ * ⚠️ NOTA: Base para virtualização de tabelas grandes. Instalar @types/react-window se necessário, ajustar row height e testar.
+ * Benefícios: Renderiza apenas linhas visíveis (reduz DOM nodes), Melhor performance com listas grandes, Scroll suave. */
 
 import React from 'react';
 // @ts-ignore - react-window types may not be fully compatible
@@ -26,21 +15,8 @@ interface VirtualizedTableProps<T> {
   emptyMessage?: string;
 }
 
-export function VirtualizedTable<T>({
-  data,
-  rowHeight = 60,
-  tableHeight = 600,
-  renderRow,
-  renderHeader,
-  emptyMessage = 'Nenhum dado disponível',
-}: VirtualizedTableProps<T>) {
-  if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-slate-500 dark:text-slate-400">
-        {emptyMessage}
-      </div>
-    );
-  }
+export function VirtualizedTable<T>({ data, rowHeight = 60, tableHeight = 600, renderRow, renderHeader, emptyMessage = 'Nenhum dado disponível' }: VirtualizedTableProps<T>) {
+  if (data.length === 0) return <div className="flex items-center justify-center h-64 text-slate-500 dark:text-slate-400">{emptyMessage}</div>;
 
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const item = data[index];
@@ -56,12 +32,7 @@ export function VirtualizedTable<T>({
             {/* Tabela virtualizada será renderizada aqui */}
             <tr>
               <td colSpan={10}>
-                <FixedSizeList
-                  height={tableHeight}
-                  itemCount={data.length}
-                  itemSize={rowHeight}
-                  width="100%"
-                >
+                <FixedSizeList height={tableHeight} itemCount={data.length} itemSize={rowHeight} width="100%">
                   {Row}
                 </FixedSizeList>
               </td>
@@ -74,27 +45,8 @@ export function VirtualizedTable<T>({
 }
 
 /**
- * ⚠️ NOTA DE IMPLEMENTAÇÃO:
- * 
- * A virtualização de tabelas HTML é mais complexa que virtualização de listas simples.
- * Para uma implementação completa, considere:
- * 
- * 1. Usar uma biblioteca especializada como:
- *    - react-table (TanStack Table) com virtualização
- *    - ag-grid (comercial, mas muito completo)
- *    - react-virtual (mais moderno que react-window)
- * 
- * 2. Ou implementar virtualização customizada:
- *    - Renderizar apenas linhas visíveis no viewport
- *    - Usar position: absolute para posicionamento
- *    - Manter header fixo
- * 
- * 3. Para tabelas com menos de 100-200 linhas, virtualização pode não ser necessária
- *    e pode até piorar a UX (scroll não nativo, etc.)
- * 
- * RECOMENDAÇÃO:
- * - Implementar virtualização apenas se houver problemas de performance comprovados
- * - Testar com dados reais antes de implementar
- * - Considerar paginação como alternativa mais simples
+ * NOTA DE IMPLEMENTAÇÃO: Virtualização de tabelas HTML é complexa. Considere:
+ * 1. Usar react-table, ag-grid ou react-virtual. 2. Virtualização customizada. 
+ * 3. Para tabelas < 200 linhas, virtualização pode não ser necessária. RECOMENDAÇÃO: Testar performance.
  */
 
