@@ -27,8 +27,9 @@ export function useTabFetchOrchestrator({
 
         if (!checkRateLimit(queueKey)) return;
 
+        const pendingPromise = getPendingRequest(queueKey);
         if (pendingPromise) {
-            pendingPromise.then((fetchedData) => {
+            pendingPromise.then((fetchedData: any) => {
                 if (currentTabRef.current !== tab) return;
                 const processedData = tab === 'valores' ? (Array.isArray(fetchedData) ? fetchedData as ValoresEntregador[] : []) : (fetchedData as TabData);
                 setData(processedData);
