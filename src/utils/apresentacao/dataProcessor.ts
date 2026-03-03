@@ -18,7 +18,7 @@ export interface DadosProcessados {
   resumoSemana2: { numeroSemana: string; aderencia: number; horasPlanejadas: string; horasEntregues: string; };
   variacaoResumo: { horasDiferenca: string; horasPercentual: string; positiva: boolean; };
   subPracasComparativo: any[]; semana1Dias: any[]; semana2Dias: any[];
-  turnosComparativo: any[]; origensComparativo: any[]; demandaItens: any[]; demandaOrigemItens: DemandaOrigemItem[];
+  turnosComparativo: any[]; origensComparativo: any[]; mediaOrigens: any; demandaItens: any[]; demandaOrigemItens: DemandaOrigemItem[];
 }
 
 export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProcessados | null => {
@@ -60,7 +60,9 @@ export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProces
     semana1OrigemCount: semana1?.aderencia_origem?.length,
     semana2OrigemCount: semana2?.aderencia_origem?.length
   });
-  const origensComparativo = processarOrigens(dadosBasicos);
+  const { origens, media } = processarOrigens(dadosBasicos);
+  const origensComparativo = origens;
+  const mediaOrigens = media;
   safeLog.info('[DataProcessor] Origens processed:', origensComparativo?.length);
 
   // Processar Demanda
@@ -69,5 +71,5 @@ export const processarDadosCompletos = (dadosBasicos: DadosBasicos): DadosProces
   // Processar Demanda por Origem
   const demandaOrigemItens = processarDemandaOrigem(dadosBasicos);
 
-  return { resumoSemana1, resumoSemana2, variacaoResumo, subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, demandaItens, demandaOrigemItens };
+  return { resumoSemana1, resumoSemana2, variacaoResumo, subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, mediaOrigens, demandaItens, demandaOrigemItens };
 };

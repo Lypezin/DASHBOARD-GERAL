@@ -7,9 +7,22 @@ import {
 } from './common';
 import { DadosBasicos } from './basicData';
 
-export const processarOrigens = (dadosBasicos: DadosBasicos) => {
+export interface OrigemProcessada {
+    nome: string;
+    horasPlanejadas: string;
+    semana1: { aderencia: number; horasEntregues: string };
+    semana2: { aderencia: number; horasEntregues: string };
+    variacoes: Array<{ label: string; valor: string; positivo: boolean }>;
+}
+
+export interface OrigensProcessadasResult {
+    origens: OrigemProcessada[];
+    media: OrigemProcessada | null;
+}
+
+export const processarOrigens = (dadosBasicos: DadosBasicos): OrigensProcessadasResult => {
     const { semana1, semana2 } = dadosBasicos;
-    if (!semana1 || !semana2) return [];
+    if (!semana1 || !semana2) return { origens: [], media: null };
 
     // Use aderencia_origem (main) with fallback to origem (alias)
     const origensSemana1 = semana1.aderencia_origem || semana1.origem || [];
@@ -100,7 +113,7 @@ export const processarOrigens = (dadosBasicos: DadosBasicos) => {
 
     const diffAderenciaMediaPercent = calcularDiferencaPercentual(mediaAderenciaSem1, mediaAderenciaSem2);
 
-    const mediaGeralObj = {
+    const mediaGeralObj: OrigemProcessada = {
         nome: 'MÉDIA DAS ORIGENS',
         horasPlanejadas: formatarHorasParaHMS(Math.abs(mediaHorasPlanejadas).toString()),
         semana1: {
@@ -120,9 +133,8 @@ export const processarOrigens = (dadosBasicos: DadosBasicos) => {
         ],
     };
 
-    if (origensProcessadas.length > 0) {
-        origensProcessadas.unshift(mediaGeralObj);
-    }
-
-    return origensProcessadas;
+    return {
+        origens: origensProcessadas,
+        media: origensProcessadas.length > 0 ? mediaGeralObj : null
+    };
 };

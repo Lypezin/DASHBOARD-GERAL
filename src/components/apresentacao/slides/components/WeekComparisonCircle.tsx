@@ -69,12 +69,14 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
             </div>
 
             {/* Hours */}
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 text-center min-w-[110px]">
-                <span className="text-[0.6rem] font-semibold text-emerald-600 uppercase block">Entregue</span>
-                <span className="font-bold text-emerald-700 block text-base" style={buildTimeTextStyle(horasEntregues, 1)}>
-                    {horasEntregues}
-                </span>
-            </div>
+            {horasEntregues && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 text-center min-w-[110px]">
+                    <span className="text-[0.6rem] font-semibold text-emerald-600 uppercase block">Entregue</span>
+                    <span className="font-bold text-emerald-700 block text-base" style={buildTimeTextStyle(horasEntregues, 1)}>
+                        {horasEntregues}
+                    </span>
+                </div>
+            )}
         </div>
     );
 };

@@ -7,7 +7,7 @@ import SlideCapaFinal from '@/components/apresentacao/slides/SlideCapaFinal';
 import {
     buildSlideCapa, buildSlideResumoIA, buildSlideAderenciaGeral, buildSlideRanking,
     buildSlidesSubPracas, buildSlideAderenciaDiaria, buildSlidesTurnos, buildSlidesOrigem,
-    buildSlideDemanda, buildSlidesDemandaOrigem, SlideConfig
+    buildSlideMediaOrigens, buildSlideDemanda, buildSlidesDemandaOrigem, SlideConfig
 } from './slideBuilders';
 
 export function buildAllSlides(
@@ -23,7 +23,7 @@ export function buildAllSlides(
     onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void
 ): SlideConfig[] {
     const slidesConfig: SlideConfig[] = [];
-    const { subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, demandaItens, demandaOrigemItens } = dadosProcessados;
+    const { subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, mediaOrigens, demandaItens, demandaOrigemItens } = dadosProcessados;
 
     const capa = buildSlideCapa(visibleSections.capa, { pracaSelecionada, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 });
     if (capa) slidesConfig.push(capa);
@@ -47,6 +47,11 @@ export function buildAllSlides(
     }
 
     slidesConfig.push(...buildSlidesTurnos(visibleSections.turnos, turnosComparativo, { numeroSemana1, numeroSemana2 }));
+
+    // Novo slider de Media Origens
+    const mediaOrigensSlide = buildSlideMediaOrigens(visibleSections.origens, mediaOrigens, { numeroSemana1, numeroSemana2 });
+    if (mediaOrigensSlide) slidesConfig.push(mediaOrigensSlide);
+
     slidesConfig.push(...buildSlidesOrigem(visibleSections.origens, origensComparativo, { numeroSemana1, numeroSemana2 }));
 
     const demanda = buildSlideDemanda(visibleSections.demanda, demandaItens, { numeroSemana1, numeroSemana2 });

@@ -8,6 +8,7 @@ import SlideAderenciaGeral from '@/components/apresentacao/slides/SlideAderencia
 import SlideRanking from '@/components/apresentacao/slides/SlideRanking';
 import SlideAderenciaDiaria from '@/components/apresentacao/slides/SlideAderenciaDiaria';
 import SlideDemanda from '@/components/apresentacao/slides/SlideDemandaRejeicoes';
+import SlideMediaOrigens from '@/components/apresentacao/slides/SlideMediaOrigens';
 
 export const buildSlideCapa = (visible: boolean, props: { pracaSelecionada: string | null; numeroSemana1: string; numeroSemana2: string; periodoSemana1: string; periodoSemana2: string; }): SlideConfig | null => {
     if (!visible) return null;
@@ -52,6 +53,14 @@ export const buildSlideRanking = (
 export const buildSlideAderenciaDiaria = (visible: boolean, props: { numeroSemana1: string; numeroSemana2: string; semana1Dias: any[]; semana2Dias: any[]; }): SlideConfig | null => {
     if (!visible) return null;
     return { key: 'aderencia-diaria', render: (v) => <SlideAderenciaDiaria isVisible={v} {...props} /> };
+};
+
+export const buildSlideMediaOrigens = (visible: boolean, media: any, props: { numeroSemana1: string; numeroSemana2: string }): SlideConfig | null => {
+    if (!visible || !media) return null;
+    return {
+        key: 'media-origens',
+        render: (v) => <SlideMediaOrigens isVisible={v} media={media} numeroSemana1={props.numeroSemana1} numeroSemana2={props.numeroSemana2} />
+    };
 };
 
 export const buildSlideDemanda = (
