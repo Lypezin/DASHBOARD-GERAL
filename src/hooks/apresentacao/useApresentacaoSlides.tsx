@@ -15,7 +15,7 @@ export const useApresentacaoSlides = (
   pracaSelecionada: string | null,
   visibleSections: Record<string, boolean> = {
     capa: true, 'resumo-ia': true, 'aderencia-geral': true, 'ranking': true, 'sub-pracas': true,
-    'aderencia-diaria': true, 'utr': true, turnos: true, origens: true, 'demanda-origem': true, demanda: true,
+    'aderencia-diaria': true, 'utr': true, turnos: true, 'media-origens': true, origens: true, 'demanda-origem': true, demanda: true,
   },
   mediaSlides: MediaSlideData[] = [],
   onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void

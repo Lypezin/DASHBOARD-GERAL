@@ -31,7 +31,7 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
 
     const [visibleSections, setVisibleSections] = useState({
         capa: true, 'resumo-ia': false, 'aderencia-geral': true, ranking: false, 'sub-pracas': true,
-        'aderencia-diaria': true, utr: true, turnos: true, origens: true, 'demanda-origem': true, demanda: true, 'capa-final': true,
+        'aderencia-diaria': true, utr: true, turnos: true, 'media-origens': true, origens: true, 'demanda-origem': true, demanda: true, 'capa-final': true,
     });
 
     useEffect(() => {

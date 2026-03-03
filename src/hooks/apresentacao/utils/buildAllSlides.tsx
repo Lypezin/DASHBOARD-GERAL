@@ -49,7 +49,7 @@ export function buildAllSlides(
     slidesConfig.push(...buildSlidesTurnos(visibleSections.turnos, turnosComparativo, { numeroSemana1, numeroSemana2 }));
 
     // Novo slider de Media Origens
-    const mediaOrigensSlide = buildSlideMediaOrigens(visibleSections.origens, mediaOrigens, { numeroSemana1, numeroSemana2 });
+    const mediaOrigensSlide = buildSlideMediaOrigens(visibleSections['media-origens'], mediaOrigens, { numeroSemana1, numeroSemana2 });
     if (mediaOrigensSlide) slidesConfig.push(mediaOrigensSlide);
 
     slidesConfig.push(...buildSlidesOrigem(visibleSections.origens, origensComparativo, { numeroSemana1, numeroSemana2 }));

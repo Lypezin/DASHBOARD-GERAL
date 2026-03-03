@@ -25,6 +25,7 @@ const SECTION_LABELS: Record<string, string> = {
     'aderencia-diaria': 'Detalhamento Diário',
     utr: 'UTR',
     turnos: 'Turnos',
+    'media-origens': 'Média das Origens',
     origens: 'Origens',
     'demanda-origem': 'Demanda por Origem',
     demanda: 'Demanda e Rejeições',
