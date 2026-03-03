@@ -13,9 +13,19 @@ interface ComparacaoOrigemRowProps {
 export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSelecionadas, dadosPorOrigem }: ComparacaoOrigemRowProps) => {
     return (
         <TableRow
-            className={`${index % 2 === 0 ? '' : 'bg-slate-50/40 dark:bg-slate-900/30'} hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-800`}
+            className={`
+                ${origem === 'MÉDIA DAS ORIGENS'
+                    ? 'bg-blue-50/80 dark:bg-blue-900/20 font-semibold'
+                    : index % 2 === 0 ? '' : 'bg-slate-50/40 dark:bg-slate-900/30'
+                } 
+                hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-800
+            `}
         >
-            <TableCell className="sticky left-0 z-10 bg-white dark:bg-slate-900 font-medium text-sm text-slate-800 dark:text-slate-200 pl-5 border-r border-slate-100 dark:border-slate-800 py-3">
+            <TableCell className={`sticky left-0 z-10 font-medium text-sm pl-5 border-r border-slate-100 dark:border-slate-800 py-3
+                ${origem === 'MÉDIA DAS ORIGENS'
+                    ? 'bg-blue-50 dark:bg-slate-900 text-blue-700 dark:text-blue-400'
+                    : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200'}
+            `}>
                 {origem}
             </TableCell>
             {semanasSelecionadas.map((_, idx) => {
@@ -35,7 +45,8 @@ export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSeleciona
 
                 return (
                     <React.Fragment key={idx}>
-                        <TableCell className="text-center text-sm font-medium tabular-nums text-slate-700 dark:text-slate-300 border-l border-slate-100 dark:border-slate-800 py-3">
+                        <TableCell className={`text-center text-sm font-medium tabular-nums text-slate-700 dark:text-slate-300 border-l border-slate-100 dark:border-slate-800 py-3`}>
+                            {origem === 'MÉDIA DAS ORIGENS' && <span className="text-blue-600 dark:text-blue-400 mr-1">~</span>}
                             {valor.toFixed(1)}%
                         </TableCell>
                         <TableCell className="text-center w-[70px] py-2">
