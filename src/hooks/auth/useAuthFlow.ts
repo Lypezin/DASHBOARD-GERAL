@@ -29,15 +29,15 @@ export function useAuthFlow(options: AuthGuardOptions): AuthGuardResult {
     useEffect(() => {
         if (skip) return;
 
-        const checkAuthentication = async () => {
+        const checkAuthentication = async (isBackgroundCheck = false) => {
             try {
                 if (pathname === '/login' || pathname === '/registro') {
-                    setIsChecking(false);
+                    if (!isBackgroundCheck) setIsChecking(false);
                     setIsAuthenticated(false);
                     return;
                 }
 
-                setIsChecking(true);
+                if (!isBackgroundCheck) setIsChecking(true);
                 setError(null);
 
                 const sessionUser = await checkSession(router);
@@ -71,6 +71,12 @@ export function useAuthFlow(options: AuthGuardOptions): AuthGuardResult {
         };
 
         checkAuthentication();
+
+        // Expor a função para o caso da inscrição do evento do supabase 
+        // usar em verificações futuras (background sync)
+        if (typeof window !== 'undefined') {
+            (window as any).__performBackgroundAuthCheck = () => checkAuthentication(true);
+        }
     }, [router, pathname, requireApproval, requiredRole, fetchUserProfile, onAuthFailure, skip]);
 
     return {

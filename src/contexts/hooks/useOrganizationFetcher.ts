@@ -13,7 +13,11 @@ export function useOrganizationFetcher() {
 
     const fetchOrganization = useCallback(async () => {
         try {
-            setIsLoading(true);
+            // Só ativar a flag destrutiva de loading se for a primeira vez
+            setOrganization(prev => {
+                if (!prev) setIsLoading(true);
+                return prev;
+            });
             setError(null);
 
             // Verificar se usuário está autenticado
@@ -65,6 +69,7 @@ export function useOrganizationFetcher() {
             setError(errorMessage);
             setOrganization(null);
         } finally {
+            // Garantir que o falso venha sempre
             setIsLoading(false);
         }
     }, []);

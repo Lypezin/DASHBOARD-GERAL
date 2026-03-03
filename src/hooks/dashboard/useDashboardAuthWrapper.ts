@@ -13,7 +13,14 @@ export function useDashboardAuthWrapper() {
     // Atualizar currentUser quando authUser mudar
     useEffect(() => {
         if (authUser) {
-            setCurrentUser(authUser);
+            setCurrentUser(prevUser => {
+                // Previne re-renders massivos do Dashboard caso o AuthFlow (background sync do supabase)
+                // injete um novo objeto com os EXATOS mesmos dados. Isso salva o React.memo() lá na ponta.
+                if (JSON.stringify(prevUser) === JSON.stringify(authUser)) {
+                    return prevUser;
+                }
+                return authUser;
+            });
         }
     }, [authUser]);
 
