@@ -20,9 +20,9 @@ export const CACHE = {
  */
 export const DELAYS = {
     /** Debounce padrão para inputs e filtros */
-    DEBOUNCE: 500, // 500ms - aumentado para reduzir queries
+    DEBOUNCE: 300, // Reduzido de 500ms para 300ms para interface mais snappier
     /** Debounce para mudanças de tab */
-    TAB_CHANGE: 100, // 100ms
+    TAB_CHANGE: 50, // 50ms
     /** Delay para retry de erros 500 */
     RETRY_500: 2000, // 2 segundos
     /** Delay para retry de rate limit */

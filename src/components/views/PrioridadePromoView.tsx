@@ -30,7 +30,10 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   return (
     <PrioridadeLayout
       sortedEntregadores={state.sortedEntregadores}
+      paginatedEntregadores={state.paginatedEntregadores}
       dataFiltradaLength={state.dataFiltrada.length}
+      hasMore={state.hasMore}
+      onLoadMore={actions.loadMore}
       sortField={state.sortField}
       sortDirection={state.sortDirection}
       searchTerm={state.searchTerm}

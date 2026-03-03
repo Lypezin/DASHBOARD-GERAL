@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Entregador, EntregadoresData } from '@/types';
 import { usePrioridadeSearch } from './usePrioridadeSearch';
 import { usePrioridadeFilters } from './hooks/usePrioridadeFilters';
@@ -41,8 +41,29 @@ export function usePrioridadeData(entregadoresData: EntregadoresData | null) {
         handleSort
     } = usePrioridadeSort(dataFiltrada);
 
+    // Paginação Client-Side
+    const [visibleCount, setVisibleCount] = useState(50);
+
+    // Resetar a paginação ao filtrar, buscar, ou carregar
+    useEffect(() => {
+        setVisibleCount(50);
+    }, [searchTerm, filtroAderencia, filtroRejeicao, filtroCompletadas, filtroAceitas, entregadoresData]);
+
+    const loadMore = useCallback(() => {
+        setVisibleCount(prev => prev + 50);
+    }, []);
+
+    const paginatedEntregadores = useMemo(() => {
+        return sortedEntregadores.slice(0, visibleCount);
+    }, [sortedEntregadores, visibleCount]);
+
+    const hasMore = visibleCount < sortedEntregadores.length;
+
     return {
-        sortedEntregadores,
+        sortedEntregadores, // Útil caso haja exportação futura
+        paginatedEntregadores,
+        loadMore,
+        hasMore,
         dataFiltrada,
         sortField,
         sortDirection,

@@ -9,6 +9,9 @@ export function usePrioridadeViewController(
 ) {
     const {
         sortedEntregadores,
+        paginatedEntregadores,
+        loadMore,
+        hasMore,
         dataFiltrada,
         sortField,
         sortDirection,
@@ -35,6 +38,8 @@ export function usePrioridadeViewController(
             loading,
             entregadoresData,
             sortedEntregadores,
+            paginatedEntregadores,
+            hasMore,
             dataFiltrada,
             sortField,
             sortDirection,
@@ -47,6 +52,7 @@ export function usePrioridadeViewController(
             stats
         },
         actions: {
+            loadMore,
             setSearchTerm,
             setFiltroAderencia,
             setFiltroRejeicao,

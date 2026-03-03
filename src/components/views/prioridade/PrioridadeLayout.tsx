@@ -8,20 +8,20 @@ import { PrioridadeSearch } from './PrioridadeSearch';
 import { PrioridadeStatsCards } from './PrioridadeStatsCards';
 import { PrioridadeTable } from './PrioridadeTable';
 interface PrioridadeLayoutProps {
-    sortedEntregadores: any[]; dataFiltradaLength: number; sortField: any; sortDirection: any;
+    sortedEntregadores: any[]; paginatedEntregadores: any[]; dataFiltradaLength: number; sortField: any; sortDirection: any;
     searchTerm: string; isSearching: boolean; filtroAderencia: any; filtroRejeicao: any;
-    filtroCompletadas: any; filtroAceitas: any; stats: any;
-    onSearchChange: (val: string) => void; onClearSearch: () => void;
+    filtroCompletadas: any; filtroAceitas: any; stats: any; hasMore: boolean;
+    onSearchChange: (val: string) => void; onClearSearch: () => void; onLoadMore: () => void;
     onAderenciaChange: (val: any) => void; onRejeicaoChange: (val: any) => void;
     onCompletadasChange: (val: any) => void; onAceitasChange: (val: any) => void;
     onClearFilters: () => void; onSort: (field: any) => void;
 }
 
 export const PrioridadeLayout = React.memo(function PrioridadeLayout({
-    sortedEntregadores, dataFiltradaLength, sortField, sortDirection, searchTerm, isSearching,
-    filtroAderencia, filtroRejeicao, filtroCompletadas, filtroAceitas, stats,
+    sortedEntregadores, paginatedEntregadores, dataFiltradaLength, sortField, sortDirection, searchTerm, isSearching,
+    filtroAderencia, filtroRejeicao, filtroCompletadas, filtroAceitas, stats, hasMore,
     onSearchChange, onClearSearch, onAderenciaChange, onRejeicaoChange,
-    onCompletadasChange, onAceitasChange, onClearFilters, onSort
+    onCompletadasChange, onAceitasChange, onClearFilters, onSort, onLoadMore
 }: PrioridadeLayoutProps) {
     return (
         <motion.div
@@ -71,10 +71,12 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
 
             <motion.div variants={fadeInItem}>
                 <PrioridadeTable
-                    sortedEntregadores={sortedEntregadores}
+                    sortedEntregadores={paginatedEntregadores}
                     sortField={sortField}
                     sortDirection={sortDirection}
                     onSort={onSort}
+                    hasMore={hasMore}
+                    onLoadMore={onLoadMore}
                 />
             </motion.div>
         </motion.div>

@@ -9,6 +9,8 @@ interface PrioridadeTableProps {
   sortedEntregadores: Entregador[];
   sortField: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas';
   sortDirection: 'asc' | 'desc';
+  hasMore: boolean;
+  onLoadMore: () => void;
   onSort: (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => void;
 }
 
@@ -16,6 +18,8 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
   sortedEntregadores,
   sortField,
   sortDirection,
+  hasMore,
+  onLoadMore,
   onSort,
 }) => {
   return (
@@ -57,6 +61,16 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
             </tbody>
           </table>
         </div>
+        {hasMore && (
+          <div className="flex justify-center p-4 border-t border-slate-100 dark:border-slate-800/60 bg-slate-50 dark:bg-slate-800/20">
+            <button
+              onClick={onLoadMore}
+              className="px-6 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 hover:text-slate-900 transition-colors dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white shadow-sm"
+            >
+              Carregar mais resultados
+            </button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

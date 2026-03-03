@@ -7,6 +7,7 @@ import { DashboardViewsRenderer } from '@/components/dashboard/DashboardViewsRen
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState';
 import { DashboardErrorState } from '@/components/dashboard/DashboardErrorState';
 import { DashboardAuthLoading } from '@/components/dashboard/DashboardAuthLoading';
+import { ActivityTracker } from '@/components/dashboard/ActivityTracker';
 import type { AderenciaSemanal } from '@/types';
 
 export default function DashboardPage() {
@@ -25,6 +26,7 @@ function DashboardContent() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">
+            <ActivityTracker activeTab={ui.activeTab} filters={fGroup.state} currentUser={auth.currentUser} />
             <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
                 {ui.loading && <DashboardLoadingState />}
                 {ui.error && <DashboardErrorState error={ui.error} />}

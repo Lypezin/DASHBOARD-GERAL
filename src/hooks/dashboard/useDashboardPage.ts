@@ -3,7 +3,6 @@ import { useDashboardData } from './useDashboardData';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { useDashboardKeys } from './useDashboardKeys';
-import { useUserActivity } from '@/hooks/auth/useUserActivity';
 import { useDashboardFilters } from './useDashboardFilters';
 import { useEvolutionAutoSelect } from '@/hooks/data/useEvolutionAutoSelect';
 import { useChartRegistration } from './useChartRegistration';
@@ -26,8 +25,6 @@ export function useDashboardPage() {
   const { filterPayload } = useDashboardKeys(filters, currentUser);
   const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
   const { utrData, entregadoresData, valoresData, prioridadeData } = useTabDataMapper({ activeTab, tabData });
-
-  useUserActivity(activeTab, filters, currentUser);
 
   const dashboardData = {
     aderenciaGeral: dashboardFetch.aderenciaGeral,
