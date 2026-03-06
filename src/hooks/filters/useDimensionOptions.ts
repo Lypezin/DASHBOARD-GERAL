@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
+import { supabase } from '@/lib/supabaseClient';
 import { FilterOption, CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -28,11 +29,36 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
         }
 
         if (targetPracas.length > 0) {
-            // Faremos a filtragem puramente no Front-end baseada nas dimensões já carregadas pelo dashboard_resumo
-            // Isso evita completamente os erros 403 Forbidden e torna a interface instantânea
-            setSubPracas(processFallbackSubPracas(dimensoes, targetPracas));
-            setTurnos(mapToOptions((dimensoes as any).turnos));
-            setOrigens(mapToOptions(dimensoes.origens));
+            // Buscando as sub-praças da View diretamente, já que as RPCs get_*_by_praca estão com 403
+            const fetchFromView = async () => {
+                try {
+                    // Tenta buscar sub-praça diretamente da view onde a praca bate
+                    const { data, error } = await supabase
+                        .from('mv_aderencia_agregada')
+                        .select('sub_praca, turno, origem')
+                        .in('praca', targetPracas)
+                        .limit(5000); // garante resgatar a maioria das combinações
+                    
+                    if (!error && data && data.length > 0) {
+                        const uniqueSubs = Array.from(new Set(data.map((d: any) => d.sub_praca).filter(Boolean)));
+                        const uniqueTurnos = Array.from(new Set(data.map((d: any) => d.turno).filter(Boolean)));
+                        const uniqueOrigens = Array.from(new Set(data.map((d: any) => d.origem).filter(Boolean)));
+
+                        setSubPracas(uniqueSubs.map(v => ({ value: String(v), label: String(v) })));
+                        setTurnos(uniqueTurnos.length > 0 ? uniqueTurnos.map(v => ({ value: String(v), label: String(v) })) : mapToOptions((dimensoes as any).turnos));
+                        setOrigens(uniqueOrigens.length > 0 ? uniqueOrigens.map(v => ({ value: String(v), label: String(v) })) : mapToOptions(dimensoes.origens));
+                        return;
+                    }
+                } catch (e) {
+                    if (IS_DEV) safeLog.warn('Failed to fetch dimension details from mv_aderencia_agregada', e);
+                }
+
+                // Fallback (último caso)
+                setSubPracas(processFallbackSubPracas(dimensoes, targetPracas));
+                setTurnos(mapToOptions((dimensoes as any).turnos));
+                setOrigens(mapToOptions(dimensoes.origens));
+            };
+            fetchFromView();
         } else {
             // Sem restrição ou praça selecionada (Admin visão global)
             setSubPracas(mapToOptions(dimensoes.sub_pracas));
