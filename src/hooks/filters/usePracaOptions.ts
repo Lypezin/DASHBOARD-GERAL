@@ -19,84 +19,49 @@ export function usePracaOptions(dimensoes: DimensoesDashboard | null, currentUse
         const fetchPracas = async () => {
             let pracasTotais: string[] = [];
             const selectedAno = filters?.ano;
-            const cacheKey = selectedAno ? `admin_pracas_cache_${selectedAno}` : null;
 
-            // Tentativa de usar Cache por Ano (apenas para quem tem acesso total ou para interseção)
-            if (cacheKey) {
-                const cachedData = sessionStorage.getItem(cacheKey);
-                if (cachedData) {
-                    try {
-                        const parsed = JSON.parse(cachedData);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            if (currentUser && !hasFullCityAccess(currentUser)) {
-                                pracasTotais = parsed.filter(p => currentUser.assigned_pracas.map(a => a.toUpperCase()).includes(p.toUpperCase()));
-                                setPracas(pracasTotais.map(p => ({ value: p, label: p })));
-                                return;
-                            } else {
-                                setPracas(parsed.map((p: string) => ({ value: p, label: p })));
-                                return;
-                            }
-                        }
-                    } catch (e) {
-                        // ignore error
-                    }
-                }
+            // Busca as praças diretamente do `dimensoes` se existir, e o `dashboard_resumo` costuma 
+            // já retornar isso delimitado.
+            if (dimensoes?.pracas && Array.isArray(dimensoes.pracas)) {
+                // Se o usuário selecionou um ano, podemos usar as praças de dimensoes que já consideram o ano
+                pracasTotais = dimensoes.pracas.map(String);
             }
 
-            // Busca as praças apenas do Ano se ele estiver selecionado
-            if (selectedAno) {
-                try {
-                    const { data: mvPracas, error: mvError } = await supabase
-                        .from('mv_aderencia_agregada')
-                        .select('praca')
-                        .eq('ano', selectedAno)
-                        .not('praca', 'is', null);
-
-                    if (!mvError && mvPracas && mvPracas.length > 0) {
-                        const uniquePracas = [...new Set(mvPracas.map(p => p.praca))].filter(Boolean) as string[];
-                        if (cacheKey) {
-                            sessionStorage.setItem(cacheKey, JSON.stringify(uniquePracas));
-                        }
-
-                        if (currentUser && !hasFullCityAccess(currentUser)) {
-                            pracasTotais = uniquePracas.filter(p => currentUser.assigned_pracas.map(a => a.toUpperCase()).includes(p.toUpperCase()));
-                        } else {
-                            pracasTotais = uniquePracas;
-                        }
-                        
-                        setPracas(pracasTotais.map(p => ({ value: p, label: p })));
-                        return;
-                    }
-                } catch (err) {
-                    if (IS_DEV) safeLog.warn('Erro ao buscar praças por ano via fallback MV:', err);
-                }
-            }
-
-            // 1. Acesso total sem ano selecionado ou se falhou a busca por ano
-            if (currentUser && hasFullCityAccess(currentUser)) {
-                try {
-                    const { data: pracasData, error: pracasError } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
-                        timeout: RPC_TIMEOUTS.FAST,
-                        validateParams: false
-                    });
-
-                    if (!pracasError && pracasData && pracasData.length > 0) {
-                        pracasTotais = pracasData.map(p => p.praca || p).filter(Boolean);
+            // Se ainda não temos pracas (fallback ou se dimensoes estiver vazio e sem ano)
+            if (pracasTotais.length === 0) {
+                if (currentUser && hasFullCityAccess(currentUser)) {
+                    if (selectedAno) {
+                        try {
+                            const { data: dbPracas, error } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
+                                timeout: RPC_TIMEOUTS.FAST,
+                                validateParams: false
+                            });
+                            // Not filtering by year securely without a proper db table, so we fallback to all
+                            if (!error && dbPracas) pracasTotais = dbPracas.map(p => p.praca || p).filter(Boolean);
+                        } catch (err) {}
                     } else {
-                        pracasTotais = Array.isArray(dimensoes?.pracas) ? dimensoes!.pracas.map(String) : [];
+                        try {
+                            const { data: pracasData, error: pracasError } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
+                                timeout: RPC_TIMEOUTS.FAST,
+                                validateParams: false
+                            });
+                            if (!pracasError && pracasData && pracasData.length > 0) {
+                                pracasTotais = pracasData.map(p => p.praca || p).filter(Boolean);
+                            }
+                        } catch (err) {}
                     }
-                } catch (err) {
-                    if (IS_DEV) safeLog.warn('Erro ao buscar praças via RPC:', err);
-                    pracasTotais = Array.isArray(dimensoes?.pracas) ? dimensoes!.pracas.map(String) : [];
+                } else if (currentUser?.assigned_pracas && currentUser.assigned_pracas.length > 0) {
+                    pracasTotais = currentUser.assigned_pracas;
                 }
             }
-            // 2. Acesso restrito
-            else if (currentUser?.assigned_pracas && currentUser.assigned_pracas.length > 0) {
-                pracasTotais = currentUser.assigned_pracas;
-            }
-            // 3. Fallback
-            else if (dimensoes?.pracas) {
-                pracasTotais = Array.isArray(dimensoes.pracas) ? dimensoes.pracas.map(String) : [];
+
+            // Filtro final para usuários restritos (Garantindo que a lista resultante intersecciona os acessos)
+            if (currentUser && !hasFullCityAccess(currentUser)) {
+                if (pracasTotais.length > 0) {
+                    pracasTotais = pracasTotais.filter(p => currentUser.assigned_pracas.map(a => a.toUpperCase()).includes(p.toUpperCase()));
+                } else {
+                    pracasTotais = currentUser.assigned_pracas;
+                }
             }
 
             const options = pracasTotais.map(p => ({ value: p, label: p }));

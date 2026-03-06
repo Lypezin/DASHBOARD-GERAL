@@ -19,23 +19,24 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
             return;
         }
 
-        let targetPracas: string[] = [];
-        
+        let shouldCallRpc = false;
+        let rpcPracasTarget: string[] = [];
+
         if (filters?.praca) {
-            targetPracas = [filters.praca];
+            // Se o usuário selecionou uma praça específica, filtramos apenas por ela
+            shouldCallRpc = true;
+            rpcPracasTarget = [filters.praca];
         } else if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
-            targetPracas = currentUser.assigned_pracas;
-        } else if (currentUser && hasFullCityAccess(currentUser)) {
-            // For admins with no pre-selected praca, to avoid giant lists we can optionally search by global dimensoes.pracas
-            // but actually we want all the sub-parts available if no praca is selected
-            targetPracas = Array.isArray(dimensoes.pracas) ? dimensoes.pracas.map(String) : [];
+            // Se o usuário tem acesso restrito e não escolheu praça, filtramos pelas praças permitidas
+            shouldCallRpc = true;
+            rpcPracasTarget = currentUser.assigned_pracas;
         }
 
-        if (targetPracas.length > 0) {
+        if (shouldCallRpc && rpcPracasTarget.length > 0) {
             Promise.all([
-                safeRpc<Array<{ sub_praca: string }>>('get_subpracas_by_praca', { p_pracas: targetPracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
-                safeRpc<Array<{ turno: string }>>('get_turnos_by_praca', { p_pracas: targetPracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
-                safeRpc<Array<{ origem: string }>>('get_origens_by_praca', { p_pracas: targetPracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false })
+                safeRpc<Array<{ sub_praca: string }>>('get_subpracas_by_praca', { p_pracas: rpcPracasTarget }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
+                safeRpc<Array<{ turno: string }>>('get_turnos_by_praca', { p_pracas: rpcPracasTarget }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
+                safeRpc<Array<{ origem: string }>>('get_origens_by_praca', { p_pracas: rpcPracasTarget }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false })
             ])
                 .then(([subPracasResult, turnosResult, origensResult]) => {
                     // Sub-praças
@@ -48,7 +49,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
                         const subPracasDoDashboard = Array.isArray(dimensoes.sub_pracas) ? dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
                         setSubPracas(subPracasDoDashboard.filter((sp) => {
                             const subPracaValue = sp.value.toUpperCase();
-                            return targetPracas.some((praca) => subPracaValue.includes(praca.toUpperCase()) || subPracaValue.startsWith(praca.toUpperCase()));
+                            return rpcPracasTarget.some((praca) => subPracaValue.includes(praca.toUpperCase()) || subPracaValue.startsWith(praca.toUpperCase()));
                         }));
                     }
 
@@ -78,13 +79,12 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
                 })
                 .catch((err) => {
                     if (IS_DEV) safeLog.warn('Erro ao buscar dimensões do banco, usando fallback:', err);
-                    // Fallback completo em caso de erro na Promise.all
-                    setSubPracas(processFallbackSubPracas(dimensoes, currentUser ? currentUser.assigned_pracas : targetPracas));
+                    setSubPracas(processFallbackSubPracas(dimensoes, rpcPracasTarget));
                     setTurnos(mapToOptions((dimensoes as any).turnos));
                     setOrigens(mapToOptions(dimensoes.origens));
                 });
         } else {
-            // Fallback total se targetPracas = 0 (muito raro)
+            // Fallback total se não tiver restrição ou praça selecionada
             setSubPracas(mapToOptions(dimensoes.sub_pracas));
             setTurnos(mapToOptions((dimensoes as any).turnos));
             setOrigens(mapToOptions(dimensoes.origens));
