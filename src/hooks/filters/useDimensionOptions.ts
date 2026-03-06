@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { FilterOption, CurrentUser, hasFullCityAccess, DimensoesDashboard } from '@/types';
+import { FilterOption, CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
 import { RPC_TIMEOUTS } from '@/constants/config';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export function useDimensionOptions(dimensoes: DimensoesDashboard | null, currentUser?: CurrentUser | null) {
+export function useDimensionOptions(dimensoes: DimensoesDashboard | null, currentUser?: CurrentUser | null, filters?: Filters | null) {
     const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
     const [origens, setOrigens] = useState<FilterOption[]>([]);
     const [turnos, setTurnos] = useState<FilterOption[]>([]);
@@ -19,11 +19,23 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
             return;
         }
 
-        if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
+        let targetPracas: string[] = [];
+        
+        if (filters?.praca) {
+            targetPracas = [filters.praca];
+        } else if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
+            targetPracas = currentUser.assigned_pracas;
+        } else if (currentUser && hasFullCityAccess(currentUser)) {
+            // For admins with no pre-selected praca, to avoid giant lists we can optionally search by global dimensoes.pracas
+            // but actually we want all the sub-parts available if no praca is selected
+            targetPracas = Array.isArray(dimensoes.pracas) ? dimensoes.pracas.map(String) : [];
+        }
+
+        if (targetPracas.length > 0) {
             Promise.all([
-                safeRpc<Array<{ sub_praca: string }>>('get_subpracas_by_praca', { p_pracas: currentUser.assigned_pracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
-                safeRpc<Array<{ turno: string }>>('get_turnos_by_praca', { p_pracas: currentUser.assigned_pracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
-                safeRpc<Array<{ origem: string }>>('get_origens_by_praca', { p_pracas: currentUser.assigned_pracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false })
+                safeRpc<Array<{ sub_praca: string }>>('get_subpracas_by_praca', { p_pracas: targetPracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
+                safeRpc<Array<{ turno: string }>>('get_turnos_by_praca', { p_pracas: targetPracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
+                safeRpc<Array<{ origem: string }>>('get_origens_by_praca', { p_pracas: targetPracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false })
             ])
                 .then(([subPracasResult, turnosResult, origensResult]) => {
                     // Sub-praças
@@ -36,7 +48,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
                         const subPracasDoDashboard = Array.isArray(dimensoes.sub_pracas) ? dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
                         setSubPracas(subPracasDoDashboard.filter((sp) => {
                             const subPracaValue = sp.value.toUpperCase();
-                            return currentUser.assigned_pracas.some((praca) => subPracaValue.includes(praca.toUpperCase()) || subPracaValue.startsWith(praca.toUpperCase()));
+                            return targetPracas.some((praca) => subPracaValue.includes(praca.toUpperCase()) || subPracaValue.startsWith(praca.toUpperCase()));
                         }));
                     }
 
@@ -67,17 +79,17 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
                 .catch((err) => {
                     if (IS_DEV) safeLog.warn('Erro ao buscar dimensões do banco, usando fallback:', err);
                     // Fallback completo em caso de erro na Promise.all
-                    setSubPracas(processFallbackSubPracas(dimensoes, currentUser));
+                    setSubPracas(processFallbackSubPracas(dimensoes, currentUser ? currentUser.assigned_pracas : targetPracas));
                     setTurnos(mapToOptions((dimensoes as any).turnos));
                     setOrigens(mapToOptions(dimensoes.origens));
                 });
         } else {
-            // Admin ou sem restrições
+            // Fallback total se targetPracas = 0 (muito raro)
             setSubPracas(mapToOptions(dimensoes.sub_pracas));
             setTurnos(mapToOptions((dimensoes as any).turnos));
             setOrigens(mapToOptions(dimensoes.origens));
         }
-    }, [dimensoes, currentUser]);
+    }, [dimensoes, currentUser, filters?.praca]);
 
     return { subPracas, origens, turnos };
 }
@@ -87,6 +99,6 @@ function mapToOptions(arr: any[]) {
     return Array.isArray(arr) ? arr.map(p => ({ value: String(p), label: String(p) })) : [];
 }
 
-function processFallbackSubPracas(dimensoes: DimensoesDashboard, currentUser: CurrentUser) {
-    return mapToOptions(dimensoes.sub_pracas).filter(sp => currentUser.assigned_pracas.some(praca => sp.value.toUpperCase().includes(praca.toUpperCase()) || sp.value.toUpperCase().startsWith(praca.toUpperCase())));
+function processFallbackSubPracas(dimensoes: DimensoesDashboard, activePracas: string[]) {
+    return mapToOptions(dimensoes.sub_pracas).filter(sp => activePracas.some(praca => sp.value.toUpperCase().includes(praca.toUpperCase()) || sp.value.toUpperCase().startsWith(praca.toUpperCase())));
 }
