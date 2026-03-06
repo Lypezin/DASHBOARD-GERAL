@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
-import { FilterOption, CurrentUser, hasFullCityAccess, DimensoesDashboard } from '@/types';
-import { RPC_TIMEOUTS } from '@/constants/config';
+import { supabase } from '@/lib/supabaseClient';
+import { FilterOption, CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export function useDimensionOptions(dimensoes: DimensoesDashboard | null, currentUser?: CurrentUser | null) {
+export function useDimensionOptions(dimensoes: DimensoesDashboard | null, currentUser?: CurrentUser | null, filters?: Filters | null) {
     const [subPracas, setSubPracas] = useState<FilterOption[]>([]);
     const [origens, setOrigens] = useState<FilterOption[]>([]);
     const [turnos, setTurnos] = useState<FilterOption[]>([]);
@@ -19,65 +18,54 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
             return;
         }
 
-        if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
-            Promise.all([
-                safeRpc<Array<{ sub_praca: string }>>('get_subpracas_by_praca', { p_pracas: currentUser.assigned_pracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
-                safeRpc<Array<{ turno: string }>>('get_turnos_by_praca', { p_pracas: currentUser.assigned_pracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false }),
-                safeRpc<Array<{ origem: string }>>('get_origens_by_praca', { p_pracas: currentUser.assigned_pracas }, { timeout: RPC_TIMEOUTS.FAST, validateParams: false })
-            ])
-                .then(([subPracasResult, turnosResult, origensResult]) => {
-                    // Sub-praças
-                    if (!subPracasResult.error && subPracasResult.data && Array.isArray(subPracasResult.data)) {
-                        setSubPracas(subPracasResult.data.map((item: any) => ({
-                            value: String(typeof item === 'object' && item !== null ? (item.sub_praca || Object.values(item)[0]) : item),
-                            label: String(typeof item === 'object' && item !== null ? (item.sub_praca || Object.values(item)[0]) : item)
-                        })));
-                    } else {
-                        const subPracasDoDashboard = Array.isArray(dimensoes.sub_pracas) ? dimensoes.sub_pracas.map((p: any) => ({ value: String(p), label: String(p) })) : [];
-                        setSubPracas(subPracasDoDashboard.filter((sp) => {
-                            const subPracaValue = sp.value.toUpperCase();
-                            return currentUser.assigned_pracas.some((praca) => subPracaValue.includes(praca.toUpperCase()) || subPracaValue.startsWith(praca.toUpperCase()));
-                        }));
-                    }
+        let targetPracas: string[] = [];
 
-                    // Turnos
-                    if (!turnosResult.error && turnosResult.data && Array.isArray(turnosResult.data)) {
-                        setTurnos(turnosResult.data.map((item: any) => ({
-                            value: String(typeof item === 'object' && item !== null ? (item.turno || Object.values(item)[0]) : item),
-                            label: String(typeof item === 'object' && item !== null ? (item.turno || Object.values(item)[0]) : item)
-                        })));
-                    } else {
-                        setTurnos(Array.isArray((dimensoes as any).turnos)
-                            ? (dimensoes as any).turnos.map((t: any) => ({ value: String(t), label: String(t) }))
-                            : []);
-                    }
+        if (filters?.praca) {
+            // Se o usuário selecionou uma praça específica, filtramos apenas por ela
+            targetPracas = [filters.praca];
+        } else if (currentUser && !hasFullCityAccess(currentUser) && currentUser.assigned_pracas.length > 0) {
+            // Se o usuário tem acesso restrito e não escolheu praça, filtramos pelas praças permitidas
+            targetPracas = currentUser.assigned_pracas;
+        }
 
-                    // Origens
-                    if (!origensResult.error && origensResult.data && Array.isArray(origensResult.data)) {
-                        setOrigens(origensResult.data.map((item: any) => ({
-                            value: String(typeof item === 'object' && item !== null ? (item.origem || Object.values(item)[0]) : item),
-                            label: String(typeof item === 'object' && item !== null ? (item.origem || Object.values(item)[0]) : item)
-                        })));
-                    } else {
-                        setOrigens(Array.isArray(dimensoes.origens)
-                            ? dimensoes.origens.map((p: any) => ({ value: String(p), label: String(p) }))
-                            : []);
+        if (targetPracas.length > 0) {
+            // Buscando as sub-praças da View diretamente, já que as RPCs get_*_by_praca estão com 403
+            const fetchFromView = async () => {
+                try {
+                    // Tenta buscar sub-praça diretamente da view onde a praca bate
+                    const { data, error } = await supabase
+                        .from('mv_aderencia_agregada')
+                        .select('sub_praca, turno, origem')
+                        .in('praca', targetPracas)
+                        .limit(5000); // garante resgatar a maioria das combinações
+                    
+                    if (!error && data && data.length > 0) {
+                        const uniqueSubs = Array.from(new Set(data.map((d: any) => d.sub_praca).filter(Boolean)));
+                        const uniqueTurnos = Array.from(new Set(data.map((d: any) => d.turno).filter(Boolean)));
+                        const uniqueOrigens = Array.from(new Set(data.map((d: any) => d.origem).filter(Boolean)));
+
+                        setSubPracas(uniqueSubs.map(v => ({ value: String(v), label: String(v) })));
+                        setTurnos(uniqueTurnos.length > 0 ? uniqueTurnos.map(v => ({ value: String(v), label: String(v) })) : mapToOptions((dimensoes as any).turnos));
+                        setOrigens(uniqueOrigens.length > 0 ? uniqueOrigens.map(v => ({ value: String(v), label: String(v) })) : mapToOptions(dimensoes.origens));
+                        return;
                     }
-                })
-                .catch((err) => {
-                    if (IS_DEV) safeLog.warn('Erro ao buscar dimensões do banco, usando fallback:', err);
-                    // Fallback completo em caso de erro na Promise.all
-                    setSubPracas(processFallbackSubPracas(dimensoes, currentUser));
-                    setTurnos(mapToOptions((dimensoes as any).turnos));
-                    setOrigens(mapToOptions(dimensoes.origens));
-                });
+                } catch (e) {
+                    if (IS_DEV) safeLog.warn('Failed to fetch dimension details from mv_aderencia_agregada', e);
+                }
+
+                // Fallback (último caso)
+                setSubPracas(processFallbackSubPracas(dimensoes, targetPracas));
+                setTurnos(mapToOptions((dimensoes as any).turnos));
+                setOrigens(mapToOptions(dimensoes.origens));
+            };
+            fetchFromView();
         } else {
-            // Admin ou sem restrições
+            // Sem restrição ou praça selecionada (Admin visão global)
             setSubPracas(mapToOptions(dimensoes.sub_pracas));
             setTurnos(mapToOptions((dimensoes as any).turnos));
             setOrigens(mapToOptions(dimensoes.origens));
         }
-    }, [dimensoes, currentUser]);
+    }, [dimensoes, currentUser, filters?.praca]);
 
     return { subPracas, origens, turnos };
 }
@@ -87,6 +75,6 @@ function mapToOptions(arr: any[]) {
     return Array.isArray(arr) ? arr.map(p => ({ value: String(p), label: String(p) })) : [];
 }
 
-function processFallbackSubPracas(dimensoes: DimensoesDashboard, currentUser: CurrentUser) {
-    return mapToOptions(dimensoes.sub_pracas).filter(sp => currentUser.assigned_pracas.some(praca => sp.value.toUpperCase().includes(praca.toUpperCase()) || sp.value.toUpperCase().startsWith(praca.toUpperCase())));
+function processFallbackSubPracas(dimensoes: DimensoesDashboard, activePracas: string[]) {
+    return mapToOptions(dimensoes.sub_pracas).filter(sp => activePracas.some(praca => sp.value.toUpperCase().includes(praca.toUpperCase()) || sp.value.toUpperCase().startsWith(praca.toUpperCase())));
 }

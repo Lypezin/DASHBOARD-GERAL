@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { FilterOption, CurrentUser, hasFullCityAccess, DimensoesDashboard } from '@/types';
+import { FilterOption, CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
 import { RPC_TIMEOUTS } from '@/constants/config';
+import { supabase } from '@/lib/supabaseClient';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export function usePracaOptions(dimensoes: DimensoesDashboard | null, currentUser?: CurrentUser | null) {
+export function usePracaOptions(dimensoes: DimensoesDashboard | null, currentUser?: CurrentUser | null, filters?: Filters | null) {
     const [pracas, setPracas] = useState<FilterOption[]>([]);
 
     useEffect(() => {
@@ -17,32 +18,50 @@ export function usePracaOptions(dimensoes: DimensoesDashboard | null, currentUse
 
         const fetchPracas = async () => {
             let pracasTotais: string[] = [];
+            const selectedAno = filters?.ano;
 
-            // 1. Acesso total
-            if (currentUser && hasFullCityAccess(currentUser)) {
-                try {
-                    const { data: pracasData, error: pracasError } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
-                        timeout: RPC_TIMEOUTS.FAST,
-                        validateParams: false
-                    });
+            // Busca as praças diretamente do `dimensoes` se existir, e o `dashboard_resumo` costuma 
+            // já retornar isso delimitado.
+            if (dimensoes?.pracas && Array.isArray(dimensoes.pracas)) {
+                // Se o usuário selecionou um ano, podemos usar as praças de dimensoes que já consideram o ano
+                pracasTotais = dimensoes.pracas.map(String);
+            }
 
-                    if (!pracasError && pracasData && pracasData.length > 0) {
-                        pracasTotais = pracasData.map(p => p.praca || p).filter(Boolean);
+            // Se ainda não temos pracas (fallback ou se dimensoes estiver vazio e sem ano)
+            if (pracasTotais.length === 0) {
+                if (currentUser && hasFullCityAccess(currentUser)) {
+                    if (selectedAno) {
+                        try {
+                            const { data: dbPracas, error } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
+                                timeout: RPC_TIMEOUTS.FAST,
+                                validateParams: false
+                            });
+                            // Not filtering by year securely without a proper db table, so we fallback to all
+                            if (!error && dbPracas) pracasTotais = dbPracas.map(p => p.praca || p).filter(Boolean);
+                        } catch (err) {}
                     } else {
-                        pracasTotais = Array.isArray(dimensoes?.pracas) ? dimensoes!.pracas.map(String) : [];
+                        try {
+                            const { data: pracasData, error: pracasError } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
+                                timeout: RPC_TIMEOUTS.FAST,
+                                validateParams: false
+                            });
+                            if (!pracasError && pracasData && pracasData.length > 0) {
+                                pracasTotais = pracasData.map(p => p.praca || p).filter(Boolean);
+                            }
+                        } catch (err) {}
                     }
-                } catch (err) {
-                    if (IS_DEV) safeLog.warn('Erro ao buscar praças via RPC:', err);
-                    pracasTotais = Array.isArray(dimensoes?.pracas) ? dimensoes!.pracas.map(String) : [];
+                } else if (currentUser?.assigned_pracas && currentUser.assigned_pracas.length > 0) {
+                    pracasTotais = currentUser.assigned_pracas;
                 }
             }
-            // 2. Acesso restrito
-            else if (currentUser?.assigned_pracas && currentUser.assigned_pracas.length > 0) {
-                pracasTotais = currentUser.assigned_pracas;
-            }
-            // 3. Fallback
-            else if (dimensoes?.pracas) {
-                pracasTotais = Array.isArray(dimensoes.pracas) ? dimensoes.pracas.map(String) : [];
+
+            // Filtro final para usuários restritos (Garantindo que a lista resultante intersecciona os acessos)
+            if (currentUser && !hasFullCityAccess(currentUser)) {
+                if (pracasTotais.length > 0) {
+                    pracasTotais = pracasTotais.filter(p => currentUser.assigned_pracas.map(a => a.toUpperCase()).includes(p.toUpperCase()));
+                } else {
+                    pracasTotais = currentUser.assigned_pracas;
+                }
             }
 
             const options = pracasTotais.map(p => ({ value: p, label: p }));
@@ -50,7 +69,7 @@ export function usePracaOptions(dimensoes: DimensoesDashboard | null, currentUse
         };
 
         fetchPracas();
-    }, [dimensoes, currentUser]);
+    }, [dimensoes, currentUser, filters?.ano]);
 
     return pracas;
 }
