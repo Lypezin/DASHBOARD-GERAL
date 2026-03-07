@@ -40,10 +40,10 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
             'bg-rose-500';
 
     const bgGradient = isHighPerf
-        ? 'bg-gradient-to-br from-white to-emerald-50/50 dark:from-slate-900 dark:to-emerald-900/10'
+        ? 'bg-gradient-to-br from-white/90 to-emerald-50/70 dark:from-slate-900/90 dark:to-emerald-900/20'
         : isMidPerf
-            ? 'bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-900 dark:to-blue-900/10'
-            : 'bg-gradient-to-br from-white to-rose-50/50 dark:from-slate-900 dark:to-rose-900/10';
+            ? 'bg-gradient-to-br from-white/90 to-blue-50/70 dark:from-slate-900/90 dark:to-blue-900/20'
+            : 'bg-gradient-to-br from-white/90 to-rose-50/70 dark:from-slate-900/90 dark:to-rose-900/20';
 
     const Icon = isMidPerf ? TrendingUp : TrendingDown;
 
@@ -51,9 +51,9 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Card className={`border-none shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group ${bgGradient} cursor-help`}>
-                        <div className={`absolute top-0 right-0 p-3 opacity-[0.05] group-hover:opacity-10 transition-opacity`}>
-                            <Icon className="w-24 h-24 text-current transform -rotate-12" />
+                    <Card className={`border border-slate-200/50 dark:border-slate-800/50 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-500 relative overflow-hidden group ${bgGradient} backdrop-blur-xl cursor-help`}>
+                        <div className={`absolute top-0 right-0 p-3 opacity-[0.05] group-hover:opacity-[0.12] transition-opacity duration-500 pointer-events-none`}>
+                            <Icon className="w-28 h-28 text-current transform -rotate-12" />
                         </div>
 
                         <CardContent className="p-5 relative z-10">

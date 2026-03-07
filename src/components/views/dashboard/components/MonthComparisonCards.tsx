@@ -61,7 +61,7 @@ export const MonthComparisonCards = React.memo(function MonthComparisonCards({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.08, duration: 0.4 }}
-                            className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-3"
+                            className="rounded-xl border border-slate-200/50 dark:border-slate-800/50 bg-white/60 dark:bg-slate-900/40 backdrop-blur-md hover:bg-white/80 dark:hover:bg-slate-900/60 p-3 shadow-sm hover:shadow-md hover:ring-2 hover:ring-blue-500/10 transition-all duration-300 group"
                         >
                             <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">{metric.label}</p>
                             <div className="flex items-end gap-2">

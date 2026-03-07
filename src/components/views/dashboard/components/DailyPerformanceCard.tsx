@@ -37,10 +37,10 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                 <TooltipTrigger asChild>
                     <motion.div key={`dia-${index}`} variants={variants}>
                         <Card
-                            className={`border-none shadow-md hover:shadow-lg transition-all duration-300 ${isToday
+                            className={`border border-slate-200/50 dark:border-slate-800/50 shadow-sm hover:shadow-xl transition-all duration-300 ${isToday
                                 ? 'bg-blue-50/50 dark:bg-blue-900/10 ring-1 ring-blue-200 dark:ring-blue-800'
-                                : 'bg-white dark:bg-slate-900'
-                                } cursor-help`}
+                                : 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-md'
+                                } cursor-help hover:-translate-y-1.5`}
                         >
                             <CardContent className="p-4 flex flex-col items-center justify-between h-full min-h-[140px]">
                                 <div className="text-center w-full">

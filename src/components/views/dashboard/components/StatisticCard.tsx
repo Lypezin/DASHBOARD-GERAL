@@ -42,9 +42,9 @@ export const StatisticCard = React.memo(function StatisticCard({
     sparklineColor
 }: StatisticCardProps) {
     return (
-        <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 group relative overflow-hidden">
-            <div className={`absolute right-0 top-0 w-32 h-32 rounded-full -mr-10 -mt-10 blur-2xl opacity-50 group-hover:opacity-100 transition-opacity ${bgGlowColor}`}></div>
-            <CardContent className="p-8 flex items-start justify-between relative z-10">
+        <Card className="border border-slate-200/50 dark:border-slate-800/50 shadow-lg hover:shadow-xl transition-all duration-500 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl group relative overflow-hidden">
+            <div className={`absolute right-0 top-0 w-48 h-48 rounded-full -mr-16 -mt-16 blur-[60px] opacity-40 group-hover:opacity-70 transition-opacity duration-700 ${bgGlowColor} pointer-events-none`}></div>
+            <CardContent className="p-8 flex items-start justify-between relative z-10 hover:translate-y-[-2px] transition-transform duration-300">
                 <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{title}</p>

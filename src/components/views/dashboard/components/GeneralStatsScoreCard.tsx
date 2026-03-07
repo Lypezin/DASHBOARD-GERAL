@@ -19,8 +19,9 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
     const { theme } = useTheme();
 
     return (
-        <Card className="lg:col-span-4 border-none shadow-xl bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 overflow-hidden relative group ringing-1 ring-slate-100 dark:ring-slate-800">
-            <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500">
+        <Card className="lg:col-span-4 border border-slate-200/50 dark:border-slate-800/50 shadow-xl bg-gradient-to-br from-white/90 via-white/80 to-slate-50/90 dark:from-slate-900/90 dark:via-slate-900/80 dark:to-slate-950/90 backdrop-blur-xl overflow-hidden relative group ring-1 ring-slate-100 dark:ring-slate-800/50 transition-all hover:shadow-2xl">
+            <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none`} style={{ backgroundColor: progressColor }} />
+            <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none">
                 <TrendingUp className="w-48 h-48 text-current transform rotate-12" />
             </div>
 
