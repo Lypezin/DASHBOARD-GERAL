@@ -1,5 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useClickOutside } from '@/hooks/ui/useClickOutside';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type FilterOption = {
   value: string;
@@ -29,53 +32,86 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
       ? selected.filter(item => item !== value)
       : [...selected, value];
     onSelectionChange(newSelected);
-  }; return (
-    <div className="flex flex-col gap-1 sm:gap-1.5 relative" ref={wrapperRef}>
-      <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate">{label}</span>
+  };
+
+  return (
+    <div className="flex flex-col gap-1 sm:gap-1.5 relative group" ref={wrapperRef}>
+      <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 truncate pl-1">
+        {label}
+      </span>
       <div className="relative">
         <button
           ref={buttonRef}
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
-          className="w-full text-left appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-8 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-blue-400 hover:shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className={cn(
+            "w-full text-left appearance-none rounded-xl border border-slate-200/60 dark:border-slate-700/60",
+            "bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-3 py-2.5 pr-8 text-sm font-medium",
+            "text-slate-700 dark:text-slate-200 shadow-sm transition-all duration-300",
+            "hover:bg-white/80 dark:hover:bg-slate-800/80 hover:border-blue-400/50 hover:shadow-md",
+            isOpen ? "ring-2 ring-blue-500/40 border-blue-500" : "hover:ring-2 hover:ring-blue-500/20",
+            "focus:outline-none focus:ring-2 focus:ring-blue-500/40",
+            "disabled:cursor-not-allowed disabled:opacity-50"
+          )}
         >
           <span className="block truncate">
-            {selected.length > 0 ? `${selected.length} selecionado(s)` : placeholder}
+            {selected.length > 0 ? (
+              <span className="text-blue-600 dark:text-blue-400">{selected.length} selecionado(s)</span>
+            ) : (
+              <span className="text-slate-500 dark:text-slate-400 font-normal">{placeholder}</span>
+            )}
           </span>
         </button>
-        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-          <svg className="h-4 w-4 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+        >
+          <ChevronDown className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+        </motion.div>
       </div>
 
-      {isOpen && !disabled && options.length > 0 && (
-        <div
-          ref={dropdownRef}
-          className="absolute top-full left-0 w-full mt-1 rounded-md bg-white shadow-2xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700 z-[9999]"
-        >
-          <ul className="max-h-60 overflow-auto p-1">
-            {options.map((option) => (
-              <li
-                key={option.value}
-                className="p-2 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-md"
-                onClick={() => handleSelect(option.value)}
-              >
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(option.value)}
-                    readOnly
-                    className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm">{option.label}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <AnimatePresence>
+        {isOpen && !disabled && options.length > 0 && (
+          <motion.div
+            ref={dropdownRef}
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute top-full left-0 w-full mt-2 rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 z-[9999] overflow-hidden"
+          >
+            <ul className="max-h-60 overflow-y-auto p-1.5 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
+              {options.map((option) => {
+                const isSelected = selected.includes(option.value);
+                return (
+                  <motion.li
+                    key={option.value}
+                    whileHover={{ x: 4, backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+                    className={cn(
+                      "p-2.5 cursor-pointer rounded-lg flex items-center transition-colors mb-0.5 last:mb-0",
+                      isSelected ? "bg-blue-50/80 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                    )}
+                    onClick={() => handleSelect(option.value)}
+                  >
+                    <div className="flex items-center flex-1">
+                      <div className={cn(
+                        "mr-3 flex h-4 w-4 items-center justify-center rounded border transition-colors",
+                        isSelected
+                          ? "bg-blue-600 border-blue-600 text-white"
+                          : "border-slate-300 dark:border-slate-600 bg-transparent"
+                      )}>
+                        {isSelected && <Check className="h-3 w-3" strokeWidth={3} />}
+                      </div>
+                      <span className="text-sm font-medium">{option.label}</span>
+                    </div>
+                  </motion.li>
+                );
+              })}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 });

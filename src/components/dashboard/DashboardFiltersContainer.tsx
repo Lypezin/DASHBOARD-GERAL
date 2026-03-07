@@ -7,6 +7,7 @@ import React from 'react';
 import FiltroBar from '@/components/FiltroBar';
 import type { Filters, FilterOption, CurrentUser } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface DashboardFiltersContainerProps {
   filters: Filters;
@@ -33,14 +34,18 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
   currentUser,
   activeTab,
 }: DashboardFiltersContainerProps) {
-  // Não mostrar filtros em comparação e marketing
-  // Não mostrar filtros em marketing
   if (activeTab === 'marketing') {
     return null;
   }
 
   return (
-    <Card className="border-none shadow-sm bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-4 z-40 mb-6 transition-all duration-300 hover:shadow-md">
+    <Card className={cn(
+      "border border-slate-200/50 dark:border-slate-800/50 shadow-sm",
+      "bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl",
+      "sticky top-4 z-40 mb-6 transition-all duration-300",
+      "hover:shadow-lg hover:border-slate-300/50 dark:hover:border-slate-700/50",
+      "hover:ring-1 hover:ring-slate-200 dark:hover:ring-slate-800 rounded-2xl"
+    )}>
       <CardContent className="p-4 sm:p-6">
         <FiltroBar
           filters={filters}
