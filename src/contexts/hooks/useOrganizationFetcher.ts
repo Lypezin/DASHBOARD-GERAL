@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { Organization } from '@/contexts/OrganizationContext';
+import { fetchOrganizationData } from './organizationDataHelper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -42,21 +43,13 @@ export function useOrganizationFetcher() {
             }
 
             // Buscar dados da organização
-            const { data: orgData, error: orgError } = await supabase
-                .from('organizations')
-                .select('id, name, slug, max_users, is_active, created_at, updated_at')
-                .eq('id', organizationId)
-                .single();
-
-            if (orgError) {
-                throw new Error(`Erro ao buscar organização: ${orgError.message}`);
-            }
+            const orgData = await fetchOrganizationData(organizationId);
 
             if (orgData) {
                 // Only update if data actually changed to avoid re-renders
                 setOrganization(prev => {
                     if (JSON.stringify(prev) === JSON.stringify(orgData)) return prev;
-                    return orgData as Organization;
+                    return orgData;
                 });
             } else {
                 setOrganization(null);

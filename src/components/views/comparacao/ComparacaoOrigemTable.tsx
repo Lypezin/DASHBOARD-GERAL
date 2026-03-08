@@ -10,6 +10,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { ComparacaoOrigemRow } from './components/ComparacaoOrigemRow';
+import { useComparacaoOrigemTableData } from './hooks/useComparacaoOrigemTableData';
 
 interface ComparacaoOrigemTableProps {
     dadosComparacao: DashboardResumoData[];
@@ -20,41 +21,7 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
     dadosComparacao,
     semanasSelecionadas,
 }) => {
-    const todasOrigens = new Set<string>();
-    dadosComparacao.forEach((d) => {
-        if (d.aderencia_origem && Array.isArray(d.aderencia_origem)) {
-            d.aderencia_origem.forEach((item) => {
-                todasOrigens.add(item.origem);
-            });
-        }
-    });
-    const origensOrdenadas = Array.from(todasOrigens).sort();
-
-    const dadosPorOrigem: Record<string, Record<number, number>> = {};
-    const mediaPorSemana: Record<number, number> = {};
-
-    origensOrdenadas.forEach((origem) => {
-        dadosPorOrigem[origem] = {};
-        dadosComparacao.forEach((dado, idx) => {
-            const origemData = dado.aderencia_origem?.find((x) => x.origem === origem);
-            dadosPorOrigem[origem][idx] = origemData ? origemData.aderencia_percentual : 0;
-        });
-    });
-
-    dadosComparacao.forEach((dado, idx) => {
-        const ativas = dado.aderencia_origem?.filter(x => x && x.origem && x.aderencia_percentual > 0) || [];
-        if (ativas.length > 0) {
-            const soma = ativas.reduce((acc, curr) => acc + curr.aderencia_percentual, 0);
-            mediaPorSemana[idx] = soma / ativas.length;
-        } else {
-            mediaPorSemana[idx] = 0;
-        }
-    });
-
-    // Adiciona "MÉDIA DAS ORIGENS" aos dados das linhas para reaproveitar Componente
-    if (origensOrdenadas.length > 0) {
-        dadosPorOrigem['MÉDIA DAS ORIGENS'] = mediaPorSemana;
-    }
+    const { origensOrdenadas, dadosPorOrigem } = useComparacaoOrigemTableData(dadosComparacao);
 
     return (
         <div className="overflow-x-auto">

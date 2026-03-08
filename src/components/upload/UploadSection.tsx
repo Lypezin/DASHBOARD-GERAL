@@ -3,38 +3,11 @@ import { FileUploadArea } from './FileUploadArea';
 import { FileList } from './FileList';
 import { UploadProgress } from './UploadProgress';
 import { UploadMessage } from './UploadMessage';
-import { UploadActions } from './components/UploadActions';
 import { UploadHeader } from './components/UploadHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { UploadMVProgress } from './components/UploadMVProgress';
-import { UploadTips } from './components/UploadTips';
-import { UploadExpectedColumns } from './components/UploadExpectedColumns';
-
-interface UploadSectionProps {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  files: File[];
-  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveFile: (index: number) => void;
-  onUpload: () => void;
-  uploading: boolean;
-  progress: number;
-  progressLabel?: string;
-  message: string;
-  disabled?: boolean;
-  variant?: 'default' | 'marketing' | 'valores';
-  dataAttribute?: string;
-  maxFiles?: number;
-  gradientFrom?: string; // Mantido para compatibilidade, mas não usado
-  gradientTo?: string; // Mantido para compatibilidade, mas não usado
-  tips?: Array<{ icon?: string; text: string }>;
-  expectedColumns?: string[];
-  // New props for MV refresh progress
-  isRefreshingMVs?: boolean;
-  mvRefreshProgress?: number;
-  mvRefreshStatus?: string;
-}
+import { UploadSectionFooter } from './UploadSectionFooter';
+import { UploadSectionProps } from './types';
 
 export const UploadSection = memo(function UploadSection({
   title,
@@ -98,15 +71,14 @@ export const UploadSection = memo(function UploadSection({
           <UploadProgress progress={progress} progressLabel={progressLabel} variant={variant} />
         </div>
 
-        <div className="mt-auto space-y-6">
-          <UploadActions onUpload={onUpload} uploading={uploading} hasFiles={files.length > 0} variant={variant} fileCount={files.length} />
-
-          {/* Informações e Dicas - Less intrusive */}
-          <div className="space-y-3 opacity-80 hover:opacity-100 transition-opacity">
-            <UploadTips tips={tips} />
-            <UploadExpectedColumns columns={expectedColumns} />
-          </div>
-        </div>
+        <UploadSectionFooter 
+          onUpload={onUpload}
+          uploading={uploading}
+          fileCount={files.length}
+          variant={variant}
+          tips={tips}
+          expectedColumns={expectedColumns}
+        />
       </CardContent>
     </Card>
   );

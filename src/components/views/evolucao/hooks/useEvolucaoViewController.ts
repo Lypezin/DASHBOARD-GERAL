@@ -8,6 +8,7 @@ import { processEvolucaoData, createChartData } from '../EvolucaoDataProcessor';
 import { createEvolucaoChartOptions } from '../EvolucaoChartConfig';
 import { useThemeDetector } from '@/hooks/ui/useThemeDetector';
 import { useEvolucaoUrlSync } from './useEvolucaoUrlSync';
+import { getInitialViewMode, getInitialMetrics } from './evolucaoParamsHelpers';
 
 export function useEvolucaoViewController({
     evolucaoMensal,
@@ -22,22 +23,8 @@ export function useEvolucaoViewController({
 }) {
     const searchParams = useSearchParams();
 
-    const getInitialViewMode = () => {
-        const mode = searchParams.get('evo_mode');
-        return (mode === 'semanal' ? 'semanal' : 'mensal');
-    };
-
-    const getInitialMetrics = () => {
-        const metricsParam = searchParams.get('evo_metrics');
-        if (metricsParam) {
-            const metrics = metricsParam.split(',').filter(Boolean) as Array<'ofertadas' | 'aceitas' | 'completadas' | 'horas'>;
-            if (metrics.length > 0) return new Set(metrics);
-        }
-        return new Set<'ofertadas' | 'aceitas' | 'completadas' | 'horas'>(['completadas']);
-    };
-
-    const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>(getInitialViewMode);
-    const [selectedMetrics, setSelectedMetrics] = useState<Set<'ofertadas' | 'aceitas' | 'completadas' | 'horas'>>(getInitialMetrics);
+    const [viewMode, setViewMode] = useState<'mensal' | 'semanal'>(() => getInitialViewMode(searchParams));
+    const [selectedMetrics, setSelectedMetrics] = useState<Set<'ofertadas' | 'aceitas' | 'completadas' | 'horas'>>(() => getInitialMetrics(searchParams));
     const [chartError, setChartError] = useState<string | null>(null);
 
     const isDarkMode = useThemeDetector();

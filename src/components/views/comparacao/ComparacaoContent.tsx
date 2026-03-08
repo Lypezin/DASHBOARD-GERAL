@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { fadeInItem, staggerContainer } from '@/utils/animations';
 import { Calendar } from 'lucide-react';
 import { ComparacaoMetrics } from './ComparacaoMetrics';
-import { ComparacaoSection } from './ComparacaoSection';
-import { ComparacaoSubPracaSection } from './ComparacaoSubPracaSection';
 import { ComparacaoOrigemSection } from './ComparacaoOrigemSection';
+import { ComparacaoDailyOverview } from './ComparacaoDailyOverview';
+import { Section } from './ComparacaoSectionWrapper';
 import { ComparacaoOrigemDetalhada } from './ComparacaoOrigemDetalhada';
 import { ComparacaoUtrSection } from './ComparacaoUtrSection';
 import { ComparacaoDiaTable } from './ComparacaoDiaTable';
@@ -17,10 +17,6 @@ interface ComparacaoContentProps {
     actions: any;
 }
 
-const Section = ({ show, children }: { show: boolean, children: React.ReactNode }) => {
-    if (!show) return null;
-    return <motion.div variants={fadeInItem}>{children}</motion.div>;
-};
 
 export const ComparacaoContent = React.memo(function ComparacaoContent({
     data,
@@ -62,27 +58,7 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
             </Section>
 
             {/* Stacked: Day + Sub-Praça */}
-            <Section show={sv.aderencia_dia}>
-                <ComparacaoSection
-                    title="Aderência por Dia"
-                    icon={<Calendar className="h-5 w-5" />}
-                    description=""
-                    type="dia"
-                    dadosComparacao={data.dadosComparacao}
-                    semanasSelecionadas={state.semanasSelecionadas}
-                    viewMode={state.viewModeDia}
-                    onViewModeChange={actions.setViewModeDia}
-                />
-            </Section>
-
-            <Section show={sv.sub_praca}>
-                <ComparacaoSubPracaSection
-                    dadosComparacao={data.dadosComparacao}
-                    semanasSelecionadas={state.semanasSelecionadas}
-                    viewMode={state.viewModeSubPraca}
-                    onViewModeChange={actions.setViewModeSubPraca}
-                />
-            </Section>
+            <ComparacaoDailyOverview data={data} state={state} actions={actions} sv={sv} />
 
             {/* Origem */}
             <Section show={sv.por_origem}>
