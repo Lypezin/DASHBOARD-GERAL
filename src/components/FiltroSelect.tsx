@@ -45,14 +45,14 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
           className={cn(
             "w-full text-left appearance-none rounded-xl border border-slate-200/60 dark:border-slate-700/60",
             "bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-3 py-2.5 pr-8 text-sm font-medium",
-            "text-slate-700 dark:text-slate-200 shadow-sm transition-all duration-300 h-[42px]",
+            "text-slate-700 dark:text-slate-200 shadow-sm transition-all duration-300",
             "hover:bg-white/80 dark:hover:bg-slate-800/80 hover:border-blue-400/50 hover:shadow-md",
             isOpen ? "ring-2 ring-blue-500/40 border-blue-500" : "hover:ring-2 hover:ring-blue-500/20",
             "focus:outline-none focus:ring-2 focus:ring-blue-500/40",
-            "disabled:cursor-not-allowed disabled:opacity-50 flex items-center"
+            "disabled:cursor-not-allowed disabled:opacity-50"
           )}
         >
-          <span className="block truncate flex-1">
+          <span className="block truncate">
             {selectedOption ? (
               <span className="text-blue-600 dark:text-blue-400">{selectedOption.label}</span>
             ) : (
