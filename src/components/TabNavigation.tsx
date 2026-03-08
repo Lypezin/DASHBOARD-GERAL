@@ -32,8 +32,8 @@ export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: T
   return (
     <div className="w-full flex overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
       <div className={cn(
-        "flex items-center gap-1 sm:gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-2 px-2 rounded-full shadow-sm min-w-max mx-auto md:mx-0 transition-transform duration-200",
-        variant === 'compact' ? "scale-95 origin-left" : ""
+        "flex items-center gap-1 sm:gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-2 px-2 rounded-full shadow-sm min-w-max mx-auto transition-transform duration-200",
+        variant === 'compact' ? "scale-95 origin-center" : ""
       )}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.value;
