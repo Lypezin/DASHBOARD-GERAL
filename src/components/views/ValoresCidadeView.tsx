@@ -6,7 +6,7 @@ import { useValoresCidadeAuth } from '@/hooks/valoresCidade/useValoresCidadeAuth
 import { useValoresCidadeData } from '@/hooks/valoresCidade/useValoresCidadeData';
 import { ValoresCidadeAuth } from './valoresCidade/ValoresCidadeAuth';
 import { ValoresCidadeFilters } from './valoresCidade/ValoresCidadeFilters';
-import { ValoresCidadeCards } from './valoresCidade/ValoresCidadeCards';
+import ValoresCidadeCards from './valoresCidade/ValoresCidadeCards';
 
 const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   const { isAuthenticated, password, passwordError, loading: authLoading, setPassword, handlePasswordSubmit } = useValoresCidadeAuth();
