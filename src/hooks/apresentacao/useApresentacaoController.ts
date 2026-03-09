@@ -17,7 +17,8 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const SECTIONS_VERSION = 'v2';
     const getStorageKey = (type: 'slides' | 'sections') => {
         const pracaKey = praca ? praca.replace(/\s+/g, '_').toLowerCase() : 'geral';
-        const strOpts = `${ano || new Date().getFullYear()}_${pracaKey}_${semanas.sort().join('-')}`;
+        const sortedWeeks = [...semanas].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+        const strOpts = `${ano || new Date().getFullYear()}_${pracaKey}_${sortedWeeks.join('-')}`;
         return `dashboard_presentation_${type}_${strOpts}${type === 'sections' ? `_${SECTIONS_VERSION}` : ''}`;
     };
 
