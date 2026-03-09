@@ -4,7 +4,8 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
 // @ts-ignore - react-window types may have issues
-import { FixedSizeList as List } from 'react-window';
+import { FixedSizeList } from 'react-window';
+const List = FixedSizeList as any;
 import { EntregadorMarketing } from '@/types';
 import { EntregadoresTableHeader } from './components/EntregadoresTableHeader';
 import { EntregadoresTableRow } from './components/EntregadoresTableRow';
