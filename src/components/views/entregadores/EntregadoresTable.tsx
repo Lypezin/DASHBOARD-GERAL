@@ -5,7 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users } from 'lucide-react';
 // @ts-ignore - react-window types may have issues
 import { FixedSizeList } from 'react-window';
-const List = FixedSizeList as any;
+
+// Robust handling for react-window import which can sometimes be undefined in certain environments
+const ListComponent = FixedSizeList;
+
 import { EntregadorMarketing } from '@/types';
 import { EntregadoresTableHeader } from './components/EntregadoresTableHeader';
 import { EntregadoresTableRow } from './components/EntregadoresTableRow';
@@ -28,6 +31,19 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
   if (entregadores.length === 0) {
     return null;
   }
+
+  // Fallback rendering if react-window is not available
+  const renderFallbackList = () => (
+    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+      {entregadores.map((entregador) => (
+        <EntregadoresTableRow
+          key={entregador.id_entregador}
+          entregador={entregador}
+          formatarSegundosParaHoras={formatarSegundosParaHoras}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
@@ -55,28 +71,32 @@ export const EntregadoresTable = React.memo(function EntregadoresTable({
             onSort={onSort}
           />
 
-          {/* Lista Virtualizada com scroll */}
+          {/* Lista Virtualizada ou Fallback */}
           <div className="overflow-x-auto pb-4">
             <div style={{ minWidth: '1000px' }}>
-              <List
-                height={600}
-                itemCount={entregadores.length}
-                itemSize={72}
-                width="100%"
-                className="scrollbar-thin"
-              >
-                {({ index, style }: { index: number; style: React.CSSProperties }) => {
-                  const entregador = entregadores[index];
-                  return (
-                    <div style={style} className="border-b border-slate-100 dark:border-slate-800">
-                      <EntregadoresTableRow
-                        entregador={entregador}
-                        formatarSegundosParaHoras={formatarSegundosParaHoras}
-                      />
-                    </div>
-                  );
-                }}
-              </List>
+              {ListComponent ? (
+                <ListComponent
+                  height={600}
+                  itemCount={entregadores.length}
+                  itemSize={72}
+                  width="100%"
+                  className="scrollbar-thin"
+                >
+                  {({ index, style }: { index: number; style: React.CSSProperties }) => {
+                    const entregador = entregadores[index];
+                    return (
+                      <div style={style} className="border-b border-slate-100 dark:border-slate-800">
+                        <EntregadoresTableRow
+                          entregador={entregador}
+                          formatarSegundosParaHoras={formatarSegundosParaHoras}
+                        />
+                      </div>
+                    );
+                  }}
+                </ListComponent>
+              ) : (
+                renderFallbackList()
+              )}
             </div>
           </div>
         </div>
