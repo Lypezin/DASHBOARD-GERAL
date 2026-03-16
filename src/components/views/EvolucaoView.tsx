@@ -1,4 +1,6 @@
 
+'use client';
+
 import React from 'react';
 import { EvolucaoMensal, EvolucaoSemanal } from '@/types';
 import { EvolucaoFilters } from './evolucao/EvolucaoFilters';

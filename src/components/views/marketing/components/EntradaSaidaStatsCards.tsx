@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { ArrowDownRight, ArrowUpRight, TrendingUp, TrendingDown, Users, Megaphone, RotateCcw, AlertCircle, Activity, UserX } from 'lucide-react';
 import { useEntradaSaidaTotals } from '../hooks/useEntradaSaidaTotals';

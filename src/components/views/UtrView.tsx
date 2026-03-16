@@ -1,4 +1,6 @@
 
+'use client';
+
 import React from 'react';
 import { UtrData } from '@/types';
 import { motion, Variants } from 'framer-motion';

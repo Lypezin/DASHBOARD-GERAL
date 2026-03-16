@@ -1,3 +1,4 @@
+'use client';
 
 import React from 'react';
 import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';

@@ -2,6 +2,7 @@
  * Componente de navegação de tabs
  * Centraliza lógica de navegação entre diferentes visualizações
  */
+'use client';
 
 import React from 'react';
 import { motion } from 'framer-motion';

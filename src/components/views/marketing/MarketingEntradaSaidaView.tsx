@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { EntradaSaidaView } from './EntradaSaidaView';
 import { useAuth } from '@/hooks/auth/useAuth';

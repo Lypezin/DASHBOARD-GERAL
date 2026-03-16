@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 
 const TabButton = React.memo(({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => {

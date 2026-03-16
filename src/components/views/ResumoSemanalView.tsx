@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EvolucaoSemanal, AderenciaSemanal, UtrSemanal } from '@/types';

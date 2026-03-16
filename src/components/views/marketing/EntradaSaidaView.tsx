@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useEntradaSaidaData } from './useEntradaSaidaData';
 import { Activity, FileSpreadsheet } from 'lucide-react';
