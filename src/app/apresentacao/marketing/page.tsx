@@ -53,7 +53,7 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     };
 
     // 3. Buscar Dados
-    const orgId = profile.organization_id || null;
+    const orgId = profile?.organization_id || null;
     const totals = await fetchMarketingTotalsData(filters as any, orgId);
 
     const pageStyle = generatePrintStyles();

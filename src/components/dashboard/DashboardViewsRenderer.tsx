@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Componente para renderizar as views do dashboard baseado na tab ativa
  * Extraído de src/app/page.tsx
