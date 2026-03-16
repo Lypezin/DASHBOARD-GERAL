@@ -4,10 +4,10 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
 // @ts-ignore - react-window types may have issues
-import { FixedSizeList } from 'react-window';
+import * as reactWindow from 'react-window';
 
-// Robust handling for react-window import which can sometimes be undefined in certain environments
-const ListComponent = FixedSizeList;
+// Robust handling for react-window import which can sometimes be undefined or have export issues
+const ListComponent = (reactWindow as any).FixedSizeList;
 
 import { EntregadorMarketing } from '@/types';
 import { EntregadoresTableHeader } from './components/EntregadoresTableHeader';

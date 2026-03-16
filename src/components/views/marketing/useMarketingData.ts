@@ -7,7 +7,7 @@ import { fetchMarketingTotalsData, fetchMarketingCitiesData } from '@/utils/mark
 export function useMarketingData() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [totals, setTotals] = useState<MarketingTotals>({ criado: 0, enviado: 0, liberado: 0, rodandoInicio: 0 });
+    const [totals, setTotals] = useState<MarketingTotals>({ criado: 0, enviado: 0, liberado: 0, rodandoInicio: 0, aberto: 0, voltou: 0 });
     const [citiesData, setCitiesData] = useState<MarketingCityData[]>([]);
     const [filters, setFilters] = useState<MarketingFilters>({
         filtroLiberacao: { dataInicial: null, dataFinal: null },
