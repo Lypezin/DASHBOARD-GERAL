@@ -8,6 +8,8 @@ interface ForgotPasswordState {
     success: boolean;
 }
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 export function useForgotPassword() {
     const [state, setState] = useState<ForgotPasswordState>({
         loading: false,
@@ -18,7 +20,12 @@ export function useForgotPassword() {
     const requestPasswordReset = async (email: string) => {
         setState({ loading: true, error: null, success: false });
         try {
-            const redirectTo = `${window.location.origin}/redefinir-senha`;
+            // Garantir que a URL de redirecionamento esteja correta
+            const origin = window.location.origin.replace(/\/$/, '');
+            const redirectTo = `${origin}/redefinir-senha`;
+            
+            if (IS_DEV) safeLog.info(`[Auth] Enviando reset para: ${email}`, { redirectTo });
+
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo,
             });

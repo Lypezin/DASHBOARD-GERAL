@@ -8,6 +8,8 @@ import { fetchAndValidateProfile } from './profile';
 import { AuthGuardOptions, AuthGuardResult } from './useAuthGuard';
 import { CurrentUser } from '@/types';
 
+import { isPasswordRecoveryFlow } from './utils/recoveryDetection';
+
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useAuthFlow(options: AuthGuardOptions): AuthGuardResult {
@@ -30,8 +32,16 @@ export function useAuthFlow(options: AuthGuardOptions): AuthGuardResult {
         if (skip) return;
 
         const checkAuthentication = async (isBackgroundCheck = false) => {
+            // Se estiver em fluxo de recuperação, suspendemos verificações de autenticação regular
+            // para evitar que o dashboard carregue antes do redirecionamento
+            if (isPasswordRecoveryFlow()) {
+                if (!isBackgroundCheck) setIsChecking(false);
+                setIsAuthenticated(false);
+                return;
+            }
+
             try {
-                if (pathname === '/login' || pathname === '/registro') {
+                if (pathname === '/login' || pathname === '/registro' || pathname === '/redefinir-senha') {
                     if (!isBackgroundCheck) setIsChecking(false);
                     setIsAuthenticated(false);
                     return;

@@ -6,6 +6,8 @@ import { UserProfile } from '@/hooks/auth/types';
 import { shouldSkipRedirect } from '@/hooks/auth/utils/headerAuthSteps';
 import { useRouter } from 'next/navigation';
 
+import { isPasswordRecoveryFlow, ensureRecoveryRedirect } from './utils/recoveryDetection';
+
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 interface UseAuthSubscriptionProps {
@@ -18,9 +20,19 @@ export function useAuthSubscription({ checkUser, setUser, pathname }: UseAuthSub
     const router = useRouter();
 
     useEffect(() => {
+        // Verificar imediatamente no mount se estamos em fluxo de recuperação
+        ensureRecoveryRedirect(router);
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (IS_DEV) safeLog.info(`[Auth] Evento: ${event}`, { pathname });
+
             if (event === 'SIGNED_IN') {
-                checkUser();
+                // Se for um login vindo de recuperação, evitamos carregar o perfil do dashboard
+                if (!isPasswordRecoveryFlow()) {
+                    checkUser();
+                } else if (pathname !== '/redefinir-senha') {
+                    router.push('/redefinir-senha');
+                }
             } else if (event === 'SIGNED_OUT') {
                 setUser(null);
                 if (!shouldSkipRedirect(pathname)) {
@@ -28,7 +40,7 @@ export function useAuthSubscription({ checkUser, setUser, pathname }: UseAuthSub
                     router.push(`/login${search}`);
                 }
             } else if (event === 'PASSWORD_RECOVERY') {
-                if (IS_DEV) safeLog.info('[Auth] Evento PASSWORD_RECOVERY recebido, redirecionando para redefinir-senha...');
+                if (IS_DEV) safeLog.info('[Auth] Evento PASSWORD_RECOVERY recebido, forçando redefinir-senha');
                 router.push('/redefinir-senha');
             } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
                 if (IS_DEV && event === 'USER_UPDATED') {
