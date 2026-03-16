@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, Send, CheckCircle2, Rocket } from 'lucide-react';
+import { BarChart3, Send, CheckCircle2, Rocket, RotateCcw } from 'lucide-react';
 import { MarketingTotals } from '@/types';
 
 interface MarketingStatsCardsProps {
@@ -54,7 +54,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
     );
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             <StatCard
                 title="Criado"
                 icon={BarChart3}
@@ -93,6 +93,26 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
                 colorClass="text-orange-600 dark:text-orange-400"
                 bgClass="from-orange-50 to-white dark:from-orange-900/20 dark:to-slate-900"
                 iconBgClass="bg-orange-100 dark:bg-orange-900/40"
+            />
+
+            <StatCard
+                title="Aberto"
+                icon={Send} // Using Send as a placeholder or search for more appropriate icon
+                value={totals.aberto.toLocaleString('pt-BR')}
+                subtext="Total aberto"
+                colorClass="text-cyan-600 dark:text-cyan-400"
+                bgClass="from-cyan-50 to-white dark:from-cyan-900/20 dark:to-slate-900"
+                iconBgClass="bg-cyan-100 dark:bg-cyan-900/40"
+            />
+
+            <StatCard
+                title="Voltou"
+                icon={RotateCcw}
+                value={totals.voltou.toLocaleString('pt-BR')}
+                subtext="Total voltou"
+                colorClass="text-rose-600 dark:text-rose-400"
+                bgClass="from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-900"
+                iconBgClass="bg-rose-100 dark:bg-rose-900/40"
             />
         </div>
     );

@@ -6,4 +6,5 @@ export interface UserProfile {
     is_approved: boolean;
     avatar_url?: string | null;
     organization_id?: string | null;
+    role?: 'admin' | 'marketing' | 'user' | 'master';
 }

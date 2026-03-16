@@ -13,6 +13,7 @@ export async function fetchMarketingTotalsData(filters: MarketingFilters, organi
 
     const { data: rpcData, error: rpcError } = await safeRpc<Array<{
         criado: number; enviado: number; liberado: number; rodando_inicio: number;
+        aberto: number; voltou: number;
     }>>('get_marketing_totals', {
         data_envio_inicial: filters.filtroEnviados.dataInicial || defaultStart,
         data_envio_final: filters.filtroEnviados.dataFinal || defaultEnd,
@@ -25,10 +26,20 @@ export async function fetchMarketingTotalsData(filters: MarketingFilters, organi
 
     if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
         const d = rpcData[0];
-        return { criado: d.criado || 0, enviado: d.enviado || 0, liberado: d.liberado || 0, rodandoInicio: d.rodando_inicio || 0 };
+        return { 
+            criado: d.criado || 0, 
+            enviado: d.enviado || 0, 
+            liberado: d.liberado || 0, 
+            rodandoInicio: d.rodando_inicio || 0,
+            aberto: d.aberto || 0,
+            voltou: d.voltou || 0
+        };
     }
 
     if (IS_DEV) safeLog.warn('RPC get_marketing_totals fetch fallback');
+
+    const { count: abertoCount } = await supabase.from('dados_marketing').select('*', { count: 'exact', head: true }).eq('status', 'Aberto');
+    const { count: voltouCount } = await supabase.from('dados_marketing').select('*', { count: 'exact', head: true }).eq('status', 'Voltou');
 
     const { count: criadoCount } = await supabase.from('dados_marketing').select('*', { count: 'exact', head: true }).not('data_envio', 'is', null);
 
@@ -47,7 +58,14 @@ export async function fetchMarketingTotalsData(filters: MarketingFilters, organi
     else if (defaultStart && defaultEnd) rodandoQuery = rodandoQuery.gte('rodou_dia', defaultStart).lte('rodou_dia', defaultEnd);
     const { count: rodandoCount } = await rodandoQuery;
 
-    return { criado: criadoCount || 0, enviado: enviadoCount || 0, liberado: liberadoCount || 0, rodandoInicio: rodandoCount || 0 };
+    return { 
+        criado: criadoCount || 0, 
+        enviado: enviadoCount || 0, 
+        liberado: liberadoCount || 0, 
+        rodandoInicio: rodandoCount || 0,
+        aberto: abertoCount || 0,
+        voltou: voltouCount || 0
+    };
 }
 
 export async function fetchMarketingCitiesData(filters: MarketingFilters, organizationId: string | null): Promise<MarketingCityData[]> {

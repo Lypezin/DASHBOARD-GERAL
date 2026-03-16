@@ -44,6 +44,8 @@ export interface MarketingTotals {
   enviado: number; // Contagem com filtro de Enviados
   liberado: number; // Contagem com filtro de Liberação
   rodandoInicio: number; // Contagem com filtro de Rodou Dia
+  aberto: number; // Contagem com status Aberto
+  voltou: number; // Contagem com status Voltou
 }
 
 export interface EntregadorMarketing {
