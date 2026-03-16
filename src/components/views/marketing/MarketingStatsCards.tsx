@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, Send, CheckCircle2, Rocket, RotateCcw } from 'lucide-react';
@@ -10,6 +12,15 @@ interface MarketingStatsCardsProps {
 export const MarketingStatsCards = React.memo(function MarketingStatsCards({
     totals,
 }: MarketingStatsCardsProps) {
+    // Garantir que temos valores padrão caso algum campo venha undefined
+    const safeTotals = {
+        criado: totals?.criado || 0,
+        enviado: totals?.enviado || 0,
+        liberado: totals?.liberado || 0,
+        rodandoInicio: totals?.rodandoInicio || 0,
+        aberto: totals?.aberto || 0,
+        voltou: totals?.voltou || 0
+    };
 
     const StatCard = ({
         title,
@@ -58,7 +69,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
             <StatCard
                 title="Criado"
                 icon={BarChart3}
-                value={totals.criado.toLocaleString('pt-BR')}
+                value={safeTotals.criado.toLocaleString('pt-BR')}
                 subtext="Total criado"
                 colorClass="text-blue-600 dark:text-blue-400"
                 bgClass="from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-900"
@@ -68,7 +79,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
             <StatCard
                 title="Enviado"
                 icon={Send}
-                value={totals.enviado.toLocaleString('pt-BR')}
+                value={safeTotals.enviado.toLocaleString('pt-BR')}
                 subtext="Total enviado"
                 colorClass="text-emerald-600 dark:text-emerald-400"
                 bgClass="from-emerald-50 to-white dark:from-emerald-900/20 dark:to-slate-900"
@@ -78,7 +89,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
             <StatCard
                 title="Liberado"
                 icon={CheckCircle2}
-                value={totals.liberado.toLocaleString('pt-BR')}
+                value={safeTotals.liberado.toLocaleString('pt-BR')}
                 subtext="Total liberado"
                 colorClass="text-purple-600 dark:text-purple-400"
                 bgClass="from-purple-50 to-white dark:from-purple-900/20 dark:to-slate-900"
@@ -88,7 +99,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
             <StatCard
                 title="Rodando Início"
                 icon={Rocket}
-                value={totals.rodandoInicio.toLocaleString('pt-BR')}
+                value={safeTotals.rodandoInicio.toLocaleString('pt-BR')}
                 subtext="Total rodando início"
                 colorClass="text-orange-600 dark:text-orange-400"
                 bgClass="from-orange-50 to-white dark:from-orange-900/20 dark:to-slate-900"
@@ -97,8 +108,8 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
 
             <StatCard
                 title="Aberto"
-                icon={Send} // Using Send as a placeholder or search for more appropriate icon
-                value={totals.aberto.toLocaleString('pt-BR')}
+                icon={Send}
+                value={safeTotals.aberto.toLocaleString('pt-BR')}
                 subtext="Total aberto"
                 colorClass="text-cyan-600 dark:text-cyan-400"
                 bgClass="from-cyan-50 to-white dark:from-cyan-900/20 dark:to-slate-900"
@@ -108,7 +119,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
             <StatCard
                 title="Voltou"
                 icon={RotateCcw}
-                value={totals.voltou.toLocaleString('pt-BR')}
+                value={safeTotals.voltou.toLocaleString('pt-BR')}
                 subtext="Total voltou"
                 colorClass="text-rose-600 dark:text-rose-400"
                 bgClass="from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-900"
