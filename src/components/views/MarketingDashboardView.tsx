@@ -72,7 +72,18 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
       </motion.div>
 
       {/* Cartões Principais */}
-      <motion.div variants={item}>
+      <motion.div variants={item} className="space-y-4">
+        <div className="flex items-center gap-3 px-2">
+          <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-purple-500 to-blue-600 shadow-sm" />
+          <div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+              Visão Geral de Conversão
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              Indicadores principais de desempenho do funil
+            </p>
+          </div>
+        </div>
         <MarketingStatsCards totals={totals} />
       </motion.div>
 

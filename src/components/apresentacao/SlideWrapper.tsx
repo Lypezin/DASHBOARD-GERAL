@@ -1,3 +1,5 @@
+'use client';
+
 import React, { CSSProperties } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { slideTransitionStyle, slideDimensionsStyle } from './constants';

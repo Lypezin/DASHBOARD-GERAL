@@ -33,7 +33,7 @@ export const MarketingCityCards = React.memo(function MarketingCityCards({
                 {citiesData.map((cityData) => (
                     <Card
                         key={cityData.cidade}
-                        className="border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 group overflow-hidden relative"
+                        className="border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 group overflow-hidden relative"
                     >
                         {/* Gradient Overlay */}
                         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 opacity-40 rounded-bl-full -mr-6 -mt-6 transition-transform group-hover:scale-110 duration-500" />

@@ -4,10 +4,15 @@ import { safeLog } from '@/lib/errorHandler';
 import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingTotals, MarketingCityData } from '@/types';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export async function fetchMarketingTotalsData(filters: MarketingFilters, organizationId: string | null): Promise<MarketingTotals> {
+export async function fetchMarketingTotalsData(
+    filters: MarketingFilters, 
+    organizationId: string | null,
+    client: SupabaseClient = supabase
+): Promise<MarketingTotals> {
     const defaultStart = null;
     const defaultEnd = null;
 
@@ -22,7 +27,7 @@ export async function fetchMarketingTotalsData(filters: MarketingFilters, organi
         rodou_dia_inicial: filters.filtroRodouDia.dataInicial || defaultStart,
         rodou_dia_final: filters.filtroRodouDia.dataFinal || defaultEnd,
         p_organization_id: organizationId,
-    }, { validateParams: false });
+    }, { validateParams: false, client });
 
     if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
         const d = rpcData[0];
@@ -38,24 +43,21 @@ export async function fetchMarketingTotalsData(filters: MarketingFilters, organi
 
     if (IS_DEV) safeLog.warn('RPC get_marketing_totals fetch fallback');
 
-    const { count: abertoCount } = await supabase.from('dados_marketing').select('*', { count: 'exact', head: true }).eq('status', 'Aberto');
-    const { count: voltouCount } = await supabase.from('dados_marketing').select('*', { count: 'exact', head: true }).eq('status', 'Voltou');
+    const { count: abertoCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true }).eq('status', 'Aberto');
+    const { count: voltouCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true }).eq('status', 'Voltou');
 
-    const { count: criadoCount } = await supabase.from('dados_marketing').select('*', { count: 'exact', head: true }).not('data_envio', 'is', null);
+    const { count: criadoCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true }).not('data_envio', 'is', null);
 
-    let enviadoQuery = supabase.from('dados_marketing').select('*', { count: 'exact', head: true });
+    let enviadoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true });
     if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
-    else if (defaultStart && defaultEnd) enviadoQuery = enviadoQuery.gte('data_envio', defaultStart).lte('data_envio', defaultEnd);
     const { count: enviadoCount } = await enviadoQuery;
 
-    let liberadoQuery = supabase.from('dados_marketing').select('*', { count: 'exact', head: true });
+    let liberadoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true });
     if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
-    else if (defaultStart && defaultEnd) liberadoQuery = liberadoQuery.gte('data_liberacao', defaultStart).lte('data_liberacao', defaultEnd);
     const { count: liberadoCount } = await liberadoQuery;
 
-    let rodandoQuery = supabase.from('dados_marketing').select('*', { count: 'exact', head: true });
+    let rodandoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true });
     if (filters.filtroRodouDia.dataInicial) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
-    else if (defaultStart && defaultEnd) rodandoQuery = rodandoQuery.gte('rodou_dia', defaultStart).lte('rodou_dia', defaultEnd);
     const { count: rodandoCount } = await rodandoQuery;
 
     return { 
@@ -68,7 +70,11 @@ export async function fetchMarketingTotalsData(filters: MarketingFilters, organi
     };
 }
 
-export async function fetchMarketingCitiesData(filters: MarketingFilters, organizationId: string | null): Promise<MarketingCityData[]> {
+export async function fetchMarketingCitiesData(
+    filters: MarketingFilters, 
+    organizationId: string | null,
+    client: SupabaseClient = supabase
+): Promise<MarketingCityData[]> {
     const defaultStart = null;
     const defaultEnd = null;
 
@@ -82,7 +88,7 @@ export async function fetchMarketingCitiesData(filters: MarketingFilters, organi
         rodou_dia_inicial: filters.filtroRodouDia.dataInicial || defaultStart,
         rodou_dia_final: filters.filtroRodouDia.dataFinal || defaultEnd,
         p_organization_id: organizationId,
-    }, { validateParams: false });
+    }, { validateParams: false, client });
 
     if (!rpcError && rpcData && Array.isArray(rpcData)) {
         const rpcMap = new Map(rpcData.map(item => [item.cidade, item]));
@@ -96,13 +102,13 @@ export async function fetchMarketingCitiesData(filters: MarketingFilters, organi
 
     const results: MarketingCityData[] = [];
     for (const cidade of CIDADES) {
-        let enviadoQuery = buildCityQuery(supabase.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade);
+        let enviadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade);
         if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
 
-        let liberadoQuery = buildCityQuery(supabase.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade);
+        let liberadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade);
         if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
 
-        let rodandoQuery = buildCityQuery(supabase.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade);
+        let rodandoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade);
         if (filters.filtroRodouDia.dataInicial) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
 
         const [e, l, r] = await Promise.all([enviadoQuery, liberadoQuery, rodandoQuery]);

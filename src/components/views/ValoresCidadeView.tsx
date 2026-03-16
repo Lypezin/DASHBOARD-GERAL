@@ -7,6 +7,7 @@ import { useValoresCidadeData } from '@/hooks/valoresCidade/useValoresCidadeData
 import { ValoresCidadeAuth } from './valoresCidade/ValoresCidadeAuth';
 import { ValoresCidadeFilters } from './valoresCidade/ValoresCidadeFilters';
 import { ValoresCidadeCards } from './valoresCidade/ValoresCidadeCards';
+import { motion, Variants } from 'framer-motion';
 
 const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   const { isAuthenticated, password, passwordError, loading: authLoading, setPassword, handlePasswordSubmit } = useValoresCidadeAuth();
@@ -71,21 +72,56 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
     );
   }
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      <ValoresCidadeFilters
-        filter={filter}
-        filterEnviados={filterEnviados}
-        onFilterChange={handleFilterChange}
-        onFilterEnviadosChange={handleFilterEnviadosChange}
-      />
+  const container: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
 
-      <ValoresCidadeCards
-        totalGeral={totalGeral}
-        custoPorLiberado={custoPorLiberado}
-        cidadesData={cidadesData}
-      />
-    </div>
+  const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
+  return (
+    <motion.div
+      className="space-y-6 animate-fade-in pb-8"
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div variants={item} className="space-y-4">
+        <div className="flex items-center gap-3 px-2">
+          <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 shadow-sm" />
+          <div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+              Valores por Cidade
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              Análise financeira e custo por entrega por região
+            </p>
+          </div>
+        </div>
+        <ValoresCidadeFilters
+          filter={filter}
+          filterEnviados={filterEnviados}
+          onFilterChange={handleFilterChange}
+          onFilterEnviadosChange={handleFilterEnviadosChange}
+        />
+      </motion.div>
+
+      <motion.div variants={item}>
+        <ValoresCidadeCards
+          totalGeral={totalGeral}
+          custoPorLiberado={custoPorLiberado}
+          cidadesData={cidadesData}
+        />
+      </motion.div>
+    </motion.div>
   );
 });
 

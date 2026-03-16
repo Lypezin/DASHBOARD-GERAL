@@ -25,16 +25,16 @@ const MarketingView = React.memo(function MarketingView() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Marketing</h2>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Marketing</h1>
             <p className="text-muted-foreground">
-              Gerencie campanhas e resultados
+              Gerencie campanhas e acompanhe os resultados da operação.
             </p>
           </div>
         </div>
 
-        <div className="p-1.5 bg-slate-100/80 dark:bg-slate-800/80 rounded-2xl backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 inline-flex flex-wrap gap-1.5 shadow-inner">
+        <div className="p-1 px-1.5 bg-slate-100/80 dark:bg-slate-900/50 rounded-2xl backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 inline-flex flex-wrap gap-1.5 shadow-sm ring-1 ring-slate-200/20 dark:ring-slate-800/20">
           <TabButton
             label="Dashboard"
             active={activeSubTab === 'dashboard'}

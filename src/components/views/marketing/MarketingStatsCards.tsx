@@ -39,7 +39,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
         bgClass: string;
         iconBgClass: string;
     }) => (
-        <Card className="border-none shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800">
+        <Card className="border-none shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 backdrop-blur-sm">
             <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${bgClass} opacity-10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110 duration-500`} />
 
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">

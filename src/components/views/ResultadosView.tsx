@@ -52,12 +52,23 @@ const ResultadosView = React.memo(function ResultadosView() {
 
   return (
     <motion.div
-      className="space-y-6"
+      className="space-y-6 pb-8"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      <motion.div variants={item}>
+      <motion.div variants={item} className="space-y-4">
+        <div className="flex items-center gap-3 px-2">
+          <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-purple-500 to-blue-600 shadow-sm" />
+          <div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+              Análise de Resultados
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              Performance de atendentes e conversão de envios
+            </p>
+          </div>
+        </div>
         <ResultadosFilters
           filtroLiberacao={filters.filtroLiberacao}
           filtroEnviados={filters.filtroEnviados}
