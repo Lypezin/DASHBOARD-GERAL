@@ -17,10 +17,10 @@ export function useForgotPassword() {
 
     const requestPasswordReset = async (email: string) => {
         setState({ loading: true, error: null, success: false });
-
         try {
+            const redirectTo = `${window.location.origin}/redefinir-senha`;
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/redefinir-senha`,
+                redirectTo,
             });
 
             if (error) throw error;
