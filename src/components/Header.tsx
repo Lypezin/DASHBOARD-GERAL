@@ -16,7 +16,8 @@ export function Header() {
     window.location.pathname === '/login' ||
     window.location.pathname === '/registro' ||
     window.location.pathname === '/esqueci-senha' ||
-    window.location.pathname === '/redefinir-senha'
+    window.location.pathname === '/redefinir-senha' ||
+    window.location.pathname.startsWith('/apresentacao')
   )) {
     return null;
   }

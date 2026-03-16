@@ -7,7 +7,7 @@ import { createClient } from '@/utils/supabase/server';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { redirect } from 'next/navigation';
 
-export const dynamic = 'force-dynamic';
+import { Metadata } from 'next';
 
 interface PageProps {
     searchParams: {
@@ -16,6 +16,10 @@ interface PageProps {
         dataFinal?: string;
     };
 }
+
+export const metadata: Metadata = {
+    title: "Apresentação Marketing",
+};
 
 export default async function MarketingPrintablePage({ searchParams }: PageProps) {
     const supabase = createClient();
@@ -35,12 +39,10 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
 
     if (!isMarketing) {
         return (
-            <html>
-                <body style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif' }}>
-                    <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Acesso Restrito</h1>
-                    <p>Você não tem permissão para acessar esta apresentação.</p>
-                </body>
-            </html>
+            <div style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
+                <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Acesso Restrito</h1>
+                <p>Você não tem permissão para acessar esta apresentação.</p>
+            </div>
         );
     }
 
@@ -59,17 +61,12 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     const pageStyle = generatePrintStyles();
 
     return (
-        <html>
-            <head>
-                <title>Apresentação Marketing</title>
-                <style dangerouslySetInnerHTML={{ __html: pageStyle }} />
-            </head>
-            <body data-print-ready="true">
-                <MarketingReportSlides
-                    totals={totals}
-                    titulo="APRESENTAÇÃO MARKETING"
-                />
-            </body>
-        </html>
+        <div data-print-ready="true">
+            <style dangerouslySetInnerHTML={{ __html: pageStyle }} />
+            <MarketingReportSlides
+                totals={totals}
+                titulo="APRESENTAÇÃO MARKETING"
+            />
+        </div>
     );
 }

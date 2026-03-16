@@ -17,17 +17,21 @@ interface PageProps {
   };
 }
 
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Apresentação de Impressão',
+};
+
 export default async function PrintablePage({ searchParams }: PageProps) {
   const params = parsePrintParams(searchParams);
 
   if (!params) {
     return (
-      <html>
-        <body style={{ background: '#0f172a', color: 'white', padding: 24 }}>
-          <h1>Parâmetros faltando</h1>
-          <p>Informe sem1, sem2 e opcionalmente praca.</p>
-        </body>
-      </html>
+      <div style={{ background: '#0f172a', color: 'white', padding: 24, minHeight: '100vh' }}>
+        <h1>Parâmetros faltando</h1>
+        <p>Informe sem1, sem2 e opcionalmente praca.</p>
+      </div>
     );
   }
 
@@ -59,19 +63,15 @@ export default async function PrintablePage({ searchParams }: PageProps) {
   const pageStyle = generatePrintStyles();
 
   return (
-    <html>
-      <head>
-        <style dangerouslySetInnerHTML={{ __html: pageStyle }} />
-      </head>
-      <body data-print-ready="true">
-        <ReportSlides
-          praca={praca}
-          numeroSemana1={numeroSemana1}
-          numeroSemana2={numeroSemana2}
-          processedData={processedData}
-        />
-      </body>
-    </html>
+    <div data-print-ready="true">
+      <style dangerouslySetInnerHTML={{ __html: pageStyle }} />
+      <ReportSlides
+        praca={praca}
+        numeroSemana1={numeroSemana1}
+        numeroSemana2={numeroSemana2}
+        processedData={processedData}
+      />
+    </div>
   );
 }
 
