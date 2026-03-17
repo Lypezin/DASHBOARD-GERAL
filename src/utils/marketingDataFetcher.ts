@@ -211,29 +211,33 @@ export async function fetchMarketingWeeklyComparison(
 ): Promise<Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }>> {
     const targetDate = referenceDate ? new Date(referenceDate) : new Date();
     
-    // Função auxiliar para calcular número da semana aproximado (mantendo a lógica usada anteriormente)
+    // Função auxiliar para calcular número da semana aproximado (ISO-ish)
     const getWeekKey = (d: Date) => {
-        const startOfYear = new Date(d.getFullYear(), 0, 1);
-        const pastDaysOfYear = (d.getTime() - startOfYear.getTime()) / 86400000;
-        const weekNum = Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+        const date = new Date(d.getTime());
+        date.setHours(0, 0, 0, 0);
+        // Ajusta para quinta-feira da mesma semana (lógica ISO)
+        date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+        const startOfYear = new Date(date.getFullYear(), 0, 4);
+        const weekNum = 1 + Math.round(((date.getTime() - startOfYear.getTime()) / 86400000 - 3 + (startOfYear.getDay() + 6) % 7) / 7);
         return `Semana ${weekNum.toString().padStart(2, '0')}`;
     };
 
     // Gera as 8 semanas-alvo (da mais antiga para a mais atual)
-    const targetWeeks: string[] = [];
     const weekMap = new Map<string, { semana: string; criado: number; enviado: number; liberado: number; rodando: number }>();
+    const order: string[] = [];
     
+    // Pega a data de referência e volta 7 semanas
     for (let i = 7; i >= 0; i--) {
-        const d = new Date(targetDate);
+        const d = new Date(targetDate.getTime());
         d.setDate(d.getDate() - (i * 7));
         const key = getWeekKey(d);
-        targetWeeks.push(key);
+        order.push(key);
         weekMap.set(key, { semana: key, criado: 0, enviado: 0, liberado: 0, rodando: 0 });
     }
 
-    // Busca dados no Supabase limitando pelo período (aprox 10 semanas para garantir margem)
-    const startDate = new Date(targetDate);
-    startDate.setDate(startDate.getDate() - 70);
+    // Busca dados no Supabase limitando pelo período (90 dias de margem para garantir)
+    const startDate = new Date(targetDate.getTime());
+    startDate.setDate(startDate.getDate() - 90);
     
     let query = client.from('dados_marketing').select('*')
         .gte('created_at', startDate.toISOString())
@@ -243,9 +247,10 @@ export async function fetchMarketingWeeklyComparison(
     if (city) query = buildCityQuery(query, city);
 
     const { data, error } = await query;
-    if (error) return Array.from(weekMap.values());
+    if (error) return order.map(key => weekMap.get(key)!);
 
     data.forEach(item => {
+        // Usa a data mais relevante disponível para classificar a semana
         const dateStr = item.data_envio || item.data_liberacao || item.created_at;
         if (!dateStr) return;
         
@@ -259,5 +264,6 @@ export async function fetchMarketingWeeklyComparison(
         }
     });
 
-    return Array.from(weekMap.values());
+    // Retorna na ordem cronológica gerada
+    return order.map(key => weekMap.get(key)!);
 }
