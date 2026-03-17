@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -115,11 +116,12 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
             {/* Header do Slide */}
             <div className="flex justify-between items-start mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-[#3B82F6] flex items-center gap-2">
-                        SH SP <span className="text-slate-300">|</span> <span className="text-blue-500 font-medium">{titulo}</span>
+                    <h2 className="text-2xl font-black text-[#3B82F6] flex items-center gap-3">
+                        <span className="w-10 h-1 bg-blue-600 rounded-full" />
+                        <span className="tracking-tighter uppercase">{titulo}</span>
                     </h2>
-                    <div className="bg-slate-200 text-slate-600 px-3 py-1 text-xs font-bold rounded mt-1 inline-block uppercase tracking-wider">
-                        Tickets Totais → Migração
+                    <div className="bg-slate-100 text-slate-500 px-3 py-1 text-[10px] font-black rounded mt-1 inline-block uppercase tracking-[0.2em]">
+                        Performance Insight Hub
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -146,7 +148,11 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                 
                 <div className="grid grid-cols-4 lg:grid-cols-4 gap-4 px-2">
                     {citiesData.map((data, idx) => (
-                        <div key={idx} className="bg-slate-50 rounded-xl p-4 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                        <motion.div 
+                            key={idx} 
+                            whileHover={{ y: -5, scale: 1.02 }}
+                            className="bg-white/80 backdrop-blur-md rounded-xl p-4 border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05)] transition-all"
+                        >
                             <h4 className="text-[#3B82F6] font-black text-lg mb-3 border-b border-blue-100 pb-1 flex justify-between items-center">
                                 {data.cidade.replace(' 2.0', '')}
                                 <span className="text-[10px] text-slate-400 font-normal uppercase tracking-widest italic">Unidade</span>
@@ -169,7 +175,7 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                                     <span className="text-sm font-black text-orange-500">{data.aberto}</span>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </div>
