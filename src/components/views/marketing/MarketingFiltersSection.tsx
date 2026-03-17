@@ -9,7 +9,7 @@ import { MarketingCityFilter } from './components/MarketingCityFilter';
 
 interface MarketingFiltersSectionProps {
     filters: MarketingFilters;
-    onFilterChange: (filterName: keyof MarketingFilters, filter: MarketingDateFilter) => void;
+    onFilterChange: (filterName: keyof MarketingFilters, value: any) => void;
 }
 
 export const MarketingFiltersSection = React.memo(function MarketingFiltersSection({
@@ -38,7 +38,18 @@ export const MarketingFiltersSection = React.memo(function MarketingFiltersSecti
                 </div>
             </CardHeader>
             <CardContent className="pt-5 pb-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <MarketingCityFilter
+                        filters={filters as any}
+                        setFilters={(val: any) => {
+                            if (typeof val === 'function') {
+                                const newVal = val(filters);
+                                onFilterChange('praca', newVal.praca);
+                            } else {
+                                onFilterChange('praca', val.praca);
+                            }
+                        }}
+                    />
                     <MarketingDateFilterComponent
                         label="Filtro de Liberação"
                         filter={filters.filtroLiberacao}

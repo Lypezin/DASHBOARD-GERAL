@@ -14,6 +14,7 @@ export function useMarketingData() {
         filtroEnviados: { dataInicial: null, dataFinal: null },
         filtroRodouDia: { dataInicial: null, dataFinal: null },
         filtroDataInicio: { dataInicial: null, dataFinal: null },
+        praca: null,
     });
 
     const refreshData = useCallback(async () => {
@@ -36,8 +37,8 @@ export function useMarketingData() {
 
     useEffect(() => { refreshData(); }, [refreshData]);
 
-    const handleFilterChange = (filterName: keyof MarketingFilters, filter: MarketingDateFilter) => {
-        setFilters(prev => ({ ...prev, [filterName]: filter }));
+    const handleFilterChange = (filterName: keyof MarketingFilters, value: any) => {
+        setFilters(prev => ({ ...prev, [filterName]: value }));
     };
 
     return { loading, error, totals, citiesData, filters, handleFilterChange };

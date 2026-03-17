@@ -58,6 +58,7 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         filtroEnviados: unifiedDateFilter,
         filtroRodouDia: unifiedDateFilter,
         filtroDataInicio: unifiedDateFilter,
+        praca: searchParams.praca || null,
     };
 
     // 3. Buscar Dados

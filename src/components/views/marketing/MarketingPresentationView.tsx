@@ -7,17 +7,23 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 import { toast } from 'sonner';
+import { MarketingDateFilter, MarketingFilters } from '@/types';
+import { MarketingCityFilter } from './components/MarketingCityFilter';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
-import { MarketingDateFilter } from '@/types';
 
 const MarketingPresentationView = React.memo(function MarketingPresentationView() {
     const { user, isLoading } = useHeaderAuth();
     const router = useRouter();
     
     // Estado local para os filtros da apresentação
-    const [presentationFilters, setPresentationFilters] = useState<MarketingDateFilter>({
+    const [presentationFilters, setPresentationFilters] = useState<{
+        dataInicial: string | null;
+        dataFinal: string | null;
+        praca: string | null;
+    }>({
         dataInicial: null,
-        dataFinal: null
+        dataFinal: null,
+        praca: null
     });
 
     const isMarketing = user?.role === 'marketing' || user?.role === 'admin' || user?.role === 'master' || user?.is_admin;
@@ -33,6 +39,7 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
         const params = new URLSearchParams();
         if (presentationFilters.dataInicial) params.set('dataInicial', presentationFilters.dataInicial);
         if (presentationFilters.dataFinal) params.set('dataFinal', presentationFilters.dataFinal);
+        if (presentationFilters.praca) params.set('praca', presentationFilters.praca);
         
         const queryString = params.toString();
         router.push(`/apresentacao/marketing${queryString ? `?${queryString}` : ''}`);
@@ -60,15 +67,21 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
                 </CardHeader>
 
                 <CardContent className="relative z-10 px-8 pb-12">
-                    <div className="max-w-md mx-auto mb-10">
-                        <div className="flex items-center gap-2 mb-4 justify-center">
+                    <div className="max-w-md mx-auto mb-10 space-y-6">
+                        <div className="flex items-center gap-2 mb-2 justify-center">
                             <Calendar className="h-4 w-4 text-purple-500" />
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Período da Apresentação</span>
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Período e Localização</span>
                         </div>
+                        
+                        <MarketingCityFilter 
+                            filters={presentationFilters as any} 
+                            setFilters={setPresentationFilters as any} 
+                        />
+
                         <MarketingDateFilterComponent
                             label="Período"
                             filter={presentationFilters}
-                            onFilterChange={setPresentationFilters}
+                            onFilterChange={(filter) => setPresentationFilters(prev => ({ ...prev, ...filter }))}
                         />
                     </div>
 

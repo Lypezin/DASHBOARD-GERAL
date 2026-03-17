@@ -30,6 +30,7 @@ export interface MarketingFilters {
   filtroEnviados: MarketingDateFilter;
   filtroRodouDia: MarketingDateFilter;
   filtroDataInicio: MarketingDateFilter;
+  praca?: string | null;
 }
 
 export interface MarketingCityData {

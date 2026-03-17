@@ -44,33 +44,32 @@ export async function fetchMarketingTotalsData(
     if (IS_DEV) safeLog.warn('RPC get_marketing_totals fetch fallback');
 
     // Base query com organização
-    const baseQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true });
-    if (organizationId) baseQuery.eq('organization_id', organizationId);
+    const applyBaseFilters = (q: any) => {
+        let filtered = q.match(organizationId ? { organization_id: organizationId } : {});
+        if (filters.praca) {
+            filtered = buildCityQuery(filtered, filters.praca);
+        }
+        return filtered;
+    };
 
-    const { count: abertoCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true })
-        .eq('status', 'Aberto')
-        .match(organizationId ? { organization_id: organizationId } : {});
+    const { count: abertoCount } = await applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
+        .eq('status', 'Aberto');
         
-    const { count: voltouCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true })
-        .eq('status', 'Voltou')
-        .match(organizationId ? { organization_id: organizationId } : {});
+    const { count: voltouCount } = await applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
+        .eq('status', 'Voltou');
 
-    const { count: criadoCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true })
-        .not('data_envio', 'is', null)
-        .match(organizationId ? { organization_id: organizationId } : {});
+    const { count: criadoCount } = await applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
+        .not('data_envio', 'is', null);
 
-    let enviadoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true })
-        .match(organizationId ? { organization_id: organizationId } : {});
+    let enviadoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }));
     if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
     const { count: enviadoCount } = await enviadoQuery;
 
-    let liberadoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true })
-        .match(organizationId ? { organization_id: organizationId } : {});
+    let liberadoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }));
     if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
     const { count: liberadoCount } = await liberadoQuery;
 
-    let rodandoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true })
-        .match(organizationId ? { organization_id: organizationId } : {});
+    let rodandoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }));
     if (filters.filtroRodouDia.dataInicial) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
     const { count: rodandoCount } = await rodandoQuery;
 
@@ -104,9 +103,11 @@ export async function fetchMarketingCitiesData(
         p_organization_id: organizationId,
     }, { validateParams: false, client });
 
+    const cidadesToProcess = filters.praca ? [filters.praca] : CIDADES;
+
     if (!rpcError && rpcData && Array.isArray(rpcData)) {
         const rpcMap = new Map(rpcData.map(item => [item.cidade, item]));
-        return CIDADES.map(cidade => {
+        return cidadesToProcess.map(cidade => {
             const item = rpcMap.get(cidade);
             return { 
                 cidade, 
@@ -122,7 +123,7 @@ export async function fetchMarketingCitiesData(
     if (IS_DEV) safeLog.warn('RPC get_marketing_cities_data fetch fallback');
 
     const results: MarketingCityData[] = [];
-    for (const cidade of CIDADES) {
+    for (const cidade of cidadesToProcess) {
         let enviadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {});
         if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
@@ -166,6 +167,10 @@ export async function fetchMarketingDailyEvolution(
         .from('dados_marketing')
         .select('data_liberacao, data_envio, rodou_dia')
         .match(organizationId ? { organization_id: organizationId } : {});
+
+    if (filters.praca) {
+        query = buildCityQuery(query, filters.praca);
+    }
 
     // Aplicar filtros de data se existirem. 
     // Como os filtros estão unificados na apresentação, podemos ser abrangentes.
