@@ -7,6 +7,7 @@ import ResultadosView from './ResultadosView';
 import ValoresCidadeView from './ValoresCidadeView';
 import EntregadoresView from './EntregadoresView';
 import MarketingEntradaSaidaView from './marketing/MarketingEntradaSaidaView';
+import MarketingPresentationView from './marketing/MarketingPresentationView';
 import TabButton from '@/components/TabButton';
 
 const MarketingView = React.memo(function MarketingView() {
@@ -60,6 +61,11 @@ const MarketingView = React.memo(function MarketingView() {
             active={activeSubTab === 'entrada-saida'}
             onClick={() => handleTabChange('entrada-saida')}
           />
+          <TabButton
+            label="Apresentação"
+            active={activeSubTab === 'apresentacao'}
+            onClick={() => handleTabChange('apresentacao')}
+          />
         </div>
       </div>
 
@@ -70,6 +76,7 @@ const MarketingView = React.memo(function MarketingView() {
       {activeSubTab === 'valores-cidade' && <ValoresCidadeView />}
       {activeSubTab === 'entregadores' && <EntregadoresView />}
       {activeSubTab === 'entrada-saida' && <MarketingEntradaSaidaView />}
+      {activeSubTab === 'apresentacao' && <MarketingPresentationView />}
     </div>
   );
 });

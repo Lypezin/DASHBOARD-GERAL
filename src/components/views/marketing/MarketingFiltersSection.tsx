@@ -6,7 +6,6 @@ import { Filter, Sparkles } from 'lucide-react';
 import { MarketingFilters, MarketingDateFilter } from '@/types';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 import { MarketingCityFilter } from './components/MarketingCityFilter';
-import { MarketingPresentationButton } from './components/MarketingPresentationButton';
 
 interface MarketingFiltersSectionProps {
     filters: MarketingFilters;
@@ -36,9 +35,6 @@ export const MarketingFiltersSection = React.memo(function MarketingFiltersSecti
                             </p>
                         </div>
                     </div>
-                    
-                    {/* Botão de Apresentação */}
-                    <MarketingPresentationButton />
                 </div>
             </CardHeader>
             <CardContent className="pt-5 pb-5">
