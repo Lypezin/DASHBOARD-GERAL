@@ -247,9 +247,15 @@ export async function fetchMarketingWeeklyComparison(
     // Função auxiliar para calcular número da semana (Sunday Start - O padrão do usuário)
     const getWeekKey = (d: Date) => {
         const year = d.getFullYear();
+        // Encontrar o primeiro domingo do ano (ou o dia 1 se cair no meio da semana mas pertencer à Semana 01)
+        // O padrão ISO-8601 é diferente, mas aqui usaremos uma lógica simples de dias corridos / 7
         const startOfYear = new Date(year, 0, 1);
         const dayOfYear = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000);
+        // Ajuste para garantir que o dia 1 de Janeiro comece na Semana 01
         const weekNum = Math.floor((dayOfYear + startOfYear.getDay()) / 7) + 1;
+        
+        // Se a data for de Dezembro mas cair na "Semana 53" que pertence ao próximo ano, ou vice-versa,
+        // o rótulo deve ser consistente. Para o usuário, o que importa é o número da semana no ano da data.
         return `Semana ${weekNum.toString().padStart(2, '0')}`;
     };
 
@@ -272,18 +278,19 @@ export async function fetchMarketingWeeklyComparison(
         }
     }
 
-    // Busca dados no Supabase. Filtramos por uma janela ampla de 120 dias para garantir o histórico
+    // Busca dados no Supabase. 
     const lastSunday = new Date(baseSunday.getTime());
-    lastSunday.setDate(lastSunday.getDate() - (7 * 7)); // Primeira das 8 semanas
+    lastSunday.setDate(lastSunday.getDate() - (7 * 7)); 
     const startDate = new Date(lastSunday.getTime());
-    startDate.setDate(startDate.getDate() - 7); // Margem de segurança
+    startDate.setDate(startDate.getDate() - 1); // 1 dia de margem
     const startDateISO = startDate.toISOString().split('T')[0];
     const endDateISO = targetDate.toISOString().split('T')[0];
 
     let query = client.from('dados_marketing').select('*');
     
-    // Filtro mais abrangente por datas de negócio ou criação
+    // Filtro restrito: pega apenas o que aconteceu dentro da janela das 8 semanas para QUALQUER métrica
     query = query.or(`data_envio.gte.${startDateISO},data_liberacao.gte.${startDateISO},created_at.gte.${startDate.toISOString()}`);
+    query = query.or(`data_envio.lte.${endDateISO},data_liberacao.lte.${endDateISO},created_at.lte.${targetDate.toISOString()}`);
 
     if (organizationId) query = query.eq('organization_id', organizationId);
     if (city) query = buildCityQuery(query, city);
@@ -292,21 +299,25 @@ export async function fetchMarketingWeeklyComparison(
     if (error) return order.map(key => weekMap.get(key)!);
 
     data.forEach(item => {
-        // Business Logic: Prioriza a data de envio, depois liberação, por fim criação
-        const dateStr = item.data_envio || item.data_liberacao || item.created_at;
-        if (!dateStr) return;
-        
-        // Converte string YYYY-MM-DD para Date de forma segura (evitando timezone shift indesejado)
-        const d = new Date(dateStr + (dateStr.length === 10 ? 'T12:00:00' : ''));
-        const weekKey = getWeekKey(d);
-        
-        if (weekMap.has(weekKey)) {
-            const w = weekMap.get(weekKey)!;
-            w.criado++;
-            if (item.data_envio) w.enviado++;
-            if (item.data_liberacao) w.liberado++;
-            if (item.rodando === 'Sim') w.rodando++;
-        }
+        const processMetric = (dateStr: string | null, type: 'criado' | 'enviado' | 'liberado' | 'rodando') => {
+            if (!dateStr) return;
+            const d = new Date(dateStr + (dateStr.length === 10 ? 'T12:00:00' : ''));
+            const weekKey = getWeekKey(d);
+            
+            if (weekMap.has(weekKey)) {
+                const w = weekMap.get(weekKey)!;
+                if (type === 'criado') w.criado++;
+                if (type === 'enviado') w.enviado++;
+                if (type === 'liberado') w.liberado++;
+                if (type === 'rodando') w.rodando++;
+            }
+        };
+
+        // Regra de negócio: cada métrica deve ser contada na semana em que ELA ocorreu
+        processMetric(item.created_at, 'criado');
+        if (item.data_envio) processMetric(item.data_envio, 'enviado');
+        if (item.data_liberacao) processMetric(item.data_liberacao, 'liberado');
+        if (item.rodando === 'Sim' && item.rodou_dia) processMetric(item.rodou_dia, 'rodando');
     });
 
     return order.map(key => weekMap.get(key)!);

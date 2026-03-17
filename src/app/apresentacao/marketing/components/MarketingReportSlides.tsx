@@ -6,6 +6,7 @@ import SlideEvolucaoResumoMarketing from '@/components/apresentacao/slides/marke
 import SlideComparativoSemanalMarketing from '@/components/apresentacao/slides/marketing/SlideComparativoSemanalMarketing';
 import { MarketingTotals, MarketingCityData } from '@/types';
 import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface MarketingReportSlidesProps {
     totals: MarketingTotals;
@@ -26,15 +27,10 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
     titulo,
     periodoFormatado
 }) => {
+    const router = useRouter();
+    
     const handleSair = () => {
-        if (typeof window !== 'undefined') {
-            // Tenta voltar na história, se não conseguir (ex: aba aberta diretamente), tenta fechar ou ir para home
-            if (window.history.length > 1) {
-                window.history.back();
-            } else {
-                window.location.href = '/';
-            }
-        }
+        router.push('/apresentacao/marketing');
     };
 
     return (
