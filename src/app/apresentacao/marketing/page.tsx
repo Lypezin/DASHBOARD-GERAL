@@ -63,13 +63,13 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         fetchMarketingTotalsData(filters as any, orgId, supabase),
         fetchMarketingCitiesData(filters as any, orgId, supabase),
         fetchMarketingDailyEvolution(filters as any, orgId, supabase),
-        fetchMarketingWeeklyComparison(orgId, null, supabase)
+        fetchMarketingWeeklyComparison(orgId, null, searchParams.dataFinal || null, supabase)
     ]);
 
     // Buscar comparativo semanal para cada cidade
     const weeklyDataByCity = await Promise.all(
         CIDADES.map(async (cidade) => {
-            const data = await fetchMarketingWeeklyComparison(orgId, cidade, supabase);
+            const data = await fetchMarketingWeeklyComparison(orgId, cidade, searchParams.dataFinal || null, supabase);
             return { cidade, data };
         })
     );

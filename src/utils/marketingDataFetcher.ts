@@ -206,40 +206,58 @@ export async function fetchMarketingDailyEvolution(
 export async function fetchMarketingWeeklyComparison(
     organizationId: string | null,
     city: string | null = null,
+    referenceDate: string | null = null,
     client: SupabaseClient = supabase
 ): Promise<Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }>> {
-    // Busca dados das últimas 8 semanas
-    // Simplificando: vamos buscar tudo e agrupar por semana no JS por enquanto
-    // Em produção idealmente seria um RPC
-    let query = client.from('dados_marketing').select('*');
+    const targetDate = referenceDate ? new Date(referenceDate) : new Date();
+    
+    // Função auxiliar para calcular número da semana aproximado (mantendo a lógica usada anteriormente)
+    const getWeekKey = (d: Date) => {
+        const startOfYear = new Date(d.getFullYear(), 0, 1);
+        const pastDaysOfYear = (d.getTime() - startOfYear.getTime()) / 86400000;
+        const weekNum = Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+        return `Semana ${weekNum.toString().padStart(2, '0')}`;
+    };
+
+    // Gera as 8 semanas-alvo (da mais antiga para a mais atual)
+    const targetWeeks: string[] = [];
+    const weekMap = new Map<string, { semana: string; criado: number; enviado: number; liberado: number; rodando: number }>();
+    
+    for (let i = 7; i >= 0; i--) {
+        const d = new Date(targetDate);
+        d.setDate(d.getDate() - (i * 7));
+        const key = getWeekKey(d);
+        targetWeeks.push(key);
+        weekMap.set(key, { semana: key, criado: 0, enviado: 0, liberado: 0, rodando: 0 });
+    }
+
+    // Busca dados no Supabase limitando pelo período (aprox 10 semanas para garantir margem)
+    const startDate = new Date(targetDate);
+    startDate.setDate(startDate.getDate() - 70);
+    
+    let query = client.from('dados_marketing').select('*')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', targetDate.toISOString());
+
     if (organizationId) query = query.eq('organization_id', organizationId);
     if (city) query = buildCityQuery(query, city);
 
     const { data, error } = await query;
-    if (error) return [];
+    if (error) return Array.from(weekMap.values());
 
-    // Lógica para agrupar por semana (ISO Weeks)
-    const weeks: any = {};
-    
     data.forEach(item => {
-        const date = item.data_envio || item.data_liberacao || item.created_at;
-        if (!date) return;
+        const dateStr = item.data_envio || item.data_liberacao || item.created_at;
+        if (!dateStr) return;
         
-        const d = new Date(date);
-        const startOfYear = new Date(d.getFullYear(), 0, 1);
-        const pastDaysOfYear = (d.getTime() - startOfYear.getTime()) / 86400000;
-        const weekNum = Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
-        const weekKey = `Semana ${weekNum.toString().padStart(2, '0')}`;
-
-        if (!weeks[weekKey]) {
-            weeks[weekKey] = { semana: weekKey, criado: 0, enviado: 0, liberado: 0, rodando: 0 };
+        const weekKey = getWeekKey(new Date(dateStr));
+        if (weekMap.has(weekKey)) {
+            const w = weekMap.get(weekKey)!;
+            w.criado++;
+            if (item.data_envio) w.enviado++;
+            if (item.data_liberacao) w.liberado++;
+            if (item.rodando === 'Sim') w.rodando++;
         }
-
-        weeks[weekKey].criado++;
-        if (item.data_envio) weeks[weekKey].enviado++;
-        if (item.data_liberacao) weeks[weekKey].liberado++;
-        if (item.rodando === 'Sim') weeks[weekKey].rodando++;
     });
 
-    return Object.values(weeks).sort((a: any, b: any) => b.semana.localeCompare(a.semana)).slice(0, 8).reverse() as any;
+    return Array.from(weekMap.values());
 }
