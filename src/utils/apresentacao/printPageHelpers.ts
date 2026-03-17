@@ -72,24 +72,27 @@ export function createFilterPayload(ano: number, semana: number, praca: string |
  */
 export function generatePrintStyles(): string {
   return `
-    html, body { margin: 0; padding: 0; }
+    html, body { margin: 0; padding: 0; background: #0f172a; min-height: 100vh; }
     @page { size: A4 landscape; margin: 0; }
-    body { background: #1e40af; }
     .page {
       width: ${SLIDE_WIDTH}px;
       height: ${SLIDE_HEIGHT}px;
-      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-      color: #ffffff;
+      background: white;
+      color: #0f172a;
       page-break-after: always;
       position: relative;
-      overflow: visible;
+      overflow: hidden;
+      margin: 40px auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border-radius: 8px;
     }
     /* Neutralizar posicionamento absoluto do SlideWrapper (tailwind absolute inset-0) no modo print */
     .page > .slide {
       position: relative !important;
       inset: auto !important;
       top: auto !important; left: auto !important; right: auto !important; bottom: auto !important;
+      width: 100% !important;
+      height: 100% !important;
     }
   `;
 }
-

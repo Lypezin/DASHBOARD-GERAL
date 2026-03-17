@@ -48,34 +48,34 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
             </div>
 
             {/* Grid de Semanas */}
-            <div className="flex-1 grid grid-cols-4 gap-y-16 gap-x-8">
+            <div className="flex-1 grid grid-cols-4 gap-y-12 gap-x-6">
                 {displayData.map((week, idx) => (
                     <motion.div 
                         key={idx}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="flex flex-col"
+                        className="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 flex flex-col shadow-sm"
                     >
-                        <h3 className="text-5xl font-black text-black mb-4 uppercase tracking-tighter">
+                        <h3 className="text-3xl font-black text-[#0A1D47] mb-6 uppercase tracking-tighter border-b border-slate-200 pb-2">
                             {week.semana}
                         </h3>
-                        <div className="flex flex-col gap-1">
-                            <div className="flex justify-between items-baseline border-b border-slate-100 pb-1">
-                                <span className="text-lg font-bold text-slate-500 uppercase">Criados</span>
-                                <span className="text-2xl font-black text-black">{week.criado}</span>
+                        <div className="flex flex-col gap-3">
+                            <div className="flex justify-between items-baseline">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Criados</span>
+                                <span className="text-xl font-black text-slate-700">{week.criado}</span>
                             </div>
-                            <div className="flex justify-between items-baseline border-b border-slate-100 pb-1">
-                                <span className="text-lg font-bold text-slate-500 uppercase">Enviados</span>
-                                <span className="text-2xl font-black text-black">{week.enviado}</span>
+                            <div className="flex justify-between items-baseline">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Enviados</span>
+                                <span className="text-xl font-black text-[#3B82F6]">{week.enviado}</span>
                             </div>
-                            <div className="flex justify-between items-baseline border-b border-slate-100 pb-1">
-                                <span className="text-lg font-bold text-slate-500 uppercase">Liberados</span>
-                                <span className="text-2xl font-black text-black">{week.liberado}</span>
+                            <div className="flex justify-between items-baseline">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Liberados</span>
+                                <span className="text-xl font-black text-[#3B82F6]">{week.liberado}</span>
                             </div>
-                            <div className="flex justify-between items-baseline border-b border-slate-100 pb-1">
-                                <span className="text-lg font-bold text-slate-500 uppercase">Rodando</span>
-                                <span className="text-2xl font-black text-black">{week.rodando}</span>
+                            <div className="flex justify-between items-baseline pt-2 border-t border-slate-100">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rodando</span>
+                                <span className="text-xl font-black text-green-600">{week.rodando}</span>
                             </div>
                             
                             {week.conversas !== undefined && (

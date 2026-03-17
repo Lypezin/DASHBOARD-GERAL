@@ -14,17 +14,17 @@ const SlideCapaMarketing: React.FC<SlideCapaMarketingProps> = ({
     isVisible,
     titulo = "Cadastros Marketing",
     subtitulo = "Relatório de Resultados",
-    periodo = "Setembro (Semana 08)"
+    periodo = "Período Atual"
 }) => {
     if (!isVisible) return null;
 
     return (
-        <div className="relative w-full h-full bg-white overflow-hidden flex flex-col items-center justify-center p-20 font-sans">
-            {/* Barras Azuis Laterais (Barra da Esquerda) */}
+        <div className="relative w-full h-full bg-gradient-to-br from-slate-50 to-white overflow-hidden flex flex-col items-center justify-center p-20 font-sans">
+            {/* Barras Azuis Laterais - Cores da Marca */}
             <div className="absolute left-0 top-0 h-full flex items-stretch">
-                <div className="w-1.5 bg-blue-900" />
-                <div className="w-4 bg-blue-700 mx-0.5" />
-                <div className="w-8 bg-blue-600" />
+                <div className="w-2 bg-[#0A1D47]" />
+                <div className="w-4 bg-[#1e40af] mx-1 opacity-80" />
+                <div className="w-8 bg-[#3b82f6] opacity-60" />
             </div>
 
             {/* Logo EntreGO (Topo Esquerda) */}
@@ -49,17 +49,17 @@ const SlideCapaMarketing: React.FC<SlideCapaMarketingProps> = ({
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="text-center z-10"
             >
-                <h1 className="text-[64px] font-black text-[#0A1D47] leading-tight mb-2 tracking-tight">
+                <h1 className="text-[72px] font-black text-[#0A1D47] leading-tight mb-2 tracking-tighter">
                     {titulo}
                 </h1>
-                <h2 className="text-[48px] font-bold text-[#0A1D47] tracking-tight opacity-90">
+                <h2 className="text-[42px] font-bold text-blue-600 tracking-tight mb-8">
                     {periodo}
                 </h2>
                 
                 {subtitulo && (
-                    <div className="mt-8">
-                        <div className="h-1.5 w-24 bg-blue-600 mx-auto rounded-full mb-4" />
-                        <p className="text-xl text-slate-500 font-bold uppercase tracking-[0.2em]">
+                    <div className="flex flex-col items-center">
+                        <div className="h-1.5 w-24 bg-[#0A1D47] rounded-full mb-6" />
+                        <p className="text-xl text-slate-400 font-bold uppercase tracking-[0.3em]">
                             {subtitulo}
                         </p>
                     </div>

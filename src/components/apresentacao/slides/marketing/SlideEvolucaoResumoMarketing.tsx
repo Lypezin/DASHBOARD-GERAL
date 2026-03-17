@@ -138,21 +138,38 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
             </div>
 
             {/* Seção Resumo */}
-            <div className="border-t-2 border-slate-100 pt-6">
-                <h3 className="text-4xl font-black text-[#10B981] text-center mb-8 italic uppercase tracking-tighter">Resumo</h3>
+            <div className="mt-auto pt-8 border-t border-slate-100">
+                <div className="flex items-center justify-center gap-4 mb-8">
+                    <div className="h-px w-24 bg-slate-200" />
+                    <h3 className="text-3xl font-black text-[#0A1D47] italic uppercase tracking-tighter">Resumo por Unidade</h3>
+                    <div className="h-px w-24 bg-slate-200" />
+                </div>
                 
-                <div className="grid grid-cols-4 md:grid-cols-8 gap-4 px-4 overflow-hidden">
+                <div className="grid grid-cols-4 lg:grid-cols-4 gap-4 px-2">
                     {citiesData.map((data, idx) => (
-                        <div key={idx} className="flex flex-col">
-                            <h4 className="text-[#10B981] font-bold text-sm mb-2 truncate">{data.cidade.replace(' 2.0', '')}</h4>
-                            <ul className="text-[10px] space-y-1 font-bold text-slate-800">
-                                <li>• Doc. Coletado: {data.enviado}</li>
-                                <li>• Enviado: {data.enviado}</li>
-                                <li>• Liberado: {data.liberado}</li>
-                                <li>• Rodando: {data.rodandoInicio}</li>
-                                <li>• Aberto: {data.aberto}</li>
-                                <li>• Voltou: {data.voltou}</li>
-                            </ul>
+                        <div key={idx} className="bg-slate-50 rounded-xl p-4 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                            <h4 className="text-[#3B82F6] font-black text-lg mb-3 border-b border-blue-100 pb-1 flex justify-between items-center">
+                                {data.cidade.replace(' 2.0', '')}
+                                <span className="text-[10px] text-slate-400 font-normal uppercase tracking-widest italic">Unidade</span>
+                            </h4>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Enviado</span>
+                                    <span className="text-sm font-black text-slate-700">{data.enviado}</span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Liberado</span>
+                                    <span className="text-sm font-black text-blue-600">{data.liberado}</span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Rodando</span>
+                                    <span className="text-sm font-black text-green-600">{data.rodandoInicio}</span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Aberto</span>
+                                    <span className="text-sm font-black text-orange-500">{data.aberto}</span>
+                                </div>
+                            </div>
                         </div>
                     ))}
                 </div>

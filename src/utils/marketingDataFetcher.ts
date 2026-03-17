@@ -162,10 +162,21 @@ export async function fetchMarketingDailyEvolution(
     client: SupabaseClient = supabase
 ): Promise<Array<{ data: string; liberado: number; enviado: number }>> {
     // Busca evolução diária baseada no filtro de liberados ou enviados
-    const { data, error } = await client
+    let query = client
         .from('dados_marketing')
         .select('data_liberacao, data_envio')
         .match(organizationId ? { organization_id: organizationId } : {});
+
+    // Aplicar filtros de data se existirem
+    const dateFilter = filters.filtroEnviados.dataInicial ? filters.filtroEnviados : 
+                      filters.filtroLiberacao.dataInicial ? filters.filtroLiberacao : null;
+
+    if (dateFilter) {
+        if (dateFilter.dataInicial) query = query.or(`data_envio.gte.${dateFilter.dataInicial},data_liberacao.gte.${dateFilter.dataInicial}`);
+        if (dateFilter.dataFinal) query = query.or(`data_envio.lte.${dateFilter.dataFinal},data_liberacao.lte.${dateFilter.dataFinal}`);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
         safeLog.error('Erro ao buscar evolução diária:', error);
