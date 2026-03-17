@@ -1,16 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Presentation, ExternalLink, Sparkles, Layout, Download } from 'lucide-react';
+import { Presentation, ExternalLink, Sparkles, Layout, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 import { toast } from 'sonner';
+import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
+import { MarketingDateFilter } from '@/types';
 
 const MarketingPresentationView = React.memo(function MarketingPresentationView() {
     const { user, isLoading } = useHeaderAuth();
     const router = useRouter();
+    
+    // Estado local para os filtros da apresentação
+    const [presentationFilters, setPresentationFilters] = useState<MarketingDateFilter>({
+        dataInicial: null,
+        dataFinal: null
+    });
 
     const isMarketing = user?.role === 'marketing' || user?.role === 'admin' || user?.role === 'master' || user?.is_admin;
 
@@ -21,7 +29,13 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
             });
             return;
         }
-        router.push('/apresentacao/marketing');
+
+        const params = new URLSearchParams();
+        if (presentationFilters.dataInicial) params.set('dataInicial', presentationFilters.dataInicial);
+        if (presentationFilters.dataFinal) params.set('dataFinal', presentationFilters.dataFinal);
+        
+        const queryString = params.toString();
+        router.push(`/apresentacao/marketing${queryString ? `?${queryString}` : ''}`);
     };
 
     if (isLoading) return null;
@@ -31,8 +45,8 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
             <Card className="border-none shadow-xl bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
                 
-                <CardHeader className="relative z-10 pb-8 pt-10 px-8 text-center max-w-2xl mx-auto">
-                    <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-xl shadow-purple-500/30 mb-6 group animate-bounce-slow">
+                <CardHeader className="relative z-10 pb-6 pt-10 px-8 text-center max-w-2xl mx-auto">
+                    <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-xl shadow-purple-500/30 mb-6 group">
                         <Presentation className="h-10 w-10 text-white" />
                     </div>
                     <CardTitle className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tight mb-4">
@@ -40,72 +54,48 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
                         <Sparkles className="h-5 w-5 text-purple-500 inline ml-2 animate-pulse" />
                     </CardTitle>
                     <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                        Gere apresentações visuais premium para reuniões de resultados. 
-                        Transforme os dados complexos em slides elegantes e prontos para impressão ou exposição.
+                        Configure o período desejado e gere a apresentação oficial. 
+                        Os slides serão gerados automaticamente com base nos filtros selecionados.
                     </p>
                 </CardHeader>
 
                 <CardContent className="relative z-10 px-8 pb-12">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-                        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
-                            <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mb-4">
-                                <Layout className="h-6 w-6" />
-                            </div>
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-2">Design Fluid</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Layouts otimizados para visualização em telas grandes ou TV.</p>
+                    <div className="max-w-md mx-auto mb-10">
+                        <div className="flex items-center gap-2 mb-4 justify-center">
+                            <Calendar className="h-4 w-4 text-purple-500" />
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Período da Apresentação</span>
                         </div>
-
-                        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
-                            <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 mb-4">
-                                <Download className="h-6 w-6" />
-                            </div>
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-2">Pronto para Imprimir</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">PDFs otimizados com alta qualidade e fidelidade visual.</p>
-                        </div>
-
-                        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
-                            <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mb-4">
-                                <Sparkles className="h-6 w-6" />
-                            </div>
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-2">Dados Atuais</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Sincronização em tempo real com os dados mais recentes do sistema.</p>
-                        </div>
+                        <MarketingDateFilterComponent
+                            label="Período"
+                            filter={presentationFilters}
+                            onFilterChange={setPresentationFilters}
+                        />
                     </div>
 
-                    <div className="flex flex-col items-center gap-4">
+                    <div className="flex flex-col items-center gap-4 border-t border-slate-100 dark:border-slate-800 pt-10">
                         <Button
                             onClick={handleOpenPresentation}
                             size="lg"
                             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-10 py-7 text-lg font-bold rounded-2xl shadow-xl shadow-purple-500/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
                         >
                             <Presentation className="h-6 w-6" />
-                            Começar Apresentação
+                            Gerar Apresentação Agora
                             <ExternalLink className="h-5 w-5 opacity-50" />
                         </Button>
-                        <p className="text-xs text-slate-400 font-medium">
-                            {isMarketing ? 'Você possui privilégios para esta ação.' : 'Acesso restrito à equipe de Marketing.'}
+                        <p className="text-xs text-slate-400 font-medium italic">
+                            {isMarketing ? 'Acesso liberado para seu perfil.' : 'Acesso restrito à equipe de Marketing.'}
                         </p>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Preview Section */}
+            {/* Preview Section - Simpler version */}
             <div className="mt-12 text-center">
-                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-8 flex items-center justify-center gap-2">
-                    <Layout className="h-5 w-5 text-blue-500" />
-                    Preview da Apresentação
-                </h3>
-                <div className="max-w-4xl mx-auto rounded-3xl border-8 border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden aspect-[16/9] bg-slate-100 dark:bg-slate-900 flex items-center justify-center relative group">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10" />
-                    <div className="relative z-20 flex flex-col items-center text-center p-8">
-                        <div className="w-16 h-1 w-24 bg-blue-600 rounded-full mb-6" />
-                        <h4 className="text-4xl font-black text-slate-800 dark:text-white mb-2 uppercase tracking-tighter">RELATÓRIO SEMANAL</h4>
-                        <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-sm">Visão Geral de Resultados • Marketing</p>
-                    </div>
-                    <div className="absolute bottom-8 right-8 z-20 flex gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                        <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
-                        <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
+                <div className="max-w-2xl mx-auto rounded-3xl border-4 border-slate-200 dark:border-slate-800 shadow-lg overflow-hidden aspect-[21/9] bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center relative">
+                    <div className="flex flex-col items-center text-center p-6">
+                        <div className="w-12 h-1 bg-blue-500 rounded-full mb-4" />
+                        <h4 className="text-2xl font-black text-slate-400 dark:text-slate-600 uppercase tracking-tighter">PREVIEW DA ESTRUTURA</h4>
+                        <p className="text-slate-400 dark:text-slate-700 font-bold uppercase tracking-widest text-xs">Capa • Resumo de Totais • Detalhes por Cidade</p>
                     </div>
                 </div>
             </div>
