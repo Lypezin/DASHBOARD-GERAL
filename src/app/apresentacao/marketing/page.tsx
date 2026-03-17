@@ -48,11 +48,16 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     }
 
     // 2. Preparar Filtros
+    const unifiedDateFilter = { 
+        dataInicial: searchParams.dataInicial || null, 
+        dataFinal: searchParams.dataFinal || null 
+    };
+
     const filters = {
-        filtroLiberacao: { dataInicial: searchParams.dataInicial || null, dataFinal: searchParams.dataFinal || null },
-        filtroEnviados: { dataInicial: searchParams.dataInicial || null, dataFinal: searchParams.dataFinal || null },
-        filtroRodouDia: { dataInicial: searchParams.dataInicial || null, dataFinal: searchParams.dataFinal || null },
-        filtroDataInicio: { dataInicial: searchParams.dataInicial || null, dataFinal: searchParams.dataFinal || null },
+        filtroLiberacao: unifiedDateFilter,
+        filtroEnviados: unifiedDateFilter,
+        filtroRodouDia: unifiedDateFilter,
+        filtroDataInicio: unifiedDateFilter,
     };
 
     // 3. Buscar Dados

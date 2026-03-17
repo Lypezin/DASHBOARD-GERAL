@@ -160,20 +160,35 @@ export async function fetchMarketingDailyEvolution(
     filters: MarketingFilters,
     organizationId: string | null,
     client: SupabaseClient = supabase
-): Promise<Array<{ data: string; liberado: number; enviado: number }>> {
-    // Busca evolução diária baseada no filtro de liberados ou enviados
+): Promise<Array<{ data: string; liberado: number; enviado: number; rodando: number }>> {
+    // Busca evolução diária baseada nos filtros ativos
     let query = client
         .from('dados_marketing')
-        .select('data_liberacao, data_envio')
+        .select('data_liberacao, data_envio, rodou_dia')
         .match(organizationId ? { organization_id: organizationId } : {});
 
-    // Aplicar filtros de data se existirem
-    const dateFilter = filters.filtroEnviados.dataInicial ? filters.filtroEnviados : 
-                      filters.filtroLiberacao.dataInicial ? filters.filtroLiberacao : null;
+    // Aplicar filtros de data se existirem. 
+    // Como os filtros estão unificados na apresentação, podemos ser abrangentes.
+    const hasFilters = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial;
 
-    if (dateFilter) {
-        if (dateFilter.dataInicial) query = query.or(`data_envio.gte.${dateFilter.dataInicial},data_liberacao.gte.${dateFilter.dataInicial}`);
-        if (dateFilter.dataFinal) query = query.or(`data_envio.lte.${dateFilter.dataFinal},data_liberacao.lte.${dateFilter.dataFinal}`);
+    if (hasFilters) {
+        const conds: string[] = [];
+        if (filters.filtroEnviados.dataInicial) {
+            conds.push(`data_envio.gte.${filters.filtroEnviados.dataInicial}`);
+            if (filters.filtroEnviados.dataFinal) conds.push(`data_envio.lte.${filters.filtroEnviados.dataFinal}`);
+        }
+        if (filters.filtroLiberacao.dataInicial) {
+            conds.push(`data_liberacao.gte.${filters.filtroLiberacao.dataInicial}`);
+            if (filters.filtroLiberacao.dataFinal) conds.push(`data_liberacao.lte.${filters.filtroLiberacao.dataFinal}`);
+        }
+        if (filters.filtroRodouDia.dataInicial) {
+            conds.push(`rodou_dia.gte.${filters.filtroRodouDia.dataInicial}`);
+            if (filters.filtroRodouDia.dataFinal) conds.push(`rodou_dia.lte.${filters.filtroRodouDia.dataFinal}`);
+        }
+
+        if (conds.length > 0) {
+            query = query.or(conds.join(','));
+        }
     }
 
     const { data, error } = await query;
@@ -183,21 +198,19 @@ export async function fetchMarketingDailyEvolution(
         return [];
     }
 
-    const dailyMap = new Map<string, { data: string; liberado: number; enviado: number }>();
+    const dailyMap = new Map<string, { data: string; liberado: number; enviado: number; rodando: number }>();
 
     data.forEach(item => {
-        if (item.data_liberacao) {
-            const d = item.data_liberacao;
-            const existing = dailyMap.get(d) || { data: d, liberado: 0, enviado: 0 };
-            existing.liberado++;
+        const processDate = (d: string | null, type: 'liberado' | 'enviado' | 'rodando') => {
+            if (!d) return;
+            const existing = dailyMap.get(d) || { data: d, liberado: 0, enviado: 0, rodando: 0 };
+            existing[type]++;
             dailyMap.set(d, existing);
-        }
-        if (item.data_envio) {
-            const d = item.data_envio;
-            const existing = dailyMap.get(d) || { data: d, liberado: 0, enviado: 0 };
-            existing.enviado++;
-            dailyMap.set(d, existing);
-        }
+        };
+
+        processDate(item.data_liberacao, 'liberado');
+        processDate(item.data_envio, 'enviado');
+        processDate(item.rodou_dia, 'rodando');
     });
 
     return Array.from(dailyMap.values()).sort((a, b) => a.data.localeCompare(b.data));
