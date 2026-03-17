@@ -172,18 +172,33 @@ export async function fetchMarketingDailyEvolution(
     const hasFilters = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial;
 
     if (hasFilters) {
+        // Expand dates to full months
+        let minDate = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial;
+        let maxDate = filters.filtroEnviados.dataFinal || filters.filtroLiberacao.dataFinal || filters.filtroRodouDia.dataFinal;
+
+        if (minDate) {
+            const d = new Date(minDate + 'T12:00:00');
+            d.setDate(1); // First day of the month
+            minDate = d.toISOString().split('T')[0];
+        }
+
+        if (maxDate) {
+            const d = new Date(maxDate + 'T12:00:00');
+            d.setMonth(d.getMonth() + 1);
+            d.setDate(0); // Last day of the month
+            maxDate = d.toISOString().split('T')[0];
+        }
+
         const conds: string[] = [];
-        if (filters.filtroEnviados.dataInicial) {
-            conds.push(`data_envio.gte.${filters.filtroEnviados.dataInicial}`);
-            if (filters.filtroEnviados.dataFinal) conds.push(`data_envio.lte.${filters.filtroEnviados.dataFinal}`);
+        if (minDate) {
+            conds.push(`data_envio.gte.${minDate}`);
+            conds.push(`data_liberacao.gte.${minDate}`);
+            conds.push(`rodou_dia.gte.${minDate}`);
         }
-        if (filters.filtroLiberacao.dataInicial) {
-            conds.push(`data_liberacao.gte.${filters.filtroLiberacao.dataInicial}`);
-            if (filters.filtroLiberacao.dataFinal) conds.push(`data_liberacao.lte.${filters.filtroLiberacao.dataFinal}`);
-        }
-        if (filters.filtroRodouDia.dataInicial) {
-            conds.push(`rodou_dia.gte.${filters.filtroRodouDia.dataInicial}`);
-            if (filters.filtroRodouDia.dataFinal) conds.push(`rodou_dia.lte.${filters.filtroRodouDia.dataFinal}`);
+        if (maxDate) {
+            conds.push(`data_envio.lte.${maxDate}`);
+            conds.push(`data_liberacao.lte.${maxDate}`);
+            conds.push(`rodou_dia.lte.${maxDate}`);
         }
 
         if (conds.length > 0) {
@@ -236,9 +251,14 @@ export async function fetchMarketingWeeklyComparison(
     const weekMap = new Map<string, { semana: string; criado: number; enviado: number; liberado: number; rodando: number }>();
     const order: string[] = [];
     
-    // Gera as 8 semanas consecutivas retroativamente (até 60 dias para cobrir 8 semanas)
+    // Encontrar o domingo da semana atual (targetDate)
+    const baseSunday = new Date(targetDate.getTime());
+    baseSunday.setDate(baseSunday.getDate() - baseSunday.getDay());
+    baseSunday.setHours(12, 0, 0, 0);
+
+    // Gera as 8 semanas consecutivas retroativamente (contando a atual)
     for (let i = 7; i >= 0; i--) {
-        const d = new Date(targetDate.getTime());
+        const d = new Date(baseSunday.getTime());
         d.setDate(d.getDate() - (i * 7));
         const key = getWeekKey(d);
         if (!weekMap.has(key)) {
@@ -248,8 +268,10 @@ export async function fetchMarketingWeeklyComparison(
     }
 
     // Busca dados no Supabase. Filtramos por uma janela ampla de 120 dias para garantir o histórico
-    const startDate = new Date(targetDate.getTime());
-    startDate.setDate(startDate.getDate() - 120);
+    const lastSunday = new Date(baseSunday.getTime());
+    lastSunday.setDate(lastSunday.getDate() - (7 * 7)); // Primeira das 8 semanas
+    const startDate = new Date(lastSunday.getTime());
+    startDate.setDate(startDate.getDate() - 7); // Margem de segurança
     const startDateISO = startDate.toISOString().split('T')[0];
     const endDateISO = targetDate.toISOString().split('T')[0];
 
