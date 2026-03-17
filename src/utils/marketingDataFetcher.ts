@@ -239,58 +239,75 @@ export async function fetchMarketingDailyEvolution(
 export async function fetchMarketingWeeklyComparison(
     organizationId: string | null,
     city: string | null = null,
-    referenceDate: string | null = null,
+    startDate: string | null = null,
+    endDate: string | null = null,
     client: SupabaseClient = supabase
 ): Promise<Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }>> {
-    const targetDate = referenceDate ? new Date(referenceDate) : new Date();
-    
-    // Função auxiliar para calcular número da semana (Sunday Start - O padrão do usuário)
-    const getWeekKey = (d: Date) => {
-        const year = d.getFullYear();
-        // Encontrar o primeiro domingo do ano (ou o dia 1 se cair no meio da semana mas pertencer à Semana 01)
-        // O padrão ISO-8601 é diferente, mas aqui usaremos uma lógica simples de dias corridos / 7
-        const startOfYear = new Date(year, 0, 1);
-        const dayOfYear = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000);
-        // Ajuste para garantir que o dia 1 de Janeiro comece na Semana 01
-        const weekNum = Math.floor((dayOfYear + startOfYear.getDay()) / 7) + 1;
-        
-        // Se a data for de Dezembro mas cair na "Semana 53" que pertence ao próximo ano, ou vice-versa,
-        // o rótulo deve ser consistente. Para o usuário, o que importa é o número da semana no ano da data.
-        return `Semana ${weekNum.toString().padStart(2, '0')}`;
+    const today = new Date();
+    const end = endDate ? new Date(endDate) : today;
+
+    // Se não houver start date definida, usamos 8 semanas antes do end.
+    const rawStart = startDate ? new Date(startDate) : (() => {
+        const d = new Date(end.getTime());
+        d.setDate(d.getDate() - 7 * 7);
+        return d;
+    })();
+
+    // Utiliza ISO week para garantir que a "Semana 01" exista quando o intervalo cobrir o início do ano.
+    const getIsoWeekInfo = (date: Date) => {
+        const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        // Thursday determines the week number in ISO.
+        tmp.setUTCDate(tmp.getUTCDate() + 4 - ((tmp.getUTCDay() + 6) % 7));
+        const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+        return { year: tmp.getUTCFullYear(), week: weekNo };
+    };
+
+    const getWeekKey = (date: Date) => {
+        const { year, week } = getIsoWeekInfo(date);
+        return `${year}-W${week.toString().padStart(2, '0')}`;
+    };
+
+    const getWeekLabel = (weekKey: string) => {
+        const match = weekKey.match(/^-?\d{4}-W(\d{2})$/);
+        return match ? `Semana ${match[1]}` : weekKey;
     };
 
     const weekMap = new Map<string, { semana: string; criado: number; enviado: number; liberado: number; rodando: number }>();
     const order: string[] = [];
-    
-    // Encontrar o domingo da semana atual (targetDate)
-    const baseSunday = new Date(targetDate.getTime());
-    baseSunday.setDate(baseSunday.getDate() - baseSunday.getDay());
-    baseSunday.setHours(12, 0, 0, 0);
 
-    // Gera as 8 semanas consecutivas retroativamente (contando a atual)
-    for (let i = 7; i >= 0; i--) {
-        const d = new Date(baseSunday.getTime());
-        d.setDate(d.getDate() - (i * 7));
+    const getMondayOfIsoWeek = (date: Date) => {
+        const dt = new Date(date);
+        const day = (dt.getDay() + 6) % 7; // 0 = Monday, 6 = Sunday
+        dt.setDate(dt.getDate() - day);
+        dt.setHours(12, 0, 0, 0);
+        return dt;
+    };
+
+    const startOfFirstWeek = getMondayOfIsoWeek(rawStart);
+    const endOfLastWeek = getMondayOfIsoWeek(end);
+
+    // Garante pelo menos 8 semanas ao final (para manter layout consistente)
+    const minStart = new Date(endOfLastWeek.getTime());
+    minStart.setDate(minStart.getDate() - 7 * 7);
+    const finalStart = startOfFirstWeek > minStart ? minStart : startOfFirstWeek;
+
+    for (let d = new Date(finalStart); d <= endOfLastWeek; d.setDate(d.getDate() + 7)) {
         const key = getWeekKey(d);
         if (!weekMap.has(key)) {
             order.push(key);
-            weekMap.set(key, { semana: key, criado: 0, enviado: 0, liberado: 0, rodando: 0 });
+            weekMap.set(key, { semana: getWeekLabel(key), criado: 0, enviado: 0, liberado: 0, rodando: 0 });
         }
     }
 
-    // Busca dados no Supabase. 
-    const lastSunday = new Date(baseSunday.getTime());
-    lastSunday.setDate(lastSunday.getDate() - (7 * 7)); 
-    const startDate = new Date(lastSunday.getTime());
-    startDate.setDate(startDate.getDate() - 1); // 1 dia de margem
-    const startDateISO = startDate.toISOString().split('T')[0];
-    const endDateISO = targetDate.toISOString().split('T')[0];
+    const queryStartISO = finalStart.toISOString().split('T')[0];
+    const queryEndISO = end.toISOString().split('T')[0];
 
     let query = client.from('dados_marketing').select('*');
-    
-    // Filtro restrito: pega apenas o que aconteceu dentro da janela das 8 semanas para QUALQUER métrica
-    query = query.or(`data_envio.gte.${startDateISO},data_liberacao.gte.${startDateISO},created_at.gte.${startDate.toISOString()}`);
-    query = query.or(`data_envio.lte.${endDateISO},data_liberacao.lte.${endDateISO},created_at.lte.${targetDate.toISOString()}`);
+
+    // Filtra qualquer métrica dentro do intervalo escolhido
+    query = query.or(`data_envio.gte.${queryStartISO},data_liberacao.gte.${queryStartISO},created_at.gte.${queryStartISO},rodou_dia.gte.${queryStartISO}`);
+    query = query.or(`data_envio.lte.${queryEndISO},data_liberacao.lte.${queryEndISO},created_at.lte.${queryEndISO},rodou_dia.lte.${queryEndISO}`);
 
     if (organizationId) query = query.eq('organization_id', organizationId);
     if (city) query = buildCityQuery(query, city);
@@ -301,9 +318,9 @@ export async function fetchMarketingWeeklyComparison(
     data.forEach(item => {
         const processMetric = (dateStr: string | null, type: 'criado' | 'enviado' | 'liberado' | 'rodando') => {
             if (!dateStr) return;
-            const d = new Date(dateStr + (dateStr.length === 10 ? 'T12:00:00' : ''));
+            const d = new Date(dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr);
             const weekKey = getWeekKey(d);
-            
+
             if (weekMap.has(weekKey)) {
                 const w = weekMap.get(weekKey)!;
                 if (type === 'criado') w.criado++;
@@ -313,12 +330,13 @@ export async function fetchMarketingWeeklyComparison(
             }
         };
 
-        // Regra de negócio: cada métrica deve ser contada na semana em que ELA ocorreu
+        // Cada métrica conta na semana em que foi registrada
         processMetric(item.created_at, 'criado');
-        if (item.data_envio) processMetric(item.data_envio, 'enviado');
-        if (item.data_liberacao) processMetric(item.data_liberacao, 'liberado');
-        if (item.rodando === 'Sim' && item.rodou_dia) processMetric(item.rodou_dia, 'rodando');
+        processMetric(item.data_envio, 'enviado');
+        processMetric(item.data_liberacao, 'liberado');
+        if (item.rodando === 'Sim') processMetric(item.rodou_dia, 'rodando');
     });
 
     return order.map(key => weekMap.get(key)!);
 }
+

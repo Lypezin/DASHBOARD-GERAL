@@ -61,6 +61,9 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         praca: searchParams.praca || null,
     };
 
+    const dateInicial = unifiedDateFilter.dataInicial || null;
+    const dateFinal = unifiedDateFilter.dataFinal || null;
+
     // 3. Buscar Dados
     const orgId = profile?.organization_id || null;
     
@@ -69,13 +72,13 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         fetchMarketingTotalsData(filters as any, orgId, supabase),
         fetchMarketingCitiesData(filters as any, orgId, supabase),
         fetchMarketingDailyEvolution(filters as any, orgId, supabase),
-        fetchMarketingWeeklyComparison(orgId, null, searchParams.dataFinal || null, supabase)
+        fetchMarketingWeeklyComparison(orgId, null, dateInicial, dateFinal, supabase)
     ]);
 
     // Buscar comparativo semanal para cada cidade
     const weeklyDataByCity = await Promise.all(
         CIDADES.map(async (cidade) => {
-            const data = await fetchMarketingWeeklyComparison(orgId, cidade, searchParams.dataFinal || null, supabase);
+            const data = await fetchMarketingWeeklyComparison(orgId, cidade, dateInicial, dateFinal, supabase);
             return { cidade, data };
         })
     );

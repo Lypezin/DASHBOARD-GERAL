@@ -30,7 +30,8 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
     const router = useRouter();
     
     const handleSair = () => {
-        router.push('/apresentacao/marketing');
+        // Voltar para a aba de Marketing no dashboard (evita ficar preso na mesma rota de apresentação)
+        router.push('/?tab=marketing');
     };
 
     return (
