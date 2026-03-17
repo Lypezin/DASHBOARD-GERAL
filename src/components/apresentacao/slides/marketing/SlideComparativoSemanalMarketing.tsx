@@ -14,19 +14,18 @@ interface WeeklyData {
 
 interface SlideComparativoSemanalMarketingProps {
     isVisible: boolean;
-    data: WeeklyData[];
+    titulo?: string;
     subtitulo?: string; // Ex: "Geral" ou "São Paulo"
+    weeklyData: WeeklyData[];
 }
 
 const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketingProps> = ({
     isVisible,
-    data,
-    subtitulo = "Geral"
+    titulo = "COMPARATIVO",
+    subtitulo = "Geral",
+    weeklyData = []
 }) => {
     if (!isVisible) return null;
-
-    // Garante que temos exatamente 8 itens para o grid 2x4 (ou o que estiver disponível)
-    const displayData = data.slice(0, 8);
 
     return (
         <div className="w-full h-full bg-white flex flex-col p-12 font-sans overflow-hidden relative">
@@ -34,12 +33,13 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
             <div className="flex justify-between items-start mb-12">
                 <div className="flex flex-col">
                     <h2 className="text-xl font-bold text-blue-600 flex items-center gap-2">
-                        SH SP <span className="text-slate-300">|</span> <span className="text-blue-500 font-medium">Comparativo</span>
+                        <span className="w-8 h-1 bg-blue-600 rounded-full" />
+                        <span className="text-blue-500 font-medium tracking-widest uppercase text-xs">Análise de Desempenho</span>
                     </h2>
                 </div>
                 <div className="text-right flex flex-col items-end">
                     <h1 className="text-[100px] font-black text-black leading-[0.8] tracking-tighter uppercase">
-                        COMPARATIVO
+                        {titulo}
                     </h1>
                     <span className="text-4xl font-black text-slate-800 tracking-tight mt-[-10px]">
                         {subtitulo}
@@ -49,7 +49,7 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
 
             {/* Grid de Semanas */}
             <div className="flex-1 grid grid-cols-4 gap-y-12 gap-x-6">
-                {displayData.map((week, idx) => (
+                {weeklyData.slice(0, 8).map((week, idx) => (
                     <motion.div 
                         key={idx}
                         initial={{ opacity: 0, y: 20 }}

@@ -122,13 +122,12 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                         Tickets Totais → Migração
                     </div>
                 </div>
-                <div className="flex items-center gap-1">
-                    <span className="text-2xl font-black text-[#0A1D47]">GO</span>
-                    <div className="w-6 h-6 bg-[#3B82F6] rounded-full flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" className="w-4 h-4 text-white fill-current" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                        </svg>
+                <div className="flex items-center gap-2">
+                    <div className="flex flex-col items-end">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">Performance</span>
+                        <span className="text-xl font-black text-slate-800 tracking-tighter">DATA ANALYTICS</span>
                     </div>
+                    <div className="w-1 h-10 bg-blue-600 rounded-full" />
                 </div>
             </div>
 

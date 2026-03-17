@@ -6,6 +6,7 @@ import { MarketingReportSlides } from './components/MarketingReportSlides';
 import { createClient } from '@/utils/supabase/server';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { redirect } from 'next/navigation';
+import { CIDADES } from '@/constants/marketing';
 
 import { Metadata } from 'next';
 
@@ -57,12 +58,21 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     // 3. Buscar Dados
     const orgId = profile?.organization_id || null;
     
-    const [totals, citiesData, evolutionData, weeklyData] = await Promise.all([
+    // Buscar dados base
+    const [totals, citiesData, evolutionData, generalWeeklyData] = await Promise.all([
         fetchMarketingTotalsData(filters as any, orgId, supabase),
         fetchMarketingCitiesData(filters as any, orgId, supabase),
         fetchMarketingDailyEvolution(filters as any, orgId, supabase),
         fetchMarketingWeeklyComparison(orgId, null, supabase)
     ]);
+
+    // Buscar comparativo semanal para cada cidade
+    const weeklyDataByCity = await Promise.all(
+        CIDADES.map(async (cidade) => {
+            const data = await fetchMarketingWeeklyComparison(orgId, cidade, supabase);
+            return { cidade, data };
+        })
+    );
 
     const pageStyle = generatePrintStyles();
     
@@ -79,7 +89,8 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
                 totals={totals}
                 citiesData={citiesData}
                 evolutionData={evolutionData}
-                weeklyData={weeklyData as any}
+                weeklyData={generalWeeklyData as any}
+                weeklyDataByCity={weeklyDataByCity as any}
                 titulo="APRESENTAÇÃO MARKETING"
                 periodoFormatado={periodoFormatado}
             />

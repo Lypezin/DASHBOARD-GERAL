@@ -11,8 +11,9 @@ interface MarketingReportSlidesProps {
     citiesData: MarketingCityData[];
     evolutionData: Array<{ data: string; liberado: number; enviado: number }>;
     weeklyData: Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }>;
-    titulo?: string;
-    periodoFormatado?: string;
+    weeklyDataByCity: Array<{ cidade: string; data: Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }> }>;
+    titulo: string;
+    periodoFormatado: string;
 }
 
 export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
@@ -20,8 +21,9 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
     citiesData,
     evolutionData,
     weeklyData,
+    weeklyDataByCity,
     titulo,
-    periodoFormatado = "Período Atual"
+    periodoFormatado
 }) => {
     return (
         <>
@@ -42,13 +44,27 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
                 />
             </div>
 
-            <div className="page">
-                <SlideComparativoSemanalMarketing
-                    isVisible
-                    data={weeklyData}
-                    subtitulo="Geral"
+            {/* Slide 3: Comparativo Semanal - GERAL */}
+            <div className="page" key="weekly-general" id="slide-weekly-general">
+                <SlideComparativoSemanalMarketing 
+                    isVisible={true}
+                    titulo="COMPARATIVO SEMANAL"
+                    subtitulo="VISÃO GERAL DO PROJETO"
+                    weeklyData={weeklyData}
                 />
             </div>
+
+            {/* Slides 4+: Comparativo Semanal por CIDADES */}
+            {weeklyDataByCity.map((cityInfo, idx) => (
+                <div className="page" key={`weekly-city-${idx}`} id={`slide-weekly-${cityInfo.cidade}`}>
+                    <SlideComparativoSemanalMarketing 
+                        isVisible={true}
+                        titulo={`COMPARATIVO SEMANAL`}
+                        subtitulo={cityInfo.cidade.toUpperCase()}
+                        weeklyData={cityInfo.data}
+                    />
+                </div>
+            ))}
         </>
     );
 };
