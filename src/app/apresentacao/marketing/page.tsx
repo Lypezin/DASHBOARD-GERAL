@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { fetchMarketingTotalsData } from '@/utils/marketingDataFetcher';
+import { fetchMarketingTotalsData, fetchMarketingCitiesData, fetchMarketingDailyEvolution, fetchMarketingWeeklyComparison } from '@/utils/marketingDataFetcher';
 import { generatePrintStyles } from '@/utils/apresentacao/printPageHelpers';
 import { MarketingReportSlides } from './components/MarketingReportSlides';
 import { createClient } from '@/utils/supabase/server';
@@ -56,16 +56,32 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
 
     // 3. Buscar Dados
     const orgId = profile?.organization_id || null;
-    const totals = await fetchMarketingTotalsData(filters as any, orgId, supabase);
+    
+    const [totals, citiesData, evolutionData, weeklyData] = await Promise.all([
+        fetchMarketingTotalsData(filters as any, orgId, supabase),
+        fetchMarketingCitiesData(filters as any, orgId, supabase),
+        fetchMarketingDailyEvolution(filters as any, orgId, supabase),
+        fetchMarketingWeeklyComparison(orgId, null, supabase)
+    ]);
 
     const pageStyle = generatePrintStyles();
+    
+    // Formatar período para a capa
+    const formatarData = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR', { month: 'long', day: 'numeric' }) : '';
+    const periodoFormatado = filters.filtroEnviados.dataInicial 
+        ? `${formatarData(filters.filtroEnviados.dataInicial)} a ${formatarData(filters.filtroEnviados.dataFinal || undefined)}`
+        : "Período Geral";
 
     return (
         <div data-print-ready="true">
             <style dangerouslySetInnerHTML={{ __html: pageStyle }} />
             <MarketingReportSlides
                 totals={totals}
+                citiesData={citiesData}
+                evolutionData={evolutionData}
+                weeklyData={weeklyData as any}
                 titulo="APRESENTAÇÃO MARKETING"
+                periodoFormatado={periodoFormatado}
             />
         </div>
     );

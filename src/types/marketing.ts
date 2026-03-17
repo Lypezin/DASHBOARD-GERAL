@@ -37,6 +37,8 @@ export interface MarketingCityData {
   enviado: number;
   liberado: number;
   rodandoInicio: number;
+  aberto: number;
+  voltou: number;
 }
 
 export interface MarketingTotals {
