@@ -28,20 +28,30 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
 }) => {
     const handleSair = () => {
         if (typeof window !== 'undefined') {
-            window.location.href = '/dashboard';
+            // Tenta voltar na história, se não conseguir (ex: aba aberta diretamente), tenta fechar ou ir para home
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
         }
     };
 
     return (
-        <div className="relative min-h-screen bg-[#0f172a] pb-20">
-            {/* Botão Sair da Apresentação - Glassmorphism */}
-            <button 
-                onClick={handleSair}
-                className="fixed top-8 right-8 z-[9999] flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full text-white font-black text-xs shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:bg-white/20 transition-all active:scale-95 print:hidden group tracking-[0.2em]"
-            >
-                <X size={20} className="group-hover:rotate-90 transition-transform duration-500 text-blue-400" />
-                <span>SAIR DA APRESENTAÇÃO</span>
-            </button>
+        <div className="relative min-h-screen bg-[#020617] pb-20">
+            {/* Botão Sair da Apresentação - Glassmorphism v2 */}
+            <div className="fixed top-8 right-8 z-[9999] print:hidden">
+                <button 
+                    onClick={handleSair}
+                    className="flex items-center gap-3 px-6 py-3 bg-slate-900/60 backdrop-blur-2xl border border-white/10 rounded-xl text-white font-black text-xs shadow-[0_20px_50px_rgba(0,0,0,0.5)] hover:bg-slate-800/80 hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all active:scale-95 group tracking-[0.2em] overflow-hidden relative"
+                >
+                    {/* Brilho interno animado */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    
+                    <X size={20} className="group-hover:rotate-90 transition-transform duration-500 text-blue-400" />
+                    <span className="relative z-10">SAIR DA APRESENTAÇÃO</span>
+                </button>
+            </div>
 
             <div className="page">
                 <SlideCapaMarketing

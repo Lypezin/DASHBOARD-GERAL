@@ -77,7 +77,7 @@ export function generatePrintStyles(): string {
     .page {
       width: ${SLIDE_WIDTH}px;
       height: ${SLIDE_HEIGHT}px;
-      background: white;
+      background: transparent;
       color: #0f172a;
       page-break-after: always;
       position: relative;

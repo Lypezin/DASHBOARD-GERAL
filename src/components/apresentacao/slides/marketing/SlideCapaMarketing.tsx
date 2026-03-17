@@ -42,9 +42,9 @@ const SlideCapaMarketing: React.FC<SlideCapaMarketingProps> = ({
 
             {/* Barras Decorativas Minimalistas */}
             <div className="absolute left-0 top-0 h-full flex items-stretch">
-                <div className="w-2 bg-[#0A1D47]" />
-                <div className="w-4 bg-[#1e40af] mx-1 opacity-20" />
-                <div className="w-12 bg-slate-100" />
+                <div className="w-2 bg-blue-600 opacity-40" />
+                <div className="w-4 bg-blue-500 mx-1 opacity-20" />
+                <div className="w-8 bg-blue-400 opacity-10" />
             </div>
 
             {/* Elemento Decorativo Abstrato (Substituindo Logo) */}
