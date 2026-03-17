@@ -43,20 +43,34 @@ export async function fetchMarketingTotalsData(
 
     if (IS_DEV) safeLog.warn('RPC get_marketing_totals fetch fallback');
 
-    const { count: abertoCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true }).eq('status', 'Aberto');
-    const { count: voltouCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true }).eq('status', 'Voltou');
+    // Base query com organização
+    const baseQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true });
+    if (organizationId) baseQuery.eq('organization_id', organizationId);
 
-    const { count: criadoCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true }).not('data_envio', 'is', null);
+    const { count: abertoCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true })
+        .eq('status', 'Aberto')
+        .match(organizationId ? { organization_id: organizationId } : {});
+        
+    const { count: voltouCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true })
+        .eq('status', 'Voltou')
+        .match(organizationId ? { organization_id: organizationId } : {});
 
-    let enviadoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true });
+    const { count: criadoCount } = await client.from('dados_marketing').select('*', { count: 'exact', head: true })
+        .not('data_envio', 'is', null)
+        .match(organizationId ? { organization_id: organizationId } : {});
+
+    let enviadoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true })
+        .match(organizationId ? { organization_id: organizationId } : {});
     if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
     const { count: enviadoCount } = await enviadoQuery;
 
-    let liberadoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true });
+    let liberadoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true })
+        .match(organizationId ? { organization_id: organizationId } : {});
     if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
     const { count: liberadoCount } = await liberadoQuery;
 
-    let rodandoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true });
+    let rodandoQuery = client.from('dados_marketing').select('*', { count: 'exact', head: true })
+        .match(organizationId ? { organization_id: organizationId } : {});
     if (filters.filtroRodouDia.dataInicial) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
     const { count: rodandoCount } = await rodandoQuery;
 
@@ -102,13 +116,16 @@ export async function fetchMarketingCitiesData(
 
     const results: MarketingCityData[] = [];
     for (const cidade of CIDADES) {
-        let enviadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade);
+        let enviadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
+            .match(organizationId ? { organization_id: organizationId } : {});
         if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
 
-        let liberadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade);
+        let liberadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
+            .match(organizationId ? { organization_id: organizationId } : {});
         if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
 
-        let rodandoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade);
+        let rodandoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
+            .match(organizationId ? { organization_id: organizationId } : {});
         if (filters.filtroRodouDia.dataInicial) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
 
         const [e, l, r] = await Promise.all([enviadoQuery, liberadoQuery, rodandoQuery]);
