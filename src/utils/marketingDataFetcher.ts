@@ -211,37 +211,39 @@ export async function fetchMarketingWeeklyComparison(
 ): Promise<Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }>> {
     const targetDate = referenceDate ? new Date(referenceDate) : new Date();
     
-    // Função auxiliar para calcular número da semana aproximado (ISO-ish)
+    // Função auxiliar para calcular número da semana (Sunday Start - O padrão do usuário)
     const getWeekKey = (d: Date) => {
-        const date = new Date(d.getTime());
-        date.setHours(0, 0, 0, 0);
-        // Ajusta para quinta-feira da mesma semana (lógica ISO)
-        date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-        const startOfYear = new Date(date.getFullYear(), 0, 4);
-        const weekNum = 1 + Math.round(((date.getTime() - startOfYear.getTime()) / 86400000 - 3 + (startOfYear.getDay() + 6) % 7) / 7);
+        const year = d.getFullYear();
+        const startOfYear = new Date(year, 0, 1);
+        const dayOfYear = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000);
+        const weekNum = Math.floor((dayOfYear + startOfYear.getDay()) / 7) + 1;
         return `Semana ${weekNum.toString().padStart(2, '0')}`;
     };
 
-    // Gera as 8 semanas-alvo (da mais antiga para a mais atual)
     const weekMap = new Map<string, { semana: string; criado: number; enviado: number; liberado: number; rodando: number }>();
     const order: string[] = [];
     
-    // Pega a data de referência e volta 7 semanas
+    // Gera as 8 semanas consecutivas retroativamente (até 60 dias para cobrir 8 semanas)
     for (let i = 7; i >= 0; i--) {
         const d = new Date(targetDate.getTime());
         d.setDate(d.getDate() - (i * 7));
         const key = getWeekKey(d);
-        order.push(key);
-        weekMap.set(key, { semana: key, criado: 0, enviado: 0, liberado: 0, rodando: 0 });
+        if (!weekMap.has(key)) {
+            order.push(key);
+            weekMap.set(key, { semana: key, criado: 0, enviado: 0, liberado: 0, rodando: 0 });
+        }
     }
 
-    // Busca dados no Supabase limitando pelo período (90 dias de margem para garantir)
+    // Busca dados no Supabase. Filtramos por uma janela ampla de 120 dias para garantir o histórico
     const startDate = new Date(targetDate.getTime());
-    startDate.setDate(startDate.getDate() - 90);
+    startDate.setDate(startDate.getDate() - 120);
+    const startDateISO = startDate.toISOString().split('T')[0];
+    const endDateISO = targetDate.toISOString().split('T')[0];
+
+    let query = client.from('dados_marketing').select('*');
     
-    let query = client.from('dados_marketing').select('*')
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', targetDate.toISOString());
+    // Filtro mais abrangente por datas de negócio ou criação
+    query = query.or(`data_envio.gte.${startDateISO},data_liberacao.gte.${startDateISO},created_at.gte.${startDate.toISOString()}`);
 
     if (organizationId) query = query.eq('organization_id', organizationId);
     if (city) query = buildCityQuery(query, city);
@@ -250,11 +252,14 @@ export async function fetchMarketingWeeklyComparison(
     if (error) return order.map(key => weekMap.get(key)!);
 
     data.forEach(item => {
-        // Usa a data mais relevante disponível para classificar a semana
+        // Business Logic: Prioriza a data de envio, depois liberação, por fim criação
         const dateStr = item.data_envio || item.data_liberacao || item.created_at;
         if (!dateStr) return;
         
-        const weekKey = getWeekKey(new Date(dateStr));
+        // Converte string YYYY-MM-DD para Date de forma segura (evitando timezone shift indesejado)
+        const d = new Date(dateStr + (dateStr.length === 10 ? 'T12:00:00' : ''));
+        const weekKey = getWeekKey(d);
+        
         if (weekMap.has(weekKey)) {
             const w = weekMap.get(weekKey)!;
             w.criado++;
@@ -264,6 +269,5 @@ export async function fetchMarketingWeeklyComparison(
         }
     });
 
-    // Retorna na ordem cronológica gerada
     return order.map(key => weekMap.get(key)!);
 }
