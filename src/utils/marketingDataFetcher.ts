@@ -163,11 +163,11 @@ export async function fetchMarketingDailyEvolution(
     filters: MarketingFilters,
     organizationId: string | null,
     client: SupabaseClient = supabase
-): Promise<Array<{ data: string; liberado: number; enviado: number; rodando: number }>> {
+): Promise<Array<{ data: string; liberado: number; enviado: number; rodando: number; criado: number }>> {
     // Busca evolução diária baseada nos filtros ativos
     let query = client
         .from('dados_marketing')
-        .select('data_liberacao, data_envio, rodou_dia')
+        .select('data_liberacao, data_envio, rodou_dia, Criado')
         .match(organizationId ? { organization_id: organizationId } : {});
 
     if (filters.praca) {
@@ -201,11 +201,13 @@ export async function fetchMarketingDailyEvolution(
             conds.push(`data_envio.gte.${minDate}`);
             conds.push(`data_liberacao.gte.${minDate}`);
             conds.push(`rodou_dia.gte.${minDate}`);
+            conds.push(`Criado.gte.${minDate}`);
         }
         if (maxDate) {
             conds.push(`data_envio.lte.${maxDate}`);
             conds.push(`data_liberacao.lte.${maxDate}`);
             conds.push(`rodou_dia.lte.${maxDate}`);
+            conds.push(`Criado.lte.${maxDate}`);
         }
 
         if (conds.length > 0) {
@@ -220,12 +222,12 @@ export async function fetchMarketingDailyEvolution(
         return [];
     }
 
-    const dailyMap = new Map<string, { data: string; liberado: number; enviado: number; rodando: number }>();
+    const dailyMap = new Map<string, { data: string; liberado: number; enviado: number; rodando: number; criado: number }>();
 
     data.forEach(item => {
-        const processDate = (d: string | null, type: 'liberado' | 'enviado' | 'rodando') => {
+        const processDate = (d: string | null, type: 'liberado' | 'enviado' | 'rodando' | 'criado') => {
             if (!d) return;
-            const existing = dailyMap.get(d) || { data: d, liberado: 0, enviado: 0, rodando: 0 };
+            const existing = dailyMap.get(d) || { data: d, liberado: 0, enviado: 0, rodando: 0, criado: 0 };
             existing[type]++;
             dailyMap.set(d, existing);
         };
@@ -233,6 +235,7 @@ export async function fetchMarketingDailyEvolution(
         processDate(item.data_liberacao, 'liberado');
         processDate(item.data_envio, 'enviado');
         processDate(item.rodou_dia, 'rodando');
+        processDate(item.Criado || item.data_envio, 'criado');
     });
 
     return Array.from(dailyMap.values()).sort((a, b) => a.data.localeCompare(b.data));
