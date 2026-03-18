@@ -58,8 +58,10 @@ export async function fetchMarketingTotalsData(
     const { count: voltouCount } = await applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
         .eq('status', 'Voltou');
 
+    // Contagem de criados: preferimos o campo 'Criado' (data preenchida pelo upload),
+    // mas aceitamos também registros que tenham algo em created_at ou data_envio.
     const { count: criadoCount } = await applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
-        .not('data_envio', 'is', null);
+        .or('Criado.not.is.null,created_at.not.is.null,data_envio.not.is.null');
 
     let enviadoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }));
     if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
@@ -306,8 +308,9 @@ export async function fetchMarketingWeeklyComparison(
     let query = client.from('dados_marketing').select('*');
 
     // Filtra qualquer métrica dentro do intervalo escolhido
-    query = query.or(`data_envio.gte.${queryStartISO},data_liberacao.gte.${queryStartISO},created_at.gte.${queryStartISO},rodou_dia.gte.${queryStartISO}`);
-    query = query.or(`data_envio.lte.${queryEndISO},data_liberacao.lte.${queryEndISO},created_at.lte.${queryEndISO},rodou_dia.lte.${queryEndISO}`);
+    // (inclui o campo 'Criado' para gerar o gráfico corretamente quando ele existe)
+    query = query.or(`data_envio.gte.${queryStartISO},data_liberacao.gte.${queryStartISO},created_at.gte.${queryStartISO},Criado.gte.${queryStartISO},rodou_dia.gte.${queryStartISO}`);
+    query = query.or(`data_envio.lte.${queryEndISO},data_liberacao.lte.${queryEndISO},created_at.lte.${queryEndISO},Criado.lte.${queryEndISO},rodou_dia.lte.${queryEndISO}`);
 
     if (organizationId) query = query.eq('organization_id', organizationId);
     if (city) query = buildCityQuery(query, city);
@@ -331,9 +334,9 @@ export async function fetchMarketingWeeklyComparison(
         };
 
         // Cada métrica conta na semana em que foi registrada
-        // Para 'criado', usamos a data de criação do registro (created_at),
-        // mas caímos em data_envio se created_at não estiver disponível.
-        processMetric(item.created_at || item.data_envio, 'criado');
+        // Para 'criado', usamos o novo campo 'Criado' (data de criação),
+        // caindo em created_at e depois em data_envio como fallback.
+        processMetric(item.Criado || item.created_at || item.data_envio, 'criado');
         processMetric(item.data_envio, 'enviado');
         processMetric(item.data_liberacao, 'liberado');
         if (item.rodando === 'Sim') processMetric(item.rodou_dia, 'rodando');
