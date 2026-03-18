@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Presentation } from 'lucide-react';
+import { Loader2, Presentation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
@@ -24,7 +24,7 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
         dataFinal: null,
         praca: null
     });
-
+    const [isGenerating, setIsGenerating] = useState(false);
     const isMarketing = user?.role === 'marketing' || user?.role === 'admin' || user?.role === 'master' || user?.is_admin;
 
     const formatDate = (date?: string | null) => {
@@ -50,6 +50,8 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
             return;
         }
 
+        setIsGenerating(true);
+
         const params = new URLSearchParams();
         if (presentationFilters.dataInicial) params.set('dataInicial', presentationFilters.dataInicial);
         if (presentationFilters.dataFinal) params.set('dataFinal', presentationFilters.dataFinal);
@@ -73,11 +75,20 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
 
                 <Button
                     variant="outline"
-                    disabled={!isMarketing}
+                    disabled={!isMarketing || isGenerating}
                     onClick={handleOpenPresentation}
                 >
-                    <Presentation className="h-4 w-4" />
-                    Gerar apresentação
+                    {isGenerating ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Gerando...
+                        </>
+                    ) : (
+                        <>
+                            <Presentation className="mr-2 h-4 w-4" />
+                            Gerar apresentação
+                        </>
+                    )}
                 </Button>
             </header>
 
@@ -111,17 +122,12 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
                             />
                         </CardContent>
 
-                        <CardFooter className="px-6 pt-0 pb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <CardFooter className="px-6 pt-0 pb-6">
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {isMarketing ? 'Autorizado para gerar.' : 'Somente equipe de Marketing.'}
+                                {isMarketing
+                                    ? 'Use o botão “Gerar apresentação” no topo para criar o PDF com os filtros selecionados.'
+                                    : 'Somente equipe de Marketing pode gerar a apresentação.'}
                             </p>
-                            <Button
-                                variant="outline"
-                                disabled={!isMarketing}
-                                onClick={handleOpenPresentation}
-                            >
-                                Gerar slides
-                            </Button>
                         </CardFooter>
                     </Card>
 

@@ -25,7 +25,7 @@ export const MarketingDateField: React.FC<MarketingDateFieldProps> = ({
             onChange={onChange}
             min={min}
             max={max}
-            className="h-9 text-xs bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+            className="h-9 text-xs bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-slate-400/40 focus:border-slate-500 transition-all"
         />
     </div>
 );

@@ -37,15 +37,12 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
   } = useDateFilterState(filter, onFilterChange);
 
   return (
-    <Card className="border-none shadow-sm hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden group">
-      {/* Gradient accent bar */}
-      <div className="h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 opacity-60 group-hover:opacity-100 transition-opacity" />
-
+    <Card className="border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950 shadow-sm">
       <CardHeader className="pb-3 pt-4 px-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-            <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/40">
-              <Calendar className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800">
+              <Calendar className="h-3.5 w-3.5 text-slate-700 dark:text-slate-200" />
             </div>
             <span className="uppercase tracking-wider text-xs">{label}</span>
           </CardTitle>

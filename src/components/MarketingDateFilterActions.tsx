@@ -17,21 +17,16 @@ export const MarketingDateFilterActions: React.FC<MarketingDateFilterActionsProp
           onClick={handleAplicar}
           disabled={!temAlteracao && !temFiltro}
           size="sm"
-          variant={temAlteracao ? "default" : "secondary"}
-          className={`w-full h-9 text-xs font-semibold transition-all ${temAlteracao
-            ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md shadow-purple-500/20'
-            : temFiltro
-              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-              : ''
-            }`}
+          variant={temAlteracao ? "default" : temFiltro ? "outline" : "secondary"}
+          className="w-full h-9 text-xs font-semibold"
           type="button"
         >
           {temAlteracao ? (
-            <>Aplicar Filtro</>
+            'Aplicar filtro'
           ) : temFiltro ? (
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center justify-center gap-1.5">
               <Check className="h-3.5 w-3.5" />
-              Filtro Ativo
+              Filtro ativo
             </span>
           ) : (
             'Aplicar'
