@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Presentation, ExternalLink, Layout, Calendar } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Presentation, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 import { toast } from 'sonner';
-import { MarketingDateFilter, MarketingFilters } from '@/types';
 import { MarketingCityFilter } from './components/MarketingCityFilter';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 
@@ -49,66 +48,117 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
 
     return (
         <div className="space-y-6 animate-fade-in pb-10">
-            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden">
-                
-                <CardHeader className="relative z-10 pb-6 pt-10 px-8 text-center max-w-2xl mx-auto">
-                    <div className="inline-flex p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 mb-6 group">
-                        <Presentation className="h-10 w-10 text-blue-600" />
-                    </div>
-                    <CardTitle className="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight mb-4">
-                        Apresentação de Resultados
-                    </CardTitle>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                        Configure o período desejado e gere a apresentação oficial. 
-                        Os slides serão gerados automaticamente com base nos filtros selecionados.
+            <div className="flex items-center gap-3 px-2">
+                <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-indigo-500 to-purple-600 shadow-sm" />
+                <div>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Apresentação</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                        Monte sua apresentação com os principais indicadores e gere os slides automaticamente.
                     </p>
-                </CardHeader>
+                </div>
+            </div>
 
-                <CardContent className="relative z-10 px-8 pb-12">
-                    <div className="max-w-md mx-auto mb-10 space-y-6">
-                        <div className="flex items-center gap-2 mb-2 justify-center">
-                            <Calendar className="h-4 w-4 text-blue-500" />
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Período e Localização</span>
+            <div className="grid gap-6 lg:grid-cols-[1.05fr_1fr]">
+                {/* Configuração */}
+                <Card className="border-none shadow-sm bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden group">
+                    <div className="h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 opacity-70 group-hover:opacity-100 transition-opacity" />
+                    <CardHeader className="pt-6 pb-2 px-6">
+                        <div className="flex items-start gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500">
+                                <Presentation className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">Configurar apresentação</CardTitle>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    Escolha período e praça antes de gerar a apresentação oficial.
+                                </p>
+                            </div>
                         </div>
-                        
-                        <MarketingCityFilter 
-                            filters={presentationFilters as any} 
-                            setFilters={setPresentationFilters as any} 
-                        />
+                    </CardHeader>
 
-                        <MarketingDateFilterComponent
-                            label="Período"
-                            filter={presentationFilters}
-                            onFilterChange={(filter) => setPresentationFilters(prev => ({ ...prev, ...filter }))}
-                        />
-                    </div>
+                    <CardContent className="px-6 pb-4 space-y-6">
+                        <div className="grid gap-4">
+                            <MarketingCityFilter
+                                filters={presentationFilters as any}
+                                setFilters={setPresentationFilters as any}
+                            />
+                            <MarketingDateFilterComponent
+                                label="Período"
+                                filter={presentationFilters}
+                                onFilterChange={(filter) => setPresentationFilters(prev => ({ ...prev, ...filter }))}
+                            />
+                        </div>
+                    </CardContent>
 
-                    <div className="flex flex-col items-center gap-4 border-t border-slate-100 dark:border-slate-800 pt-10">
+                    <CardFooter className="px-6 pt-0 pb-6">
                         <Button
                             onClick={handleOpenPresentation}
                             size="lg"
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-7 text-lg font-bold rounded-2xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 text-lg font-bold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
                         >
-                            <Presentation className="h-6 w-6" />
+                            <Presentation className="h-5 w-5" />
                             Gerar Apresentação Agora
-                            <ExternalLink className="h-5 w-5 opacity-50" />
+                            <ExternalLink className="h-4 w-4 opacity-70" />
                         </Button>
-                        <p className="text-xs text-slate-400 font-medium italic">
+
+                        <p className="mt-3 text-xs text-slate-400 dark:text-slate-500 font-medium text-center">
                             {isMarketing ? 'Acesso liberado para seu perfil.' : 'Acesso restrito à equipe de Marketing.'}
                         </p>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardFooter>
+                </Card>
 
-            {/* Preview Section - Simpler version */}
-            <div className="mt-12 text-center">
-                <div className="max-w-2xl mx-auto rounded-3xl border-4 border-slate-200 dark:border-slate-800 shadow-lg overflow-hidden aspect-[21/9] bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center relative">
-                    <div className="flex flex-col items-center text-center p-6">
-                        <div className="w-12 h-1 bg-blue-500 rounded-full mb-4" />
-                        <h4 className="text-2xl font-bold text-slate-400 dark:text-slate-600 uppercase tracking-tighter">PREVIEW DA ESTRUTURA</h4>
-                        <p className="text-slate-400 dark:text-slate-700 font-bold uppercase tracking-widest text-xs">Capa • Resumo de Totais • Detalhes por Cidade</p>
-                    </div>
-                </div>
+                {/* Pré‑visualização */}
+                <Card className="border-none shadow-sm bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden group">
+                    <div className="h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 opacity-70 group-hover:opacity-100 transition-opacity" />
+                    <CardHeader className="pt-6 pb-2 px-6">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">Prévia da Apresentação</CardTitle>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    Assim será a apresentação gerada para sua equipe.
+                                </p>
+                            </div>
+                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                Preview
+                            </span>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="px-6 pb-6">
+                        <div className="relative rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur shadow-inner overflow-hidden h-[290px] flex flex-col">
+                            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200/50 dark:border-slate-800/50">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-rose-500" />
+                                    <div className="h-2 w-2 rounded-full bg-amber-400" />
+                                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                                </div>
+                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                    Slide 1 de 4
+                                </span>
+                            </div>
+                            <div className="flex-1 px-6 py-6 flex flex-col justify-center items-center text-center">
+                                <Presentation className="h-10 w-10 text-blue-500 mb-4" />
+                                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                                    Capa + Resumo
+                                </h3>
+                                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 max-w-[80%]">
+                                    A apresentação incluirá capa, principais métricas e comparação por cidade.
+                                </p>
+                            </div>
+                            <div className="px-5 pb-5">
+                                <div className="grid grid-cols-3 gap-2">
+                                    {['Capa', 'Resumo', 'Cidades'].map((label) => (
+                                        <div
+                                            key={label}
+                                            className="h-7 rounded-lg bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center text-[11px] font-semibold text-slate-500 dark:text-slate-300"
+                                        >
+                                            {label}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
