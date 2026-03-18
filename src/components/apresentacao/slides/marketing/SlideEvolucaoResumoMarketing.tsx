@@ -29,7 +29,7 @@ ChartJS.register(
 
 interface SlideEvolucaoResumoMarketingProps {
     isVisible: boolean;
-    evolutionData: Array<{ data: string; liberado: number; enviado: number }>;
+    evolutionData: Array<{ data: string; liberado: number; enviado: number; criado?: number }>;
     citiesData: MarketingCityData[];
     titulo?: string;
 }
@@ -45,7 +45,9 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
     const chartData = {
         labels: evolutionData.map(d => {
             const date = new Date(d.data);
-            return `Dia ${date.getDate()}`;
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            return `${day}/${month}`;
         }),
         datasets: [
             {
@@ -54,8 +56,8 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                 borderColor: '#10b981', // Emerald
                 backgroundColor: 'rgba(16, 185, 129, 0.05)',
                 tension: 0.4,
-                pointRadius: 3,
-                borderWidth: 3,
+                pointRadius: 2,
+                borderWidth: 2,
                 fill: true,
             },
             {
@@ -64,8 +66,18 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                 borderColor: '#3B82F6', // Blue
                 backgroundColor: 'rgba(59, 130, 246, 0.05)',
                 tension: 0.4,
-                pointRadius: 3,
-                borderWidth: 3,
+                pointRadius: 2,
+                borderWidth: 2,
+                fill: true,
+            },
+            {
+                label: 'Criados',
+                data: evolutionData.map(d => d.criado || 0),
+                borderColor: '#f59e0b', // Amber
+                backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                tension: 0.4,
+                pointRadius: 2,
+                borderWidth: 2,
                 fill: true,
             }
         ],
@@ -108,9 +120,15 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
             },
             x: {
                 grid: { display: false },
-                ticks: { 
-                    font: { size: 11 }, 
+                ticks: {
+                    font: { size: 10 },
                     color: '#94a3b8',
+                    autoSkip: true,
+                    maxTicksLimit: 16,
+                    callback: (value: string | number, index: number) => {
+                        if (index % 2 !== 0) return '';
+                        return value;
+                    }
                 }
             }
         },
