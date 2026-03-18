@@ -331,20 +331,8 @@ export async function fetchMarketingWeeklyComparison(
         };
 
         // Cada métrica conta na semana em que foi registrada
-        // Para 'criado', usamos o mesmo critério do dashboard (contagem de registros com data_envio).
-        // Por isso, caso created_at seja inválido ou ausente, usamos data_envio.
-        const isInvalidDate = (date?: string | null) => {
-            if (!date) return true;
-            if (date === '0000-00-00') return true;
-            const d = new Date(date.length === 10 ? `${date}T12:00:00` : date);
-            return Number.isNaN(d.getTime());
-        };
-
-        const createdAt = !isInvalidDate(item.created_at)
-            ? item.created_at
-            : item.data_envio;
-
-        processMetric(createdAt, 'criado');
+        // Para 'criado', usamos o mesmo critério do dashboard (contagem de registros com data_envio)
+        processMetric(item.data_envio, 'criado');
         processMetric(item.data_envio, 'enviado');
         processMetric(item.data_liberacao, 'liberado');
         if (item.rodando === 'Sim') processMetric(item.rodou_dia, 'rodando');
