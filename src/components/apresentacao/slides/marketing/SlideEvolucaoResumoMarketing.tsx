@@ -45,30 +45,29 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
     const chartData = {
         labels: evolutionData.map(d => {
             const date = new Date(d.data);
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            return `${day}/${month}`;
+            const day = date.getDate();
+            return `Dia ${day}`;
         }),
         datasets: [
             {
-                label: 'Liberados',
+                label: 'Total de Driver (Liberado)',
                 data: evolutionData.map(d => d.liberado),
                 borderColor: '#10b981', // Emerald
                 backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                tension: 0.4,
+                tension: 0.3,
                 pointRadius: 2,
                 borderWidth: 2,
-                fill: true,
+                fill: false,
             },
             {
-                label: 'Enviados',
+                label: 'Total de Driver (Enviado)',
                 data: evolutionData.map(d => d.enviado),
-                borderColor: '#3B82F6', // Blue
+                borderColor: '#1E40AF', // Darker blue
                 backgroundColor: 'rgba(59, 130, 246, 0.05)',
-                tension: 0.4,
+                tension: 0.3,
                 pointRadius: 2,
                 borderWidth: 2,
-                fill: true,
+                fill: false,
             },
         ],
     };
@@ -79,11 +78,11 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
         plugins: {
             legend: {
                 position: 'top' as const,
-                align: 'end' as const,
+                align: 'center' as const,
                 labels: {
                     usePointStyle: true,
                     font: { size: 12, weight: '600' as any },
-                    padding: 20,
+                    padding: 16,
                     color: '#64748B'
                 }
             },
@@ -113,13 +112,11 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                 ticks: {
                     font: { size: 10 },
                     color: '#94a3b8',
-                    autoSkip: true,
-                    maxTicksLimit: 16,
-                    callback: (value: string | number, index: number) => {
-                        // Mostra a label real (DD/MM) no eixo x, sem usar o index como valor.
-                        const label = chartData.labels[index];
-                        if (!label) return '';
-                        return index % 2 === 0 ? label : '';
+                    autoSkip: false,
+                    maxRotation: 45,
+                    minRotation: 45,
+                    callback: (_value: string | number, index: number) => {
+                        return chartData.labels[index] ?? '';
                     }
                 }
             }
