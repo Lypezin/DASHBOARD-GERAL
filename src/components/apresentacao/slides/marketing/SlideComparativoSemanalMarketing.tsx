@@ -28,59 +28,69 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
     if (!isVisible) return null;
 
     return (
-        <div className="w-full h-full bg-white flex flex-col p-12 font-sans overflow-hidden relative">
-            {/* Header Estilizado */}
-            <div className="flex justify-between items-start mb-12">
+        <div className="w-full h-full bg-[#f8fafc] flex flex-col p-14 font-sans overflow-hidden relative">
+            {/* Header Sofisticado */}
+            <div className="flex justify-between items-end mb-12 border-b-2 border-slate-200 pb-8">
                 <div className="flex flex-col">
-                    <h2 className="text-xl font-bold text-blue-600 flex items-center gap-2">
-                        <span className="w-8 h-1 bg-blue-600 rounded-full" />
-                        <span className="text-blue-500 font-medium tracking-widest uppercase text-xs">Análise de Desempenho</span>
-                    </h2>
-                </div>
-                <div className="text-right flex flex-col items-end">
-                    <h1 className="text-[100px] font-black text-black leading-[0.8] tracking-tighter uppercase">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-[2px] bg-blue-600" />
+                        <span className="text-blue-500 font-bold uppercase tracking-[0.3em] text-[10px]">Análise Temporal</span>
+                    </div>
+                    <h1 className="text-7xl font-bold text-slate-900 leading-none tracking-tight">
                         {titulo}
                     </h1>
-                    <span className="text-4xl font-black text-slate-800 tracking-tight mt-[-10px]">
+                </div>
+                <div className="text-right">
+                    <span className="text-4xl font-light text-slate-400 tracking-tight block mb-1">
+                        UNIDADE
+                    </span>
+                    <span className="text-3xl font-bold text-slate-800 tracking-tighter uppercase">
                         {subtitulo}
                     </span>
                 </div>
             </div>
 
-            {/* Grid de Semanas */}
-            <div className="flex-1 grid grid-cols-4 gap-y-12 gap-x-6">
+            {/* Grid de Semanas Minimalista */}
+            <div className="flex-1 grid grid-cols-4 gap-6">
                 {weeklyData.slice(0, 8).map((week, idx) => (
                     <motion.div 
                         key={idx}
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 flex flex-col shadow-sm"
+                        className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col hover:shadow-md transition-all"
                     >
-                        <h3 className="text-3xl font-black text-[#0A1D47] mb-6 uppercase tracking-tighter border-b border-slate-200 pb-2">
-                            {week.semana}
-                        </h3>
-                        <div className="flex flex-col gap-3">
-                            <div className="flex justify-between items-baseline">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Criados</span>
-                                <span className="text-xl font-black text-slate-700">{week.criado}</span>
+                        <div className="flex items-center gap-3 mb-6">
+                            <span className="w-1.5 h-6 bg-blue-600 rounded-full" />
+                            <h3 className="text-2xl font-bold text-slate-800 tracking-tight uppercase">
+                                {week.semana}
+                            </h3>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Criados</span>
+                                <span className="text-xl font-bold text-slate-600">{week.criado}</span>
                             </div>
-                            <div className="flex justify-between items-baseline">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Enviados</span>
-                                <span className="text-xl font-black text-[#3B82F6]">{week.enviado}</span>
+                            <div className="flex justify-between items-center">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enviados</span>
+                                <span className="text-xl font-bold text-blue-600">{week.enviado}</span>
                             </div>
-                            <div className="flex justify-between items-baseline">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Liberados</span>
-                                <span className="text-xl font-black text-[#3B82F6]">{week.liberado}</span>
+                            <div className="flex justify-between items-center">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Liberados</span>
+                                <span className="text-xl font-bold text-emerald-600">{week.liberado}</span>
                             </div>
-                            <div className="flex justify-between items-baseline pt-2 border-t border-slate-100">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rodando</span>
-                                <span className="text-xl font-black text-green-600">{week.rodando}</span>
+                            <div className="flex justify-between items-center pt-3 border-t border-slate-50">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rodando</span>
+                                <span className="text-xl font-bold text-indigo-600">{week.rodando}</span>
                             </div>
                             
                             {week.conversas !== undefined && (
-                                <div className="mt-2 text-blue-500 font-bold text-lg uppercase tracking-tight">
-                                    {week.conversas.toLocaleString('pt-BR')} Conversas
+                                <div className="mt-4 pt-4 border-t-2 border-blue-50">
+                                    <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Interações</div>
+                                    <div className="text-2xl font-bold text-blue-600 tracking-tighter">
+                                        {week.conversas.toLocaleString('pt-BR')}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -88,8 +98,11 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
                 ))}
             </div>
 
-            {/* Detalhe Decorativo Inferior */}
-            <div className="absolute bottom-0 left-0 w-full h-2 bg-black opacity-10" />
+            {/* Footer Minimalista */}
+            <div className="absolute bottom-10 left-14 flex items-center gap-4 opacity-30">
+                <div className="h-[1px] w-12 bg-slate-400" />
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.4em]">Weekly Performance Audit</span>
+            </div>
         </div>
     );
 };

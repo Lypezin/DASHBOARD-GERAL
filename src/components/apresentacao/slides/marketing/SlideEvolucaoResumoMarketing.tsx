@@ -38,7 +38,7 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
     isVisible,
     evolutionData,
     citiesData,
-    titulo = "Total de Migrações"
+    titulo = "Evolução de Migrações"
 }) => {
     if (!isVisible) return null;
 
@@ -49,22 +49,24 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
         }),
         datasets: [
             {
-                label: 'Total de Driver (Liberado)',
+                label: 'Liberados',
                 data: evolutionData.map(d => d.liberado),
-                borderColor: '#3B82F6',
-                backgroundColor: '#3B82F6',
+                borderColor: '#10b981', // Emerald
+                backgroundColor: 'rgba(16, 185, 129, 0.05)',
                 tension: 0.4,
-                pointRadius: 4,
+                pointRadius: 3,
                 borderWidth: 3,
+                fill: true,
             },
             {
-                label: 'Total de Driver (Enviado)',
+                label: 'Enviados',
                 data: evolutionData.map(d => d.enviado),
-                borderColor: '#0A1D47',
-                backgroundColor: '#0A1D47',
+                borderColor: '#3B82F6', // Blue
+                backgroundColor: 'rgba(59, 130, 246, 0.05)',
                 tension: 0.4,
-                pointRadius: 4,
+                pointRadius: 3,
                 borderWidth: 3,
+                fill: true,
             }
         ],
     };
@@ -75,104 +77,103 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
         plugins: {
             legend: {
                 position: 'top' as const,
-                align: 'center' as const,
+                align: 'end' as const,
                 labels: {
                     usePointStyle: true,
-                    font: { size: 14, weight: 'bold' as any },
+                    font: { size: 12, weight: '600' as any },
                     padding: 20,
-                    color: '#0A1D47'
+                    color: '#64748B'
                 }
             },
             tooltip: {
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                titleColor: '#0A1D47',
-                bodyColor: '#0A1D47',
-                borderColor: '#E2E8F0',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#0f172a',
+                bodyColor: '#64748B',
+                borderColor: '#f1f5f9',
                 borderWidth: 1,
                 padding: 12,
                 displayColors: true,
+                boxPadding: 6,
+                usePointStyle: true,
+                callbacks: {
+                    label: (context: any) => ` ${context.dataset.label}: ${context.parsed.y}`
+                }
             }
         },
         scales: {
             y: {
                 beginAtZero: true,
-                grid: { color: '#F1F5F9' },
-                ticks: { font: { size: 12 }, color: '#64748B' }
+                grid: { color: '#f1f5f9' },
+                ticks: { font: { size: 11 }, color: '#94a3b8' }
             },
             x: {
                 grid: { display: false },
                 ticks: { 
-                    font: { size: 12 }, 
-                    color: '#64748B',
-                    maxRotation: 45,
-                    minRotation: 45
+                    font: { size: 11 }, 
+                    color: '#94a3b8',
                 }
             }
         },
     };
 
     return (
-        <div className="w-full h-full bg-white flex flex-col p-10 font-sans overflow-hidden">
-            {/* Header do Slide */}
-            <div className="flex justify-between items-start mb-6">
-                <div>
-                    <h2 className="text-2xl font-black text-[#3B82F6] flex items-center gap-3">
-                        <span className="w-10 h-1 bg-blue-600 rounded-full" />
-                        <span className="tracking-tighter uppercase">{titulo}</span>
-                    </h2>
-                    <div className="bg-slate-100 text-slate-500 px-3 py-1 text-[10px] font-black rounded mt-1 inline-block uppercase tracking-[0.2em]">
-                        Performance Insight Hub
+        <div className="w-full h-full bg-[#f8fafc] flex flex-col p-14 font-sans overflow-hidden">
+            {/* Header Sofisticado */}
+            <div className="flex justify-between items-end mb-10 border-b-2 border-slate-200 pb-6">
+                <div className="flex items-center gap-6">
+                    <div className="h-12 w-2 bg-blue-600 rounded-full" />
+                    <div>
+                        <h2 className="text-4xl font-bold text-slate-800 tracking-tight">
+                            {titulo}
+                        </h2>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-1">Análise de Volume Diário</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">Performance</span>
-                        <span className="text-xl font-black text-slate-800 tracking-tighter">DATA ANALYTICS</span>
-                    </div>
-                    <div className="w-1 h-10 bg-blue-600 rounded-full" />
+                <div className="flex flex-col items-end opacity-40">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.4em]">Operational</span>
+                    <span className="text-xl font-bold text-slate-800 tracking-tighter">INSIGHTS</span>
                 </div>
             </div>
 
             {/* Área do Gráfico */}
-            <div className="flex-1 min-h-[300px] mb-8">
+            <div className="flex-1 min-h-[300px] mb-10 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
                 <Line data={chartData} options={chartOptions} />
             </div>
 
-            {/* Seção Resumo */}
-            <div className="mt-auto pt-8 border-t border-slate-100">
-                <div className="flex items-center justify-center gap-4 mb-8">
-                    <div className="h-px w-24 bg-slate-200" />
-                    <h3 className="text-3xl font-black text-[#0A1D47] italic uppercase tracking-tighter">Resumo por Unidade</h3>
-                    <div className="h-px w-24 bg-slate-200" />
+            {/* Seção Resumo por Unidade */}
+            <div className="mt-auto">
+                <div className="flex items-center gap-4 mb-6">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Distribuição por Unidade</h3>
+                    <div className="h-[1px] flex-1 bg-slate-200" />
                 </div>
                 
-                <div className="grid grid-cols-4 lg:grid-cols-4 gap-4 px-2">
-                    {citiesData.map((data, idx) => (
+                <div className="grid grid-cols-4 gap-4 px-1">
+                    {citiesData.slice(0, 4).map((data, idx) => (
                         <motion.div 
                             key={idx} 
-                            whileHover={{ y: -5, scale: 1.02 }}
-                            className="bg-white/80 backdrop-blur-md rounded-xl p-4 border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05)] transition-all"
+                            whileHover={{ y: -4 }}
+                            className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm transition-all hover:shadow-md"
                         >
-                            <h4 className="text-[#3B82F6] font-black text-lg mb-3 border-b border-blue-100 pb-1 flex justify-between items-center">
-                                {data.cidade.replace(' 2.0', '')}
-                                <span className="text-[10px] text-slate-400 font-normal uppercase tracking-widest italic">Unidade</span>
+                            <h4 className="text-slate-800 font-bold text-base mb-4 flex justify-between items-center border-b border-slate-50 pb-2">
+                                {data.cidade.split(' ')[0]}
+                                <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                             </h4>
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Enviado</span>
-                                    <span className="text-sm font-black text-slate-700">{data.enviado}</span>
+                            <div className="grid grid-cols-2 gap-y-3">
+                                <div>
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Enviado</span>
+                                    <span className="text-sm font-bold text-slate-700">{data.enviado}</span>
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Liberado</span>
-                                    <span className="text-sm font-black text-blue-600">{data.liberado}</span>
+                                <div>
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Liberado</span>
+                                    <span className="text-sm font-bold text-blue-600">{data.liberado}</span>
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Rodando</span>
-                                    <span className="text-sm font-black text-green-600">{data.rodandoInicio}</span>
+                                <div>
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Rodando</span>
+                                    <span className="text-sm font-bold text-emerald-600">{data.rodandoInicio}</span>
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Aberto</span>
-                                    <span className="text-sm font-black text-orange-500">{data.aberto}</span>
+                                <div>
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Aberto</span>
+                                    <span className="text-sm font-bold text-slate-500">{data.aberto}</span>
                                 </div>
                             </div>
                         </motion.div>

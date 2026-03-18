@@ -19,67 +19,79 @@ const SlideCapaMarketing: React.FC<SlideCapaMarketingProps> = ({
     if (!isVisible) return null;
 
     return (
-        <div className="relative w-full h-full bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] overflow-hidden flex flex-col items-center justify-center p-20 font-sans">
-            {/* Background Animado - Formas Abstratas */}
+        <div className="relative w-full h-full bg-[#0A1D3A] overflow-hidden flex flex-col items-center justify-center p-20 font-sans">
+            {/* Background Sutil - Gradiente Radial Profundo */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#1e293b_0%,#0A1D3A_100%)] opacity-60" />
+
+            {/* Formas Abstratas Premium */}
             <motion.div 
                 animate={{ 
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 90, 0],
+                    scale: [1, 1.1, 1],
+                    opacity: [0.1, 0.15, 0.1]
+                }}
+                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -top-[10%] -right-[5%] w-[50%] h-[50%] bg-blue-500/20 rounded-full blur-[100px]"
+            />
+            
+            <motion.div 
+                animate={{ 
+                    scale: [1.1, 1, 1.1],
                     opacity: [0.05, 0.1, 0.05]
                 }}
-                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                className="absolute -top-20 -right-20 w-[600px] h-[600px] bg-blue-500 rounded-full blur-[120px]"
-            />
-            <motion.div 
-                animate={{ 
-                    scale: [1, 1.3, 1],
-                    rotate: [0, -90, 0],
-                    opacity: [0.03, 0.08, 0.03]
-                }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="absolute -bottom-40 -left-40 w-[800px] h-[800px] bg-indigo-600 rounded-full blur-[150px]"
+                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -bottom-[15%] -left-[10%] w-[60%] h-[60%] bg-slate-400/10 rounded-full blur-[120px]"
             />
 
-            {/* Barras Decorativas Minimalistas */}
-            <div className="absolute left-0 top-0 h-full flex items-stretch">
-                <div className="w-2 bg-blue-600 opacity-40" />
-                <div className="w-4 bg-blue-500 mx-1 opacity-20" />
-                <div className="w-8 bg-blue-400 opacity-10" />
+            {/* Barra Lateral Sofisticada */}
+            <div className="absolute left-0 top-0 h-full w-[120px] pointer-events-none">
+                <div className="h-full w-2 bg-blue-600/30" />
+                <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-center px-6 opacity-30">
+                    <div className="h-1 w-8 bg-blue-400 mb-2" />
+                    <div className="h-1 w-12 bg-blue-400 mb-2" />
+                    <div className="h-1 w-6 bg-blue-400" />
+                </div>
             </div>
 
-            {/* Elemento Decorativo Abstrato (Substituindo Logo) */}
-            <div className="absolute top-16 right-20 opacity-10">
-                 <div className="w-64 h-64 border-[16px] border-blue-900 rounded-full" />
-                 <div className="w-32 h-32 border-[8px] border-blue-600 rounded-full absolute -top-10 -left-10" />
-            </div>
-
-            {/* Conteúdo Central */}
+            {/* Conteúdo Centralizado e Elegante */}
             <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-center z-10"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="text-center z-10 max-w-4xl"
             >
-                <h1 className="text-[84px] font-black text-white leading-tight mb-2 tracking-tighter">
+                <div className="flex flex-col items-center mb-10">
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="h-[2px] w-12 bg-blue-500/50" />
+                        <span className="text-blue-400 font-bold uppercase tracking-[0.4em] text-xs">Apresentação Operacional</span>
+                        <div className="h-[2px] w-12 bg-blue-500/50" />
+                    </div>
+                </div>
+
+                <h1 className="text-[90px] font-bold text-white leading-tight mb-4 tracking-tight">
                     {titulo}
                 </h1>
-                <h2 className="text-[48px] font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent tracking-tight mb-8">
+                
+                <h2 className="text-[42px] font-medium text-slate-300 tracking-tight mb-12">
                     {periodo}
                 </h2>
                 
                 {subtitulo && (
                     <div className="flex flex-col items-center">
-                        <div className="h-1.5 w-32 bg-blue-500 rounded-full mb-8 shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
-                        <p className="text-xl text-slate-400 font-black uppercase tracking-[0.5em] opacity-80">
+                        <div className="h-1 w-24 bg-blue-600 rounded-full mb-8" />
+                        <p className="text-lg text-slate-400 font-medium uppercase tracking-[0.6em]">
                             {subtitulo}
                         </p>
                     </div>
                 )}
             </motion.div>
 
-            {/* Rodapé Decorativo */}
-            <div className="absolute bottom-12 right-12 text-slate-300 font-bold uppercase tracking-[0.5em] text-sm">
-                 Status Performance Report
+            {/* Rodapé Minimalista */}
+            <div className="absolute bottom-16 w-full flex justify-center items-center px-20">
+                <div className="flex items-center gap-6 opacity-40">
+                    <span className="text-[10px] text-white font-bold uppercase tracking-widest whitespace-nowrap">Dashboard Geral</span>
+                    <div className="h-4 w-[1px] bg-white/30" />
+                    <span className="text-[10px] text-white font-bold uppercase tracking-widest whitespace-nowrap">Marketing Performance</span>
+                </div>
             </div>
         </div>
     );
