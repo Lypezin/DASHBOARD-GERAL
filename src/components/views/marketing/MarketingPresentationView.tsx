@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Presentation, ExternalLink, Sparkles, Layout, Calendar } from 'lucide-react';
+import { Presentation, ExternalLink, Layout, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
@@ -49,16 +49,14 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
 
     return (
         <div className="space-y-6 animate-fade-in pb-10">
-            <Card className="border-none shadow-xl bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden">
                 
                 <CardHeader className="relative z-10 pb-6 pt-10 px-8 text-center max-w-2xl mx-auto">
-                    <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-xl shadow-purple-500/30 mb-6 group">
-                        <Presentation className="h-10 w-10 text-white" />
+                    <div className="inline-flex p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 mb-6 group">
+                        <Presentation className="h-10 w-10 text-blue-600" />
                     </div>
-                    <CardTitle className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tight mb-4">
+                    <CardTitle className="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight mb-4">
                         Apresentação de Resultados
-                        <Sparkles className="h-5 w-5 text-purple-500 inline ml-2 animate-pulse" />
                     </CardTitle>
                     <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                         Configure o período desejado e gere a apresentação oficial. 
@@ -69,7 +67,7 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
                 <CardContent className="relative z-10 px-8 pb-12">
                     <div className="max-w-md mx-auto mb-10 space-y-6">
                         <div className="flex items-center gap-2 mb-2 justify-center">
-                            <Calendar className="h-4 w-4 text-purple-500" />
+                            <Calendar className="h-4 w-4 text-blue-500" />
                             <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Período e Localização</span>
                         </div>
                         
@@ -89,7 +87,7 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
                         <Button
                             onClick={handleOpenPresentation}
                             size="lg"
-                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-10 py-7 text-lg font-bold rounded-2xl shadow-xl shadow-purple-500/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-7 text-lg font-bold rounded-2xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
                         >
                             <Presentation className="h-6 w-6" />
                             Gerar Apresentação Agora
@@ -107,7 +105,7 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
                 <div className="max-w-2xl mx-auto rounded-3xl border-4 border-slate-200 dark:border-slate-800 shadow-lg overflow-hidden aspect-[21/9] bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center relative">
                     <div className="flex flex-col items-center text-center p-6">
                         <div className="w-12 h-1 bg-blue-500 rounded-full mb-4" />
-                        <h4 className="text-2xl font-black text-slate-400 dark:text-slate-600 uppercase tracking-tighter">PREVIEW DA ESTRUTURA</h4>
+                        <h4 className="text-2xl font-bold text-slate-400 dark:text-slate-600 uppercase tracking-tighter">PREVIEW DA ESTRUTURA</h4>
                         <p className="text-slate-400 dark:text-slate-700 font-bold uppercase tracking-widest text-xs">Capa • Resumo de Totais • Detalhes por Cidade</p>
                     </div>
                 </div>

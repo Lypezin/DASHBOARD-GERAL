@@ -26,12 +26,12 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <div className="max-w-md mx-auto rounded-xl border border-rose-200 bg-white p-6 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
-          <div className="text-4xl mb-4">⚠️</div>
+          <div className="text-4xl mb-4 text-rose-500 font-bold">!</div>
           <p className="text-lg font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
           <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-5 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105"
+            className="mt-4 rounded-lg bg-slate-800 dark:bg-slate-100 dark:text-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105"
           >
             Tentar novamente
           </button>
@@ -74,7 +74,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
       {/* Cartões Principais */}
       <motion.div variants={item} className="space-y-4">
         <div className="flex items-center gap-3 px-2">
-          <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-purple-500 to-blue-600 shadow-sm" />
+          <div className="h-8 w-1.5 rounded-full bg-blue-600 shadow-sm" />
           <div>
             <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
               Visão Geral de Conversão

@@ -39,8 +39,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
         bgClass: string;
         iconBgClass: string;
     }) => (
-        <Card className="border-none shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 backdrop-blur-sm">
-            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${bgClass} opacity-10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110 duration-500`} />
+        <Card className="border-none shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 backdrop-blur-sm">
 
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
                 <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -72,7 +71,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
                 value={safeTotals.criado.toLocaleString('pt-BR')}
                 subtext="Total criado"
                 colorClass="text-blue-600 dark:text-blue-400"
-                bgClass="from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-900"
+                bgClass="bg-white dark:bg-slate-900"
                 iconBgClass="bg-blue-100 dark:bg-blue-900/40"
             />
 
@@ -82,7 +81,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
                 value={safeTotals.enviado.toLocaleString('pt-BR')}
                 subtext="Total enviado"
                 colorClass="text-emerald-600 dark:text-emerald-400"
-                bgClass="from-emerald-50 to-white dark:from-emerald-900/20 dark:to-slate-900"
+                bgClass="bg-white dark:bg-slate-900"
                 iconBgClass="bg-emerald-100 dark:bg-emerald-900/40"
             />
 
@@ -92,7 +91,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
                 value={safeTotals.liberado.toLocaleString('pt-BR')}
                 subtext="Total liberado"
                 colorClass="text-purple-600 dark:text-purple-400"
-                bgClass="from-purple-50 to-white dark:from-purple-900/20 dark:to-slate-900"
+                bgClass="bg-white dark:bg-slate-900"
                 iconBgClass="bg-purple-100 dark:bg-purple-900/40"
             />
 
@@ -102,7 +101,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
                 value={safeTotals.rodandoInicio.toLocaleString('pt-BR')}
                 subtext="Total rodando início"
                 colorClass="text-orange-600 dark:text-orange-400"
-                bgClass="from-orange-50 to-white dark:from-orange-900/20 dark:to-slate-900"
+                bgClass="bg-white dark:bg-slate-900"
                 iconBgClass="bg-orange-100 dark:bg-orange-900/40"
             />
 
@@ -112,7 +111,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
                 value={safeTotals.aberto.toLocaleString('pt-BR')}
                 subtext="Total aberto"
                 colorClass="text-cyan-600 dark:text-cyan-400"
-                bgClass="from-cyan-50 to-white dark:from-cyan-900/20 dark:to-slate-900"
+                bgClass="bg-white dark:bg-slate-900"
                 iconBgClass="bg-cyan-100 dark:bg-cyan-900/40"
             />
 
@@ -122,7 +121,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
                 value={safeTotals.voltou.toLocaleString('pt-BR')}
                 subtext="Total voltou"
                 colorClass="text-rose-600 dark:text-rose-400"
-                bgClass="from-rose-50 to-white dark:from-rose-900/20 dark:to-slate-900"
+                bgClass="bg-white dark:bg-slate-900"
                 iconBgClass="bg-rose-100 dark:bg-rose-900/40"
             />
         </div>
