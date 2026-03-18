@@ -41,7 +41,7 @@ export function convertDDMMYYYYToDate(dateStr: string | number | null | undefine
     const cleaned = dateStr.trim();
     if (cleaned === '' || cleaned === 'null' || cleaned === 'NULL') return null;
 
-    const ddmmyyyyMatch = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    const ddmmyyyyMatch = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (ddmmyyyyMatch) {
         const [, day, month, year] = ddmmyyyyMatch;
         const [dayNum, monthNum, yearNum] = [parseInt(day, 10), parseInt(month, 10), parseInt(year, 10)];
@@ -50,7 +50,7 @@ export function convertDDMMYYYYToDate(dateStr: string | number | null | undefine
         }
     }
 
-    const ddmmyyyyMatch2 = cleaned.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    const ddmmyyyyMatch2 = cleaned.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/);
     if (ddmmyyyyMatch2) {
         const [, day, month, year] = ddmmyyyyMatch2;
         const [dayNum, monthNum, yearNum] = [parseInt(day, 10), parseInt(month, 10), parseInt(year, 10)];
