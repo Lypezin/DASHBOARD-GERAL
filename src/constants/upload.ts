@@ -44,6 +44,7 @@ export const MARKETING_COLUMN_MAP: { [key: string]: string } = {
   'Rodando': 'rodando',
   'Rodou dia': 'rodou_dia',
   'Responsável': 'responsavel',
+  'Criado': 'Criado',
 };
 
 /**

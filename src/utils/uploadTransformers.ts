@@ -14,6 +14,7 @@ export const marketingTransformers = {
   data_liberacao: commonTransformers.date,
   data_envio: commonTransformers.date,
   rodou_dia: commonTransformers.date,
+  Criado: commonTransformers.date,
 
   // Rodando - normalizar para "Sim" ou "Não"
   rodando: commonTransformers.rodando,
