@@ -174,14 +174,29 @@ export async function fetchMarketingDailyEvolution(
         query = buildCityQuery(query, filters.praca);
     }
 
-    // Aplicar filtros de data se existirem. 
+    // Aplicar filtros de data se existirem.
     // Como os filtros estão unificados na apresentação, podemos ser abrangentes.
-    const hasFilters = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial;
+    const hasFilters =
+        filters.filtroEnviados.dataInicial ||
+        filters.filtroLiberacao.dataInicial ||
+        filters.filtroRodouDia.dataInicial ||
+        filters.filtroDataInicio.dataInicial;
+
+    let minDateForFill: string | null = null;
+    let maxDateForFill: string | null = null;
 
     if (hasFilters) {
         // Expand dates to full months
-        let minDate = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial;
-        let maxDate = filters.filtroEnviados.dataFinal || filters.filtroLiberacao.dataFinal || filters.filtroRodouDia.dataFinal;
+        let minDate =
+            filters.filtroEnviados.dataInicial ||
+            filters.filtroLiberacao.dataInicial ||
+            filters.filtroRodouDia.dataInicial ||
+            filters.filtroDataInicio.dataInicial;
+        let maxDate =
+            filters.filtroEnviados.dataFinal ||
+            filters.filtroLiberacao.dataFinal ||
+            filters.filtroRodouDia.dataFinal ||
+            filters.filtroDataInicio.dataFinal;
 
         if (minDate) {
             const d = new Date(minDate + 'T12:00:00');
@@ -213,6 +228,9 @@ export async function fetchMarketingDailyEvolution(
         if (conds.length > 0) {
             query = query.or(conds.join(','));
         }
+
+        minDateForFill = minDate;
+        maxDateForFill = maxDate;
     }
 
     const { data, error } = await query;
@@ -237,6 +255,19 @@ export async function fetchMarketingDailyEvolution(
         processDate(item.rodou_dia, 'rodando');
         processDate(item.Criado || item.data_envio, 'criado');
     });
+
+    if (minDateForFill && maxDateForFill) {
+        let cursor = new Date(minDateForFill + 'T12:00:00');
+        const endCursor = new Date(maxDateForFill + 'T12:00:00');
+
+        while (cursor <= endCursor) {
+            const dayStr = cursor.toISOString().split('T')[0];
+            if (!dailyMap.has(dayStr)) {
+                dailyMap.set(dayStr, { data: dayStr, liberado: 0, enviado: 0, rodando: 0, criado: 0 });
+            }
+            cursor.setDate(cursor.getDate() + 1);
+        }
+    }
 
     return Array.from(dailyMap.values()).sort((a, b) => a.data.localeCompare(b.data));
 }
