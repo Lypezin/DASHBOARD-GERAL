@@ -331,8 +331,8 @@ export async function fetchMarketingWeeklyComparison(
         };
 
         // Cada métrica conta na semana em que foi registrada
-        // Para 'criado', usamos data_envio como base para manter consistência com o Dashboard
-        processMetric(item.data_envio, 'criado');
+        // Para 'criado', usamos created_at (registro inserido no sistema)
+        processMetric(item.created_at, 'criado');
         processMetric(item.data_envio, 'enviado');
         processMetric(item.data_liberacao, 'liberado');
         if (item.rodando === 'Sim') processMetric(item.rodou_dia, 'rodando');
