@@ -29,7 +29,7 @@ ChartJS.register(
 
 interface SlideEvolucaoResumoMarketingProps {
     isVisible: boolean;
-    evolutionData: Array<{ data: string; liberado: number; enviado: number; criado?: number }>;
+    evolutionData: Array<{ data: string; liberado: number; enviado: number }>;
     citiesData: MarketingCityData[];
     titulo?: string;
 }
@@ -70,16 +70,6 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                 borderWidth: 2,
                 fill: true,
             },
-            {
-                label: 'Criados',
-                data: evolutionData.map(d => d.criado || 0),
-                borderColor: '#f59e0b', // Amber
-                backgroundColor: 'rgba(245, 158, 11, 0.05)',
-                tension: 0.4,
-                pointRadius: 2,
-                borderWidth: 2,
-                fill: true,
-            }
         ],
     };
 
@@ -126,8 +116,10 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                     autoSkip: true,
                     maxTicksLimit: 16,
                     callback: (value: string | number, index: number) => {
-                        if (index % 2 !== 0) return '';
-                        return value;
+                        // Mostra a label real (DD/MM) no eixo x, sem usar o index como valor.
+                        const label = chartData.labels[index];
+                        if (!label) return '';
+                        return index % 2 === 0 ? label : '';
                     }
                 }
             }
