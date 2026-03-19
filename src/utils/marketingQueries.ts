@@ -66,8 +66,14 @@ export function buildCityQuery(query: any, cidade: string): typeof query {
     abcQuery = abcQuery.not('sub_praca_abc', 'is', null);
     return abcQuery;
   } else {
-    const dbCity = CITY_DB_MAPPING[cidade] || cidade;
-    return query.eq('regiao_atuacao', dbCity);
+    // Normaliza para capturar variações (Ex: "São Paulo 2.0", "SÃO PAULO", "SAO PAULO")
+    const baseNameUppercase = cidade.replace(' 2.0', '').toUpperCase();
+    const baseNameNoAccents = baseNameUppercase.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    const variants = [cidade, baseNameUppercase, baseNameNoAccents];
+    const uniqueVariants = Array.from(new Set(variants));
+    
+    return query.in('regiao_atuacao', uniqueVariants);
   }
 }
 
