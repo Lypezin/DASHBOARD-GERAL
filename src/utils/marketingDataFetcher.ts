@@ -579,8 +579,12 @@ export async function fetchMarketingCostsComparison(
 
                 // Lógica de match
                 const nameStr = displayName as string;
-                if (nameStr === 'Santo André' || nameStr === 'São Bernardo' || nameStr === 'ABC 2.0') {
+                if (nameStr === 'Santo André') {
+                    // Atribui o custo total do ABC apenas para Santo André para evitar duplicar no TOTAL
                     if (rowCidade === 'ABC' || rowCidade === 'ABC 2.0') match = true;
+                } else if (nameStr === 'São Bernardo' || nameStr === 'ABC 2.0') {
+                    // São Bernardo e ABC 2.0 ficam com 0 para não somar em duplicidade no rodapé
+                    match = false; 
                 } else if (normalizedDisplay.includes('TABOÃO') || normalizedDisplay.includes('TABOAO')) {
                     if (rowCidade.includes('TABOÃO') || rowCidade.includes('TABOAO')) match = true;
                 } else {
