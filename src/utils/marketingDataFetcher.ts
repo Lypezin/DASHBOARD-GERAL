@@ -560,18 +560,19 @@ export async function fetchMarketingCostsComparison(
         // Agregação por cidade
         const cityMap = new Map<string, { valorUsado: number; rodando: number; liberado: number; aberto: number }>();
 
-        // Mapeamento inverso para buscar no RPC
+        // Mapeamento inverso para buscar no RPC/Custos
         const DISPLAY_CITY_TO_DB_CITY: Record<string, string> = {
-            'São Paulo': 'SAO PAULO',
-            'Salvador': 'SALVADOR',
-            'Guarulhos': 'GUARULHOS',
-            'Manaus': 'MANAUS',
-            'Sorocaba': 'SOROCABA',
-            'Taboão/Embu': 'TABOAO DA SERRA',
-            'ABC': 'ABC'
+            'São Paulo 2.0': 'SAO PAULO',
+            'Salvador 2.0': 'SALVADOR',
+            'Guarulhos 2.0': 'GUARULHOS',
+            'Manaus 2.0': 'MANAUS',
+            'Sorocaba 2.0': 'SOROCABA',
+            'Taboão da Serra e Embu das Artes 2.0': 'TABOAO DA SERRA',
+            'Santo André': 'SANTO ANDRÉ',
+            'São Bernardo': 'SÃO BERNARDO'
         };
 
-        const citiesToQuery = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
+        const citiesToQuery = CIDADES;
 
         // IDs dos atendentes de marketing para filtrar os custos corretamente
         const allMarketingIds: string[] = [];
@@ -634,8 +635,17 @@ export async function fetchMarketingCostsComparison(
 
         const result: MarketingCostData[] = [];
         cityMap.forEach((v, k) => {
+            // Mapeia de volta para nomes curtos/amigáveis se necessário para o slide
+            let simplifiedName = k;
+            if (k === 'São Paulo 2.0') simplifiedName = 'São Paulo';
+            if (k === 'Salvador 2.0') simplifiedName = 'Salvador';
+            if (k === 'Guarulhos 2.0') simplifiedName = 'Guarulhos';
+            if (k === 'Manaus 2.0') simplifiedName = 'Manaus';
+            if (k === 'Sorocaba 2.0') simplifiedName = 'Sorocaba';
+            if (k === 'Taboão da Serra e Embu das Artes 2.0') simplifiedName = 'Taboão/Embu';
+
             result.push({
-                regiao: k,
+                regiao: simplifiedName,
                 valorUsado: v.valorUsado,
                 rodando: v.rodando,
                 liberado: v.liberado,
@@ -645,7 +655,7 @@ export async function fetchMarketingCostsComparison(
         });
         
         // Ordena conforme preferência comum
-        const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba'];
+        const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
         return result.sort((a, b) => {
             const idxA = priority.indexOf(a.regiao);
             const idxB = priority.indexOf(b.regiao);
