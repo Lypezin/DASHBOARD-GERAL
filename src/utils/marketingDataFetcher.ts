@@ -3,7 +3,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
 import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
-import { MarketingFilters, MarketingTotals, MarketingCityData } from '@/types';
+import { MarketingFilters, MarketingTotals, MarketingCityData, MarketingDateFilter } from '@/types';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -143,50 +143,60 @@ export async function fetchMarketingCitiesData(
         });
     }
 
-    if (IS_DEV) safeLog.warn('RPC get_marketing_cities_data fetch fallback');
-
+    // Forçamos o fallback manual para garantir a aplicação das regras de mapeamento de cidade 
+    // e o cálculo de mês cheio para TODAS as métricas (não apenas criados).
+    if (IS_DEV) safeLog.info('Using manual fetch for cities data to ensure accuracy');
+    
     const results: MarketingCityData[] = [];
+    
+    // Calcula o intervalo do mês baseado nos filtros de data
+    const anyDate = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial || filters.filtroDataInicio.dataInicial;
+    let monthFilter: MarketingDateFilter | null = null;
+    
+    if (anyDate) {
+        const d = new Date(anyDate + 'T12:00:00');
+        monthFilter = {
+            dataInicial: new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0],
+            dataFinal: new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0]
+        };
+    }
+
     for (const cidade of cidadesToProcess) {
+        // Todas as queries abaixo agora usam o monthFilter (mês total) se disponível
         let enviadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {})
             .not('status', 'in', `("${EXCLUDED_ENVIADOS.join('","')}")`)
             .not('data_envio', 'is', null);
-        if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
+        if (monthFilter) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', monthFilter);
 
         let liberadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {})
             .eq('status', 'Liberado')
             .not('data_liberacao', 'is', null);
-        if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
+        if (monthFilter) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', monthFilter);
 
         let rodandoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {})
             .not('rodou_dia', 'is', null);
-        if (filters.filtroRodouDia.dataInicial) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
+        if (monthFilter) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', monthFilter);
 
-        // Para Criado, usamos o mês total do filtro (se houver algum filtro de data ativo)
         let criadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {});
-        
-        const anyDate = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial || filters.filtroDataInicio.dataInicial;
-        if (anyDate) {
-            const d = new Date(anyDate + 'T12:00:00');
-            const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
-            const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
-            criadoQuery = criadoQuery.gte('Criado', firstDay).lte('Criado', lastDay);
+        if (monthFilter) {
+            criadoQuery = criadoQuery.gte('Criado', monthFilter.dataInicial).lte('Criado', monthFilter.dataFinal);
         }
 
         let abertoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .in('status', ABERTO_STATUSES)
             .match(organizationId ? { organization_id: organizationId } : {})
             .not('data_envio', 'is', null);
-        if (filters.filtroEnviados.dataInicial) abertoQuery = buildDateFilterQuery(abertoQuery, 'data_envio', filters.filtroEnviados);
+        if (monthFilter) abertoQuery = buildDateFilterQuery(abertoQuery, 'data_envio', monthFilter);
 
         let voltouQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .in('status', VOLTOU_STATUSES)
             .match(organizationId ? { organization_id: organizationId } : {})
             .not('data_envio', 'is', null);
-        if (filters.filtroEnviados.dataInicial) voltouQuery = buildDateFilterQuery(voltouQuery, 'data_envio', filters.filtroEnviados);
+        if (monthFilter) voltouQuery = buildDateFilterQuery(voltouQuery, 'data_envio', monthFilter);
 
         const [e, l, r, a, v, c] = await Promise.all([enviadoQuery, liberadoQuery, rodandoQuery, abertoQuery, voltouQuery, criadoQuery]);
         results.push({ 

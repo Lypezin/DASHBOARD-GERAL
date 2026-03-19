@@ -4,7 +4,7 @@
  */
 
 import { MarketingDateFilter } from '@/types';
-import { SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
+import { SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS, CITY_DB_MAPPING } from '@/constants/marketing';
 import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -66,7 +66,8 @@ export function buildCityQuery(query: any, cidade: string): typeof query {
     abcQuery = abcQuery.not('sub_praca_abc', 'is', null);
     return abcQuery;
   } else {
-    return query.eq('regiao_atuacao', cidade);
+    const dbCity = CITY_DB_MAPPING[cidade] || cidade;
+    return query.eq('regiao_atuacao', dbCity);
   }
 }
 
