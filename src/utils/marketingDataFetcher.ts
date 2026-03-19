@@ -511,16 +511,19 @@ export async function fetchMarketingCostsComparison(
     }
 
     const start = new Date(currentStart + 'T12:00:00');
-    const end = new Date(currentEnd + 'T12:00:00');
 
-    // Calcula a semana anterior (subtrai 7 dias)
-    const prevStart = new Date(start);
-    prevStart.setDate(prevStart.getDate() - 7);
-    const prevEnd = new Date(end);
-    prevEnd.setDate(prevEnd.getDate() - 7);
+    // Mês atual (cheio)
+    const currentMonthStart = new Date(start.getFullYear(), start.getMonth(), 1);
+    const currentMonthEnd = new Date(start.getFullYear(), start.getMonth() + 1, 0);
 
-    const prevStartISO = prevStart.toISOString().split('T')[0];
-    const prevEndISO = prevEnd.toISOString().split('T')[0];
+    // Mês anterior (cheio)
+    const prevMonthStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
+    const prevMonthEnd = new Date(start.getFullYear(), start.getMonth(), 0);
+
+    const currentStartISO = currentMonthStart.toISOString().split('T')[0];
+    const currentEndISO = currentMonthEnd.toISOString().split('T')[0];
+    const prevStartISO = prevMonthStart.toISOString().split('T')[0];
+    const prevEndISO = prevMonthEnd.toISOString().split('T')[0];
 
     const fetchRange = async (sISO: string, eISO: string) => {
         // IDs dos atendentes de marketing para filtrar os custos corretamente
@@ -619,7 +622,7 @@ export async function fetchMarketingCostsComparison(
     };
 
     const [atualData, passadaData] = await Promise.all([
-        fetchRange(currentStart, currentEnd),
+        fetchRange(currentStartISO, currentEndISO),
         fetchRange(prevStartISO, prevEndISO)
     ]);
 
