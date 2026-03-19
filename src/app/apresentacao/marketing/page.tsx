@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { fetchMarketingTotalsData, fetchMarketingCitiesData, fetchMarketingDailyEvolution, fetchMarketingWeeklyComparison } from '@/utils/marketingDataFetcher';
+import { fetchMarketingTotalsData, fetchMarketingCitiesData, fetchMarketingDailyEvolution, fetchMarketingWeeklyComparison, fetchMarketingCostsComparison } from '@/utils/marketingDataFetcher';
 import { generatePrintStyles } from '@/utils/apresentacao/printPageHelpers';
 import { MarketingReportSlides } from './components/MarketingReportSlides';
 import { createClient } from '@/utils/supabase/server';
@@ -68,11 +68,12 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     const orgId = profile?.organization_id || null;
     
     // Buscar dados base
-    const [totals, citiesData, evolutionData, generalWeeklyData] = await Promise.all([
+    const [totals, citiesData, evolutionData, generalWeeklyData, costsComparison] = await Promise.all([
         fetchMarketingTotalsData(filters as any, orgId, supabase),
         fetchMarketingCitiesData(filters as any, orgId, supabase, true),
         fetchMarketingDailyEvolution(filters as any, orgId, supabase),
-        fetchMarketingWeeklyComparison(orgId, null, dateInicial, dateFinal, supabase)
+        fetchMarketingWeeklyComparison(orgId, null, dateInicial, dateFinal, supabase),
+        fetchMarketingCostsComparison(filters as any, orgId, supabase)
     ]);
 
     // Buscar comparativo semanal para cada cidade
@@ -100,6 +101,7 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
                 evolutionData={evolutionData}
                 weeklyData={generalWeeklyData as any}
                 weeklyDataByCity={weeklyDataByCity as any}
+                costsComparison={costsComparison}
                 titulo="APRESENTAÇÃO MARKETING"
                 periodoFormatado={periodoFormatado}
             />

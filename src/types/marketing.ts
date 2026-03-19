@@ -103,3 +103,16 @@ export interface ValoresCidadePorCidade {
 export const MAPEAMENTO_ATENDENTES: { [key: string]: string } = {
   '6905': 'Carol', '4182': 'Mellisa', '6976': 'Beatriz', '5447': 'Fernanda',
 };
+
+export interface MarketingCostData {
+  regiao: string;
+  valorUsado: number;
+  rodando: number;
+  aberto: number;
+  cpa: number;
+}
+
+export interface MarketingCostsComparison {
+  atual: MarketingCostData[];
+  passada: MarketingCostData[];
+}

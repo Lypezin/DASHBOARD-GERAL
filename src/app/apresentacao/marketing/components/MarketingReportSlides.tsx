@@ -4,7 +4,8 @@ import React from 'react';
 import SlideCapaMarketing from '@/components/apresentacao/slides/marketing/SlideCapaMarketing';
 import SlideEvolucaoResumoMarketing from '@/components/apresentacao/slides/marketing/SlideEvolucaoResumoMarketing';
 import SlideComparativoSemanalMarketing from '@/components/apresentacao/slides/marketing/SlideComparativoSemanalMarketing';
-import { MarketingTotals, MarketingCityData } from '@/types';
+import SlideComparativoCustosMarketing from '@/components/apresentacao/slides/marketing/SlideComparativoCustosMarketing';
+import { MarketingTotals, MarketingCityData, MarketingCostsComparison } from '@/types';
 import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -15,6 +16,7 @@ interface MarketingReportSlidesProps {
     evolutionData: Array<{ data: string; liberado: number; enviado: number }>;
     weeklyData: Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }>;
     weeklyDataByCity: Array<{ cidade: string; data: Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }> }>;
+    costsComparison: MarketingCostsComparison;
     titulo: string;
     periodoFormatado: string;
 }
@@ -25,6 +27,7 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
     evolutionData,
     weeklyData,
     weeklyDataByCity,
+    costsComparison,
     titulo,
     periodoFormatado
 }) => {
@@ -75,7 +78,25 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
                 />
             </div>
 
-            {/* Slide 3: Comparativo Semanal - GERAL */}
+            {/* Slide 3: Comparativo de Custos - ATUAL */}
+            <div className="page" key="costs-atual" id="slide-costs-atual">
+                <SlideComparativoCustosMarketing
+                    isVisible={true}
+                    titulo="ATUAL"
+                    data={costsComparison.atual}
+                />
+            </div>
+
+            {/* Slide 4: Comparativo de Custos - PASSADA */}
+            <div className="page" key="costs-passada" id="slide-costs-passada">
+                <SlideComparativoCustosMarketing
+                    isVisible={true}
+                    titulo="PASSADA"
+                    data={costsComparison.passada}
+                />
+            </div>
+
+            {/* Slide 5: Comparativo Semanal - GERAL */}
             <div className="page" key="weekly-general" id="slide-weekly-general">
                 <SlideComparativoSemanalMarketing 
                     isVisible={true}

@@ -3,7 +3,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
 import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
-import { MarketingFilters, MarketingTotals, MarketingCityData, MarketingDateFilter } from '@/types';
+import { MarketingFilters, MarketingTotals, MarketingCityData, MarketingDateFilter, MarketingCostsComparison, MarketingCostData } from '@/types';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -492,5 +492,112 @@ export async function fetchMarketingWeeklyComparison(
     });
 
     return order.map(key => weekMap.get(key)!);
+}
+
+/**
+ * Busca dados para comparação de custos entre semana atual e anterior
+ */
+export async function fetchMarketingCostsComparison(
+    filters: MarketingFilters,
+    organizationId: string | null,
+    client: SupabaseClient = supabase
+): Promise<MarketingCostsComparison> {
+    const currentStart = filters.filtroEnviados.dataInicial;
+    const currentEnd = filters.filtroEnviados.dataFinal;
+
+    if (!currentStart || !currentEnd) {
+        return { atual: [], passada: [] };
+    }
+
+    const start = new Date(currentStart + 'T12:00:00');
+    const end = new Date(currentEnd + 'T12:00:00');
+
+    // Calcula a semana anterior (subtrai 7 dias)
+    const prevStart = new Date(start);
+    prevStart.setDate(prevStart.getDate() - 7);
+    const prevEnd = new Date(end);
+    prevEnd.setDate(prevEnd.getDate() - 7);
+
+    const prevStartISO = prevStart.toISOString().split('T')[0];
+    const prevEndISO = prevEnd.toISOString().split('T')[0];
+
+    const fetchRange = async (sISO: string, eISO: string) => {
+        // 1. Custo por cidade
+        let custoQuery = client.from('dados_valores_cidade')
+            .select('cidade, valor')
+            .gte('data', sISO)
+            .lte('data', eISO);
+        // Filtro de organização se o campo existir
+        if (organizationId) custoQuery = custoQuery.match({ organization_id: organizationId });
+        
+        const { data: custoData } = await custoQuery;
+
+        // 2. Rodando e Aberto por cidade (usando data_envio para consistência)
+        let mktQuery = client.from('dados_marketing')
+            .select('regiao_atuacao, status, rodou_dia, data_envio')
+            .gte('data_envio', sISO)
+            .lte('data_envio', eISO);
+        if (organizationId) mktQuery = mktQuery.eq('organization_id', organizationId);
+        const { data: mktData } = await mktQuery;
+
+        // Agregação por cidade
+        const cityMap = new Map<string, { valorUsado: number; rodando: number; aberto: number }>();
+
+        const getFriendlyName = (name: string) => {
+            const upper = name.toUpperCase();
+            if (upper.includes('SAO PAULO') || upper.includes('SÃO PAULO')) return 'São Paulo';
+            if (upper.includes('GUARULHOS')) return 'Guarulhos';
+            if (upper.includes('MANAUS')) return 'Manaus';
+            if (upper.includes('ABC')) return 'ABC';
+            if (upper.includes('SOROCABA')) return 'Sorocaba';
+            if (upper.includes('TABOAO') || upper.includes('EMBU')) return 'Taboão/Embu';
+            if (upper.includes('SALVADOR')) return 'Salvador';
+            return name;
+        };
+
+        custoData?.forEach(c => {
+            const name = getFriendlyName(c.cidade);
+            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, aberto: 0 };
+            cur.valorUsado += c.valor || 0;
+            cityMap.set(name, cur);
+        });
+
+        mktData?.forEach(m => {
+            const name = getFriendlyName(m.regiao_atuacao || 'Outros');
+            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, aberto: 0 };
+            if (m.rodou_dia) cur.rodando++;
+            if (ABERTO_STATUSES.includes(m.status || '')) cur.aberto++;
+            cityMap.set(name, cur);
+        });
+
+        const result: MarketingCostData[] = [];
+        cityMap.forEach((v, k) => {
+            result.push({
+                regiao: k,
+                valorUsado: v.valorUsado,
+                rodando: v.rodando,
+                aberto: v.aberto,
+                cpa: v.rodando > 0 ? v.valorUsado / v.rodando : 0
+            });
+        });
+        
+        // Ordena conforme preferência comum
+        const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba'];
+        return result.sort((a, b) => {
+            const idxA = priority.indexOf(a.regiao);
+            const idxB = priority.indexOf(b.regiao);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.regiao.localeCompare(b.regiao);
+        });
+    };
+
+    const [atualData, passadaData] = await Promise.all([
+        fetchRange(currentStart, currentEnd),
+        fetchRange(prevStartISO, prevEndISO)
+    ]);
+
+    return { atual: atualData, passada: passadaData };
 }
 
