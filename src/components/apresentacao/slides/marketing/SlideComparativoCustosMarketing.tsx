@@ -26,16 +26,16 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
     const totalCPA = totalRodando > 0 ? totalValor / totalRodando : 0;
 
     return (
-        <div className={`w-full h-full flex flex-col p-14 font-sans overflow-hidden relative transition-colors duration-500 ${
+        <div className={`w-full h-full flex flex-col p-10 font-sans overflow-hidden relative transition-colors duration-500 ${
             isDark ? 'bg-[#020617]' : 'bg-white'
         }`}>
             {/* Header com Nome da Empresa e Tópico */}
-            <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-3">
-                    <span className="text-blue-600 font-black text-2xl tracking-tighter">SH SP</span>
-                    <span className={`font-medium ${isDark ? 'text-blue-400/60' : 'text-blue-500/60'}`}>| Trafego Pago (Custo)</span>
-                </div>
+            <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
+                    <span className="text-blue-600 font-black text-xl tracking-tighter">SH SP</span>
+                    <span className={`font-medium text-sm ${isDark ? 'text-blue-400/50' : 'text-blue-500/50'}`}>| Trafego Pago (Custo)</span>
+                </div>
+                <div className="flex items-center gap-2 scale-75 origin-top-right">
                     <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                         <span className="text-white font-bold text-sm">GO</span>
                     </div>
@@ -43,11 +43,11 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
             </div>
 
             {/* Título Gigante */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-4">
                 <motion.h1 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`text-[10rem] font-black leading-none tracking-tighter text-center ${
+                    className={`text-[8rem] font-black leading-none tracking-tighter text-center ${
                         isDark ? 'text-white' : 'text-slate-900'
                     }`}
                 >
@@ -60,36 +60,36 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
                 <motion.div 
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className={`rounded-[2.5rem] overflow-hidden border shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] ${
+                    className={`rounded-[2rem] overflow-hidden border shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] ${
                         isDark ? 'border-slate-800 bg-slate-900/40 backdrop-blur-xl' : 'border-slate-200 bg-white'
                     }`}
                 >
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                                <th className="p-6 text-base font-black uppercase tracking-[0.2em] border-r border-slate-800/10">Região</th>
-                                <th className="p-6 text-base font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Conversa</th>
-                                <th className="p-6 text-base font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10 whitespace-nowrap">Custo por conversa</th>
-                                <th className="p-6 text-base font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Valor Usado</th>
-                                <th className="p-6 text-base font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPL</th>
-                                <th className="p-6 text-base font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPA</th>
-                                <th className="p-6 text-base font-black uppercase tracking-[0.2em] text-center">Em aberto</th>
+                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] border-r border-slate-800/10">Região</th>
+                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Conversa</th>
+                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10 whitespace-nowrap">Custo por conversa</th>
+                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Valor Usado</th>
+                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPL</th>
+                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPA</th>
+                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center">Em aberto</th>
                             </tr>
                         </thead>
                         <tbody>
                             {data.length > 0 ? data.map((row, idx) => (
                                 <tr key={idx} className={`border-b last:border-0 ${isDark ? 'border-slate-800' : 'border-slate-100'} hover:bg-blue-500/5 transition-colors`}>
-                                    <td className="p-6 text-xl font-bold border-r border-slate-800/5">{row.regiao}</td>
-                                    <td className="p-6 text-xl text-center text-slate-400 font-medium border-r border-slate-800/5">-</td>
-                                    <td className="p-6 text-xl text-center text-slate-400 font-medium border-r border-slate-800/5">R$ -</td>
-                                    <td className={`p-6 text-2xl text-center font-bold border-r border-slate-800/5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                    <td className="px-5 py-4 text-sm font-bold border-r border-slate-800/5">{row.regiao}</td>
+                                    <td className="px-5 py-4 text-sm text-center text-slate-400 font-medium border-r border-slate-800/5">-</td>
+                                    <td className="px-5 py-4 text-sm text-center text-slate-400 font-medium border-r border-slate-800/5">R$ -</td>
+                                    <td className={`px-5 py-4 text-base text-center font-bold border-r border-slate-800/5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                                         {row.valorUsado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                     </td>
-                                    <td className="p-6 text-xl text-center text-slate-400 font-medium border-r border-slate-800/5">R$ -</td>
-                                    <td className="p-6 text-2xl text-center font-black border-r border-slate-800/5">
+                                    <td className="px-5 py-4 text-sm text-center text-slate-400 font-medium border-r border-slate-800/5">R$ -</td>
+                                    <td className="px-5 py-4 text-base text-center font-black border-r border-slate-800/5">
                                         {row.cpa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                     </td>
-                                    <td className="p-6 text-2xl text-center font-black text-emerald-500">
+                                    <td className="px-5 py-4 text-lg text-center font-black text-emerald-500">
                                         {row.aberto || '-'}
                                     </td>
                                 </tr>
@@ -103,23 +103,23 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
                             
                             {/* Linha de Engajamento */}
                             <tr className={`${isDark ? 'bg-slate-800/20' : 'bg-slate-50/50'}`}>
-                                <td className="p-6 text-sm font-bold uppercase tracking-[0.3em] text-slate-500 border-r border-slate-800/5">Engajamento</td>
-                                <td colSpan={6} className="p-6 text-xl text-center font-bold text-slate-400">R$ 0</td>
+                                <td className="px-5 py-3 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 border-r border-slate-800/5">Engajamento</td>
+                                <td colSpan={6} className="px-5 py-3 text-sm text-center font-bold text-slate-400">R$ 0</td>
                             </tr>
                             
                             {/* Footer/Total */}
                             <tr className="bg-blue-600 text-white">
-                                <td className="p-6 text-2xl font-black uppercase tracking-[0.2em] border-r border-white/10">Total</td>
-                                <td className="p-6 text-2xl text-center font-black border-r border-white/10">-</td>
-                                <td className="p-6 text-2xl text-center font-black border-r border-white/10">R$ -</td>
-                                <td className="p-6 text-3xl text-center font-black border-r border-white/10">
+                                <td className="px-5 py-4 text-lg font-black uppercase tracking-[0.2em] border-r border-white/10">Total</td>
+                                <td className="px-5 py-4 text-lg text-center font-black border-r border-white/10">-</td>
+                                <td className="px-5 py-4 text-lg text-center font-black border-r border-white/10">R$ -</td>
+                                <td className="px-5 py-4 text-xl text-center font-black border-r border-white/10">
                                     {totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                 </td>
-                                <td className="p-6 text-2xl text-center font-black border-r border-white/10">R$ -</td>
-                                <td className="p-6 text-3xl text-center font-black border-r border-white/10">
+                                <td className="px-5 py-4 text-lg text-center font-black border-r border-white/10">R$ -</td>
+                                <td className="px-5 py-4 text-xl text-center font-black border-r border-white/10">
                                     {totalCPA.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                 </td>
-                                <td className="p-6 text-2xl text-center font-black">-</td>
+                                <td className="px-5 py-4 text-lg text-center font-black">-</td>
                             </tr>
                         </tbody>
                     </table>

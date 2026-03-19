@@ -78,34 +78,6 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
                 />
             </div>
 
-            {/* Slide 3: Comparativo de Custos - ATUAL */}
-            <div className="page" key="costs-atual" id="slide-costs-atual">
-                <SlideComparativoCustosMarketing
-                    isVisible={true}
-                    titulo="ATUAL"
-                    data={costsComparison.atual}
-                />
-            </div>
-
-            {/* Slide 4: Comparativo de Custos - PASSADA */}
-            <div className="page" key="costs-passada" id="slide-costs-passada">
-                <SlideComparativoCustosMarketing
-                    isVisible={true}
-                    titulo="PASSADA"
-                    data={costsComparison.passada}
-                />
-            </div>
-
-            {/* Slide 5: Comparativo Semanal - GERAL */}
-            <div className="page" key="weekly-general" id="slide-weekly-general">
-                <SlideComparativoSemanalMarketing 
-                    isVisible={true}
-                    titulo="COMPARATIVO SEMANAL"
-                    subtitulo="VISÃO GERAL DO PROJETO"
-                    weeklyData={weeklyData}
-                />
-            </div>
-
             {/* Slides 4+: Comparativo Semanal por CIDADES */}
             {weeklyDataByCity.map((cityInfo, idx) => (
                 <div className="page" key={`weekly-city-${idx}`} id={`slide-weekly-${cityInfo.cidade}`}>
@@ -117,6 +89,24 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
                     />
                 </div>
             ))}
+
+            {/* Slide: Comparativo de Custos - ATUAL */}
+            <div className="page" key="costs-atual" id="slide-costs-atual">
+                <SlideComparativoCustosMarketing
+                    isVisible={true}
+                    titulo="ATUAL"
+                    data={costsComparison.atual}
+                />
+            </div>
+
+            {/* Slide: Comparativo de Custos - PASSADA */}
+            <div className="page" key="costs-passada" id="slide-costs-passada">
+                <SlideComparativoCustosMarketing
+                    isVisible={true}
+                    titulo="PASSADA"
+                    data={costsComparison.passada}
+                />
+            </div>
         </div>
     );
 };
