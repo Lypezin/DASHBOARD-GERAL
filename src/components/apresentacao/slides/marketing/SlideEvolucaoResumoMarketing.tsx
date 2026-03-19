@@ -198,36 +198,36 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                                 : 'bg-white border-slate-100 shadow-sm hover:shadow-md'
                             }`}
                         >
-                            <h4 className={`font-bold text-[11px] mb-2 flex justify-between items-center border-b pb-1 truncate ${
-                                isDark ? 'text-white border-slate-800' : 'text-slate-800 border-slate-50'
+                            <h4 className={`font-bold text-sm mb-3 flex justify-between items-center border-b pb-2 ${
+                                isDark ? 'text-white border-slate-800' : 'text-slate-800 border-slate-100'
                             }`} title={data.cidade}>
                                 <span className="truncate pr-2">{data.cidade}</span>
-                                <div className="h-1 w-1 shrink-0 rounded-full bg-blue-500" />
+                                <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
                             </h4>
-                            <div className="grid grid-cols-2 gap-y-1 gap-x-2">
-                                <div className="col-span-2 mb-0.5 border-b border-blue-500/5 pb-0.5 flex justify-between items-baseline">
-                                    <span className="text-[8px] text-blue-500/70 font-bold uppercase tracking-widest">Criado</span>
-                                    <span className={`text-sm font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{data.criado}</span>
+                            <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Criados</span>
+                                    <span className={`text-xs font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{data.criado}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Env</span>
-                                    <span className={`text-[10px] font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{data.enviado}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Enviados</span>
+                                    <span className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{data.enviado}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Lib</span>
-                                    <span className="text-[10px] font-bold text-blue-600">{data.liberado}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Liberados</span>
+                                    <span className="text-xs font-bold text-blue-500">{data.liberado}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Rod</span>
-                                    <span className="text-[10px] font-bold text-emerald-600">{data.rodandoInicio}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Rodando</span>
+                                    <span className="text-xs font-bold text-emerald-500">{data.rodandoInicio}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Ab</span>
-                                    <span className="text-[10px] font-bold text-slate-500">{data.aberto}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Abertos</span>
+                                    <span className="text-xs font-bold text-slate-500">{data.aberto}</span>
                                 </div>
-                                <div className="flex justify-between items-center col-span-2 mt-0.5 pt-0.5 border-t border-slate-500/5">
-                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Voltou</span>
-                                    <span className="text-[10px] font-bold text-slate-500">{data.voltou}</span>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Voltou</span>
+                                    <span className="text-xs font-bold text-slate-500">{data.voltou}</span>
                                 </div>
                             </div>
                         </motion.div>
