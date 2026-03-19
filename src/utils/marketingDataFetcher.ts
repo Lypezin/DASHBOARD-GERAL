@@ -539,7 +539,7 @@ export async function fetchMarketingCostsComparison(
     
     // Determinando os intervalos
     const currentStartISO = currentMonthStart.toISOString().split('T')[0];
-    const currentEndISO = currentEnd; 
+    const currentEndISO = currentMonthEnd.toISOString().split('T')[0];
     
     // Slide PASSADA (Mês Anterior): 
     // Começa no dia 1 do mês anterior.
@@ -667,8 +667,8 @@ export async function fetchMarketingCostsComparison(
     };
 
     const [atualData, passadaData] = await Promise.all([
-        fetchRange(currentStartISO, currentEndISO),
-        fetchRange(prevStartISO, prevEndISO)
+        fetchRange(currentStartISO, currentEndISO), // Range de mês cheio (ex: 1 a 31)
+        fetchRange(prevStartISO, prevEndISO)   // Range de corte de quarta (ex: 1 a 11)
     ]);
 
     return { atual: atualData, passada: passadaData };
