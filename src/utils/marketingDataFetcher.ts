@@ -522,16 +522,12 @@ export async function fetchMarketingCostsComparison(
     // O slide ANTERIOR (Passada) deve mostrar até a quarta-feira anterior (ex: dia 11).
     const endRef = new Date(currentEnd + 'T12:00:00');
     
-    // Encontrar a última quarta-feira (3) estritamente antes do fim do filtro (ou igual se o filtro for além da semana)
-    // Mas o usuário quer comparar com a "quarta-feira passada" em relação aos dados atuais.
-    const getLastWednesday = (d: Date) => {
+    // Função para encontrar a quarta-feira daquela semana (ou da anterior se for Wednesday)
+    const getTargetWednesday = (d: Date) => {
         const date = new Date(d);
-        const day = date.getDay(); // 0=Dom, 1=Seg, 2=Ter, 3=Qua, 4=Qui, 5=Sex, 6=Sab
-        // Se for quarta (3), queremos a quarta anterior (7 dias atrás).
-        // Se for qui/sex/sab (4,5,6), queremos a quarta dessa mesma semana (-1, -2, -3 dias).
-        // Se for dom/seg/ter (0,1,2), queremos a quarta da semana passada (-4, -5, -6 dias).
+        const day = date.getDay(); // 0=Dom, 3=Qua
         let diff = 0;
-        if (day === 3) diff = 7;
+        if (day === 3) diff = 7; // Se já é quarta, o usuário quer a anterior
         else if (day > 3) diff = day - 3;
         else diff = day + 4;
         
@@ -539,19 +535,25 @@ export async function fetchMarketingCostsComparison(
         return date;
     };
 
-    const prevWed = getLastWednesday(endRef);
-
-    // Slide ATUAL: Do início do mês atual até o fim do filtro (ex: 1 a 18 de Março)
+    const targetWedActual = getTargetWednesday(endRef);
+    
+    // Determinando os intervalos
     const currentStartISO = currentMonthStart.toISOString().split('T')[0];
     const currentEndISO = currentEnd; 
     
-    // Slide PASSADA: Do início do mês anterior até o dia correspondente à quarta passada (ex: 1 a 11 de Fevereiro)
+    // Slide PASSADA (Mês Anterior): 
+    // Começa no dia 1 do mês anterior.
+    // Termina no dia correspondente à quarta-feira alvo (ex: 11 do mês anterior).
     const prevMonthStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
+    const daysInPrevMonth = new Date(start.getFullYear(), start.getMonth(), 0).getDate();
+    
     const prevStartISO = prevMonthStart.toISOString().split('T')[0];
     
-    // Para o dia final do slide anterior, pegamos o dia do mês da quarta-feira calculada
+    const targetDay = targetWedActual.getDate();
+    const safeTargetDay = Math.min(targetDay, daysInPrevMonth);
+    
     const prevMonthEnd = new Date(prevMonthStart);
-    prevMonthEnd.setDate(prevWed.getDate());
+    prevMonthEnd.setDate(safeTargetDay);
     const prevEndISO = prevMonthEnd.toISOString().split('T')[0];
 
     const fetchRange = async (sISO: string, eISO: string) => {
