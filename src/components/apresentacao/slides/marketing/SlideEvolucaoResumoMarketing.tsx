@@ -44,9 +44,8 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
 
     const chartData = {
         labels: evolutionData.map(d => {
-            const date = new Date(d.data);
-            const day = date.getDate();
-            return `Dia ${day}`;
+            const date = new Date(d.data + 'T12:00:00');
+            return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         }),
         datasets: [
             {
@@ -112,9 +111,10 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                 ticks: {
                     font: { size: 10 },
                     color: '#94a3b8',
-                    autoSkip: false,
-                    maxRotation: 45,
-                    minRotation: 45,
+                    autoSkip: true,
+                    maxTicksLimit: 15,
+                    maxRotation: 0,
+                    minRotation: 0,
                     callback: (_value: string | number, index: number) => {
                         return chartData.labels[index] ?? '';
                     }
