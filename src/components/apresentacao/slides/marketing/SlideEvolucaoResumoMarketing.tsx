@@ -34,6 +34,29 @@ interface SlideEvolucaoResumoMarketingProps {
     titulo?: string;
 }
 
+// Plugin customizado para desenhar os valores acima dos pontos
+const customDataLabels = {
+    id: 'customDataLabels',
+    afterDatasetsDraw(chart: any) {
+        const { ctx, data } = chart;
+        ctx.save();
+        data.datasets.forEach((dataset: any, i: number) => {
+            const meta = chart.getDatasetMeta(i);
+            meta.data.forEach((element: any, index: number) => {
+                const value = dataset.data[index];
+                if (value > 0) {
+                    ctx.fillStyle = dataset.borderColor;
+                    ctx.font = 'bold 10px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(value, element.x, element.y - 8);
+                }
+            });
+        });
+        ctx.restore();
+    }
+};
+
 const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> = ({
     isVisible,
     evolutionData,
@@ -144,7 +167,7 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
 
             {/* Área do Gráfico */}
             <div className="flex-1 min-h-[300px] mb-10 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
-                <Line data={chartData} options={chartOptions} />
+                <Line data={chartData} options={chartOptions} plugins={[customDataLabels]} />
             </div>
 
             {/* Seção Resumo por Unidade */}
