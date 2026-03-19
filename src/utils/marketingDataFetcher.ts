@@ -532,16 +532,24 @@ export async function fetchMarketingCostsComparison(
         
         const { data: custoData } = await custoQuery;
 
-        // 2. Rodando e Aberto por cidade (usando data_envio para consistência)
+        // 2. Rodando por cidade (usando rodou_dia para consistência com semanal)
+        let rodandoQuery = client.from('dados_marketing')
+            .select('regiao_atuacao, rodou_dia')
+            .gte('rodou_dia', sISO)
+            .lte('rodou_dia', eISO);
+        if (organizationId) rodandoQuery = rodandoQuery.eq('organization_id', organizationId);
+        const { data: rodandoData } = await rodandoQuery;
+
+        // 3. Enviados, Aberto e Liberados por cidade (usando data_envio)
         let mktQuery = client.from('dados_marketing')
-            .select('regiao_atuacao, status, rodou_dia, data_envio')
+            .select('regiao_atuacao, status, data_envio')
             .gte('data_envio', sISO)
             .lte('data_envio', eISO);
         if (organizationId) mktQuery = mktQuery.eq('organization_id', organizationId);
         const { data: mktData } = await mktQuery;
 
         // Agregação por cidade
-        const cityMap = new Map<string, { valorUsado: number; rodando: number; aberto: number }>();
+        const cityMap = new Map<string, { valorUsado: number; rodando: number; liberado: number; aberto: number }>();
 
         const getFriendlyName = (name: string) => {
             const upper = name.toUpperCase();
@@ -557,15 +565,22 @@ export async function fetchMarketingCostsComparison(
 
         custoData?.forEach(c => {
             const name = getFriendlyName(c.cidade);
-            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, aberto: 0 };
+            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, liberado: 0, aberto: 0 };
             cur.valorUsado += c.valor || 0;
+            cityMap.set(name, cur);
+        });
+
+        rodandoData?.forEach(r => {
+            const name = getFriendlyName(r.regiao_atuacao || 'Outros');
+            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, liberado: 0, aberto: 0 };
+            cur.rodando++;
             cityMap.set(name, cur);
         });
 
         mktData?.forEach(m => {
             const name = getFriendlyName(m.regiao_atuacao || 'Outros');
-            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, aberto: 0 };
-            if (m.rodou_dia) cur.rodando++;
+            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, liberado: 0, aberto: 0 };
+            if (m.status === 'Liberado') cur.liberado++;
             if (ABERTO_STATUSES.includes(m.status || '')) cur.aberto++;
             cityMap.set(name, cur);
         });
@@ -576,6 +591,7 @@ export async function fetchMarketingCostsComparison(
                 regiao: k,
                 valorUsado: v.valorUsado,
                 rodando: v.rodando,
+                liberado: v.liberado,
                 aberto: v.aberto,
                 cpa: v.rodando > 0 ? v.valorUsado / v.rodando : 0
             });

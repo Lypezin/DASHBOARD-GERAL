@@ -108,6 +108,7 @@ export interface MarketingCostData {
   regiao: string;
   valorUsado: number;
   rodando: number;
+  liberado: number;
   aberto: number;
   cpa: number;
 }
