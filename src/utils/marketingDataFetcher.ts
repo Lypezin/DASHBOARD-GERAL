@@ -5,7 +5,7 @@ import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingTotals, MarketingCityData, MarketingDateFilter, MarketingCostsComparison, MarketingCostData } from '@/types';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { ATENDENTE_TO_ID } from './atendenteMappers';
+import { ATENDENTE_TO_ID, REGIAO_TO_CIDADE_VALORES } from './atendenteMappers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -530,30 +530,14 @@ export async function fetchMarketingCostsComparison(
         if (day === 3) diff = 7; // Se já é quarta, o usuário quer a anterior
         else if (day > 3) diff = day - 3;
         else diff = day + 4;
-        
-        date.setDate(date.getDate() - diff);
-        return date;
-    };
+    const prevMonthStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
+    const prevMonthEnd = new Date(start.getFullYear(), start.getMonth(), 0); // Last day of previous month
 
-    const targetWedActual = getTargetWednesday(endRef);
-    
-    // Determinando os intervalos
     const currentStartISO = currentMonthStart.toISOString().split('T')[0];
     const currentEndISO = currentMonthEnd.toISOString().split('T')[0];
     
-    // Slide PASSADA (Mês Anterior): 
-    // Começa no dia 1 do mês anterior.
-    // Termina no dia correspondente à quarta-feira alvo (ex: 11 do mês anterior).
-    const prevMonthStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
-    const daysInPrevMonth = new Date(start.getFullYear(), start.getMonth(), 0).getDate();
-    
+    // Slide PASSADA (Mês Anterior): Full Month comparison as requested for 7.0k total
     const prevStartISO = prevMonthStart.toISOString().split('T')[0];
-    
-    const targetDay = targetWedActual.getDate();
-    const safeTargetDay = Math.min(targetDay, daysInPrevMonth);
-    
-    const prevMonthEnd = new Date(prevMonthStart);
-    prevMonthEnd.setDate(safeTargetDay);
     const prevEndISO = prevMonthEnd.toISOString().split('T')[0];
 
     const fetchRange = async (sISO: string, eISO: string) => {
@@ -581,29 +565,46 @@ export async function fetchMarketingCostsComparison(
             else allMarketingIds.push(id);
         });
 
-        // Passo 1: Buscar Custos (valor_mkt) e Métricas via Query para bater com o Dash
-        await Promise.all(citiesToQuery.map(async (displayName) => {
-            const dbName = DISPLAY_CITY_TO_DB_CITY[displayName] || displayName;
-            
-            // 1.1 Custo via Query Direta no banco (para garantir isolamento por cidade)
-            let custoQuery = client.from('dados_valores_cidade')
-                .select('valor')
-                .gte('data', sISO)
-                .lte('data', eISO)
-                .in('id_atendente', allMarketingIds);
+        // Passo 1: Buscar TODOS os Custos de Marketing da organização no período
+        let globalCustoQuery = client.from('dados_valores_cidade')
+            .select('valor, cidade, id_atendente')
+            .gte('data', sISO)
+            .lte('data', eISO)
+            .in('id_atendente', allMarketingIds);
 
-            if (organizationId) custoQuery = custoQuery.eq('organization_id', organizationId);
-            
-            // Filtro de cidade para custos (adaptando a lógica do buildCityQuery)
-            const baseNameUppercase = displayName.replace(' 2.0', '').toUpperCase();
-            const baseNameNoAccents = baseNameUppercase.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const variants = Array.from(new Set([displayName, dbName, baseNameUppercase, baseNameNoAccents]));
-            custoQuery = custoQuery.in('cidade', variants);
+        if (organizationId) globalCustoQuery = globalCustoQuery.eq('organization_id', organizationId);
+        
+        const { data: allCostRecords } = await globalCustoQuery;
 
-            const { data: costRecords } = await custoQuery;
-            const cityValor = costRecords?.reduce((acc, row) => acc + (Number(row.valor) || 0), 0) || 0;
+        // Passo 2: Buscar Métricas por cidade em paralelo
+        await Promise.all(CIDADES.map(async (displayName) => {
+            // 2.1 Agrupar custos para esta cidade (usando lógica robusta do findCidadeValue)
+            let cityValor = 0;
+            const normalizedDisplay = displayName.toUpperCase().trim();
+            const dbMapped = REGIAO_TO_CIDADE_VALORES[displayName];
+
+            allCostRecords?.forEach(row => {
+                const rowCidade = (row.cidade || '').toUpperCase().trim();
+                let match = false;
+
+                // Lógica de match
+                const nameStr = displayName as string;
+                if (nameStr === 'Santo André' || nameStr === 'São Bernardo' || nameStr === 'ABC 2.0') {
+                    if (rowCidade === 'ABC' || rowCidade === 'ABC 2.0') match = true;
+                } else if (normalizedDisplay.includes('TABOÃO') || normalizedDisplay.includes('TABOAO')) {
+                    if (rowCidade.includes('TABOÃO') || rowCidade.includes('TABOAO')) match = true;
+                } else {
+                    if (rowCidade === normalizedDisplay || rowCidade === dbMapped) match = true;
+                    // Fallback para nomes sem " 2.0"
+                    const simpleRow = rowCidade.replace(' 2.0', '').trim();
+                    const simpleDisplay = normalizedDisplay.replace(' 2.0', '').trim();
+                    if (simpleRow === simpleDisplay) match = true;
+                }
+
+                if (match) cityValor += Number(row.valor) || 0;
+            });
             
-            // 1.2 Métricas via Query (para bater com a Distribuição por Unidade que usa buildCityQuery)
+            // 2.2 Métricas via Query
             const getMetricsQuery = () => {
                 let q = client.from('dados_marketing').select('*', { count: 'exact', head: true });
                 if (organizationId) q = q.eq('organization_id', organizationId);
@@ -613,7 +614,7 @@ export async function fetchMarketingCostsComparison(
             const [l, r, a] = await Promise.all([
                 buildCityQuery(getMetricsQuery(), displayName)
                     .eq('status', 'Liberado')
-                    .gte('data_envio', sISO)
+                    .gte('data_envio', sISO) // Para o Atual será o mês cheio
                     .lte('data_envio', eISO),
                 buildCityQuery(getMetricsQuery(), displayName)
                     .not('rodou_dia', 'is', null)
@@ -625,12 +626,12 @@ export async function fetchMarketingCostsComparison(
                     .lte('data_envio', eISO)
             ]);
 
-            const cur = cityMap.get(displayName) || { valorUsado: 0, rodando: 0, liberado: 0, aberto: 0 };
-            cur.valorUsado = cityValor;
-            cur.liberado = l.count || 0;
-            cur.rodando = r.count || 0;
-            cur.aberto = a.count || 0;
-            cityMap.set(displayName, cur);
+            cityMap.set(displayName, {
+                valorUsado: cityValor,
+                liberado: l.count || 0,
+                rodando: r.count || 0,
+                aberto: a.count || 0
+            });
         }));
 
         const result: MarketingCostData[] = [];
@@ -655,7 +656,7 @@ export async function fetchMarketingCostsComparison(
         });
         
         // Ordena conforme preferência comum
-        const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
+        const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'Santo André', 'São Bernardo', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
         return result.sort((a, b) => {
             const idxA = priority.indexOf(a.regiao);
             const idxB = priority.indexOf(b.regiao);
