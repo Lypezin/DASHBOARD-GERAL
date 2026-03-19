@@ -78,6 +78,16 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
                 />
             </div>
 
+            {/* Slide 3: Comparativo Semanal - GERAL */}
+            <div className="page" key="weekly-general" id="slide-weekly-general">
+                <SlideComparativoSemanalMarketing 
+                    isVisible={true}
+                    titulo="COMPARATIVO SEMANAL"
+                    subtitulo="VISÃO GERAL DO PROJETO"
+                    weeklyData={weeklyData}
+                />
+            </div>
+
             {/* Slides 4+: Comparativo Semanal por CIDADES */}
             {weeklyDataByCity.map((cityInfo, idx) => (
                 <div className="page" key={`weekly-city-${idx}`} id={`slide-weekly-${cityInfo.cidade}`}>
