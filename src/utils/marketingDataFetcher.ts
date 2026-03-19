@@ -573,19 +573,34 @@ export async function fetchMarketingCostsComparison(
 
         const citiesToQuery = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
 
-        // Passo 1: Buscar Custos (valor_mkt) e Métricas via RPC/Query para bater com o Dash
+        // IDs dos atendentes de marketing para filtrar os custos corretamente
+        const allMarketingIds: string[] = [];
+        Object.values(ATENDENTE_TO_ID).forEach(id => {
+            if (Array.isArray(id)) allMarketingIds.push(...id);
+            else allMarketingIds.push(id);
+        });
+
+        // Passo 1: Buscar Custos (valor_mkt) e Métricas via Query para bater com o Dash
         await Promise.all(citiesToQuery.map(async (displayName) => {
             const dbName = DISPLAY_CITY_TO_DB_CITY[displayName] || displayName;
             
-            // 1.1 Custo via RPC
-            const { data: rpcData } = await safeRpc<any[]>('get_marketing_comparison_weekly', {
-                data_inicial: sISO,
-                data_final: eISO,
-                p_organization_id: organizationId,
-                p_praca: dbName
-            }, { client, validateParams: false });
+            // 1.1 Custo via Query Direta no banco (para garantir isolamento por cidade)
+            let custoQuery = client.from('dados_valores_cidade')
+                .select('valor')
+                .gte('data', sISO)
+                .lte('data', eISO)
+                .in('id_atendente', allMarketingIds);
 
-            const cityValor = rpcData?.reduce((acc, row) => acc + (Number(row.valor_mkt) || 0), 0) || 0;
+            if (organizationId) custoQuery = custoQuery.eq('organization_id', organizationId);
+            
+            // Filtro de cidade para custos (adaptando a lógica do buildCityQuery)
+            const baseNameUppercase = displayName.replace(' 2.0', '').toUpperCase();
+            const baseNameNoAccents = baseNameUppercase.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const variants = Array.from(new Set([displayName, dbName, baseNameUppercase, baseNameNoAccents]));
+            custoQuery = custoQuery.in('cidade', variants);
+
+            const { data: costRecords } = await custoQuery;
+            const cityValor = costRecords?.reduce((acc, row) => acc + (Number(row.valor) || 0), 0) || 0;
             
             // 1.2 Métricas via Query (para bater com a Distribuição por Unidade que usa buildCityQuery)
             const getMetricsQuery = () => {
