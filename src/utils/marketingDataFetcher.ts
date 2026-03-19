@@ -538,13 +538,13 @@ export async function fetchMarketingCostsComparison(
     const targetWedActual = getTargetWednesday(endRef);
     const targetDay = targetWedActual.getDate();
 
-    const prevMonthStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
-    const prevMonthEnd = new Date(start.getFullYear(), start.getMonth(), 0); // Last day of previous month
+    const prevMonthStart = new Date(start.getFullYear(), start.getMonth(), 1); // Same month as current
+    const prevMonthEnd = new Date(start.getFullYear(), start.getMonth() + 1, 0);
 
     const currentStartISO = currentMonthStart.toISOString().split('T')[0];
     const currentEndISO = currentMonthEnd.toISOString().split('T')[0];
     
-    // Slide PASSADA (Mês Anterior): Usa o corte de quarta-feira (ex: dia 01 ao dia 11)
+    // Slide PASSADA (Mês Atual - Parcial): Usa o corte de quarta-feira do PRÓPRIO mês atual
     const prevStartISO = prevMonthStart.toISOString().split('T')[0];
     const prevMonthEndWithCut = new Date(prevMonthStart);
     prevMonthEndWithCut.setDate(targetDay);
