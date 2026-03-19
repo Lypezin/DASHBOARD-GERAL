@@ -9,8 +9,25 @@ import { SupabaseClient } from '@supabase/supabase-js';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 const EXCLUDED_ENVIADOS = ['Confirmar', 'Cancelado', 'Abrindo MEI'];
-const ABERTO_STATUSES = ['Aberto', 'Aguardando Liberação Onboarding', 'Retorno', 'A enviar 2.0'];
-const VOLTOU_STATUSES = ['Voltou', 'Entregador desistiu', 'bug onboarding'];
+const ABERTO_STATUSES = [
+    'Aberto', 
+    'aguardando liberação', 
+    'Aguardando Liberação',
+    'Aguardando Liberação Onboarding', 
+    'retorno',
+    'Retorno', 
+    'a enviar',
+    'A enviar 2.0'
+];
+
+const VOLTOU_STATUSES = [
+    'voltou', 
+    'Voltou', 
+    'entregador desistiu', 
+    'Entregador desistiu', 
+    'bug onboarding',
+    'Bug Onboarding'
+];
 
 export async function fetchMarketingTotalsData(
     filters: MarketingFilters, 
