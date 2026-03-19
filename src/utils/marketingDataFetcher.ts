@@ -5,6 +5,7 @@ import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingTotals, MarketingCityData, MarketingDateFilter, MarketingCostsComparison, MarketingCostData } from '@/types';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { ATENDENTE_TO_ID } from './atendenteMappers';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -522,11 +523,19 @@ export async function fetchMarketingCostsComparison(
     const prevEndISO = prevEnd.toISOString().split('T')[0];
 
     const fetchRange = async (sISO: string, eISO: string) => {
-        // 1. Custo por cidade
+        // IDs dos atendentes de marketing para filtrar os custos corretamente
+        const allMarketingIds: string[] = [];
+        Object.values(ATENDENTE_TO_ID).forEach(id => {
+            if (Array.isArray(id)) allMarketingIds.push(...id);
+            else allMarketingIds.push(id);
+        });
+
+        // 1. Custo por cidade (apenas atendentes de marketing)
         let custoQuery = client.from('dados_valores_cidade')
-            .select('cidade, valor')
+            .select('cidade, valor, id_atendente')
             .gte('data', sISO)
-            .lte('data', eISO);
+            .lte('data', eISO)
+            .in('id_atendente', allMarketingIds);
         // Filtro de organização se o campo existir
         if (organizationId) custoQuery = custoQuery.match({ organization_id: organizationId });
         
