@@ -36,6 +36,7 @@ export interface MarketingFilters {
 
 export interface MarketingCityData {
   cidade: string;
+  criado: number;
   enviado: number;
   liberado: number;
   rodandoInicio: number;

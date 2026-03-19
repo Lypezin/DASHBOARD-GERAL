@@ -90,7 +90,8 @@ export async function fetchMarketingTotalsData(
 export async function fetchMarketingCitiesData(
     filters: MarketingFilters, 
     organizationId: string | null,
-    client: SupabaseClient = supabase
+    client: SupabaseClient = supabase,
+    allCities: boolean = false
 ): Promise<MarketingCityData[]> {
     const defaultStart = null;
     const defaultEnd = null;
@@ -107,14 +108,19 @@ export async function fetchMarketingCitiesData(
         p_organization_id: organizationId,
     }, { validateParams: false, client });
 
-    const cidadesToProcess = filters.praca ? [filters.praca] : CIDADES;
-
-    if (!rpcError && rpcData && Array.isArray(rpcData)) {
+    const cidadesToProcess = allCities || !filters.praca ? CIDADES : [filters.praca];
+    
+    // Como o RPC ainda não tem o campo 'criado' e não faz o filtro de mês total para ele,
+    // vamos usar sempre a lógica manual para as cidades quando criados forem necessários
+    // ou se o RPC falhar.
+    
+    if (!rpcError && rpcData && Array.isArray(rpcData) && !allCities) {
         const rpcMap = new Map(rpcData.map(item => [item.cidade, item]));
         return cidadesToProcess.map(cidade => {
             const item = rpcMap.get(cidade);
             return { 
                 cidade, 
+                criado: 0, // RPC ainda não retorna individualmente
                 enviado: item?.enviado || 0, 
                 liberado: item?.liberado || 0, 
                 rodandoInicio: item?.rodando_inicio || 0,
@@ -142,6 +148,18 @@ export async function fetchMarketingCitiesData(
             .not('rodou_dia', 'is', null);
         if (filters.filtroRodouDia.dataInicial) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
 
+        // Para Criado, usamos o mês total do filtro (se houver algum filtro de data ativo)
+        let criadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
+            .match(organizationId ? { organization_id: organizationId } : {});
+        
+        const anyDate = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial || filters.filtroDataInicio.dataInicial;
+        if (anyDate) {
+            const d = new Date(anyDate + 'T12:00:00');
+            const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+            const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+            criadoQuery = criadoQuery.gte('Criado', firstDay).lte('Criado', lastDay);
+        }
+
         let abertoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .eq('status', 'Aberto')
             .match(organizationId ? { organization_id: organizationId } : {});
@@ -150,9 +168,10 @@ export async function fetchMarketingCitiesData(
             .eq('status', 'Voltou')
             .match(organizationId ? { organization_id: organizationId } : {});
 
-        const [e, l, r, a, v] = await Promise.all([enviadoQuery, liberadoQuery, rodandoQuery, abertoQuery, voltouQuery]);
+        const [e, l, r, a, v, c] = await Promise.all([enviadoQuery, liberadoQuery, rodandoQuery, abertoQuery, voltouQuery, criadoQuery]);
         results.push({ 
             cidade, 
+            criado: c.count || 0,
             enviado: e.count || 0, 
             liberado: l.count || 0, 
             rodandoInicio: r.count || 0,

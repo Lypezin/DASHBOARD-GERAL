@@ -187,8 +187,8 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                     <div className={`h-[1px] flex-1 ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
                 </div>
                 
-                <div className="grid grid-cols-4 gap-4 px-1">
-                    {citiesData.slice(0, 4).map((data, idx) => (
+                <div className="grid grid-cols-4 gap-3 px-1">
+                    {citiesData.map((data, idx) => (
                         <motion.div 
                             key={idx} 
                             whileHover={{ y: -4, scale: 1.02 }}
@@ -204,7 +204,11 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                                 {data.cidade.split(' ')[0]}
                                 <div className="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                             </h4>
-                            <div className="grid grid-cols-2 gap-y-3">
+                            <div className="grid grid-cols-2 gap-y-2 gap-x-3">
+                                <div className="col-span-2 mb-1 border-b border-blue-500/10 pb-1">
+                                    <span className="text-[9px] text-blue-500/70 font-bold uppercase tracking-widest block mb-0.5">Criado</span>
+                                    <span className={`text-lg font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{data.criado}</span>
+                                </div>
                                 <div>
                                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Enviado</span>
                                     <span className={`text-sm font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{data.enviado}</span>
@@ -220,6 +224,10 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                                 <div>
                                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Aberto</span>
                                     <span className="text-sm font-bold text-slate-500">{data.aberto}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Voltou</span>
+                                    <span className="text-sm font-bold text-slate-500">{data.voltou}</span>
                                 </div>
                             </div>
                         </motion.div>

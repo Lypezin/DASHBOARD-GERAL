@@ -70,7 +70,7 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     // Buscar dados base
     const [totals, citiesData, evolutionData, generalWeeklyData] = await Promise.all([
         fetchMarketingTotalsData(filters as any, orgId, supabase),
-        fetchMarketingCitiesData(filters as any, orgId, supabase),
+        fetchMarketingCitiesData(filters as any, orgId, supabase, true),
         fetchMarketingDailyEvolution(filters as any, orgId, supabase),
         fetchMarketingWeeklyComparison(orgId, null, dateInicial, dateFinal, supabase)
     ]);
