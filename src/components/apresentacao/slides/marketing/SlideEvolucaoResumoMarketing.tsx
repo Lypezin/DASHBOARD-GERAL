@@ -47,10 +47,10 @@ const customDataLabels = {
                 const value = dataset.data[index];
                 if (value > 0) {
                     ctx.fillStyle = dataset.borderColor;
-                    ctx.font = 'bold 10px Inter, sans-serif';
+                    ctx.font = 'bold 12px Inter, sans-serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'bottom';
-                    ctx.fillText(value, element.x, element.y - 8);
+                    ctx.fillText(value, element.x, element.y - 10);
                 }
             });
         });
@@ -79,21 +79,27 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                 label: 'Total de Driver (Liberado)',
                 data: evolutionData.map(d => d.liberado),
                 borderColor: '#10b981', // Emerald
-                backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                tension: 0.3,
-                pointRadius: 2,
-                borderWidth: 2,
-                fill: false,
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                pointRadius: 5,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: isDark ? '#020617' : '#fff',
+                pointBorderWidth: 2,
+                borderWidth: 4,
+                fill: true,
             },
             {
                 label: 'Total de Driver (Enviado)',
                 data: evolutionData.map(d => d.enviado),
-                borderColor: '#1E40AF', // Darker blue
-                backgroundColor: 'rgba(59, 130, 246, 0.05)',
-                tension: 0.3,
-                pointRadius: 2,
-                borderWidth: 2,
-                fill: false,
+                borderColor: '#3b82f6', // Bright Blue
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                pointRadius: 5,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: isDark ? '#020617' : '#fff',
+                pointBorderWidth: 2,
+                borderWidth: 4,
+                fill: true,
             },
         ],
     };
@@ -158,18 +164,18 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
             <div className={`flex justify-between items-end mb-6 border-b-2 pb-4 transition-colors duration-500 ${
                 isDark ? 'border-slate-800' : 'border-slate-200'
             }`}>
-                <div className="flex items-center gap-4">
-                    <div className="h-10 w-2 bg-blue-600 rounded-full" />
+                <div className="flex items-center gap-6">
+                    <div className="h-16 w-2.5 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)]" />
                     <div>
-                        <h2 className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                            {titulo}
+                        <h2 className={`text-6xl font-black tracking-tighter transition-all duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            {titulo.toUpperCase()}
                         </h2>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-1">Análise de Volume Diário</p>
+                        <p className="text-[12px] text-blue-500 font-bold uppercase tracking-[0.5em] mt-2">📊 Análise de Volume Diário</p>
                     </div>
                 </div>
-                <div className="flex flex-col items-end opacity-40">
-                    <span className={`text-[10px] font-bold uppercase tracking-[0.4em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Operational</span>
-                    <span className={`text-lg font-bold tracking-tighter ${isDark ? 'text-white' : 'text-slate-800'}`}>INSIGHTS</span>
+                <div className="flex flex-col items-end opacity-60">
+                    <span className={`text-[12px] font-bold uppercase tracking-[0.4em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>OPERATIONAL</span>
+                    <span className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>INSIGHTS</span>
                 </div>
             </div>
 
