@@ -518,17 +518,37 @@ export async function fetchMarketingCostsComparison(
 
     // Mês anterior (cheio)
     // Lógica de "Corte na Quarta-feira":
-    // O slide ATUAL mostra até o fim do filtro (ex: dia 18, quarta).
-    // O slide ANTERIOR (Passada) deve mostrar até a quarta-feira anterior (ex: dia 11).
+    // O usuário quer que o mês anterior (Passada) mostre até a quarta-feira correspondente à semana do filtro.
+    // Ex: Filtro 09-15/03 (Março). Quarta-feira daquela semana é dia 11. 
+    // Mês Passado (Fevereiro) deve mostrar do dia 01 até o dia 11.
+    const endRef = new Date(currentEnd + 'T12:00:00');
+    const getTargetWednesday = (d: Date) => {
+        const date = new Date(d);
+        const day = date.getDay(); // 0=Dom, 3=Qua, 6=Sab
+        let diff = 0;
+        if (day === 3) diff = 0; // Se já é quarta, mantém o dia 11
+        else if (day > 3) diff = day - 3;
+        else diff = day + 4;
+        
+        const wed = new Date(date);
+        wed.setDate(date.getDate() - diff);
+        return wed;
+    };
+
+    const targetWedActual = getTargetWednesday(endRef);
+    const targetDay = targetWedActual.getDate();
+
     const prevMonthStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
     const prevMonthEnd = new Date(start.getFullYear(), start.getMonth(), 0); // Last day of previous month
 
     const currentStartISO = currentMonthStart.toISOString().split('T')[0];
     const currentEndISO = currentMonthEnd.toISOString().split('T')[0];
     
-    // Slide PASSADA (Mês Anterior): Full Month comparison as requested for 7.0k total
+    // Slide PASSADA (Mês Anterior): Usa o corte de quarta-feira (ex: dia 01 ao dia 11)
     const prevStartISO = prevMonthStart.toISOString().split('T')[0];
-    const prevEndISO = prevMonthEnd.toISOString().split('T')[0];
+    const prevMonthEndWithCut = new Date(prevMonthStart);
+    prevMonthEndWithCut.setDate(targetDay);
+    const prevEndISO = prevMonthEndWithCut.toISOString().split('T')[0];
 
     const fetchRange = async (sISO: string, eISO: string) => {
         // Agregação por cidade
@@ -541,9 +561,7 @@ export async function fetchMarketingCostsComparison(
             'Guarulhos 2.0': 'GUARULHOS',
             'Manaus 2.0': 'MANAUS',
             'Sorocaba 2.0': 'SOROCABA',
-            'Taboão da Serra e Embu das Artes 2.0': 'TABOAO DA SERRA',
-            'Santo André': 'SANTO ANDRÉ',
-            'São Bernardo': 'SÃO BERNARDO'
+            'ABC 2.0': 'ABC'
         };
 
         const citiesToQuery = CIDADES;
@@ -578,8 +596,7 @@ export async function fetchMarketingCostsComparison(
             'Manaus 2.0',
             'ABC 2.0',
             'Sorocaba 2.0',
-            'Salvador 2.0',
-            'Taboão da Serra e Embu das Artes 2.0'
+            'Salvador 2.0'
         ];
 
         await Promise.all(slideCities.map(async (displayName) => {
