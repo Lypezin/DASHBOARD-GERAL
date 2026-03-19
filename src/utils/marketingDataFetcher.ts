@@ -74,7 +74,9 @@ export async function fetchMarketingTotalsData(
         .or('Criado.not.is.null,created_at.not.is.null,data_envio.not.is.null');
 
     let enviadoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
-        .not('status', 'in', EXCLUDED_ENVIADOS)
+        .not('status', 'eq', 'Confirmar')
+        .not('status', 'eq', 'Cancelado')
+        .not('status', 'eq', 'Abrindo MEI')
         .not('data_envio', 'is', null);
     if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
     const { count: enviadoCount } = await enviadoQuery;
@@ -165,7 +167,9 @@ export async function fetchMarketingCitiesData(
         // Todas as queries abaixo agora usam o monthFilter (mês total) se disponível
         let enviadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {})
-            .not('status', 'in', EXCLUDED_ENVIADOS)
+            .not('status', 'eq', 'Confirmar')
+            .not('status', 'eq', 'Cancelado')
+            .not('status', 'eq', 'Abrindo MEI')
             .not('data_envio', 'is', null);
         if (monthFilter) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', monthFilter);
 
