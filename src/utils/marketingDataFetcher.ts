@@ -63,7 +63,8 @@ export async function fetchMarketingTotalsData(
     const { count: criadoCount } = await applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
         .or('Criado.not.is.null,created_at.not.is.null,data_envio.not.is.null');
 
-    let enviadoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }));
+    let enviadoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
+        .not('status', 'in', '("Confirmar", "Cancelado", "Abrindo MEI")');
     if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
     const { count: enviadoCount } = await enviadoQuery;
 
@@ -127,7 +128,8 @@ export async function fetchMarketingCitiesData(
     const results: MarketingCityData[] = [];
     for (const cidade of cidadesToProcess) {
         let enviadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
-            .match(organizationId ? { organization_id: organizationId } : {});
+            .match(organizationId ? { organization_id: organizationId } : {})
+            .not('status', 'in', '("Confirmar", "Cancelado", "Abrindo MEI")');
         if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
 
         let liberadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
@@ -167,7 +169,7 @@ export async function fetchMarketingDailyEvolution(
     // Busca evolução diária baseada nos filtros ativos
     let query = client
         .from('dados_marketing')
-        .select('data_liberacao, data_envio, rodou_dia, Criado, created_at')
+        .select('data_liberacao, data_envio, rodou_dia, Criado, created_at, status')
         .match(organizationId ? { organization_id: organizationId } : {});
 
     if (filters.praca) {
@@ -253,7 +255,9 @@ export async function fetchMarketingDailyEvolution(
         };
 
         processDate(item.data_liberacao, 'liberado');
-        processDate(item.data_envio, 'enviado');
+        if (!['Confirmar', 'Cancelado', 'Abrindo MEI'].includes(item.status)) {
+            processDate(item.data_envio, 'enviado');
+        }
         processDate(item.rodou_dia, 'rodando');
         processDate(item.Criado || item.created_at || item.data_envio, 'criado');
     });
@@ -354,7 +358,7 @@ export async function fetchMarketingWeeklyComparison(
     const queryStartISO = finalStart.toISOString().split('T')[0];
     const queryEndISO = end.toISOString().split('T')[0];
 
-    let query = client.from('dados_marketing').select('*');
+    let query = client.from('dados_marketing').select('*, status');
 
     // Filtra qualquer métrica dentro do intervalo escolhido
     // (inclui o campo 'Criado' para gerar o gráfico corretamente quando ele existe)
@@ -386,7 +390,9 @@ export async function fetchMarketingWeeklyComparison(
         // Para 'criado', usamos o novo campo 'Criado' (data de criação),
         // caindo em created_at e depois em data_envio como fallback.
         processMetric(item.Criado || item.created_at || item.data_envio, 'criado');
-        processMetric(item.data_envio, 'enviado');
+        if (!['Confirmar', 'Cancelado', 'Abrindo MEI'].includes(item.status)) {
+            processMetric(item.data_envio, 'enviado');
+        }
         processMetric(item.data_liberacao, 'liberado');
         if (item.rodando === 'Sim') processMetric(item.rodou_dia, 'rodando');
     });
