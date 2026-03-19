@@ -73,10 +73,10 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        className={`rounded-2xl p-6 border flex flex-col transition-all duration-300 ${
+                        className={`rounded-2xl p-8 border flex flex-col transition-all duration-300 ${
                             isDark 
-                            ? 'bg-slate-900/40 border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:bg-slate-900/60' 
-                            : 'bg-white border-slate-100 shadow-sm hover:shadow-xl hover:bg-slate-50'
+                            ? 'bg-slate-900/40 border-slate-800 shadow-[0_12px_40px_rgb(0,0,0,0.3)] hover:bg-slate-900/60' 
+                            : 'bg-white border-slate-100 shadow-md hover:shadow-2xl hover:bg-slate-50'
                         }`}
                     >
                         <div className="flex items-center gap-3 mb-6">
@@ -88,22 +88,22 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
                             </h3>
                         </div>
                         
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Criados</span>
-                                <span className={`text-xl font-bold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{week.criado}</span>
+                        <div className="space-y-6 flex-1 flex flex-col justify-center">
+                            <div className="flex justify-between items-center text-slate-400">
+                                <span className="text-xs font-bold uppercase tracking-widest">Criados</span>
+                                <span className={`text-2xl font-black ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{week.criado}</span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enviados</span>
-                                <span className="text-xl font-bold text-blue-600">{week.enviado}</span>
+                            <div className="flex justify-between items-center text-blue-600">
+                                <span className="text-xs font-bold uppercase tracking-widest">Enviados</span>
+                                <span className="text-2xl font-black">{week.enviado}</span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Liberados</span>
-                                <span className="text-xl font-bold text-emerald-600">{week.liberado}</span>
+                            <div className="flex justify-between items-center text-emerald-600">
+                                <span className="text-xs font-bold uppercase tracking-widest">Liberados</span>
+                                <span className="text-2xl font-black">{week.liberado}</span>
                             </div>
-                            <div className={`flex justify-between items-center pt-3 border-t ${isDark ? 'border-slate-800' : 'border-slate-50'}`}>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rodando</span>
-                                <span className="text-xl font-bold text-indigo-600">{week.rodando}</span>
+                            <div className={`flex justify-between items-center pt-6 border-t ${isDark ? 'border-slate-800' : 'border-slate-100'} text-indigo-600`}>
+                                <span className="text-xs font-bold uppercase tracking-widest">Rodando</span>
+                                <span className="text-2xl font-black">{week.rodando}</span>
                             </div>
                             
                             {week.conversas !== undefined && (
