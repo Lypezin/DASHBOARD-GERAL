@@ -520,16 +520,6 @@ export async function fetchMarketingCostsComparison(
     // Lógica de "Corte na Quarta-feira":
     // O slide ATUAL mostra até o fim do filtro (ex: dia 18, quarta).
     // O slide ANTERIOR (Passada) deve mostrar até a quarta-feira anterior (ex: dia 11).
-    const endRef = new Date(currentEnd + 'T12:00:00');
-    
-    // Função para encontrar a quarta-feira daquela semana (ou da anterior se for Wednesday)
-    const getTargetWednesday = (d: Date) => {
-        const date = new Date(d);
-        const day = date.getDay(); // 0=Dom, 3=Qua
-        let diff = 0;
-        if (day === 3) diff = 7; // Se já é quarta, o usuário quer a anterior
-        else if (day > 3) diff = day - 3;
-        else diff = day + 4;
     const prevMonthStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
     const prevMonthEnd = new Date(start.getFullYear(), start.getMonth(), 0); // Last day of previous month
 
