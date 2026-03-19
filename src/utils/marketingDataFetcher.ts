@@ -186,7 +186,7 @@ export async function fetchMarketingDailyEvolution(
     let maxDateForFill: string | null = null;
 
     if (hasFilters) {
-        // Expand dates to full months
+        // Expand dates to full months for logic, but keep original for filter if needed
         let minDate =
             filters.filtroEnviados.dataInicial ||
             filters.filtroLiberacao.dataInicial ||
@@ -198,39 +198,34 @@ export async function fetchMarketingDailyEvolution(
             filters.filtroRodouDia.dataFinal ||
             filters.filtroDataInicio.dataFinal;
 
-        if (minDate) {
-            const d = new Date(minDate + 'T12:00:00');
-            d.setDate(1); // First day of the month
-            minDate = d.toISOString().split('T')[0];
-        }
+        const dStart = new Date((minDate || new Date().toISOString()) + 'T12:00:00');
+        dStart.setDate(1); // First day of the month
+        const minDateMonthStart = dStart.toISOString().split('T')[0];
 
-        if (maxDate) {
-            const d = new Date(maxDate + 'T12:00:00');
-            d.setMonth(d.getMonth() + 1);
-            d.setDate(0); // Last day of the month
-            maxDate = d.toISOString().split('T')[0];
-        }
+        const dEnd = new Date((maxDate || new Date().toISOString()) + 'T12:00:00');
+        dEnd.setMonth(dEnd.getMonth() + 1);
+        dEnd.setDate(0); // Last day of the month
+        const maxDateMonthEnd = dEnd.toISOString().split('T')[0];
 
+        // Ensure we only get data within the expanded month range
         const conds: string[] = [];
-        if (minDate) {
-            conds.push(`data_envio.gte.${minDate}`);
-            conds.push(`data_liberacao.gte.${minDate}`);
-            conds.push(`rodou_dia.gte.${minDate}`);
-            conds.push(`Criado.gte.${minDate}`);
-        }
-        if (maxDate) {
-            conds.push(`data_envio.lte.${maxDate}`);
-            conds.push(`data_liberacao.lte.${maxDate}`);
-            conds.push(`rodou_dia.lte.${maxDate}`);
-            conds.push(`Criado.lte.${maxDate}`);
-        }
+        const fields = ['data_envio', 'data_liberacao', 'rodou_dia', 'Criado'];
+        
+        fields.forEach(field => {
+            const parts = [];
+            if (minDateMonthStart) parts.push(`${field}.gte.${minDateMonthStart}`);
+            if (maxDateMonthEnd) parts.push(`${field}.lte.${maxDateMonthEnd}`);
+            if (parts.length > 0) {
+                conds.push(parts.length > 1 ? `and(${parts.join(',')})` : parts[0]);
+            }
+        });
 
         if (conds.length > 0) {
             query = query.or(conds.join(','));
         }
 
-        minDateForFill = minDate;
-        maxDateForFill = maxDate;
+        minDateForFill = minDateMonthStart;
+        maxDateForFill = maxDateMonthEnd;
     }
 
     const { data, error } = await query;
@@ -257,8 +252,20 @@ export async function fetchMarketingDailyEvolution(
     });
 
     if (minDateForFill && maxDateForFill) {
+        // Encontra o último dia que realmente tem dados para evitar espaço vazio no final
+        const lastDayWithData = data.reduce((max, item) => {
+            const itemDates = [item.data_liberacao, item.data_envio, item.rodou_dia, item.Criado]
+                .filter(Boolean)
+                .map(d => d!.split('T')[0]);
+            
+            if (itemDates.length === 0) return max;
+            
+            const maxItemDate = itemDates.sort().reverse()[0];
+            return maxItemDate > max ? maxItemDate : max;
+        }, minDateForFill);
+
         let cursor = new Date(minDateForFill + 'T12:00:00');
-        const endCursor = new Date(maxDateForFill + 'T12:00:00');
+        const endCursor = new Date(lastDayWithData + 'T12:00:00');
 
         while (cursor <= endCursor) {
             const dayStr = cursor.toISOString().split('T')[0];
