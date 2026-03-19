@@ -151,17 +151,17 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
     };
 
     return (
-        <div className={`w-full h-full flex flex-col p-14 font-sans overflow-hidden transition-colors duration-500 ${
+        <div className={`w-full h-full flex flex-col p-8 font-sans overflow-hidden transition-colors duration-500 ${
             isDark ? 'bg-[#020617]' : 'bg-[#f8fafc]'
         }`}>
             {/* Header Sofisticado */}
-            <div className={`flex justify-between items-end mb-10 border-b-2 pb-6 transition-colors duration-500 ${
+            <div className={`flex justify-between items-end mb-6 border-b-2 pb-4 transition-colors duration-500 ${
                 isDark ? 'border-slate-800' : 'border-slate-200'
             }`}>
-                <div className="flex items-center gap-6">
-                    <div className="h-12 w-2 bg-blue-600 rounded-full" />
+                <div className="flex items-center gap-4">
+                    <div className="h-10 w-2 bg-blue-600 rounded-full" />
                     <div>
-                        <h2 className={`text-4xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        <h2 className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
                             {titulo}
                         </h2>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-1">Análise de Volume Diário</p>
@@ -169,12 +169,12 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                 </div>
                 <div className="flex flex-col items-end opacity-40">
                     <span className={`text-[10px] font-bold uppercase tracking-[0.4em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Operational</span>
-                    <span className={`text-xl font-bold tracking-tighter ${isDark ? 'text-white' : 'text-slate-800'}`}>INSIGHTS</span>
+                    <span className={`text-lg font-bold tracking-tighter ${isDark ? 'text-white' : 'text-slate-800'}`}>INSIGHTS</span>
                 </div>
             </div>
 
             {/* Área do Gráfico */}
-            <div className={`flex-1 min-h-[300px] mb-10 rounded-3xl p-8 border transition-all duration-500 ${
+            <div className={`flex-[1.5] min-h-[250px] mb-6 rounded-3xl p-6 border transition-all duration-500 ${
                 isDark ? 'bg-slate-900/20 border-slate-800' : 'bg-white border-slate-100 shadow-sm'
             }`}>
                 <Line data={chartData} options={chartOptions} plugins={[customDataLabels]} />
@@ -182,8 +182,8 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
 
             {/* Seção Resumo por Unidade */}
             <div className="mt-auto">
-                <div className="flex items-center gap-4 mb-6">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Distribuição por Unidade</h3>
+                <div className="flex items-center gap-4 mb-4">
+                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Distribuição por Unidade</h3>
                     <div className={`h-[1px] flex-1 ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
                 </div>
                 
@@ -191,43 +191,43 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                     {citiesData.map((data, idx) => (
                         <motion.div 
                             key={idx} 
-                            whileHover={{ y: -4, scale: 1.02 }}
-                            className={`rounded-2xl p-5 border transition-all duration-300 ${
+                            whileHover={{ y: -2, scale: 1.01 }}
+                            className={`rounded-xl p-3 border transition-all duration-300 ${
                                 isDark 
-                                ? 'bg-slate-900/40 border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.2)]' 
-                                : 'bg-white border-slate-100 shadow-sm hover:shadow-xl'
+                                ? 'bg-slate-900/40 border-slate-800 shadow-[0_4px_20px_rgb(0,0,0,0.2)]' 
+                                : 'bg-white border-slate-100 shadow-sm hover:shadow-md'
                             }`}
                         >
-                            <h4 className={`font-bold text-base mb-4 flex justify-between items-center border-b pb-2 ${
+                            <h4 className={`font-bold text-[11px] mb-2 flex justify-between items-center border-b pb-1 truncate ${
                                 isDark ? 'text-white border-slate-800' : 'text-slate-800 border-slate-50'
-                            }`}>
-                                {data.cidade.split(' ')[0]}
-                                <div className="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                            }`} title={data.cidade}>
+                                <span className="truncate pr-2">{data.cidade}</span>
+                                <div className="h-1 w-1 shrink-0 rounded-full bg-blue-500" />
                             </h4>
-                            <div className="grid grid-cols-2 gap-y-2 gap-x-3">
-                                <div className="col-span-2 mb-1 border-b border-blue-500/10 pb-1">
-                                    <span className="text-[9px] text-blue-500/70 font-bold uppercase tracking-widest block mb-0.5">Criado</span>
-                                    <span className={`text-lg font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{data.criado}</span>
+                            <div className="grid grid-cols-2 gap-y-1 gap-x-2">
+                                <div className="col-span-2 mb-0.5 border-b border-blue-500/5 pb-0.5 flex justify-between items-baseline">
+                                    <span className="text-[8px] text-blue-500/70 font-bold uppercase tracking-widest">Criado</span>
+                                    <span className={`text-sm font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{data.criado}</span>
                                 </div>
-                                <div>
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Enviado</span>
-                                    <span className={`text-sm font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{data.enviado}</span>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Env</span>
+                                    <span className={`text-[10px] font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{data.enviado}</span>
                                 </div>
-                                <div>
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Liberado</span>
-                                    <span className="text-sm font-bold text-blue-600">{data.liberado}</span>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Lib</span>
+                                    <span className="text-[10px] font-bold text-blue-600">{data.liberado}</span>
                                 </div>
-                                <div>
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Rodando</span>
-                                    <span className="text-sm font-bold text-emerald-600">{data.rodandoInicio}</span>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Rod</span>
+                                    <span className="text-[10px] font-bold text-emerald-600">{data.rodandoInicio}</span>
                                 </div>
-                                <div>
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Aberto</span>
-                                    <span className="text-sm font-bold text-slate-500">{data.aberto}</span>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Ab</span>
+                                    <span className="text-[10px] font-bold text-slate-500">{data.aberto}</span>
                                 </div>
-                                <div>
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block mb-0.5">Voltou</span>
-                                    <span className="text-sm font-bold text-slate-500">{data.voltou}</span>
+                                <div className="flex justify-between items-center col-span-2 mt-0.5 pt-0.5 border-t border-slate-500/5">
+                                    <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Voltou</span>
+                                    <span className="text-[10px] font-bold text-slate-500">{data.voltou}</span>
                                 </div>
                             </div>
                         </motion.div>
