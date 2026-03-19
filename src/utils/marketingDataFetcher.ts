@@ -557,18 +557,33 @@ export async function fetchMarketingCostsComparison(
 
         // Passo 1: Buscar TODOS os Custos de Marketing da organização no período
         let globalCustoQuery = client.from('dados_valores_cidade')
-            .select('valor, cidade, id_atendente')
+            .select('valor, cidade, id_atendente, organization_id')
             .gte('data', sISO)
             .lte('data', eISO)
             .in('id_atendente', allMarketingIds);
 
-        if (organizationId) globalCustoQuery = globalCustoQuery.eq('organization_id', organizationId);
+        if (organizationId) {
+            globalCustoQuery = globalCustoQuery.eq('organization_id', organizationId);
+        } else {
+            console.warn('[fetchMarketingCostsComparison] organizationId missing, results may be system-wide');
+        }
         
         const { data: allCostRecords } = await globalCustoQuery;
 
         // Passo 2: Buscar Métricas por cidade em paralelo
-        await Promise.all(CIDADES.map(async (displayName) => {
-            // 2.1 Agrupar custos para esta cidade (usando lógica robusta do findCidadeValue)
+        // Lista de cidades para o slide (agrupando SA/SB em ABC conforme pedido)
+        const slideCities = [
+            'São Paulo 2.0',
+            'Guarulhos 2.0',
+            'Manaus 2.0',
+            'ABC 2.0',
+            'Sorocaba 2.0',
+            'Salvador 2.0',
+            'Taboão da Serra e Embu das Artes 2.0'
+        ];
+
+        await Promise.all(slideCities.map(async (displayName) => {
+            // 2.1 Agrupar custos para esta cidade (usando lógica robusta)
             let cityValor = 0;
             const normalizedDisplay = displayName.toUpperCase().trim();
             const dbMapped = REGIAO_TO_CIDADE_VALORES[displayName];
@@ -578,13 +593,8 @@ export async function fetchMarketingCostsComparison(
                 let match = false;
 
                 // Lógica de match
-                const nameStr = displayName as string;
-                if (nameStr === 'Santo André') {
-                    // Atribui o custo total do ABC apenas para Santo André para evitar duplicar no TOTAL
-                    if (rowCidade === 'ABC' || rowCidade === 'ABC 2.0') match = true;
-                } else if (nameStr === 'São Bernardo' || nameStr === 'ABC 2.0') {
-                    // São Bernardo e ABC 2.0 ficam com 0 para não somar em duplicidade no rodapé
-                    match = false; 
+                if (displayName === 'ABC 2.0') {
+                    if (rowCidade === 'ABC' || rowCidade === 'ABC 2.0' || rowCidade === 'SANTO ANDRÉ' || rowCidade === 'SÃO BERNARDO' || rowCidade === 'SANTO ANDRE' || rowCidade === 'SAO BERNARDO') match = true;
                 } else if (normalizedDisplay.includes('TABOÃO') || normalizedDisplay.includes('TABOAO')) {
                     if (rowCidade.includes('TABOÃO') || rowCidade.includes('TABOAO')) match = true;
                 } else {
@@ -598,33 +608,46 @@ export async function fetchMarketingCostsComparison(
                 if (match) cityValor += Number(row.valor) || 0;
             });
             
-            // 2.2 Métricas via Query
+            // 2.2 Métricas via Query (Agregando métricas para ABC)
             const getMetricsQuery = () => {
                 let q = client.from('dados_marketing').select('*', { count: 'exact', head: true });
                 if (organizationId) q = q.eq('organization_id', organizationId);
                 return q;
             };
             
-            const [l, r, a] = await Promise.all([
-                buildCityQuery(getMetricsQuery(), displayName)
-                    .eq('status', 'Liberado')
-                    .gte('data_envio', sISO) // Para o Atual será o mês cheio
-                    .lte('data_envio', eISO),
-                buildCityQuery(getMetricsQuery(), displayName)
-                    .not('rodou_dia', 'is', null)
-                    .gte('rodou_dia', sISO)
-                    .lte('rodou_dia', eISO),
-                buildCityQuery(getMetricsQuery(), displayName)
-                    .in('status', ABERTO_STATUSES)
-                    .gte('data_envio', sISO)
-                    .lte('data_envio', eISO)
-            ]);
+            const fetchCityMetric = async (city: string) => {
+                const [l, r, a] = await Promise.all([
+                    buildCityQuery(getMetricsQuery(), city)
+                        .eq('status', 'Liberado')
+                        .gte('data_envio', sISO)
+                        .lte('data_envio', eISO),
+                    buildCityQuery(getMetricsQuery(), city)
+                        .not('rodou_dia', 'is', null)
+                        .gte('rodou_dia', sISO)
+                        .lte('rodou_dia', eISO),
+                    buildCityQuery(getMetricsQuery(), city)
+                        .in('status', ABERTO_STATUSES)
+                        .gte('data_envio', sISO)
+                        .lte('data_envio', eISO)
+                ]);
+                return { l: l.count || 0, r: r.count || 0, a: a.count || 0 };
+            };
+
+            let metrics = { l: 0, r: 0, a: 0 };
+            if (displayName === 'ABC 2.0') {
+                // Soma métricas de Santo André e São Bernardo
+                const m1 = await fetchCityMetric('Santo André');
+                const m2 = await fetchCityMetric('São Bernardo');
+                metrics = { l: m1.l + m2.l, r: m1.r + m2.r, a: m1.a + m2.a };
+            } else {
+                metrics = await fetchCityMetric(displayName);
+            }
 
             cityMap.set(displayName, {
                 valorUsado: cityValor,
-                liberado: l.count || 0,
-                rodando: r.count || 0,
-                aberto: a.count || 0
+                liberado: metrics.l,
+                rodando: metrics.r,
+                aberto: metrics.a
             });
         }));
 
@@ -636,6 +659,7 @@ export async function fetchMarketingCostsComparison(
             if (k === 'Salvador 2.0') simplifiedName = 'Salvador';
             if (k === 'Guarulhos 2.0') simplifiedName = 'Guarulhos';
             if (k === 'Manaus 2.0') simplifiedName = 'Manaus';
+            if (k === 'ABC 2.0') simplifiedName = 'ABC';
             if (k === 'Sorocaba 2.0') simplifiedName = 'Sorocaba';
             if (k === 'Taboão da Serra e Embu das Artes 2.0') simplifiedName = 'Taboão/Embu';
 
@@ -650,7 +674,7 @@ export async function fetchMarketingCostsComparison(
         });
         
         // Ordena conforme preferência comum
-        const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'Santo André', 'São Bernardo', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
+        const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
         return result.sort((a, b) => {
             const idxA = priority.indexOf(a.regiao);
             const idxB = priority.indexOf(b.regiao);
