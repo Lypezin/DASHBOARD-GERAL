@@ -512,56 +512,82 @@ export async function fetchMarketingCostsComparison(
 
     const start = new Date(currentStart + 'T12:00:00');
 
-    // Mês atual (cheio)
+    // Mês atual (cheio para o RPC, que filtrará pelos dados existentes)
     const currentMonthStart = new Date(start.getFullYear(), start.getMonth(), 1);
     const currentMonthEnd = new Date(start.getFullYear(), start.getMonth() + 1, 0);
 
     // Mês anterior (cheio)
-    const prevMonthStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
-    const prevMonthEnd = new Date(start.getFullYear(), start.getMonth(), 0);
+    // Lógica de "Corte na Quarta-feira":
+    // O slide ATUAL mostra até o fim do filtro (ex: dia 18, quarta).
+    // O slide ANTERIOR (Passada) deve mostrar até a quarta-feira anterior (ex: dia 11).
+    const endRef = new Date(currentEnd + 'T12:00:00');
+    
+    // Encontrar a última quarta-feira (3) estritamente antes do fim do filtro (ou igual se o filtro for além da semana)
+    // Mas o usuário quer comparar com a "quarta-feira passada" em relação aos dados atuais.
+    const getLastWednesday = (d: Date) => {
+        const date = new Date(d);
+        const day = date.getDay(); // 0=Dom, 1=Seg, 2=Ter, 3=Qua, 4=Qui, 5=Sex, 6=Sab
+        // Se for quarta (3), queremos a quarta anterior (7 dias atrás).
+        // Se for qui/sex/sab (4,5,6), queremos a quarta dessa mesma semana (-1, -2, -3 dias).
+        // Se for dom/seg/ter (0,1,2), queremos a quarta da semana passada (-4, -5, -6 dias).
+        let diff = 0;
+        if (day === 3) diff = 7;
+        else if (day > 3) diff = day - 3;
+        else diff = day + 4;
+        
+        date.setDate(date.getDate() - diff);
+        return date;
+    };
 
+    const prevWed = getLastWednesday(endRef);
+
+    // Slide ATUAL: Do início do mês atual até o fim do filtro (ex: 1 a 18 de Março)
     const currentStartISO = currentMonthStart.toISOString().split('T')[0];
-    const currentEndISO = currentMonthEnd.toISOString().split('T')[0];
+    const currentEndISO = currentEnd; 
+    
+    // Slide PASSADA: Do início do mês anterior até o dia correspondente à quarta passada (ex: 1 a 11 de Fevereiro)
+    const prevMonthStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
     const prevStartISO = prevMonthStart.toISOString().split('T')[0];
+    
+    // Para o dia final do slide anterior, pegamos o dia do mês da quarta-feira calculada
+    const prevMonthEnd = new Date(prevMonthStart);
+    prevMonthEnd.setDate(prevWed.getDate());
     const prevEndISO = prevMonthEnd.toISOString().split('T')[0];
 
     const fetchRange = async (sISO: string, eISO: string) => {
-        // IDs dos atendentes de marketing para filtrar os custos corretamente
-        const allMarketingIds: string[] = [];
-        Object.values(ATENDENTE_TO_ID).forEach(id => {
-            if (Array.isArray(id)) allMarketingIds.push(...id);
-            else allMarketingIds.push(id);
-        });
-
-        // 1. Custo por cidade (apenas atendentes de marketing)
-        let custoQuery = client.from('dados_valores_cidade')
-            .select('cidade, valor, id_atendente')
-            .gte('data', sISO)
-            .lte('data', eISO)
-            .in('id_atendente', allMarketingIds);
-        // Filtro de organização se o campo existir
-        if (organizationId) custoQuery = custoQuery.match({ organization_id: organizationId });
-        
-        const { data: custoData } = await custoQuery;
-
-        // 2. Rodando por cidade (usando rodou_dia para consistência com semanal)
-        let rodandoQuery = client.from('dados_marketing')
-            .select('regiao_atuacao, rodou_dia')
-            .gte('rodou_dia', sISO)
-            .lte('rodou_dia', eISO);
-        if (organizationId) rodandoQuery = rodandoQuery.eq('organization_id', organizationId);
-        const { data: rodandoData } = await rodandoQuery;
-
-        // 3. Enviados, Aberto e Liberados por cidade (usando data_envio)
-        let mktQuery = client.from('dados_marketing')
-            .select('regiao_atuacao, status, data_envio')
-            .gte('data_envio', sISO)
-            .lte('data_envio', eISO);
-        if (organizationId) mktQuery = mktQuery.eq('organization_id', organizationId);
-        const { data: mktData } = await mktQuery;
-
         // Agregação por cidade
         const cityMap = new Map<string, { valorUsado: number; rodando: number; liberado: number; aberto: number }>();
+
+        // Mapeamento inverso para buscar no RPC
+        const DISPLAY_CITY_TO_DB_CITY: Record<string, string> = {
+            'São Paulo': 'SAO PAULO',
+            'Salvador': 'SALVADOR',
+            'Guarulhos': 'GUARULHOS',
+            'Manaus': 'MANAUS',
+            'Sorocaba': 'SOROCABA',
+            'Taboão/Embu': 'TABOAO DA SERRA',
+            'ABC': 'ABC'
+        };
+
+        const citiesToQuery = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
+
+        // Passo 1: Buscar Custos (valor_mkt) via RPC para bater com o Dash
+        await Promise.all(citiesToQuery.map(async (displayName) => {
+            const dbName = DISPLAY_CITY_TO_DB_CITY[displayName] || displayName;
+            const { data: rpcData } = await safeRpc<any[]>('get_marketing_comparison_weekly', {
+                data_inicial: sISO,
+                data_final: eISO,
+                p_organization_id: organizationId,
+                p_praca: dbName
+            }, { client, validateParams: false });
+
+            // Soma o valor_mkt de todas as semanas retornadas (geralmente só uma se for filtro de 7 dias)
+            const cityValor = rpcData?.reduce((acc, row) => acc + (Number(row.valor_mkt) || 0), 0) || 0;
+            
+            const cur = cityMap.get(displayName) || { valorUsado: 0, rodando: 0, liberado: 0, aberto: 0 };
+            cur.valorUsado = cityValor;
+            cityMap.set(displayName, cur);
+        }));
 
         const getFriendlyName = (name: string) => {
             const upper = name.toUpperCase();
@@ -575,12 +601,13 @@ export async function fetchMarketingCostsComparison(
             return name;
         };
 
-        custoData?.forEach(c => {
-            const name = getFriendlyName(c.cidade);
-            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, liberado: 0, aberto: 0 };
-            cur.valorUsado += c.valor || 0;
-            cityMap.set(name, cur);
-        });
+        // Passo 2: Rodando por cidade (usando rodou_dia)
+        let rodandoQuery = client.from('dados_marketing')
+            .select('regiao_atuacao, rodou_dia')
+            .gte('rodou_dia', sISO)
+            .lte('rodou_dia', eISO);
+        if (organizationId) rodandoQuery = rodandoQuery.eq('organization_id', organizationId);
+        const { data: rodandoData } = await rodandoQuery;
 
         rodandoData?.forEach(r => {
             const name = getFriendlyName(r.regiao_atuacao || 'Outros');
@@ -588,6 +615,14 @@ export async function fetchMarketingCostsComparison(
             cur.rodando++;
             cityMap.set(name, cur);
         });
+
+        // Passo 3: Enviados, Aberto e Liberados por cidade
+        let mktQuery = client.from('dados_marketing')
+            .select('regiao_atuacao, status, data_envio')
+            .gte('data_envio', sISO)
+            .lte('data_envio', eISO);
+        if (organizationId) mktQuery = mktQuery.eq('organization_id', organizationId);
+        const { data: mktData } = await mktQuery;
 
         mktData?.forEach(m => {
             const name = getFriendlyName(m.regiao_atuacao || 'Outros');
