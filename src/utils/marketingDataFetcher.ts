@@ -176,8 +176,8 @@ export async function fetchMarketingCitiesData(
         let liberadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {})
             .eq('status', 'Liberado')
-            .not('data_liberacao', 'is', null);
-        if (monthFilter) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', monthFilter);
+            .not('data_envio', 'is', null);
+        if (monthFilter) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_envio', monthFilter);
 
         let rodandoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {})
