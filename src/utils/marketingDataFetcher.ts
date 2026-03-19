@@ -573,9 +573,11 @@ export async function fetchMarketingCostsComparison(
 
         const citiesToQuery = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
 
-        // Passo 1: Buscar Custos (valor_mkt) via RPC para bater com o Dash
+        // Passo 1: Buscar Custos (valor_mkt) e Métricas via RPC/Query para bater com o Dash
         await Promise.all(citiesToQuery.map(async (displayName) => {
             const dbName = DISPLAY_CITY_TO_DB_CITY[displayName] || displayName;
+            
+            // 1.1 Custo via RPC
             const { data: rpcData } = await safeRpc<any[]>('get_marketing_comparison_weekly', {
                 data_inicial: sISO,
                 data_final: eISO,
@@ -583,56 +585,37 @@ export async function fetchMarketingCostsComparison(
                 p_praca: dbName
             }, { client, validateParams: false });
 
-            // Soma o valor_mkt de todas as semanas retornadas (geralmente só uma se for filtro de 7 dias)
             const cityValor = rpcData?.reduce((acc, row) => acc + (Number(row.valor_mkt) || 0), 0) || 0;
             
+            // 1.2 Métricas via Query (para bater com a Distribuição por Unidade que usa buildCityQuery)
+            const getMetricsQuery = () => {
+                let q = client.from('dados_marketing').select('*', { count: 'exact', head: true });
+                if (organizationId) q = q.eq('organization_id', organizationId);
+                return q;
+            };
+            
+            const [l, r, a] = await Promise.all([
+                buildCityQuery(getMetricsQuery(), displayName)
+                    .eq('status', 'Liberado')
+                    .gte('data_envio', sISO)
+                    .lte('data_envio', eISO),
+                buildCityQuery(getMetricsQuery(), displayName)
+                    .not('rodou_dia', 'is', null)
+                    .gte('rodou_dia', sISO)
+                    .lte('rodou_dia', eISO),
+                buildCityQuery(getMetricsQuery(), displayName)
+                    .in('status', ABERTO_STATUSES)
+                    .gte('data_envio', sISO)
+                    .lte('data_envio', eISO)
+            ]);
+
             const cur = cityMap.get(displayName) || { valorUsado: 0, rodando: 0, liberado: 0, aberto: 0 };
             cur.valorUsado = cityValor;
+            cur.liberado = l.count || 0;
+            cur.rodando = r.count || 0;
+            cur.aberto = a.count || 0;
             cityMap.set(displayName, cur);
         }));
-
-        const getFriendlyName = (name: string) => {
-            const upper = name.toUpperCase();
-            if (upper.includes('SAO PAULO') || upper.includes('SÃO PAULO')) return 'São Paulo';
-            if (upper.includes('GUARULHOS')) return 'Guarulhos';
-            if (upper.includes('MANAUS')) return 'Manaus';
-            if (upper.includes('ABC')) return 'ABC';
-            if (upper.includes('SOROCABA')) return 'Sorocaba';
-            if (upper.includes('TABOAO') || upper.includes('EMBU')) return 'Taboão/Embu';
-            if (upper.includes('SALVADOR')) return 'Salvador';
-            return name;
-        };
-
-        // Passo 2: Rodando por cidade (usando rodou_dia)
-        let rodandoQuery = client.from('dados_marketing')
-            .select('regiao_atuacao, rodou_dia')
-            .gte('rodou_dia', sISO)
-            .lte('rodou_dia', eISO);
-        if (organizationId) rodandoQuery = rodandoQuery.eq('organization_id', organizationId);
-        const { data: rodandoData } = await rodandoQuery;
-
-        rodandoData?.forEach(r => {
-            const name = getFriendlyName(r.regiao_atuacao || 'Outros');
-            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, liberado: 0, aberto: 0 };
-            cur.rodando++;
-            cityMap.set(name, cur);
-        });
-
-        // Passo 3: Enviados, Aberto e Liberados por cidade
-        let mktQuery = client.from('dados_marketing')
-            .select('regiao_atuacao, status, data_envio')
-            .gte('data_envio', sISO)
-            .lte('data_envio', eISO);
-        if (organizationId) mktQuery = mktQuery.eq('organization_id', organizationId);
-        const { data: mktData } = await mktQuery;
-
-        mktData?.forEach(m => {
-            const name = getFriendlyName(m.regiao_atuacao || 'Outros');
-            const cur = cityMap.get(name) || { valorUsado: 0, rodando: 0, liberado: 0, aberto: 0 };
-            if (m.status === 'Liberado') cur.liberado++;
-            if (ABERTO_STATUSES.includes(m.status || '')) cur.aberto++;
-            cityMap.set(name, cur);
-        });
 
         const result: MarketingCostData[] = [];
         cityMap.forEach((v, k) => {
