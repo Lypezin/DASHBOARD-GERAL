@@ -187,47 +187,47 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                     <div className={`h-[1px] flex-1 ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
                 </div>
                 
-                <div className="grid grid-cols-4 gap-3 px-1">
+                <div className="grid grid-cols-4 gap-4 px-1">
                     {citiesData.map((data, idx) => (
                         <motion.div 
                             key={idx} 
-                            whileHover={{ y: -2, scale: 1.01 }}
-                            className={`rounded-xl p-3 border transition-all duration-300 ${
+                            whileHover={{ y: -4, scale: 1.02 }}
+                            className={`rounded-xl p-6 border transition-all duration-300 ${
                                 isDark 
-                                ? 'bg-slate-900/40 border-slate-800 shadow-[0_4px_20px_rgb(0,0,0,0.2)]' 
-                                : 'bg-white border-slate-100 shadow-sm hover:shadow-md'
+                                ? 'bg-slate-900/40 border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.3)]' 
+                                : 'bg-white border-slate-100 shadow-md hover:shadow-lg'
                             }`}
                         >
-                            <h4 className={`font-bold text-sm mb-3 flex justify-between items-center border-b pb-2 ${
+                            <h4 className={`font-black text-xl mb-4 flex justify-between items-center border-b pb-3 ${
                                 isDark ? 'text-white border-slate-800' : 'text-slate-800 border-slate-100'
                             }`} title={data.cidade}>
                                 <span className="truncate pr-2">{data.cidade}</span>
-                                <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
+                                <div className="h-2 w-2 shrink-0 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                             </h4>
-                            <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                            <div className="grid grid-cols-2 gap-y-3 gap-x-6">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Criados</span>
-                                    <span className={`text-xs font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{data.criado}</span>
+                                    <span className="text-xs text-slate-400 font-bold uppercase tracking-tight">Criados</span>
+                                    <span className={`text-xl font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{data.criado}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Enviados</span>
-                                    <span className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{data.enviado}</span>
+                                    <span className="text-xs text-slate-400 font-bold uppercase tracking-tight">Enviados</span>
+                                    <span className={`text-xl font-black ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{data.enviado}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Liberados</span>
-                                    <span className="text-xs font-bold text-blue-500">{data.liberado}</span>
+                                    <span className="text-xs text-slate-400 font-bold uppercase tracking-tight">Liberados</span>
+                                    <span className="text-xl font-black text-blue-500">{data.liberado}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Rodando</span>
-                                    <span className="text-xs font-bold text-emerald-500">{data.rodandoInicio}</span>
+                                    <span className="text-xs text-slate-400 font-bold uppercase tracking-tight">Rodando</span>
+                                    <span className="text-xl font-black text-emerald-500">{data.rodandoInicio}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Abertos</span>
-                                    <span className="text-xs font-bold text-slate-500">{data.aberto}</span>
+                                    <span className="text-xs text-slate-400 font-bold uppercase tracking-tight">Abertos</span>
+                                    <span className="text-xl font-black text-slate-500">{data.aberto}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Voltou</span>
-                                    <span className="text-xs font-bold text-slate-500">{data.voltou}</span>
+                                    <span className="text-xs text-slate-400 font-bold uppercase tracking-tight">Voltou</span>
+                                    <span className="text-xl font-black text-slate-500">{data.voltou}</span>
                                 </div>
                             </div>
                         </motion.div>
