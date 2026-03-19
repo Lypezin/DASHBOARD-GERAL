@@ -72,7 +72,8 @@ export async function fetchMarketingTotalsData(
     if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
     const { count: liberadoCount } = await liberadoQuery;
 
-    let rodandoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }));
+    let rodandoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
+        .not('rodou_dia', 'is', null);
     if (filters.filtroRodouDia.dataInicial) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
     const { count: rodandoCount } = await rodandoQuery;
 
@@ -137,7 +138,8 @@ export async function fetchMarketingCitiesData(
         if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
 
         let rodandoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
-            .match(organizationId ? { organization_id: organizationId } : {});
+            .match(organizationId ? { organization_id: organizationId } : {})
+            .not('rodou_dia', 'is', null);
         if (filters.filtroRodouDia.dataInicial) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', filters.filtroRodouDia);
 
         let abertoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
@@ -394,7 +396,7 @@ export async function fetchMarketingWeeklyComparison(
             processMetric(item.data_envio, 'enviado');
         }
         processMetric(item.data_liberacao, 'liberado');
-        if (item.rodando === 'Sim') processMetric(item.rodou_dia, 'rodando');
+        processMetric(item.rodou_dia, 'rodando');
     });
 
     return order.map(key => weekMap.get(key)!);
