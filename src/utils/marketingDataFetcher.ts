@@ -263,7 +263,8 @@ export async function fetchMarketingDailyEvolution(
         const lastDayWithData = data.reduce((max, item) => {
             const itemDates = [item.data_liberacao, item.data_envio, item.rodou_dia, item.Criado]
                 .filter(Boolean)
-                .map(d => d!.split('T')[0]);
+                .map(d => d!.split('T')[0])
+                .filter(d => d <= maxDateForFill!); // Só considera datas dentro do limite do filtro
             
             if (itemDates.length === 0) return max;
             
