@@ -8,6 +8,10 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+const EXCLUDED_ENVIADOS = ['Confirmar', 'Cancelado', 'Abrindo MEI'];
+const ABERTO_STATUSES = ['Aberto', 'Aguardando Liberação Onboarding', 'Retorno', 'A enviar 2.0'];
+const VOLTOU_STATUSES = ['Voltou', 'Entregador desistiu', 'bug onboarding'];
+
 export async function fetchMarketingTotalsData(
     filters: MarketingFilters, 
     organizationId: string | null,
@@ -52,11 +56,17 @@ export async function fetchMarketingTotalsData(
         return filtered;
     };
 
-    const { count: abertoCount } = await applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
-        .eq('status', 'Aberto');
+    let abertoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
+        .not('data_envio', 'is', null)
+        .in('status', ABERTO_STATUSES);
+    if (filters.filtroEnviados.dataInicial) abertoQuery = buildDateFilterQuery(abertoQuery, 'data_envio', filters.filtroEnviados);
+    const { count: abertoCount } = await abertoQuery;
         
-    const { count: voltouCount } = await applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
-        .eq('status', 'Voltou');
+    let voltouQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
+        .not('data_envio', 'is', null)
+        .in('status', VOLTOU_STATUSES);
+    if (filters.filtroEnviados.dataInicial) voltouQuery = buildDateFilterQuery(voltouQuery, 'data_envio', filters.filtroEnviados);
+    const { count: voltouCount } = await voltouQuery;
 
     // Contagem de criados: preferimos o campo 'Criado' (data preenchida pelo upload),
     // mas aceitamos também registros que tenham algo em created_at ou data_envio.
@@ -64,11 +74,14 @@ export async function fetchMarketingTotalsData(
         .or('Criado.not.is.null,created_at.not.is.null,data_envio.not.is.null');
 
     let enviadoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
-        .not('status', 'in', '("Confirmar", "Cancelado", "Abrindo MEI")');
+        .not('status', 'in', `("${EXCLUDED_ENVIADOS.join('","')}")`)
+        .not('data_envio', 'is', null);
     if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
     const { count: enviadoCount } = await enviadoQuery;
 
-    let liberadoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }));
+    let liberadoQuery = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
+        .eq('status', 'Liberado')
+        .not('data_liberacao', 'is', null);
     if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
     const { count: liberadoCount } = await liberadoQuery;
 
@@ -136,11 +149,14 @@ export async function fetchMarketingCitiesData(
     for (const cidade of cidadesToProcess) {
         let enviadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {})
-            .not('status', 'in', '("Confirmar", "Cancelado", "Abrindo MEI")');
+            .not('status', 'in', `("${EXCLUDED_ENVIADOS.join('","')}")`)
+            .not('data_envio', 'is', null);
         if (filters.filtroEnviados.dataInicial) enviadoQuery = buildDateFilterQuery(enviadoQuery, 'data_envio', filters.filtroEnviados);
 
         let liberadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
-            .match(organizationId ? { organization_id: organizationId } : {});
+            .match(organizationId ? { organization_id: organizationId } : {})
+            .eq('status', 'Liberado')
+            .not('data_liberacao', 'is', null);
         if (filters.filtroLiberacao.dataInicial) liberadoQuery = buildDateFilterQuery(liberadoQuery, 'data_liberacao', filters.filtroLiberacao);
 
         let rodandoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
@@ -161,12 +177,16 @@ export async function fetchMarketingCitiesData(
         }
 
         let abertoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
-            .eq('status', 'Aberto')
-            .match(organizationId ? { organization_id: organizationId } : {});
+            .in('status', ABERTO_STATUSES)
+            .match(organizationId ? { organization_id: organizationId } : {})
+            .not('data_envio', 'is', null);
+        if (filters.filtroEnviados.dataInicial) abertoQuery = buildDateFilterQuery(abertoQuery, 'data_envio', filters.filtroEnviados);
 
         let voltouQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
-            .eq('status', 'Voltou')
-            .match(organizationId ? { organization_id: organizationId } : {});
+            .in('status', VOLTOU_STATUSES)
+            .match(organizationId ? { organization_id: organizationId } : {})
+            .not('data_envio', 'is', null);
+        if (filters.filtroEnviados.dataInicial) voltouQuery = buildDateFilterQuery(voltouQuery, 'data_envio', filters.filtroEnviados);
 
         const [e, l, r, a, v, c] = await Promise.all([enviadoQuery, liberadoQuery, rodandoQuery, abertoQuery, voltouQuery, criadoQuery]);
         results.push({ 
@@ -275,9 +295,16 @@ export async function fetchMarketingDailyEvolution(
             dailyMap.set(dateStr, existing);
         };
 
-        processDate(item.data_liberacao, 'liberado');
-        if (!['Confirmar', 'Cancelado', 'Abrindo MEI'].includes(item.status)) {
-            processDate(item.data_envio, 'enviado');
+        if (item.data_liberacao && item.status === 'Liberado') {
+            processDate(item.data_liberacao, 'liberado');
+        }
+        
+        if (item.data_envio) {
+            if (!EXCLUDED_ENVIADOS.includes(item.status)) {
+                processDate(item.data_envio, 'enviado');
+            }
+            // Caso especial para contar 'aberto' e 'voltou' na evolução diária se necessário
+            // Atualmente o mapa diário só tem {liberado, enviado, rodando, criado}
         }
         processDate(item.rodou_dia, 'rodando');
         processDate(item.Criado || item.created_at || item.data_envio, 'criado');
@@ -349,7 +376,9 @@ export async function fetchMarketingWeeklyComparison(
         return match ? `Semana ${match[1]}` : weekKey;
     };
 
-    const weekMap = new Map<string, { semana: string; criado: number; enviado: number; liberado: number; rodando: number }>();
+    const weekMap = new Map<string, { 
+        semana: string; criado: number; enviado: number; liberado: number; rodando: number; aberto: number; voltou: number 
+    }>();
     const order: string[] = [];
 
     const getMondayOfIsoWeek = (date: Date) => {
@@ -372,7 +401,7 @@ export async function fetchMarketingWeeklyComparison(
         const key = getWeekKey(d);
         if (!weekMap.has(key)) {
             order.push(key);
-            weekMap.set(key, { semana: getWeekLabel(key), criado: 0, enviado: 0, liberado: 0, rodando: 0 });
+            weekMap.set(key, { semana: getWeekLabel(key), criado: 0, enviado: 0, liberado: 0, rodando: 0, aberto: 0, voltou: 0 });
         }
     }
 
@@ -393,7 +422,7 @@ export async function fetchMarketingWeeklyComparison(
     if (error) return order.map(key => weekMap.get(key)!);
 
     data.forEach(item => {
-        const processMetric = (dateStr: string | null, type: 'criado' | 'enviado' | 'liberado' | 'rodando') => {
+        const processMetric = (dateStr: string | null, type: 'criado' | 'enviado' | 'liberado' | 'rodando' | 'aberto' | 'voltou') => {
             if (!dateStr) return;
             const d = new Date(dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr);
             const weekKey = getWeekKey(d);
@@ -404,17 +433,30 @@ export async function fetchMarketingWeeklyComparison(
                 if (type === 'enviado') w.enviado++;
                 if (type === 'liberado') w.liberado++;
                 if (type === 'rodando') w.rodando++;
+                if (type === 'aberto') w.aberto++;
+                if (type === 'voltou') w.voltou++;
             }
         };
 
         // Cada métrica conta na semana em que foi registrada
-        // Para 'criado', usamos o novo campo 'Criado' (data de criação),
-        // caindo em created_at e depois em data_envio como fallback.
         processMetric(item.Criado || item.created_at || item.data_envio, 'criado');
-        if (!['Confirmar', 'Cancelado', 'Abrindo MEI'].includes(item.status)) {
-            processMetric(item.data_envio, 'enviado');
+        
+        if (item.data_envio) {
+            if (!EXCLUDED_ENVIADOS.includes(item.status)) {
+                processMetric(item.data_envio, 'enviado');
+            }
+            if (ABERTO_STATUSES.includes(item.status)) {
+                processMetric(item.data_envio, 'aberto');
+            }
+            if (VOLTOU_STATUSES.includes(item.status)) {
+                processMetric(item.data_envio, 'voltou');
+            }
         }
-        processMetric(item.data_liberacao, 'liberado');
+        
+        if (item.data_liberacao && item.status === 'Liberado') {
+            processMetric(item.data_liberacao, 'liberado');
+        }
+        
         processMetric(item.rodou_dia, 'rodando');
     });
 
