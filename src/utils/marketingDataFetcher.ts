@@ -669,8 +669,13 @@ export async function fetchMarketingCostsComparison(
         }));
 
         const result: MarketingCostData[] = [];
+        let otherValor = 0;
+        let otherLiberado = 0;
+        let otherRodando = 0;
+        let otherAberto = 0;
+
+        // Processa cidades conhecidas
         cityMap.forEach((v, k) => {
-            // Mapeia de volta para nomes curtos/amigáveis se necessário para o slide
             let simplifiedName = k;
             if (k === 'São Paulo 2.0') simplifiedName = 'São Paulo';
             if (k === 'Salvador 2.0') simplifiedName = 'Salvador';
@@ -679,6 +684,7 @@ export async function fetchMarketingCostsComparison(
             if (k === 'ABC 2.0') simplifiedName = 'ABC';
             if (k === 'Sorocaba 2.0') simplifiedName = 'Sorocaba';
             if (k === 'Taboão da Serra e Embu das Artes 2.0') simplifiedName = 'Taboão/Embu';
+
 
             result.push({
                 regiao: simplifiedName,
@@ -689,9 +695,47 @@ export async function fetchMarketingCostsComparison(
                 cpa: v.rodando > 0 ? v.valorUsado / v.rodando : 0
             });
         });
+
+        // Passo 3: Calcular "Outros" para bater o total do dashboard
+        // Soma TUDO que sobrou dos registros de custo que não foram atribuídos a nenhuma cidade do slide
+        allCostRecords?.forEach(row => {
+            const rowCidade = (row.cidade || '').toUpperCase().trim();
+            let matchedAny = false;
+            
+            slideCities.forEach(displayName => {
+                const normalizedDisplay = displayName.toUpperCase().trim();
+                const dbMapped = REGIAO_TO_CIDADE_VALORES[displayName];
+                
+                if (displayName === 'ABC 2.0') {
+                    if (rowCidade === 'ABC' || rowCidade === 'ABC 2.0' || rowCidade === 'SANTO ANDRÉ' || rowCidade === 'SÃO BERNARDO' || rowCidade === 'SANTO ANDRE' || rowCidade === 'SAO BERNARDO') matchedAny = true;
+                } else if (normalizedDisplay.includes('TABOÃO') || normalizedDisplay.includes('TABOAO')) {
+                    if (rowCidade.includes('TABOÃO') || rowCidade.includes('TABOAO')) matchedAny = true;
+                } else {
+                    if (rowCidade === normalizedDisplay || rowCidade === dbMapped) matchedAny = true;
+                    const simpleRow = rowCidade.replace(' 2.0', '').trim();
+                    const simpleDisplay = normalizedDisplay.replace(' 2.0', '').trim();
+                    if (simpleRow === simpleDisplay) matchedAny = true;
+                }
+            });
+
+            if (!matchedAny) {
+                otherValor += Number(row.valor) || 0;
+            }
+        });
+
+        if (otherValor > 0 || otherLiberado > 0 || otherRodando > 0) {
+            result.push({
+                regiao: 'Outros',
+                valorUsado: otherValor,
+                rodando: otherRodando,
+                liberado: otherLiberado,
+                aberto: otherAberto,
+                cpa: otherRodando > 0 ? otherValor / otherRodando : 0
+            });
+        }
         
         // Ordena conforme preferência comum
-        const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu'];
+        const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu', 'Outros'];
         return result.sort((a, b) => {
             const idxA = priority.indexOf(a.regiao);
             const idxB = priority.indexOf(b.regiao);
