@@ -167,7 +167,7 @@ export async function fetchMarketingDailyEvolution(
     // Busca evolução diária baseada nos filtros ativos
     let query = client
         .from('dados_marketing')
-        .select('data_liberacao, data_envio, rodou_dia, Criado')
+        .select('data_liberacao, data_envio, rodou_dia, Criado, created_at')
         .match(organizationId ? { organization_id: organizationId } : {});
 
     if (filters.praca) {
@@ -240,15 +240,22 @@ export async function fetchMarketingDailyEvolution(
     data.forEach(item => {
         const processDate = (d: string | null, type: 'liberado' | 'enviado' | 'rodando' | 'criado') => {
             if (!d) return;
-            const existing = dailyMap.get(d) || { data: d, liberado: 0, enviado: 0, rodando: 0, criado: 0 };
+            const dateStr = d.split('T')[0];
+            
+            // Se houver filtro, ignorar datas fora do intervalo expandido (mês inteiro do filtro)
+            if (minDateForFill && maxDateForFill) {
+                if (dateStr < minDateForFill || dateStr > maxDateForFill) return;
+            }
+            
+            const existing = dailyMap.get(dateStr) || { data: dateStr, liberado: 0, enviado: 0, rodando: 0, criado: 0 };
             existing[type]++;
-            dailyMap.set(d, existing);
+            dailyMap.set(dateStr, existing);
         };
 
         processDate(item.data_liberacao, 'liberado');
         processDate(item.data_envio, 'enviado');
         processDate(item.rodou_dia, 'rodando');
-        processDate(item.Criado || item.data_envio, 'criado');
+        processDate(item.Criado || item.created_at || item.data_envio, 'criado');
     });
 
     if (minDateForFill && maxDateForFill) {
