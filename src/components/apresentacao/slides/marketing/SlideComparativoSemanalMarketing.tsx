@@ -10,8 +10,6 @@ interface WeeklyData {
     enviado: number;
     liberado: number;
     rodando: number;
-    aberto?: number;
-    voltou?: number;
     conversas?: number;
 }
 
@@ -102,14 +100,6 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
                             <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Liberados</span>
                                 <span className="text-xl font-bold text-emerald-600">{week.liberado}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Abertos</span>
-                                <span className="text-xl font-bold text-slate-500">{week.aberto || 0}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Voltou</span>
-                                <span className="text-xl font-bold text-orange-600/70">{week.voltou || 0}</span>
                             </div>
                             <div className={`flex justify-between items-center pt-3 border-t ${isDark ? 'border-slate-800' : 'border-slate-50'}`}>
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rodando</span>
