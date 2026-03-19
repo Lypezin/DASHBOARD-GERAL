@@ -182,7 +182,7 @@ export async function fetchMarketingCitiesData(
         let rodandoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {})
             .not('rodou_dia', 'is', null);
-        if (monthFilter) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'rodou_dia', monthFilter);
+        if (monthFilter) rodandoQuery = buildDateFilterQuery(rodandoQuery, 'data_envio', monthFilter);
 
         let criadoQuery = buildCityQuery(client.from('dados_marketing').select('*', { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {});
