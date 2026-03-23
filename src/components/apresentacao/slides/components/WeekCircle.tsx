@@ -29,14 +29,15 @@ export const WeekCircle: React.FC<WeekCircleProps> = ({
     isActive = true
 }) => {
     const circleSize = size === 'large' ? 'w-[140px] h-[140px]' : 'w-[115px] h-[115px]';
-    const fontSize = size === 'large' ? 'text-xl' : 'text-base';
+    // 115px circle → ~70px inner. text-sm (14px) × 7 chars ≈ 60px fits.
+    const fontSize = size === 'large' ? 'text-base' : 'text-sm';
 
     // Animate adherence
     const animatedAderencia = useAnimatedProgress(semana.aderencia, 1000, 100, isActive);
 
     return (
         <div className="flex flex-col items-center gap-3">
-            <span className={`text-base font-bold px-5 py-2 rounded-full tracking-wide ${isSecond ? 'bg-blue-600 dark:bg-blue-700 text-white' : 'bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800'}`}>
+            <span className={`text-sm font-bold px-4 py-1.5 rounded-full tracking-wide ${isSecond ? 'bg-blue-600 dark:bg-blue-700 text-white' : 'bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800'}`}>
                 {label}
             </span>
 

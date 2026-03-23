@@ -36,14 +36,16 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
     const defaultSize = size === 'large' ? 130 : 105;
     const dimension = circleSizePx || defaultSize;
 
-    // Font size logic to prevent overflow on 100%
+    // Font size: must fit "XX.XX%" (7 chars) inside circle
+    // Normal circle ~95px → ~58px inner text area. text-xs (12px) fits.
+    // Large circle ~110px → ~67px inner text area. text-sm (14px) fits.
     const fontSizeClass = size === 'large'
-        ? (aderencia >= 100 ? 'text-sm' : 'text-base')
-        : (aderencia >= 100 ? 'text-xs' : 'text-sm');
+        ? (aderencia >= 100 ? 'text-xs' : 'text-sm')
+        : 'text-xs';
 
     return (
         <div className="flex flex-col items-center gap-2.5">
-            <span className={`text-base font-bold px-5 py-1.5 rounded-full tracking-wide ${isSecond ? 'bg-blue-600 text-white dark:bg-blue-500' : 'bg-sky-50 text-sky-700 border border-sky-100 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-800'}`}>
+            <span className={`text-sm font-bold px-4 py-1 rounded-full tracking-wide ${isSecond ? 'bg-blue-600 text-white dark:bg-blue-500' : 'bg-sky-50 text-sky-700 border border-sky-100 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-800'}`}>
                 {label}
             </span>
 

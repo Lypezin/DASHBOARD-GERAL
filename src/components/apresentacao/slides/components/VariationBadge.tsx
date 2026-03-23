@@ -25,7 +25,7 @@ export const VariationBadge: React.FC<{ label: string; value: string; positive: 
                     <path d="M12 20l8-8h-5V4H9v8H4z" />
                 </svg>
             )}
-            <span className="text-lg leading-none" style={buildTimeTextStyle(value, 1.1)}>{value}</span>
+            <span className="text-base leading-none" style={buildTimeTextStyle(value, 1)}>{value}</span>
         </div>
     </div>
 );
