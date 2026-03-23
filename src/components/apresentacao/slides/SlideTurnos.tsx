@@ -24,7 +24,7 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({ isVisible, numeroSemana1, num
       />
 
       {totalPaginas > 1 && (
-        <p className="text-center text-base font-medium text-slate-400 -mt-4 mb-6">
+        <p className="text-center text-base font-medium text-slate-400 dark:text-slate-500 -mt-4 mb-6">
           Página {paginaAtual} de {totalPaginas}
         </p>
       )}
@@ -34,10 +34,10 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({ isVisible, numeroSemana1, num
           <div
             key={item.nome}
             onClick={() => setSelectedItem(item)}
-            className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col gap-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 cursor-pointer"
+            className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 cursor-pointer"
           >
             <div className="flex items-center justify-center">
-              <h3 className="text-xl font-black text-slate-700 uppercase tracking-wider bg-slate-50 px-6 py-2 rounded-lg border border-slate-100">
+              <h3 className="text-xl font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/80 px-6 py-2 rounded-lg border border-slate-100 dark:border-slate-700">
                 {item.nome}
               </h3>
             </div>
@@ -57,7 +57,7 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({ isVisible, numeroSemana1, num
               />
             </div>
 
-            <div className="flex gap-3 mt-auto bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <div className="flex gap-3 mt-auto bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
               {item.variacoes.map((variacao) => (
                 <VariationBadge
                   key={variacao.label}

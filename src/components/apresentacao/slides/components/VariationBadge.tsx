@@ -13,9 +13,9 @@ import { buildTimeTextStyle } from '../../utils';
 // I'll assume it's accessible. If not, I'll fix it.
 
 export const VariationBadge: React.FC<{ label: string; value: string; positive: boolean }> = ({ label, value, positive }) => (
-    <div className={`flex-1 rounded-lg py-2 px-2 text-center ${positive ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'}`}>
-        <p className="text-[0.65rem] font-semibold text-slate-500 uppercase tracking-wide mb-1 leading-tight">{label}</p>
-        <div className={`flex items-center justify-center gap-1 font-bold ${positive ? 'text-emerald-600' : 'text-rose-600'}`}>
+    <div className={`flex-1 rounded-lg py-2 px-2 text-center ${positive ? 'bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/50' : 'bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800/50'}`}>
+        <p className="text-[0.65rem] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1 leading-tight">{label}</p>
+        <div className={`flex items-center justify-center gap-1 font-bold ${positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
             {positive ? (
                 <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 4l-8 8h5v8h6v-8h5z" />

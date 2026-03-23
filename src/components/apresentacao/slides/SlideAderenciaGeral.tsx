@@ -28,7 +28,7 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({ is
           </h2>
           <div className="h-2 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 rounded-full mt-3" />
         </div>
-        <p className="text-xl font-light text-slate-500 mt-3">
+        <p className="text-xl font-light text-slate-500 dark:text-slate-400 mt-3">
           Comparativo Semanas {semana1.numeroSemana} vs {semana2.numeroSemana}
         </p>
       </header>
@@ -41,14 +41,14 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({ is
         {/* Central variation box */}
         <div className="flex flex-col items-center justify-center">
           <div className={`rounded-2xl border-2 px-12 py-10 text-center flex flex-col items-center gap-8 shadow-xl ${variacao.positiva
-            ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 border-emerald-300'
-            : 'bg-gradient-to-br from-rose-50 via-rose-100 to-rose-50 border-rose-300'
+            ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 dark:from-emerald-900/40 dark:via-emerald-800/20 dark:to-emerald-900/40 border-emerald-300 dark:border-emerald-700'
+            : 'bg-gradient-to-br from-rose-50 via-rose-100 to-rose-50 dark:from-rose-900/40 dark:via-rose-800/20 dark:to-rose-900/40 border-rose-300 dark:border-rose-700'
             }`}>
 
-            <p className="text-xl font-bold text-slate-600 uppercase tracking-widest">Variação</p>
+            <p className="text-xl font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">Variação</p>
 
             {/* Arrow and difference */}
-            <div className={`flex items-center gap-4 ${variacao.positiva ? 'text-emerald-600' : 'text-rose-600'}`}>
+            <div className={`flex items-center gap-4 ${variacao.positiva ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {variacao.positiva ? (
                 <svg className="w-14 h-14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 4l-8 8h5v8h6v-8h5z" />
@@ -64,7 +64,7 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({ is
             </div>
 
             {/* Percentage badge */}
-            <div className={`flex items-center gap-2 px-6 py-2.5 rounded-full ${variacao.positiva ? 'bg-emerald-200 text-emerald-800' : 'bg-rose-200 text-rose-800'
+            <div className={`flex items-center gap-2 px-6 py-2.5 rounded-full ${variacao.positiva ? 'bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300' : 'bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-300'
               }`}>
               {variacao.positiva ? (
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">

@@ -33,16 +33,16 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
     const animatedAderencia = useAnimatedProgress(dia.aderencia, 1000, Math.random() * 300, isActive);
 
     return (
-        <div className={`rounded-xl border px-2 py-3 flex flex-col items-center gap-2 ${isSecondWeek ? 'bg-gradient-to-b from-blue-50 to-white border-blue-200' : 'bg-gradient-to-b from-sky-50 to-white border-sky-200'}`}>
+        <div className={`rounded-xl border px-2 py-3 flex flex-col items-center gap-2 ${isSecondWeek ? 'bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/30 dark:to-slate-800 border-blue-200 dark:border-blue-800/50' : 'bg-gradient-to-b from-sky-50 to-white dark:from-sky-900/30 dark:to-slate-800 border-sky-200 dark:border-sky-800/50'}`}>
             {/* Day label */}
-            <span className={`text-sm font-bold uppercase tracking-wider ${isSecondWeek ? 'text-blue-700' : 'text-sky-700'}`}>
+            <span className={`text-sm font-bold uppercase tracking-wider ${isSecondWeek ? 'text-blue-700 dark:text-blue-400' : 'text-sky-700 dark:text-sky-400'}`}>
                 {dia.sigla}
             </span>
 
             {/* Progress circle */}
             <div className={`relative w-[70px] h-[70px] animate-scale-in ${isActive ? 'animate-pulse-scale delay-500' : ''}`}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="50" cy="50" r="34" stroke="#e2e8f0" strokeWidth="7" fill="none" />
+                    <circle cx="50" cy="50" r="34" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="7" fill="none" />
                     <circle
                         cx="50"
                         cy="50"
@@ -56,24 +56,24 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center pt-0.5">
-                    <span className={`text-slate-900 font-black leading-none tracking-tight ${dia.aderencia >= 100 ? 'text-[0.5rem]' : 'text-xs'}`}>
+                    <span className={`text-slate-900 dark:text-slate-100 font-black leading-none tracking-tight ${dia.aderencia >= 100 ? 'text-[0.5rem]' : 'text-xs'}`}>
                         {dia.aderencia >= 1000 ? '>999%' : dia.aderencia.toFixed(0) + '%'}
                     </span>
                 </div>
             </div>
 
             {/* Hours delivered */}
-            <div className="w-full bg-emerald-50 border border-emerald-200 rounded-md px-1 py-1.5 text-center">
-                <span className="text-[0.55rem] font-semibold text-emerald-600 uppercase block">Entregue</span>
-                <span className="font-bold text-emerald-700 text-sm block" style={buildTimeTextStyle(dia.horasEntregues, 0.75)}>
+            <div className="w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-md px-1 py-1.5 text-center">
+                <span className="text-[0.55rem] font-semibold text-emerald-600 dark:text-emerald-400 uppercase block">Entregue</span>
+                <span className="font-bold text-emerald-700 dark:text-emerald-300 text-sm block" style={buildTimeTextStyle(dia.horasEntregues, 0.75)}>
                     {dia.horasEntregues}
                 </span>
             </div>
 
             {/* Variation (only for second week) */}
             {variacao && (
-                <div className={`w-full rounded-md px-1.5 py-1.5 text-center ${variacao.horasPositiva ? 'bg-emerald-100 border border-emerald-300' : 'bg-rose-100 border border-rose-300'}`}>
-                    <div className={`flex items-center justify-center gap-0.5 font-bold text-[0.7rem] ${variacao.horasPositiva ? 'text-emerald-700' : 'text-rose-700'}`}>
+                <div className={`w-full rounded-md px-1.5 py-1.5 text-center ${variacao.horasPositiva ? 'bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-800/50' : 'bg-rose-100 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-800/50'}`}>
+                    <div className={`flex items-center justify-center gap-0.5 font-bold text-[0.7rem] ${variacao.horasPositiva ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                         {variacao.horasPositiva ? (
                             <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 4l-8 8h5v8h6v-8h5z" />
@@ -85,7 +85,7 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
                         )}
                         <span style={buildTimeTextStyle(variacao.horas, 0.7)}>{variacao.horas}</span>
                     </div>
-                    <span className={`text-[0.6rem] font-semibold ${variacao.percentualPositiva ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <span className={`text-[0.6rem] font-semibold ${variacao.percentualPositiva ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                         {variacao.percentual}
                     </span>
                 </div>

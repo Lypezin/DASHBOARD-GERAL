@@ -16,7 +16,7 @@ export const SlideHeader: React.FC<SlideHeaderProps> = ({ title, subTitle }) => 
                 </h2>
                 <div className="h-1.5 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 rounded-full mt-2" />
             </div>
-            <p className="text-lg font-light text-slate-500 mt-2 outline-none rounded transition-colors">
+            <p className="text-lg font-light text-slate-500 dark:text-slate-400 mt-2 outline-none rounded transition-colors">
                 {subTitle}
             </p>
         </header>
