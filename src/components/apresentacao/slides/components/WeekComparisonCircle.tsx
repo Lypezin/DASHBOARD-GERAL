@@ -5,6 +5,7 @@ import { useAnimatedProgress } from '@/hooks/ui/useAnimatedProgress';
 interface WeekComparisonCircleProps {
     aderencia: number;
     horasEntregues: string;
+    horasPlanejadas?: string; // Newly added
     label: string;
     isSecond: boolean;
     size?: 'normal' | 'large';
@@ -21,6 +22,7 @@ const buildCircleDasharray = (valor: number, radius: number) => {
 export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
     aderencia,
     horasEntregues,
+    horasPlanejadas,
     label,
     isSecond,
     size = 'normal',
@@ -41,14 +43,14 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
 
     return (
         <div className="flex flex-col items-center gap-2">
-            <span className={`text-sm font-bold px-4 py-1.5 rounded-full ${isSecond ? 'bg-blue-600 text-white' : 'bg-sky-50 text-sky-700 border border-sky-100'}`}>
+            <span className={`text-sm font-bold px-4 py-1.5 rounded-full ${isSecond ? 'bg-blue-600 text-white dark:bg-blue-500' : 'bg-sky-50 text-sky-700 border border-sky-100 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-800'}`}>
                 {label}
             </span>
 
             {/* Progress Circle */}
             <div className="relative animate-scale-in" style={{ width: dimension, height: dimension }}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="50" cy="50" r="34" stroke="#e2e8f0" strokeWidth="7" fill="none" />
+                    <circle cx="50" cy="50" r="34" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="7" fill="none" />
                     <circle
                         cx="50"
                         cy="50"
@@ -62,21 +64,37 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center pt-1">
-                    <span className={`text-slate-900 font-black ${fontSizeClass} leading-none tracking-tight`}>
+                    <span className={`text-slate-900 dark:text-slate-100 font-black ${fontSizeClass} leading-none tracking-tight`}>
                         {aderencia.toFixed(0)}%
                     </span>
                 </div>
             </div>
 
             {/* Hours */}
-            {horasEntregues && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 text-center min-w-[110px]">
-                    <span className="text-[0.6rem] font-semibold text-emerald-600 uppercase block">Entregue</span>
-                    <span className="font-bold text-emerald-700 block text-base" style={buildTimeTextStyle(horasEntregues, 1)}>
-                        {horasEntregues}
-                    </span>
-                </div>
-            )}
+            <div className="flex flex-col gap-2 w-full mt-2">
+                {horasPlanejadas && (
+                    <div className="bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800/50 rounded-lg px-4 py-2 text-center min-w-[110px]">
+                        <div className="flex items-center justify-center gap-1 text-[0.6rem] font-semibold text-sky-600 dark:text-sky-400 uppercase mb-0.5">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>Meta</span>
+                        </div>
+                        <span className="font-bold text-sky-700 dark:text-sky-300 block text-base" style={buildTimeTextStyle(horasPlanejadas, 1)}>
+                            {horasPlanejadas}
+                        </span>
+                    </div>
+                )}
+                {horasEntregues && (
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-lg px-4 py-2 text-center min-w-[110px]">
+                        <div className="flex items-center justify-center gap-1 text-[0.6rem] font-semibold text-emerald-600 dark:text-emerald-400 uppercase mb-0.5">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            <span>Real</span>
+                        </div>
+                        <span className="font-bold text-emerald-700 dark:text-emerald-300 block text-base" style={buildTimeTextStyle(horasEntregues, 1)}>
+                            {horasEntregues}
+                        </span>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

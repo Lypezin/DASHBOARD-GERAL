@@ -16,7 +16,10 @@ export function processOrigens(
     const origensComparativo = todasOrigens.map((nome) => {
         const o1 = origensSemana1Map.get(nome) || ({} as any);
         const o2 = origensSemana2Map.get(nome) || ({} as any);
-        const horasPlanejadasBase = converterHorasParaDecimal(o1?.horas_a_entregar || o2?.horas_a_entregar || '0');
+        const horasPlanejadasSem1 = converterHorasParaDecimal(o1?.horas_a_entregar || '0');
+        const horasPlanejadasSem2 = converterHorasParaDecimal(o2?.horas_a_entregar || '0');
+        const horasPlanejadasBase = horasPlanejadasSem2 || horasPlanejadasSem1 || 0;
+        
         const h1 = converterHorasParaDecimal(o1?.horas_entregues || '0');
         const h2 = converterHorasParaDecimal(o2?.horas_entregues || '0');
         const a1 = o1?.aderencia_percentual || 0;
@@ -29,8 +32,8 @@ export function processOrigens(
         return {
             nome: nome.toUpperCase(),
             horasPlanejadas: formatHMS(Math.abs(horasPlanejadasBase).toString()),
-            semana1: { aderencia: a1, horasEntregues: formatHMS(Math.abs(h1).toString()) },
-            semana2: { aderencia: a2, horasEntregues: formatHMS(Math.abs(h2).toString()) },
+            semana1: { aderencia: a1, horasEntregues: formatHMS(Math.abs(h1).toString()), horasPlanejadas: formatHMS(Math.abs(horasPlanejadasSem1).toString()) },
+            semana2: { aderencia: a2, horasEntregues: formatHMS(Math.abs(h2).toString()), horasPlanejadas: formatHMS(Math.abs(horasPlanejadasSem2).toString()) },
             variacoes: [
                 { label: 'Δ Horas', valor: `${difHoras > 0 ? '+' : difHoras < 0 ? '−' : ''}${formatHMS(Math.abs(difHoras).toString())}`, positivo: difHoras >= 0 },
                 { label: '% Horas', valor: formatSigned(difPercentHoras), positivo: difPercentHoras >= 0 },

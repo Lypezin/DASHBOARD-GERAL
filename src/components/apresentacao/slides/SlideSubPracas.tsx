@@ -18,9 +18,9 @@ interface VariacaoResumo {
 
 export interface SubPracaComparativo {
   nome: string;
-  horasPlanejadas: string;
-  semana1: SemanaResumo;
-  semana2: SemanaResumo;
+  horasPlanejadas: string; // We'll keep this as a fallback or remove it if not needed. Let's keep it for compatibility with OrigemCard if it expects it, but we can deprecate it.
+  semana1: SemanaResumo & { horasPlanejadas: string };
+  semana2: SemanaResumo & { horasPlanejadas: string };
   variacoes: VariacaoResumo[];
 }
 

@@ -12,14 +12,16 @@ interface VariacaoResumo {
 
 interface OrigemComparativo {
   nome: string;
-  horasPlanejadas: string;
+  horasPlanejadas: string; // Deprecated fallback
   semana1: {
     aderencia: number;
     horasEntregues: string;
+    horasPlanejadas: string;
   };
   semana2: {
     aderencia: number;
     horasEntregues: string;
+    horasPlanejadas: string;
   };
   variacoes: VariacaoResumo[];
 }

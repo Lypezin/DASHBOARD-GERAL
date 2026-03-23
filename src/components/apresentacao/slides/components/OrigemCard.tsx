@@ -7,8 +7,8 @@ import { WeekComparisonCircle } from './WeekComparisonCircle';
 interface VariacaoResumo { label: string; valor: string; positivo: boolean; }
 interface OrigemComparativo {
     nome: string; horasPlanejadas: string;
-    semana1: { aderencia: number; horasEntregues: string; };
-    semana2: { aderencia: number; horasEntregues: string; };
+    semana1: { aderencia: number; horasEntregues: string; horasPlanejadas: string; };
+    semana2: { aderencia: number; horasEntregues: string; horasPlanejadas: string; };
     variacoes: VariacaoResumo[];
 }
 
@@ -29,11 +29,11 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
 }) => {
     return (
         <div
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''} animate-slide-up opacity-0`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''} animate-slide-up opacity-0`}
             style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
         >
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-blue-700 to-blue-600 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem]">
+            <div className="bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-900 dark:to-blue-800 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem] rounded-t-2xl">
                 <h3
                     className="text-white font-bold text-base uppercase tracking-wide flex-1 leading-snug"
                     style={{
@@ -44,21 +44,16 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
                 >
                     {item.nome}
                 </h3>
-                <div className="bg-blue-500 rounded-lg px-3 py-1.5 text-center flex-shrink-0">
-                    <span className="text-[0.55rem] font-medium text-blue-100 block">Planejado</span>
-                    <span className="text-white font-bold text-sm" style={buildTimeTextStyle(item.horasPlanejadas, 0.875)}>
-                        {item.horasPlanejadas}
-                    </span>
-                </div>
             </div>
 
             {/* Card Body */}
             <div className={isSingleItem ? 'p-8' : 'p-5'}>
                 {/* Week Comparison */}
-                <div className={`flex items-center justify-center ${isSingleItem ? 'gap-12' : 'gap-6'} mb-5`}>
+                <div className={`flex items-start justify-center ${isSingleItem ? 'gap-12' : 'gap-6'} mb-5`}>
                     <WeekComparisonCircle
                         aderencia={item.semana1.aderencia}
                         horasEntregues={item.semana1.horasEntregues}
+                        horasPlanejadas={item.semana1.horasPlanejadas}
                         label={`SEM ${numeroSemana1}`}
                         isSecond={false}
                         size={isSingleItem ? 'large' : 'normal'}
@@ -67,6 +62,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
                     <WeekComparisonCircle
                         aderencia={item.semana2.aderencia}
                         horasEntregues={item.semana2.horasEntregues}
+                        horasPlanejadas={item.semana2.horasPlanejadas}
                         label={`SEM ${numeroSemana2}`}
                         isSecond={true}
                         size={isSingleItem ? 'large' : 'normal'}

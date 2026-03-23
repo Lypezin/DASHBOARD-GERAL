@@ -54,13 +54,16 @@ export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
         // Use original name from either week (prefer week 2 if available)
         const displayName = entry2?.originalName || entry1?.originalName || normalizedKey;
 
-        const horasPlanejadasBase = itemSemana1?.segundos_planejados
+        const horasPlanejadasSem1 = itemSemana1?.segundos_planejados
             ? itemSemana1.segundos_planejados / 3600
-            : itemSemana2?.segundos_planejados
-                ? itemSemana2.segundos_planejados / 3600
-                : converterHorasParaDecimal(
-                    itemSemana1?.horas_a_entregar || itemSemana2?.horas_a_entregar || '0'
-                );
+            : converterHorasParaDecimal(itemSemana1?.horas_a_entregar || '0');
+
+        const horasPlanejadasSem2 = itemSemana2?.segundos_planejados
+            ? itemSemana2.segundos_planejados / 3600
+            : converterHorasParaDecimal(itemSemana2?.horas_a_entregar || '0');
+
+        // Fallback backward compatibility property
+        const horasPlanejadasBase = horasPlanejadasSem2 || horasPlanejadasSem1 || 0;
 
         const horasSem1 = itemSemana1?.segundos_realizados
             ? itemSemana1.segundos_realizados / 3600
@@ -83,10 +86,12 @@ export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
             semana1: {
                 aderencia: aderenciaSem1,
                 horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
+                horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasSem1).toString()),
             },
             semana2: {
                 aderencia: aderenciaSem2,
                 horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
+                horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasSem2).toString()),
             },
             variacoes: [
                 { label: 'Δ Horas', valor: formatarDiferenca(diffHoras, true), positivo: diffHoras >= 0 },

@@ -20,7 +20,7 @@ export const SubPracaModal: React.FC<SubPracaModalProps> = ({
     return (
         <div className="fixed inset-0 z-[100010] bg-black/80 flex items-center justify-center p-8 animate-fade-in" onClick={onClose}>
             <div
-                className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-scale-in"
+                className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-scale-in border border-transparent dark:border-slate-800"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -44,6 +44,7 @@ export const SubPracaModal: React.FC<SubPracaModalProps> = ({
                             <WeekComparisonCircle
                                 aderencia={selectedItem.semana1.aderencia}
                                 horasEntregues={selectedItem.semana1.horasEntregues}
+                                horasPlanejadas={selectedItem.semana1.horasPlanejadas}
                                 label={`SEMANA ${numeroSemana1}`}
                                 isSecond={false}
                                 size="large"
@@ -54,6 +55,7 @@ export const SubPracaModal: React.FC<SubPracaModalProps> = ({
                             <WeekComparisonCircle
                                 aderencia={selectedItem.semana2.aderencia}
                                 horasEntregues={selectedItem.semana2.horasEntregues}
+                                horasPlanejadas={selectedItem.semana2.horasPlanejadas}
                                 label={`SEMANA ${numeroSemana2}`}
                                 isSecond={true}
                                 size="large"
@@ -66,9 +68,9 @@ export const SubPracaModal: React.FC<SubPracaModalProps> = ({
                 </div>
 
                 {/* Footer Insight from AI Logic (Mocked for now or reused) */}
-                <div className="bg-slate-50 px-8 py-4 border-t border-slate-100">
-                    <p className="text-center text-slate-500 text-sm">
-                        Use a ferramenta de <strong>Caneta</strong> para fazer anotações sobre este resultado.
+                <div className="bg-slate-50 dark:bg-slate-800/50 px-8 py-4 border-t border-slate-100 dark:border-slate-800">
+                    <p className="text-center text-slate-500 dark:text-slate-400 text-sm">
+                        Use a ferramenta de <strong className="dark:text-slate-300">Caneta</strong> para fazer anotações sobre este resultado.
                     </p>
                 </div>
             </div>
