@@ -67,7 +67,7 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
                 </div>
 
                 {/* Variations Row */}
-                <div className="flex gap-3 animate-float-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                <div className="flex gap-1.5 lg:gap-2 xl:gap-3 animate-float-up w-full" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                     {item.variacoes.map((variacao) => (
                         <VariationBadge
                             key={variacao.label}
