@@ -15,13 +15,13 @@ const buildCircleDasharray = (valor: number) => {
 
 export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = false, isActive = true }) => {
     const animatedAderencia = useAnimatedProgress(semana.aderencia, 1500, 200, isActive);
-    const adherenceText = semana.aderencia.toFixed(1);
-    const fontSize = semana.aderencia >= 100 ? '2rem' : '2.5rem';
+    const adherenceText = semana.aderencia.toFixed(2);
+    const fontSize = semana.aderencia >= 100 ? '2.25rem' : '2.75rem';
 
     return (
         <div className="flex flex-col items-center gap-5">
             {/* Week label */}
-            <div className={`rounded-full px-8 py-3 shadow-md ${isHighlighted ? 'bg-blue-600 dark:bg-blue-700 text-white' : 'bg-sky-50 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-800/50 text-sky-800 dark:text-sky-300'}`}>
+            <div className={`rounded-full px-10 py-3.5 shadow-md ${isHighlighted ? 'bg-blue-600 dark:bg-blue-700 text-white animate-glow-pulse' : 'bg-sky-50 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-800/50 text-sky-800 dark:text-sky-300'}`}>
                 <h3 className="text-2xl font-bold uppercase tracking-wide text-center">
                     Semana {semana.numeroSemana}
                 </h3>
@@ -51,28 +51,28 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = 
             </div>
 
             {/* Stats cards */}
-            <div className="w-[260px] space-y-3">
+            <div className="w-[280px] space-y-3">
                 {/* Planned hours */}
-                <div className="rounded-xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/30 dark:to-slate-800 border border-blue-200 dark:border-blue-800/50 px-5 py-3 flex flex-col items-center shadow-sm">
-                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                <div className="rounded-xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/30 dark:to-slate-800 border border-blue-200 dark:border-blue-800/50 px-6 py-4 flex flex-col items-center shadow-sm animate-float-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                    <span className="text-base font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
                         Planejado
                     </span>
                     <span
                         className="font-bold text-blue-700 dark:text-blue-300"
-                        style={buildTimeTextStyle(semana.horasPlanejadas, 1.5)}
+                        style={buildTimeTextStyle(semana.horasPlanejadas, 1.7)}
                     >
                         {semana.horasPlanejadas}
                     </span>
                 </div>
 
                 {/* Delivered hours */}
-                <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-900/30 dark:to-slate-800 border border-emerald-200 dark:border-emerald-800/50 px-5 py-3 flex flex-col items-center shadow-sm">
-                    <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
+                <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-900/30 dark:to-slate-800 border border-emerald-200 dark:border-emerald-800/50 px-6 py-4 flex flex-col items-center shadow-sm animate-float-up opacity-0" style={{ animationDelay: '550ms', animationFillMode: 'forwards' }}>
+                    <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
                         Entregue
                     </span>
                     <span
                         className="font-bold text-emerald-700 dark:text-emerald-300"
-                        style={buildTimeTextStyle(semana.horasEntregues, 1.4)}
+                        style={buildTimeTextStyle(semana.horasEntregues, 1.6)}
                     >
                         {semana.horasEntregues}
                     </span>

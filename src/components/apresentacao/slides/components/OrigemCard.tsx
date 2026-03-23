@@ -35,7 +35,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
             {/* Card Header */}
             <div className="bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-900 dark:to-blue-800 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem] rounded-t-2xl">
                 <h3
-                    className="text-white font-bold text-base uppercase tracking-wide flex-1 leading-snug"
+                    className="text-white font-bold text-lg uppercase tracking-wide flex-1 leading-snug"
                     style={{
                         wordBreak: 'break-word',
                         hyphens: 'auto'
@@ -71,7 +71,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
                 </div>
 
                 {/* Variations Row */}
-                <div className="flex gap-2.5">
+                <div className="flex gap-3 animate-float-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                     {item.variacoes.map((variacao) => (
                         <VariationBadge
                             key={variacao.label}

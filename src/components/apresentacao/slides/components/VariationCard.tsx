@@ -12,7 +12,7 @@ export const VariationCard: React.FC<{
         ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-white dark:from-emerald-900/40 dark:via-emerald-800/20 dark:to-emerald-900/40 border border-emerald-300 dark:border-emerald-700/50'
         : 'bg-gradient-to-br from-rose-50 via-rose-100 to-white dark:from-rose-900/40 dark:via-rose-800/20 dark:to-rose-900/40 border border-rose-300 dark:border-rose-700/50'
         }`}>
-        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1.5 text-center">
+        <span className="text-base font-semibold text-slate-500 dark:text-slate-400 mb-1.5 text-center">
             {label}
         </span>
 
@@ -27,11 +27,11 @@ export const VariationCard: React.FC<{
                     <path d="M12 20l8-8h-5V4H9v8H4z" />
                 </svg>
             )}
-            <span className="text-2xl font-black">{value}</span>
+            <span className="text-3xl font-black">{value}</span>
         </div>
 
         {/* Percentage badge */}
-        <div className={`mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${percentualPositiva
+        <div className={`mt-2 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-base font-bold ${percentualPositiva
             ? 'bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300'
             : 'bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-300'
             }`}>
