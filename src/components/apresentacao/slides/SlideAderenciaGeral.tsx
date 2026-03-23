@@ -36,12 +36,12 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({ is
       {/* Main content */}
       <div className="flex w-full justify-evenly items-center gap-4 flex-1 px-8">
         {/* Semana 1 */}
-        <div className="animate-slide-in-left opacity-0" style={{ animationFillMode: 'forwards' }}>
+        <div className="animate-slide-in-left" style={{ animationFillMode: 'forwards' }}>
           <SemanaCard semana={semana1} isHighlighted={false} isActive={isVisible} />
         </div>
 
         {/* Central variation box */}
-        <div className="flex flex-col items-center justify-center animate-count-in opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+        <div className="flex flex-col items-center justify-center animate-count-in" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
           <div className={`rounded-2xl border-2 px-12 py-10 text-center flex flex-col items-center gap-8 shadow-xl ${variacao.positiva
             ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 dark:from-emerald-900/40 dark:via-emerald-800/20 dark:to-emerald-900/40 border-emerald-300 dark:border-emerald-700'
             : 'bg-gradient-to-br from-rose-50 via-rose-100 to-rose-50 dark:from-rose-900/40 dark:via-rose-800/20 dark:to-rose-900/40 border-rose-300 dark:border-rose-700'
@@ -85,7 +85,7 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({ is
         </div>
 
         {/* Semana 2 */}
-        <div className="animate-slide-in-right opacity-0" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+        <div className="animate-slide-in-right" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
           <SemanaCard semana={semana2} isHighlighted={true} isActive={isVisible} />
         </div>
       </div>

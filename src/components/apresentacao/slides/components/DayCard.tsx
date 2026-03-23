@@ -35,12 +35,12 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
     return (
         <div className={`rounded-xl border px-2 py-3 flex flex-col items-center gap-2 ${isSecondWeek ? 'bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/30 dark:to-slate-800 border-blue-200 dark:border-blue-800/50' : 'bg-gradient-to-b from-sky-50 to-white dark:from-sky-900/30 dark:to-slate-800 border-sky-200 dark:border-sky-800/50'}`}>
             {/* Day label */}
-            <span className={`text-base font-bold uppercase tracking-wider ${isSecondWeek ? 'text-blue-700 dark:text-blue-400' : 'text-sky-700 dark:text-sky-400'}`}>
+            <span className={`text-sm font-bold uppercase tracking-wider ${isSecondWeek ? 'text-blue-700 dark:text-blue-400' : 'text-sky-700 dark:text-sky-400'}`}>
                 {dia.sigla}
             </span>
 
             {/* Progress circle */}
-            <div className={`relative w-[80px] h-[80px] animate-scale-in ${isActive ? 'animate-pulse-scale delay-500' : ''}`}>
+            <div className={`relative w-[72px] h-[72px] animate-scale-in ${isActive ? 'animate-pulse-scale delay-500' : ''}`}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                     <circle cx="50" cy="50" r="34" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="7" fill="none" />
                     <circle
@@ -56,16 +56,16 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <span className={`text-slate-900 dark:text-slate-100 font-black leading-none tracking-tight ${dia.aderencia >= 100 ? 'text-[0.55rem]' : 'text-sm'}`}>
+                    <span className={`text-slate-900 dark:text-slate-100 font-black leading-none tracking-tighter ${dia.aderencia >= 100 ? 'text-[0.45rem]' : 'text-xs'}`}>
                         {dia.aderencia >= 1000 ? '>999%' : dia.aderencia.toFixed(2) + '%'}
                     </span>
                 </div>
             </div>
 
             {/* Hours delivered */}
-            <div className="w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-md px-1.5 py-2 text-center">
-                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase block">Entregue</span>
-                <span className="font-bold text-emerald-700 dark:text-emerald-300 text-base block" style={buildTimeTextStyle(dia.horasEntregues, 0.85)}>
+            <div className="w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-md px-1.5 py-1.5 text-center">
+                <span className="text-[0.6rem] font-semibold text-emerald-600 dark:text-emerald-400 uppercase block">Entregue</span>
+                <span className="font-bold text-emerald-700 dark:text-emerald-300 text-sm block" style={buildTimeTextStyle(dia.horasEntregues, 0.8)}>
                     {dia.horasEntregues}
                 </span>
             </div>

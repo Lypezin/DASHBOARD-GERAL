@@ -29,7 +29,7 @@ export const WeekCircle: React.FC<WeekCircleProps> = ({
     isActive = true
 }) => {
     const circleSize = size === 'large' ? 'w-[140px] h-[140px]' : 'w-[115px] h-[115px]';
-    const fontSize = size === 'large' ? 'text-2xl' : 'text-lg';
+    const fontSize = size === 'large' ? 'text-xl' : 'text-base';
 
     // Animate adherence
     const animatedAderencia = useAnimatedProgress(semana.aderencia, 1000, 100, isActive);
@@ -64,9 +64,9 @@ export const WeekCircle: React.FC<WeekCircleProps> = ({
             </div>
 
             {/* Hours */}
-            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-lg px-5 py-2.5 text-center min-w-[140px] animate-float-up opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-lg px-5 py-2 text-center min-w-[130px] animate-float-up" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
                 <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase block">Entregue</span>
-                <span className="font-bold text-emerald-700 dark:text-emerald-300 block text-xl" style={buildTimeTextStyle(semana.horasEntregues, 1.15)}>
+                <span className="font-bold text-emerald-700 dark:text-emerald-300 block text-lg" style={buildTimeTextStyle(semana.horasEntregues, 1)}>
                     {semana.horasEntregues}
                 </span>
             </div>

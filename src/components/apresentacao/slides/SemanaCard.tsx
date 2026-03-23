@@ -16,7 +16,7 @@ const buildCircleDasharray = (valor: number) => {
 export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = false, isActive = true }) => {
     const animatedAderencia = useAnimatedProgress(semana.aderencia, 1500, 200, isActive);
     const adherenceText = semana.aderencia.toFixed(2);
-    const fontSize = semana.aderencia >= 100 ? '2.25rem' : '2.75rem';
+    const fontSize = semana.aderencia >= 100 ? '1.75rem' : '2.25rem';
 
     return (
         <div className="flex flex-col items-center gap-5">
@@ -53,7 +53,7 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = 
             {/* Stats cards */}
             <div className="w-[280px] space-y-3">
                 {/* Planned hours */}
-                <div className="rounded-xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/30 dark:to-slate-800 border border-blue-200 dark:border-blue-800/50 px-6 py-4 flex flex-col items-center shadow-sm animate-float-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                <div className="rounded-xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/30 dark:to-slate-800 border border-blue-200 dark:border-blue-800/50 px-5 py-3 flex flex-col items-center shadow-sm animate-float-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                     <span className="text-base font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
                         Planejado
                     </span>
@@ -66,7 +66,7 @@ export const SemanaCard: React.FC<SemanaCardProps> = ({ semana, isHighlighted = 
                 </div>
 
                 {/* Delivered hours */}
-                <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-900/30 dark:to-slate-800 border border-emerald-200 dark:border-emerald-800/50 px-6 py-4 flex flex-col items-center shadow-sm animate-float-up opacity-0" style={{ animationDelay: '550ms', animationFillMode: 'forwards' }}>
+                <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-900/30 dark:to-slate-800 border border-emerald-200 dark:border-emerald-800/50 px-5 py-3 flex flex-col items-center shadow-sm animate-float-up" style={{ animationDelay: '550ms', animationFillMode: 'forwards' }}>
                     <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
                         Entregue
                     </span>

@@ -71,7 +71,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
                 </div>
 
                 {/* Variations Row */}
-                <div className="flex gap-3 animate-float-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                <div className="flex gap-3 animate-float-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                     {item.variacoes.map((variacao) => (
                         <VariationBadge
                             key={variacao.label}
