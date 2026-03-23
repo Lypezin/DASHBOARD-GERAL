@@ -36,8 +36,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
                     const { data, error } = await supabase
                         .from('mv_aderencia_agregada')
                         .select('sub_praca, turno, origem')
-                        .in('praca', targetPracas)
-                        .limit(5000); // garante resgatar a maioria das combinações
+                        .in('praca', targetPracas);
                     
                     if (!error && data && data.length > 0) {
                         const uniqueSubs = Array.from(new Set(data.map((d: any) => d.sub_praca).filter(Boolean)));
