@@ -70,7 +70,7 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
                     {dia.horasEntregues}
                 </span>
                 <div className="mt-1 pt-1 border-t border-emerald-200/50 dark:border-emerald-800/30">
-                    <span className="text-[0.55rem] font-medium text-emerald-600/80 dark:text-emerald-400/80 block leading-tight">
+                    <span className="text-[0.55rem] font-medium text-slate-500 dark:text-slate-400 block leading-tight">
                         Meta: {dia.horasPlanejadas}
                     </span>
                 </div>
