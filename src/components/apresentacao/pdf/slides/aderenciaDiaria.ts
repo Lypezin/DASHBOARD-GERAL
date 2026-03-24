@@ -5,12 +5,13 @@ import { criarCardDia, criarCabecalhoSemana } from './components/aderenciaCard';
 export const criarSlideAderenciaDiaria = (
   numeroSemana1: string,
   numeroSemana2: string,
-  semana1Dias: Array<{ nome: string; sigla: string; aderencia: number; horasEntregues: string }>,
+  semana1Dias: Array<{ nome: string; sigla: string; aderencia: number; horasEntregues: string; horasPlanejadas: string }>,
   semana2Dias: Array<{
     nome: string;
     sigla: string;
     aderencia: number;
     horasEntregues: string;
+    horasPlanejadas: string;
     diferencaHoras: string;
     diferencaHorasPositiva: boolean;
     diferencaPercentualHoras: string;

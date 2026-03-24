@@ -4,7 +4,7 @@ import { criarGraficoCircular } from '../../helpers';
 import { criarStackDiferencasAderencia } from './aderenciaCardHelpers';
 
 export const criarCardDia = (
-    dia: { sigla: string; aderencia: number; horasEntregues: string },
+    dia: { sigla: string; aderencia: number; horasEntregues: string; horasPlanejadas: string },
     temDiferencas: boolean = false,
     diferencas?: {
         diferencaHoras: string;
@@ -38,13 +38,15 @@ export const criarCardDia = (
                 alignment: 'center',
                 margin: [0, 0, 0, 8],
             },
-            // Horas entregues
+            // Horas entregues e Meta
             {
                 stack: [
-                    { text: 'ENTREGUE', fontSize: 8, color: COR_SUBTITULO, alignment: 'center', bold: true, characterSpacing: 0.3, margin: [0, 0, 0, 3] },
-                    { text: dia.horasEntregues, fontSize: 11, bold: true, color: COR_VERDE, alignment: 'center' },
+                    { text: 'ENTREGUE', fontSize: 8, color: COR_SUBTITULO, alignment: 'center', bold: true, characterSpacing: 0.3, margin: [0, 0, 0, 2] },
+                    { text: dia.horasEntregues, fontSize: 11, bold: true, color: COR_VERDE, alignment: 'center', margin: [0, 0, 0, 2] },
+                    { canvas: [{ type: 'line', x1: 5, y1: 0, x2: 45, y2: 0, lineWidth: 0.5, lineColor: '#e2e8f0' }], margin: [0, 2, 0, 2], alignment: 'center' },
+                    { text: `META: ${dia.horasPlanejadas}`, fontSize: 7.5, color: COR_SUBTITULO, alignment: 'center', bold: true },
                 ],
-                fillColor: '#ffffff', borderRadius: 6, padding: [6, 5], margin: [4, 0, 4, 4],
+                fillColor: '#ffffff', borderRadius: 6, padding: [6, 4], margin: [4, 0, 4, 4],
             },
             // Diferenças (se existirem) com setas Unicode
             ...(temDiferencas && diferencas

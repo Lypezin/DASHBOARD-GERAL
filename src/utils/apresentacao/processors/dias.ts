@@ -24,11 +24,15 @@ export const processarDias = (dadosBasicos: DadosBasicos) => {
         const horas = info?.segundos_realizados
             ? info.segundos_realizados / 3600
             : converterHorasParaDecimal(info?.horas_entregues || '0');
+        const horasPlanejadasDia = info?.segundos_planejados
+            ? info.segundos_planejados / 3600
+            : converterHorasParaDecimal(info?.horas_a_entregar || '0');
         return {
             nome: dia,
             sigla: siglaDia(dia),
             aderencia: info?.aderencia_percentual || 0,
             horasEntregues: formatarHorasParaHMS(horas.toString()),
+            horasPlanejadas: formatarHorasParaHMS(horasPlanejadasDia.toString()),
         };
     });
 
@@ -44,6 +48,10 @@ export const processarDias = (dadosBasicos: DadosBasicos) => {
             ? info2.segundos_realizados / 3600
             : converterHorasParaDecimal(info2?.horas_entregues || '0');
 
+        const horasPlanejadas2Dia = info2?.segundos_planejados
+            ? info2.segundos_planejados / 3600
+            : converterHorasParaDecimal(info2?.horas_a_entregar || '0');
+
         const aderencia1Dia = info1?.aderencia_percentual || 0;
         const aderencia2Dia = info2?.aderencia_percentual || 0;
         return {
@@ -51,6 +59,7 @@ export const processarDias = (dadosBasicos: DadosBasicos) => {
             sigla: siglaDia(dia),
             aderencia: aderencia2Dia,
             horasEntregues: formatarHorasParaHMS(horas2.toString()),
+            horasPlanejadas: formatarHorasParaHMS(horasPlanejadas2Dia.toString()),
             diferencaHoras: formatarDiferenca(calcularDiferenca(horas1, horas2), true),
             diferencaHorasPositiva: horas2 - horas1 >= 0,
             diferencaPercentualHoras: formatarDiferencaPercentual(calcularDiferencaPercentual(horas1, horas2)),

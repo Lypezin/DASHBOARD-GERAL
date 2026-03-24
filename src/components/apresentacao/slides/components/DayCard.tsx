@@ -6,6 +6,7 @@ export interface DiaSemanaResumo {
     sigla: string;
     aderencia: number;
     horasEntregues: string;
+    horasPlanejadas: string;
 }
 
 interface ComponentDayCardProps {
@@ -62,12 +63,17 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
                 </div>
             </div>
 
-            {/* Hours delivered */}
-            <div className="w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-md px-1.5 py-1.5 text-center">
-                <span className="text-[0.6rem] font-semibold text-emerald-600 dark:text-emerald-400 uppercase block">Entregue</span>
-                <span className="font-bold text-emerald-700 dark:text-emerald-300 text-sm block" style={buildTimeTextStyle(dia.horasEntregues, 0.8)}>
+            {/* Hours delivered & Meta */}
+            <div className="w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-md px-1 py-1.5 text-center">
+                <span className="text-[0.55rem] font-semibold text-emerald-600 dark:text-emerald-400 uppercase block leading-tight">Entregue</span>
+                <span className="font-bold text-emerald-700 dark:text-emerald-300 text-[0.85rem] block leading-tight" style={buildTimeTextStyle(dia.horasEntregues, 0.75)}>
                     {dia.horasEntregues}
                 </span>
+                <div className="mt-1 pt-1 border-t border-emerald-200/50 dark:border-emerald-800/30">
+                    <span className="text-[0.55rem] font-medium text-emerald-600/80 dark:text-emerald-400/80 block leading-tight">
+                        Meta: {dia.horasPlanejadas}
+                    </span>
+                </div>
             </div>
 
             {/* Variation (only for second week) */}
