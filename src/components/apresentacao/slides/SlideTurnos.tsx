@@ -5,7 +5,7 @@ import { SlideHeader } from './components/SlideHeader';
 import { VariationBadge } from './components/VariationBadge';
 import { WeekCircle } from './components/WeekCircle';
 
-interface TurnoResumo { aderencia: number; horasEntregues: string; }
+interface TurnoResumo { aderencia: number; horasEntregues: string; horasPlanejadas: string; }
 
 interface VariacaoResumo { label: string; valor: string; positivo: boolean; }
 

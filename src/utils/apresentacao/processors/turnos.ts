@@ -52,16 +52,26 @@ export const processarTurnos = (dadosBasicos: DadosBasicos) => {
         const diffHorasPercent = calcularDiferencaPercentual(horasSem1, horasSem2);
         const diffAderenciaPercent = calcularDiferenca(aderenciaSem1, aderenciaSem2); // Fixed: Absolute difference (p.p.)
 
+        const horasPlanejadasSem1 = turnoSemana1?.segundos_planejados
+            ? turnoSemana1.segundos_planejados / 3600
+            : converterHorasParaDecimal(turnoSemana1?.horas_a_entregar || '0');
+
+        const horasPlanejadasSem2 = turnoSemana2?.segundos_planejados
+            ? turnoSemana2.segundos_planejados / 3600
+            : converterHorasParaDecimal(turnoSemana2?.horas_a_entregar || '0');
+
         return {
             nome: nomeTurno.toUpperCase(),
             horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasBase).toString()), // Added field
             semana1: {
                 aderencia: aderenciaSem1,
                 horasEntregues: formatarHorasParaHMS(Math.abs(horasSem1).toString()),
+                horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasSem1).toString()),
             },
             semana2: {
                 aderencia: aderenciaSem2,
                 horasEntregues: formatarHorasParaHMS(Math.abs(horasSem2).toString()),
+                horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasSem2).toString()),
             },
             variacoes: [
                 {

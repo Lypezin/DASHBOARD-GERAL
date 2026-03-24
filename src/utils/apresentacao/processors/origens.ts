@@ -62,10 +62,12 @@ export const processarOrigens = (dadosBasicos: DadosBasicos): OrigensProcessadas
         semana1: {
             aderencia: mediaAderenciaSem1,
             horasEntregues: '-',
+            horasPlanejadas: formatarHorasParaHMS(Math.abs(totalHorasPlanejadasSem1 / (origensSemana1.length || 1)).toString()),
         },
         semana2: {
             aderencia: mediaAderenciaSem2,
             horasEntregues: '-',
+            horasPlanejadas: formatarHorasParaHMS(Math.abs(totalHorasPlanejadasSem2 / (origensSemana2.length || 1)).toString()),
         },
         variacoes: [
             {
