@@ -784,7 +784,7 @@ export async function fetchMarketingWeeklyComparisonByCity(
     })();
 
     // 1. Buscar todos os dados de marketing do período e organização
-    let query = client.from('dados_marketing').select('*, status, cidade, Criado, data_envio, data_liberacao, rodou_dia, created_at');
+    let query = client.from('dados_marketing').select('*, status, regiao_atuacao, Criado, data_envio, data_liberacao, rodou_dia, created_at');
     if (organizationId) query = query.eq('organization_id', organizationId);
     
     const startStr = rawStart.toISOString().split('T')[0];
@@ -848,14 +848,20 @@ export async function fetchMarketingWeeklyComparisonByCity(
 
         // Filtrar e processar mktData para esta cidade
         mktData?.forEach(item => {
-            const rowCidade = (item.cidade || '').toUpperCase().trim();
+            const rowCidade = (item.regiao_atuacao || '').toUpperCase().trim();
             const normalizedTarget = cityName.toUpperCase().trim();
+            const targetNoAccents = normalizedTarget.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const targetBase = normalizedTarget.replace(' 2.0', '');
+            const targetBaseNoAccents = targetBase.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             
             let match = false;
             if (cityName === 'ABC 2.0') {
                 if (['ABC', 'ABC 2.0', 'SANTO ANDRÉ', 'SÃO BERNARDO', 'SANTO ANDRE', 'SAO BERNARDO'].includes(rowCidade)) match = true;
             } else {
-                if (rowCidade === normalizedTarget || rowCidade === normalizedTarget.replace(' 2.0', '')) match = true;
+                if (rowCidade === normalizedTarget || 
+                    rowCidade === targetNoAccents || 
+                    rowCidade === targetBase || 
+                    rowCidade === targetBaseNoAccents) match = true;
             }
 
             if (!match) return;
@@ -876,23 +882,36 @@ export async function fetchMarketingWeeklyComparisonByCity(
 
             processMetric(item.Criado || item.created_at || item.data_envio, 'criado');
             if (item.data_envio) {
-                if (!['D-Erro', 'D-Duplicado'].includes(item.status)) processMetric(item.data_envio, 'enviado');
+                if (!EXCLUDED_ENVIADOS.includes(item.status)) processMetric(item.data_envio, 'enviado');
+                if (ABERTO_STATUSES.includes(item.status)) processMetric(item.data_envio, 'aberto');
+                if (VOLTOU_STATUSES.includes(item.status)) processMetric(item.data_envio, 'voltou');
             }
             if (item.data_liberacao && item.status === 'Liberado') processMetric(item.data_liberacao, 'liberado');
             processMetric(item.rodou_dia, 'rodando');
+            
+            if (item.conversas) {
+                processMetric(item.data_envio || item.created_at || item.data_liberacao, 'conversas', Number(item.conversas) || 0);
+            }
         });
 
         // Filtrar e processar costData para esta cidade
         costData?.forEach(row => {
             const rowCidade = (row.cidade || '').toUpperCase().trim();
+            const rowNoAccents = rowCidade.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             
             let match = false;
             if (cityName === 'ABC 2.0') {
                 if (['ABC', 'ABC 2.0', 'SANTO ANDRÉ', 'SÃO BERNARDO', 'SANTO ANDRE', 'SAO BERNARDO'].includes(rowCidade)) match = true;
             } else {
                 const normalizedTarget = cityName.toUpperCase().trim().replace(' 2.0', '');
+                const targetNoAccents = normalizedTarget.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 const dbMapped = REGIAO_TO_CIDADE_VALORES[cityName]?.toUpperCase();
-                if (rowCidade === normalizedTarget || rowCidade === dbMapped) match = true;
+                const dbMappedNoAccents = dbMapped?.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                if (rowCidade === normalizedTarget || 
+                    rowNoAccents === targetNoAccents || 
+                    rowCidade === dbMapped || 
+                    rowNoAccents === dbMappedNoAccents) match = true;
             }
 
             if (!match) return;
