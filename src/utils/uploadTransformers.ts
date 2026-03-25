@@ -24,19 +24,9 @@ export const marketingTransformers = {
   status: commonTransformers.string(500),
   regiao_atuacao: commonTransformers.string(500),
   sub_praca_abc: commonTransformers.string(500),
-  telefono_trabalho: commonTransformers.string(500),
+  telefone_trabalho: commonTransformers.string(500),
   outro_telefone: commonTransformers.string(500),
   responsavel: commonTransformers.string(500),
-
-  // conversas - opcional, número
-  conversas: (value: unknown, rowIndex: number): number | null => {
-    if (value === null || value === undefined || value === '') return null;
-    try {
-      return commonTransformers.number(value, rowIndex);
-    } catch (e) {
-      return null;
-    }
-  },
 
   // id_entregador - opcional, pode ser null
   id_entregador: (value: unknown, rowIndex: number): string | null => {
@@ -87,5 +77,15 @@ export const valoresCidadeTransformers = {
 
   // Valor obrigatório (numérico)
   valor: commonTransformers.number,
+
+  // Conversas (opcional)
+  conversas: (value: unknown, rowIndex: number): number | null => {
+    if (value === null || value === undefined || value === '') return null;
+    try {
+      return commonTransformers.number(value, rowIndex);
+    } catch (e) {
+      return null;
+    }
+  },
 };
 

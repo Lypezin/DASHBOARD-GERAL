@@ -45,7 +45,6 @@ export const MARKETING_COLUMN_MAP: { [key: string]: string } = {
   'Rodou dia': 'rodou_dia',
   'Responsável': 'responsavel',
   'Criado': 'Criado',
-  'CONVERSAS': 'conversas',
 };
 
 /**
@@ -56,6 +55,8 @@ export const VALORES_CIDADE_COLUMN_MAP: { [key: string]: string } = {
   'ID': 'id_atendente',
   'CIDADE': 'cidade',
   'VALOR': 'valor',
+  'CONVERSAS': 'conversas',
+  'CONVERSAR': 'conversas',
 };
 
 /**

@@ -499,6 +499,32 @@ export async function fetchMarketingWeeklyComparison(
         }
     });
 
+    // Passo 2: Buscar conversas da tabela de custos (novidade)
+    let costQuery = client.from('dados_valores_cidade').select('data, conversas, cidade');
+    if (organizationId) costQuery = costQuery.eq('organization_id', organizationId);
+    
+    // Filtrar por cidade se especificado
+    if (city) {
+        if (city === 'ABC 2.0') {
+            costQuery = costQuery.in('cidade', ['ABC', 'ABC 2.0', 'SANTO ANDRÉ', 'SÃO BERNARDO', 'SANTO ANDRE', 'SAO BERNARDO']);
+        } else {
+            const normalizedCity = city.replace(' 2.0', '').toUpperCase();
+            costQuery = costQuery.or(`cidade.ilike.%${normalizedCity}%`);
+        }
+    }
+
+    const { data: costData } = await costQuery.gte('data', queryStartISO).lte('data', queryEndISO);
+
+    costData?.forEach(item => {
+        if (item.conversas) {
+            const d = new Date(`${item.data}T12:00:00`);
+            const weekKey = getWeekKey(d);
+            if (weekMap.has(weekKey)) {
+                weekMap.get(weekKey)!.conversas += Number(item.conversas) || 0;
+            }
+        }
+    });
+
     return order.map(key => weekMap.get(key)!);
 }
 
@@ -578,7 +604,7 @@ export async function fetchMarketingCostsComparison(
         });
             // Passo 1: Buscar TODOS os Custos de Marketing da organização no período
         let globalCustoQuery = client.from('dados_valores_cidade')
-            .select('valor, cidade, id_atendente, organization_id')
+            .select('valor, cidade, id_atendente, organization_id, conversas')
             .gte('data', sISO)
             .lte('data', eISO)
             .in('id_atendente', allMarketingIds);
@@ -601,6 +627,7 @@ export async function fetchMarketingCostsComparison(
 
         await Promise.all(slideCities.map(async (displayName) => {
             let cityValor = 0;
+            let cityConversas = 0;
             const normalizedDisplay = displayName.toUpperCase().trim();
             const dbMapped = REGIAO_TO_CIDADE_VALORES[displayName];
 
@@ -619,7 +646,10 @@ export async function fetchMarketingCostsComparison(
                     if (simpleRow === simpleDisplay) match = true;
                 }
 
-                if (match) cityValor += Number(row.valor) || 0;
+                if (match) {
+                    cityValor += Number(row.valor) || 0;
+                    cityConversas += Number((row as any).conversas) || 0;
+                }
             });
             
             const fetchCityMetric = async (city: string) => {
@@ -629,20 +659,13 @@ export async function fetchMarketingCostsComparison(
                     return buildCityQuery(q, city);
                 };
 
-                const [l, r, a, conv] = await Promise.all([
+                const [l, r, a] = await Promise.all([
                     getBaseQuery().eq('status', 'Liberado').gte('data_envio', sISO).lte('data_envio', eISO),
                     getBaseQuery().not('rodou_dia', 'is', null).gte('rodou_dia', sISO).lte('rodou_dia', eISO),
                     getBaseQuery().in('status', ABERTO_STATUSES).gte('data_envio', sISO).lte('data_envio', eISO),
-                    client.from('dados_marketing')
-                        .select('conversas')
-                        .match(organizationId ? { organization_id: organizationId } : {})
-                        .not('conversas', 'is', null)
-                        .or(`data_envio.gte.${sISO},data_liberacao.gte.${sISO},rodou_dia.gte.${sISO}`)
-                        .eq('regiao_atuacao', city) // Use regiao_atuacao instead of buildCityQuery for sum query to be simpler
                 ]);
                 
-                const conversasSum = (conv.data as any[])?.reduce((acc, curr) => acc + (curr.conversas || 0), 0) || 0;
-                return { l: l.count || 0, r: r.count || 0, a: a.count || 0, conv: conversasSum };
+                return { l: l.count || 0, r: r.count || 0, a: a.count || 0, conv: 0 }; // conv será somado via cityConversas
             };
 
             let metrics = { l: 0, r: 0, a: 0, conv: 0 };
@@ -657,7 +680,7 @@ export async function fetchMarketingCostsComparison(
                 liberado: metrics.l,
                 rodando: metrics.r,
                 aberto: metrics.a,
-                conversas: metrics.conv
+                conversas: cityConversas
             });
         }));
 
