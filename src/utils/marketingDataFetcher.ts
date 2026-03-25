@@ -574,8 +574,8 @@ export async function fetchMarketingCostsComparison(
     const prevMonthStart = new Date(start.getFullYear(), start.getMonth(), 1); // Same month as current
     const prevMonthEnd = new Date(start.getFullYear(), start.getMonth() + 1, 0);
 
-    const currentStartISO = currentMonthStart.toISOString().split('T')[0];
-    const currentEndISO = currentMonthEnd.toISOString().split('T')[0];
+    const currentStartISO = currentStart;
+    const currentEndISO = currentEnd;
     
     // Slide PASSADA (Mês Atual - Parcial): Usa o corte de quarta-feira do PRÓPRIO mês atual
     const prevStartISO = prevMonthStart.toISOString().split('T')[0];
