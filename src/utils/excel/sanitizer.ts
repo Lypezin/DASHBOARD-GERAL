@@ -26,9 +26,17 @@ export function sanitizeWithMapping(
                     const actualColName = columnMapping[excelCol] || excelCol;
                     let value = row[actualColName];
 
-                    // Se a coluna não existe na planilha, usar null
+                    // Se a coluna não existe na planilha, não sobrescrever se já tivermos um valor
                     if (value === undefined) {
-                        sanitized[dbCol] = null;
+                        if (!(dbCol in sanitized)) {
+                            sanitized[dbCol] = null;
+                        }
+                        continue;
+                    }
+
+                    // Se já encontramos um valor válido de outra coluna mapeada para o mesmo dbCol, 
+                    // e este novo valor é vazio, não sobrescrever.
+                    if (sanitized[dbCol] !== undefined && sanitized[dbCol] !== null && (value === null || value === '')) {
                         continue;
                     }
 
