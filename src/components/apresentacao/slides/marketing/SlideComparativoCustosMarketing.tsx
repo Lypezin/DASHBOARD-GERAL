@@ -75,8 +75,8 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
                         <thead>
                             <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
                                 <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] border-r border-slate-800/10">Região</th>
-                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Conversa</th>
-                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10 whitespace-nowrap">Custo por conversa</th>
+                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Conversas</th>
+                                <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10 whitespace-nowrap">Custo por Conversa</th>
                                 <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Valor Usado</th>
                                 <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPL</th>
                                 <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPA</th>

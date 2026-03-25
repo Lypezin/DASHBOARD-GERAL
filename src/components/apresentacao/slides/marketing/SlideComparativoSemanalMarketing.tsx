@@ -108,7 +108,7 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
                             
                             {week.conversas !== undefined && (
                                 <div className={`mt-2 pt-2 border-t ${isDark ? 'border-blue-900/40' : 'border-blue-100'}`}>
-                                    <div className="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">Interações</div>
+                                    <div className="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">Conversas</div>
                                     <div className={`text-xl font-black tracking-tighter transition-colors duration-500 ${
                                         isDark ? 'text-blue-400' : 'text-blue-600'
                                     }`}>
