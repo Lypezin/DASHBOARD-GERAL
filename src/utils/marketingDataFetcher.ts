@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
-import { CIDADES } from '@/constants/marketing';
+import { CIDADES, SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS, CITY_DB_MAPPING } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingTotals, MarketingCityData, MarketingDateFilter, MarketingCostsComparison, MarketingCostData } from '@/types';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -29,6 +29,14 @@ const VOLTOU_STATUSES = [
     'bug onboarding',
     'Bug Onboarding'
 ];
+
+const getMondayOfIsoWeek = (date: Date) => {
+    const dt = new Date(date);
+    const day = (dt.getDay() + 6) % 7; // 0 = Monday, 6 = Sunday
+    dt.setDate(dt.getDate() - day);
+    dt.setHours(12, 0, 0, 0);
+    return dt;
+};
 
 export async function fetchMarketingTotalsData(
     filters: MarketingFilters, 
@@ -373,6 +381,25 @@ export async function fetchMarketingDailyEvolution(
     return Array.from(dailyMap.values()).sort((a, b) => a.data.localeCompare(b.data));
 }
 
+const getIsoWeekInfo = (date: Date) => {
+    const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    // Thursday determines the week number in ISO.
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - ((tmp.getUTCDay() + 6) % 7));
+    const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return { year: tmp.getUTCFullYear(), week: weekNo };
+};
+
+const getWeekKey = (date: Date) => {
+    const { year, week } = getIsoWeekInfo(date);
+    return `${year}-W${week.toString().padStart(2, '0')}`;
+};
+
+const getWeekLabel = (weekKey: string) => {
+    const match = weekKey.match(/^-?\d{4}-W(\d{2})$/);
+    return match ? `Semana ${match[1]}` : weekKey;
+};
+
 export async function fetchMarketingWeeklyComparison(
     organizationId: string | null,
     city: string | null = null,
@@ -389,26 +416,6 @@ export async function fetchMarketingWeeklyComparison(
         d.setDate(d.getDate() - 7 * 7);
         return d;
     })();
-
-    // Utiliza ISO week para garantir que a "Semana 01" exista quando o intervalo cobrir o início do ano.
-    const getIsoWeekInfo = (date: Date) => {
-        const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-        // Thursday determines the week number in ISO.
-        tmp.setUTCDate(tmp.getUTCDate() + 4 - ((tmp.getUTCDay() + 6) % 7));
-        const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
-        const weekNo = Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-        return { year: tmp.getUTCFullYear(), week: weekNo };
-    };
-
-    const getWeekKey = (date: Date) => {
-        const { year, week } = getIsoWeekInfo(date);
-        return `${year}-W${week.toString().padStart(2, '0')}`;
-    };
-
-    const getWeekLabel = (weekKey: string) => {
-        const match = weekKey.match(/^-?\d{4}-W(\d{2})$/);
-        return match ? `Semana ${match[1]}` : weekKey;
-    };
 
     const weekMap = new Map<string, { 
         semana: string; criado: number; enviado: number; liberado: number; rodando: number; aberto: number; voltou: number; conversas: number 
@@ -784,11 +791,18 @@ export async function fetchMarketingWeeklyComparisonByCity(
     })();
 
     // 1. Buscar todos os dados de marketing do período e organização
-    let query = client.from('dados_marketing').select('*, status, regiao_atuacao, Criado, data_envio, data_liberacao, rodou_dia, created_at');
-    if (organizationId) query = query.eq('organization_id', organizationId);
-    
-    const startStr = rawStart.toISOString().split('T')[0];
+    const startOfFirstWeek = getMondayOfIsoWeek(rawStart);
+    const endOfLastWeek = getMondayOfIsoWeek(end);
+    const minStart = new Date(endOfLastWeek.getTime());
+    minStart.setDate(minStart.getDate() - 7 * 7);
+    const finalStart = startOfFirstWeek > minStart ? minStart : startOfFirstWeek;
+
+    const startStr = finalStart.toISOString().split('T')[0];
     const endStr = end.toISOString().split('T')[0];
+
+    // 1. Buscar todos os dados de marketing do período e organização
+    let query = client.from('dados_marketing').select('*');
+    if (organizationId) query = query.eq('organization_id', organizationId);
     
     query = query.or(`data_envio.gte.${startStr},data_liberacao.gte.${startStr},created_at.gte.${startStr},Criado.gte.${startStr},rodou_dia.gte.${startStr}`);
     query = query.or(`data_envio.lte.${endStr},data_liberacao.lte.${endStr},created_at.lte.${endStr},Criado.lte.${endStr},rodou_dia.lte.${endStr}`);
@@ -808,36 +822,8 @@ export async function fetchMarketingWeeklyComparisonByCity(
         const weekMap = new Map<string, any>();
         const order: string[] = [];
         
-        // Inicializar semanas (mesma lógica do fetcher original)
-        const getIsoWeekInfo = (date: Date) => {
-            const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-            tmp.setUTCDate(tmp.getUTCDate() + 4 - ((tmp.getUTCDay() + 6) % 7));
-            const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
-            const weekNo = Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-            return { year: tmp.getUTCFullYear(), week: weekNo };
-        };
-        const getWeekKey = (date: Date) => {
-            const { year, week } = getIsoWeekInfo(date);
-            return `${year}-W${week.toString().padStart(2, '0')}`;
-        };
-        const getWeekLabel = (weekKey: string) => {
-            const match = weekKey.match(/^-?\d{4}-W(\d{2})$/);
-            return match ? `Semana ${match[1]}` : weekKey;
-        };
-        const getMondayOfIsoWeek = (date: Date) => {
-            const dt = new Date(date);
-            const day = (dt.getDay() + 6) % 7;
-            dt.setDate(dt.getDate() - day);
-            dt.setHours(12, 0, 0, 0);
-            return dt;
-        };
-
-        const startOfFirstWeek = getMondayOfIsoWeek(rawStart);
-        const endOfLastWeek = getMondayOfIsoWeek(end);
-        const minStart = new Date(endOfLastWeek.getTime());
-        minStart.setDate(minStart.getDate() - 7 * 7);
-        const finalStart = startOfFirstWeek > minStart ? minStart : startOfFirstWeek;
-
+        const startStrQuery = finalStart.toISOString().split('T')[0];
+        
         for (let d = new Date(finalStart); d <= endOfLastWeek; d.setDate(d.getDate() + 7)) {
             const key = getWeekKey(d);
             if (!weekMap.has(key)) {
@@ -845,23 +831,39 @@ export async function fetchMarketingWeeklyComparisonByCity(
                 weekMap.set(key, { semana: getWeekLabel(key), criado: 0, enviado: 0, liberado: 0, rodando: 0, aberto: 0, voltou: 0, conversas: 0 });
             }
         }
-
+        
         // Filtrar e processar mktData para esta cidade
         mktData?.forEach(item => {
-            const rowCidade = (item.regiao_atuacao || '').toUpperCase().trim();
+            const rowRegiao = (item.regiao_atuacao || '').toUpperCase().trim();
+            const rowSubPraca = (item.sub_praca_abc || '').toUpperCase().trim();
             const normalizedTarget = cityName.toUpperCase().trim();
             const targetNoAccents = normalizedTarget.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             const targetBase = normalizedTarget.replace(' 2.0', '');
             const targetBaseNoAccents = targetBase.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             
             let match = false;
-            if (cityName === 'ABC 2.0') {
-                if (['ABC', 'ABC 2.0', 'SANTO ANDRÉ', 'SÃO BERNARDO', 'SANTO ANDRE', 'SAO BERNARDO'].includes(rowCidade)) match = true;
+            
+            // Lógica especial para ABC sub-praças
+            if (cityName === 'Santo André') {
+                if (rowRegiao === 'ABC 2.0' && SANTO_ANDRE_SUB_PRACAS.map((s: string) => s.toUpperCase()).includes(rowSubPraca)) match = true;
+            } else if (cityName === 'São Bernardo') {
+                if (rowRegiao === 'ABC 2.0' && SAO_BERNARDO_SUB_PRACAS.map((s: string) => s.toUpperCase()).includes(rowSubPraca)) match = true;
+            } else if (cityName === 'ABC 2.0') {
+                if (rowRegiao === 'ABC 2.0' && 
+                    !SANTO_ANDRE_SUB_PRACAS.map((s: string) => s.toUpperCase()).includes(rowSubPraca) && 
+                    !SAO_BERNARDO_SUB_PRACAS.map((s: string) => s.toUpperCase()).includes(rowSubPraca) && 
+                    item.sub_praca_abc) match = true;
             } else {
-                if (rowCidade === normalizedTarget || 
-                    rowCidade === targetNoAccents || 
-                    rowCidade === targetBase || 
-                    rowCidade === targetBaseNoAccents) match = true;
+                // Mapeamento padrão e variantes
+                const mappedDB = (CITY_DB_MAPPING[cityName] || '').toUpperCase();
+                const mappedNoAccents = mappedDB.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                if (rowRegiao === normalizedTarget || 
+                    rowRegiao === targetNoAccents || 
+                    rowRegiao === targetBase || 
+                    rowRegiao === targetBaseNoAccents ||
+                    rowRegiao === mappedDB ||
+                    rowRegiao === mappedNoAccents) match = true;
             }
 
             if (!match) return;
