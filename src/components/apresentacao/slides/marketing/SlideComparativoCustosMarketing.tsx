@@ -90,7 +90,14 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
                                 const cpl = row.liberado > 0 ? row.valorUsado / row.liberado : 0;
 
                                 return (
-                                    <tr key={idx} className={`border-b last:border-0 ${isDark ? 'border-slate-800' : 'border-slate-100'} hover:bg-blue-500/5 transition-colors`}>
+                                    <motion.tr 
+                                        key={idx} 
+                                        initial={{ opacity: 0, x: -10 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: 0.1 + (idx * 0.05) }}
+                                        className={`border-b last:border-0 ${isDark ? 'border-slate-800' : 'border-slate-100'} hover:bg-blue-500/5 transition-colors`}
+                                    >
                                         <td className="px-5 py-4 text-sm font-bold border-r border-slate-800/5">{row.regiao}</td>
                                         <td className="px-5 py-4 text-sm text-center font-bold border-r border-slate-800/5">
                                             {row.conversas || '-'}
@@ -110,7 +117,7 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
                                         <td className="px-5 py-4 text-lg text-center font-black text-emerald-500">
                                             {row.aberto || '-'}
                                         </td>
-                                    </tr>
+                                    </motion.tr>
                                 );
                             }) : (
                                 <tr>

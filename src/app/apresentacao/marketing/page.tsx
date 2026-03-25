@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { fetchMarketingTotalsData, fetchMarketingCitiesData, fetchMarketingDailyEvolution, fetchMarketingWeeklyComparison, fetchMarketingCostsComparison } from '@/utils/marketingDataFetcher';
+import { fetchMarketingTotalsData, fetchMarketingCitiesData, fetchMarketingDailyEvolution, fetchMarketingWeeklyComparison, fetchMarketingCostsComparison, fetchMarketingWeeklyComparisonByCity } from '@/utils/marketingDataFetcher';
 import { generatePrintStyles } from '@/utils/apresentacao/printPageHelpers';
 import { MarketingReportSlides } from './components/MarketingReportSlides';
 import { createClient } from '@/utils/supabase/server';
@@ -76,13 +76,8 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         fetchMarketingCostsComparison(filters as any, orgId, supabase)
     ]);
 
-    // Buscar comparativo semanal para cada cidade
-    const weeklyDataByCity = await Promise.all(
-        CIDADES.map(async (cidade) => {
-            const data = await fetchMarketingWeeklyComparison(orgId, cidade, dateInicial, dateFinal, supabase);
-            return { cidade, data };
-        })
-    );
+    // Buscar comparativo semanal para todas as cidades em lote (Otimizado!)
+    const weeklyDataByCity = await fetchMarketingWeeklyComparisonByCity(orgId, CIDADES as unknown as string[], dateInicial, dateFinal, supabase);
 
     const pageStyle = generatePrintStyles();
     

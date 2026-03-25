@@ -765,3 +765,148 @@ export async function fetchMarketingCostsComparison(
     return { atual: atualData, passada: passadaData };
 }
 
+/**
+ * Busca o comparativo semanal para múltiplas cidades de uma vez (Otimizado)
+ */
+export async function fetchMarketingWeeklyComparisonByCity(
+    organizationId: string | null,
+    cities: string[],
+    startDate: string | null = null,
+    endDate: string | null = null,
+    client: SupabaseClient = supabase
+): Promise<Array<{ cidade: string; data: any[] }>> {
+    const today = new Date();
+    const end = endDate ? new Date(endDate) : today;
+    const rawStart = startDate ? new Date(startDate) : (() => {
+        const d = new Date(end.getTime());
+        d.setDate(d.getDate() - 7 * 7);
+        return d;
+    })();
+
+    // 1. Buscar todos os dados de marketing do período e organização
+    let query = client.from('dados_marketing').select('*, status, cidade, Criado, data_envio, data_liberacao, rodou_dia, created_at');
+    if (organizationId) query = query.eq('organization_id', organizationId);
+    
+    const startStr = rawStart.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+    
+    query = query.or(`data_envio.gte.${startStr},data_liberacao.gte.${startStr},created_at.gte.${startStr},Criado.gte.${startStr},rodou_dia.gte.${startStr}`);
+    query = query.or(`data_envio.lte.${endStr},data_liberacao.lte.${endStr},created_at.lte.${endStr},Criado.lte.${endStr},rodou_dia.lte.${endStr}`);
+
+    // 2. Buscar todos os dados de custo do período e organização
+    let costQuery = client.from('dados_valores_cidade').select('data, conversas, cidade');
+    if (organizationId) costQuery = costQuery.eq('organization_id', organizationId);
+    costQuery = costQuery.gte('data', startStr).lte('data', endStr);
+
+    const [{ data: mktData }, { data: costData }] = await Promise.all([query, costQuery]);
+
+    // 3. Processar para cada cidade
+    return cities.map(cityName => {
+        // Aproveita a lógica existente de fetchMarketingWeeklyComparison mas com dados pré-carregados
+        // No entanto, para ser REALMENTE rápido, vamos implementar a lógica de agrupamento aqui
+        
+        const weekMap = new Map<string, any>();
+        const order: string[] = [];
+        
+        // Inicializar semanas (mesma lógica do fetcher original)
+        const getIsoWeekInfo = (date: Date) => {
+            const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            tmp.setUTCDate(tmp.getUTCDate() + 4 - ((tmp.getUTCDay() + 6) % 7));
+            const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+            return { year: tmp.getUTCFullYear(), week: weekNo };
+        };
+        const getWeekKey = (date: Date) => {
+            const { year, week } = getIsoWeekInfo(date);
+            return `${year}-W${week.toString().padStart(2, '0')}`;
+        };
+        const getWeekLabel = (weekKey: string) => {
+            const match = weekKey.match(/^-?\d{4}-W(\d{2})$/);
+            return match ? `Semana ${match[1]}` : weekKey;
+        };
+        const getMondayOfIsoWeek = (date: Date) => {
+            const dt = new Date(date);
+            const day = (dt.getDay() + 6) % 7;
+            dt.setDate(dt.getDate() - day);
+            dt.setHours(12, 0, 0, 0);
+            return dt;
+        };
+
+        const startOfFirstWeek = getMondayOfIsoWeek(rawStart);
+        const endOfLastWeek = getMondayOfIsoWeek(end);
+        const minStart = new Date(endOfLastWeek.getTime());
+        minStart.setDate(minStart.getDate() - 7 * 7);
+        const finalStart = startOfFirstWeek > minStart ? minStart : startOfFirstWeek;
+
+        for (let d = new Date(finalStart); d <= endOfLastWeek; d.setDate(d.getDate() + 7)) {
+            const key = getWeekKey(d);
+            if (!weekMap.has(key)) {
+                order.push(key);
+                weekMap.set(key, { semana: getWeekLabel(key), criado: 0, enviado: 0, liberado: 0, rodando: 0, aberto: 0, voltou: 0, conversas: 0 });
+            }
+        }
+
+        // Filtrar e processar mktData para esta cidade
+        mktData?.forEach(item => {
+            const rowCidade = (item.cidade || '').toUpperCase().trim();
+            const normalizedTarget = cityName.toUpperCase().trim();
+            
+            let match = false;
+            if (cityName === 'ABC 2.0') {
+                if (['ABC', 'ABC 2.0', 'SANTO ANDRÉ', 'SÃO BERNARDO', 'SANTO ANDRE', 'SAO BERNARDO'].includes(rowCidade)) match = true;
+            } else {
+                if (rowCidade === normalizedTarget || rowCidade === normalizedTarget.replace(' 2.0', '')) match = true;
+            }
+
+            if (!match) return;
+
+            const processMetric = (dateStr: string | null, type: string, val: number = 1) => {
+                if (!dateStr) return;
+                const d = new Date(dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr);
+                const weekKey = getWeekKey(d);
+                if (weekMap.has(weekKey)) {
+                    const w = weekMap.get(weekKey)!;
+                    if (type === 'criado') w.criado += val;
+                    if (type === 'enviado') w.enviado += val;
+                    if (type === 'liberado') w.liberado += val;
+                    if (type === 'rodando') w.rodando += val;
+                    if (type === 'conversas') w.conversas += val;
+                }
+            };
+
+            processMetric(item.Criado || item.created_at || item.data_envio, 'criado');
+            if (item.data_envio) {
+                if (!['D-Erro', 'D-Duplicado'].includes(item.status)) processMetric(item.data_envio, 'enviado');
+            }
+            if (item.data_liberacao && item.status === 'Liberado') processMetric(item.data_liberacao, 'liberado');
+            processMetric(item.rodou_dia, 'rodando');
+        });
+
+        // Filtrar e processar costData para esta cidade
+        costData?.forEach(row => {
+            const rowCidade = (row.cidade || '').toUpperCase().trim();
+            
+            let match = false;
+            if (cityName === 'ABC 2.0') {
+                if (['ABC', 'ABC 2.0', 'SANTO ANDRÉ', 'SÃO BERNARDO', 'SANTO ANDRE', 'SAO BERNARDO'].includes(rowCidade)) match = true;
+            } else {
+                const normalizedTarget = cityName.toUpperCase().trim().replace(' 2.0', '');
+                const dbMapped = REGIAO_TO_CIDADE_VALORES[cityName]?.toUpperCase();
+                if (rowCidade === normalizedTarget || rowCidade === dbMapped) match = true;
+            }
+
+            if (!match) return;
+
+            if (row.data) {
+                const d = new Date(`${row.data}T12:00:00`);
+                const weekKey = getWeekKey(d);
+                if (weekMap.has(weekKey)) {
+                    weekMap.get(weekKey)!.conversas += (Number(row.conversas) || 0);
+                }
+            }
+        });
+
+        return { cidade: cityName, data: order.map(key => weekMap.get(key)!) };
+    });
+}
+

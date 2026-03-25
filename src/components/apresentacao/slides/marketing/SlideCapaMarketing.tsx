@@ -27,79 +27,93 @@ const SlideCapaMarketing: React.FC<SlideCapaMarketingProps> = ({
             isDark ? 'bg-[#0A1D3A]' : 'bg-white'
         }`}>
             {/* Background Sutil - Gradiente Radial */}
-            <div className={`absolute inset-0 opacity-60 transition-opacity duration-500 ${
+            <div className={`absolute inset-0 opacity-80 transition-opacity duration-500 ${
                 isDark 
-                ? 'bg-[radial-gradient(circle_at_50%_50%,#1e293b_0%,#0A1D3A_100%)]' 
-                : 'bg-[radial-gradient(circle_at_50%_50%,#f8fafc_0%,#f1f5f9_100%)]'
+                ? 'bg-[radial-gradient(circle_at_50%_50%,#0f172a_0%,#020617_100%)]' 
+                : 'bg-[radial-gradient(circle_at_50%_50%,#ffffff_0%,#f8fafc_100%)]'
             }`} />
 
-            {/* Formas Abstratas Premium */}
+            {/* Formas Abstratas Premium - Novas e mais vibrantes */}
             <motion.div 
                 animate={{ 
-                    scale: [1, 1.1, 1],
-                    opacity: isDark ? [0.1, 0.15, 0.1] : [0.3, 0.4, 0.3]
+                    scale: [1, 1.2, 1],
+                    x: [0, 50, 0],
+                    y: [0, -30, 0],
+                    opacity: isDark ? [0.15, 0.25, 0.15] : [0.4, 0.6, 0.4]
                 }}
-                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                className={`absolute -top-[10%] -right-[5%] w-[50%] h-[50%] rounded-full blur-[100px] ${
-                    isDark ? 'bg-blue-500/20' : 'bg-blue-200/40'
+                transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                className={`absolute top-[-20%] right-[-10%] w-[700px] h-[700px] rounded-full blur-[120px] ${
+                    isDark ? 'bg-blue-600/20' : 'bg-blue-200/50'
                 }`}
             />
             
             <motion.div 
                 animate={{ 
-                    scale: [1.1, 1, 1.1],
-                    opacity: isDark ? [0.05, 0.1, 0.05] : [0.2, 0.3, 0.2]
+                    scale: [1.2, 1, 1.2],
+                    x: [0, -40, 0],
+                    y: [0, 40, 0],
+                    opacity: isDark ? [0.1, 0.2, 0.1] : [0.3, 0.5, 0.3]
                 }}
-                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-                className={`absolute -bottom-[15%] -left-[10%] w-[60%] h-[60%] rounded-full blur-[120px] ${
-                    isDark ? 'bg-slate-400/10' : 'bg-slate-200/30'
+                transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+                className={`absolute bottom-[-10%] left-[-15%] w-[800px] h-[800px] rounded-full blur-[150px] ${
+                    isDark ? 'bg-indigo-500/15' : 'bg-indigo-100/40'
                 }`}
             />
 
-            {/* Barra Lateral Sofisticada */}
-            <div className="absolute left-0 top-0 h-full w-[120px] pointer-events-none">
-                <div className={`h-full w-2 ${isDark ? 'bg-blue-600/30' : 'bg-blue-600/10'}`} />
-                <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-center px-6 opacity-30">
-                    <div className="h-1 w-8 bg-blue-400 mb-2" />
-                    <div className="h-1 w-12 bg-blue-400 mb-2" />
-                    <div className="h-1 w-6 bg-blue-400" />
-                </div>
-            </div>
+            <motion.div 
+                animate={{ 
+                    rotate: [0, 360],
+                    opacity: [0.05, 0.1, 0.05]
+                }}
+                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                className={`absolute top-[20%] left-[10%] w-[300px] h-[300px] border-[1px] rounded-[60px] ${
+                    isDark ? 'border-blue-400' : 'border-blue-600'
+                }`}
+            />
 
             {/* Conteúdo Centralizado e Elegante */}
             <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className="text-center z-10 max-w-4xl"
+                initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                className="text-center z-10 max-w-5xl"
             >
-                <div className="flex flex-col items-center mb-10">
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className={`h-[2px] w-12 ${isDark ? 'bg-blue-500/50' : 'bg-blue-500/30'}`} />
-                        <span className={`${isDark ? 'text-blue-400' : 'text-blue-600'} font-bold uppercase tracking-[0.4em] text-xs`}>
-                             Apresentação Operacional
-                        </span>
-                        <div className={`h-[2px] w-12 ${isDark ? 'bg-blue-500/50' : 'bg-blue-500/30'}`} />
-                    </div>
-                </div>
+                <motion.div 
+                    initial={{ opacity: 0, letterSpacing: "0.2em" }}
+                    animate={{ opacity: 1, letterSpacing: "0.5em" }}
+                    transition={{ duration: 1.5, delay: 0.5 }}
+                    className="flex flex-col items-center mb-12"
+                >
+                    <span className={`${isDark ? 'text-blue-400' : 'text-blue-600'} font-black uppercase tracking-[0.5em] text-[10px]`}>
+                        STRATEGIC MARKETING REPORT
+                    </span>
+                    <div className={`h-[1px] w-32 mt-4 ${isDark ? 'bg-gradient-to-r from-transparent via-blue-500/50 to-transparent' : 'bg-gradient-to-r from-transparent via-blue-600/30 to-transparent'}`} />
+                </motion.div>
 
-                <h1 className={`text-[90px] font-bold leading-tight mb-4 tracking-tight transition-colors duration-500 ${
+                <h1 className={`text-[120px] font-black leading-[0.9] mb-8 tracking-tighter transition-colors duration-500 ${
                     isDark ? 'text-white' : 'text-slate-900'
                 }`}>
-                    {titulo}
+                    {titulo.split(' ').map((word, i) => (
+                        <span key={i} className="block last:text-blue-500">{word}</span>
+                    ))}
                 </h1>
                 
-                <h2 className={`text-[42px] font-medium tracking-tight mb-12 transition-colors duration-500 ${
-                    isDark ? 'text-slate-300' : 'text-slate-500'
+                <h2 className={`text-[46px] font-light tracking-tight mb-16 transition-colors duration-500 opacity-80 ${
+                    isDark ? 'text-slate-300' : 'text-slate-600'
                 }`}>
                     {periodo}
                 </h2>
                 
                 {subtitulo && (
-                    <div className="flex flex-col items-center">
-                        <div className="h-1 w-24 bg-blue-600 rounded-full mb-8" />
-                        <p className={`text-lg font-medium uppercase tracking-[0.6em] transition-colors duration-500 ${
-                            isDark ? 'text-slate-400' : 'text-slate-400'
+                    <div className="flex flex-col items-center relative">
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: 120 }}
+                            transition={{ duration: 1, delay: 1 }}
+                            className="h-[6px] bg-blue-600 rounded-full mb-10 shadow-[0_0_20px_rgba(37,99,235,0.4)]" 
+                        />
+                        <p className={`text-xl font-bold uppercase tracking-[0.8em] transition-colors duration-500 ${
+                            isDark ? 'text-blue-400/60' : 'text-slate-400'
                         }`}>
                             {subtitulo}
                         </p>
@@ -109,14 +123,14 @@ const SlideCapaMarketing: React.FC<SlideCapaMarketingProps> = ({
 
             {/* Rodapé Minimalista */}
             <div className="absolute bottom-16 w-full flex justify-center items-center px-20">
-                <div className="flex items-center gap-6 opacity-40">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors duration-500 ${
+                <div className="flex items-center gap-10 opacity-30 group hover:opacity-60 transition-opacity duration-500">
+                    <span className={`text-[11px] font-black uppercase tracking-[0.3em] whitespace-nowrap transition-colors duration-500 ${
                         isDark ? 'text-white' : 'text-slate-900'
-                    }`}>Dashboard Geral</span>
-                    <div className={`h-4 w-[1px] ${isDark ? 'bg-white/30' : 'bg-slate-900/20'}`} />
-                    <span className={`text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors duration-500 ${
+                    }`}>Metrics Intelligence</span>
+                    <div className={`h-1 w-1 rounded-full ${isDark ? 'bg-white' : 'bg-slate-900'}`} />
+                    <span className={`text-[11px] font-black uppercase tracking-[0.3em] whitespace-nowrap transition-colors duration-500 ${
                         isDark ? 'text-white' : 'text-slate-900'
-                    }`}>Marketing Performance</span>
+                    }`}>High Performance</span>
                 </div>
             </div>
         </div>

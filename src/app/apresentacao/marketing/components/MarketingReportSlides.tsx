@@ -9,6 +9,7 @@ import { MarketingTotals, MarketingCityData, MarketingCostsComparison } from '@/
 import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
+import { motion } from 'framer-motion';
 
 interface MarketingReportSlidesProps {
     totals: MarketingTotals;
@@ -61,62 +62,106 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
                 </button>
             </div>
 
-            <div className="page">
+            <motion.div 
+                className="page"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
                 <SlideCapaMarketing
                     isVisible
                     titulo="Cadastros Marketing"
                     periodo={periodoFormatado}
                     subtitulo="Relatório de Resultados"
                 />
-            </div>
+            </motion.div>
 
-            <div className="page">
+            <motion.div 
+                className="page"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+            >
                 <SlideEvolucaoResumoMarketing
                     isVisible
                     evolutionData={evolutionData}
                     citiesData={citiesData}
                 />
-            </div>
+            </motion.div>
 
             {/* Slide 3: Comparativo Semanal - GERAL */}
-            <div className="page" key="weekly-general" id="slide-weekly-general">
+            <motion.div 
+                className="page" 
+                key="weekly-general" 
+                id="slide-weekly-general"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
                 <SlideComparativoSemanalMarketing 
                     isVisible={true}
                     titulo="COMPARATIVO SEMANAL"
                     subtitulo="VISÃO GERAL DO PROJETO"
                     weeklyData={weeklyData}
                 />
-            </div>
+            </motion.div>
 
             {/* Slides 4+: Comparativo Semanal por CIDADES */}
             {weeklyDataByCity.map((cityInfo, idx) => (
-                <div className="page" key={`weekly-city-${idx}`} id={`slide-weekly-${cityInfo.cidade}`}>
+                <motion.div 
+                    className="page" 
+                    key={`weekly-city-${idx}`} 
+                    id={`slide-weekly-${cityInfo.cidade}`}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.05 }}
+                >
                     <SlideComparativoSemanalMarketing 
                         isVisible={true}
                         titulo={`COMPARATIVO SEMANAL`}
                         subtitulo={cityInfo.cidade.toUpperCase()}
                         weeklyData={cityInfo.data}
                     />
-                </div>
+                </motion.div>
             ))}
 
             {/* Slide: Comparativo de Custos - ATUAL */}
-            <div className="page" key="costs-atual" id="slide-costs-atual">
+            <motion.div 
+                className="page" 
+                key="costs-atual" 
+                id="slide-costs-atual"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+            >
                 <SlideComparativoCustosMarketing
                     isVisible={true}
                     titulo="ATUAL"
                     data={costsComparison.atual}
                 />
-            </div>
+            </motion.div>
 
             {/* Slide: Comparativo de Custos - PASSADA */}
-            <div className="page" key="costs-passada" id="slide-costs-passada">
+            <motion.div 
+                className="page" 
+                key="costs-passada" 
+                id="slide-costs-passada"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.1 }}
+            >
                 <SlideComparativoCustosMarketing
                     isVisible={true}
                     titulo="ANTERIOR"
                     data={costsComparison.passada}
                 />
-            </div>
+            </motion.div>
         </div>
     );
 };
