@@ -228,7 +228,8 @@ export async function fetchMarketingCitiesData(
             liberado: l.count || 0, 
             rodandoInicio: r.count || 0,
             aberto: a.count || 0,
-            voltou: v.count || 0
+            voltou: v.count || 0,
+            conversas: 0
         });
     }
     return results;
@@ -632,8 +633,7 @@ export async function fetchMarketingCostsComparison(
                 return q;
             };
             
-            const fetchCityMetric = async (city: string) => {
-                const [l, r, a] = await Promise.all([
+                const [l, r, a, conv] = await Promise.all([
                     buildCityQuery(getMetricsQuery(), city)
                         .eq('status', 'Liberado')
                         .gte('data_envio', sISO)
@@ -645,17 +645,24 @@ export async function fetchMarketingCostsComparison(
                     buildCityQuery(getMetricsQuery(), city)
                         .in('status', ABERTO_STATUSES)
                         .gte('data_envio', sISO)
-                        .lte('data_envio', eISO)
+                        .lte('data_envio', eISO),
+                    buildCityQuery(getMetricsQuery().select('conversas'), city)
+                        .not('conversas', 'is', null)
+                        .or(`data_envio.gte.${sISO},data_liberacao.gte.${sISO},rodou_dia.gte.${sISO}`) // Be inclusive of any record in the period
                 ]);
-                return { l: l.count || 0, r: r.count || 0, a: a.count || 0 };
+                
+                // Sum conversations manually since Supabase select doesn't support sum()
+                const conversasSum = (conv.data as any[])?.reduce((acc, curr) => acc + (curr.conversas || 0), 0) || 0;
+
+                return { l: l.count || 0, r: r.count || 0, a: a.count || 0, conv: conversasSum };
             };
 
-            let metrics = { l: 0, r: 0, a: 0 };
+            let metrics = { l: 0, r: 0, a: 0, conv: 0 };
             if (displayName === 'ABC 2.0') {
                 // Soma métricas de Santo André e São Bernardo
                 const m1 = await fetchCityMetric('Santo André');
                 const m2 = await fetchCityMetric('São Bernardo');
-                metrics = { l: m1.l + m2.l, r: m1.r + m2.r, a: m1.a + m2.a };
+                metrics = { l: m1.l + m2.l, r: m1.r + m2.r, a: m1.a + m2.a, conv: m1.conv + m2.conv };
             } else {
                 metrics = await fetchCityMetric(displayName);
             }
@@ -664,7 +671,8 @@ export async function fetchMarketingCostsComparison(
                 valorUsado: cityValor,
                 liberado: metrics.l,
                 rodando: metrics.r,
-                aberto: metrics.a
+                aberto: metrics.a,
+                conversas: metrics.conv
             });
         }));
 
@@ -691,7 +699,7 @@ export async function fetchMarketingCostsComparison(
                 valorUsado: v.valorUsado,
                 rodando: v.rodando,
                 liberado: v.liberado,
-                aberto: v.aberto,
+                conversas: v.conversas,
                 cpa: v.rodando > 0 ? v.valorUsado / v.rodando : 0
             });
         });
@@ -730,6 +738,7 @@ export async function fetchMarketingCostsComparison(
                 rodando: otherRodando,
                 liberado: otherLiberado,
                 aberto: otherAberto,
+                conversas: 0, // Outros usually don't have conversations in this context
                 cpa: otherRodando > 0 ? otherValor / otherRodando : 0
             });
         }

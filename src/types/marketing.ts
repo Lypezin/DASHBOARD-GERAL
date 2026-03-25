@@ -19,6 +19,7 @@ export interface DadosMarketing {
   Criado: string | null; // DATE format (YYYY-MM-DD)
   created_at: string;
   updated_at: string;
+  conversas: number | null;
 }
 
 export interface MarketingDateFilter {
@@ -42,6 +43,7 @@ export interface MarketingCityData {
   rodandoInicio: number;
   aberto: number;
   voltou: number;
+  conversas: number;
 }
 
 export interface MarketingTotals {
@@ -111,6 +113,7 @@ export interface MarketingCostData {
   liberado: number;
   aberto: number;
   cpa: number;
+  conversas: number;
 }
 
 export interface MarketingCostsComparison {

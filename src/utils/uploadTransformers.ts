@@ -28,6 +28,16 @@ export const marketingTransformers = {
   outro_telefone: commonTransformers.string(500),
   responsavel: commonTransformers.string(500),
 
+  // conversas - opcional, número
+  conversas: (value: unknown, rowIndex: number): number | null => {
+    if (value === null || value === undefined || value === '') return null;
+    try {
+      return commonTransformers.number(value, rowIndex);
+    } catch (e) {
+      return null;
+    }
+  },
+
   // id_entregador - opcional, pode ser null
   id_entregador: (value: unknown, rowIndex: number): string | null => {
     if (value && typeof value === 'string') {
