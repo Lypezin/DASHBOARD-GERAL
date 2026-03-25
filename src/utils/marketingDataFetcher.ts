@@ -158,7 +158,8 @@ export async function fetchMarketingCitiesData(
                 liberado: item?.liberado || 0, 
                 rodandoInicio: item?.rodando_inicio || 0,
                 aberto: 0, // RPC ainda não retorna individualmente
-                voltou: 0  // RPC ainda não retorna individualmente
+                voltou: 0,  // RPC ainda não retorna individualmente
+                conversas: 0
             };
         });
     }
