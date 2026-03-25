@@ -114,115 +114,64 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
                 </div>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-12 relative z-10">
-                {/* Lateral de Configuração */}
-                <div className="lg:col-span-4 space-y-6">
+            <div className="flex justify-center relative z-10">
+                {/* Lateral de Configuração - Agora Centralizado */}
+                <div className="w-full max-w-2xl space-y-6">
                     <Card className={`border-none shadow-2xl overflow-hidden rounded-[2rem] ${
                         isDark ? 'bg-slate-900/60' : 'bg-white/80'
                     } backdrop-blur-2xl ring-1 ${isDark ? 'ring-white/10' : 'ring-slate-200/50'}`}>
-                        <CardHeader className="p-8 pb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-4">
+                        <CardHeader className="p-8 pb-4 text-center">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
                                 <span className="text-blue-600 font-bold">01</span>
                             </div>
-                            <CardTitle className="text-xl font-bold">Parâmetros</CardTitle>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Refine os dados da apresentação.</p>
+                            <CardTitle className="text-2xl font-bold">Configuração do Relatório</CardTitle>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Selecione os parâmetros para gerar a apresentação.</p>
                         </CardHeader>
-                        <CardContent className="p-8 pt-0 space-y-8">
-                            <MarketingCityFilter
-                                filters={presentationFilters as any}
-                                setFilters={setPresentationFilters as any}
-                            />
+                        <CardContent className="p-8 pt-4 space-y-8">
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <MarketingCityFilter
+                                    filters={presentationFilters as any}
+                                    setFilters={setPresentationFilters as any}
+                                />
+                                <MarketingDateFilterComponent
+                                    label="Filtro de Período"
+                                    filter={presentationFilters}
+                                    onFilterChange={(filter) => setPresentationFilters(prev => ({ ...prev, ...filter }))}
+                                />
+                            </div>
+                            
                             <div className="h-px bg-slate-200 dark:bg-slate-800" />
-                            <MarketingDateFilterComponent
-                                label="Filtro de Período"
-                                filter={presentationFilters}
-                                onFilterChange={(filter) => setPresentationFilters(prev => ({ ...prev, ...filter }))}
-                            />
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Prá-visualização Dinâmica */}
-                <div className="lg:col-span-8 space-y-6">
-                    <Card className={`border-none shadow-2xl rounded-[2rem] overflow-hidden ${
-                        isDark ? 'bg-slate-900/40' : 'bg-slate-50/50'
-                    } backdrop-blur-xl ring-1 ${isDark ? 'ring-white/5' : 'ring-slate-200/30'}`}>
-                        <CardHeader className="p-8">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
-                                        <span className="text-emerald-600 font-bold">02</span>
-                                    </div>
-                                    <CardTitle className="text-xl font-bold">Draft Visual</CardTitle>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">Configuração atual do relatório.</p>
+                            
+                            <div className="flex flex-col items-center gap-4 py-4">
+                                <div className={`px-6 py-3 rounded-2xl border ${
+                                    isDark ? 'bg-slate-950/50 border-white/5' : 'bg-slate-50 border-slate-200/50'
+                                } w-full text-center`}>
+                                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Escopo Selecionado</h4>
+                                    <p className="text-sm font-bold">{pracaLabel} • {periodLabel}</p>
                                 </div>
-                                <div className="text-right">
-                                    <div className={`inline-flex items-center px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest ${
-                                        isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-100 text-blue-700'
-                                    }`}>
-                                        PREVIEW PRONTO
-                                    </div>
-                                </div>
-                            </div>
-                        </CardHeader>
-
-                        <CardContent className="p-8 pt-0">
-                            <div className="grid md:grid-cols-2 gap-6">
-                                {/* Resumo de Filtros */}
-                                <div className={`p-6 rounded-3xl border ${
-                                    isDark ? 'bg-slate-950/50 border-white/5' : 'bg-white border-slate-200/50'
-                                } shadow-inner`}>
-                                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">Escopo do Relatório</h4>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium opacity-60">Período Selecionado</span>
-                                            <span className="text-sm font-bold">{periodLabel}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium opacity-60">Praça de Foco</span>
-                                            <span className="text-sm font-bold truncate max-w-[150px]">{pracaLabel}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Checklist de Slides */}
-                                <div className={`p-6 rounded-3xl border ${
-                                    isDark ? 'bg-slate-950/50 border-white/5' : 'bg-white border-slate-200/50'
-                                } shadow-inner`}>
-                                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">Roteiro de Slides</h4>
-                                    <ul className="space-y-3">
-                                        {['Portada Premium', 'Funil Semanal', 'Indicadores por Cidade', 'Trafego Pago & CPA'].map((slide, i) => (
-                                            <li key={i} className="flex items-center gap-3 text-sm font-bold">
-                                                <div className="w-5 h-5 rounded-md bg-emerald-500/20 flex items-center justify-center">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                                </div>
-                                                {slide}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-
-                            {/* Mock Visual do Slide */}
-                            <div className="mt-8 relative group">
-                                <div className={`aspect-video rounded-[1.5rem] border-4 ${
-                                    isDark ? 'border-slate-800 bg-slate-950 shadow-2xl' : 'border-white bg-slate-100 shadow-xl'
-                                } flex items-center justify-center relative overflow-hidden transition-transform group-hover:scale-[1.01] duration-500`}>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-transparent to-purple-600/20" />
-                                    <div className="relative text-center space-y-2">
-                                        <Presentation size={48} className="mx-auto mb-4 text-blue-500 opacity-50" />
-                                        <p className="text-xs font-black tracking-[0.3em] uppercase opacity-40">Layout Preview</p>
-                                        <h3 className="text-2xl font-black">Dashboard Marketing</h3>
-                                        <p className="text-xs font-bold text-blue-400 uppercase tracking-widest">{periodLabel}</p>
-                                    </div>
-                                    
-                                    {/* Overlay interativo */}
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm cursor-pointer" onClick={handleOpenPresentation}>
-                                        <div className="bg-white text-black px-6 py-3 rounded-full font-black text-xs tracking-widest">
-                                            ABRIR NORE FULLSCREEN
-                                        </div>
-                                    </div>
-                                </div>
+                                
+                                <Button
+                                    size="lg"
+                                    className={`w-full h-16 rounded-2xl text-lg font-black shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                                        isDark 
+                                        ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20' 
+                                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200/50'
+                                    }`}
+                                    disabled={!isMarketing || isGenerating}
+                                    onClick={handleOpenPresentation}
+                                >
+                                    {isGenerating ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                                            PREPARANDO APRESENTAÇÃO...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Presentation className="mr-2 h-6 w-6" />
+                                            GERAR APRESENTAÇÃO COMPLETA
+                                        </>
+                                    )}
+                                </Button>
                             </div>
                         </CardContent>
                     </Card>
