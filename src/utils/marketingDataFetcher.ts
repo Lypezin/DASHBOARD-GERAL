@@ -550,8 +550,7 @@ export async function fetchMarketingCostsComparison(
     const prevMonthEndWithCut = new Date(prevMonthStart);
     prevMonthEndWithCut.setDate(targetDay);
     const prevEndISO = prevMonthEndWithCut.toISOString().split('T')[0];
-
-    const fetchRange = async (sISO: string, eISO: string) => {
+        const fetchRange = async (sISO: string, eISO: string) => {
         // Agregação por cidade
         const cityMap = new Map<string, { valorUsado: number; rodando: number; liberado: number; aberto: number; conversas: number }>();
 
@@ -565,16 +564,13 @@ export async function fetchMarketingCostsComparison(
             'ABC 2.0': 'ABC'
         };
 
-        const citiesToQuery = CIDADES;
-
         // IDs dos atendentes de marketing para filtrar os custos corretamente
         const allMarketingIds: string[] = [];
         Object.values(ATENDENTE_TO_ID).forEach(id => {
             if (Array.isArray(id)) allMarketingIds.push(...id);
             else allMarketingIds.push(id);
         });
-
-        // Passo 1: Buscar TODOS os Custos de Marketing da organização no período
+            // Passo 1: Buscar TODOS os Custos de Marketing da organização no período
         let globalCustoQuery = client.from('dados_valores_cidade')
             .select('valor, cidade, id_atendente, organization_id')
             .gte('data', sISO)
@@ -583,14 +579,11 @@ export async function fetchMarketingCostsComparison(
 
         if (organizationId) {
             globalCustoQuery = globalCustoQuery.eq('organization_id', organizationId);
-        } else {
-            console.warn('[fetchMarketingCostsComparison] organizationId missing, results may be system-wide');
         }
         
         const { data: allCostRecords } = await globalCustoQuery;
 
         // Passo 2: Buscar Métricas por cidade em paralelo
-        // Lista de cidades para o slide (agrupando SA/SB em ABC conforme pedido)
         const slideCities = [
             'São Paulo 2.0',
             'Guarulhos 2.0',
@@ -601,7 +594,6 @@ export async function fetchMarketingCostsComparison(
         ];
 
         await Promise.all(slideCities.map(async (displayName) => {
-            // 2.1 Agrupar custos para esta cidade (usando lógica robusta)
             let cityValor = 0;
             const normalizedDisplay = displayName.toUpperCase().trim();
             const dbMapped = REGIAO_TO_CIDADE_VALORES[displayName];
@@ -610,14 +602,12 @@ export async function fetchMarketingCostsComparison(
                 const rowCidade = (row.cidade || '').toUpperCase().trim();
                 let match = false;
 
-                // Lógica de match
                 if (displayName === 'ABC 2.0') {
                     if (rowCidade === 'ABC' || rowCidade === 'ABC 2.0' || rowCidade === 'SANTO ANDRÉ' || rowCidade === 'SÃO BERNARDO' || rowCidade === 'SANTO ANDRE' || rowCidade === 'SAO BERNARDO') match = true;
                 } else if (normalizedDisplay.includes('TABOÃO') || normalizedDisplay.includes('TABOAO')) {
                     if (rowCidade.includes('TABOÃO') || rowCidade.includes('TABOAO')) match = true;
                 } else {
                     if (rowCidade === normalizedDisplay || rowCidade === dbMapped) match = true;
-                    // Fallback para nomes sem " 2.0"
                     const simpleRow = rowCidade.replace(' 2.0', '').trim();
                     const simpleDisplay = normalizedDisplay.replace(' 2.0', '').trim();
                     if (simpleRow === simpleDisplay) match = true;
@@ -626,48 +616,36 @@ export async function fetchMarketingCostsComparison(
                 if (match) cityValor += Number(row.valor) || 0;
             });
             
-            // 2.2 Métricas via Query (Agregando métricas para ABC)
-            const getMetricsQuery = () => {
-                let q = client.from('dados_marketing').select('*', { count: 'exact', head: true });
-                if (organizationId) q = q.eq('organization_id', organizationId);
-                return q;
-            };
-            
             const fetchCityMetric = async (city: string) => {
+                const getBaseQuery = () => {
+                    let q = client.from('dados_marketing').select('*', { count: 'exact', head: true });
+                    if (organizationId) q = q.eq('organization_id', organizationId);
+                    return buildCityQuery(q, city);
+                };
+
                 const [l, r, a, conv] = await Promise.all([
-                    buildCityQuery(getMetricsQuery(), city)
-                        .eq('status', 'Liberado')
-                        .gte('data_envio', sISO)
-                        .lte('data_envio', eISO),
-                    buildCityQuery(getMetricsQuery(), city)
-                        .not('rodou_dia', 'is', null)
-                        .gte('rodou_dia', sISO)
-                        .lte('rodou_dia', eISO),
-                    buildCityQuery(getMetricsQuery(), city)
-                        .in('status', ABERTO_STATUSES)
-                        .gte('data_envio', sISO)
-                        .lte('data_envio', eISO),
-                    buildCityQuery(getMetricsQuery().select('conversas'), city)
+                    getBaseQuery().eq('status', 'Liberado').gte('data_envio', sISO).lte('data_envio', eISO),
+                    getBaseQuery().not('rodou_dia', 'is', null).gte('rodou_dia', sISO).lte('rodou_dia', eISO),
+                    getBaseQuery().in('status', ABERTO_STATUSES).gte('data_envio', sISO).lte('data_envio', eISO),
+                    client.from('dados_marketing')
+                        .select('conversas')
+                        .match(organizationId ? { organization_id: organizationId } : {})
                         .not('conversas', 'is', null)
-                        .or(`data_envio.gte.${sISO},data_liberacao.gte.${sISO},rodou_dia.gte.${sISO}`) // Be inclusive of any record in the period
+                        .or(`data_envio.gte.${sISO},data_liberacao.gte.${sISO},rodou_dia.gte.${sISO}`)
+                        .eq('regiao_atuacao', city) // Use regiao_atuacao instead of buildCityQuery for sum query to be simpler
                 ]);
                 
-                // Sum conversations manually since Supabase select doesn't support sum()
                 const conversasSum = (conv.data as any[])?.reduce((acc, curr) => acc + (curr.conversas || 0), 0) || 0;
-
                 return { l: l.count || 0, r: r.count || 0, a: a.count || 0, conv: conversasSum };
             };
 
             let metrics = { l: 0, r: 0, a: 0, conv: 0 };
             if (displayName === 'ABC 2.0') {
-                // Soma métricas de Santo André e São Bernardo
-                const m1 = await fetchCityMetric('Santo André');
-                const m2 = await fetchCityMetric('São Bernardo');
+                const [m1, m2] = await Promise.all([fetchCityMetric('Santo André'), fetchCityMetric('São Bernardo')]);
                 metrics = { l: m1.l + m2.l, r: m1.r + m2.r, a: m1.a + m2.a, conv: m1.conv + m2.conv };
             } else {
                 metrics = await fetchCityMetric(displayName);
             }
-
             cityMap.set(displayName, {
                 valorUsado: cityValor,
                 liberado: metrics.l,
@@ -683,7 +661,6 @@ export async function fetchMarketingCostsComparison(
         let otherRodando = 0;
         let otherAberto = 0;
 
-        // Processa cidades conhecidas
         cityMap.forEach((v, k) => {
             let simplifiedName = k;
             if (k === 'São Paulo 2.0') simplifiedName = 'São Paulo';
@@ -693,7 +670,6 @@ export async function fetchMarketingCostsComparison(
             if (k === 'ABC 2.0') simplifiedName = 'ABC';
             if (k === 'Sorocaba 2.0') simplifiedName = 'Sorocaba';
             if (k === 'Taboão da Serra e Embu das Artes 2.0') simplifiedName = 'Taboão/Embu';
-
 
             result.push({
                 regiao: simplifiedName,
@@ -706,8 +682,6 @@ export async function fetchMarketingCostsComparison(
             });
         });
 
-        // Passo 3: Calcular "Outros" para bater o total do dashboard
-        // Soma TUDO que sobrou dos registros de custo que não foram atribuídos a nenhuma cidade do slide
         allCostRecords?.forEach(row => {
             const rowCidade = (row.cidade || '').toUpperCase().trim();
             let matchedAny = false;
@@ -728,9 +702,7 @@ export async function fetchMarketingCostsComparison(
                 }
             });
 
-            if (!matchedAny) {
-                otherValor += Number(row.valor) || 0;
-            }
+            if (!matchedAny) otherValor += Number(row.valor) || 0;
         });
 
         if (otherValor > 0 || otherLiberado > 0 || otherRodando > 0) {
@@ -740,12 +712,11 @@ export async function fetchMarketingCostsComparison(
                 rodando: otherRodando,
                 liberado: otherLiberado,
                 aberto: otherAberto,
-                conversas: 0, // Outros usually don't have conversations in this context
+                conversas: 0,
                 cpa: otherRodando > 0 ? otherValor / otherRodando : 0
             });
         }
         
-        // Ordena conforme preferência comum
         const priority = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão/Embu', 'Outros'];
         return result.sort((a, b) => {
             const idxA = priority.indexOf(a.regiao);
