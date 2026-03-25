@@ -3,7 +3,7 @@
  */
 
 /**
- * Calcula a porcentagem de um valor em relação ao total
+ * Calcula a porcentagem de um valor em relação ao tot
  * @returns String formatada com 1 casa decimal e símbolo % (ex: "15.5%")
  */
 export function calculatePercentage(value: number, total: number) {
