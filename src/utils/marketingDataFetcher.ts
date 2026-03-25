@@ -411,7 +411,7 @@ export async function fetchMarketingWeeklyComparison(
     };
 
     const weekMap = new Map<string, { 
-        semana: string; criado: number; enviado: number; liberado: number; rodando: number; aberto: number; voltou: number 
+        semana: string; criado: number; enviado: number; liberado: number; rodando: number; aberto: number; voltou: number; conversas: number 
     }>();
     const order: string[] = [];
 
@@ -435,14 +435,14 @@ export async function fetchMarketingWeeklyComparison(
         const key = getWeekKey(d);
         if (!weekMap.has(key)) {
             order.push(key);
-            weekMap.set(key, { semana: getWeekLabel(key), criado: 0, enviado: 0, liberado: 0, rodando: 0, aberto: 0, voltou: 0 });
+            weekMap.set(key, { semana: getWeekLabel(key), criado: 0, enviado: 0, liberado: 0, rodando: 0, aberto: 0, voltou: 0, conversas: 0 });
         }
     }
 
     const queryStartISO = finalStart.toISOString().split('T')[0];
     const queryEndISO = end.toISOString().split('T')[0];
 
-    let query = client.from('dados_marketing').select('*, status');
+    let query = client.from('dados_marketing').select('*, status, conversas');
 
     // Filtra qualquer métrica dentro do intervalo escolhido
     // (inclui o campo 'Criado' para gerar o gráfico corretamente quando ele existe)
@@ -456,19 +456,20 @@ export async function fetchMarketingWeeklyComparison(
     if (error) return order.map(key => weekMap.get(key)!);
 
     data.forEach(item => {
-        const processMetric = (dateStr: string | null, type: 'criado' | 'enviado' | 'liberado' | 'rodando' | 'aberto' | 'voltou') => {
+        const processMetric = (dateStr: string | null, type: 'criado' | 'enviado' | 'liberado' | 'rodando' | 'aberto' | 'voltou' | 'conversas', val: number = 1) => {
             if (!dateStr) return;
             const d = new Date(dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr);
             const weekKey = getWeekKey(d);
 
             if (weekMap.has(weekKey)) {
                 const w = weekMap.get(weekKey)!;
-                if (type === 'criado') w.criado++;
-                if (type === 'enviado') w.enviado++;
-                if (type === 'liberado') w.liberado++;
-                if (type === 'rodando') w.rodando++;
-                if (type === 'aberto') w.aberto++;
-                if (type === 'voltou') w.voltou++;
+                if (type === 'criado') w.criado += val;
+                if (type === 'enviado') w.enviado += val;
+                if (type === 'liberado') w.liberado += val;
+                if (type === 'rodando') w.rodando += val;
+                if (type === 'aberto') w.aberto += val;
+                if (type === 'voltou') w.voltou += val;
+                if (type === 'conversas') w.conversas += val;
             }
         };
 
@@ -492,6 +493,10 @@ export async function fetchMarketingWeeklyComparison(
         }
         
         processMetric(item.rodou_dia, 'rodando');
+
+        if (item.conversas) {
+            processMetric(item.data_envio || item.created_at || item.data_liberacao, 'conversas', Number(item.conversas) || 0);
+        }
     });
 
     return order.map(key => weekMap.get(key)!);

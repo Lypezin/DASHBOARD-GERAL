@@ -19,23 +19,14 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
     const { theme } = useTheme();
     const isDark = theme === 'dark';
 
-    // Estado para os valores de conversa (opcional, se quiser permitir substituição manual)
-    const [overrideConversas, setOverrideConversas] = useState<Record<string, string>>({});
 
     if (!isVisible) return null;
 
-    const handleConversaChange = (regiao: string, val: string) => {
-        setOverrideConversas(prev => ({ ...prev, [regiao]: val }));
-    };
 
     const totalValor = data.reduce((acc, curr) => acc + (curr.valorUsado || 0), 0);
     const totalRodando = data.reduce((acc, curr) => acc + (curr.rodando || 0), 0);
     const totalLiberados = data.reduce((acc, curr) => acc + (curr.liberado || 0), 0);
-    const totalConversas = data.reduce((acc, curr) => {
-        const override = Number(overrideConversas[curr.regiao]);
-        const base = curr.conversas || 0;
-        return acc + (isNaN(override) || overrideConversas[curr.regiao] === '' ? base : override);
-    }, 0);
+    const totalConversas = data.reduce((acc, curr) => acc + (curr.conversas || 0), 0);
 
     const totalCPA = totalRodando > 0 ? totalValor / totalRodando : 0;
     const totalCPL = totalLiberados > 0 ? totalValor / totalLiberados : 0;
@@ -94,28 +85,15 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
                         </thead>
                         <tbody>
                             {data.length > 0 ? data.map((row, idx) => {
-                                const overrideValue = overrideConversas[row.regiao];
-                                const numConversa = (overrideValue !== undefined && overrideValue !== '') 
-                                    ? Number(overrideValue) 
-                                    : (row.conversas || 0);
+                                const numConversa = row.conversas || 0;
                                 const cpc = numConversa > 0 ? row.valorUsado / numConversa : 0;
                                 const cpl = row.liberado > 0 ? row.valorUsado / row.liberado : 0;
 
                                 return (
                                     <tr key={idx} className={`border-b last:border-0 ${isDark ? 'border-slate-800' : 'border-slate-100'} hover:bg-blue-500/5 transition-colors`}>
                                         <td className="px-5 py-4 text-sm font-bold border-r border-slate-800/5">{row.regiao}</td>
-                                        <td className="px-5 py-2 text-sm text-center border-r border-slate-800/5">
-                                            <input
-                                                type="number"
-                                                value={overrideConversas[row.regiao] ?? (row.conversas || '')}
-                                                onChange={(e) => handleConversaChange(row.regiao, e.target.value)}
-                                                placeholder="-"
-                                                className={`w-20 bg-transparent text-center font-bold border rounded p-1 outline-none transition-all ${
-                                                    isDark 
-                                                    ? 'border-slate-800 focus:border-blue-500 text-white placeholder:text-slate-700' 
-                                                    : 'border-slate-200 focus:border-blue-400 text-slate-900 placeholder:text-slate-300'
-                                                }`}
-                                            />
+                                        <td className="px-5 py-4 text-sm text-center font-bold border-r border-slate-800/5">
+                                            {row.conversas || '-'}
                                         </td>
                                         <td className={`px-5 py-4 text-sm text-center font-bold border-r border-slate-800/5 ${cpc > 0 ? (isDark ? 'text-blue-300' : 'text-blue-500') : 'text-slate-400'}`}>
                                             {cpc > 0 ? cpc.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ -'}
