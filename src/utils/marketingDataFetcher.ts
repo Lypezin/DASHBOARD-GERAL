@@ -553,7 +553,7 @@ export async function fetchMarketingCostsComparison(
 
     const fetchRange = async (sISO: string, eISO: string) => {
         // Agregação por cidade
-        const cityMap = new Map<string, { valorUsado: number; rodando: number; liberado: number; aberto: number }>();
+        const cityMap = new Map<string, { valorUsado: number; rodando: number; liberado: number; aberto: number; conversas: number }>();
 
         // Mapeamento inverso para buscar no RPC/Custos
         const DISPLAY_CITY_TO_DB_CITY: Record<string, string> = {
@@ -633,6 +633,7 @@ export async function fetchMarketingCostsComparison(
                 return q;
             };
             
+            const fetchCityMetric = async (city: string) => {
                 const [l, r, a, conv] = await Promise.all([
                     buildCityQuery(getMetricsQuery(), city)
                         .eq('status', 'Liberado')
@@ -699,6 +700,7 @@ export async function fetchMarketingCostsComparison(
                 valorUsado: v.valorUsado,
                 rodando: v.rodando,
                 liberado: v.liberado,
+                aberto: v.aberto,
                 conversas: v.conversas,
                 cpa: v.rodando > 0 ? v.valorUsado / v.rodando : 0
             });
