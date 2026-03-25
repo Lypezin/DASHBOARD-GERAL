@@ -104,7 +104,7 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
             <div className="page" key="costs-atual" id="slide-costs-atual">
                 <SlideComparativoCustosMarketing
                     isVisible={true}
-                    titulo="MÊS ATUAL"
+                    titulo="ATUAL"
                     data={costsComparison.atual}
                 />
             </div>
@@ -113,7 +113,7 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
             <div className="page" key="costs-passada" id="slide-costs-passada">
                 <SlideComparativoCustosMarketing
                     isVisible={true}
-                    titulo="MÊS ANTERIOR"
+                    titulo="ANTERIOR"
                     data={costsComparison.passada}
                 />
             </div>
