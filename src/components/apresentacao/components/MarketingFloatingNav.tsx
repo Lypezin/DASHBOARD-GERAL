@@ -13,10 +13,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { id: 'top', label: 'Capa', icon: Home, color: 'text-blue-500' },
-    { id: 'resumo', label: 'Resumo', icon: LayoutGrid, color: 'text-teal-500' },
     { id: 'unidades', label: 'Unidades', icon: MapPin, color: 'text-purple-500' },
-    { id: 'custos', label: 'Custos', icon: DollarSign, color: 'text-emerald-500' },
     { id: 'semanal', label: 'Evolução', icon: TrendingUp, color: 'text-orange-500' },
+    { id: 'custos', label: 'Custos', icon: DollarSign, color: 'text-emerald-500' },
 ];
 
 export const MarketingFloatingNav: React.FC = () => {
@@ -30,28 +29,32 @@ export const MarketingFloatingNav: React.FC = () => {
     };
 
     return (
-        <motion.div 
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[1001]"
-        >
-            <div className="glass-card flex items-center gap-2 p-2 rounded-2xl shadow-2xl border-white/5 bg-slate-900/40 backdrop-blur-xl">
+        <div className="fixed bottom-10 left-0 right-0 flex justify-center z-[10000] pointer-events-none">
+            <motion.div 
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+                className="glass-card flex items-center gap-1 p-1.5 rounded-2xl shadow-2xl border border-white/10 bg-slate-900/60 backdrop-blur-2xl pointer-events-auto"
+            >
                 {navItems.map((item) => (
                     <button
                         key={item.id}
                         onClick={() => scrollToSection(item.id)}
-                        className="group relative p-4 rounded-xl transition-all duration-300 hover:bg-white/5 active:scale-90"
-                        title={item.label}
+                        className="group relative p-3.5 rounded-xl transition-all duration-300 hover:bg-white/10 active:scale-90"
                     >
-                        <item.icon className={`h-5 w-5 ${item.color} transition-all duration-300 group-hover:scale-110`} />
+                        <item.icon className="h-5 w-5 text-slate-400 transition-all duration-300 group-hover:text-blue-400 group-hover:scale-110" />
                         
-                        {/* Tooltip */}
-                        <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-slate-900/90 text-[10px] text-white font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/5">
-                            {item.label}
-                        </span>
+                        {/* Tooltip sofisticado */}
+                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                            <div className="bg-slate-900/90 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-lg shadow-xl">
+                                <span className="text-[10px] text-white font-black uppercase tracking-[0.2em] whitespace-nowrap">
+                                    {item.label}
+                                </span>
+                            </div>
+                        </div>
                     </button>
                 ))}
-            </div>
-        </motion.div>
+            </motion.div>
+        </div>
     );
 };
