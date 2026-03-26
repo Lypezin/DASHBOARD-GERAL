@@ -42,9 +42,10 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
     const onExit = () => router.push('/?tab=marketing');
 
     return (
-        <div className={`relative min-h-screen pb-20 transition-colors duration-500 ${
+        <div className={`relative min-h-screen pb-20 transition-colors duration-500 animate-blur-in ${
             theme === 'dark' ? 'bg-[#020617]' : 'bg-slate-50'
         }`}>
+            <div className="mesh-gradient" />
             <PresentationSpotlight />
             <MarketingExitButton onExit={onExit} theme={theme} />
 
