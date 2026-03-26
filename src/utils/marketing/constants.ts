@@ -19,7 +19,10 @@ export const VOLTOU_STATUSES = [
     'entregador desistiu', 
     'Entregador desistiu', 
     'bug onboarding',
-    'Bug Onboarding'
+    'Bug Onboarding',
+    'Bug (Onboarding)',
+    'Bug (onboarding)',
+    'bug (onboarding)'
 ];
 
 // Mapeamento inverso para buscar no RPC/Custos
