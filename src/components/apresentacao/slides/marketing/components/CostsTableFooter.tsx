@@ -26,24 +26,24 @@ export const CostsTableFooter: React.FC<CostsTableFooterProps> = ({
                 <td colSpan={6} className="px-5 py-3 text-sm text-center font-bold text-slate-400">R$ 0</td>
             </tr>
             
-            <tr className="bg-blue-600 text-white">
-                <td className="px-5 py-4 text-lg font-black uppercase tracking-[0.2em] border-r border-white/10">Total</td>
-                <td className="px-5 py-4 text-lg text-center font-black border-r border-white/10">
+            <tr className="bg-blue-600 text-white border-t border-blue-400">
+                <td className="px-5 py-4 text-lg font-black uppercase tracking-[0.2em] border-r border-white/20 bg-blue-600">Total</td>
+                <td className="px-5 py-4 text-lg text-center font-black border-r border-white/20 bg-blue-600">
                     {totalConversas || '-'}
                 </td>
-                <td className="px-5 py-4 text-lg text-center font-black border-r border-white/10">
+                <td className="px-5 py-4 text-lg text-center font-black border-r border-white/20 bg-blue-600">
                     {totalCPC > 0 ? totalCPC.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '-'}
                 </td>
-                <td className="px-5 py-4 text-xl text-center font-black border-r border-white/10">
+                <td className="px-5 py-4 text-xl text-center font-black border-r border-white/20 bg-blue-600">
                     {totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </td>
-                <td className="px-5 py-4 text-lg text-center font-black border-r border-white/10">
+                <td className="px-5 py-4 text-lg text-center font-black border-r border-white/20 bg-blue-600">
                     {totalCPL > 0 ? totalCPL.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '-'}
                 </td>
-                <td className="px-5 py-4 text-xl text-center font-black border-r border-white/10">
+                <td className="px-5 py-4 text-xl text-center font-black border-r border-white/20 bg-blue-600">
                     {totalCPA.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </td>
-                <td className="px-5 py-4 text-lg text-center font-black">-</td>
+                <td className="px-5 py-4 text-lg text-center font-black bg-blue-600">-</td>
             </tr>
         </tfoot>
     );

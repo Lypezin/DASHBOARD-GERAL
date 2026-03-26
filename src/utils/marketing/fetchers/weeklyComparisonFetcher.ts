@@ -45,7 +45,7 @@ function initializeWeekMap(start: Date, end: Date) {
 async function fetchMarketingRecords(client: SupabaseClient, orgId: string | null, city: string | null, s: string, e: string) {
     let q = client.from('dados_marketing').select('*, status, conversas');
     
-    // Simplificando o filtro para pegar qualquer coisa que tenha tido atividade no período
+    // Filtro unificado de data: pega registros que tiveram atividade no período em QUALQUER um dos campos relevantes
     const dateFilters = [
         `data_envio.gte.${s}`,
         `data_liberacao.gte.${s}`,
@@ -59,8 +59,17 @@ async function fetchMarketingRecords(client: SupabaseClient, orgId: string | nul
     if (orgId) q = q.eq('organization_id', orgId);
     if (city) q = buildCityQuery(q, city);
     
-    // Filtro adicional para não pegar lixo de anos atrás
-    q = q.or(`data_envio.lte.${e},data_liberacao.lte.${e},created_at.lte.${e},Criado.lte.${e},rodou_dia.lte.${e}`);
+    // Filtro de fim de período para evitar excesso de dados (opcional, mas recomendado para performance)
+    // Usamos um OR similar para garantir que pelo menos uma data de atividade esteja dentro do limite superior
+    const endDateFilters = [
+        `data_envio.lte.${e}`,
+        `data_liberacao.lte.${e}`,
+        `created_at.lte.${e}`,
+        `Criado.lte.${e}`,
+        `rodou_dia.lte.${e}`
+    ].join(',');
+    
+    q = q.or(endDateFilters);
     
     return (await q).data || [];
 }

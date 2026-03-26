@@ -52,9 +52,9 @@ export const CostsTable: React.FC<CostsTableProps> = ({ data, totals, isDark }) 
                                 </td>
                             </tr>
                         )}
-                        
-                        <CostsTableFooter {...totals} isDark={isDark} />
                     </tbody>
+                    
+                    <CostsTableFooter {...totals} isDark={isDark} />
                 </table>
             </motion.div>
         </div>

@@ -21,10 +21,20 @@ export async function fetchMarketingWeeklyComparisonByCity(
     const finalStart = startOfFirstWeek > minStart ? minStart : startOfFirstWeek;
     const startStr = finalStart.toISOString().split('T')[0];
 
-    // Busca simplificada: pega tudo do período e filtra as datas específicas no JS para maior resiliência
-    const { data: marketingData } = await client.from('dados_marketing').select('*')
-        .match(organizationId ? { organization_id: organizationId } : {})
-        .gte('Criado', startStr);
+    // Busca robusta: pega tudo que teve atividade no período em qualquer campo de data relevante
+    const dateFilters = [
+        `data_envio.gte.${startStr}`,
+        `data_liberacao.gte.${startStr}`,
+        `created_at.gte.${startStr}`,
+        `Criado.gte.${startStr}`,
+        `rodou_dia.gte.${startStr}`
+    ].join(',');
+
+    let q = client.from('dados_marketing').select('*');
+    if (organizationId) q = q.eq('organization_id', organizationId);
+    q = q.or(dateFilters);
+
+    const { data: marketingData } = await q;
 
     return cities.map(cidade => {
         const cityMap = initializeCityWeekMap(finalStart, endOfLastWeek);
@@ -44,7 +54,7 @@ function initializeCityWeekMap(start: Date, end: Date) {
 }
 
 function isItemFromCity(item: any, city: string) {
-    const ic = (item.cidade || '').toUpperCase();
+    const ic = (item.regiao_atuacao || item.cidade || '').toUpperCase();
     const target = city.toUpperCase();
     if (city === 'ABC 2.0') return ['SANTO ANDRÉ', 'SÃO BERNARDO', 'ABC', 'ABC 2.0'].some(c => ic.includes(c));
     return ic.includes(target.replace(' 2.0', ''));
