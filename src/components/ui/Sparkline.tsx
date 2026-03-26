@@ -7,13 +7,15 @@ interface SparklineProps {
     width?: number;
     height?: number;
     color?: string;
+    strokeWidth?: number;
 }
 
 export const Sparkline: React.FC<SparklineProps> = ({ 
     data, 
     width = 60, 
     height = 20, 
-    color = '#3b82f6' 
+    color = '#3b82f6',
+    strokeWidth = 2
 }) => {
     if (!data || data.length < 2) return null;
 
@@ -32,7 +34,7 @@ export const Sparkline: React.FC<SparklineProps> = ({
             <polyline
                 fill="none"
                 stroke={color}
-                strokeWidth="2"
+                strokeWidth={strokeWidth}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 points={points}
