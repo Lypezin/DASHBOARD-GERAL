@@ -73,7 +73,9 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React
             </div>
         </div>
     );
-};
+});
+
+EvolucaoSlideCityGrid.displayName = 'EvolucaoSlideCityGrid';
 
 const StatItem = React.memo(({ label, value, color, isDark }: { label: string, value: number, color: string, isDark: boolean }) => (
     <div className="flex justify-between items-center group/item transition-colors">
@@ -83,5 +85,3 @@ const StatItem = React.memo(({ label, value, color, isDark }: { label: string, v
         </span>
     </div>
 ));
-
-EvolucaoSlideCityGrid.displayName = 'EvolucaoSlideCityGrid';
