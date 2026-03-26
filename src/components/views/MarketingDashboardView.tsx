@@ -8,47 +8,27 @@ import { useMarketingData } from './marketing/useMarketingData';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { motion, Variants } from 'framer-motion';
 
+import { MarketingDashboardError } from './marketing/components/MarketingDashboardError';
+
+const DashboardSectionHeader = ({ title, subtitle }: { title: string; subtitle: string }) => (
+  <div className="flex items-center gap-3 px-2">
+    <div className="h-8 w-1.5 rounded-full bg-blue-600 shadow-sm" />
+    <div>
+      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">{title}</h2>
+      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{subtitle}</p>
+    </div>
+  </div>
+);
+
 const MarketingDashboardView = React.memo(function MarketingDashboardView() {
-  const {
-    loading,
-    error,
-    totals,
-    citiesData,
-    filters,
-    handleFilterChange
-  } = useMarketingData();
+  const { loading, error, totals, citiesData, filters, handleFilterChange } = useMarketingData();
 
-  if (loading) {
-    return <DashboardSkeleton contentOnly />;
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="max-w-md mx-auto rounded-xl border border-rose-200 bg-white p-6 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
-          <div className="text-4xl mb-4 text-rose-500 font-bold">!</div>
-          <p className="text-lg font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
-          <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg bg-slate-800 dark:bg-slate-100 dark:text-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105"
-          >
-            Tentar novamente
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  if (loading) return <DashboardSkeleton contentOnly />;
+  if (error) return <MarketingDashboardError error={error} />;
 
   const container: Variants = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const item: Variants = {
@@ -57,37 +37,19 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   };
 
   return (
-    <motion.div
-      className="space-y-6 pb-8"
-      variants={container}
-      initial="hidden"
-      animate="show"
-    >
-      {/* Filtros de Data */}
+    <motion.div className="space-y-6 pb-8" variants={container} initial="hidden" animate="show">
       <motion.div variants={item}>
-        <MarketingFiltersSection
-          filters={filters}
-          onFilterChange={handleFilterChange}
-        />
+        <MarketingFiltersSection filters={filters} onFilterChange={handleFilterChange} />
       </motion.div>
 
-      {/* Cartões Principais */}
       <motion.div variants={item} className="space-y-4">
-        <div className="flex items-center gap-3 px-2">
-          <div className="h-8 w-1.5 rounded-full bg-blue-600 shadow-sm" />
-          <div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-              Visão Geral de Conversão
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-              Indicadores principais de desempenho do funil
-            </p>
-          </div>
-        </div>
+        <DashboardSectionHeader 
+          title="Visão Geral de Conversão" 
+          subtitle="Indicadores principais de desempenho do funil" 
+        />
         <MarketingStatsCards totals={totals} />
       </motion.div>
 
-      {/* Cartões de Cidade */}
       <motion.div variants={item}>
         <MarketingCityCards citiesData={citiesData} />
       </motion.div>
