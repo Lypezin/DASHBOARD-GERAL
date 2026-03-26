@@ -38,25 +38,17 @@ export async function fetchMarketingCitiesData(
 
     const cidadesToProcess = allCities || !filters.praca ? CIDADES : [filters.praca];
     
-    if (!rpcError && rpcData && Array.isArray(rpcData)) {
+    if (!rpcError && rpcData && Array.isArray(rpcData) && !allCities) {
         const rpcMap = new Map(rpcData.map(item => [item.cidade, item]));
-        return cidadesToProcess.map(cidade => {
-            const data = rpcMap.get(cidade);
-            return { 
-                cidade, 
-                criado: data?.criado || 0, 
-                enviado: data?.enviado || 0, 
-                liberado: data?.liberado || 0, 
-                rodandoInicio: data?.rodando_inicio || 0,
-                aberto: data?.aberto || 0, 
-                voltou: data?.voltou || 0, 
-                conversas: 0
-            };
-        });
+        return cidadesToProcess.map(cidade => ({ 
+            cidade, criado: 0, enviado: rpcMap.get(cidade)?.enviado || 0, 
+            liberado: rpcMap.get(cidade)?.liberado || 0, 
+            rodandoInicio: rpcMap.get(cidade)?.rodando_inicio || 0,
+            aberto: 0, voltou: 0, conversas: 0
+        }));
     }
 
     if (IS_DEV) safeLog.info('Using manual fetch for cities data');
-    // ... rest of the file (manual loop) can be kept as fallback but won't be hit if RPC works
     const results: MarketingCityData[] = [];
     const monthFilter = getMonthFilter(filters);
 
@@ -65,7 +57,7 @@ export async function fetchMarketingCitiesData(
             .match(organizationId ? { organization_id: organizationId } : {});
 
         const [e, l, r, a, v, c] = await Promise.all([
-            monthFilter ? buildDateFilterQuery(base().not('status', 'in', EXCLUDED_ENVIADOS).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
+            monthFilter ? buildDateFilterQuery(base().neq('status', 'Confirmar').neq('status', 'Cancelado').neq('status', 'Abrindo MEI').not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
             monthFilter ? buildDateFilterQuery(base().eq('status', 'Liberado').not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
             monthFilter ? buildDateFilterQuery(base().not('rodou_dia', 'is', null), 'data_envio', monthFilter) : base(),
             monthFilter ? buildDateFilterQuery(base().in('status', ABERTO_STATUSES).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
