@@ -24,6 +24,7 @@ interface MarketingReportSlidesProps {
 import { MarketingExitButton } from './MarketingExitButton';
 import { WeeklySlidesSection } from './WeeklySlidesSection';
 import { CostsSlidesSection } from './CostsSlidesSection';
+import { PresentationSpotlight } from '@/components/apresentacao/components/PresentationSpotlight';
 
 export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
     totals,
@@ -44,6 +45,7 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
         <div className={`relative min-h-screen pb-20 transition-colors duration-500 ${
             theme === 'dark' ? 'bg-[#020617]' : 'bg-slate-50'
         }`}>
+            <PresentationSpotlight />
             <MarketingExitButton onExit={onExit} theme={theme} />
 
             <motion.div className="page" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
