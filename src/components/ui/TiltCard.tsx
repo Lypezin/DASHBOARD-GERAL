@@ -43,6 +43,7 @@ export const TiltCard: React.FC<TiltCardProps> = ({ children, className }) => {
                 rotateX,
                 rotateY,
                 transformStyle: 'preserve-3d',
+                willChange: 'transform'
             }}
             className={className}
         >
