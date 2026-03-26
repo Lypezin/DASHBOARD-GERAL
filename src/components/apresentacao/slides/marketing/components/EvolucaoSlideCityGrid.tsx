@@ -12,7 +12,7 @@ interface EvolucaoSlideCityGridProps {
     citiesData: MarketingCityData[];
 }
 
-export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = ({ citiesData }) => {
+export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React.memo(({ citiesData }) => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
 
@@ -75,11 +75,13 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = ({ ci
     );
 };
 
-const StatItem = ({ label, value, color, isDark }: { label: string, value: number, color: string, isDark: boolean }) => (
-    <div className="flex justify-between items-center">
-        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{label}</span>
-        <span className={`text-[22px] font-black tabular-nums tracking-tighter ${color}`}>
+const StatItem = React.memo(({ label, value, color, isDark }: { label: string, value: number, color: string, isDark: boolean }) => (
+    <div className="flex justify-between items-center group/item transition-colors">
+        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight group-hover/item:text-blue-400 transition-colors">{label}</span>
+        <span className={`text-[22px] font-black tabular-nums tracking-tighter ${color} drop-shadow-sm`}>
             <CountUp value={value} />
         </span>
     </div>
-);
+));
+
+EvolucaoSlideCityGrid.displayName = 'EvolucaoSlideCityGrid';
