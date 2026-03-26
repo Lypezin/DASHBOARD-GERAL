@@ -4,13 +4,17 @@ export const EXCLUDED_ENVIADOS = ['Confirmar', 'Cancelado', 'Abrindo MEI'];
 
 export const ABERTO_STATUSES = [
     'Aberto', 
+    'aberto',
     'aguardando liberação', 
     'Aguardando Liberação',
     'Aguardando Liberação Onboarding', 
     'retorno',
     'Retorno', 
     'a enviar',
-    'A enviar 2.0'
+    'A enviar',
+    'A enviar 2.0',
+    'a enviar 2.0',
+    'A Enviar 2.0'
 ];
 
 export const VOLTOU_STATUSES = [
