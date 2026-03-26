@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { buildCityQuery } from '@/utils/marketingQueries';
 import { getMondayOfIsoWeek, getWeekKey, getWeekLabel } from '../dateUtils';
 import { EXCLUDED_ENVIADOS } from '../constants';
+import { SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS } from '@/constants/marketing';
 
 export async function fetchMarketingWeeklyComparisonByCity(
     organizationId: string | null,
@@ -53,11 +54,37 @@ function initializeCityWeekMap(start: Date, end: Date) {
     return map;
 }
 
+function normalize(str: string) {
+    return (str || '').toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 function isItemFromCity(item: any, city: string) {
-    const ic = (item.regiao_atuacao || item.cidade || '').toUpperCase();
-    const target = city.toUpperCase();
-    if (city === 'ABC 2.0') return ['SANTO ANDRÉ', 'SÃO BERNARDO', 'ABC', 'ABC 2.0'].some(c => ic.includes(c));
-    return ic.includes(target.replace(' 2.0', ''));
+    const itemCity = normalize(item.cidade || '');
+    const itemRegion = normalize(item.regiao_atuacao || '');
+    const subPracaAbc = (item.sub_praca_abc || '').trim();
+    const target = normalize(city);
+
+    // Lógica especial para o ABC 2.0 (Santo André e São Bernardo)
+    if (city === 'Santo André') {
+        const isABC = itemRegion === 'ABC 2.0' || itemCity === 'ABC 2.0';
+        return isABC && SANTO_ANDRE_SUB_PRACAS.includes(subPracaAbc as any);
+    }
+    
+    if (city === 'São Bernardo') {
+        const isABC = itemRegion === 'ABC 2.0' || itemCity === 'ABC 2.0';
+        return isABC && SAO_BERNARDO_SUB_PRACAS.includes(subPracaAbc as any);
+    }
+
+    if (city === 'ABC 2.0') {
+        // ABC 2.0 exclui Santo André e São Bernardo específicos
+        const isABC = itemRegion === 'ABC 2.0' || itemCity === 'ABC 2.0';
+        const excludedSubPracas = [...SANTO_ANDRE_SUB_PRACAS, ...SAO_BERNARDO_SUB_PRACAS];
+        return isABC && !excludedSubPracas.includes(subPracaAbc as any);
+    }
+
+    // Fallback genérico para as outras cidades
+    const targetBase = target.replace(' 2.0', '');
+    return itemRegion.includes(targetBase) || itemCity.includes(targetBase);
 }
 
 function processCityRecords(data: any[], map: Map<string, any>) {
