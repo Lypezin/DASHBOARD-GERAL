@@ -3,6 +3,7 @@
 import React from 'react';
 import SlideCapaMarketing from '@/components/apresentacao/slides/marketing/SlideCapaMarketing';
 import SlideEvolucaoResumoMarketing from '@/components/apresentacao/slides/marketing/SlideEvolucaoResumoMarketing';
+import SlideMarketingResumo from '@/components/apresentacao/slides/marketing/SlideMarketingResumo';
 import SlideComparativoSemanalMarketing from '@/components/apresentacao/slides/marketing/SlideComparativoSemanalMarketing';
 import SlideComparativoCustosMarketing from '@/components/apresentacao/slides/marketing/SlideComparativoCustosMarketing';
 import { MarketingTotals, MarketingCityData, MarketingCostsComparison } from '@/types';
@@ -25,6 +26,7 @@ import { MarketingExitButton } from './MarketingExitButton';
 import { WeeklySlidesSection } from './WeeklySlidesSection';
 import { CostsSlidesSection } from './CostsSlidesSection';
 import { PresentationSpotlight } from '@/components/apresentacao/components/PresentationSpotlight';
+import { MarketingFloatingNav } from '@/components/apresentacao/components/MarketingFloatingNav';
 
 export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
     totals,
@@ -47,19 +49,28 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
         }`}>
             <div className="mesh-gradient" />
             <PresentationSpotlight />
+            <MarketingFloatingNav />
             <MarketingExitButton onExit={onExit} theme={theme} />
 
-            <motion.div className="page" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
+            <motion.div id="top" className="page" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
                 <SlideCapaMarketing isVisible titulo="Cadastros Marketing" periodo={periodoFormatado} subtitulo="Relatório de Resultados" />
             </motion.div>
 
-            <motion.div className="page" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }} viewport={{ once: true }}>
-                <SlideEvolucaoResumoMarketing isVisible evolutionData={evolutionData} citiesData={citiesData} />
+            <motion.div id="resumo" className="page" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }} viewport={{ once: true }}>
+                <SlideMarketingResumo isVisible={true} totals={totals} />
             </motion.div>
 
-            <WeeklySlidesSection weeklyData={weeklyData} weeklyDataByCity={weeklyDataByCity} />
+            <motion.div id="unidades" className="page" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} viewport={{ once: true }}>
+                <SlideEvolucaoResumoMarketing isVisible={true} evolutionData={evolutionData} citiesData={citiesData} />
+            </motion.div>
 
-            <CostsSlidesSection costsComparison={costsComparison} />
+            <div id="semanal">
+                <WeeklySlidesSection weeklyData={weeklyData} weeklyDataByCity={weeklyDataByCity} />
+            </div>
+
+            <div id="custos">
+                <CostsSlidesSection costsComparison={costsComparison} />
+            </div>
         </div>
     );
 };

@@ -6,6 +6,8 @@ import { MarketingTotals } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { MarketingMetricCard } from './components/MarketingMetricCard';
 import { getMarketingMetrics } from './utils/marketingMetrics';
+import { MarketingFunnelChart } from './components/MarketingFunnelChart';
+import { motion } from 'framer-motion';
 
 interface SlideMarketingResumoProps {
     isVisible: boolean;
@@ -37,14 +39,29 @@ const SlideMarketingResumo: React.FC<SlideMarketingResumoProps> = ({
                     </h2>
                 </header>
 
-                <div className="grid grid-cols-3 gap-6 flex-grow">
-                    {metrics.map((metric, idx) => (
-                        <MarketingMetricCard 
-                            key={idx}
-                            {...metric}
-                            isDark={isDark}
-                        />
-                    ))}
+                <div className="flex flex-grow gap-12 items-center">
+                    {/* Metrics Side (40%) */}
+                    <div className="w-[40%] flex flex-col gap-6">
+                        {metrics.slice(0, 3).map((metric, idx) => (
+                            <motion.div 
+                                key={idx}
+                                initial={{ opacity: 0, x: -50 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.1, duration: 0.6 }}
+                                viewport={{ once: true }}
+                            >
+                                <MarketingMetricCard 
+                                    {...metric}
+                                    isDark={isDark}
+                                />
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Funnel Side (60%) */}
+                    <div className="w-[60%] flex flex-col justify-center h-full">
+                        <MarketingFunnelChart totals={totals} />
+                    </div>
                 </div>
 
                 <footer className="mt-12 flex justify-between items-center px-2">
