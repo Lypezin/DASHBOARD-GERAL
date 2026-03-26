@@ -4,122 +4,43 @@ import React, { useState } from 'react';
 import { ValoresCidadeDateFilter, MarketingDateFilter } from '@/types';
 import { useValoresCidadeAuth } from '@/hooks/valoresCidade/useValoresCidadeAuth';
 import { useValoresCidadeData } from '@/hooks/valoresCidade/useValoresCidadeData';
+import { useValoresCidadeFilters } from '@/hooks/valoresCidade/useValoresCidadeFilters';
 import { ValoresCidadeAuth } from './valoresCidade/ValoresCidadeAuth';
 import { ValoresCidadeFilters } from './valoresCidade/ValoresCidadeFilters';
 import { ValoresCidadeCards } from './valoresCidade/ValoresCidadeCards';
+import { ValoresCidadeHeader } from './valoresCidade/ValoresCidadeHeader';
+import { ValoresCidadeFeedback } from './valoresCidade/ValoresCidadeFeedback';
 import { motion, Variants } from 'framer-motion';
+
+const container: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const item: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
 
 const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   const { isAuthenticated, password, passwordError, loading: authLoading, setPassword, handlePasswordSubmit } = useValoresCidadeAuth();
-
-  // Inicializar filtros do SessionStorage se disponível, ou usar padrão
-  const [filter, setFilter] = useState<ValoresCidadeDateFilter>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = sessionStorage.getItem('valores_cidade_filter');
-      if (saved) return JSON.parse(saved);
-    }
-    return { dataInicial: null, dataFinal: null };
-  });
-
-  const [filterEnviados, setFilterEnviados] = useState<MarketingDateFilter>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = sessionStorage.getItem('valores_cidade_filter_enviados');
-      if (saved) return JSON.parse(saved);
-    }
-    return { dataInicial: null, dataFinal: null };
-  });
+  const { filter, filterEnviados, handleFilterChange, handleFilterEnviadosChange } = useValoresCidadeFilters();
 
   const { loading, error, cidadesData, totalGeral, custoPorLiberado } = useValoresCidadeData(isAuthenticated, filter, filterEnviados);
 
-  const handleFilterChange = (newFilter: ValoresCidadeDateFilter) => {
-    setFilter(newFilter);
-    sessionStorage.setItem('valores_cidade_filter', JSON.stringify(newFilter));
-  };
-
-  const handleFilterEnviadosChange = (newFilter: MarketingDateFilter) => {
-    setFilterEnviados(newFilter);
-    sessionStorage.setItem('valores_cidade_filter_enviados', JSON.stringify(newFilter));
-  };
-
   if (!isAuthenticated) return <ValoresCidadeAuth password={password} passwordError={passwordError} loading={authLoading} onPasswordChange={setPassword} onSubmit={handlePasswordSubmit} />;
 
-  if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
-          <p className="mt-4 text-lg font-semibold text-emerald-700 dark:text-emerald-200">Carregando dados de Valores por Cidade...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="max-w-md mx-auto rounded-xl border border-rose-200 bg-white p-6 text-center shadow-xl dark:border-rose-900 dark:bg-slate-900">
-          <div className="text-4xl mb-4">⚠️</div>
-          <p className="text-lg font-bold text-rose-900 dark:text-rose-100">Erro ao carregar dados</p>
-          <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105"
-          >
-            Tentar novamente
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const container: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
+  if (loading || error) return <ValoresCidadeFeedback loading={loading} error={error} />;
 
   return (
-    <motion.div
-      className="space-y-6 animate-fade-in pb-8"
-      variants={container}
-      initial="hidden"
-      animate="show"
-    >
+    <motion.div className="space-y-6 animate-fade-in pb-8" variants={container} initial="hidden" animate="show">
       <motion.div variants={item} className="space-y-4">
-        <div className="flex items-center gap-3 px-2">
-          <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 shadow-sm" />
-          <div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-              Valores por Cidade
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-              Análise financeira e custo por entrega por região
-            </p>
-          </div>
-        </div>
-        <ValoresCidadeFilters
-          filter={filter}
-          filterEnviados={filterEnviados}
-          onFilterChange={handleFilterChange}
-          onFilterEnviadosChange={handleFilterEnviadosChange}
-        />
+        <ValoresCidadeHeader />
+        <ValoresCidadeFilters filter={filter} filterEnviados={filterEnviados} onFilterChange={handleFilterChange} onFilterEnviadosChange={handleFilterEnviadosChange} />
       </motion.div>
 
       <motion.div variants={item}>
-        <ValoresCidadeCards
-          totalGeral={totalGeral}
-          custoPorLiberado={custoPorLiberado}
-          cidadesData={cidadesData}
-        />
+        <ValoresCidadeCards totalGeral={totalGeral} custoPorLiberado={custoPorLiberado} cidadesData={cidadesData} />
       </motion.div>
     </motion.div>
   );
