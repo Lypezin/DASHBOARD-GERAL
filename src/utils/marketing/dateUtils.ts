@@ -13,7 +13,8 @@ export const getMondayOfIsoWeek = (date: Date) => {
 export const getIsoWeekInfo = (date: Date) => {
     const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     // Thursday determines the week number in ISO.
-    tmp.setUTCDate(tmp.getUTCDate() + 4 - ((tmp.getUTCDay() + 6) % 7));
+    // Shift to Thursday of current week
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
     const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
     const weekNo = Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
     return { year: tmp.getUTCFullYear(), week: weekNo };

@@ -41,7 +41,7 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
             <WeeklyPerformanceHeader titulo={titulo} subtitulo={subtitulo} isDark={isDark} />
 
             <div className="flex-1 grid grid-cols-4 gap-4 pb-12">
-                {weeklyData.slice(0, 8).map((week, idx) => (
+                {weeklyData.slice(-8).map((week, idx) => (
                     <WeeklyPerformanceCard key={idx} week={week} idx={idx} isDark={isDark} />
                 ))}
             </div>
