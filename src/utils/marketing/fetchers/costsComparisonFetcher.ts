@@ -15,16 +15,24 @@ export async function fetchMarketingCostsComparison(
     if (!currentStart || !currentEnd) return { atual: [], passada: [] };
 
     const endRef = new Date(currentEnd + 'T12:00:00');
-    const day = endRef.getDay();
+    const day = endRef.getDay(); // 0 Sunday, 1 Monday, ..., 3 Wednesday, ...
+    
+    // Calcula a quarta-feira mais recente (menor ou igual ao endRef)
     const diff = (day === 3) ? 0 : (day > 3 ? day - 3 : day + 4);
-    const targetDay = new Date(endRef); targetDay.setDate(endRef.getDate() - diff);
+    const targetWednesday = new Date(endRef); 
+    targetWednesday.setDate(endRef.getDate() - diff);
 
-    const prevMonthStart = new Date(new Date(currentStart + 'T12:00:00'));
-    const prevEndISO = new Date(prevMonthStart); prevEndISO.setDate(targetDay.getDate());
+    // Calcula a quarta-feira da semana anterior
+    const previousWednesday = new Date(targetWednesday);
+    previousWednesday.setDate(targetWednesday.getDate() - 7);
+
+    const sISO = currentStart;
+    const eAtualISO = targetWednesday.toISOString().split('T')[0];
+    const ePassadaISO = previousWednesday.toISOString().split('T')[0];
 
     const [atual, passada] = await Promise.all([
-        fetchRange(currentStart, currentEnd, organizationId, client),
-        fetchRange(prevMonthStart.toISOString().split('T')[0], prevEndISO.toISOString().split('T')[0], organizationId, client)
+        fetchRange(sISO, eAtualISO, organizationId, client),
+        fetchRange(sISO, ePassadaISO, organizationId, client)
     ]);
 
     return { atual, passada };
