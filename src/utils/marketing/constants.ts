@@ -18,6 +18,7 @@ export const VOLTOU_STATUSES = [
     'Voltou', 
     'entregador desistiu', 
     'Entregador desistiu', 
+    'Entregador Desistiu',
     'bug onboarding',
     'Bug Onboarding',
     'Bug (Onboarding)',
