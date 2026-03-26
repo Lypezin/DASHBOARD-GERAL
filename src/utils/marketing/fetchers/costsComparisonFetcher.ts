@@ -14,21 +14,36 @@ export async function fetchMarketingCostsComparison(
     const currentEnd = filters.filtroEnviados.dataFinal;
     if (!currentStart || !currentEnd) return { atual: [], passada: [] };
 
-    const endRef = new Date(currentEnd + 'T12:00:00');
-    const day = endRef.getDay(); // 0 Sunday, 1 Monday, ..., 3 Wednesday, ...
+    const now = new Date();
+    const [ySelect, mSelect] = currentStart.split('-');
     
-    // Calcula a quarta-feira mais recente (menor ou igual ao endRef)
+    // Verifica se o mês filtrado é o mês atual (em que estamos hoje)
+    const filterYear = Number(ySelect);
+    const filterMonth = Number(mSelect); // 1-12
+    const isCurrentMonth = filterYear === now.getFullYear() && filterMonth === (now.getMonth() + 1);
+
+    // Âncora: Hoje se for o mês atual, senão o último dia do mês filtrado
+    let anchor: Date;
+    if (isCurrentMonth) {
+        anchor = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+    } else {
+        // O dia 0 do mês seguinte é o último dia do mês atual (mSelect já é 1-12)
+        anchor = new Date(filterYear, filterMonth, 0, 12, 0, 0);
+    }
+
+    const day = anchor.getDay(); // 0 Sunday, ..., 3 Wednesday, ...
+    
+    // Calcula a quarta-feira mais recente em relação à Âncora (menor ou igual)
     const diff = (day === 3) ? 0 : (day > 3 ? day - 3 : day + 4);
-    const targetWednesday = new Date(endRef); 
-    targetWednesday.setDate(endRef.getDate() - diff);
+    const targetWednesday = new Date(anchor); 
+    targetWednesday.setDate(anchor.getDate() - diff);
 
     // Calcula a quarta-feira da semana anterior
     const previousWednesday = new Date(targetWednesday);
     previousWednesday.setDate(targetWednesday.getDate() - 7);
 
-    // Data de início fixada no dia 01 do mês da dataInicial
-    const [year, month] = currentStart.split('-');
-    const sISO = `${year}-${month}-01`;
+    // Data de início fixada no dia 01 do mês filtrado (conforme solicitado)
+    const sISO = `${ySelect}-${mSelect}-01`;
 
     const eAtualISO = targetWednesday.toISOString().split('T')[0];
     const ePassadaISO = previousWednesday.toISOString().split('T')[0];
