@@ -56,7 +56,7 @@ export async function fetchMarketingCitiesData(
             .match(organizationId ? { organization_id: organizationId } : {});
 
         const [e, l, r, a, v, c] = await Promise.all([
-            monthFilter ? buildDateFilterQuery(base().not('status', 'in', `(${EXCLUDED_ENVIADOS.map((s: string) => `'${s}'`).join(',')})`).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
+            monthFilter ? buildDateFilterQuery(base().not('status', 'in', EXCLUDED_ENVIADOS).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
             monthFilter ? buildDateFilterQuery(base().eq('status', 'Liberado').not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
             monthFilter ? buildDateFilterQuery(base().not('rodou_dia', 'is', null), 'data_envio', monthFilter) : base(),
             monthFilter ? buildDateFilterQuery(base().in('status', ABERTO_STATUSES).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
