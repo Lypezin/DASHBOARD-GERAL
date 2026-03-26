@@ -28,16 +28,16 @@ export const CostsTable: React.FC<CostsTableProps> = ({ data, totals, isDark }) 
                     isDark ? 'border-slate-800 bg-slate-900/40 backdrop-blur-xl' : 'border-slate-200 bg-white'
                 }`}
             >
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse table-fixed">
                     <thead>
                         <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                            <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] border-r border-slate-800/10">Região</th>
-                            <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Conversas</th>
-                            <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10 whitespace-nowrap">Custo por Conversa</th>
-                            <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Valor Usado</th>
-                            <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPL</th>
-                            <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPA</th>
-                            <th className="px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center">Em aberto</th>
+                            <th className="w-[18%] px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] border-r border-slate-800/10">Região</th>
+                            <th className="w-[12%] px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Conversas</th>
+                            <th className="w-[17%] px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10 whitespace-nowrap">Custo por Conversa</th>
+                            <th className="w-[15%] px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">Valor Usado</th>
+                            <th className="w-[13%] px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPL</th>
+                            <th className="w-[13%] px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800/10">CPA</th>
+                            <th className="w-[12%] px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-center">Em aberto</th>
                         </tr>
                     </thead>
                     <tbody>

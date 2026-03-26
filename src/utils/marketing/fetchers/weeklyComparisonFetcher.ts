@@ -12,10 +12,10 @@ export async function fetchMarketingWeeklyComparison(
     client: SupabaseClient = supabase
 ): Promise<Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }>> {
     const end = endDate ? new Date(endDate) : new Date();
-    const rawStart = startDate ? new Date(startDate) : (d => { d.setDate(d.getDate() - 49); return d; })(new Date(end));
+    const rawStart = startDate ? new Date(startDate) : (d => { d.setDate(d.getDate() - 56); return d; })(new Date(end));
     const startOfFirstWeek = getMondayOfIsoWeek(rawStart);
     const endOfLastWeek = getMondayOfIsoWeek(end);
-    const minStart = (d => { d.setDate(d.getDate() - 49); return d; })(new Date(endOfLastWeek));
+    const minStart = (d => { d.setDate(d.getDate() - 56); return d; })(new Date(endOfLastWeek));
     const finalStart = startOfFirstWeek > minStart ? minStart : startOfFirstWeek;
 
     const { weekMap, order } = initializeWeekMap(finalStart, endOfLastWeek);
@@ -44,10 +44,24 @@ function initializeWeekMap(start: Date, end: Date) {
 
 async function fetchMarketingRecords(client: SupabaseClient, orgId: string | null, city: string | null, s: string, e: string) {
     let q = client.from('dados_marketing').select('*, status, conversas');
-    q = q.or(`data_envio.gte.${s},data_liberacao.gte.${s},created_at.gte.${s},Criado.gte.${s},rodou_dia.gte.${s}`);
-    q = q.or(`data_envio.lte.${e},data_liberacao.lte.${e},created_at.lte.${e},Criado.lte.${e},rodou_dia.lte.${e}`);
+    
+    // Simplificando o filtro para pegar qualquer coisa que tenha tido atividade no período
+    const dateFilters = [
+        `data_envio.gte.${s}`,
+        `data_liberacao.gte.${s}`,
+        `created_at.gte.${s}`,
+        `Criado.gte.${s}`,
+        `rodou_dia.gte.${s}`
+    ].join(',');
+    
+    q = q.or(dateFilters);
+    
     if (orgId) q = q.eq('organization_id', orgId);
     if (city) q = buildCityQuery(q, city);
+    
+    // Filtro adicional para não pegar lixo de anos atrás
+    q = q.or(`data_envio.lte.${e},data_liberacao.lte.${e},created_at.lte.${e},Criado.lte.${e},rodou_dia.lte.${e}`);
+    
     return (await q).data || [];
 }
 

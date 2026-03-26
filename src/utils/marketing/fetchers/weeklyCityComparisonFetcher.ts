@@ -12,16 +12,19 @@ export async function fetchMarketingWeeklyComparisonByCity(
     client: SupabaseClient = supabase
 ): Promise<Array<{ cidade: string; data: any[] }>> {
     const end = endDate ? new Date(endDate) : new Date();
-    const rawStart = startDate ? new Date(startDate) : (d => { d.setDate(d.getDate() - 49); return d; })(new Date(end));
+    // 56 dias para garantir cobertura de 8 semanas completas
+    const rawStart = startDate ? new Date(startDate) : (d => { d.setDate(d.getDate() - 56); return d; })(new Date(end));
     const startOfFirstWeek = getMondayOfIsoWeek(rawStart);
     const endOfLastWeek = getMondayOfIsoWeek(end);
-    const minStart = (d => { d.setDate(d.getDate() - 49); return d; })(new Date(endOfLastWeek));
+    
+    const minStart = (d => { d.setDate(d.getDate() - 56); return d; })(new Date(endOfLastWeek));
     const finalStart = startOfFirstWeek > minStart ? minStart : startOfFirstWeek;
     const startStr = finalStart.toISOString().split('T')[0];
 
-    const { data: marketingData } = await client.from('dados_marketing').select('*, status')
+    // Busca simplificada: pega tudo do período e filtra as datas específicas no JS para maior resiliência
+    const { data: marketingData } = await client.from('dados_marketing').select('*')
         .match(organizationId ? { organization_id: organizationId } : {})
-        .or(`data_envio.gte.${startStr},data_liberacao.gte.${startStr},rodou_dia.gte.${startStr},Criado.gte.${startStr}`);
+        .gte('Criado', startStr);
 
     return cities.map(cidade => {
         const cityMap = initializeCityWeekMap(finalStart, endOfLastWeek);
