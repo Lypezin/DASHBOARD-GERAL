@@ -5,7 +5,7 @@
 import React from 'react';
 // @ts-ignore - react-window import issues in Next.js
 import * as RW from 'react-window';
-const { FixedSizeList } = RW as any;
+const FixedSizeList = (RW as any).FixedSizeList || (RW as any).default?.FixedSizeList;
 
 interface VirtualizedTableProps<T> {
   data: T[];

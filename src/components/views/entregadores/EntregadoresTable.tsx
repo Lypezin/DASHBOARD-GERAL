@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users } from 'lucide-react';
 // @ts-ignore - react-window import issues in Next.js
 import * as RW from 'react-window';
-const ListComponent = (RW as any).FixedSizeList || (RW as any).default?.FixedSizeList || RW.FixedSizeList;
+const ListComponent = (RW as any).FixedSizeList || (RW as any).default?.FixedSizeList;
 
 import { EntregadorMarketing } from '@/types';
 import { EntregadoresTableHeader } from './components/EntregadoresTableHeader';
