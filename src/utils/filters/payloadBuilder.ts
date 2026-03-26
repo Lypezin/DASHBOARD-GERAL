@@ -89,7 +89,10 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
     const p_semanas = (semanasFiltered && semanasFiltered.length > 0) ? semanasFiltered : null;
 
     return {
-        p_ano: ano, p_semana: semana, p_semanas, p_praca: praca, p_sub_praca: null, p_origem: null, p_turno: null,
+        p_ano: ano, p_semana: semana, p_semanas, p_praca: praca, 
+        p_sub_praca: (p_sub_pracas && p_sub_pracas.length > 0) ? p_sub_pracas[0] : (filters.subPraca || null), 
+        p_origem: (p_origens && p_origens.length > 0) ? p_origens[0] : (filters.origem || null), 
+        p_turno: (p_turnos && p_turnos.length > 0) ? p_turnos[0] : (filters.turno || null),
         p_sub_pracas, p_origens, p_turnos, p_filtro_modo: filters.filtroModo || 'ano_semana',
         p_data_inicial: dataInicial, p_data_final: dataFinal, p_organization_id: organizationId, detailed: filters.detailed,
     } as const;
