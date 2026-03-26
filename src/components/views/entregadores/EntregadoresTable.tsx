@@ -9,7 +9,7 @@ const ListComponent = dynamic(() => import('react-window').then((mod: any) => {
   // Safe handling of CJS vs ESM imports for react-window
   if (mod.FixedSizeList) return mod.FixedSizeList;
   return mod.default?.FixedSizeList || mod;
-}), { ssr: false });
+}), { ssr: false }) as any;
 
 import { EntregadorMarketing } from '@/types';
 import { EntregadoresTableHeader } from './components/EntregadoresTableHeader';
