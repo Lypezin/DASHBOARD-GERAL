@@ -3,8 +3,9 @@
  * Benefícios: Renderiza apenas linhas visíveis (reduz DOM nodes), Melhor performance com listas grandes, Scroll suave. */
 
 import React from 'react';
-// @ts-ignore - react-window types may not be fully compatible
-import { FixedSizeList } from 'react-window';
+// @ts-ignore - react-window import issues in Next.js
+import * as RW from 'react-window';
+const { FixedSizeList } = RW as any;
 
 interface VirtualizedTableProps<T> {
   data: T[];

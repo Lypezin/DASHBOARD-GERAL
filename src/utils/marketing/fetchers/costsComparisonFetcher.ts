@@ -64,13 +64,13 @@ function aggregateCityCosts(name: string, costs: any[]) {
 }
 
 async function fetchCityMetricsForRange(name: string, s: string, e: string, orgId: string | null, client: SupabaseClient) {
-    const fetch = async (c: string) => {
+    const fetch = async (c: string): Promise<{ l: number; r: number; a: number }> => {
         const q = (base = client.from('dados_marketing').select('*', { count: 'exact', head: true })) => 
             buildCityQuery(orgId ? base.eq('organization_id', orgId) : base, c);
         const [l, r, a] = await Promise.all([
-            fetch().eq('status', 'Liberado').gte('data_envio', s).lte('data_envio', e),
-            fetch().not('rodou_dia', 'is', null).gte('rodou_dia', s).lte('rodou_dia', e),
-            fetch().in('status', ABERTO_STATUSES).gte('data_envio', s).lte('data_envio', e),
+            q().eq('status', 'Liberado').gte('data_envio', s).lte('data_envio', e),
+            q().not('rodou_dia', 'is', null).gte('rodou_dia', s).lte('rodou_dia', e),
+            q().in('status', ABERTO_STATUSES).gte('data_envio', s).lte('data_envio', e),
         ]);
         return { l: l.count || 0, r: r.count || 0, a: a.count || 0 };
     };
