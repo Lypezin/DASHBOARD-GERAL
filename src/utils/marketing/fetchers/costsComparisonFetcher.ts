@@ -26,7 +26,10 @@ export async function fetchMarketingCostsComparison(
     const previousWednesday = new Date(targetWednesday);
     previousWednesday.setDate(targetWednesday.getDate() - 7);
 
-    const sISO = currentStart;
+    // Data de início fixada no dia 01 do mês da dataInicial
+    const [year, month] = currentStart.split('-');
+    const sISO = `${year}-${month}-01`;
+
     const eAtualISO = targetWednesday.toISOString().split('T')[0];
     const ePassadaISO = previousWednesday.toISOString().split('T')[0];
 
