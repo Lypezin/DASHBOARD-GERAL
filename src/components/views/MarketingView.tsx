@@ -5,7 +5,6 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import MarketingDashboardView from './MarketingDashboardView';
 import ResultadosView from './ResultadosView';
 import ValoresCidadeView from './ValoresCidadeView';
-import EntregadoresView from './EntregadoresView';
 import MarketingEntradaSaidaView from './marketing/MarketingEntradaSaidaView';
 import MarketingPresentationView from './marketing/MarketingPresentationView';
 import TabButton from '@/components/TabButton';
@@ -52,11 +51,6 @@ const MarketingView = React.memo(function MarketingView() {
             onClick={() => handleTabChange('valores-cidade')}
           />
           <TabButton
-            label="Entregadores"
-            active={activeSubTab === 'entregadores'}
-            onClick={() => handleTabChange('entregadores')}
-          />
-          <TabButton
             label="Entrada/Saída"
             active={activeSubTab === 'entrada-saida'}
             onClick={() => handleTabChange('entrada-saida')}
@@ -74,7 +68,6 @@ const MarketingView = React.memo(function MarketingView() {
       {activeSubTab === 'dashboard' && <MarketingDashboardView />}
       {activeSubTab === 'resultados' && <ResultadosView />}
       {activeSubTab === 'valores-cidade' && <ValoresCidadeView />}
-      {activeSubTab === 'entregadores' && <EntregadoresView />}
       {activeSubTab === 'entrada-saida' && <MarketingEntradaSaidaView />}
       {activeSubTab === 'apresentacao' && <MarketingPresentationView />}
     </div>
