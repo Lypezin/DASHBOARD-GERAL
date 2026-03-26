@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-const ListComponent = dynamic(() => import('react-window').then(mod => {
+const ListComponent = dynamic(() => import('react-window').then((mod: any) => {
   // Safe handling of CJS vs ESM imports for react-window
   if (mod.FixedSizeList) return mod.FixedSizeList;
-  return (mod as any).default?.FixedSizeList || mod;
+  return mod.default?.FixedSizeList || mod;
 }), { ssr: false });
 
 import { EntregadorMarketing } from '@/types';
