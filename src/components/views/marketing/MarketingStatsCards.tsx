@@ -27,54 +27,54 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
             icon: BarChart3,
             value: safeTotals.criado.toLocaleString('pt-BR'),
             subtext: "Total criado",
-            colorClass: "text-blue-600 dark:text-blue-400",
+            colorClass: "text-slate-700 dark:text-slate-300",
             bgClass: "bg-white dark:bg-slate-900",
-            iconBgClass: "bg-blue-100 dark:bg-blue-900/40"
+            iconBgClass: "bg-slate-100 dark:bg-slate-800"
         },
         {
             title: "Enviado",
             icon: Send,
             value: safeTotals.enviado.toLocaleString('pt-BR'),
             subtext: "Total enviado",
-            colorClass: "text-emerald-600 dark:text-emerald-400",
+            colorClass: "text-slate-700 dark:text-slate-300",
             bgClass: "bg-white dark:bg-slate-900",
-            iconBgClass: "bg-emerald-100 dark:bg-emerald-900/40"
+            iconBgClass: "bg-slate-100 dark:bg-slate-800"
         },
         {
             title: "Liberado",
             icon: CheckCircle2,
             value: safeTotals.liberado.toLocaleString('pt-BR'),
             subtext: "Total liberado",
-            colorClass: "text-purple-600 dark:text-purple-400",
+            colorClass: "text-slate-700 dark:text-slate-300",
             bgClass: "bg-white dark:bg-slate-900",
-            iconBgClass: "bg-purple-100 dark:bg-purple-900/40"
+            iconBgClass: "bg-slate-100 dark:bg-slate-800"
         },
         {
             title: "Rodando Início",
             icon: Rocket,
             value: safeTotals.rodandoInicio.toLocaleString('pt-BR'),
-            subtext: "Total rodando início",
-            colorClass: "text-orange-600 dark:text-orange-400",
+            subtext: "Total rodando",
+            colorClass: "text-slate-700 dark:text-slate-300",
             bgClass: "bg-white dark:bg-slate-900",
-            iconBgClass: "bg-orange-100 dark:bg-orange-900/40"
+            iconBgClass: "bg-slate-100 dark:bg-slate-800"
         },
         {
             title: "Aberto",
             icon: Send,
             value: safeTotals.aberto.toLocaleString('pt-BR'),
-            subtext: "Total aberto",
-            colorClass: "text-cyan-600 dark:text-cyan-400",
+            subtext: "Total em aberto",
+            colorClass: "text-slate-700 dark:text-slate-300",
             bgClass: "bg-white dark:bg-slate-900",
-            iconBgClass: "bg-cyan-100 dark:bg-cyan-900/40"
+            iconBgClass: "bg-slate-100 dark:bg-slate-800"
         },
         {
             title: "Voltou",
             icon: RotateCcw,
             value: safeTotals.voltou.toLocaleString('pt-BR'),
-            subtext: "Total voltou",
-            colorClass: "text-rose-600 dark:text-rose-400",
+            subtext: "Total retorno",
+            colorClass: "text-slate-700 dark:text-slate-300",
             bgClass: "bg-white dark:bg-slate-900",
-            iconBgClass: "bg-rose-100 dark:bg-rose-900/40"
+            iconBgClass: "bg-slate-100 dark:bg-slate-800"
         }
     ];
 
