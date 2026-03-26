@@ -5,7 +5,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingCityData, MarketingDateFilter } from '@/types';
-import { IS_DEV, ABERTO_STATUSES, VOLTOU_STATUSES } from '../constants';
+import { IS_DEV, ABERTO_STATUSES, VOLTOU_STATUSES, EXCLUDED_ENVIADOS } from '../constants';
 
 const getMonthFilter = (filters: MarketingFilters): MarketingDateFilter | null => {
     const anyDate = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial || filters.filtroDataInicio.dataInicial;
@@ -56,7 +56,7 @@ export async function fetchMarketingCitiesData(
             .match(organizationId ? { organization_id: organizationId } : {});
 
         const [e, l, r, a, v, c] = await Promise.all([
-            monthFilter ? buildDateFilterQuery(base().not('status', 'in', `('Confirmar','Cancelado','Abrindo MEI')`).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
+            monthFilter ? buildDateFilterQuery(base().not('status', 'in', `(${EXCLUDED_ENVIADOS.map((s: string) => `'${s}'`).join(',')})`).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
             monthFilter ? buildDateFilterQuery(base().eq('status', 'Liberado').not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
             monthFilter ? buildDateFilterQuery(base().not('rodou_dia', 'is', null), 'data_envio', monthFilter) : base(),
             monthFilter ? buildDateFilterQuery(base().in('status', ABERTO_STATUSES).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
