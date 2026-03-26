@@ -45,8 +45,8 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = ({ ci
                             <h4 className={`font-black text-xl mb-4 flex justify-between items-center border-b pb-3 ${
                                 isDark ? 'text-white border-white/5' : 'text-slate-800 border-slate-100'
                             }`} title={data.cidade}>
-                                <div className="flex flex-col">
-                                    <span className="truncate pr-2 tracking-tight group-hover:text-blue-500 transition-colors">{data.cidade}</span>
+                                <div className="flex flex-col flex-1 min-w-0 pr-2">
+                                    <span className="text-[17px] leading-tight tracking-tight group-hover:text-blue-500 transition-colors line-clamp-2">{data.cidade}</span>
                                     <div className="mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
                                         <Sparkline 
                                             data={[data.criado * 0.8, data.criado * 1.1, data.criado * 0.9, data.criado]} 
