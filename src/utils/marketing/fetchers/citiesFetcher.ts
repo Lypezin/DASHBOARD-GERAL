@@ -25,6 +25,7 @@ export async function fetchMarketingCitiesData(
 ): Promise<MarketingCityData[]> {
     const { data: rpcData, error: rpcError } = await safeRpc<Array<{
         cidade: string; enviado: number; liberado: number; rodando_inicio: number;
+        aberto: number; voltou: number; criado: number;
     }>>('get_marketing_cities_data', {
         data_envio_inicial: filters.filtroEnviados.dataInicial || null,
         data_envio_final: filters.filtroEnviados.dataFinal || null,
@@ -37,17 +38,25 @@ export async function fetchMarketingCitiesData(
 
     const cidadesToProcess = allCities || !filters.praca ? CIDADES : [filters.praca];
     
-    if (!rpcError && rpcData && Array.isArray(rpcData) && !allCities) {
+    if (!rpcError && rpcData && Array.isArray(rpcData)) {
         const rpcMap = new Map(rpcData.map(item => [item.cidade, item]));
-        return cidadesToProcess.map(cidade => ({ 
-            cidade, criado: 0, enviado: rpcMap.get(cidade)?.enviado || 0, 
-            liberado: rpcMap.get(cidade)?.liberado || 0, 
-            rodandoInicio: rpcMap.get(cidade)?.rodando_inicio || 0,
-            aberto: 0, voltou: 0, conversas: 0
-        }));
+        return cidadesToProcess.map(cidade => {
+            const data = rpcMap.get(cidade);
+            return { 
+                cidade, 
+                criado: data?.criado || 0, 
+                enviado: data?.enviado || 0, 
+                liberado: data?.liberado || 0, 
+                rodandoInicio: data?.rodando_inicio || 0,
+                aberto: data?.aberto || 0, 
+                voltou: data?.voltou || 0, 
+                conversas: 0
+            };
+        });
     }
 
     if (IS_DEV) safeLog.info('Using manual fetch for cities data');
+    // ... rest of the file (manual loop) can be kept as fallback but won't be hit if RPC works
     const results: MarketingCityData[] = [];
     const monthFilter = getMonthFilter(filters);
 
