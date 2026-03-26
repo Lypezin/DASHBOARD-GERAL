@@ -85,3 +85,5 @@ const StatItem = React.memo(({ label, value, color, isDark }: { label: string, v
         </span>
     </div>
 ));
+
+StatItem.displayName = 'StatItem';

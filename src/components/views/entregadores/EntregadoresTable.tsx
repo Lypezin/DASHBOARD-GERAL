@@ -3,9 +3,13 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
-// @ts-ignore - react-window import issues in Next.js
-import * as ReactWindow from 'react-window';
-const ListComponent = (ReactWindow as any).FixedSizeList ?? (ReactWindow as any).default?.FixedSizeList ?? ReactWindow;
+import dynamic from 'next/dynamic';
+
+const ListComponent = dynamic(() => import('react-window').then(mod => {
+  // Safe handling of CJS vs ESM imports for react-window
+  if (mod.FixedSizeList) return mod.FixedSizeList;
+  return (mod as any).default?.FixedSizeList || mod;
+}), { ssr: false });
 
 import { EntregadorMarketing } from '@/types';
 import { EntregadoresTableHeader } from './components/EntregadoresTableHeader';
