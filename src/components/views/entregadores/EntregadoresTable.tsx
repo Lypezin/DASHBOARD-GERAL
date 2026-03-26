@@ -3,8 +3,9 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
-import { FixedSizeList } from 'react-window';
-const ListComponent = FixedSizeList;
+// @ts-ignore - react-window import issues in Next.js
+import * as ReactWindow from 'react-window';
+const ListComponent = (ReactWindow as any).FixedSizeList ?? (ReactWindow as any).default?.FixedSizeList ?? ReactWindow;
 
 import { EntregadorMarketing } from '@/types';
 import { EntregadoresTableHeader } from './components/EntregadoresTableHeader';
