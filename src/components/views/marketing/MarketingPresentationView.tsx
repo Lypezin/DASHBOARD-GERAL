@@ -20,11 +20,9 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
     const [presentationFilters, setPresentationFilters] = useState<{
         dataInicial: string | null;
         dataFinal: string | null;
-        praca: string | null;
     }>({
         dataInicial: null,
-        dataFinal: null,
-        praca: null
+        dataFinal: null
     });
     const [isGenerating, setIsGenerating] = useState(false);
     const isMarketing = !!(user?.role === 'marketing' || user?.role === 'admin' || user?.role === 'master' || user?.is_admin);
@@ -32,6 +30,13 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
     const formatDate = (date?: string | null) => {
         if (!date) return null;
         try {
+            // Se for do tipo YYYY-MM-DD, quebramos manualmente para evitar o fuso horário
+            if (date.includes('-')) {
+                const parts = date.split('-');
+                if (parts.length === 3) {
+                    return `${parts[2]}/${parts[1]}`;
+                }
+            }
             return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         } catch { return date; }
     };
@@ -49,7 +54,6 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
         const params = new URLSearchParams();
         if (presentationFilters.dataInicial) params.set('dataInicial', presentationFilters.dataInicial);
         if (presentationFilters.dataFinal) params.set('dataFinal', presentationFilters.dataFinal);
-        if (presentationFilters.praca) params.set('praca', presentationFilters.praca);
         router.push(`/apresentacao/marketing?${params.toString()}`);
     };
 
@@ -76,7 +80,6 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
                         filters={presentationFilters}
                         setFilters={setPresentationFilters}
                         onGenerate={handleOpenPresentation}
-                        pracaLabel={presentationFilters.praca || 'Todas as praças'}
                         periodLabel={periodLabel}
                     />
                 </div>

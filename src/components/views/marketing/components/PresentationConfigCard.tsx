@@ -14,11 +14,9 @@ interface PresentationConfigCardProps {
     filters: {
         dataInicial: string | null;
         dataFinal: string | null;
-        praca: string | null;
     };
     setFilters: React.Dispatch<React.SetStateAction<any>>;
     onGenerate: () => void;
-    pracaLabel: string;
     periodLabel: string;
 }
 
@@ -29,7 +27,6 @@ export const PresentationConfigCard: React.FC<PresentationConfigCardProps> = ({
     filters,
     setFilters,
     onGenerate,
-    pracaLabel,
     periodLabel
 }) => {
     return (
@@ -44,16 +41,14 @@ export const PresentationConfigCard: React.FC<PresentationConfigCardProps> = ({
                 <p className="text-sm text-slate-500 dark:text-slate-400">Selecione os parâmetros para gerar a apresentação.</p>
             </CardHeader>
             <CardContent className="p-8 pt-4 space-y-8">
-                <div className="grid md:grid-cols-2 gap-8">
-                    <MarketingCityFilter
-                        filters={filters as any}
-                        setFilters={setFilters as any}
-                    />
-                    <MarketingDateFilterComponent
-                        label="Filtro de Período"
-                        filter={filters}
-                        onFilterChange={(filter) => setFilters((prev: any) => ({ ...prev, ...filter }))}
-                    />
+                <div className="flex justify-center">
+                    <div className="w-full max-w-sm">
+                        <MarketingDateFilterComponent
+                            label="Filtro de Período"
+                            filter={filters}
+                            onFilterChange={(filter) => setFilters((prev: any) => ({ ...prev, ...filter }))}
+                        />
+                    </div>
                 </div>
                 
                 <div className="h-px bg-slate-200 dark:bg-slate-800" />
@@ -62,8 +57,8 @@ export const PresentationConfigCard: React.FC<PresentationConfigCardProps> = ({
                     <div className={`px-6 py-3 rounded-2xl border ${
                         isDark ? 'bg-slate-950/50 border-white/5' : 'bg-slate-50 border-slate-200/50'
                     } w-full text-center`}>
-                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Escopo Selecionado</h4>
-                        <p className="text-sm font-bold">{pracaLabel} • {periodLabel}</p>
+                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Período Selecionado</h4>
+                        <p className="text-sm font-bold">{periodLabel}</p>
                     </div>
                     
                     <Button
