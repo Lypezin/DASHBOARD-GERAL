@@ -27,7 +27,7 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
         praca: null
     });
     const [isGenerating, setIsGenerating] = useState(false);
-    const isMarketing = user?.role === 'marketing' || user?.role === 'admin' || user?.role === 'master' || user?.is_admin;
+    const isMarketing = !!(user?.role === 'marketing' || user?.role === 'admin' || user?.role === 'master' || user?.is_admin);
 
     const formatDate = (date?: string | null) => {
         if (!date) return null;

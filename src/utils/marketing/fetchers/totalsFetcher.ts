@@ -47,17 +47,17 @@ export async function fetchMarketingTotalsData(
         return filtered;
     };
 
-    let [abertoQuery, voltouQuery, criadoQuery, enviadoQuery, liberadoQuery, rodandoQuery] = await Promise.all([
+    const [abertoQuery, voltouQuery, criadoQuery, enviadoQuery, liberadoQuery, rodandoQuery] = await Promise.all([
         (async () => {
             let q = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
                 .not('data_envio', 'is', null).in('status', ABERTO_STATUSES);
-            if (filters.filtroEnviados.dataInitially) q = buildDateFilterQuery(q, 'data_envio', filters.filtroEnviados);
+            if (filters.filtroEnviados.dataInicial) q = buildDateFilterQuery(q, 'data_envio', filters.filtroEnviados);
             return (await q).count;
         })(),
         (async () => {
             let q = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
                 .not('data_envio', 'is', null).in('status', VOLTOU_STATUSES);
-            if (filters.filtroEnviados.dataInitially) q = buildDateFilterQuery(q, 'data_envio', filters.filtroEnviados);
+            if (filters.filtroEnviados.dataInicial) q = buildDateFilterQuery(q, 'data_envio', filters.filtroEnviados);
             return (await q).count;
         })(),
         (async () => (await applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
@@ -65,19 +65,19 @@ export async function fetchMarketingTotalsData(
         (async () => {
             let q = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
                 .not('status', 'in', `('Confirmar','Cancelado','Abrindo MEI')`).not('data_envio', 'is', null);
-            if (filters.filtroEnviados.dataInitially) q = buildDateFilterQuery(q, 'data_envio', filters.filtroEnviados);
+            if (filters.filtroEnviados.dataInicial) q = buildDateFilterQuery(q, 'data_envio', filters.filtroEnviados);
             return (await q).count;
         })(),
         (async () => {
             let q = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
                 .eq('status', 'Liberado').not('data_liberacao', 'is', null);
-            if (filters.filtroLiberacao.dataInitially) q = buildDateFilterQuery(q, 'data_liberacao', filters.filtroLiberacao);
+            if (filters.filtroLiberacao.dataInicial) q = buildDateFilterQuery(q, 'data_liberacao', filters.filtroLiberacao);
             return (await q).count;
         })(),
         (async () => {
             let q = applyBaseFilters(client.from('dados_marketing').select('*', { count: 'exact', head: true }))
                 .not('rodou_dia', 'is', null);
-            if (filters.filtroRodouDia.dataInitially) q = buildDateFilterQuery(q, 'rodou_dia', filters.filtroRodouDia);
+            if (filters.filtroRodouDia.dataInicial) q = buildDateFilterQuery(q, 'rodou_dia', filters.filtroRodouDia);
             return (await q).count;
         })(),
     ]);
