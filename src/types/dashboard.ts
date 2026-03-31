@@ -16,7 +16,8 @@ import type {
   AderenciaDia,
   AderenciaTurno,
   AderenciaSubPraca,
-  AderenciaOrigem
+  AderenciaOrigem,
+  AderenciaDiaOrigem
 } from './aderencia';
 
 export type {
@@ -24,7 +25,8 @@ export type {
   AderenciaDia,
   AderenciaTurno,
   AderenciaSubPraca,
-  AderenciaOrigem
+  AderenciaOrigem,
+  AderenciaDiaOrigem
 };
 
 export interface DimensoesDashboard {
@@ -47,6 +49,7 @@ export interface DashboardResumoData {
   aderencia_turno: AderenciaTurno[];
   aderencia_sub_praca: AderenciaSubPraca[];
   aderencia_origem: AderenciaOrigem[];
+  aderencia_dia_origem: AderenciaDiaOrigem[];
 
   dimensoes: DimensoesDashboard;
 
@@ -61,4 +64,5 @@ export interface DashboardResumoData {
   turno?: AderenciaTurno[];
   sub_praca?: AderenciaSubPraca[];
   origem?: AderenciaOrigem[];
+  dia_origem?: AderenciaDiaOrigem[];
 }

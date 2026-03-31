@@ -5,7 +5,7 @@
 
 import React from 'react';
 
-type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem';
+type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'dia_origem';
 
 interface AnaliseTableTabsProps {
   activeTable: TableType;
@@ -21,6 +21,7 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
     { id: 'turno', label: 'Por Turno' },
     { id: 'sub_praca', label: 'Por Sub Praça' },
     { id: 'origem', label: 'Por Origem' },
+    { id: 'dia_origem', label: 'Dia x Origem' },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
+import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -12,7 +12,8 @@ export async function exportarAnaliseParaExcel(
     aderenciaDia: AderenciaDia[],
     aderenciaTurno: AderenciaTurno[],
     aderenciaSubPraca: AderenciaSubPraca[],
-    aderenciaOrigem: AderenciaOrigem[]
+    aderenciaOrigem: AderenciaOrigem[],
+    aderenciaDiaOrigem: any[]
 ): Promise<void> {
     try {
         const XLSX = await loadXLSX();

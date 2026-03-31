@@ -6,14 +6,15 @@ import { useAnaliseTableData } from '@/hooks/analise/useAnaliseTableData';
 import { exportarAnaliseParaExcel } from './AnaliseExcelExport';
 import { safeLog } from '@/lib/errorHandler';
 
-export type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem';
+export type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'dia_origem';
 
 export function useAnaliseViewController(
     totals: Totals,
     aderenciaDia: AderenciaDia[],
     aderenciaTurno: AderenciaTurno[],
     aderenciaSubPraca: AderenciaSubPraca[],
-    aderenciaOrigem: AderenciaOrigem[]
+    aderenciaOrigem: AderenciaOrigem[],
+    aderenciaDiaOrigem: any[]
 ) {
     const [activeTable, setActiveTable] = useState<TableType>('dia');
     const [isExporting, setIsExporting] = useState(false);
@@ -40,7 +41,8 @@ export function useAnaliseViewController(
                 aderenciaDia,
                 aderenciaTurno,
                 aderenciaSubPraca,
-                aderenciaOrigem
+                aderenciaOrigem,
+                aderenciaDiaOrigem
             );
         } catch (error) {
             safeLog.error('Erro no export:', error);

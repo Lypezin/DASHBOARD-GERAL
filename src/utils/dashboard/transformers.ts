@@ -69,6 +69,7 @@ export const transformDashboardData = (data: unknown) => {
         aderencia_turno: mapAdherenceData((isFlat ? rawData.aderencia_turno : rawData.turno) || []),
         aderencia_sub_praca: mapAdherenceData((isFlat ? rawData.aderencia_sub_praca : rawData.sub_praca) || []),
         aderencia_origem: mapAdherenceData((isFlat ? rawData.aderencia_origem : rawData.origem) || []),
+        aderencia_dia_origem: mapAdherenceData((isFlat ? rawData.aderencia_dia_origem : rawData.dia_origem) || []),
         dimensoes: rawData.dimensoes || { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [], turnos: [] }
     };
 };

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
 
-type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem';
+type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'dia_origem';
 
 export function useAnaliseTableData(
     activeTable: TableType,
@@ -47,6 +47,7 @@ export function useAnaliseTableData(
             case 'turno': return aderenciaTurno.map(item => ({ ...item, label: item.turno }));
             case 'sub_praca': return aderenciaSubPraca.map(item => ({ ...item, label: item.sub_praca }));
             case 'origem': return aderenciaOrigem.map(item => ({ ...item, label: item.origem }));
+            case 'dia_origem': return []; // Handled by specialized matrix component
             default: return [];
         }
     }, [activeTable, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
@@ -57,6 +58,7 @@ export function useAnaliseTableData(
             case 'turno': return 'Turno';
             case 'sub_praca': return 'Sub Praça';
             case 'origem': return 'Origem';
+            case 'dia_origem': return 'Dia x Origem';
             default: return '';
         }
     }, [activeTable]);

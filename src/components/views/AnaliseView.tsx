@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
+import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem } from '@/types';
 import { AnaliseMetricCards } from './analise/components/AnaliseMetricCards';
 import { motion, Variants } from 'framer-motion';
 
@@ -14,12 +14,14 @@ const AnaliseView = React.memo(function AnaliseView({
   aderenciaTurno,
   aderenciaSubPraca,
   aderenciaOrigem,
+  aderenciaDiaOrigem,
 }: {
   totals: Totals;
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
   aderenciaSubPraca: AderenciaSubPraca[];
   aderenciaOrigem: AderenciaOrigem[];
+  aderenciaDiaOrigem: AderenciaDiaOrigem[];
 }) {
   const {
     activeTable,
@@ -37,7 +39,8 @@ const AnaliseView = React.memo(function AnaliseView({
     aderenciaDia,
     aderenciaTurno,
     aderenciaSubPraca,
-    aderenciaOrigem
+    aderenciaOrigem,
+    aderenciaDiaOrigem
   );
 
   const container: Variants = {
@@ -82,6 +85,7 @@ const AnaliseView = React.memo(function AnaliseView({
           labelColumn={labelColumn}
           isExporting={isExporting}
           onExport={handleExport}
+          aderenciaDiaOrigem={aderenciaDiaOrigem}
         />
       </motion.div>
     </motion.div>

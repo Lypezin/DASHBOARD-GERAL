@@ -93,3 +93,18 @@ export interface AderenciaOrigem {
     taxa_aceitacao?: number;
     taxa_completude?: number;
 }
+
+export interface AderenciaDiaOrigem {
+    dia: string;
+    dia_iso: number;
+    origem: string;
+    horas_a_entregar?: string;
+    horas_entregues?: string;
+    segundos_planejados?: number;
+    segundos_realizados?: number;
+    aderencia_percentual: number;
+    corridas_ofertadas?: number;
+    corridas_aceitas?: number;
+    corridas_rejeitadas?: number;
+    corridas_completadas?: number;
+}

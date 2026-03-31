@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { AnaliseTableTabs } from '@/components/analise/AnaliseTableTabs';
 import { Download } from 'lucide-react';
 import { TableType } from './useAnaliseViewController';
+import { AnaliseDiaOrigemTable } from './components/AnaliseDiaOrigemTable';
 
 interface AnaliseDetailedCardProps {
     activeTable: TableType | any;
@@ -12,6 +12,7 @@ interface AnaliseDetailedCardProps {
     labelColumn: string;
     isExporting?: boolean;
     onExport?: () => void;
+    aderenciaDiaOrigem: any[];
 }
 
 export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
@@ -21,6 +22,7 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
     labelColumn,
     isExporting,
     onExport,
+    aderenciaDiaOrigem
 }: AnaliseDetailedCardProps) {
     return (
         <div className="space-y-6">
@@ -68,10 +70,14 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
                 border border-slate-200 dark:border-slate-700/50
                 shadow-sm dark:shadow-none
             ">
-                <AnaliseTable
-                    data={tableData}
-                    labelColumn={labelColumn}
-                />
+                {activeTable === 'dia_origem' ? (
+                    <AnaliseDiaOrigemTable data={aderenciaDiaOrigem} />
+                ) : (
+                    <AnaliseTable
+                        data={tableData}
+                        labelColumn={labelColumn}
+                    />
+                )}
             </div>
         </div>
     );
