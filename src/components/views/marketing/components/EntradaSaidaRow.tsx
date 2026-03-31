@@ -24,7 +24,7 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
     const retomada_ops = totalRetomada - (item.retomada_marketing || 0);
 
     return (
-        <motion.div layout className={`group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 transition-all duration-300 hover:shadow-lg hover:border-indigo-100 dark:hover:border-indigo-900/30 ${isFirst ? 'shadow-md ring-1 ring-indigo-50 dark:ring-indigo-900/20' : 'shadow-sm'}`}>
+        <motion.div className={`group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 transition-all duration-300 hover:shadow-lg hover:border-indigo-100 dark:hover:border-indigo-900/30 ${isFirst ? 'shadow-md ring-1 ring-indigo-50 dark:ring-indigo-900/20' : 'shadow-sm'}`}>
             <div className="p-5 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 cursor-pointer relative z-10" onClick={() => setIsExpanded(!isExpanded)}>
                 <div className="flex items-center gap-3 min-w-[140px]">
                     <div className={`h-11 w-11 rounded-xl flex items-center justify-center transition-colors duration-300 ${isFirst ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/50' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 dark:bg-slate-800 dark:text-slate-500'}`}>

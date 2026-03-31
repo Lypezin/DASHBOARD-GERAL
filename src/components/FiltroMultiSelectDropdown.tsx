@@ -31,11 +31,11 @@ export const FiltroMultiSelectDropdown: React.FC<FiltroMultiSelectDropdownProps>
             {options.map((option) => {
               const isSelected = selected.includes(option.value);
               return (
-                <motion.li
+                <li
                   key={option.value}
-                  whileHover={{ x: 4, backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
                   className={cn(
-                    "p-2.5 cursor-pointer rounded-lg flex items-center transition-colors mb-0.5 last:mb-0",
+                    "p-2.5 cursor-pointer rounded-lg flex items-center mb-0.5 last:mb-0",
+                    "transition-all duration-200 hover:translate-x-1 hover:bg-blue-50/50 dark:hover:bg-blue-900/10",
                     isSelected ? "bg-blue-50/80 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
                   )}
                   onClick={() => onSelect(option.value)}
@@ -51,7 +51,7 @@ export const FiltroMultiSelectDropdown: React.FC<FiltroMultiSelectDropdownProps>
                     </div>
                     <span className="text-sm font-medium">{option.label}</span>
                   </div>
-                </motion.li>
+                </li>
               );
             })}
           </ul>

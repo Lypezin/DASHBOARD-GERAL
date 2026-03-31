@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from '../EntregadoresUtils';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { calculateHealthScore, HealthBadge } from '@/components/ui/HealthBadge';
-import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface EntregadoresTableRowProps {
     entregador: Entregador;
@@ -24,8 +23,7 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
     );
 
     return (
-        <TooltipProvider delayDuration={0}>
-            <div
+        <div
                 className="grid grid-cols-10 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-w-[1100px] cursor-pointer"
                 onClick={() => onClick?.(entregador)}
             >
@@ -77,6 +75,5 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
                     </Badge>
                 </div>
             </div>
-        </TooltipProvider>
     );
 });

@@ -29,10 +29,10 @@ export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
           className="absolute top-full left-0 w-full mt-2 rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 z-[9999] overflow-hidden"
         >
           <ul className="max-h-60 overflow-y-auto p-1.5 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
-            <motion.li
-              whileHover={{ x: 4, backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+            <li
               className={cn(
-                "p-2.5 cursor-pointer rounded-lg flex items-center transition-colors mb-0.5",
+                "p-2.5 cursor-pointer rounded-lg flex items-center mb-0.5",
+                "transition-all duration-200 hover:translate-x-1 hover:bg-blue-50/50 dark:hover:bg-blue-900/10",
                 !value ? "bg-blue-50/80 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               )}
               onClick={() => onSelect(null)}
@@ -48,16 +48,16 @@ export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
                 </div>
                 <span className="text-sm font-medium">{placeholder || 'Todos'}</span>
               </div>
-            </motion.li>
+            </li>
 
             {options.map((option) => {
               const isSelected = value === option.value;
               return (
-                <motion.li
+                <li
                   key={option.value}
-                  whileHover={{ x: 4, backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
                   className={cn(
-                    "p-2.5 cursor-pointer rounded-lg flex items-center transition-colors mb-0.5 last:mb-0",
+                    "p-2.5 cursor-pointer rounded-lg flex items-center mb-0.5 last:mb-0",
+                    "transition-all duration-200 hover:translate-x-1 hover:bg-blue-50/50 dark:hover:bg-blue-900/10",
                     isSelected ? "bg-blue-50/80 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
                   )}
                   onClick={() => onSelect(option.value)}
@@ -73,7 +73,7 @@ export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
                     </div>
                     <span className="text-sm font-medium">{option.label}</span>
                   </div>
-                </motion.li>
+                </li>
               );
             })}
           </ul>

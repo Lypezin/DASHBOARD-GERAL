@@ -8,6 +8,7 @@ import { GamificationProvider } from "@/contexts/GamificationContext";
 import { ChunkReloadListener } from "@/components/ChunkReloadListener";
 import { UserActivityTracker } from "@/components/UserActivityTracker";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -46,10 +47,12 @@ export default function RootLayout({
               {/* <ChunkReloadListener /> */}
               <UserActivityTracker />
               <Toaster richColors position="top-right" />
-              <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-                <Header />
-                <main className="flex-1 transition-all duration-300">{children}</main>
-              </div>
+              <TooltipProvider delayDuration={0}>
+                <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+                  <Header />
+                  <main className="flex-1 transition-all duration-300">{children}</main>
+                </div>
+              </TooltipProvider>
             </GamificationProvider>
           </OrganizationProvider>
         </ThemeProviderWrapper>
