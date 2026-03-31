@@ -1,134 +1,189 @@
 import React, { useMemo } from 'react';
 import { AderenciaDiaOrigem } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+import { cn } from '@/lib/utils';
 
 interface AnaliseDiaOrigemTableProps {
     data: AderenciaDiaOrigem[];
 }
 
+const DIAS_ORDEM = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+
 export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
     data
 }: AnaliseDiaOrigemTableProps) {
-    // Processar dados para a matriz
-    const matrixData = useMemo(() => {
-        const diasSet = new Set<string>();
+    // Processar dados para a matriz: Origens (Linhas) x Dias (Colunas)
+    const matrix = useMemo(() => {
+        const origensMap = new Map<string, Map<string, number>>();
         const origensSet = new Set<string>();
-        const map = new Map<string, number>();
-
-        const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        let maxVolume = 0;
 
         if (Array.isArray(data) && data.length > 0) {
-            if (IS_DEV) console.log('DEBUG: AnaliseDiaOrigemTable data:', data);
-
             data.forEach(item => {
-                // Tenta múltiplas chaves comuns para dia e origem (usando any para evitar erro de TS nas chaves dinâmicas)
                 const itemAny = item as any;
-                const dia = itemAny.dia || itemAny.dia_da_semana || itemAny.dia_semana || itemAny.data;
-                const origem = itemAny.origem || itemAny.nome_origem || 'N/D';
-                const segundosRealizados = itemAny.segundos_realizados || itemAny.horas_entregues_segundos || 0;
+                const dia = String(itemAny.dia || itemAny.dia_da_semana || itemAny.dia_semana || itemAny.data || '');
+                const origem = String(itemAny.origem || itemAny.nome_origem || 'N/D');
+                const segundos = Number(itemAny.segundos_realizados || itemAny.horas_entregues_segundos || 0);
 
-                if (dia) {
-                    const diaStr = String(dia);
-                    const origemStr = String(origem);
-                    diasSet.add(diaStr);
-                    origensSet.add(origemStr);
+                if (origem && DIAS_ORDEM.includes(dia)) {
+                    origensSet.add(origem);
+                    if (!origensMap.has(origem)) {
+                        origensMap.set(origem, new Map());
+                    }
+                    const diaMap = origensMap.get(origem)!;
+                    const novoTotal = (diaMap.get(dia) || 0) + segundos;
+                    diaMap.set(dia, novoTotal);
                     
-                    const key = `${diaStr}|${origemStr}`;
-                    map.set(key, (map.get(key) || 0) + Number(segundosRealizados));
+                    if (novoTotal > maxVolume) maxVolume = novoTotal;
                 }
             });
-        } else if (IS_DEV) {
-            console.warn('DEBUG: AnaliseDiaOrigemTable received empty or invalid data:', data);
         }
 
-        // Ordenar dias
-        const dias = Array.from(diasSet);
-        const origens = Array.from(origensSet).sort();
-
-        return { dias, origens, map };
+        const sortedOrigens = Array.from(origensSet).sort();
+        return { origens: sortedOrigens, dataMap: origensMap, maxVolume };
     }, [data]);
+
+    // Calcular totais por coluna (Dia)
+    const columnTotals = useMemo(() => {
+        const totals = new Map<string, number>();
+        DIAS_ORDEM.forEach(dia => {
+            let sum = 0;
+            matrix.origens.forEach(origem => {
+                sum += matrix.dataMap.get(origem)?.get(dia) || 0;
+            });
+            totals.set(dia, sum);
+        });
+        return totals;
+    }, [matrix]);
+
+    const globalTotal = useMemo(() => {
+        return Array.from(columnTotals.values()).reduce((a, b) => a + b, 0);
+    }, [columnTotals]);
 
     if (!data || data.length === 0) {
         return (
-            <div className="p-12 text-center">
-                <p className="text-slate-400 dark:text-slate-500 text-sm">
-                    Nenhum dado disponível para este cruzamento.
+            <div className="p-16 text-center bg-slate-50/50 dark:bg-slate-900/10 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                <p className="text-slate-400 dark:text-slate-500 text-sm font-medium">
+                    Nenhum dado de "Dia x Origem" disponível para o período selecionado.
                 </p>
             </div>
         );
     }
 
+    // Função para calcular a cor do heatmap
+    const getHeatmapClass = (segundos: number) => {
+        if (segundos === 0) return '';
+        const intensity = (segundos / matrix.maxVolume);
+        
+        if (intensity > 0.8) return 'bg-blue-600/90 text-white dark:bg-blue-500/90';
+        if (intensity > 0.6) return 'bg-blue-500/70 text-white dark:bg-blue-500/70';
+        if (intensity > 0.4) return 'bg-blue-400/50 text-slate-900 dark:text-white dark:bg-blue-500/50';
+        if (intensity > 0.2) return 'bg-blue-300/30 text-slate-800 dark:text-slate-100 dark:bg-blue-500/30';
+        return 'bg-blue-100/40 text-slate-700 dark:text-slate-300 dark:bg-blue-500/10';
+    };
+
     return (
-        <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-                <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-800/50">
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-50/50 dark:bg-slate-900/20 sticky left-0 z-10 backdrop-blur-sm">
-                            Dia da Semana
-                        </th>
-                        {matrixData.origens.map(origem => (
-                            <th key={origem} className="px-6 py-4 text-center text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
-                                {origem}
+        <div className="relative group/table container-matrix">
+            <div className="overflow-x-auto overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 max-h-[700px]">
+                <table className="w-full border-separate border-spacing-0">
+                    <thead>
+                        <tr>
+                            <th className="sticky left-0 top-0 z-30 bg-slate-50 dark:bg-slate-900 px-6 py-4 text-left border-b border-r border-slate-200 dark:border-slate-800">
+                                <span className="text-[10px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500">
+                                    Origem / Restaurante
+                                </span>
                             </th>
-                        ))}
-                        <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-50/50 dark:bg-slate-900/20 sticky right-0 z-10 backdrop-blur-sm">
-                            Total Dia
-                        </th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                    {matrixData.dias.map(dia => {
-                        let totalDia = 0;
-                        return (
-                            <tr key={dia} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors">
-                                <td className="px-6 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900/50 sticky left-0 z-10 group-hover:bg-slate-50 dark:group-hover:bg-[#1a1f2e] transition-colors shadow-[4px_0_10px_-4px_rgba(0,0,0,0.05)] dark:shadow-none">
-                                    {dia}
-                                </td>
-                                {matrixData.origens.map(origem => {
-                                    const segundos = matrixData.map.get(`${dia}|${origem}`) || 0;
-                                    totalDia += segundos;
-                                    const horas = segundos / 3600;
-                                    
-                                    return (
-                                        <td key={origem} className="px-6 py-4 text-center tabular-nums">
-                                            {segundos > 0 ? (
-                                                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                                                    {formatarHorasParaHMS(horas)}
-                                                </span>
-                                            ) : (
-                                                <span className="text-xs text-slate-300 dark:text-slate-700">-</span>
-                                            )}
-                                        </td>
-                                    );
-                                })}
-                                <td className="px-6 py-4 text-right tabular-nums font-bold text-slate-900 dark:text-white bg-slate-50/30 dark:bg-slate-900/30 sticky right-0 z-10 group-hover:bg-slate-50 dark:group-hover:bg-[#1e2536] transition-colors shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.05)] dark:shadow-none">
-                                    {formatarHorasParaHMS(totalDia / 3600)}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-                <tfoot>
-                    <tr className="bg-slate-50/50 dark:bg-slate-900/40 font-bold border-t border-slate-200 dark:border-slate-700">
-                        <td className="px-6 py-4 text-sm text-slate-900 dark:text-white sticky left-0 z-10 bg-slate-100 dark:bg-slate-800 shadow-[4px_0_10px_-4px_rgba(0,0,0,0.05)]">
-                            Total Geral
-                        </td>
-                        {matrixData.origens.map(origem => {
-                            const totalOrigem = matrixData.dias.reduce((acc, dia) => acc + (matrixData.map.get(`${dia}|${origem}`) || 0), 0);
+                            {DIAS_ORDEM.map(dia => (
+                                <th key={dia} className="sticky top-0 z-20 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md px-4 py-4 text-center border-b border-slate-200 dark:border-slate-800 transition-colors">
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                                        {dia}
+                                    </span>
+                                </th>
+                            ))}
+                            <th className="sticky right-0 top-0 z-20 bg-slate-100/95 dark:bg-slate-800/95 backdrop-blur-md px-6 py-4 text-right border-b border-slate-200 dark:border-slate-700 font-black">
+                                <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                                    Total Semana
+                                </span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                        {matrix.origens.map((origem) => {
+                            let rowSum = 0;
                             return (
-                                <td key={origem} className="px-6 py-4 text-center text-sm text-slate-900 dark:text-white tabular-nums">
-                                    {formatarHorasParaHMS(totalOrigem / 3600)}
-                                </td>
+                                <tr key={origem} className="group/row hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-all">
+                                    <td className="sticky left-0 z-10 px-6 py-3 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50 dark:group-hover/row:bg-slate-800/50 border-r border-slate-100 dark:border-slate-800 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] dark:shadow-none">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[220px]" title={origem}>
+                                                {origem}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    {DIAS_ORDEM.map(dia => {
+                                        const segundos = matrix.dataMap.get(origem)?.get(dia) || 0;
+                                        rowSum += segundos;
+                                        const heatmapClass = getHeatmapClass(segundos);
+                                        
+                                        return (
+                                            <td key={dia} className={cn(
+                                                "px-2 py-3 text-center border-r border-slate-50 dark:border-slate-800/30 transition-all duration-200",
+                                                heatmapClass
+                                            )}>
+                                                {segundos > 0 ? (
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-xs font-bold tabular-nums tracking-tight">
+                                                            {formatarHorasParaHMS(segundos / 3600)}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[10px] opacity-20 font-light">-</span>
+                                                )}
+                                            </td>
+                                        );
+                                    })}
+                                    <td className="sticky right-0 z-10 px-6 py-3 bg-slate-50/50 dark:bg-slate-800/40 group-hover/row:bg-slate-100 dark:group-hover/row:bg-slate-700/60 border-l border-slate-200 dark:border-slate-700/50 text-right backdrop-blur-sm transition-colors">
+                                        <span className="text-xs font-black text-slate-900 dark:text-white tabular-nums">
+                                            {formatarHorasParaHMS(rowSum / 3600)}
+                                        </span>
+                                    </td>
+                                </tr>
                             );
                         })}
-                        <td className="px-6 py-4 text-right text-sm text-blue-600 dark:text-blue-400 sticky right-0 z-10 bg-slate-100 dark:bg-slate-800 shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.05)]">
-                            {formatarHorasParaHMS(
-                                Array.from(matrixData.map.values()).reduce((a, b) => a + b, 0) / 3600
-                            )}
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
+                    </tbody>
+                    <tfoot className="sticky bottom-0 z-30">
+                        <tr className="bg-slate-100 dark:bg-slate-800">
+                            <td className="sticky left-0 z-40 px-6 py-4 bg-slate-100 dark:bg-slate-800 border-t border-r border-slate-200 dark:border-slate-700 font-black text-[10px] uppercase tracking-tighter text-slate-500 dark:text-slate-400">
+                                Total por Dia
+                            </td>
+                            {DIAS_ORDEM.map(dia => (
+                                <td key={dia} className="px-4 py-4 text-center border-t border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 min-w-[100px]">
+                                    <span className="text-[11px] font-black text-slate-900 dark:text-white tabular-nums">
+                                        {formatarHorasParaHMS((columnTotals.get(dia) || 0) / 3600)}
+                                    </span>
+                                </td>
+                            ))}
+                            <td className="sticky right-0 z-40 px-6 py-4 bg-blue-600 dark:bg-blue-500 border-t border-slate-200 dark:border-slate-700 text-right">
+                                <span className="text-xs font-black text-white tabular-nums">
+                                    {formatarHorasParaHMS(globalTotal / 3600)}
+                                </span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <div className="mt-4 flex items-center justify-end gap-6 px-2">
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Legenda Volume:</span>
+                    <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-blue-100/40 dark:bg-blue-500/10 rounded-sm" />
+                        <div className="w-3 h-3 bg-blue-300/30 dark:bg-blue-500/30 rounded-sm" />
+                        <div className="w-3 h-3 bg-blue-400/50 dark:bg-blue-500/50 rounded-sm" />
+                        <div className="w-3 h-3 bg-blue-500/70 dark:bg-blue-500/70 rounded-sm" />
+                        <div className="w-3 h-3 bg-blue-600/90 dark:bg-blue-500/90 rounded-sm" />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 });
