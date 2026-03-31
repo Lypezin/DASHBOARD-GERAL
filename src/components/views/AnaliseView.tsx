@@ -6,8 +6,6 @@ import { AnaliseMetricCards } from './analise/components/AnaliseMetricCards';
 import { motion, Variants } from 'framer-motion';
 import { useAnaliseViewController } from './analise/useAnaliseViewController';
 import { AnaliseDetailedCard } from './analise/AnaliseDetailedCard';
-import { useDashboardMainData } from '@/hooks/dashboard/useDashboardMainData';
-import { useDashboardKeys } from '@/hooks/dashboard/useDashboardKeys';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import type {
   DashboardFilters, CurrentUser, Totals, AderenciaDia, AderenciaTurno,

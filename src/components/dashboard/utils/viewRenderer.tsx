@@ -43,7 +43,11 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     filters={props.filters}
                     filterPayload={props.filterPayload}
                     currentUser={props.currentUser}
+                    totals={props.totals}
                     aderenciaDia={props.aderenciaDia}
+                    aderenciaTurno={props.aderenciaTurno}
+                    aderenciaSubPraca={props.aderenciaSubPraca}
+                    aderenciaOrigem={props.aderenciaOrigem}
                     aderenciaDiaOrigem={props.aderenciaDiaOrigem}
                 />
             );
@@ -93,6 +97,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     filterPayload={props.filterPayload}
                     pracasDisponiveis={props.pracas?.map((p: { value: string }) => p.value) || []}
                     anoSelecionado={props.anoEvolucao || new Date().getFullYear()}
+                    aderenciaSemanal={props.aderenciaSemanal}
                     aderenciaDia={props.aderenciaDia}
                 />
             );

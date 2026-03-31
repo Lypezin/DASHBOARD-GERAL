@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 // @ts-ignore
 import { Download } from 'lucide-react';
 // @ts-ignore
-// @ts-ignore
 import { motion, Variants } from 'framer-motion';
 import { exportarDashboardParaExcel } from './dashboard/DashboardExcelExport';
 import { safeLog } from '@/lib/errorHandler';
