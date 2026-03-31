@@ -14,6 +14,7 @@ interface AnaliseDetailedCardProps {
     onExport?: () => void;
     aderenciaDiaOrigem: any[];
     loadingDiaOrigem?: boolean;
+    dayDateMap?: Record<string, string>;
 }
 
 export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
@@ -25,6 +26,7 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
     onExport,
     aderenciaDiaOrigem = [],
     loadingDiaOrigem = false,
+    dayDateMap = {},
 }: AnaliseDetailedCardProps) {
     return (
         <div className="space-y-6">
@@ -81,7 +83,7 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
                             </div>
                         </div>
                     ) : (
-                        <AnaliseDiaOrigemTable data={aderenciaDiaOrigem} />
+                        <AnaliseDiaOrigemTable data={aderenciaDiaOrigem} dayDateMap={dayDateMap} />
                     )
                 ) : (
                     <AnaliseTable

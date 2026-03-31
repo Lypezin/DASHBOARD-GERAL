@@ -7,12 +7,14 @@ import { cn } from '@/lib/utils';
 
 interface AnaliseDiaOrigemTableProps {
     data: AderenciaDiaOrigem[];
+    dayDateMap?: Record<string, string>;
 }
 
 const DIAS_ORDEM = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 
 export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
-    data
+    data,
+    dayDateMap = {}
 }: AnaliseDiaOrigemTableProps) {
     // Processar dados para a matriz: Origens (Linhas) x Dias (Colunas)
     const matrix = useMemo(() => {
@@ -96,10 +98,17 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
                                 </span>
                             </th>
                             {DIAS_ORDEM.map(dia => (
-                                <th key={dia} className="sticky top-0 z-20 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md px-4 py-4 text-center border-b border-slate-200 dark:border-slate-800 transition-colors">
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                                        {dia}
-                                    </span>
+                                <th key={dia} className="sticky top-0 z-20 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md px-4 py-3 text-center border-b border-slate-200 dark:border-slate-800 transition-colors">
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                                            {dia}
+                                        </span>
+                                        {dayDateMap[dia] && (
+                                            <span className="text-[10px] font-medium text-blue-500/80 dark:text-blue-400/80 mt-0.5">
+                                                ({dayDateMap[dia]})
+                                            </span>
+                                        )}
+                                    </div>
                                 </th>
                             ))}
                             <th className="sticky right-0 top-0 z-20 bg-slate-100/95 dark:bg-slate-800/95 backdrop-blur-md px-6 py-4 text-right border-b border-slate-200 dark:border-slate-700 font-black">

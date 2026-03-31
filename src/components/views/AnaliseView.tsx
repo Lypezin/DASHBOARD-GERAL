@@ -60,6 +60,24 @@ const AnaliseView = React.memo(function AnaliseView({
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
 
+  // Mapear nome do dia para data formatada (ex: "Segunda" -> "23/03")
+  const dayDateMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    if (Array.isArray(aderenciaDia)) {
+      aderenciaDia.forEach(d => {
+        const dayName = d.dia || d.dia_semana || d.dia_da_semana;
+        if (dayName && d.data && typeof d.data === 'string') {
+          const parts = d.data.split('-');
+          if (parts.length === 3) {
+            const [, month, day] = parts;
+            map[dayName] = `${day}/${month}`;
+          }
+        }
+      });
+    }
+    return map;
+  }, [aderenciaDia]);
+
   return (
     <motion.div
       className="flex flex-col gap-10 pb-8 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10"
@@ -88,6 +106,7 @@ const AnaliseView = React.memo(function AnaliseView({
           isExporting={isExporting}
           onExport={handleExport}
           aderenciaDiaOrigem={aderenciaDiaOrigem || []}
+          dayDateMap={dayDateMap}
         />
       </motion.div>
     </motion.div>
