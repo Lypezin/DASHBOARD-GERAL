@@ -62,7 +62,6 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     setFilters={props.setFilters} 
                     filterPayload={props.filterPayload} 
                     currentUser={props.currentUser}
-                    aderenciaDia={props.aderenciaDia}
                 />
             );
         case 'prioridade':
@@ -73,7 +72,6 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     filterPayload={props.filterPayload}
                     anoSelecionado={props.anoEvolucao}
                     onAnoChange={props.onAnoChange}
-                    aderenciaSemanal={props.aderenciaSemanal}
                 />
             );
         case 'comparacao':

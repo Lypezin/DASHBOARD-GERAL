@@ -19,7 +19,7 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-    const { auth, ui, filters, anoEvolucao } = useDashboardPage();
+    const { auth, ui, filters, anoEvolucao, data } = useDashboardPage();
 
     if (auth.isCheckingAuth) return <DashboardAuthLoading />;
     if (!auth.isAuthenticated) return null;
@@ -60,6 +60,13 @@ function DashboardContent() {
                                 pracas={filters.options.pracas}
                                 subPracas={filters.options.subPracas}
                                 origens={filters.options.origens}
+                                totals={data.totals}
+                                aderenciaSemanal={data.aderenciaSemanal}
+                                aderenciaDia={data.aderenciaDia}
+                                aderenciaTurno={data.aderenciaTurno}
+                                aderenciaSubPraca={data.aderenciaSubPraca}
+                                aderenciaOrigem={data.aderenciaOrigem}
+                                aderenciaDiaOrigem={data.aderenciaDiaOrigem}
                             />
                         </main>
                     </div>
