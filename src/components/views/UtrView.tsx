@@ -10,14 +10,20 @@ import { Activity } from 'lucide-react';
 import { useUtrView } from './utr/useUtrView';
 import { UtrHeader } from './utr/UtrHeader';
 import { UtrContent } from './utr/UtrContent';
+import { useTabData } from '@/hooks/data/useTabData';
+import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
+import type { CurrentUser } from '@/types';
+import type { FilterPayload } from '@/types/filters';
 
 const UtrView = React.memo(function UtrView({
-  utrData,
-  loading,
+  filterPayload,
+  currentUser,
 }: {
-  utrData: UtrData | null;
-  loading: boolean;
+  filterPayload: FilterPayload;
+  currentUser: CurrentUser | null;
 }) {
+  const { data: tabData, loading } = useTabData('utr', filterPayload, currentUser);
+  const { utrData } = useTabDataMapper({ activeTab: 'utr', tabData });
   const {
     isExporting,
     handleExport,

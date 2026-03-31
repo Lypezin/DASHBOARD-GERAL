@@ -11,11 +11,17 @@ export function UserActivityTracker() {
     const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
+        let isMounted = true;
+
         const handleRouteChange = async () => {
             const now = Date.now();
-            const { data: { user } } = await supabase.auth.getUser();
+            
+            // Usar getSession() que é mais rápido (lê do armazenamento local/memória)
+            // em vez de getUser() que sempre faz uma chamada de rede para validar o JWT
+            const { data: { session } } = await supabase.auth.getSession();
+            const user = session?.user;
 
-            if (!user) return;
+            if (!user || !isMounted) return;
 
             // Close previous visit if exists
             if (visitIdRef.current && startTimeRef.current) {
@@ -76,6 +82,8 @@ export function UserActivityTracker() {
         // Cleanup on unmount (only when component functionality completely stops, e.g. app close?)
         // In Next.js App Router, layout doesn't unmount on page change, so this is fine.
         return () => {
+            isMounted = false;
+            
             if (heartbeatRef.current) {
                 clearInterval(heartbeatRef.current);
                 heartbeatRef.current = null;

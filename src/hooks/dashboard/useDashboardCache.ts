@@ -54,10 +54,13 @@ export function useDashboardCache() {
         globalDashboardCache.timestamp = 0;
     };
 
+    const getCacheData = () => globalDashboardCache.data;
+
     return {
         checkCache,
         updateCache,
         clearCache,
+        getCacheData,
         previousPayloadRef,
         isFirstExecutionRef,
         pendingPayloadKeyRef

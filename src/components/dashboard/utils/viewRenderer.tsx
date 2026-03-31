@@ -26,41 +26,32 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
         case 'dashboard':
             return (
                 <DashboardView
-                    aderenciaGeral={props.aderenciaGeral}
-                    aderenciaSemanal={props.aderenciaSemanal}
-                    aderenciaDia={props.aderenciaDia}
-                    aderenciaTurno={props.aderenciaTurno}
-                    aderenciaSubPraca={props.aderenciaSubPraca}
-                    aderenciaOrigem={props.aderenciaOrigem}
+                    filters={props.filters}
+                    currentUser={props.currentUser}
                 />
             );
         case 'analise':
-            return props.totals ? (
+            return (
                 <AnaliseView
-                    totals={props.totals}
-                    aderenciaDia={props.aderenciaDia || []}
-                    aderenciaTurno={props.aderenciaTurno || []}
-                    aderenciaSubPraca={props.aderenciaSubPraca || []}
-                    aderenciaOrigem={props.aderenciaOrigem || []}
-                    aderenciaDiaOrigem={props.aderenciaDiaOrigem || []}
+                    filters={props.filters}
                     filterPayload={props.filterPayload}
+                    currentUser={props.currentUser}
                 />
-            ) : <DashboardSkeleton contentOnly />;
+            );
         case 'utr':
-            return <UtrView utrData={props.utrData} loading={props.loadingTabData} />;
+            return <UtrView filterPayload={props.filterPayload} currentUser={props.currentUser} />;
         case 'entregadores':
-            return <EntregadoresMainView entregadoresData={props.entregadoresData} loading={props.loadingTabData} />;
+            return <EntregadoresMainView filterPayload={props.filterPayload} currentUser={props.currentUser} />;
         case 'valores':
-            return <ValoresView valoresData={props.valoresData} loading={props.loadingTabData} filters={props.filters} setFilters={props.setFilters} />;
+            return <ValoresView filters={props.filters} setFilters={props.setFilters} filterPayload={props.filterPayload} currentUser={props.currentUser} />;
         case 'prioridade':
-            return <PrioridadePromoView entregadoresData={props.prioridadeData} loading={props.loadingTabData} />;
+            return <PrioridadePromoView filterPayload={props.filterPayload} currentUser={props.currentUser} />;
         case 'evolucao':
             return (
                 <EvolucaoView
-                    evolucaoMensal={props.evolucaoMensal}
-                    evolucaoSemanal={props.evolucaoSemanal}
-                    loading={props.loadingEvolucao}
-                    anoSelecionado={props.anoSelecionado}
+                    filterPayload={props.filterPayload}
+                    anoSelecionado={props.anoEvolucao}
+                    onAnoChange={props.onAnoChange}
                 />
             );
         case 'comparacao':
@@ -71,7 +62,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     subPracas={props.subPracas}
                     origens={props.origens}
                     currentUser={props.currentUser}
-                    anoSelecionado={props.anoSelecionado}
+                    anoSelecionado={props.anoEvolucao}
                 />
             );
         case 'marketing_comparacao':
@@ -81,15 +72,12 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
         case 'resumo':
             return (
                 <ResumoSemanalView
-                    evolucaoSemanal={props.evolucaoSemanal}
-                    aderenciaSemanal={props.aderenciaSemanal}
-                    utrSemanal={props.utrSemanal}
+                    filterPayload={props.filterPayload}
                     pracasDisponiveis={props.pracas?.map((p: { value: string }) => p.value) || []}
-                    anoSelecionado={props.anoSelecionado || new Date().getFullYear()}
-                    loading={props.loadingEvolucao}
+                    anoSelecionado={props.anoEvolucao || new Date().getFullYear()}
                 />
             );
         default:
-            return <DashboardSkeleton contentOnly />; // Or null, but skeleton is safer fallback
+            return <DashboardSkeleton contentOnly />; 
     }
 };

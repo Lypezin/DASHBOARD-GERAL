@@ -17,14 +17,19 @@ import { needsChartReady, renderActiveView } from './utils/viewRenderer';
 import { useGamification } from '@/contexts/GamificationContext';
 
 interface DashboardViewsRendererProps {
-  activeTab: TabType; chartReady: boolean; aderenciaGeral?: AderenciaSemanal; aderenciaSemanal?: AderenciaSemanal[];
-  aderenciaDia: AderenciaDia[]; aderenciaTurno: AderenciaTurno[]; aderenciaSubPraca: AderenciaSubPraca[]; aderenciaOrigem: AderenciaOrigem[];
-  aderenciaDiaOrigem?: any[];
-  filterPayload?: FilterPayload;
-  totals?: Totals; utrData: any; loadingTabData: boolean; entregadoresData: any; valoresData: any; prioridadeData: any;
-  evolucaoMensal: any; evolucaoSemanal: any; loadingEvolucao: boolean; anoSelecionado: number; anosDisponiveis: number[];
-  onAnoChange: (ano: number) => void; semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[]; origens: FilterOption[];
-  currentUser: CurrentUser | null; filters: DashboardFilters; setFilters?: (filters: DashboardFilters) => void; utrSemanal?: any[];
+  activeTab: TabType;
+  chartReady: boolean;
+  currentUser: CurrentUser | null;
+  filters: DashboardFilters;
+  setFilters: (filters: DashboardFilters) => void;
+  filterPayload: FilterPayload;
+  anoEvolucao: number;
+  onAnoChange: (ano: number) => void;
+  // Opções para filtros que podem ser necessárias em sub-views
+  semanas: string[];
+  pracas: FilterOption[];
+  subPracas: FilterOption[];
+  origens: FilterOption[];
 }
 
 

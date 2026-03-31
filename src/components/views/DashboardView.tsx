@@ -1,5 +1,4 @@
-import React, { useState, useCallback } from 'react';
-import { AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem } from '@/types';
+import React, { useState, useCallback, useMemo } from 'react';
 import { DashboardGeneralStats } from './dashboard/DashboardGeneralStats';
 import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance';
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
@@ -8,13 +7,24 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { exportarDashboardParaExcel } from './dashboard/DashboardExcelExport';
 import { safeLog } from '@/lib/errorHandler';
+import { useDashboardMainData } from '@/hooks/dashboard/useDashboardMainData';
+import { useDashboardKeys } from '@/hooks/dashboard/useDashboardKeys';
+import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import type { DashboardFilters, CurrentUser } from '@/types';
 
 const DashboardView = React.memo(function DashboardView({
-  aderenciaGeral, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem,
+  filters, currentUser
 }: {
-  aderenciaGeral?: AderenciaSemanal; aderenciaSemanal: AderenciaSemanal[]; aderenciaDia: AderenciaDia[];
-  aderenciaTurno: AderenciaTurno[]; aderenciaSubPraca: AderenciaSubPraca[]; aderenciaOrigem: AderenciaOrigem[];
+  filters: DashboardFilters;
+  currentUser: CurrentUser | null;
 }) {
+  const { filterPayload } = useDashboardKeys(filters, currentUser);
+  const {
+    aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, loading
+  } = useDashboardMainData({ filterPayload });
+
+  const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = useCallback(async () => {
@@ -34,6 +44,10 @@ const DashboardView = React.memo(function DashboardView({
       setIsExporting(false);
     }
   }, [aderenciaGeral, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
+
+  if (loading) {
+    return <DashboardSkeleton contentOnly />;
+  }
 
   return (
     <div className="space-y-8 animate-fade-in pb-12 pt-4">

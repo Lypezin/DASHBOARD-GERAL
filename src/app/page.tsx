@@ -21,7 +21,7 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-  const { auth, ui, filters, data } = useDashboardPage();
+  const { auth, ui, filters, anoEvolucao } = useDashboardPage();
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (!auth.isAuthenticated) return null;
@@ -59,34 +59,16 @@ function DashboardContent() {
               <DashboardViewsRenderer
                 activeTab={ui.activeTab}
                 chartReady={ui.chartReady}
-                aderenciaGeral={data.dashboard.aderenciaGeral as AderenciaSemanal | undefined}
-                aderenciaSemanal={data.dashboard.aderenciaSemanal}
-                aderenciaDia={data.dashboard.aderenciaDia}
-                aderenciaTurno={data.dashboard.aderenciaTurno}
-                aderenciaSubPraca={data.dashboard.aderenciaSubPraca}
-                aderenciaOrigem={data.dashboard.aderenciaOrigem}
-                aderenciaDiaOrigem={data.dashboard.aderenciaDiaOrigem}
-                totals={data.dashboard.totals || undefined}
-                utrData={data.tabs.utrData}
-                loadingTabData={data.tabs.loading}
-                entregadoresData={data.tabs.entregadoresData}
-                valoresData={data.tabs.valoresData}
-                prioridadeData={data.tabs.prioridadeData}
-                evolucaoMensal={data.evolution.mensal}
-                evolucaoSemanal={data.evolution.semanal}
-                loadingEvolucao={data.evolution.loading}
-                utrSemanal={data.evolution.utrSemanal}
-                anoSelecionado={filters.state.ano ?? data.evolution.anoSelecionado}
-                anosDisponiveis={data.evolution.anosOptions}
-                onAnoChange={data.evolution.setAno}
-                semanas={filters.options.semanas}
-                pracas={filters.options.pracas}
-                subPracas={filters.options.subPracas}
-                origens={filters.options.origens}
                 currentUser={auth.currentUser}
                 filters={filters.state}
                 setFilters={filters.setState}
                 filterPayload={filters.payload}
+                anoEvolucao={anoEvolucao.valor}
+                onAnoChange={anoEvolucao.set}
+                semanas={filters.options.semanas}
+                pracas={filters.options.pracas}
+                subPracas={filters.options.subPracas}
+                origens={filters.options.origens}
               />
             </main>
           </div>
@@ -95,4 +77,4 @@ function DashboardContent() {
       <OnlineUsersSidebar currentUser={auth.currentUser} currentTab={ui.activeTab} />
     </div>
   );
-}
+}

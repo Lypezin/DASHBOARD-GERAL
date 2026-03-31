@@ -14,7 +14,24 @@ import { ValoresHeader } from './valores/ValoresHeader';
 import { ValoresError, ValoresEmpty } from './valores/ValoresStates';
 import { ValoresBreakdownDisplay } from './valores/ValoresBreakdownDisplay';
 
-const ValoresView = React.memo(function ValoresView({ valoresData, loading, filters, setFilters }: { valoresData: ValoresEntregador[]; loading: boolean; filters?: any; setFilters?: any; }) {
+import { useTabData } from '@/hooks/data/useTabData';
+import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
+import type { CurrentUser } from '@/types';
+import type { FilterPayload } from '@/types/filters';
+
+const ValoresView = React.memo(function ValoresView({ 
+  filters, 
+  setFilters, 
+  filterPayload, 
+  currentUser 
+}: { 
+  filters: any; 
+  setFilters: any; 
+  filterPayload: FilterPayload; 
+  currentUser: CurrentUser | null; 
+}) {
+  const { data: tabData, loading } = useTabData('valores', filterPayload, currentUser);
+  const { valoresData } = useTabDataMapper({ activeTab: 'valores', tabData });
   const [isExporting, setIsExporting] = useState(false);
 
   const {

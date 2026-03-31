@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { useDashboardData } from './useDashboardData';
-import { useTabData } from '@/hooks/data/useTabData';
-import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { useDashboardKeys } from './useDashboardKeys';
 import { useDashboardFilters } from './useDashboardFilters';
-import { useEvolutionAutoSelect } from '@/hooks/data/useEvolutionAutoSelect';
 import { useChartRegistration } from './useChartRegistration';
 import { useDashboardAuthWrapper } from './useDashboardAuthWrapper';
 import { useDashboardTabs } from './useDashboardTabs';
+import { useDashboardDimensions } from './useDashboardDimensions';
+import { useDashboardCache } from './useDashboardCache';
+import { useDashboardFilterOptions } from './useDashboardFilterOptions';
 
 export function useDashboardPage() {
   const { isCheckingAuth, isAuthenticated, currentUser } = useDashboardAuthWrapper();
@@ -17,47 +16,39 @@ export function useDashboardPage() {
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const { filters, setFilters } = useDashboardFilters();
 
-  const dashboardFetch = useDashboardData(filters, activeTab, anoEvolucao, currentUser);
-  const { anosDisponiveis, semanasDisponiveis, pracas, subPracas, origens, turnos } = dashboardFetch;
-
-  useEvolutionAutoSelect({ filters, setFilters, anosDisponiveis: anosDisponiveis || [], anoEvolucao, setAnoEvolucao });
-
   const { filterPayload } = useDashboardKeys(filters, currentUser);
-  const { data: tabData, loading: loadingTabData } = useTabData(activeTab, filterPayload, currentUser);
-  const { utrData, entregadoresData, valoresData, prioridadeData } = useTabDataMapper({ activeTab, tabData });
+  
+  // As dimensões básicas (anos/semanas disponíveis) são carregadas uma vez no mount
+  const { anosDisponiveis, semanasDisponiveis } = useDashboardDimensions();
+  
+  // Tentar pegar as outras dimensões (praças, sub-praças, etc) do cache se já foram carregadas por alguma aba
+  const { getCacheData } = useDashboardCache();
+  const cachedData = getCacheData();
+  const dimensoes = cachedData?.dimensoes || null;
 
-  const dashboardData = {
-    aderenciaGeral: dashboardFetch.aderenciaGeral,
-    aderenciaSemanal: dashboardFetch.aderenciaSemanal,
-    aderenciaDia: dashboardFetch.aderenciaDia,
-    aderenciaTurno: dashboardFetch.aderenciaTurno,
-    aderenciaSubPraca: dashboardFetch.aderenciaSubPraca,
-    aderenciaOrigem: dashboardFetch.aderenciaOrigem,
-    aderenciaDiaOrigem: dashboardFetch.aderenciaDiaOrigem,
-    totals: dashboardFetch.totals,
-  };
+  // Gerar as opções dos filtros baseadas nas dimensões (do cache ou fallbacks)
+  const filterOptions = useDashboardFilterOptions({
+    dimensoes,
+    currentUser,
+    filters
+  });
 
   return {
     auth: { isCheckingAuth, isAuthenticated, currentUser },
-    ui: { activeTab, handleTabChange, chartReady, loading: dashboardFetch.loading, error: dashboardFetch.error },
+    ui: { activeTab, handleTabChange, chartReady, loading: false, error: null },
     filters: {
       state: filters,
       setState: setFilters,
       payload: filterPayload,
-      options: { anos: anosDisponiveis, semanas: semanasDisponiveis, pracas, subPracas, origens, turnos },
-    },
-    data: {
-      dashboard: dashboardData,
-      tabs: { utrData, entregadoresData, valoresData, prioridadeData, loading: loadingTabData },
-      evolution: {
-        mensal: dashboardFetch.evolucaoMensal,
-        semanal: dashboardFetch.evolucaoSemanal,
-        utrSemanal: dashboardFetch.utrSemanal,
-        loading: dashboardFetch.loadingEvolucao,
-        anoSelecionado: anoEvolucao,
-        setAno: setAnoEvolucao,
-        anosOptions: anosDisponiveis,
+      options: { 
+        anos: anosDisponiveis, 
+        semanas: semanasDisponiveis, 
+        ...filterOptions 
       },
     },
+    anoEvolucao: {
+      valor: anoEvolucao,
+      set: setAnoEvolucao
+    }
   };
 }

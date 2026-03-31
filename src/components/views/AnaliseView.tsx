@@ -1,30 +1,34 @@
 'use client';
 
 import React from 'react';
-import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem } from '@/types';
 import { AnaliseMetricCards } from './analise/components/AnaliseMetricCards';
 import { motion, Variants } from 'framer-motion';
 import { useAnaliseViewController } from './analise/useAnaliseViewController';
 import { AnaliseDetailedCard } from './analise/AnaliseDetailedCard';
+import { useDashboardMainData } from '@/hooks/dashboard/useDashboardMainData';
+import { useDashboardKeys } from '@/hooks/dashboard/useDashboardKeys';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import type { DashboardFilters, CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
 const AnaliseView = React.memo(function AnaliseView({
-  totals,
-  aderenciaDia = [],
-  aderenciaTurno = [],
-  aderenciaSubPraca = [],
-  aderenciaOrigem = [],
-  aderenciaDiaOrigem = [],
-  filterPayload,
+  filters,
+  currentUser,
 }: {
-  totals: Totals;
-  aderenciaDia?: AderenciaDia[];
-  aderenciaTurno?: AderenciaTurno[];
-  aderenciaSubPraca?: AderenciaSubPraca[];
-  aderenciaOrigem?: AderenciaOrigem[];
-  aderenciaDiaOrigem?: AderenciaDiaOrigem[];
-  filterPayload?: FilterPayload;
+  filters: DashboardFilters;
+  currentUser: CurrentUser | null;
 }) {
+  const { filterPayload } = useDashboardKeys(filters, currentUser);
+  const {
+    totals,
+    aderenciaDia,
+    aderenciaTurno,
+    aderenciaSubPraca,
+    aderenciaOrigem,
+    aderenciaDiaOrigem,
+    loading
+  } = useDashboardMainData({ filterPayload });
+
   const {
     activeTable,
     isExporting,
@@ -37,13 +41,17 @@ const AnaliseView = React.memo(function AnaliseView({
     labelColumn,
     totalHoras
   } = useAnaliseViewController(
-    totals,
-    aderenciaDia,
-    aderenciaTurno,
-    aderenciaSubPraca,
-    aderenciaOrigem,
-    aderenciaDiaOrigem
+    totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 },
+    aderenciaDia || [],
+    aderenciaTurno || [],
+    aderenciaSubPraca || [],
+    aderenciaOrigem || [],
+    aderenciaDiaOrigem || []
   );
+
+  if (loading || !totals) {
+    return <DashboardSkeleton contentOnly />;
+  }
 
   const container: Variants = {
     hidden: { opacity: 0 },

@@ -15,14 +15,20 @@ import { EntregadoresHeader } from './entregadores/EntregadoresHeader';
 import { useEntregadoresExport } from './entregadores/hooks/useEntregadoresExport';
 import { useEntregadorProfile } from './entregadores/hooks/useEntregadorProfile';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+import { useTabData } from '@/hooks/data/useTabData';
+import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
+import type { CurrentUser } from '@/types';
+import type { FilterPayload } from '@/types/filters';
 
 const EntregadoresMainView = React.memo(function EntregadoresMainView({
-  entregadoresData,
-  loading,
+  filterPayload,
+  currentUser,
 }: {
-  entregadoresData: EntregadoresData | null;
-  loading: boolean;
+  filterPayload: FilterPayload;
+  currentUser: CurrentUser | null;
 }) {
+  const { data: tabData, loading } = useTabData('entregadores', filterPayload, currentUser);
+  const { entregadoresData } = useTabDataMapper({ activeTab: 'entregadores', tabData });
   const {
     sortedEntregadores,
     sortField,

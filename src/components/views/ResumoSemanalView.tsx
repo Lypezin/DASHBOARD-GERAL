@@ -13,24 +13,34 @@ import { handleExportExcelResumoSemanal } from './resumo-semanal/ResumoSemanalEx
 
 import { handleCopyTable as copyTableHelper } from './resumo-semanal/utils/copyHelpers';
 import { SelectedPracasTags } from './resumo-semanal/SelectedPracasTags';
+import { useDashboardEvolucao } from '@/hooks/dashboard/useDashboardEvolucao';
+import { useDashboardMainData } from '@/hooks/dashboard/useDashboardMainData';
+import type { FilterPayload } from '@/types/filters';
 
 interface ResumoSemanalViewProps {
-    evolucaoSemanal: EvolucaoSemanal[];
-    aderenciaSemanal: AderenciaSemanal[];
-    utrSemanal: UtrSemanal[];
+    filterPayload: FilterPayload;
     pracasDisponiveis: string[];
     anoSelecionado: number;
-    loading?: boolean;
 }
 
 export const ResumoSemanalView = ({
-    evolucaoSemanal,
-    aderenciaSemanal,
-    utrSemanal,
+    filterPayload,
     pracasDisponiveis,
     anoSelecionado,
-    loading
 }: ResumoSemanalViewProps) => {
+    // Fetch evolution and UTR data
+    const { evolucaoSemanal, utrSemanal, loading: loadingEvolucao } = useDashboardEvolucao({ 
+        filterPayload, 
+        anoEvolucao: anoSelecionado,
+        activeTab: 'resumo'
+    });
+
+    // Fetch adherence data
+    const { aderenciaSemanal, loading: loadingMain } = useDashboardMainData({ 
+        filterPayload 
+    });
+
+    const loading = loadingEvolucao || loadingMain;
     // Persisted local praça filter
     const { selectedPracas, togglePraca, clearFilter } = useResumoPracasFilter();
 

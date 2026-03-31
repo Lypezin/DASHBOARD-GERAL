@@ -7,14 +7,21 @@ import { PrioridadeEmptyState, PrioridadeErrorState } from './prioridade/compone
 import { PrioridadeLayout } from './prioridade/PrioridadeLayout';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 
+import { useTabData } from '@/hooks/data/useTabData';
+import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
+import type { CurrentUser } from '@/types';
+import type { FilterPayload } from '@/types/filters';
+
 const PrioridadePromoView = React.memo(function PrioridadePromoView({
-  entregadoresData,
-  loading,
+  filterPayload,
+  currentUser,
 }: {
-  entregadoresData: EntregadoresData | null;
-  loading: boolean;
+  filterPayload: FilterPayload;
+  currentUser: CurrentUser | null;
 }) {
-  const { state, actions } = usePrioridadeViewController(entregadoresData, loading);
+  const { data: tabData, loading } = useTabData('prioridade', filterPayload, currentUser);
+  const { prioridadeData } = useTabDataMapper({ activeTab: 'prioridade', tabData });
+  const { state, actions } = usePrioridadeViewController(prioridadeData, loading);
 
   if (state.loading) {
     return <DashboardSkeleton contentOnly />;

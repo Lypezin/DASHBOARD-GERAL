@@ -10,18 +10,22 @@ import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { motion } from 'framer-motion';
 import { staggerContainer, fadeInItem } from '@/utils/animations';
 import { useEvolucaoViewController } from './evolucao/hooks/useEvolucaoViewController';
+import { useDashboardEvolucao } from '@/hooks/dashboard/useDashboardEvolucao';
+import type { FilterPayload } from '@/types/filters';
 
 const EvolucaoView = React.memo(function EvolucaoView({
-  evolucaoMensal,
-  evolucaoSemanal,
-  loading,
+  filterPayload,
   anoSelecionado,
 }: {
-  evolucaoMensal: EvolucaoMensal[];
-  evolucaoSemanal: EvolucaoSemanal[];
-  loading: boolean;
+  filterPayload: FilterPayload;
   anoSelecionado: number;
 }) {
+  const { evolucaoMensal, evolucaoSemanal, loading } = useDashboardEvolucao({ 
+    filterPayload, 
+    anoEvolucao: anoSelecionado,
+    activeTab: 'evolucao'
+  });
+
   const { state, actions } = useEvolucaoViewController({
     evolucaoMensal,
     evolucaoSemanal,
