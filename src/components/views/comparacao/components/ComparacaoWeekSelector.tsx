@@ -22,56 +22,51 @@ export const ComparacaoWeekSelector: React.FC<ComparacaoWeekSelectorProps> = ({
     onToggleSemana
 }) => {
     return (
-        <div className="flex flex-col space-y-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Semanas para comparar
-            </label>
-            <div className="flex flex-col sm:flex-row gap-3">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="h-10 px-4 min-w-[200px] justify-between border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <span className="truncate text-slate-700 dark:text-slate-200">
-                                {semanasSelecionadas.length > 0
-                                    ? "Adicionar/Remover semanas"
-                                    : "Selecionar semanas..."}
-                            </span>
-                            <ChevronDown className="ml-2 h-4 w-4 text-slate-400" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[240px] max-h-[300px] overflow-y-auto" align="start">
-                        <DropdownMenuLabel>Semanas Disponíveis</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {todasSemanas.map((semana) => {
-                            const semanaStr = String(semana);
-                            const semanaNumStr = semanaStr.includes('W') ? (semanaStr.match(/W(\d+)/)?.[1] || semanaStr) : semanaStr;
-                            const isSelected = semanasSelecionadas.includes(semanaNumStr);
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="h-11 px-6 min-w-[220px] justify-between rounded-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm border-2">
+                        <span className="truncate text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                            {semanasSelecionadas.length > 0
+                                ? `Semanas (+${semanasSelecionadas.length})`
+                                : "Adicionar Semanas"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 text-slate-400" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[240px] max-h-[400px] overflow-y-auto rounded-2xl p-2 shadow-2xl border-slate-100 dark:border-slate-800" align="start">
+                    <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 py-2">Semanas Disponíveis</DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800 mx-2" />
+                    {todasSemanas.map((semana) => {
+                        const semanaStr = String(semana);
+                        const semanaNumStr = semanaStr.includes('W') ? (semanaStr.match(/W(\d+)/)?.[1] || semanaStr) : semanaStr;
+                        const isSelected = semanasSelecionadas.includes(semanaNumStr);
 
-                            return (
-                                <DropdownMenuCheckboxItem
-                                    key={semanaStr}
-                                    checked={isSelected}
-                                    onCheckedChange={() => onToggleSemana(semana)}
-                                // onSelect={(e) => e.preventDefault()}
-                                >
-                                    Semana {semanaNumStr}
-                                </DropdownMenuCheckboxItem>
-                            );
-                        })}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                        return (
+                            <DropdownMenuCheckboxItem
+                                key={semanaStr}
+                                checked={isSelected}
+                                onCheckedChange={() => onToggleSemana(semana)}
+                                className="rounded-xl px-3 py-2 text-sm font-medium focus:bg-indigo-50 focus:text-indigo-600 dark:focus:bg-indigo-950/30 dark:focus:text-indigo-400 transition-colors"
+                            >
+                                Semana {semanaNumStr}
+                            </DropdownMenuCheckboxItem>
+                        );
+                    })}
+                </DropdownMenuContent>
+            </DropdownMenu>
 
-                {/* Selected Tags Display - Expanded for better visibility */}
-                <div className="flex flex-wrap gap-2 items-center flex-1 p-2 min-h-[40px] rounded-md bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 border-dashed">
-                    {semanasSelecionadas.length === 0 && (
-                        <span className="text-xs text-slate-400 italic px-2">Nenhuma semana selecionada</span>
-                    )}
-                    {semanasSelecionadas.map((semana) => (
-                        <div key={semana} className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 shadow-sm transition-colors dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300">
-                            <span className="opacity-70">Semana</span>
-                            <span>{semana}</span>
-                        </div>
-                    ))}
-                </div>
+            {/* Selected Tags Display - Expanded for better visibility */}
+            <div className="flex flex-wrap gap-2 items-center flex-1 min-h-[44px]">
+                {semanasSelecionadas.length === 0 && (
+                    <span className="text-[11px] font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-4 py-2 rounded-full border border-slate-100 dark:border-slate-800 italic">Nenhuma semana ativa</span>
+                )}
+                {semanasSelecionadas.map((semana) => (
+                    <div key={semana} className="inline-flex items-center gap-2 group rounded-full border border-indigo-100 bg-indigo-50/50 px-5 py-2 text-[11px] font-bold text-indigo-700 shadow-sm transition-all hover:scale-105 active:scale-95 dark:border-indigo-900/50 dark:bg-indigo-900/20 dark:text-indigo-400">
+                        <span className="uppercase tracking-widest opacity-60">Sem</span>
+                        <span className="text-sm font-black">{semana}</span>
+                    </div>
+                ))}
             </div>
         </div>
     );

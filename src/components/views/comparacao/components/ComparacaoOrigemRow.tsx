@@ -14,17 +14,18 @@ export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSeleciona
     return (
         <TableRow
             className={`
+                group transition-all duration-200 border-b border-transparent
                 ${origem === 'MÉDIA DAS ORIGENS'
-                    ? 'bg-blue-50/80 dark:bg-blue-900/20 font-semibold'
-                    : index % 2 === 0 ? '' : 'bg-slate-50/40 dark:bg-slate-900/30'
+                    ? 'bg-indigo-50/40 dark:bg-indigo-900/10 font-bold'
+                    : index % 2 === 0 ? '' : 'bg-slate-50/20 dark:bg-slate-900/10'
                 } 
-                hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-800
+                hover:bg-slate-50 dark:hover:bg-slate-800/20
             `}
         >
-            <TableCell className={`sticky left-0 z-10 font-medium text-sm pl-5 border-r border-slate-100 dark:border-slate-800 py-3
+            <TableCell className={`sticky left-0 z-10 font-semibold text-[13px] pl-8 py-5 transition-colors
                 ${origem === 'MÉDIA DAS ORIGENS'
-                    ? 'bg-blue-50 dark:bg-slate-900 text-blue-700 dark:text-blue-400'
-                    : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200'}
+                    ? 'bg-indigo-50/10 dark:bg-slate-900 text-indigo-700 dark:text-indigo-400'
+                    : 'bg-inherit text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}
             `}>
                 {origem}
             </TableCell>
@@ -45,15 +46,15 @@ export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSeleciona
 
                 return (
                     <React.Fragment key={idx}>
-                        <TableCell className={`text-center text-sm font-medium tabular-nums text-slate-700 dark:text-slate-300 border-l border-slate-100 dark:border-slate-800 py-3`}>
-                            {origem === 'MÉDIA DAS ORIGENS' && <span className="text-blue-600 dark:text-blue-400 mr-1">~</span>}
+                        <TableCell className={`text-center text-[13px] font-mono tabular-nums text-slate-700 dark:text-slate-300 py-5`}>
+                            {origem === 'MÉDIA DAS ORIGENS' && <span className="text-indigo-500/50 dark:text-indigo-400/50 mr-1">~</span>}
                             {valor.toFixed(1)}%
                         </TableCell>
-                        <TableCell className="text-center w-[70px] py-2">
+                        <TableCell className="text-center w-[70px] py-5">
                             {idx > 0 ? (
-                                <VariacaoBadge variacao={variacao ?? 0} className="mx-auto" />
+                                <VariacaoBadge variacao={variacao ?? 0} className="mx-auto scale-90" />
                             ) : (
-                                <span className="text-slate-300 dark:text-slate-600">-</span>
+                                <span className="text-slate-300 dark:text-slate-600 font-mono text-xs">-</span>
                             )}
                         </TableCell>
                     </React.Fragment>

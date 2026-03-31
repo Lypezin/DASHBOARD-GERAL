@@ -27,18 +27,16 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
     isEven = false,
 }) => {
     return (
-        <TableRow className={`
-            group transition-all duration-200 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10
-            ${isEven ? 'bg-slate-50/30 dark:bg-slate-800/10' : ''}
-        `}>
-            <TableCell className="text-sm font-semibold text-slate-700 dark:text-slate-300 py-4 pl-6 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">
+        <TableRow className="group transition-all duration-200 border-b border-transparent hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
+            <TableCell className="font-semibold text-[13px] text-slate-800 dark:text-slate-200 pl-8 py-5 transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                 <div className="flex items-center gap-2">
                     {icon && icon}
                     {label}
                 </div>
             </TableCell>
-            {data.map((dados, idx) => {
-                const rawValue = getValue(dados);
+
+            {data.map((item, idx) => {
+                const rawValue = getValue(item);
                 let variacao: number | null = null;
 
                 if (idx > 0 && showVariation) {
@@ -50,15 +48,15 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
 
                 return (
                     <React.Fragment key={idx}>
-                        <TableCell className={`text-center text-sm border-l border-slate-200/40 dark:border-slate-800/40 py-4 ${valueClassName}`}>
-                            <span className="font-mono">{formatValue(rawValue)}</span>
+                        <TableCell className={`text-center text-[13px] font-mono py-5 ${valueClassName}`}>
+                            <span>{formatValue(rawValue)}</span>
                         </TableCell>
                         {idx > 0 && (
-                            <TableCell className="text-center w-[70px] py-4 px-1">
+                            <TableCell className="text-center w-[70px] py-5 px-1">
                                 {variacao !== null ? (
                                     <VariacaoBadge variacao={variacao} className="scale-90 mx-auto" invertColors={invertVariationColors} />
                                 ) : (
-                                    <span className="text-slate-300 dark:text-slate-700">–</span>
+                                    <span className="text-slate-300 dark:text-slate-600 font-mono text-xs">-</span>
                                 )}
                             </TableCell>
                         )}

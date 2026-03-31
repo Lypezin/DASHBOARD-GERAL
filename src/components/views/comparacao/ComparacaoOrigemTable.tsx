@@ -27,18 +27,20 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
         <div className="overflow-x-auto">
             <Table>
                 <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-slate-50/80 dark:bg-slate-800/30">
-                        <TableHead className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-900 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-5 min-w-[140px] border-r border-slate-100 dark:border-slate-800">
+                    <TableRow className="hover:bg-transparent border-none">
+                        <TableHead className="sticky left-0 z-20 bg-white dark:bg-slate-900 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 pl-8 pb-4 align-bottom">
                             Origem
                         </TableHead>
                         {semanasSelecionadas.map((semana) => {
                             const semanaStr = String(semana).replace('W', '');
                             return (
                                 <React.Fragment key={semana}>
-                                    <TableHead className="text-center text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 border-l border-slate-100 dark:border-slate-800 min-w-[90px]">
-                                        Sem. {semanaStr}
+                                    <TableHead className="text-center pb-2">
+                                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold uppercase tracking-widest ring-1 ring-inset ring-slate-200 dark:ring-slate-700">
+                                            Sem. {semanaStr}
+                                        </span>
                                     </TableHead>
-                                    <TableHead className="text-center text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 min-w-[70px]">
+                                    <TableHead className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 min-w-[70px] pb-4 align-bottom">
                                         Var
                                     </TableHead>
                                 </React.Fragment>

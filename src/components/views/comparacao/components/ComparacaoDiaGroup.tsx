@@ -13,19 +13,19 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({ dia, di
                 <TableRow
                     key={`${dia}-${metric.key}`}
                     className={`
-                      group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors duration-200
-                      ${diaIdx % 2 === 0 ? '' : 'bg-slate-50/30 dark:bg-slate-800/10'}
-                      ${metricIdx === 0 ? 'border-t-2 border-slate-200 dark:border-slate-800' : 'border-t border-slate-100/50 dark:border-slate-800/50'}
+                      group transition-all duration-200 border-b border-transparent hover:bg-slate-50/50 dark:hover:bg-slate-800/20
+                      ${diaIdx % 2 === 0 ? '' : 'bg-slate-50/20 dark:bg-slate-900/10'}
                     `}
                 >
                     {/* Dia column — only on first metric row */}
                     {metricIdx === 0 ? (
                         <TableCell
                             rowSpan={COMPARACAO_METRICS.length}
-                            className="align-middle border-r-2 border-slate-100 dark:border-slate-800/80 p-4 w-[160px]"
+                            className="align-middle p-8 w-[160px] border-none"
                         >
-                            <div className="flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-indigo-50/80 dark:bg-indigo-900/20 border border-indigo-100/80 dark:border-indigo-800/30 shadow-sm">
-                                <span className="font-bold text-[15px] text-indigo-700 dark:text-indigo-400 tracking-tight uppercase">{dia}</span>
+                            <div className="flex flex-col items-start justify-center">
+                                <span className="font-bold text-lg text-slate-900 dark:text-white tracking-tight leading-none mb-1">{dia}</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-semibold">Dia Todo</span>
                             </div>
                         </TableCell>
                     ) : null}
