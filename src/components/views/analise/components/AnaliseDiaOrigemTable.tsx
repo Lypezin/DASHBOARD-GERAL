@@ -15,13 +15,25 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
         const origensSet = new Set<string>();
         const map = new Map<string, number>();
 
-        if (Array.isArray(data)) {
+        const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+        if (Array.isArray(data) && data.length > 0) {
+            if (IS_DEV) console.log('DEBUG: AnaliseDiaOrigemTable data:', data);
+
             data.forEach(item => {
-                diasSet.add(item.dia);
-                origensSet.add(item.origem);
-                const key = `${item.dia}|${item.origem}`;
-                map.set(key, (map.get(key) || 0) + (item.segundos_realizados || 0));
+                // Tenta múltiplas chaves comuns para dia e origem
+                const dia = item.dia || item.dia_da_semana || item.dia_semana || item.data;
+                const origem = item.origem || (item as any).nome_origem || 'N/D';
+                const segundosRealizados = item.segundos_realizados || (item as any).horas_entregues_segundos || 0;
+
+                if (dia) {
+                    diasSet.add(String(dia));
+                    origensSet.add(String(origem));
+                    map.set(`${dia}|${origem}`, (map.get(`${dia}|${origem}`) || 0) + (Number(segundosRealizados) / 3600));
+                }
             });
+        } else if (IS_DEV) {
+            console.warn('DEBUG: AnaliseDiaOrigemTable received empty or invalid data:', data);
         }
 
         // Ordenar dias

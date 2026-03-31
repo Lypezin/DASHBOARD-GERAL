@@ -5,10 +5,10 @@ type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'dia_origem';
 
 export function useAnaliseTableData(
     activeTable: TableType,
-    aderenciaDia: AderenciaDia[],
-    aderenciaTurno: AderenciaTurno[],
-    aderenciaSubPraca: AderenciaSubPraca[],
-    aderenciaOrigem: AderenciaOrigem[]
+    aderenciaDia: AderenciaDia[] = [],
+    aderenciaTurno: AderenciaTurno[] = [],
+    aderenciaSubPraca: AderenciaSubPraca[] = [],
+    aderenciaOrigem: AderenciaOrigem[] = []
 ) {
     const tableData = useMemo(() => {
         const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];

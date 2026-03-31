@@ -10,11 +10,11 @@ export type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'dia_origem';
 
 export function useAnaliseViewController(
     totals: Totals,
-    aderenciaDia: AderenciaDia[],
-    aderenciaTurno: AderenciaTurno[],
-    aderenciaSubPraca: AderenciaSubPraca[],
-    aderenciaOrigem: AderenciaOrigem[],
-    aderenciaDiaOrigem: any[]
+    aderenciaDia: AderenciaDia[] = [],
+    aderenciaTurno: AderenciaTurno[] = [],
+    aderenciaSubPraca: AderenciaSubPraca[] = [],
+    aderenciaOrigem: AderenciaOrigem[] = [],
+    aderenciaDiaOrigem: any[] = []
 ) {
     const [activeTable, setActiveTable] = useState<TableType>('dia');
     const [isExporting, setIsExporting] = useState(false);
@@ -53,6 +53,7 @@ export function useAnaliseViewController(
 
     // Calcular total de horas
     const totalHoras = useMemo(() => {
+        if (!Array.isArray(aderenciaDia)) return 0;
         return aderenciaDia.reduce((acc, curr) => acc + (curr.segundos_realizados || 0), 0) / 3600;
     }, [aderenciaDia]);
 

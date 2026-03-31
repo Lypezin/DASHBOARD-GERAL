@@ -10,18 +10,18 @@ import { AnaliseDetailedCard } from './analise/AnaliseDetailedCard';
 
 const AnaliseView = React.memo(function AnaliseView({
   totals,
-  aderenciaDia,
-  aderenciaTurno,
-  aderenciaSubPraca,
-  aderenciaOrigem,
-  aderenciaDiaOrigem,
+  aderenciaDia = [],
+  aderenciaTurno = [],
+  aderenciaSubPraca = [],
+  aderenciaOrigem = [],
+  aderenciaDiaOrigem = [],
 }: {
   totals: Totals;
-  aderenciaDia: AderenciaDia[];
-  aderenciaTurno: AderenciaTurno[];
-  aderenciaSubPraca: AderenciaSubPraca[];
-  aderenciaOrigem: AderenciaOrigem[];
-  aderenciaDiaOrigem: AderenciaDiaOrigem[];
+  aderenciaDia?: AderenciaDia[];
+  aderenciaTurno?: AderenciaTurno[];
+  aderenciaSubPraca?: AderenciaSubPraca[];
+  aderenciaOrigem?: AderenciaOrigem[];
+  aderenciaDiaOrigem?: AderenciaDiaOrigem[];
 }) {
   const {
     activeTable,

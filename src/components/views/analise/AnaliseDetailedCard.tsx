@@ -22,7 +22,7 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
     labelColumn,
     isExporting,
     onExport,
-    aderenciaDiaOrigem
+    aderenciaDiaOrigem = []
 }: AnaliseDetailedCardProps) {
     return (
         <div className="space-y-6">

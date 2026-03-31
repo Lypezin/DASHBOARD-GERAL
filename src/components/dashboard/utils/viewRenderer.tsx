@@ -38,11 +38,11 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
             return props.totals ? (
                 <AnaliseView
                     totals={props.totals}
-                    aderenciaDia={props.aderenciaDia}
-                    aderenciaTurno={props.aderenciaTurno}
-                    aderenciaSubPraca={props.aderenciaSubPraca}
-                    aderenciaOrigem={props.aderenciaOrigem}
-                    aderenciaDiaOrigem={props.aderenciaDiaOrigem}
+                    aderenciaDia={props.aderenciaDia || []}
+                    aderenciaTurno={props.aderenciaTurno || []}
+                    aderenciaSubPraca={props.aderenciaSubPraca || []}
+                    aderenciaOrigem={props.aderenciaOrigem || []}
+                    aderenciaDiaOrigem={props.aderenciaDiaOrigem || []}
                 />
             ) : <DashboardSkeleton contentOnly />;
         case 'utr':
