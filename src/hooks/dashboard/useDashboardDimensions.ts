@@ -37,13 +37,13 @@ export function useDashboardDimensions() {
         }
 
         // 2. Se não houver cache ou expirou, buscar da API em paralelo
-        const [anosResult, semanasResult, dimensoesResult] = await Promise.all([
+        const [anosResult, semanasResult, pracasResult, subPracasResult, origensResult, turnosResult] = await Promise.all([
           safeRpc<number[]>('listar_anos_disponiveis', {}, { timeout: 10000, validateParams: false }),
           safeRpc<any[]>('listar_todas_semanas', {}, { timeout: 10000, validateParams: false }),
-          // Buscar dimensões estruturais (Pracas, Sub-Pracas, etc)
-          // Usamos dashboard_resumo mas com uma semana fake ou mínima para obter apenas as dimensões se possível
-          // Ou buscamos direto da view se o RPC for pesado. Para garantir velocidade, vamos simular o objeto DimensoesDashboard
-          supabase.from('mv_aderencia_agregada').select('praca, sub_praca, origem, turno').limit(1000)
+          supabase.from('mv_aderencia_agregada').select('praca', { count: 'exact', head: false }).neq('praca', null),
+          supabase.from('mv_aderencia_agregada').select('sub_praca', { count: 'exact', head: false }).neq('sub_praca', null),
+          supabase.from('mv_aderencia_agregada').select('origem', { count: 'exact', head: false }).neq('origem', null),
+          supabase.from('mv_aderencia_agregada').select('turno', { count: 'exact', head: false }).neq('turno', null)
         ]);
 
         // Processar Anos
@@ -57,25 +57,16 @@ export function useDashboardDimensions() {
           : [];
         setSemanasDisponiveis(semanasData);
 
-        // Processar Outras Dimensões (Pracas, Subs, etc)
-        let dimensoesBase: DimensoesDashboard = {
+        // Processar Outras Dimensões
+        const dimensoesBase: DimensoesDashboard = {
           anos: mergedYears,
           semanas: semanasData,
-          pracas: [],
-          sub_pracas: [],
-          origens: [],
-          turnos: []
+          pracas: Array.from(new Set((pracasResult.data || []).map(d => d.praca))),
+          sub_pracas: Array.from(new Set((subPracasResult.data || []).map(d => d.sub_praca))),
+          origens: Array.from(new Set((origensResult.data || []).map(d => d.origem))),
+          turnos: Array.from(new Set((turnosResult.data || []).map(d => d.turno)))
         };
-
-        if (dimensoesResult.data) {
-          dimensoesBase = {
-            ...dimensoesBase,
-            pracas: Array.from(new Set(dimensoesResult.data.map(d => d.praca).filter(Boolean))),
-            sub_pracas: Array.from(new Set(dimensoesResult.data.map(d => d.sub_praca).filter(Boolean))),
-            origens: Array.from(new Set(dimensoesResult.data.map(d => d.origem).filter(Boolean))),
-            turnos: Array.from(new Set(dimensoesResult.data.map(d => d.turno).filter(Boolean)))
-          };
-        }
+        
         setOutrasDimensoes(dimensoesBase);
 
         // 3. Salvar no Cache

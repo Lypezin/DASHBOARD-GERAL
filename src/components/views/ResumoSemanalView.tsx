@@ -2,7 +2,7 @@
 
 import React, { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EvolucaoSemanal, AderenciaSemanal, UtrSemanal } from '@/types';
+import { EvolucaoSemanal, AderenciaSemanal, UtrSemanal, AderenciaDia, AderenciaDiaOrigem } from '@/types';
 import { formatNumber, formatPercent } from '@/utils/formatters';
 import { useResumoLocalData } from '@/hooks/data/useResumoDrivers';
 import { useResumoPracasFilter } from '@/hooks/data/useResumoPracasFilter';
@@ -21,12 +21,16 @@ interface ResumoSemanalViewProps {
     filterPayload: FilterPayload;
     pracasDisponiveis: string[];
     anoSelecionado: number;
+    aderenciaSemanal: AderenciaSemanal[];
+    aderenciaDia?: AderenciaDia[];
 }
 
-export const ResumoSemanalView = ({
+export const ResumoSemanalView = React.memo(({
     filterPayload,
     pracasDisponiveis,
     anoSelecionado,
+    aderenciaSemanal,
+    aderenciaDia,
 }: ResumoSemanalViewProps) => {
     // Fetch evolution and UTR data
     const { evolucaoSemanal, utrSemanal, loading: loadingEvolucao } = useDashboardEvolucao({ 
@@ -35,12 +39,7 @@ export const ResumoSemanalView = ({
         activeTab: 'resumo'
     });
 
-    // Fetch adherence data
-    const { aderenciaSemanal, loading: loadingMain } = useDashboardMainData({ 
-        filterPayload 
-    });
-
-    const loading = loadingEvolucao || loadingMain;
+    const loading = loadingEvolucao;
     // Persisted local praça filter
     const { selectedPracas, togglePraca, clearFilter } = useResumoPracasFilter();
 
@@ -101,4 +100,4 @@ export const ResumoSemanalView = ({
             </Card>
         </div>
     );
-};
+});

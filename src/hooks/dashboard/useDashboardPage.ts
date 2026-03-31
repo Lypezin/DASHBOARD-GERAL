@@ -5,8 +5,8 @@ import { useChartRegistration } from './useChartRegistration';
 import { useDashboardAuthWrapper } from './useDashboardAuthWrapper';
 import { useDashboardTabs } from './useDashboardTabs';
 import { useDashboardDimensions } from './useDashboardDimensions';
-import { useDashboardCache } from './useDashboardCache';
 import { useDashboardFilterOptions } from './useDashboardFilterOptions';
+import { useDashboardMainData } from './useDashboardMainData';
 
 export function useDashboardPage() {
   const { isCheckingAuth, isAuthenticated, currentUser } = useDashboardAuthWrapper();
@@ -21,16 +21,21 @@ export function useDashboardPage() {
   // As dimensões básicas são carregadas uma vez no mount (Anos, Semanas, Praças, etc)
   const { anosDisponiveis, semanasDisponiveis, dimensoes } = useDashboardDimensions();
   
-  // Gerar as opções dos filtros baseadas nas dimensões carregadas globalmente
+  // Para manter a performance e compatibilidade, carregamos os dados principais centralmente
+  // Isso povoa o cache global que as sub-views usarão se necessário
+  const mainData = useDashboardMainData({ filterPayload });
+
+  // Gerar as opções dos filtros baseadas nas dimensões carregadas globalmente ou no mainData
   const filterOptions = useDashboardFilterOptions({
-    dimensoes,
+    dimensoes: mainData.dimensoes || dimensoes,
     currentUser,
     filters
   });
 
   return {
     auth: { isCheckingAuth, isAuthenticated, currentUser },
-    ui: { activeTab, handleTabChange, chartReady, loading: false, error: null },
+    ui: { activeTab, handleTabChange, chartReady, loading: mainData.loading, error: mainData.error },
+    data: mainData,
     filters: {
       state: filters,
       setState: setFilters,

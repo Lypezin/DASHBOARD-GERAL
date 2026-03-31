@@ -29,6 +29,12 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     filters={props.filters}
                     filterPayload={props.filterPayload}
                     currentUser={props.currentUser}
+                    totals={props.totals}
+                    aderenciaSemanal={props.aderenciaSemanal}
+                    aderenciaDia={props.aderenciaDia}
+                    aderenciaTurno={props.aderenciaTurno}
+                    aderenciaSubPraca={props.aderenciaSubPraca}
+                    aderenciaOrigem={props.aderenciaOrigem}
                 />
             );
         case 'analise':
@@ -37,6 +43,8 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     filters={props.filters}
                     filterPayload={props.filterPayload}
                     currentUser={props.currentUser}
+                    aderenciaDia={props.aderenciaDia}
+                    aderenciaDiaOrigem={props.aderenciaDiaOrigem}
                 />
             );
         case 'utr':
@@ -44,7 +52,15 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
         case 'entregadores':
             return <EntregadoresMainView filterPayload={props.filterPayload} currentUser={props.currentUser} />;
         case 'valores':
-            return <ValoresView filters={props.filters} setFilters={props.setFilters} filterPayload={props.filterPayload} currentUser={props.currentUser} />;
+            return (
+                <ValoresView 
+                    filters={props.filters} 
+                    setFilters={props.setFilters} 
+                    filterPayload={props.filterPayload} 
+                    currentUser={props.currentUser}
+                    aderenciaDia={props.aderenciaDia}
+                />
+            );
         case 'prioridade':
             return <PrioridadePromoView filterPayload={props.filterPayload} currentUser={props.currentUser} />;
         case 'evolucao':
@@ -53,6 +69,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     filterPayload={props.filterPayload}
                     anoSelecionado={props.anoEvolucao}
                     onAnoChange={props.onAnoChange}
+                    aderenciaSemanal={props.aderenciaSemanal}
                 />
             );
         case 'comparacao':
@@ -76,6 +93,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     filterPayload={props.filterPayload}
                     pracasDisponiveis={props.pracas?.map((p: { value: string }) => p.value) || []}
                     anoSelecionado={props.anoEvolucao || new Date().getFullYear()}
+                    aderenciaDia={props.aderenciaDia}
                 />
             );
         default:

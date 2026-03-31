@@ -8,28 +8,33 @@ import { AnaliseDetailedCard } from './analise/AnaliseDetailedCard';
 import { useDashboardMainData } from '@/hooks/dashboard/useDashboardMainData';
 import { useDashboardKeys } from '@/hooks/dashboard/useDashboardKeys';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
-import type { DashboardFilters, CurrentUser } from '@/types';
+import type {
+  DashboardFilters, CurrentUser, Totals, AderenciaDia, AderenciaTurno,
+  AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem
+} from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
 const AnaliseView = React.memo(function AnaliseView({
   filters,
   filterPayload,
   currentUser,
+  totals,
+  aderenciaDia,
+  aderenciaTurno,
+  aderenciaSubPraca,
+  aderenciaOrigem,
+  aderenciaDiaOrigem,
 }: {
   filters: DashboardFilters;
   filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
+  totals: Totals | null;
+  aderenciaDia: AderenciaDia[];
+  aderenciaTurno: AderenciaTurno[];
+  aderenciaSubPraca: AderenciaSubPraca[];
+  aderenciaOrigem: AderenciaOrigem[];
+  aderenciaDiaOrigem: AderenciaDiaOrigem[];
 }) {
-  const {
-    totals,
-    aderenciaDia,
-    aderenciaTurno,
-    aderenciaSubPraca,
-    aderenciaOrigem,
-    aderenciaDiaOrigem,
-    loading
-  } = useDashboardMainData({ filterPayload });
-
   const {
     activeTable,
     isExporting,
@@ -102,10 +107,6 @@ const AnaliseView = React.memo(function AnaliseView({
     return map;
   }, [aderenciaDia, filterPayload?.p_ano, filterPayload?.p_semana]);
 
-  if (loading || !totals) {
-    return <DashboardSkeleton contentOnly />;
-  }
-
   const container: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -131,7 +132,7 @@ const AnaliseView = React.memo(function AnaliseView({
       {/* KPI Cards Section */}
       <motion.div variants={item}>
         <AnaliseMetricCards
-          totals={totals}
+          totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
           taxaAceitacao={taxaAceitacao}
           taxaCompletude={taxaCompletude}
           taxaRejeicao={taxaRejeicao}

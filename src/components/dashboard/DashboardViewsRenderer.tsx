@@ -9,7 +9,7 @@ import React, { Suspense, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import type {
-  Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem,
+  Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem,
   FilterOption, CurrentUser, TabType, DashboardFilters,
 } from '@/types';
 import type { FilterPayload } from '@/types/filters';
@@ -30,6 +30,14 @@ interface DashboardViewsRendererProps {
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
+  // Dados principais passados para as views (Restaurando arquitetura monolítica)
+  totals: Totals | null;
+  aderenciaSemanal: AderenciaSemanal[];
+  aderenciaDia: AderenciaDia[];
+  aderenciaTurno: AderenciaTurno[];
+  aderenciaSubPraca: AderenciaSubPraca[];
+  aderenciaOrigem: AderenciaOrigem[];
+  aderenciaDiaOrigem: AderenciaDiaOrigem[];
 }
 
 

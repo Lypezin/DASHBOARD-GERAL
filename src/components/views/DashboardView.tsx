@@ -11,22 +11,33 @@ import { useDashboardMainData } from '@/hooks/dashboard/useDashboardMainData';
 import { useDashboardKeys } from '@/hooks/dashboard/useDashboardKeys';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
-import type { DashboardFilters, CurrentUser } from '@/types';
+import type {
+  DashboardFilters, CurrentUser, Totals, AderenciaSemanal, AderenciaDia,
+  AderenciaTurno, AderenciaSubPraca, AderenciaOrigem
+} from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
 const DashboardView = React.memo(function DashboardView({
   filters, 
   filterPayload,
-  currentUser
+  currentUser,
+  totals,
+  aderenciaSemanal,
+  aderenciaDia,
+  aderenciaTurno,
+  aderenciaSubPraca,
+  aderenciaOrigem,
 }: {
   filters: DashboardFilters;
   filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
+  totals: Totals | null;
+  aderenciaSemanal: AderenciaSemanal[];
+  aderenciaDia: AderenciaDia[];
+  aderenciaTurno: AderenciaTurno[];
+  aderenciaSubPraca: AderenciaSubPraca[];
+  aderenciaOrigem: AderenciaOrigem[];
 }) {
-  const {
-    aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, loading
-  } = useDashboardMainData({ filterPayload });
-
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -47,10 +58,6 @@ const DashboardView = React.memo(function DashboardView({
       setIsExporting(false);
     }
   }, [aderenciaGeral, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
-
-  if (loading) {
-    return <DashboardSkeleton contentOnly />;
-  }
 
   return (
     <div className="space-y-8 animate-fade-in pb-12 pt-4">
