@@ -4,9 +4,10 @@ import React from 'react';
 import { Totals, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem } from '@/types';
 import { AnaliseMetricCards } from './analise/components/AnaliseMetricCards';
 import { motion, Variants } from 'framer-motion';
-
 import { useAnaliseViewController } from './analise/useAnaliseViewController';
 import { AnaliseDetailedCard } from './analise/AnaliseDetailedCard';
+import { useAnaliseDiaOrigem } from '@/hooks/analise/useAnaliseDiaOrigem';
+import type { FilterPayload } from '@/types/filters';
 
 const AnaliseView = React.memo(function AnaliseView({
   totals,
@@ -14,14 +15,14 @@ const AnaliseView = React.memo(function AnaliseView({
   aderenciaTurno = [],
   aderenciaSubPraca = [],
   aderenciaOrigem = [],
-  aderenciaDiaOrigem = [],
+  filterPayload,
 }: {
   totals: Totals;
   aderenciaDia?: AderenciaDia[];
   aderenciaTurno?: AderenciaTurno[];
   aderenciaSubPraca?: AderenciaSubPraca[];
   aderenciaOrigem?: AderenciaOrigem[];
-  aderenciaDiaOrigem?: AderenciaDiaOrigem[];
+  filterPayload?: FilterPayload;
 }) {
   const {
     activeTable,
@@ -39,9 +40,14 @@ const AnaliseView = React.memo(function AnaliseView({
     aderenciaDia,
     aderenciaTurno,
     aderenciaSubPraca,
-    aderenciaOrigem,
-    aderenciaDiaOrigem
+    aderenciaOrigem
   );
+
+  // Buscar dados Dia x Origem diretamente, sem depender da RPC
+  const { data: aderenciaDiaOrigem, loading: loadingDiaOrigem } = useAnaliseDiaOrigem({
+    filterPayload: filterPayload || {},
+    enabled: !!filterPayload && activeTable === 'dia_origem',
+  });
 
   const container: Variants = {
     hidden: { opacity: 0 },

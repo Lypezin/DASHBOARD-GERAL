@@ -43,6 +43,7 @@ export function useDashboardPage() {
     filters: {
       state: filters,
       setState: setFilters,
+      payload: filterPayload,
       options: { anos: anosDisponiveis, semanas: semanasDisponiveis, pracas, subPracas, origens, turnos },
     },
     data: {
