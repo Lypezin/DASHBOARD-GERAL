@@ -66,11 +66,14 @@ const AnaliseView = React.memo(function AnaliseView({
     if (Array.isArray(aderenciaDia)) {
       aderenciaDia.forEach(d => {
         const dayName = d.dia || d.dia_semana || d.dia_da_semana;
-        if (dayName && d.data && typeof d.data === 'string') {
-          const parts = d.data.split('-');
+        const rawDate = d.data || (d as any).data_do_periodo;
+        if (dayName && rawDate && typeof rawDate === 'string') {
+          // Normalizar nome do dia para o mapa (remover -feira, lowercase)
+          const normalizedKey = dayName.split('-')[0].trim().toLowerCase();
+          const parts = rawDate.split('T')[0].split('-');
           if (parts.length === 3) {
             const [, month, day] = parts;
-            map[dayName] = `${day}/${month}`;
+            map[normalizedKey] = `${day}/${month}`;
           }
         }
       });
