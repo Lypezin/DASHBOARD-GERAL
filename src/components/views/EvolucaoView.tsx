@@ -16,9 +16,11 @@ import type { FilterPayload } from '@/types/filters';
 const EvolucaoView = React.memo(function EvolucaoView({
   filterPayload,
   anoSelecionado,
+  onAnoChange,
 }: {
   filterPayload: FilterPayload;
   anoSelecionado: number;
+  onAnoChange?: (ano: number) => void;
 }) {
   const { evolucaoMensal, evolucaoSemanal, loading } = useDashboardEvolucao({ 
     filterPayload, 
