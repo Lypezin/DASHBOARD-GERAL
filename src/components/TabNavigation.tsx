@@ -5,7 +5,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { TabType } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -44,29 +43,18 @@ export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: T
               key={tab.value}
               onClick={() => onTabChange(tab.value)}
               className={cn(
-                "relative cursor-pointer text-sm font-medium px-4 py-2 rounded-full transition-colors whitespace-nowrap",
+                "relative cursor-pointer text-sm font-medium px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap",
                 "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
-                isActive && "text-slate-900 dark:text-white"
+                isActive && "text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 shadow-sm"
               )}
             >
               <span className="relative z-10">{tab.label}</span>
               {isActive && (
-                <motion.div
-                  layoutId="lamp"
-                  className="absolute inset-0 w-full bg-slate-100 dark:bg-slate-800 rounded-full"
-                  initial={false}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30,
-                  }}
-                >
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-slate-900 dark:bg-slate-100 rounded-t-full">
-                    <div className="absolute w-12 h-6 bg-slate-900/20 dark:bg-slate-100/20 rounded-full blur-md -top-2 -left-2" />
-                    <div className="absolute w-8 h-6 bg-slate-900/20 dark:bg-slate-100/20 rounded-full blur-md -top-1" />
-                    <div className="absolute w-4 h-4 bg-slate-900/20 dark:bg-slate-100/20 rounded-full blur-sm top-0 left-2" />
-                  </div>
-                </motion.div>
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-slate-900 dark:bg-slate-100 rounded-t-full pointer-events-none">
+                  <div className="absolute w-12 h-6 bg-slate-900/20 dark:bg-slate-100/20 rounded-full blur-md -top-2 -left-2" />
+                  <div className="absolute w-8 h-6 bg-slate-900/20 dark:bg-slate-100/20 rounded-full blur-md -top-1" />
+                  <div className="absolute w-4 h-4 bg-slate-900/20 dark:bg-slate-100/20 rounded-full blur-sm top-0 left-2" />
+                </div>
               )}
             </button>
           );

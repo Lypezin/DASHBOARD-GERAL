@@ -8,7 +8,6 @@
 import React, { Suspense, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
-import { motion, AnimatePresence } from 'framer-motion';
 import type {
   Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem,
   FilterOption, CurrentUser, TabType, DashboardFilters,
@@ -25,12 +24,6 @@ interface DashboardViewsRendererProps {
   currentUser: CurrentUser | null; filters: DashboardFilters; setFilters?: (filters: DashboardFilters) => void; utrSemanal?: any[];
 }
 
-const tabTransition = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-  transition: { duration: 0.3 },
-};
 
 export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer(props: DashboardViewsRendererProps) {
   const { activeTab, chartReady } = props;
@@ -53,19 +46,9 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
 
   return (
     <ErrorBoundary>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={tabTransition.initial}
-          animate={tabTransition.animate}
-          exit={tabTransition.exit}
-          transition={tabTransition.transition}
-        >
-          <Suspense fallback={<DashboardSkeleton contentOnly />}>
-            {renderActiveView(activeTab, props)}
-          </Suspense>
-        </motion.div>
-      </AnimatePresence>
+      <Suspense fallback={<DashboardSkeleton contentOnly />}>
+        {renderActiveView(activeTab, props)}
+      </Suspense>
     </ErrorBoundary>
   );
 });

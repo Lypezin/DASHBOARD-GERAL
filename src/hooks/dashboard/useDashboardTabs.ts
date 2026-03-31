@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, startTransition } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { TabType } from '@/types';
 
@@ -20,22 +20,29 @@ export function useDashboardTabs() {
     const [activeTab, setActiveTabState] = useState<TabType>(getInitialTab());
 
     const setActiveTab = useCallback((newTab: TabType) => {
-        setActiveTabState(newTab);
-        const params = new URLSearchParams(searchParams.toString());
-        if (newTab === 'dashboard') {
-            params.delete('tab');
-        } else {
-            params.set('tab', newTab);
-        }
-        const queryString = params.toString();
-        const url = queryString ? `${pathname}?${queryString}` : pathname;
-        router.replace(url, { scroll: false });
+        // Envolvemos a atualização de estado (que reflete na interface) 
+        // e o roteador do Next.js (URL) numa Transition para não travar 
+        // o navegador em caso de tabelas massivas, eliminando os "cliques perdidos"
+        startTransition(() => {
+            setActiveTabState(newTab);
+            const params = new URLSearchParams(searchParams.toString());
+            if (newTab === 'dashboard') {
+                params.delete('tab');
+            } else {
+                params.set('tab', newTab);
+            }
+            const queryString = params.toString();
+            const url = queryString ? `${pathname}?${queryString}` : pathname;
+            router.replace(url, { scroll: false });
+        });
     }, [pathname, router, searchParams]);
 
     useEffect(() => {
         const urlTab = getInitialTab();
         if (urlTab !== activeTab) {
-            setActiveTabState(urlTab);
+            startTransition(() => {
+                setActiveTabState(urlTab);
+            });
         }
     }, [searchParams, activeTab, getInitialTab]);
 
