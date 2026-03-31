@@ -19,14 +19,14 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-    const { auth, ui, filters: fGroup, data } = useDashboardPage();
+    const { auth, ui, filters, anoEvolucao } = useDashboardPage();
 
     if (auth.isCheckingAuth) return <DashboardAuthLoading />;
     if (!auth.isAuthenticated) return null;
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">
-            <ActivityTracker activeTab={ui.activeTab} filters={fGroup.state} currentUser={auth.currentUser} />
+            <ActivityTracker activeTab={ui.activeTab} filters={filters.state} currentUser={auth.currentUser} />
             <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
                 {ui.loading && <DashboardLoadingState />}
                 {ui.error && <DashboardErrorState error={ui.error} />}
@@ -34,14 +34,14 @@ function DashboardContent() {
                 {!ui.loading && !ui.error && (
                     <div className="space-y-4 animate-fade-in">
                         <DashboardHeader
-                            filters={fGroup.state}
-                            setFilters={fGroup.setState}
-                            anosDisponiveis={fGroup.options.anos}
-                            semanasDisponiveis={fGroup.options.semanas}
-                            pracas={fGroup.options.pracas}
-                            subPracas={fGroup.options.subPracas}
-                            origens={fGroup.options.origens}
-                            turnos={fGroup.options.turnos}
+                            filters={filters.state}
+                            setFilters={filters.setState}
+                            anosDisponiveis={filters.options.anos}
+                            semanasDisponiveis={filters.options.semanas}
+                            pracas={filters.options.pracas}
+                            subPracas={filters.options.subPracas}
+                            origens={filters.options.origens}
+                            turnos={filters.options.turnos}
                             currentUser={auth.currentUser}
                             activeTab={ui.activeTab}
                             onTabChange={ui.handleTabChange}
@@ -50,31 +50,16 @@ function DashboardContent() {
                             <DashboardViewsRenderer
                                 activeTab={ui.activeTab}
                                 chartReady={ui.chartReady}
-                                aderenciaGeral={data.dashboard.aderenciaGeral as AderenciaSemanal | undefined}
-                                aderenciaDia={data.dashboard.aderenciaDia}
-                                aderenciaTurno={data.dashboard.aderenciaTurno}
-                                aderenciaSubPraca={data.dashboard.aderenciaSubPraca}
-                                aderenciaOrigem={data.dashboard.aderenciaOrigem}
-                                aderenciaDiaOrigem={data.dashboard.aderenciaDiaOrigem}
-                                totals={data.dashboard.totals || undefined}
-                                utrData={data.tabs.utrData}
-                                loadingTabData={data.tabs.loading}
-                                entregadoresData={data.tabs.entregadoresData}
-                                valoresData={data.tabs.valoresData}
-                                prioridadeData={data.tabs.prioridadeData}
-                                evolucaoMensal={data.evolution.mensal}
-                                evolucaoSemanal={data.evolution.semanal}
-                                loadingEvolucao={data.evolution.loading}
-                                anoSelecionado={data.evolution.anoSelecionado}
-                                anosDisponiveis={fGroup.options.anos}
-                                onAnoChange={data.evolution.setAno}
-                                semanas={fGroup.options.semanas}
-                                pracas={fGroup.options.pracas}
-                                subPracas={fGroup.options.subPracas}
-                                origens={fGroup.options.origens}
                                 currentUser={auth.currentUser}
-                                filters={fGroup.state}
-                                filterPayload={fGroup.payload}
+                                filters={filters.state}
+                                setFilters={filters.setState}
+                                filterPayload={filters.payload}
+                                anoEvolucao={anoEvolucao.valor}
+                                onAnoChange={anoEvolucao.set}
+                                semanas={filters.options.semanas}
+                                pracas={filters.options.pracas}
+                                subPracas={filters.options.subPracas}
+                                origens={filters.options.origens}
                             />
                         </main>
                     </div>
