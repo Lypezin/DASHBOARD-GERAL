@@ -74,6 +74,7 @@ function DashboardContent() {
                                 origens={fGroup.options.origens}
                                 currentUser={auth.currentUser}
                                 filters={fGroup.state}
+                                filterPayload={fGroup.payload}
                             />
                         </main>
                     </div>

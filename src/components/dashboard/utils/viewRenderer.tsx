@@ -42,7 +42,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                     aderenciaTurno={props.aderenciaTurno || []}
                     aderenciaSubPraca={props.aderenciaSubPraca || []}
                     aderenciaOrigem={props.aderenciaOrigem || []}
-                    aderenciaDiaOrigem={props.aderenciaDiaOrigem || []}
+                    filterPayload={props.filterPayload}
                 />
             ) : <DashboardSkeleton contentOnly />;
         case 'utr':

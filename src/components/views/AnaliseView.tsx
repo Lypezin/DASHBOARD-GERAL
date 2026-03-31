@@ -92,6 +92,7 @@ const AnaliseView = React.memo(function AnaliseView({
           isExporting={isExporting}
           onExport={handleExport}
           aderenciaDiaOrigem={aderenciaDiaOrigem}
+          loadingDiaOrigem={loadingDiaOrigem}
         />
       </motion.div>
     </motion.div>

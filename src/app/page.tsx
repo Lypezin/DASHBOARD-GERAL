@@ -85,6 +85,7 @@ function DashboardContent() {
                 currentUser={auth.currentUser}
                 filters={filters.state}
                 setFilters={filters.setState}
+                filterPayload={filters.payload}
               />
             </main>
           </div>

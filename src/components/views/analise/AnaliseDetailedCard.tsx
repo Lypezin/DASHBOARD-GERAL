@@ -13,6 +13,7 @@ interface AnaliseDetailedCardProps {
     isExporting?: boolean;
     onExport?: () => void;
     aderenciaDiaOrigem: any[];
+    loadingDiaOrigem?: boolean;
 }
 
 export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
@@ -22,7 +23,8 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
     labelColumn,
     isExporting,
     onExport,
-    aderenciaDiaOrigem = []
+    aderenciaDiaOrigem = [],
+    loadingDiaOrigem = false,
 }: AnaliseDetailedCardProps) {
     return (
         <div className="space-y-6">
@@ -71,7 +73,16 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
                 shadow-sm dark:shadow-none
             ">
                 {activeTable === 'dia_origem' ? (
-                    <AnaliseDiaOrigemTable data={aderenciaDiaOrigem} />
+                    loadingDiaOrigem ? (
+                        <div className="p-12 text-center">
+                            <div className="inline-flex flex-col items-center gap-3">
+                                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                <p className="text-sm text-slate-400 dark:text-slate-500">Carregando matriz...</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <AnaliseDiaOrigemTable data={aderenciaDiaOrigem} />
+                    )
                 ) : (
                     <AnaliseTable
                         data={tableData}

@@ -12,6 +12,7 @@ import type {
   Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem,
   FilterOption, CurrentUser, TabType, DashboardFilters,
 } from '@/types';
+import type { FilterPayload } from '@/types/filters';
 import { needsChartReady, renderActiveView } from './utils/viewRenderer';
 import { useGamification } from '@/contexts/GamificationContext';
 
@@ -19,6 +20,7 @@ interface DashboardViewsRendererProps {
   activeTab: TabType; chartReady: boolean; aderenciaGeral?: AderenciaSemanal; aderenciaSemanal?: AderenciaSemanal[];
   aderenciaDia: AderenciaDia[]; aderenciaTurno: AderenciaTurno[]; aderenciaSubPraca: AderenciaSubPraca[]; aderenciaOrigem: AderenciaOrigem[];
   aderenciaDiaOrigem?: any[];
+  filterPayload?: FilterPayload;
   totals?: Totals; utrData: any; loadingTabData: boolean; entregadoresData: any; valoresData: any; prioridadeData: any;
   evolucaoMensal: any; evolucaoSemanal: any; loadingEvolucao: boolean; anoSelecionado: number; anosDisponiveis: number[];
   onAnoChange: (ano: number) => void; semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[]; origens: FilterOption[];
