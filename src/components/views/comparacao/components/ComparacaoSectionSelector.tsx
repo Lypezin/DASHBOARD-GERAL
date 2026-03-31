@@ -39,47 +39,47 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
         <div className="relative" ref={ref}>
             <button
                 onClick={() => setOpen(prev => !prev)}
-                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors
+                className={`flex items-center gap-2.5 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full border-2 transition-all duration-300
                     ${open
-                        ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white'
-                        : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900 shadow-lg'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-indigo-500 dark:hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400'
                     }`}
                 title="Escolher seções visíveis"
             >
-                <LayoutDashboard className="w-4 h-4" />
-                <span className="hidden sm:inline">Seções</span>
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Exibição</span>
                 {totalVisiveis < total && (
-                    <span className="flex items-center justify-center w-4 h-4 text-[10px] font-bold bg-blue-500 text-white rounded-full">
+                    <span className={`flex items-center justify-center w-4 h-4 text-[9px] font-black rounded-full shadow-sm ${open ? 'bg-white/20 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-indigo-500 text-white'}`}>
                         {totalVisiveis}
                     </span>
                 )}
             </button>
 
             {open && (
-                <div className="absolute right-0 top-full mt-1.5 z-50 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-slate-950/50 min-w-[230px] overflow-hidden">
-                    <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                            Seções Visíveis
+                <div className="absolute right-0 top-full mt-3 z-50 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_70px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.4)] border border-slate-100 dark:border-slate-800/60 min-w-[260px] overflow-hidden p-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="px-5 py-3 mb-2">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                            Configurar Visualização
                         </p>
                     </div>
-                    <div className="py-1.5">
+                    <div className="space-y-1">
                         {SECOES.map((secao) => {
                             const isVisible = secoesVisiveis[secao.id];
                             return (
                                 <button
                                     key={secao.id}
                                     onClick={() => onToggleSecao(secao.id)}
-                                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left"
+                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all text-left group"
                                 >
-                                    <span className={`flex-shrink-0 flex items-center justify-center w-4 h-4 rounded border transition-colors ${isVisible
-                                        ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white'
-                                        : 'bg-transparent border-slate-300 dark:border-slate-600'
+                                    <div className={`flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-lg border-2 transition-all ${isVisible
+                                        ? 'bg-indigo-500 border-indigo-500 shadow-md shadow-indigo-500/20'
+                                        : 'bg-transparent border-slate-200 dark:border-slate-800 group-hover:border-slate-300 dark:group-hover:border-slate-700'
                                         }`}>
                                         {isVisible && (
-                                            <Check className={`w-2.5 h-2.5 ${isVisible ? 'text-white dark:text-slate-900' : ''}`} />
+                                            <Check className="w-3 h-3 text-white" strokeWidth={4} />
                                         )}
-                                    </span>
-                                    <span className={`text-sm transition-colors ${isVisible ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
+                                    </div>
+                                    <span className={`text-[13px] transition-colors ${isVisible ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-500'}`}>
                                         {secao.label}
                                     </span>
                                 </button>
