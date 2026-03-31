@@ -27,6 +27,7 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
             return (
                 <DashboardView
                     filters={props.filters}
+                    filterPayload={props.filterPayload}
                     currentUser={props.currentUser}
                 />
             );

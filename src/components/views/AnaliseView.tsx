@@ -13,12 +13,13 @@ import type { FilterPayload } from '@/types/filters';
 
 const AnaliseView = React.memo(function AnaliseView({
   filters,
+  filterPayload,
   currentUser,
 }: {
   filters: DashboardFilters;
+  filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
 }) {
-  const { filterPayload } = useDashboardKeys(filters, currentUser);
   const {
     totals,
     aderenciaDia,

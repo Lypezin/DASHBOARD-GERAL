@@ -12,14 +12,17 @@ import { useDashboardKeys } from '@/hooks/dashboard/useDashboardKeys';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import type { DashboardFilters, CurrentUser } from '@/types';
+import type { FilterPayload } from '@/types/filters';
 
 const DashboardView = React.memo(function DashboardView({
-  filters, currentUser
+  filters, 
+  filterPayload,
+  currentUser
 }: {
   filters: DashboardFilters;
+  filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
 }) {
-  const { filterPayload } = useDashboardKeys(filters, currentUser);
   const {
     aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, loading
   } = useDashboardMainData({ filterPayload });
