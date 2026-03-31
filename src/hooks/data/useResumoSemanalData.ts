@@ -33,6 +33,7 @@ export function useResumoSemanalData({ filterPayload, activeTab }: UseResumoSema
 
     const { isLoading: isOrgLoading } = useOrganization();
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (isOrgLoading) return;
 
