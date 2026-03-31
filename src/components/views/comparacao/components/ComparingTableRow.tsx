@@ -28,10 +28,10 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
 }) => {
     return (
         <TableRow className={`
-            transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50
-            ${isEven ? 'bg-slate-50/50 dark:bg-slate-800/20' : ''}
+            group transition-all duration-200 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10
+            ${isEven ? 'bg-slate-50/30 dark:bg-slate-800/10' : ''}
         `}>
-            <TableCell className="text-sm font-medium text-slate-700 dark:text-slate-300 py-3 pl-5">
+            <TableCell className="text-sm font-semibold text-slate-700 dark:text-slate-300 py-4 pl-6 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">
                 <div className="flex items-center gap-2">
                     {icon && icon}
                     {label}
@@ -50,11 +50,11 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
 
                 return (
                     <React.Fragment key={idx}>
-                        <TableCell className={`text-center text-sm border-l border-slate-100 dark:border-slate-800 py-3 ${valueClassName}`}>
-                            {formatValue(rawValue)}
+                        <TableCell className={`text-center text-sm border-l border-slate-200/40 dark:border-slate-800/40 py-4 ${valueClassName}`}>
+                            <span className="font-mono">{formatValue(rawValue)}</span>
                         </TableCell>
                         {idx > 0 && (
-                            <TableCell className="text-center w-[70px] py-3 px-1">
+                            <TableCell className="text-center w-[70px] py-4 px-1">
                                 {variacao !== null ? (
                                     <VariacaoBadge variacao={variacao} className="scale-90 mx-auto" invertColors={invertVariationColors} />
                                 ) : (

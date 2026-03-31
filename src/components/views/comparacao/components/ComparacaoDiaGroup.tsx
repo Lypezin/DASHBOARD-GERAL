@@ -13,18 +13,20 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({ dia, di
                 <TableRow
                     key={`${dia}-${metric.key}`}
                     className={`
-                      hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors
-                      ${diaIdx % 2 === 0 ? '' : 'bg-slate-50/40 dark:bg-slate-900/30'}
-                      ${metricIdx === 0 ? 'border-t border-slate-100 dark:border-slate-800' : ''}
+                      group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors duration-200
+                      ${diaIdx % 2 === 0 ? '' : 'bg-slate-50/30 dark:bg-slate-800/10'}
+                      ${metricIdx === 0 ? 'border-t-2 border-slate-200 dark:border-slate-800' : 'border-t border-slate-100/50 dark:border-slate-800/50'}
                     `}
                 >
                     {/* Dia column — only on first metric row */}
                     {metricIdx === 0 ? (
                         <TableCell
                             rowSpan={COMPARACAO_METRICS.length}
-                            className="font-semibold text-sm text-slate-800 dark:text-slate-100 border-r border-slate-100 dark:border-slate-800 align-middle pl-5 w-[130px] py-3"
+                            className="align-middle border-r-2 border-slate-100 dark:border-slate-800/80 p-4 w-[160px]"
                         >
-                            {dia}
+                            <div className="flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-indigo-50/80 dark:bg-indigo-900/20 border border-indigo-100/80 dark:border-indigo-800/30 shadow-sm">
+                                <span className="font-bold text-[15px] text-indigo-700 dark:text-indigo-400 tracking-tight uppercase">{dia}</span>
+                            </div>
                         </TableCell>
                     ) : null}
 
