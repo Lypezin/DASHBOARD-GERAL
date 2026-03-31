@@ -6,7 +6,6 @@ import { AnaliseMetricCards } from './analise/components/AnaliseMetricCards';
 import { motion, Variants } from 'framer-motion';
 import { useAnaliseViewController } from './analise/useAnaliseViewController';
 import { AnaliseDetailedCard } from './analise/AnaliseDetailedCard';
-import { useAnaliseDiaOrigem } from '@/hooks/analise/useAnaliseDiaOrigem';
 import type { FilterPayload } from '@/types/filters';
 
 const AnaliseView = React.memo(function AnaliseView({
@@ -15,6 +14,7 @@ const AnaliseView = React.memo(function AnaliseView({
   aderenciaTurno = [],
   aderenciaSubPraca = [],
   aderenciaOrigem = [],
+  aderenciaDiaOrigem = [],
   filterPayload,
 }: {
   totals: Totals;
@@ -22,6 +22,7 @@ const AnaliseView = React.memo(function AnaliseView({
   aderenciaTurno?: AderenciaTurno[];
   aderenciaSubPraca?: AderenciaSubPraca[];
   aderenciaOrigem?: AderenciaOrigem[];
+  aderenciaDiaOrigem?: AderenciaDiaOrigem[];
   filterPayload?: FilterPayload;
 }) {
   const {
@@ -42,12 +43,6 @@ const AnaliseView = React.memo(function AnaliseView({
     aderenciaSubPraca,
     aderenciaOrigem
   );
-
-  // Buscar dados Dia x Origem diretamente, sem depender da RPC
-  const { data: aderenciaDiaOrigem, loading: loadingDiaOrigem } = useAnaliseDiaOrigem({
-    filterPayload: filterPayload || {},
-    enabled: !!filterPayload && activeTable === 'dia_origem',
-  });
 
   const container: Variants = {
     hidden: { opacity: 0 },
@@ -91,8 +86,7 @@ const AnaliseView = React.memo(function AnaliseView({
           labelColumn={labelColumn}
           isExporting={isExporting}
           onExport={handleExport}
-          aderenciaDiaOrigem={aderenciaDiaOrigem}
-          loadingDiaOrigem={loadingDiaOrigem}
+          aderenciaDiaOrigem={aderenciaDiaOrigem || []}
         />
       </motion.div>
     </motion.div>

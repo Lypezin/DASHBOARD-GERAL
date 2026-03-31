@@ -65,6 +65,7 @@ function DashboardContent() {
                 aderenciaTurno={data.dashboard.aderenciaTurno}
                 aderenciaSubPraca={data.dashboard.aderenciaSubPraca}
                 aderenciaOrigem={data.dashboard.aderenciaOrigem}
+                aderenciaDiaOrigem={data.dashboard.aderenciaDiaOrigem}
                 totals={data.dashboard.totals || undefined}
                 utrData={data.tabs.utrData}
                 loadingTabData={data.tabs.loading}
