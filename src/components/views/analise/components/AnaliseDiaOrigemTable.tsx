@@ -15,16 +15,16 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
         const origensSet = new Set<string>();
         const map = new Map<string, number>();
 
-        data.forEach(item => {
-            diasSet.add(item.dia);
-            origensSet.add(item.origem);
-            const key = `${item.dia}|${item.origem}`;
-            map.set(key, (map.get(key) || 0) + (item.segundos_realizados || 0));
-        });
+        if (Array.isArray(data)) {
+            data.forEach(item => {
+                diasSet.add(item.dia);
+                origensSet.add(item.origem);
+                const key = `${item.dia}|${item.origem}`;
+                map.set(key, (map.get(key) || 0) + (item.segundos_realizados || 0));
+            });
+        }
 
-        // Ordenar dias (seguindo a ordem cronológica se possível ou a do banco)
-        // O banco já retorna ordenado por dia_iso, mas aqui recebemos o label do dia.
-        // Vamos tentar manter a ordem original do array de entrada para os dias.
+        // Ordenar dias
         const dias = Array.from(diasSet);
         const origens = Array.from(origensSet).sort();
 
