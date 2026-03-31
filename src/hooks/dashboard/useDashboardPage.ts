@@ -33,6 +33,7 @@ export function useDashboardPage() {
     aderenciaTurno: dashboardFetch.aderenciaTurno,
     aderenciaSubPraca: dashboardFetch.aderenciaSubPraca,
     aderenciaOrigem: dashboardFetch.aderenciaOrigem,
+    aderenciaDiaOrigem: dashboardFetch.aderenciaDiaOrigem,
     totals: dashboardFetch.totals,
   };
 

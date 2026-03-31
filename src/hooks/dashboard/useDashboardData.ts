@@ -12,7 +12,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const { filterPayload } = useDashboardKeys(initialFilters, currentUser);
 
   const {
-    totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, dimensoes, loading, error,
+    totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, aderenciaDiaOrigem, dimensoes, loading, error,
   } = useDashboardMainData({ filterPayload });
 
   const {
@@ -26,7 +26,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
 
   return {
-    totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem,
+    totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, aderenciaDiaOrigem,
     anosDisponiveis, semanasDisponiveis, pracas, subPracas, origens, turnos,
     loading, error,
     evolucaoMensal, evolucaoSemanal, utrSemanal, loadingEvolucao,

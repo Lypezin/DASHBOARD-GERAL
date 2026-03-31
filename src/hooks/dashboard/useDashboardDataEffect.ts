@@ -6,7 +6,7 @@ import { updateDashboardState, clearDashboardState } from './utils/updateDashboa
 import type { FilterPayload } from '@/types/filters';
 import type {
     Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno,
-    AderenciaSubPraca, AderenciaOrigem, DimensoesDashboard
+    AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem, DimensoesDashboard
 } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -23,7 +23,9 @@ interface UseDashboardDataEffectProps {
     setters: {
         setTotals: (data: Totals | null) => void; setAderenciaSemanal: (data: AderenciaSemanal[]) => void;
         setAderenciaDia: (data: AderenciaDia[]) => void; setAderenciaTurno: (data: AderenciaTurno[]) => void;
-        setAderenciaSubPraca: (data: AderenciaSubPraca[]) => void; setAderenciaOrigem: (data: AderenciaOrigem[]) => void;
+        setAderenciaSubPraca: (data: AderenciaSubPraca[]) => void;
+        setAderenciaOrigem: (data: AderenciaOrigem[]) => void;
+        setAderenciaDiaOrigem: (data: AderenciaDiaOrigem[]) => void;
         setDimensoes: (data: DimensoesDashboard | null) => void;
     };
     shouldFetch?: boolean;

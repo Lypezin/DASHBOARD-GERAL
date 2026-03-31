@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import type {
-  Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, DimensoesDashboard,
+  Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem, DimensoesDashboard,
 } from '@/types';
 import { useDashboardDataFetcher } from './useDashboardDataFetcher';
 import { useDashboardCache, getInitialCacheData } from './useDashboardCache';
@@ -36,6 +36,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const [aderenciaTurno, setAderenciaTurno] = useState<AderenciaTurno[]>(initialCache?.aderencia_turno ?? []);
   const [aderenciaSubPraca, setAderenciaSubPraca] = useState<AderenciaSubPraca[]>(initialCache?.aderencia_sub_praca ?? []);
   const [aderenciaOrigem, setAderenciaOrigem] = useState<AderenciaOrigem[]>(initialCache?.aderencia_origem ?? []);
+  const [aderenciaDiaOrigem, setAderenciaDiaOrigem] = useState<AderenciaDiaOrigem[]>(initialCache?.aderencia_dia_origem ?? []);
   const [dimensoes, setDimensoes] = useState<DimensoesDashboard | null>(initialCache?.dimensoes ?? null);
 
   const { fetchDashboardData, loading, error } = useDashboardDataFetcher({ filterPayload, onError });
@@ -76,10 +77,11 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
       setAderenciaTurno,
       setAderenciaSubPraca,
       setAderenciaOrigem,
+      setAderenciaDiaOrigem,
       setDimensoes
     },
     shouldFetch: !isOrgLoading
   }, payloadKey);
 
-  return { totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, dimensoes, loading: loading || isOrgLoading, error };
+  return { totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, aderenciaDiaOrigem, dimensoes, loading: loading || isOrgLoading, error };
 }

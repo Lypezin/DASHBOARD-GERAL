@@ -1,7 +1,7 @@
 import { transformDashboardData } from '@/utils/dashboard/transformers';
 import type {
     Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno,
-    AderenciaSubPraca, AderenciaOrigem, DimensoesDashboard
+    AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem, DimensoesDashboard
 } from '@/types';
 
 interface DashboardSetters {
@@ -11,6 +11,7 @@ interface DashboardSetters {
     setAderenciaTurno: (data: AderenciaTurno[]) => void;
     setAderenciaSubPraca: (data: AderenciaSubPraca[]) => void;
     setAderenciaOrigem: (data: AderenciaOrigem[]) => void;
+    setAderenciaDiaOrigem: (data: AderenciaDiaOrigem[]) => void;
     setDimensoes: (data: DimensoesDashboard | null) => void;
 }
 
@@ -23,6 +24,7 @@ export const updateDashboardState = (rawOrProcessedData: any, setters: Dashboard
     setters.setAderenciaTurno(processedData.aderencia_turno);
     setters.setAderenciaSubPraca(processedData.aderencia_sub_praca);
     setters.setAderenciaOrigem(processedData.aderencia_origem);
+    setters.setAderenciaDiaOrigem(processedData.aderencia_dia_origem || []);
 
     if (processedData.dimensoes) setters.setDimensoes(processedData.dimensoes);
 };
@@ -34,5 +36,6 @@ export const clearDashboardState = (setters: DashboardSetters, emptyData: any) =
     setters.setAderenciaTurno([]);
     setters.setAderenciaSubPraca([]);
     setters.setAderenciaOrigem([]);
+    setters.setAderenciaDiaOrigem([]);
     setters.setDimensoes(emptyData.dimensoes);
 };
