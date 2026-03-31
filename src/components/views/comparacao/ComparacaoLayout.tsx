@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { staggerContainer, fadeInItem } from '@/utils/animations';
-import { Calendar } from 'lucide-react';
+import { Calendar, AlertCircle } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import ApresentacaoView from '@/components/ApresentacaoView';
 import { ComparacaoFilters } from './ComparacaoFilters';
@@ -50,6 +50,29 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
             </motion.div>
 
             {state.loading && <DashboardSkeleton contentOnly />}
+
+            {state.error && !state.loading && (
+                <motion.div 
+                    variants={fadeInItem}
+                    className="flex flex-col items-center justify-center py-16 px-4 text-center bg-rose-50/50 dark:bg-rose-950/10 rounded-[2.5rem] border border-rose-100 dark:border-rose-900/30 shadow-sm"
+                >
+                    <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mb-5">
+                        <AlertCircle className="w-8 h-8 text-rose-500 dark:text-rose-400" />
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                        Erro ao carregar comparação
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                        {state.error}
+                    </p>
+                    <button 
+                        onClick={() => window.location.reload()}
+                        className="mt-6 px-6 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-full font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-rose-500/20"
+                    >
+                        Tentar Novamente
+                    </button>
+                </motion.div>
+            )}
 
             {!state.loading && state.semanasSelecionadas.length > 2 && (
                 <motion.div 

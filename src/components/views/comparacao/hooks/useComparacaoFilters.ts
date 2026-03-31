@@ -12,7 +12,13 @@ export function useComparacaoFilters(currentUser: CurrentUser | null) {
     const router = useRouter();
     const pathname = usePathname();
 
-    const getInitialSemanas = () => searchParams.get('comp_semanas')?.split(',').filter(Boolean) || [];
+    const getInitialSemanas = () => {
+        const raw = searchParams.get('comp_semanas')?.split(',').filter(Boolean) || [];
+        // Se as semanas estiverem no formato "12,13", mas o sistema agora usa "2026-W12",
+        // removemos o filtro legado para evitar erros de tipo ou busca
+        if (raw.length > 0 && !raw[0].includes('W')) return [];
+        return raw;
+    };
     const getInitialPraca = () => searchParams.get('comp_praca') || null;
     const getInitialApresentacao = () => searchParams.get('comp_apresentacao') === 'true';
 
@@ -53,8 +59,14 @@ export function useComparacaoFilters(currentUser: CurrentUser | null) {
 
     const toggleSemana = useCallback((semana: number | string) => {
         setSemanasSelecionadas(prev => {
-            let semanaStr = String(semana).includes('W') ? (String(semana).match(/W(\d+)/)?.[1] || String(semana)) : String(semana);
-            return prev.includes(semanaStr) ? prev.filter(s => s !== semanaStr) : [...prev, semanaStr].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+            const semanaStr = String(semana);
+            if (prev.includes(semanaStr)) {
+                return prev.filter(s => s !== semanaStr);
+            }
+            // Se já temos 2 semanas, não permite adicionar
+            if (prev.length >= 2) return prev;
+            
+            return [...prev, semanaStr].sort((a, b) => a.localeCompare(b));
         });
     }, []);
 
