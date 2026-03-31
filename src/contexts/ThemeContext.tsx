@@ -17,15 +17,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
+    // Aplicar imediatamente a classe para evitar lag visual antes do re-render do React
     if (typeof window !== 'undefined') {
-      localStorage.setItem('theme', newTheme);
       if (newTheme === 'dark') {
         document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = 'dark';
       } else {
         document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
       }
+      localStorage.setItem('theme', newTheme);
     }
+    setThemeState(newTheme);
   };
 
   const toggleTheme = () => {
