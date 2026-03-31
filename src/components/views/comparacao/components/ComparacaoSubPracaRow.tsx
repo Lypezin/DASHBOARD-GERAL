@@ -18,9 +18,10 @@ interface ComparacaoSubPracaRowProps {
 export const ComparacaoSubPracaRow = React.memo(({ subPraca, index, semanasSelecionadas, dadosPorSubPraca }: ComparacaoSubPracaRowProps) => {
     return (
         <TableRow
-            className={`${index % 2 === 0 ? 'bg-white/70 dark:bg-slate-900/70' : 'bg-slate-50/60 dark:bg-slate-900/40'} hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-all border-b border-slate-200/30 dark:border-slate-700/30`}
+            className={`group transition-all duration-200 border-b border-transparent hover:bg-slate-50/50 dark:hover:bg-slate-800/30
+                ${index % 2 === 0 ? '' : 'bg-slate-50/20 dark:bg-slate-900/10'}`}
         >
-            <TableCell className="sticky left-0 z-10 bg-white dark:bg-slate-900 font-medium text-sm text-slate-800 dark:text-slate-200 pl-5 border-r border-slate-100 dark:border-slate-800 py-3">
+            <TableCell className="sticky left-0 z-10 bg-inherit font-semibold text-[13px] text-slate-800 dark:text-slate-200 pl-8 py-5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                 {subPraca}
             </TableCell>
             {semanasSelecionadas.map((_, idx) => {
@@ -41,7 +42,6 @@ export const ComparacaoSubPracaRow = React.memo(({ subPraca, index, semanasSelec
                         variacao = 0;
                     }
 
-                    // Consider essentially the same if diff < 0.1
                     if (Math.abs(valor - valorAnterior) < 0.1) {
                         isSame = true;
                         variacao = 0;
@@ -50,26 +50,22 @@ export const ComparacaoSubPracaRow = React.memo(({ subPraca, index, semanasSelec
 
                 return (
                     <React.Fragment key={idx}>
-                        {/* Meta */}
-                        <TableCell className="text-center text-slate-500 dark:text-slate-400 text-xs border-l border-slate-200/30 dark:border-slate-700/30 tabular-nums bg-blue-50/20 dark:bg-blue-900/10 font-medium">
+                        <TableCell className="text-center text-slate-500 dark:text-slate-400 font-mono text-xs tabular-nums group-hover:bg-white/50 dark:group-hover:bg-transparent transition-colors">
                             {metric.meta}
                         </TableCell>
-                        {/* Entregue */}
-                        <TableCell className="text-center text-slate-700 dark:text-slate-200 font-semibold text-xs tabular-nums bg-emerald-50/20 dark:bg-emerald-900/10">
+                        <TableCell className="text-center text-slate-700 dark:text-slate-300 font-mono text-[13px] tabular-nums group-hover:bg-white/50 dark:group-hover:bg-transparent transition-colors">
                             {metric.entregue}
                         </TableCell>
-                        {/* Aderência */}
-                        <TableCell className="text-center text-slate-900 dark:text-white font-bold text-xs tabular-nums bg-purple-50/20 dark:bg-purple-900/10">
+                        <TableCell className="text-center font-bold text-[13px] tabular-nums text-slate-900 dark:text-white group-hover:bg-white/50 dark:group-hover:bg-transparent transition-colors">
                             {valor.toFixed(1)}%
                         </TableCell>
-                        {/* Variação */}
-                        <TableCell className="text-center bg-slate-50/30 dark:bg-slate-800/30">
+                        <TableCell className="text-center">
                             {idx > 0 && !isSame ? (
                                 <VariacaoBadge variacao={variacao ?? 0} className="mx-auto scale-90" />
                             ) : idx > 0 ? (
-                                <span className="text-slate-300 dark:text-slate-600 text-[10px]">-</span>
+                                <span className="text-slate-300 dark:text-slate-600 text-xs">-</span>
                             ) : (
-                                <span className="text-slate-300 dark:text-slate-600 text-[10px]">-</span>
+                                <span className="text-slate-300 dark:text-slate-600 text-xs">-</span>
                             )}
                         </TableCell>
                     </React.Fragment>

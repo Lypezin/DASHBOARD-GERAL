@@ -18,11 +18,11 @@ export const ComparacaoDiaTable = React.memo<ComparacaoDiaTableProps>(({
   ];
 
   return (
-    <div className="glass-card rounded-2xl border-white/20 dark:border-slate-800/60 shadow-xl shadow-indigo-100/20 dark:shadow-slate-900/50 overflow-hidden transition-all duration-300">
-      <div className="px-6 py-4 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50">
-        <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <span className="w-1.5 h-6 rounded-full bg-blue-500/80"></span>
-            Comparativo Diário
+    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] overflow-hidden transition-all duration-300">
+      <div className="flex items-center justify-between px-8 py-6 border-b border-transparent">
+        <h3 className="text-lg text-slate-900 dark:text-white flex items-center gap-3">
+            <span className="w-1 h-5 rounded-full bg-slate-200 dark:bg-slate-700"></span>
+            <span className="font-semibold tracking-tight">Comparativo Diário</span>
         </h3>
       </div>
       <div className="overflow-x-auto">
