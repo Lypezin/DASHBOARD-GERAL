@@ -103,9 +103,9 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
                                         <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
                                             {dia}
                                         </span>
-                                        {dayDateMap[dia.split('-')[0].trim().toLowerCase()] && (
+                                        {dayDateMap[dia.split('-')[0].trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")] && (
                                             <span className="text-[10px] font-medium text-blue-500/80 dark:text-blue-400/80 mt-0.5">
-                                                ({dayDateMap[dia.split('-')[0].trim().toLowerCase()]})
+                                                ({dayDateMap[dia.split('-')[0].trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")]})
                                             </span>
                                         )}
                                     </div>

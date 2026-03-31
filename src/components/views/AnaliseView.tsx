@@ -68,8 +68,10 @@ const AnaliseView = React.memo(function AnaliseView({
         const dayName = d.dia || d.dia_semana || d.dia_da_semana;
         const rawDate = d.data || (d as any).data_do_periodo;
         if (dayName && rawDate && typeof rawDate === 'string') {
-          // Normalizar nome do dia para o mapa (remover -feira, lowercase)
-          const normalizedKey = dayName.split('-')[0].trim().toLowerCase();
+          // Normalizar nome: remover -feira, lowercase e acentos
+          const normalizedKey = dayName.split('-')[0].trim().toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
           const parts = rawDate.split('T')[0].split('-');
           if (parts.length === 3) {
             const [, month, day] = parts;
