@@ -59,18 +59,18 @@ export function useAnaliseDiaOrigem({
 
                 let query = supabase
                     .from('mv_dashboard_resumo')
-                    .select('dia_da_semana, dia_iso, origem, segundos_planejados, segundos_realizados, corridas_ofertadas, corridas_aceitas, corridas_rejeitadas, corridas_completadas');
+                    .select('data_do_periodo, origem, segundos_planejados, segundos_realizados, total_ofertadas, total_aceitas, total_rejeitadas, total_completadas');
 
                 // Filtros de organização
                 if (p_organization_id) query = query.eq('organization_id', p_organization_id);
 
                 // Filtros de tempo
-                if (p_filtro_modo === 'data' && p_data_inicial && p_data_final) {
-                    query = query.gte('data', p_data_inicial).lte('data', p_data_final);
+                if ((p_filtro_modo === 'data' || p_filtro_modo === 'intervalo') && p_data_inicial && p_data_final) {
+                    query = query.gte('data_do_periodo', p_data_inicial).lte('data_do_periodo', p_data_final);
                 } else {
-                    if (p_ano != null) query = query.eq('ano', p_ano);
-                    if (p_semana != null) query = query.eq('semana', p_semana);
-                    if (p_semanas && p_semanas.length > 0) query = query.in('semana', p_semanas);
+                    if (p_ano != null) query = query.eq('ano_iso', p_ano);
+                    if (p_semana != null) query = query.eq('semana_iso', p_semana);
+                    if (p_semanas && p_semanas.length > 0) query = query.in('semana_iso', p_semanas);
                 }
 
                 // Filtros dimensionais
@@ -98,32 +98,37 @@ export function useAnaliseDiaOrigem({
                 }
 
                 // Agrupar por dia_da_semana + origem e somar os segundos
-                const grouped = new Map<string, MvRow>();
+                const grouped = new Map<string, any>();
+                const diasSemanaNomes = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
-                (rows as MvRow[]).forEach(row => {
-                    const dia = row.dia_da_semana || 'N/D';
+                (rows as any[]).forEach(row => {
+                    // Derivar dia da semana da data_do_periodo
+                    const dataObj = new Date(row.data_do_periodo + 'T12:00:00'); // Meio dia para evitar timezone issues
+                    const diaNome = diasSemanaNomes[dataObj.getDay()] || 'N/D';
+                    const diaIso = dataObj.getDay() === 0 ? 7 : dataObj.getDay();
+                    
                     const origem = row.origem || 'N/D';
-                    const key = `${dia}||${origem}`;
+                    const key = `${diaNome}||${origem}`;
 
                     if (grouped.has(key)) {
                         const existing = grouped.get(key)!;
                         existing.segundos_planejados += Number(row.segundos_planejados || 0);
                         existing.segundos_realizados += Number(row.segundos_realizados || 0);
-                        existing.corridas_ofertadas += Number(row.corridas_ofertadas || 0);
-                        existing.corridas_aceitas += Number(row.corridas_aceitas || 0);
-                        existing.corridas_rejeitadas += Number(row.corridas_rejeitadas || 0);
-                        existing.corridas_completadas += Number(row.corridas_completadas || 0);
+                        existing.corridas_ofertadas += Number(row.total_ofertadas || 0);
+                        existing.corridas_aceitas += Number(row.total_aceitas || 0);
+                        existing.corridas_rejeitadas += Number(row.total_rejeitadas || 0);
+                        existing.corridas_completadas += Number(row.total_completadas || 0);
                     } else {
                         grouped.set(key, {
-                            dia_da_semana: dia,
-                            dia_iso: row.dia_iso || DIA_ISO_MAP[dia] || 0,
+                            dia: diaNome,
+                            dia_iso: diaIso,
                             origem,
                             segundos_planejados: Number(row.segundos_planejados || 0),
                             segundos_realizados: Number(row.segundos_realizados || 0),
-                            corridas_ofertadas: Number(row.corridas_ofertadas || 0),
-                            corridas_aceitas: Number(row.corridas_aceitas || 0),
-                            corridas_rejeitadas: Number(row.corridas_rejeitadas || 0),
-                            corridas_completadas: Number(row.corridas_completadas || 0),
+                            corridas_ofertadas: Number(row.total_ofertadas || 0),
+                            corridas_aceitas: Number(row.total_aceitas || 0),
+                            corridas_rejeitadas: Number(row.total_rejeitadas || 0),
+                            corridas_completadas: Number(row.total_completadas || 0),
                         });
                     }
                 });
@@ -131,22 +136,14 @@ export function useAnaliseDiaOrigem({
                 // Converter para o formato AderenciaDiaOrigem e ordenar
                 const result: AderenciaDiaOrigem[] = Array.from(grouped.values())
                     .map(row => ({
-                        dia: row.dia_da_semana,
-                        dia_iso: row.dia_iso,
-                        origem: row.origem,
-                        segundos_planejados: row.segundos_planejados,
-                        segundos_realizados: row.segundos_realizados,
-                        corridas_ofertadas: row.corridas_ofertadas,
-                        corridas_aceitas: row.corridas_aceitas,
-                        corridas_rejeitadas: row.corridas_rejeitadas,
-                        corridas_completadas: row.corridas_completadas,
+                        ...row,
                         aderencia_percentual: row.segundos_planejados > 0
                             ? (row.segundos_realizados / row.segundos_planejados) * 100
                             : 0,
                     }))
                     .sort((a, b) => {
-                        const orderA = DIA_ISO_MAP[a.dia] ?? ((DIAS_SEMANA_ORDEM.indexOf(a.dia) + 1) || 99);
-                        const orderB = DIA_ISO_MAP[b.dia] ?? ((DIAS_SEMANA_ORDEM.indexOf(b.dia) + 1) || 99);
+                        const orderA = a.dia_iso;
+                        const orderB = b.dia_iso;
                         if (orderA !== orderB) return orderA - orderB;
                         return a.origem.localeCompare(b.origem);
                     });
