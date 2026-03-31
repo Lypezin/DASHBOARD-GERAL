@@ -41,7 +41,8 @@ const AnaliseView = React.memo(function AnaliseView({
     aderenciaDia,
     aderenciaTurno,
     aderenciaSubPraca,
-    aderenciaOrigem
+    aderenciaOrigem,
+    aderenciaDiaOrigem
   );
 
   const container: Variants = {

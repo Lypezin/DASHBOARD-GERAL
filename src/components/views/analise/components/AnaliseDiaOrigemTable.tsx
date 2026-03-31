@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useMemo } from 'react';
 import { AderenciaDiaOrigem } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
