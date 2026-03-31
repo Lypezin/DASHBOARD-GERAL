@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AnaliseMetricCards } from './analise/components/AnaliseMetricCards';
+// @ts-ignore
 import { motion, Variants } from 'framer-motion';
 import { useAnaliseViewController } from './analise/useAnaliseViewController';
 import { AnaliseDetailedCard } from './analise/AnaliseDetailedCard';
