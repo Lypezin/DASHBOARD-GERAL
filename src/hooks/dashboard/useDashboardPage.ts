@@ -18,15 +18,10 @@ export function useDashboardPage() {
 
   const { filterPayload } = useDashboardKeys(filters, currentUser);
   
-  // As dimensões básicas (anos/semanas disponíveis) são carregadas uma vez no mount
-  const { anosDisponiveis, semanasDisponiveis } = useDashboardDimensions();
+  // As dimensões básicas são carregadas uma vez no mount (Anos, Semanas, Praças, etc)
+  const { anosDisponiveis, semanasDisponiveis, dimensoes } = useDashboardDimensions();
   
-  // Tentar pegar as outras dimensões (praças, sub-praças, etc) do cache se já foram carregadas por alguma aba
-  const { getCacheData } = useDashboardCache();
-  const cachedData = getCacheData();
-  const dimensoes = cachedData?.dimensoes || null;
-
-  // Gerar as opções dos filtros baseadas nas dimensões (do cache ou fallbacks)
+  // Gerar as opções dos filtros baseadas nas dimensões carregadas globalmente
   const filterOptions = useDashboardFilterOptions({
     dimensoes,
     currentUser,

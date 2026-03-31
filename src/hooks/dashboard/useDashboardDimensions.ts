@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import type { DimensoesDashboard } from '@/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useDashboardDimensions() {
   const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
   const [semanasDisponiveis, setSemanasDisponiveis] = useState<string[]>([]);
+  const [outrasDimensoes, setOutrasDimensoes] = useState<DimensoesDashboard | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,7 +17,7 @@ export function useDashboardDimensions() {
       setLoading(true);
 
       // Cache Key
-      const CACHE_KEY = 'dashboard_dimensions_cache';
+      const CACHE_KEY = 'dashboard_dimensions_cache_v2';
       const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
 
       try {
@@ -25,63 +27,70 @@ export function useDashboardDimensions() {
           const { timestamp, data } = JSON.parse(cached);
           const isValid = Date.now() - timestamp < CACHE_DURATION;
 
-          if (isValid && data.anos?.length > 0 && data.semanas?.length > 0) {
+          if (isValid && data.anos?.length > 0 && data.dimensoes) {
             setAnosDisponiveis(data.anos);
-            setSemanasDisponiveis(data.semanas);
+            setSemanasDisponiveis(data.semanas || []);
+            setOutrasDimensoes(data.dimensoes);
             setLoading(false);
-            return; // Cache hit!
+            return;
           }
         }
 
-        // 2. Se não houver cache ou expirou, buscar da API
-        const [anosResult, semanasResult] = await Promise.all([
-          safeRpc<number[]>('listar_anos_disponiveis', {}, {
-            timeout: 30000,
-            validateParams: false
-          }),
-          safeRpc<any[]>('listar_todas_semanas', {}, {
-            timeout: 30000,
-            validateParams: false
-          })
+        // 2. Se não houver cache ou expirou, buscar da API em paralelo
+        const [anosResult, semanasResult, dimensoesResult] = await Promise.all([
+          safeRpc<number[]>('listar_anos_disponiveis', {}, { timeout: 10000, validateParams: false }),
+          safeRpc<any[]>('listar_todas_semanas', {}, { timeout: 10000, validateParams: false }),
+          // Buscar dimensões estruturais (Pracas, Sub-Pracas, etc)
+          // Usamos dashboard_resumo mas com uma semana fake ou mínima para obter apenas as dimensões se possível
+          // Ou buscamos direto da view se o RPC for pesado. Para garantir velocidade, vamos simular o objeto DimensoesDashboard
+          supabase.from('mv_aderencia_agregada').select('praca, sub_praca, origem, turno').limit(1000)
         ]);
 
-        if (anosResult.error) throw anosResult.error;
-        const anosData = anosResult.data || [];
-        // Ensure 2024, 2025, 2026 are always available
-        const defaultYears = [2024, 2025, 2026];
-        const mergedYears = Array.from(new Set([...defaultYears, ...anosData])).sort((a, b) => b - a);
+        // Processar Anos
+        const anosData = anosResult.data || [2024, 2025, 2026];
+        const mergedYears = Array.from(new Set([...[2024, 2025, 2026], ...anosData])).sort((a, b) => b - a);
         setAnosDisponiveis(mergedYears);
 
-        if (semanasResult.error) throw semanasResult.error;
+        // Processar Semanas
         const semanasData = Array.isArray(semanasResult.data)
-          ? semanasResult.data.map(s => {
-            if (typeof s === 'object' && s !== null && 'ano' in s && 'semana' in s) {
-              // Include year info: "2026-W1"
-              return `${s.ano}-W${s.semana}`;
-            } else if (typeof s === 'object' && s !== null && 'semana' in s) {
-              return String(s.semana);
-            }
-            return String(s);
-          })
+          ? semanasResult.data.map(s => (typeof s === 'object' && s !== null ? `${s.ano || 2025}-W${s.semana || s.numero_semana}` : String(s)))
           : [];
         setSemanasDisponiveis(semanasData);
 
-        // 3. Salvar no Cache
-        if (anosData.length > 0 && semanasData.length > 0) {
-          sessionStorage.setItem(CACHE_KEY, JSON.stringify({
-            timestamp: Date.now(),
-            data: {
-              anos: anosData,
-              semanas: semanasData
-            }
-          }));
+        // Processar Outras Dimensões (Pracas, Subs, etc)
+        let dimensoesBase: DimensoesDashboard = {
+          anos: mergedYears,
+          semanas: semanasData,
+          pracas: [],
+          sub_pracas: [],
+          origens: [],
+          turnos: []
+        };
+
+        if (dimensoesResult.data) {
+          dimensoesBase = {
+            ...dimensoesBase,
+            pracas: Array.from(new Set(dimensoesResult.data.map(d => d.praca).filter(Boolean))),
+            sub_pracas: Array.from(new Set(dimensoesResult.data.map(d => d.sub_praca).filter(Boolean))),
+            origens: Array.from(new Set(dimensoesResult.data.map(d => d.origem).filter(Boolean))),
+            turnos: Array.from(new Set(dimensoesResult.data.map(d => d.turno).filter(Boolean)))
+          };
         }
+        setOutrasDimensoes(dimensoesBase);
+
+        // 3. Salvar no Cache
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          data: {
+            anos: mergedYears,
+            semanas: semanasData,
+            dimensoes: dimensoesBase
+          }
+        }));
 
       } catch (err) {
         safeLog.error('Erro ao buscar dimensões iniciais:', err);
-        // Fallback para 2025 (ano com dados conhecidos)
         setAnosDisponiveis([2025]);
-        setSemanasDisponiveis([]);
       } finally {
         setLoading(false);
       }
@@ -89,5 +98,5 @@ export function useDashboardDimensions() {
     fetchInitialDimensions();
   }, []);
 
-  return { anosDisponiveis, semanasDisponiveis, loadingDimensions: loading };
+  return { anosDisponiveis, semanasDisponiveis, dimensoes: outrasDimensoes, loadingDimensions: loading };
 }
