@@ -60,15 +60,16 @@ const AnaliseView = React.memo(function AnaliseView({
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
 
-  // Mapear nome do dia para data formatada (ex: "Segunda" -> "23/03")
+  // Mapear nome do dia para data formatada (ex: "segunda" -> "23/03")
   const dayDateMap = React.useMemo(() => {
     const map: Record<string, string> = {};
+    
+    // 1. Tentar extrair datas dos próprios itens de aderência
     if (Array.isArray(aderenciaDia)) {
       aderenciaDia.forEach(d => {
         const dayName = d.dia || d.dia_semana || d.dia_da_semana;
         const rawDate = d.data || (d as any).data_do_periodo;
         if (dayName && rawDate && typeof rawDate === 'string') {
-          // Normalizar nome: remover -feira, lowercase e acentos
           const normalizedKey = dayName.split('-')[0].trim().toLowerCase()
             .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             
@@ -80,8 +81,36 @@ const AnaliseView = React.memo(function AnaliseView({
         }
       });
     }
+
+    // 2. Se falhou e temos semana específica filtrada, calcular manualmente
+    if (Object.keys(map).length === 0 && filterPayload?.p_ano && filterPayload?.p_semana) {
+      try {
+        const year = Number(filterPayload.p_ano);
+        const week = Number(filterPayload.p_semana);
+        
+        // Regra ISO 8601: Semana 1 é a primeira semana com uma quinta-feira
+        // O dia 4 de Janeiro está sempre na Semana 1
+        const jan4 = new Date(year, 0, 4);
+        const jan4Day = jan4.getDay() || 7; // ISO day 1-7
+        const monday1 = new Date(jan4.getTime());
+        monday1.setDate(jan4.getDate() - (jan4Day - 1));
+        
+        const startOfSpecifiedWeek = new Date(monday1.getTime() + (week - 1) * 7 * 24 * 60 * 60 * 1000);
+        
+        const nomes_dias = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+        nomes_dias.forEach((nome, i) => {
+          const curr = new Date(startOfSpecifiedWeek.getTime() + i * 24 * 60 * 60 * 1000);
+          const dStr = String(curr.getDate()).padStart(2, '0');
+          const mStr = String(curr.getMonth() + 1).padStart(2, '0');
+          map[nome] = `${dStr}/${mStr}`;
+        });
+      } catch (e) {
+        console.error('Erro ao calcular datas da semana:', e);
+      }
+    }
+    
     return map;
-  }, [aderenciaDia]);
+  }, [aderenciaDia, filterPayload?.p_ano, filterPayload?.p_semana]);
 
   return (
     <motion.div
