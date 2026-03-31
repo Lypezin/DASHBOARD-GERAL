@@ -66,7 +66,7 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
         return (
             <div className="p-16 text-center bg-slate-50/50 dark:bg-slate-900/10 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
                 <p className="text-slate-400 dark:text-slate-500 text-sm font-medium">
-                    Nenhum dado de "Dia x Origem" disponível para o período selecionado.
+                    Nenhum dado de &quot;Dia x Origem&quot; disponível para o período selecionado.
                 </p>
             </div>
         );
