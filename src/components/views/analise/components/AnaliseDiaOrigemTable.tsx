@@ -21,15 +21,20 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
             if (IS_DEV) console.log('DEBUG: AnaliseDiaOrigemTable data:', data);
 
             data.forEach(item => {
-                // Tenta múltiplas chaves comuns para dia e origem
-                const dia = item.dia || item.dia_da_semana || item.dia_semana || item.data;
-                const origem = item.origem || (item as any).nome_origem || 'N/D';
-                const segundosRealizados = item.segundos_realizados || (item as any).horas_entregues_segundos || 0;
+                // Tenta múltiplas chaves comuns para dia e origem (usando any para evitar erro de TS nas chaves dinâmicas)
+                const itemAny = item as any;
+                const dia = itemAny.dia || itemAny.dia_da_semana || itemAny.dia_semana || itemAny.data;
+                const origem = itemAny.origem || itemAny.nome_origem || 'N/D';
+                const segundosRealizados = itemAny.segundos_realizados || itemAny.horas_entregues_segundos || 0;
 
                 if (dia) {
-                    diasSet.add(String(dia));
-                    origensSet.add(String(origem));
-                    map.set(`${dia}|${origem}`, (map.get(`${dia}|${origem}`) || 0) + (Number(segundosRealizados) / 3600));
+                    const diaStr = String(dia);
+                    const origemStr = String(origem);
+                    diasSet.add(diaStr);
+                    origensSet.add(origemStr);
+                    
+                    const key = `${diaStr}|${origemStr}`;
+                    map.set(key, (map.get(key) || 0) + Number(segundosRealizados));
                 }
             });
         } else if (IS_DEV) {
