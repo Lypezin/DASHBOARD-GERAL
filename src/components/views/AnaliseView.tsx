@@ -50,25 +50,6 @@ const AnaliseView = React.memo(function AnaliseView({
     aderenciaDiaOrigem || []
   );
 
-  if (loading || !totals) {
-    return <DashboardSkeleton contentOnly />;
-  }
-
-  const container: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
-
   // Mapear nome do dia para data formatada (ex: "segunda" -> "23/03")
   const dayDateMap = React.useMemo(() => {
     const map: Record<string, string> = {};
@@ -120,6 +101,25 @@ const AnaliseView = React.memo(function AnaliseView({
     
     return map;
   }, [aderenciaDia, filterPayload?.p_ano, filterPayload?.p_semana]);
+
+  if (loading || !totals) {
+    return <DashboardSkeleton contentOnly />;
+  }
+
+  const container: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
 
   return (
     <motion.div
