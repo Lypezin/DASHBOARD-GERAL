@@ -49,7 +49,7 @@ export function useAnaliseViewController(
         } finally {
             setIsExporting(false);
         }
-    }, [totals, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
+    }, [totals, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, aderenciaDiaOrigem]);
 
     // Calcular total de horas
     const totalHoras = useMemo(() => {

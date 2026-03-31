@@ -49,6 +49,7 @@ export const transformDashboardData = (data: unknown) => {
             aderencia_turno: [],
             aderencia_sub_praca: [],
             aderencia_origem: [],
+            aderencia_dia_origem: [],
             dimensoes: empty.dimensoes
         };
     }

@@ -52,5 +52,6 @@ export const createEmptyDashboardData = (): DashboardResumoData => ({
     aderencia_turno: [],
     aderencia_sub_praca: [],
     aderencia_origem: [],
+    aderencia_dia_origem: [],
     dimensoes: { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [], turnos: [] }
 });

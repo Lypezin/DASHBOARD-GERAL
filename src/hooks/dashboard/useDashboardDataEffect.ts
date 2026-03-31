@@ -93,5 +93,17 @@ export function useDashboardDataEffect({ filterPayload, fetchDashboardData, chec
         return () => {
             clearTimeout(timeoutId);
         };
-    }, [payloadKey, fetchDashboardData]);
+    }, [
+        payloadKey,
+        fetchDashboardData,
+        checkCache,
+        clearCache,
+        filterPayload,
+        isFirstExecutionRef,
+        pendingPayloadKeyRef,
+        previousPayloadRef,
+        setters,
+        shouldFetch,
+        updateCache
+    ]);
 }
