@@ -29,7 +29,7 @@ export async function fetchComparisonMetrics(
 
         const { data: rawData, error } = await safeRpc<DashboardResumoData | DashboardResumoData[]>('dashboard_resumo', filtro, {
             timeout: 30000,
-            validateParams: true
+            validateParams: false
         });
 
         if (IS_DEV) {

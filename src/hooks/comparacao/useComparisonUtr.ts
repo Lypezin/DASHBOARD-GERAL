@@ -16,7 +16,7 @@ export async function fetchComparisonUtr(
         try {
             const { data, error } = await safeRpc<UtrData>('calcular_utr', filtro, {
                 timeout: 30000,
-                validateParams: true
+                validateParams: false
             });
 
             if (error) {

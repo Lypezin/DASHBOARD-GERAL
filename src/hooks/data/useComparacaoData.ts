@@ -40,17 +40,33 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
       setLoading(true);
       setError(null);
+      
+      // Limpar dados anteriores para evitar flashes de estados mistos
+      if (isMounted) {
+        setDadosComparacao([]);
+        setUtrComparacao([]);
+      }
 
       try {
-        safeLog.info('[Comparacao] Chamando fetchComparisonMetrics e fetchComparisonUtr...');
-        const [dados, utrs] = await Promise.all([
-          fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
-          fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado)
-        ]);
+        safeLog.info('[Comparacao] Chamando fetchComparisonMetrics...');
+        const dados = await fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado);
+        
+        if (!isMounted) return;
+        setDadosComparacao(dados);
 
-        safeLog.info('[Comparacao] Dados recebidos:', { dadosLength: dados?.length, utrsLength: utrs?.length, dadosPreview: dados?.map(d => ({ total_ofertadas: d?.total_ofertadas, aderencia_semanal: d?.aderencia_semanal?.length })) });
+        // Pequeno delay para evitar sobrecarga simultânea
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-        if (isMounted) { setDadosComparacao(dados); setUtrComparacao(utrs); }
+        safeLog.info('[Comparacao] Chamando fetchComparisonUtr...');
+        const utrs = await fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado);
+        
+        if (!isMounted) return;
+        setUtrComparacao(utrs);
+
+        safeLog.info('[Comparacao] Dados recebidos:', { 
+          dadosLength: dados?.length, 
+          utrsLength: utrs?.length 
+        });
       } catch (error: any) {
         safeLog.error('[Comparacao] Erro ao buscar dados:', error);
         if (isMounted) setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
