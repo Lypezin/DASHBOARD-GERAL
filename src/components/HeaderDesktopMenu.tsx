@@ -7,7 +7,7 @@ import React from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from 'lucide-react';
-import { useHeaderAuth, UserProfile } from '@/hooks/auth/useHeaderAuth';
+import { UserProfile } from '@/hooks/auth/useHeaderAuth';
 import { DesktopNavLinks } from './Header/DesktopNavLinks';
 import { UserDropdown } from './Header/UserDropdown';
 import { Trophy } from 'lucide-react';

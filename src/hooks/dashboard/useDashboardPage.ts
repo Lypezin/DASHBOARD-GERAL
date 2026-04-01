@@ -17,13 +17,13 @@ export function useDashboardPage() {
   const { filters, setFilters } = useDashboardFilters();
 
   const { filterPayload } = useDashboardKeys(filters, currentUser);
+  const mainData = useDashboardMainData({ filterPayload });
   
   // As dimensões básicas são carregadas uma vez no mount (Anos, Semanas, Praças, etc)
-  const { anosDisponiveis, semanasDisponiveis, dimensoes } = useDashboardDimensions();
+  const { anosDisponiveis, semanasDisponiveis, dimensoes } = useDashboardDimensions(mainData.dimensoes);
   
   // Para manter a performance e compatibilidade, carregamos os dados principais centralmente
   // Isso povoa o cache global que as sub-views usarão se necessário
-  const mainData = useDashboardMainData({ filterPayload });
 
   // Gerar as opções dos filtros baseadas nas dimensões carregadas globalmente ou no mainData
   const filterOptions = useDashboardFilterOptions({

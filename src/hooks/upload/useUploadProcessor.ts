@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { uploadRateLimiter } from '@/lib/rateLimiter';
 import { processCorridasFile } from '@/utils/processors/corridasProcessor';
@@ -9,6 +9,7 @@ export interface UploadState { uploading: boolean; message: string; progress: nu
 
 export function useUploadProcessor(organizationId?: string) {
     const [state, setState] = useState<UploadState>({ uploading: false, message: '', progress: 0, progressLabel: '', currentFileIndex: 0 });
+    const lastProgressUpdateRef = useRef<{ progress: number; label: string }>({ progress: -1, label: '' });
 
     const processUpload = useCallback(async (files: File[], onSuccess: () => void) => {
         if (files.length === 0) {
@@ -54,10 +55,18 @@ export function useUploadProcessor(organizationId?: string) {
                         organizationId,
                         onProgress: (insertedRows, total) => {
                             const batchProgress = (insertedRows / total) * (100 / totalFiles);
+                            const nextProgress = Math.round((fileProgress + batchProgress) * 10) / 10;
+                            const nextLabel = `Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${total} linhas`;
+
+                            if (nextProgress === lastProgressUpdateRef.current.progress && nextLabel === lastProgressUpdateRef.current.label) {
+                                return;
+                            }
+
+                            lastProgressUpdateRef.current = { progress: nextProgress, label: nextLabel };
                             setState(prev => ({
                                 ...prev,
-                                progress: fileProgress + batchProgress,
-                                progressLabel: `Arquivo ${fileIdx + 1}/${totalFiles}: ${insertedRows}/${total} linhas`
+                                progress: nextProgress,
+                                progressLabel: nextLabel
                             }));
                         }
                     }

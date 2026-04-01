@@ -56,9 +56,25 @@ export function useMonitoringData() {
     };
 
     useEffect(() => {
-        fetchData();
-        const interval = setInterval(fetchData, 30000); // Poll every 30s
-        return () => clearInterval(interval);
+        const fetchWhenVisible = () => {
+            if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+                return;
+            }
+
+            fetchData();
+        };
+
+        fetchWhenVisible();
+        const interval = setInterval(fetchWhenVisible, 30000); // Poll every 30s
+        if (typeof document !== 'undefined') {
+            document.addEventListener('visibilitychange', fetchWhenVisible);
+        }
+        return () => {
+            clearInterval(interval);
+            if (typeof document !== 'undefined') {
+                document.removeEventListener('visibilitychange', fetchWhenVisible);
+            }
+        };
     }, []);
 
     return { stats, loading, error, refresh: fetchData };

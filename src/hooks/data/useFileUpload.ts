@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { uploadRateLimiter } from '@/lib/rateLimiter';
 import { deleteAllRecords, BatchInsertOptions } from '@/utils/dbHelpers';
@@ -26,6 +26,7 @@ export function useFileUpload(options: FileUploadOptions) {
   const [state, setState] = useState<UploadState>({
     uploading: false, progress: 0, progressLabel: '', message: '', currentFileIndex: 0
   });
+  const lastProgressUpdateRef = useRef<{ progress: number; label: string }>({ progress: -1, label: '' });
 
   const uploadFiles = useCallback(async (files: File[]) => {
     if (!files.length) return setState(p => ({ ...p, message: 'Selecione um arquivo.' }));
@@ -58,10 +59,19 @@ export function useFileUpload(options: FileUploadOptions) {
             onProgress: (cur, tot, phase) => {
               const base = (overwrite ? 10 : 0) + (i / totalFiles) * (overwrite ? 80 : 90);
               const step = (cur / tot) * ((overwrite ? 80 : 90) / totalFiles);
+              const nextProgress = Math.round((base + step) * 10) / 10;
+              const nextLabel = `Arquivo ${i + 1}/${totalFiles}: ${phase === 'processing' ? 'Lendo' : 'Inserindo'} ${cur}/${tot}`;
+              const shouldUpdate = nextProgress !== lastProgressUpdateRef.current.progress || nextLabel !== lastProgressUpdateRef.current.label;
+
+              if (!shouldUpdate) {
+                return;
+              }
+
+              lastProgressUpdateRef.current = { progress: nextProgress, label: nextLabel };
               setState(p => ({
                 ...p,
-                progress: base + step,
-                progressLabel: `Arquivo ${i + 1}/${totalFiles}: ${phase === 'processing' ? 'Lendo' : 'Inserindo'} ${cur}/${tot}`
+                progress: nextProgress,
+                progressLabel: nextLabel
               }));
             }
           });

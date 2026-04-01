@@ -50,6 +50,10 @@ export function usePresence(
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
+                    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+                        return;
+                    }
+
                     const { data: { user } } = await supabase.auth.getUser();
                     const p = await getPresenceData(user, currentUser, currentTab, isIdle, customStatus, sessionStartRef.current);
                     if (p) await channel.track(p);
@@ -65,6 +69,10 @@ export function usePresence(
     useEffect(() => {
         if (!channelRef.current || !userId) return;
         const update = async () => {
+            if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+                return;
+            }
+
             const { data: { user } } = await supabase.auth.getUser();
             const p = await getPresenceData(user, currentUser, currentTab, isIdle, customStatus, sessionStartRef.current);
             if (channelRef.current && p) await channelRef.current.track(p);

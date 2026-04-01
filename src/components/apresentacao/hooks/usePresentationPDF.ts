@@ -1,10 +1,12 @@
-import { useState, useRef, RefObject } from 'react';
+import { useState, RefObject } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { SLIDE_HEIGHT, SLIDE_WIDTH } from '../constants';
 
 const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
-const SCALE_FACTOR = 1.15;
+const DEFAULT_SCALE_FACTOR = 1.15;
+const HIGH_QUALITY_SCALE_FACTOR = 1.3;
+const JPEG_QUALITY = 0.84;
 
 interface UsePresentationPDFProps { slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>; numeroSemana1: string; numeroSemana2: string; contentRef: RefObject<HTMLDivElement>; captureContainerRef: RefObject<HTMLDivElement>; }
 
@@ -22,6 +24,9 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
         try {
             const { jsPDF } = await import('jspdf');
             const html2canvas = (await import('html2canvas')).default;
+            const effectiveScale = typeof window !== 'undefined' && window.devicePixelRatio > 1.5
+                ? HIGH_QUALITY_SCALE_FACTOR
+                : DEFAULT_SCALE_FACTOR;
 
             const pdf = new jsPDF({
                 orientation: 'landscape',
@@ -52,7 +57,7 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
 
                 if (slideElement) {
                     const canvas = await html2canvas(slideElement, {
-                        scale: SCALE_FACTOR,
+                        scale: effectiveScale,
                         useCORS: true,
                         allowTaint: true,
                         backgroundColor: '#ffffff',
@@ -72,8 +77,12 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
                         pdf.addPage();
                     }
 
-                    const imgData = canvas.toDataURL('image/jpeg', 0.8);
+                    const imgData = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
                     pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+
+                    canvas.width = 0;
+                    canvas.height = 0;
+                    await new Promise((resolve) => setTimeout(resolve, 0));
                 }
             }
 
