@@ -1,5 +1,5 @@
+import * as XLSX from 'xlsx';
 import { safeLog } from '@/lib/errorHandler';
-import { loadXLSX } from '@/lib/xlsxClient';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -9,7 +9,6 @@ export async function readExcelFile(file: File): Promise<Record<string, unknown>
     safeLog.info('Arquivo lido, tamanho:', { size: arrayBuffer.byteLength });
 
     safeLog.info('Lendo workbook Excel...');
-    const XLSX = await loadXLSX();
     const workbook = XLSX.read(arrayBuffer, { raw: true });
     safeLog.info('Sheets disponíveis:', { sheets: workbook.SheetNames });
 

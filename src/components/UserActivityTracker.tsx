@@ -3,11 +3,9 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import { useAuthSession } from '@/contexts/AuthSessionContext';
 
 export function UserActivityTracker() {
     const pathname = usePathname();
-    const { sessionUser } = useAuthSession();
     const visitIdRef = useRef<string | null>(null);
     const startTimeRef = useRef<number | null>(null);
     const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
@@ -20,7 +18,8 @@ export function UserActivityTracker() {
             
             // Usar getSession() que é mais rápido (lê do armazenamento local/memória)
             // em vez de getUser() que sempre faz uma chamada de rede para validar o JWT
-            const user = sessionUser;
+            const { data: { session } } = await supabase.auth.getSession();
+            const user = session?.user;
 
             if (!user || !isMounted) return;
 
@@ -58,7 +57,7 @@ export function UserActivityTracker() {
 
                     // Start Heartbeat
                     heartbeatRef.current = setInterval(() => {
-                        if (visitIdRef.current && document.visibilityState === 'visible') {
+                        if (visitIdRef.current) {
                             supabase
                                 .from('user_activity_logs')
                                 .update({ last_seen: new Date().toISOString() })
@@ -98,7 +97,7 @@ export function UserActivityTracker() {
                     .then();
             }
         };
-    }, [pathname, sessionUser]);
+    }, [pathname]);
 
     return null;
 }

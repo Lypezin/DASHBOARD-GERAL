@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import { useAuthSession } from '@/contexts/AuthSessionContext';
+import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { Organization } from '@/contexts/OrganizationContext';
 import { fetchOrganizationData } from './organizationDataHelper';
@@ -8,16 +8,11 @@ import { fetchOrganizationData } from './organizationDataHelper';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useOrganizationFetcher() {
-    const { sessionUser, isLoading: isSessionLoading } = useAuthSession();
     const [organization, setOrganization] = useState<Organization | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchOrganization = useCallback(async () => {
-        if (isSessionLoading) {
-            return;
-        }
-
         try {
             // Só ativar a flag destrutiva de loading se for a primeira vez
             setOrganization(prev => {
@@ -27,14 +22,16 @@ export function useOrganizationFetcher() {
             setError(null);
 
             // Verificar se usuário está autenticado
-            if (!sessionUser) {
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+            if (authError || !user) {
                 setOrganization(null);
                 setIsLoading(false);
                 return;
             }
 
             // Obter organization_id do user_metadata
-            const organizationId = sessionUser.user_metadata?.organization_id as string | undefined;
+            const organizationId = user.user_metadata?.organization_id as string | undefined;
 
             if (!organizationId) {
                 if (IS_DEV) {
@@ -68,15 +65,27 @@ export function useOrganizationFetcher() {
             // Garantir que o falso venha sempre
             setIsLoading(false);
         }
-    }, [isSessionLoading, sessionUser]);
+    }, []);
 
     useEffect(() => {
         fetchOrganization();
 
         // Escutar mudanças na autenticação
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             // Ignorar TOKEN_REFRESHED para evitar reloads desnecessários na tela
             // Dados da organização não mudam com o refresh do token
-    }, [fetchOrganization, sessionUser?.id]);
+            if (event === 'SIGNED_IN') {
+                fetchOrganization();
+            } else if (event === 'SIGNED_OUT') {
+                setOrganization(null);
+                setIsLoading(false);
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [fetchOrganization]);
 
     return {
         organization,

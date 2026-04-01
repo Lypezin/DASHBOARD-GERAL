@@ -38,8 +38,8 @@ export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     // Rotas protegidas
-    const protectedRoutePrefixes = ['/dashboard', '/admin', '/upload', '/perfil', '/apresentacao'];
-    const isProtectedRoute = path === '/' || protectedRoutePrefixes.some(route => path.startsWith(route));
+    const protectedRoutes = ['/dashboard', '/admin', '/upload', '/perfil', '/apresentacao'];
+    const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route));
 
     // Redirecionar para login se tentar acessar rota protegida sem usuário
     if (isProtectedRoute && !user) {

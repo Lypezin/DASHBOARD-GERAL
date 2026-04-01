@@ -2,8 +2,8 @@
  * Processador para planilhas de dados de corridas
  */
 
+import * as XLSX from 'xlsx';
 import { validateString } from '@/lib/validate';
-import { loadXLSX } from '@/lib/xlsxClient';
 import { COLUMN_MAP } from '@/constants/upload';
 import {
   excelSerialToISODate,
@@ -21,7 +21,6 @@ import {
  */
 export async function processCorridasFile(file: File): Promise<Record<string, unknown>[]> {
   const arrayBuffer = await file.arrayBuffer();
-  const XLSX = await loadXLSX();
   const workbook = XLSX.read(arrayBuffer, { raw: true });
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
