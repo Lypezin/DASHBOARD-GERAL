@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Timer, Car } from 'lucide-react';
+import { Car, Timer } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 
@@ -26,54 +26,75 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
     icon,
     data,
     getLabel,
-    gridCols = "md:grid-cols-2 lg:grid-cols-3"
+    gridCols = 'sm:grid-cols-2 xl:grid-cols-3'
 }: UtrSectionProps<T>) {
     if (!data || data.length === 0) return null;
 
     return (
-        <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-            <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+        <Card className="rounded-[28px] border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <CardHeader className="space-y-3 border-b border-slate-100 px-6 pb-5 pt-6 dark:border-slate-800">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-900">
                         {icon}
                     </div>
-                    <div>
-                        <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">{title}</CardTitle>
-                        <CardDescription>{description}</CardDescription>
+                    <div className="min-w-0">
+                        <CardTitle className="text-lg font-semibold tracking-tight text-slate-950 dark:text-white">
+                            {title}
+                        </CardTitle>
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            {description}
+                        </p>
                     </div>
                 </div>
             </CardHeader>
 
             <CardContent className="p-6">
-                <div className={cn("grid grid-cols-1 gap-4", gridCols)}>
+                <div className={cn('grid grid-cols-1 gap-4', gridCols)}>
                     {data.map((item, index) => {
                         const label = getLabel(item);
+
                         return (
                             <div
                                 key={`${label}-${index}`}
-                                className="group relative rounded-xl border border-transparent bg-white dark:bg-slate-950 p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1 ring-1 ring-slate-200/50 dark:ring-slate-800"
+                                className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition-colors hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700 dark:hover:bg-slate-900"
                             >
-                                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                                <div className="relative z-10">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <h3 className="font-bold text-slate-800 dark:text-slate-200 truncate pr-2 text-sm leading-tight" title={label}>
+                                <div className="mb-4 flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p
+                                            className="truncate text-sm font-semibold leading-5 text-slate-900 dark:text-white"
+                                            title={label || 'N/D'}
+                                        >
                                             {label || 'N/D'}
-                                        </h3>
-                                        <div className="px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold font-mono">
-                                            {item.utr.toFixed(2)}
-                                        </div>
+                                        </p>
+                                        <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+                                            Indicador UTR
+                                        </p>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
-                                        <div className="flex items-center gap-1.5 p-1.5 rounded-md bg-slate-50 dark:bg-slate-900/50">
-                                            <Timer className="h-3 w-3 text-orange-500" />
-                                            <span>{formatarHorasParaHMS(item.tempo_horas ?? 0)}</span>
+                                    <div className="shrink-0 rounded-xl bg-slate-900 px-2.5 py-1 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-950">
+                                        {item.utr.toFixed(2)}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950">
+                                        <div className="mb-1 flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                                            <Timer className="h-3.5 w-3.5" />
+                                            <span className="text-[11px] font-medium uppercase tracking-[0.16em]">Tempo</span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 justify-end p-1.5 rounded-md bg-slate-50 dark:bg-slate-900/50">
-                                            <Car className="h-3 w-3 text-emerald-500" />
-                                            <span>{item.corridas}</span>
+                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                                            {formatarHorasParaHMS(item.tempo_horas ?? 0)}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950">
+                                        <div className="mb-1 flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                                            <Car className="h-3.5 w-3.5" />
+                                            <span className="text-[11px] font-medium uppercase tracking-[0.16em]">Corridas</span>
                                         </div>
+                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                                            {(item.corridas ?? 0).toLocaleString()}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

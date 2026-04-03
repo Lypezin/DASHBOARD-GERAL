@@ -1,19 +1,16 @@
-
 'use client';
 
 import React from 'react';
-import { UtrData } from '@/types';
 import { motion, Variants } from 'framer-motion';
-import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { Activity } from 'lucide-react';
-
-import { useUtrView } from './utr/useUtrView';
-import { UtrHeader } from './utr/UtrHeader';
-import { UtrContent } from './utr/UtrContent';
+import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import type { CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
+import { UtrHeader } from './utr/UtrHeader';
+import { UtrContent } from './utr/UtrContent';
+import { useUtrView } from './utr/useUtrView';
 
 const UtrView = React.memo(function UtrView({
   filterPayload,
@@ -35,7 +32,7 @@ const UtrView = React.memo(function UtrView({
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-5 animate-fade-in">
         <TableSkeleton rows={6} columns={4} />
       </div>
     );
@@ -43,32 +40,43 @@ const UtrView = React.memo(function UtrView({
 
   if (!utrData || !utrData.geral) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center border rounded-xl border-dashed border-slate-300 dark:border-slate-700">
-        <Activity className="h-10 w-10 text-slate-400 mb-3" />
-        <p className="text-lg font-medium text-slate-900 dark:text-white">Nenhum dado disponível</p>
-        <p className="text-sm text-slate-500">Aguarde o carregamento ou ajuste os filtros.</p>
+      <div className="rounded-3xl border border-dashed border-slate-300 bg-white/75 px-6 py-12 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
+          <Activity className="h-6 w-6 text-slate-500 dark:text-slate-300" />
+        </div>
+        <p className="text-lg font-semibold text-slate-900 dark:text-white">Nenhum dado disponivel</p>
+        <p className="mx-auto mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
+          Aguarde o carregamento ou ajuste os filtros para visualizar a leitura operacional de UTR.
+        </p>
       </div>
     );
   }
+
+  const sectionCount = [porPraca, porSubPraca, porOrigem, porTurno].filter((section) => section.length > 0).length;
+  const totalSlices = porPraca.length + porSubPraca.length + porOrigem.length + porTurno.length;
 
   const container: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.06
       }
     }
   };
 
   const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    hidden: { opacity: 0, y: 14 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3, ease: 'easeOut' }
+    }
   };
 
   return (
     <motion.div
-      className="space-y-6 pb-8"
+      className="space-y-5 pb-8 lg:space-y-6"
       variants={container}
       initial="hidden"
       animate="show"
@@ -76,6 +84,8 @@ const UtrView = React.memo(function UtrView({
       <UtrHeader
         isExporting={isExporting}
         onExport={handleExport}
+        totalSections={sectionCount}
+        totalSlices={totalSlices}
         variants={item}
       />
 
