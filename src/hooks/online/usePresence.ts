@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { OnlineUser } from './types';
@@ -16,12 +16,33 @@ export function usePresence(
     const [customStatus, setCustomStatus] = useState<string>('');
     const channelRef = useRef<RealtimeChannel | null>(null);
     const sessionStartRef = useRef(new Date().toISOString());
+    const presenceBaseRef = useRef<OnlineUser | null>(null);
 
     const clearJoinedUsers = () => setJoinedUsers([]);
+
+    const buildPresencePayload = useCallback(async () => {
+        if (!userId || !currentUser) return null;
+
+        if (!presenceBaseRef.current) {
+            const { data: { session } } = await supabase.auth.getSession();
+            const user = session?.user;
+            const basePresence = await getPresenceData(user, currentUser, currentTab, isIdle, customStatus, sessionStartRef.current);
+            if (!basePresence) return null;
+            presenceBaseRef.current = basePresence;
+        }
+
+        return {
+            ...presenceBaseRef.current,
+            current_tab: currentTab,
+            is_idle: isIdle,
+            custom_status: customStatus
+        } as OnlineUser;
+    }, [currentTab, currentUser, customStatus, isIdle, userId]);
 
     // Subscribing to Presence
     useEffect(() => {
         if (!currentUser || !userId) return;
+        presenceBaseRef.current = null;
         if (channelRef.current) supabase.removeChannel(channelRef.current);
 
         const channel = supabase.channel('online-users-presence', {
@@ -50,8 +71,7 @@ export function usePresence(
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    const p = await getPresenceData(user, currentUser, currentTab, isIdle, customStatus, sessionStartRef.current);
+                    const p = await buildPresencePayload();
                     if (p) await channel.track(p);
                 }
             });
@@ -59,23 +79,21 @@ export function usePresence(
         return () => {
             if (channelRef.current) supabase.removeChannel(channelRef.current);
         };
-    }, [userId, currentUser?.organization_id]);
+    }, [buildPresencePayload, currentUser, userId]);
 
     // Track updates
     useEffect(() => {
         if (!channelRef.current || !userId) return;
         const update = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            const p = await getPresenceData(user, currentUser, currentTab, isIdle, customStatus, sessionStartRef.current);
+            const p = await buildPresencePayload();
             if (channelRef.current && p) await channelRef.current.track(p);
         };
         update();
-    }, [currentTab, isIdle, customStatus]);
+    }, [buildPresencePayload, currentTab, customStatus, isIdle, userId]);
 
     const setTypingTo = async (targetUserId: string | null) => {
         if (!channelRef.current || !userId) return;
-        const { data: { user } } = await supabase.auth.getUser();
-        const p = await getPresenceData(user, currentUser, currentTab, isIdle, customStatus, sessionStartRef.current);
+        const p = await buildPresencePayload();
         if (p) {
             await channelRef.current.track({
                 ...p,

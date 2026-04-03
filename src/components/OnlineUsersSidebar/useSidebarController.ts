@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useOnlineUsers, OnlineUser, ChatMessage } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { useChatPersistence } from './hooks/useChatPersistence';
@@ -57,16 +57,21 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
         return () => clearInterval(interval);
     }, []);
 
-    const activeMessages = activeChatUser
-        ? messages.filter(m => (m.from === activeChatUser.id && m.to === currentUser?.id) || (m.from === currentUser?.id && m.to === activeChatUser.id))
-        : [];
+    const activeMessages = useMemo(() => (
+        activeChatUser
+            ? messages.filter(m => (m.from === activeChatUser.id && m.to === currentUser?.id) || (m.from === currentUser?.id && m.to === activeChatUser.id))
+            : []
+    ), [activeChatUser, currentUser?.id, messages]);
 
-    const filteredUsers = onlineUsers.filter((u: OnlineUser) =>
-    (u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.role?.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const filteredUsers = useMemo(() => {
+        const normalizedSearch = searchTerm.toLowerCase();
+        return onlineUsers.filter((u: OnlineUser) =>
+            u.name?.toLowerCase().includes(normalizedSearch) ||
+            u.role?.toLowerCase().includes(normalizedSearch)
+        );
+    }, [onlineUsers, searchTerm]);
 
-    const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+    const totalUnread = useMemo(() => Object.values(unreadCounts).reduce((a, b) => a + b, 0), [unreadCounts]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

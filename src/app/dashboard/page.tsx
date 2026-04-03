@@ -8,7 +8,7 @@ import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingSt
 import { DashboardErrorState } from '@/components/dashboard/DashboardErrorState';
 import { DashboardAuthLoading } from '@/components/dashboard/DashboardAuthLoading';
 import { ActivityTracker } from '@/components/dashboard/ActivityTracker';
-import type { AderenciaSemanal } from '@/types';
+import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 
 export default function DashboardPage() {
     return (
@@ -20,13 +20,14 @@ export default function DashboardPage() {
 
 function DashboardContent() {
     const { auth, ui, filters, anoEvolucao, data } = useDashboardPage();
+    const showDeferredTracker = useDeferredMount({ enabled: auth.isAuthenticated, timeoutMs: 400 });
 
     if (auth.isCheckingAuth) return <DashboardAuthLoading />;
     if (!auth.isAuthenticated) return null;
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">
-            <ActivityTracker activeTab={ui.activeTab} filters={filters.state} currentUser={auth.currentUser} />
+            {showDeferredTracker ? <ActivityTracker activeTab={ui.activeTab} filters={filters.state} currentUser={auth.currentUser} /> : null}
             <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
                 {ui.loading && <DashboardLoadingState />}
                 {ui.error && <DashboardErrorState error={ui.error} />}

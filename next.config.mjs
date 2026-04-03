@@ -1,18 +1,16 @@
-// import bundleAnalyzer from '@next/bundle-analyzer';
+import bundleAnalyzer from '@next/bundle-analyzer';
 
-// const withBundleAnalyzer = bundleAnalyzer({
-//   enabled: process.env.ANALYZE === 'true',
-// });
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Otimizações de performance
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
 
   eslint: {
-    // Bypass ESLint errors during the build to unblock Vercel deployments
     ignoreDuringBuilds: true,
   },
 
@@ -20,11 +18,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // Otimizações de build
-  // swcMinify: true, // Deprecated in Next.js 13+ (enabled by default)
   output: 'standalone',
 
-  // Otimizações de imagens
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -43,10 +38,8 @@ const nextConfig = {
     ],
   },
 
-  // Configuração do webpack para ignorar pdfmake no servidor
-  webpack: (config, { isServer, webpack }) => {
+  webpack: (config, { isServer }) => {
     if (isServer) {
-      // Ignorar pdfmake no servidor (SSR) - não tentar resolver durante o build do servidor
       config.externals = config.externals || [];
       config.externals.push({
         'pdfmake/build/pdfmake': 'commonjs pdfmake/build/pdfmake',
@@ -54,7 +47,6 @@ const nextConfig = {
       });
     }
 
-    // Ignorar módulos Node.js no cliente se necessário
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -67,7 +59,6 @@ const nextConfig = {
     return config;
   },
 
-  // Redirects
   async redirects() {
     return [
       {
@@ -78,37 +69,17 @@ const nextConfig = {
     ];
   },
 
-  // Headers de segurança e performance
   async headers() {
     return [
       {
-        // Headers de segurança globais
         source: '/:path*',
         headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on'
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload'
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
-          },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
             key: 'Content-Security-Policy',
             value: [
@@ -121,40 +92,23 @@ const nextConfig = {
               "frame-ancestors 'self'",
             ].join('; ')
           },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()'
-          }
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' }
         ],
       },
       {
-        // Cache agressivo APENAS para imagens e fontes (que não mudam frequentemente ou têm hash)
         source: '/:path*.{jpg,jpeg,png,gif,webp,avif,ico,svg,woff,woff2,ttf,eot}',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable'
-          }
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }
         ]
       },
       {
-        // Desabilitar cache para arquivos de build do Next.js e HTML para garantir que o usuário sempre receba a versão mais recente
         source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate'
-          }
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }
         ]
       }
     ];
   },
-
-  // Forçar um ID de build único para invalidar caches persistentes
-  generateBuildId: async () => {
-    // Retorna o timestamp atual como ID de build
-    return `build-${Date.now()}`;
-  },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

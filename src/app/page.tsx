@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { TabNavigation } from '@/components/TabNavigation';
 import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
 import { DashboardFiltersContainer } from '@/components/dashboard/DashboardFiltersContainer';
@@ -8,9 +9,13 @@ import { DashboardViewsRenderer } from '@/components/dashboard/DashboardViewsRen
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState';
 import { DashboardErrorState } from '@/components/dashboard/DashboardErrorState';
 import { DashboardAuthLoading } from '@/components/dashboard/DashboardAuthLoading';
-import { OnlineUsersSidebar } from '@/components/OnlineUsersSidebar';
 import { CityLastUpdatesTicker } from '@/components/dashboard/CityLastUpdatesTicker';
-import type { AderenciaSemanal } from '@/types';
+import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
+
+const DeferredOnlineUsersSidebar = dynamic(
+  () => import('@/components/OnlineUsersSidebar').then((mod) => ({ default: mod.OnlineUsersSidebar })),
+  { ssr: false }
+);
 
 export default function DashboardPage() {
   return (
@@ -22,6 +27,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { auth, ui, filters, anoEvolucao, data } = useDashboardPage();
+  const showDeferredWidgets = useDeferredMount({ enabled: auth.isAuthenticated, timeoutMs: 400 });
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (!auth.isAuthenticated) return null;
@@ -34,7 +40,7 @@ function DashboardContent() {
 
         {!ui.loading && !ui.error && (
           <div className="space-y-4 animate-fade-in">
-            <CityLastUpdatesTicker />
+            {showDeferredWidgets ? <CityLastUpdatesTicker /> : null}
 
             <DashboardFiltersContainer
               filters={filters.state}
@@ -82,7 +88,9 @@ function DashboardContent() {
           </div>
         )}
       </div>
-      <OnlineUsersSidebar currentUser={auth.currentUser} currentTab={ui.activeTab} />
+      {showDeferredWidgets ? (
+        <DeferredOnlineUsersSidebar currentUser={auth.currentUser} currentTab={ui.activeTab} />
+      ) : null}
     </div>
   );
-}
+}

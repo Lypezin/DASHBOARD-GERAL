@@ -4,6 +4,13 @@ import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
+declare global {
+    interface Window {
+        requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+        cancelIdleCallback?: (handle: number) => void;
+    }
+}
+
 export function UserActivityTracker() {
     const pathname = usePathname();
     const visitIdRef = useRef<string | null>(null);
@@ -15,17 +22,13 @@ export function UserActivityTracker() {
 
         const handleRouteChange = async () => {
             const now = Date.now();
-            
-            // Usar getSession() que é mais rápido (lê do armazenamento local/memória)
-            // em vez de getUser() que sempre faz uma chamada de rede para validar o JWT
+
             const { data: { session } } = await supabase.auth.getSession();
             const user = session?.user;
 
             if (!user || !isMounted) return;
 
-            // Close previous visit if exists
             if (visitIdRef.current && startTimeRef.current) {
-                // Clear previous heartbeat
                 if (heartbeatRef.current) {
                     clearInterval(heartbeatRef.current);
                     heartbeatRef.current = null;
@@ -33,19 +36,16 @@ export function UserActivityTracker() {
 
                 const duration = Math.round((now - startTimeRef.current) / 1000);
 
-                // Fire and forget update
                 supabase
                     .from('user_activity_logs')
                     .update({ exited_at: new Date().toISOString(), duration_seconds: duration, last_seen: new Date().toISOString() })
                     .eq('id', visitIdRef.current)
-                    .then(); // ignore result
+                    .then();
             }
 
-            // Start new visit
             startTimeRef.current = now;
+
             try {
-                // Try to include last_seen if the column exists (it should after SQL run)
-                // If it fails, we fall back? No, this is fire and forget mostly.
                 const { data, error } = await supabase
                     .from('user_activity_logs')
                     .insert({ user_id: user.id, path: pathname, entered_at: new Date().toISOString(), last_seen: new Date().toISOString() })
@@ -55,35 +55,50 @@ export function UserActivityTracker() {
                 if (data && !error) {
                     visitIdRef.current = data.id;
 
-                    // Start Heartbeat
                     heartbeatRef.current = setInterval(() => {
                         if (visitIdRef.current) {
                             supabase
                                 .from('user_activity_logs')
                                 .update({ last_seen: new Date().toISOString() })
                                 .eq('id', visitIdRef.current)
-                                .then(({ error }) => {
-                                    if (error) console.error('Heartbeat error:', error);
+                                .then(({ error: heartbeatError }) => {
+                                    if (heartbeatError) console.error('Heartbeat error:', heartbeatError);
                                 });
                         }
-                    }, 30000); // 30 seconds
-
+                    }, 30000);
                 } else {
                     console.error('Failed to start activity session:', error);
                     visitIdRef.current = null;
                 }
-            } catch (e) {
-                console.error('Error in UserActivityTracker:', e);
+            } catch (error) {
+                console.error('Error in UserActivityTracker:', error);
             }
         };
 
-        handleRouteChange();
+        let idleId: number | null = null;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-        // Cleanup on unmount (only when component functionality completely stops, e.g. app close?)
-        // In Next.js App Router, layout doesn't unmount on page change, so this is fine.
+        if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+            idleId = window.requestIdleCallback(() => {
+                void handleRouteChange();
+            }, { timeout: 500 });
+        } else {
+            timeoutId = setTimeout(() => {
+                void handleRouteChange();
+            }, 150);
+        }
+
         return () => {
             isMounted = false;
-            
+
+            if (idleId !== null && typeof window !== 'undefined' && typeof window.cancelIdleCallback === 'function') {
+                window.cancelIdleCallback(idleId);
+            }
+
+            if (timeoutId !== null) {
+                clearTimeout(timeoutId);
+            }
+
             if (heartbeatRef.current) {
                 clearInterval(heartbeatRef.current);
                 heartbeatRef.current = null;
