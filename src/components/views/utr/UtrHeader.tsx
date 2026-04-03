@@ -40,23 +40,23 @@ export const UtrHeader = React.memo(function UtrHeader({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap">
-                        <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/85 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/70">
+                        <div className="min-w-0 flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/85 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/70">
                             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
                                 <LayoutGrid className="h-4 w-4 text-slate-700 dark:text-slate-200" />
                             </div>
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Dimensoes</p>
-                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{totalSections} blocos ativos</p>
+                            <div className="min-w-0">
+                                <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Dimensoes</p>
+                                <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{totalSections} blocos ativos</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/85 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/70">
+                        <div className="min-w-0 flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/85 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/70">
                             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
                                 <ScanSearch className="h-4 w-4 text-slate-700 dark:text-slate-200" />
                             </div>
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Recortes</p>
-                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{totalSlices} itens analisados</p>
+                            <div className="min-w-0">
+                                <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Recortes</p>
+                                <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{totalSlices} itens analisados</p>
                             </div>
                         </div>
                     </div>

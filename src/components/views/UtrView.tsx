@@ -76,7 +76,7 @@ const UtrView = React.memo(function UtrView({
 
   return (
     <motion.div
-      className="space-y-5 pb-8 lg:space-y-6"
+      className="space-y-5 overflow-x-hidden pb-8 lg:space-y-6"
       variants={container}
       initial="hidden"
       animate="show"

@@ -35,6 +35,7 @@ export const UtrContent = React.memo(function UtrContent({
                     icon={<Building2 className="h-[18px] w-[18px] text-indigo-600 dark:text-indigo-300" />}
                     data={porPraca}
                     getLabel={(item) => item.praca}
+                    gridCols="sm:grid-cols-2 2xl:grid-cols-3"
                 />
 
                 <UtrSection
@@ -43,6 +44,7 @@ export const UtrContent = React.memo(function UtrContent({
                     icon={<MapPin className="h-[18px] w-[18px] text-violet-600 dark:text-violet-300" />}
                     data={porSubPraca}
                     getLabel={(item) => item.sub_praca}
+                    gridCols="sm:grid-cols-2 2xl:grid-cols-3"
                 />
 
                 <UtrSection
@@ -51,6 +53,7 @@ export const UtrContent = React.memo(function UtrContent({
                     icon={<Target className="h-[18px] w-[18px] text-rose-600 dark:text-rose-300" />}
                     data={porOrigem}
                     getLabel={(item) => item.origem}
+                    gridCols="sm:grid-cols-2 2xl:grid-cols-3"
                 />
 
                 <UtrSection
@@ -59,7 +62,7 @@ export const UtrContent = React.memo(function UtrContent({
                     icon={<Clock className="h-[18px] w-[18px] text-amber-600 dark:text-amber-300" />}
                     data={porTurno}
                     getLabel={(item) => item.turno || item.periodo || ''}
-                    gridCols="sm:grid-cols-2 2xl:grid-cols-4"
+                    gridCols="sm:grid-cols-2 2xl:grid-cols-3"
                 />
             </motion.div>
         </React.Fragment>

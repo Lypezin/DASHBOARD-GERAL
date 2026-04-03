@@ -26,7 +26,7 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
     icon,
     data,
     getLabel,
-    gridCols = 'sm:grid-cols-2 xl:grid-cols-3'
+    gridCols = 'sm:grid-cols-2 2xl:grid-cols-3'
 }: UtrSectionProps<T>) {
     if (!data || data.length === 0) return null;
 
