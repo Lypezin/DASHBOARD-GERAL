@@ -95,13 +95,6 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Transitions globais */
-* {
-    transition-property: background-color, border-color, color, fill, stroke;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
-}
-
 /* Focus visible para acessibilidade */
 *:focus-visible {
     outline: 2px solid #3b82f6;

@@ -140,6 +140,13 @@
                 border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  .theme-switching *,
+  .theme-switching *::before,
+  .theme-switching *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+
   .glass-card {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
