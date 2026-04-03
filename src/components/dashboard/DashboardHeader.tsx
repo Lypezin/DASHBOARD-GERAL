@@ -33,8 +33,8 @@ export const DashboardHeader = React.memo(function DashboardHeader({
 }: DashboardHeaderProps) {
     return (
         <div className="space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between">
-                <div className="flex-1">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 flex-1">
                     <DashboardFiltersContainer
                         filters={filters}
                         setFilters={setFilters}
@@ -48,7 +48,7 @@ export const DashboardHeader = React.memo(function DashboardHeader({
                         activeTab={activeTab}
                     />
                 </div>
-                <LoginStreakBadge />
+                <LoginStreakBadge className="self-start lg:self-auto" />
             </div>
 
             <TabNavigation

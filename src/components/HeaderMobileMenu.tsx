@@ -31,12 +31,12 @@ export const HeaderMobileMenu = React.memo(function HeaderMobileMenu({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden">
           <Menu className="h-5 w-5" />
           <span className="sr-only">Abrir menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+      <SheetContent side="right" className="w-[min(92vw,400px)] overflow-y-auto px-4 sm:px-6">
         <SheetHeader>
           <SheetTitle asChild>
             <MobileUserHeader user={user} avatarUrl={avatarUrl} />
