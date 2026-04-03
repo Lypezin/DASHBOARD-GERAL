@@ -2,7 +2,7 @@ import React from 'react';
 import { Car, Timer } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { formatarHorasParaHMS } from '@/utils/formatters';
+import { formatCompactTime, formatarHorasParaHMS } from '@/utils/formatters';
 
 interface UtrItemBase {
     tempo_horas: number;
@@ -31,7 +31,7 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
     if (!data || data.length === 0) return null;
 
     return (
-        <Card className="rounded-[28px] border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+        <Card className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <CardHeader className="space-y-3 border-b border-slate-100 px-6 pb-5 pt-6 dark:border-slate-800">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-900">
@@ -52,13 +52,16 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
                 <div className={cn('grid grid-cols-1 gap-4', gridCols)}>
                     {data.map((item, index) => {
                         const label = getLabel(item);
+                        const fullTime = formatarHorasParaHMS(item.tempo_horas ?? 0);
+                        const compactTime = formatCompactTime(fullTime);
+                        const formattedCorridas = (item.corridas ?? 0).toLocaleString('pt-BR');
 
                         return (
                             <div
                                 key={`${label}-${index}`}
-                                className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition-colors hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700 dark:hover:bg-slate-900"
+                                className="min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition-colors hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700 dark:hover:bg-slate-900"
                             >
-                                <div className="mb-4 flex items-start justify-between gap-3">
+                                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                     <div className="min-w-0">
                                         <p
                                             className="truncate text-sm font-semibold leading-5 text-slate-900 dark:text-white"
@@ -76,24 +79,31 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950">
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950">
                                         <div className="mb-1 flex items-center gap-2 text-slate-400 dark:text-slate-500">
                                             <Timer className="h-3.5 w-3.5" />
                                             <span className="text-[11px] font-medium uppercase tracking-[0.16em]">Tempo</span>
                                         </div>
-                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                                            {formatarHorasParaHMS(item.tempo_horas ?? 0)}
+                                        <p
+                                            className="truncate text-sm font-semibold text-slate-900 dark:text-white"
+                                            title={fullTime}
+                                        >
+                                            {compactTime}
                                         </p>
+                                        <p className="truncate font-mono text-[11px] text-slate-500 dark:text-slate-400" title={fullTime}>{fullTime}</p>
                                     </div>
 
-                                    <div className="rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950">
+                                    <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950">
                                         <div className="mb-1 flex items-center gap-2 text-slate-400 dark:text-slate-500">
                                             <Car className="h-3.5 w-3.5" />
                                             <span className="text-[11px] font-medium uppercase tracking-[0.16em]">Corridas</span>
                                         </div>
-                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                                            {(item.corridas ?? 0).toLocaleString()}
+                                        <p
+                                            className="truncate text-sm font-semibold text-slate-900 dark:text-white"
+                                            title={formattedCorridas}
+                                        >
+                                            {formattedCorridas}
                                         </p>
                                     </div>
                                 </div>

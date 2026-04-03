@@ -2,13 +2,17 @@ import React from 'react';
 import { Activity, Car, Gauge, Timer } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { UtrGeral as UtrGeralType } from '@/types';
-import { formatarHorasParaHMS } from '@/utils/formatters';
+import { formatCompactTime, formatarHorasParaHMS } from '@/utils/formatters';
 
 interface UtrGeralProps {
     data: UtrGeralType;
 }
 
 export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
+    const fullTime = formatarHorasParaHMS(data.tempo_horas ?? 0);
+    const compactTime = formatCompactTime(fullTime);
+    const formattedCorridas = (data.corridas ?? 0).toLocaleString('pt-BR');
+
     return (
         <div className="grid gap-4 md:grid-cols-3">
             <Card className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950 md:col-span-1 lg:col-span-1">
@@ -29,7 +33,7 @@ export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
 
                     <div className="space-y-1">
                         <div className="flex items-end gap-2">
-                            <span className="text-5xl font-semibold tracking-tight text-slate-950 dark:text-white">
+                            <span className="text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">
                                 {(data.utr ?? 0).toFixed(2)}
                             </span>
                             <span className="pb-1 text-sm font-medium text-slate-400 dark:text-slate-500">indice</span>
@@ -55,9 +59,13 @@ export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
                     </div>
 
                     <div className="space-y-1">
-                        <p className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                            {formatarHorasParaHMS(data.tempo_horas ?? 0)}
+                        <p
+                            className="truncate text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl"
+                            title={fullTime}
+                        >
+                            {compactTime}
                         </p>
+                        <p className="truncate font-mono text-xs text-slate-500 dark:text-slate-400" title={fullTime}>{fullTime}</p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">Leitura acumulada no recorte atual.</p>
                     </div>
                 </div>
@@ -76,8 +84,11 @@ export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
                     </div>
 
                     <div className="space-y-1">
-                        <p className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                            {(data.corridas ?? 0).toLocaleString()}
+                        <p
+                            className="truncate text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl"
+                            title={formattedCorridas}
+                        >
+                            {formattedCorridas}
                         </p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">Base operacional do indicador.</p>
                     </div>
