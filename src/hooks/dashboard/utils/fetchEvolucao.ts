@@ -14,7 +14,17 @@ function normalizeArray<T>(value: T[] | null | undefined): T[] {
     return Array.isArray(value) ? value : [];
 }
 
-export async function fetchDashboardEvolucaoData(filterPayload: FilterPayload, anoEvolucao: number, activeTab: string) {
+export interface DashboardEvolucaoDataResult {
+    mensalData: EvolucaoMensal[];
+    semanalData: EvolucaoSemanal[];
+    utrData: UtrSemanal[];
+}
+
+export async function fetchDashboardEvolucaoData(
+    filterPayload: FilterPayload,
+    anoEvolucao: number,
+    activeTab: string
+): Promise<DashboardEvolucaoDataResult> {
     const params = {
         p_ano: anoEvolucao,
         p_organization_id: filterPayload.p_organization_id,

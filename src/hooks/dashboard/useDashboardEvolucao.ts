@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { safeLog } from '@/lib/errorHandler';
-import { fetchDashboardEvolucaoData } from './utils/fetchEvolucao';
-import { DELAYS } from '@/constants/config';
-import type { FilterPayload } from '@/types/filters';
+import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { safeLog } from '@/lib/errorHandler';
+import type { EvolucaoMensal, EvolucaoSemanal, UtrSemanal } from '@/types';
+import type { FilterPayload } from '@/types/filters';
+import { fetchDashboardEvolucaoData } from './utils/fetchEvolucao';
 
 interface UseDashboardEvolucaoOptions {
   filterPayload: FilterPayload;
@@ -12,31 +13,67 @@ interface UseDashboardEvolucaoOptions {
   activeTab: string;
 }
 
+interface EvolucaoRequestData {
+  mensalData: EvolucaoMensal[];
+  semanalData: EvolucaoSemanal[];
+  utrData: UtrSemanal[];
+}
+
+interface EvolucaoCacheEntry extends EvolucaoRequestData {
+  cachedAt: number;
+}
+
+const evolucaoCache = new Map<string, EvolucaoCacheEntry>();
+const evolucaoInFlight = new Map<string, Promise<EvolucaoRequestData>>();
+
+function getCachedEvolucao(signature: string) {
+  const cached = evolucaoCache.get(signature);
+
+  if (!cached) return null;
+
+  if (Date.now() - cached.cachedAt > CACHE.EVOLUCAO_TTL) {
+    evolucaoCache.delete(signature);
+    return null;
+  }
+
+  return cached;
+}
+
 export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: UseDashboardEvolucaoOptions) {
-  const [evolucaoMensal, setEvolucaoMensal] = useState<any>(null);
-  const [evolucaoSemanal, setEvolucaoSemanal] = useState<any>(null);
-  const [utrSemanal, setUtrSemanal] = useState<any>(null);
+  const [evolucaoMensal, setEvolucaoMensal] = useState<EvolucaoMensal[]>([]);
+  const [evolucaoSemanal, setEvolucaoSemanal] = useState<EvolucaoSemanal[]>([]);
+  const [utrSemanal, setUtrSemanal] = useState<UtrSemanal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const { isLoading: isOrgLoading } = useOrganization();
   const lastFetchSignature = useRef<string | null>(null);
+  const filterPayloadKey = JSON.stringify(filterPayload);
 
   useEffect(() => {
     if (isOrgLoading) return;
 
-    // Só buscar se a tab ativa precisar desses dados
     const needsEvolucao = activeTab === 'evolucao' || activeTab === 'dashboard' || activeTab === 'utr' || activeTab === 'resumo';
-
     if (!needsEvolucao) return;
-
-    // Se ano não definido, não buscar
     if (!anoEvolucao) return;
 
     const currentSignature = JSON.stringify({ filterPayload, anoEvolucao });
+    const cachedData = getCachedEvolucao(currentSignature);
 
-    // Evita refetch desnecessário se mudou só a tab ativa iterando local
-    if (lastFetchSignature.current === currentSignature && evolucaoMensal && evolucaoSemanal) {
+    if (cachedData) {
+      setEvolucaoMensal(cachedData.mensalData);
+      setEvolucaoSemanal(cachedData.semanalData);
+      setUtrSemanal(cachedData.utrData);
+      setError(null);
+      setLoading(false);
+      lastFetchSignature.current = currentSignature;
+      return;
+    }
+
+    if (
+      lastFetchSignature.current === currentSignature &&
+      (evolucaoMensal.length > 0 || evolucaoSemanal.length > 0 || utrSemanal.length > 0)
+    ) {
       return;
     }
 
@@ -47,22 +84,33 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
         setLoading(true);
         setError(null);
 
-        const { mensalData, semanalData, utrData } = await fetchDashboardEvolucaoData(filterPayload, anoEvolucao, activeTab);
+        let request = evolucaoInFlight.get(currentSignature);
+
+        if (!request) {
+          request = fetchDashboardEvolucaoData(filterPayload, anoEvolucao, activeTab);
+          evolucaoInFlight.set(currentSignature, request);
+        }
+
+        const result = await request;
+
+        evolucaoCache.set(currentSignature, {
+          ...result,
+          cachedAt: Date.now()
+        });
 
         if (!mounted) return;
 
-        setEvolucaoMensal(mensalData);
-        setEvolucaoSemanal(semanalData);
-        setUtrSemanal(utrData);
-
+        setEvolucaoMensal(result.mensalData);
+        setEvolucaoSemanal(result.semanalData);
+        setUtrSemanal(result.utrData);
         lastFetchSignature.current = currentSignature;
-
       } catch (err: unknown) {
         if (mounted) {
-          safeLog.error('[useDashboardEvolucao] Erro ao buscar evolução:', err);
+          safeLog.error('[useDashboardEvolucao] Erro ao buscar evolucao:', err);
           setError(err instanceof Error ? err : new Error('Erro desconhecido'));
         }
       } finally {
+        evolucaoInFlight.delete(currentSignature);
         if (mounted) setLoading(false);
       }
     };
@@ -73,13 +121,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
       mounted = false;
       clearTimeout(timeoutId);
     };
-  }, [
-    activeTab,
-    anoEvolucao,
-    isOrgLoading,
-    // Dependências de filtro (usar JSON.stringify se payload mudar referência)
-    JSON.stringify(filterPayload)
-  ]);
+  }, [activeTab, anoEvolucao, filterPayload, filterPayloadKey, isOrgLoading, evolucaoMensal.length, evolucaoSemanal.length, utrSemanal.length]);
 
   return {
     evolucaoMensal,
