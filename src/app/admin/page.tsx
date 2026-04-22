@@ -14,7 +14,6 @@ import { AdminContent } from '@/components/admin/AdminContent';
 export default function AdminPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<'users' | 'organizations'>('users');
 
   const {
     users,

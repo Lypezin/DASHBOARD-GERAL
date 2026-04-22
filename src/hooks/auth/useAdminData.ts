@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
@@ -18,7 +18,7 @@ export function useAdminData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -30,7 +30,7 @@ export function useAdminData() {
         supabase.from('user_profiles').select('id, avatar_url')
       ]);
 
-      let profilesMap = new Map<string, string>();
+      const profilesMap = new Map<string, string>();
       if (profilesPromise.status === 'fulfilled' && profilesPromise.value.data) {
         profilesPromise.value.data.forEach((p: any) => {
           if (p.avatar_url) profilesMap.set(p.id, p.avatar_url);
@@ -62,7 +62,7 @@ export function useAdminData() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return { users, pendingUsers, pracasDisponiveis, loading, error, fetchData };
 }

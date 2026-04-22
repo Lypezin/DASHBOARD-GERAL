@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AdminMonitoringTab } from '@/components/admin/tabs/AdminMonitoringTab';
 import { AdminUsersTab } from '@/components/admin/tabs/AdminUsersTab';
-import { AdminOrganizationsTab } from '@/components/admin/tabs/AdminOrganizationsTab';
-import { Shield, Sparkles, Building, Activity, Users } from 'lucide-react';
+import { Building, Activity, Users } from 'lucide-react';
 import { UserProfile } from '@/hooks/auth/types';
+
+const AdminOrganizationsTab = dynamic(
+    () => import('@/components/admin/tabs/AdminOrganizationsTab').then(mod => mod.AdminOrganizationsTab),
+    { loading: () => <div className="p-8 text-center text-muted-foreground">Carregando organizacoes...</div> }
+);
+
+const AdminMonitoringTab = dynamic(
+    () => import('@/components/admin/tabs/AdminMonitoringTab').then(mod => mod.AdminMonitoringTab),
+    { loading: () => <div className="p-8 text-center text-muted-foreground">Carregando monitoramento...</div> }
+);
 
 interface AdminTabsProps {
     currentUser: UserProfile;
