@@ -1,6 +1,5 @@
-
 /**
- * Hook para gerenciar autenticação e perfil do usuário no Header
+ * Hook para gerenciar autenticacao e perfil do usuario no Header
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -36,11 +35,16 @@ export function useHeaderAuth() {
         if (sessionResult.action === 'redirect_login') {
           if (IS_DEV) safeLog.info('[HeaderAuth] Redirect to login from:', pathname);
           router.push(`/login${typeof window !== 'undefined' ? window.location.search : ''}`);
-        } else if (IS_DEV) safeLog.info('[HeaderAuth] Public page or skip redirect');
+        } else if (IS_DEV) {
+          safeLog.info('[HeaderAuth] Public page or skip redirect');
+        }
         return;
       }
 
-      if (shouldSkipRedirect(pathname)) { setHasTriedAuth(true); setIsLoading(false); }
+      if (shouldSkipRedirect(pathname)) {
+        setHasTriedAuth(true);
+        setIsLoading(false);
+      }
 
       setHasTriedAuth(true);
 
@@ -51,13 +55,22 @@ export function useHeaderAuth() {
         return;
       }
 
-      setUser(profileResult.profile!);
+      const profile = profileResult.profile!;
+      setUser(profile);
 
-      // 7. Sincronizar (não bloqueante)
-      try { await syncOrganizationIdToMetadata(); }
-      catch (err) { if (IS_DEV) safeLog.warn('[Header] Erro ao sincronizar organization_id (não bloqueante):', err); }
+      const profileOrganizationId = profile.organization_id;
+      const authOrganizationId = sessionResult.user?.user_metadata?.organization_id;
+
+      // Avoid an extra profile/auth write path on every header mount.
+      if (profileOrganizationId && profileOrganizationId !== authOrganizationId) {
+        try {
+          await syncOrganizationIdToMetadata();
+        } catch (err) {
+          if (IS_DEV) safeLog.warn('[Header] Erro ao sincronizar organization_id (nao bloqueante):', err);
+        }
+      }
     } catch (err) {
-      if (IS_DEV) safeLog.error('[Header] Erro inesperado ao verificar usuário:', err);
+      if (IS_DEV) safeLog.error('[Header] Erro inesperado ao verificar usuario:', err);
       setIsLoading(false);
     } finally {
       setIsLoading(false);
@@ -68,7 +81,6 @@ export function useHeaderAuth() {
     }
   }, [pathname, router]);
 
-  // Use extracted subscription logic
   useAuthSubscription({ checkUser, setUser, pathname });
 
   useEffect(() => {
@@ -92,7 +104,9 @@ export function useHeaderAuth() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-    } catch (error) { safeLog.error('Erro ao fazer logout:', error); }
+    } catch (error) {
+      safeLog.error('Erro ao fazer logout:', error);
+    }
   }, []);
 
   return {

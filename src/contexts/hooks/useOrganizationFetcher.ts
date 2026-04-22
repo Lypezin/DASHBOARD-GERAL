@@ -22,7 +22,8 @@ export function useOrganizationFetcher() {
             setError(null);
 
             // Verificar se usuário está autenticado
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            const { data: { session }, error: authError } = await supabase.auth.getSession();
+            const user = session?.user;
 
             if (authError || !user) {
                 setOrganization(null);

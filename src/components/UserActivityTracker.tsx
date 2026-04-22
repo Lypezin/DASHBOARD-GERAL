@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
+const HEARTBEAT_INTERVAL_MS = 60000;
+
 export function UserActivityTracker() {
     const pathname = usePathname();
     const visitIdRef = useRef<string | null>(null);
@@ -74,7 +76,7 @@ export function UserActivityTracker() {
                             .then(({ error: heartbeatError }) => {
                                 if (heartbeatError) console.error('Heartbeat error:', heartbeatError);
                             });
-                    }, 30000);
+                    }, HEARTBEAT_INTERVAL_MS);
                 } else {
                     console.error('Failed to start activity session:', error);
                     visitIdRef.current = null;

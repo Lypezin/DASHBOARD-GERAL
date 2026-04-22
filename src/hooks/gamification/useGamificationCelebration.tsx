@@ -1,5 +1,4 @@
 import { toast } from 'sonner';
-import confetti from 'canvas-confetti';
 import { Trophy } from 'lucide-react';
 import React from 'react';
 import { Badge } from '@/types/gamification';
@@ -9,12 +8,12 @@ import { useCallback } from 'react';
 export const useGamificationCelebration = () => {
     const triggerCelebration = useCallback((badge: Badge) => {
         // 1. Confetti
-        confetti({
+        import('canvas-confetti').then(({ default: confetti }) => confetti({
             particleCount: 100,
             spread: 70,
             origin: { y: 0.6 },
             colors: ['#FFD700', '#FFA500', '#FF4500'] // Gold colors
-        });
+        }));
 
         // 2. Toast
         toast.custom((t) => (

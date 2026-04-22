@@ -20,7 +20,7 @@ export function AppLayoutShell({ children }: { children: React.ReactNode }) {
   const shell = (
     <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {!usePublicLayout && <Header />}
-      <main className="flex-1 transition-all duration-300">{children}</main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 

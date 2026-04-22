@@ -42,10 +42,8 @@ export function useAuthSubscription({ checkUser, setUser, pathname }: UseAuthSub
             } else if (event === 'PASSWORD_RECOVERY') {
                 if (IS_DEV) safeLog.info('[Auth] Evento PASSWORD_RECOVERY recebido, forçando redefinir-senha');
                 router.push('/redefinir-senha');
-            } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-                if (IS_DEV && event === 'USER_UPDATED') {
-                    safeLog.info('[Header] Evento USER_UPDATED recebido, atualizando perfil...');
-                }
+            } else if (event === 'USER_UPDATED') {
+                if (IS_DEV) safeLog.info('[Header] Evento USER_UPDATED recebido, atualizando perfil...');
                 checkUser();
             }
         });
