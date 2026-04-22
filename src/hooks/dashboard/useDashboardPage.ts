@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDashboardKeys } from './useDashboardKeys';
 import { useDashboardFilters } from './useDashboardFilters';
 import { useChartRegistration } from './useChartRegistration';
@@ -16,14 +16,24 @@ export function useDashboardPage() {
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const { filters, setFilters } = useDashboardFilters();
 
-  const { filterPayload } = useDashboardKeys(filters, currentUser);
+  const { filterPayload, filterPayloadKey } = useDashboardKeys(filters, currentUser);
   
   // As dimensões básicas são carregadas uma vez no mount (Anos, Semanas, Praças, etc)
   const { anosDisponiveis, semanasDisponiveis, dimensoes } = useDashboardDimensions();
   
   // Para manter a performance e compatibilidade, carregamos os dados principais centralmente
   // Isso povoa o cache global que as sub-views usarão se necessário
-  const mainData = useDashboardMainData({ filterPayload });
+  const mainData = useDashboardMainData({ filterPayload, filterPayloadKey });
+
+  const anosDisponiveisFinais = useMemo(() => {
+    const mainYears = mainData.dimensoes?.anos || [];
+    return mainYears.length > 0 ? mainYears : anosDisponiveis;
+  }, [mainData.dimensoes?.anos, anosDisponiveis]);
+
+  const semanasDisponiveisFinais = useMemo(() => {
+    const mainWeeks = mainData.dimensoes?.semanas || [];
+    return mainWeeks.length > 0 ? mainWeeks : semanasDisponiveis;
+  }, [mainData.dimensoes?.semanas, semanasDisponiveis]);
 
   // Gerar as opções dos filtros baseadas nas dimensões carregadas globalmente ou no mainData
   const filterOptions = useDashboardFilterOptions({
@@ -41,8 +51,8 @@ export function useDashboardPage() {
       setState: setFilters,
       payload: filterPayload,
       options: { 
-        anos: anosDisponiveis, 
-        semanas: semanasDisponiveis, 
+        anos: anosDisponiveisFinais, 
+        semanas: semanasDisponiveisFinais, 
         ...filterOptions 
       },
     },

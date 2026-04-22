@@ -20,28 +20,18 @@ import type { RpcError } from '@/types/rpc';
 
 interface UseDashboardMainDataOptions {
   filterPayload: FilterPayload;
+  filterPayloadKey?: string;
   onError?: (error: Error | RpcError) => void;
 }
 
 export function useDashboardMainData(options: UseDashboardMainDataOptions) {
-  const { filterPayload, onError } = options;
+  const { filterPayload, filterPayloadKey, onError } = options;
   const { isLoading: isOrgLoading } = useOrganization();
 
-  const payloadKey = useMemo(() => JSON.stringify(filterPayload), [
-    filterPayload.p_ano,
-    filterPayload.p_semana,
-    filterPayload.p_praca,
-    filterPayload.p_sub_praca,
-    filterPayload.p_origem,
-    filterPayload.p_turno,
-    filterPayload.p_data_inicial,
-    filterPayload.p_data_final,
-    filterPayload.p_organization_id,
-    isOrgLoading,
-    JSON.stringify(filterPayload.p_sub_pracas),
-    JSON.stringify(filterPayload.p_origens),
-    JSON.stringify(filterPayload.p_turnos),
-  ]);
+  const payloadKey = useMemo(
+    () => filterPayloadKey || JSON.stringify(filterPayload),
+    [filterPayload, filterPayloadKey]
+  );
 
   const initialCache = getInitialCacheData(payloadKey);
   const cachedTotals: Totals | null = initialCache?.totais ? {

@@ -1,75 +1,87 @@
-import { useState, useEffect } from 'react';
-import { safeLog } from '@/lib/errorHandler';
+import { useEffect, useMemo, useState } from 'react';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { FilterOption, CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
 import { RPC_TIMEOUTS } from '@/constants/config';
-import { supabase } from '@/lib/supabaseClient';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
+function toOptions(values: string[]) {
+    return values.map((value) => ({ value, label: value }));
+}
 
-export function usePracaOptions(dimensoes: DimensoesDashboard | null, currentUser?: CurrentUser | null, filters?: Filters | null) {
-    const [pracas, setPracas] = useState<FilterOption[]>([]);
+function normalizePracas(values: unknown[]): string[] {
+    return Array.from(
+        new Set(
+            values
+                .map((item) => {
+                    if (typeof item === 'string') return item;
+                    if (item && typeof item === 'object') {
+                        const record = item as Record<string, unknown>;
+                        return record.praca || record.value || record.label || Object.values(record)[0];
+                    }
+                    return null;
+                })
+                .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+                .map((value) => value.trim())
+        )
+    ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+export function usePracaOptions(dimensoes: DimensoesDashboard | null, currentUser?: CurrentUser | null, _filters?: Filters | null) {
+    const [fallbackPracas, setFallbackPracas] = useState<string[]>([]);
+
+    const assignedPracasKey = currentUser?.assigned_pracas?.join('|') || '';
+    const assignedPracas = useMemo(() => assignedPracasKey.split('|').filter(Boolean), [assignedPracasKey]);
+    const userHasFullAccess = hasFullCityAccess(currentUser);
+    const dimensoesPracasKey = Array.isArray(dimensoes?.pracas) ? dimensoes.pracas.map(String).join('|') : '';
 
     useEffect(() => {
-        if (!dimensoes) {
-            setPracas([]);
+        let cancelled = false;
+
+        const shouldFetchFallback = userHasFullAccess && dimensoesPracasKey.length === 0;
+
+        if (!shouldFetchFallback) {
+            setFallbackPracas([]);
             return;
         }
 
-        const fetchPracas = async () => {
-            let pracasTotais: string[] = [];
-            const selectedAno = filters?.ano;
+        const fetchFallbackPracas = async () => {
+            try {
+                const { data, error } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
+                    timeout: RPC_TIMEOUTS.FAST,
+                    validateParams: false
+                });
 
-            // Busca as praças diretamente do `dimensoes` se existir, e o `dashboard_resumo` costuma 
-            // já retornar isso delimitado.
-            if (dimensoes?.pracas && Array.isArray(dimensoes.pracas)) {
-                // Se o usuário selecionou um ano, podemos usar as praças de dimensoes que já consideram o ano
-                pracasTotais = dimensoes.pracas.map(String);
+                if (cancelled || error) return;
+
+                setFallbackPracas(normalizePracas(Array.isArray(data) ? data : []));
+            } catch {
+                if (!cancelled) setFallbackPracas([]);
             }
-
-            // Se ainda não temos pracas (fallback ou se dimensoes estiver vazio e sem ano)
-            if (pracasTotais.length === 0) {
-                if (currentUser && hasFullCityAccess(currentUser)) {
-                    if (selectedAno) {
-                        try {
-                            const { data: dbPracas, error } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
-                                timeout: RPC_TIMEOUTS.FAST,
-                                validateParams: false
-                            });
-                            // Not filtering by year securely without a proper db table, so we fallback to all
-                            if (!error && dbPracas) pracasTotais = dbPracas.map(p => p.praca || p).filter(Boolean);
-                        } catch (err) {}
-                    } else {
-                        try {
-                            const { data: pracasData, error: pracasError } = await safeRpc<any[]>('list_pracas_disponiveis', {}, {
-                                timeout: RPC_TIMEOUTS.FAST,
-                                validateParams: false
-                            });
-                            if (!pracasError && pracasData && pracasData.length > 0) {
-                                pracasTotais = pracasData.map(p => p.praca || p).filter(Boolean);
-                            }
-                        } catch (err) {}
-                    }
-                } else if (currentUser?.assigned_pracas && currentUser.assigned_pracas.length > 0) {
-                    pracasTotais = currentUser.assigned_pracas;
-                }
-            }
-
-            // Filtro final para usuários restritos (Garantindo que a lista resultante intersecciona os acessos)
-            if (currentUser && !hasFullCityAccess(currentUser)) {
-                if (pracasTotais.length > 0) {
-                    pracasTotais = pracasTotais.filter(p => currentUser.assigned_pracas.map(a => a.toUpperCase()).includes(p.toUpperCase()));
-                } else {
-                    pracasTotais = currentUser.assigned_pracas;
-                }
-            }
-
-            const options = pracasTotais.map(p => ({ value: p, label: p }));
-            setPracas(options);
         };
 
-        fetchPracas();
-    }, [dimensoes, currentUser, filters?.ano]);
+        void fetchFallbackPracas();
 
-    return pracas;
+        return () => {
+            cancelled = true;
+        };
+    }, [userHasFullAccess, dimensoesPracasKey]);
+
+    return useMemo(() => {
+        const basePracas = dimensoesPracasKey.length > 0
+            ? normalizePracas((dimensoes?.pracas || []).map(String))
+            : fallbackPracas;
+
+        if (!currentUser) {
+            return toOptions(basePracas);
+        }
+
+        if (!userHasFullAccess) {
+            const restrictedPracas = basePracas.length > 0
+                ? basePracas.filter((praca) => assignedPracas.some((allowed) => allowed.toUpperCase() === praca.toUpperCase()))
+                : assignedPracas;
+
+            return toOptions(normalizePracas(restrictedPracas));
+        }
+
+        return toOptions(basePracas);
+    }, [assignedPracas, currentUser, dimensoes?.pracas, dimensoesPracasKey, fallbackPracas, userHasFullAccess]);
 }

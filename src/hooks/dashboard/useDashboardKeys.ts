@@ -8,6 +8,11 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentUser | null) {
     const { organizationId } = useOrganization();
+    const subPracasKey = initialFilters.subPracas.join('|');
+    const origensKey = initialFilters.origens.join('|');
+    const turnosKey = initialFilters.turnos.join('|');
+    const semanasKey = initialFilters.semanas.join('|');
+    const assignedPracasKey = currentUser?.assigned_pracas?.join('|') || '';
 
     const filtersKey = useMemo(() => {
         return JSON.stringify({
@@ -17,10 +22,10 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
             subPraca: initialFilters.subPraca,
             origem: initialFilters.origem,
             turno: initialFilters.turno,
-            subPracas: initialFilters.subPracas,
-            origens: initialFilters.origens,
-            turnos: initialFilters.turnos,
-            semanas: initialFilters.semanas,
+            subPracas: subPracasKey,
+            origens: origensKey,
+            turnos: turnosKey,
+            semanas: semanasKey,
             filtroModo: initialFilters.filtroModo,
             dataInicial: initialFilters.dataInicial,
             dataFinal: initialFilters.dataFinal,
@@ -32,10 +37,10 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         initialFilters.subPraca,
         initialFilters.origem,
         initialFilters.turno,
-        JSON.stringify(initialFilters.subPracas),
-        JSON.stringify(initialFilters.origens),
-        JSON.stringify(initialFilters.turnos),
-        JSON.stringify(initialFilters.semanas),
+        subPracasKey,
+        origensKey,
+        turnosKey,
+        semanasKey,
         initialFilters.filtroModo,
         initialFilters.dataInicial,
         initialFilters.dataFinal,
@@ -44,10 +49,10 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
     const currentUserKey = useMemo(() => {
         return currentUser ? JSON.stringify({
             is_admin: currentUser.is_admin,
-            assigned_pracas: currentUser.assigned_pracas,
+            assigned_pracas: assignedPracasKey,
             organization_id: organizationId // Include organizationId in key
         }) : 'null';
-    }, [currentUser?.is_admin, currentUser?.assigned_pracas?.join(','), organizationId]);
+    }, [currentUser?.is_admin, assignedPracasKey, organizationId]);
 
     const filterPayload = useMemo(() => {
         if (IS_DEV) {
@@ -62,5 +67,7 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         return buildFilterPayload(initialFilters, currentUser, organizationId);
     }, [filtersKey, currentUserKey, organizationId]);
 
-    return { filtersKey, currentUserKey, filterPayload };
+    const filterPayloadKey = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
+
+    return { filtersKey, currentUserKey, filterPayload, filterPayloadKey };
 }
