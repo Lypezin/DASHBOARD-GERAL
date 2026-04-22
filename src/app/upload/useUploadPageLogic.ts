@@ -3,7 +3,6 @@ import { useUploadAuth } from '@/hooks/auth/useUploadAuth';
 import { useCorridasUpload } from '@/hooks/data/useCorridasUpload';
 import { useFileUpload } from '@/hooks/data/useFileUpload';
 import { useGenericUploadState } from '@/hooks/upload/useGenericUploadState';
-import { useOrganization } from '@/hooks/auth/useOrganization';
 import { useOrganizationSelection } from '@/hooks/auth/useOrganizationSelection';
 import { MARKETING_COLUMN_MAP, VALORES_CIDADE_COLUMN_MAP } from '@/constants/upload';
 import { marketingTransformers, valoresCidadeTransformers } from '@/utils/uploadTransformers';

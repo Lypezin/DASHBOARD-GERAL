@@ -54,7 +54,7 @@ export const useValoresCidadeAuth = () => {
       }
     };
 
-    validateAccess();
+    void validateAccess();
 
     return () => {
       mounted = false;

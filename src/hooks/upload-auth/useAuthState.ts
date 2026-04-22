@@ -5,8 +5,8 @@ export function useAuthState() {
     const [loading, setLoading] = useState(true);
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [user, setUser] = useState<User | { id: string } | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const isMountedRef = useRef(true);
-    const retryCountRef = useRef(0);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -26,8 +26,9 @@ export function useAuthState() {
         setIsAuthorized,
         user,
         setUser,
+        errorMessage,
+        setErrorMessage,
         isMountedRef,
-        retryCountRef,
         timeoutRef
     };
 }

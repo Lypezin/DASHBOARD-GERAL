@@ -34,7 +34,7 @@ export default function AdminPage() {
   } = useOrganizations();
 
   useEffect(() => {
-    checkAuth();
+    void checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -43,9 +43,8 @@ export default function AdminPage() {
       return;
     }
 
-    fetchData();
+    void fetchData();
   }, [currentUser?.is_admin, fetchData]);
-
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -68,7 +67,7 @@ export default function AdminPage() {
     setCurrentUser(profile);
   };
 
-  if (loading && !currentUser) { // Initial loading state (auth)
+  if (loading && !currentUser) {
     return <AdminLoadingSkeleton />;
   }
 

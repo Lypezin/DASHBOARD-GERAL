@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { safeLog } from '@/lib/errorHandler';
 import { useAuthState } from '@/hooks/upload-auth/useAuthState';
@@ -15,29 +15,36 @@ export function useUploadAuth() {
     setIsAuthorized,
     user,
     setUser,
+    errorMessage,
+    setErrorMessage,
     isMountedRef,
     timeoutRef
   } = useAuthState();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const performAuthCheck = async () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
 
       timeoutRef.current = setTimeout(() => {
-        if (isMountedRef.current) {
-          safeLog.error('Timeout na verificação de autenticação');
-          setLoading(false);
-          setIsAuthorized(false);
-          setErrorMessage('Não foi possível validar o acesso ao upload dentro do tempo esperado.');
+        if (!isMountedRef.current) {
+          return;
         }
+
+        safeLog.error('Timeout na verificação de autenticação');
+        setLoading(false);
+        setIsAuthorized(false);
+        setErrorMessage('Não foi possível validar o acesso ao upload dentro do tempo esperado.');
       }, AUTH_TIMEOUT);
 
       const result = await checkAdminStatus();
 
       if (!isMountedRef.current) return;
 
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
 
       if (result.error) {
         setLoading(false);
@@ -47,18 +54,22 @@ export function useUploadAuth() {
       }
 
       if (result.redirect) {
+        setLoading(false);
         router.push(result.redirect);
         return;
       }
 
-      if (result.user) setUser(result.user);
+      if (result.user) {
+        setUser(result.user);
+      }
+
       setIsAuthorized(result.authorized);
       setErrorMessage(result.authorized ? null : 'Você não possui permissão para acessar a área de upload.');
       setLoading(false);
     };
 
-    performAuthCheck();
-  }, [router]);
+    void performAuthCheck();
+  }, [router, setErrorMessage, setIsAuthorized, setLoading, setUser, timeoutRef, isMountedRef]);
 
   return { loading, isAuthorized, user, errorMessage };
 }
