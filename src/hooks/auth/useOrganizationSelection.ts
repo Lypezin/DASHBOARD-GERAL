@@ -51,30 +51,18 @@ export function useOrganizationSelection(isAuthorized: boolean, user: { id: stri
 
                 setOrganizations(data);
 
-                if (hasManualSelectionRef.current) {
-                    setSelectedOrgId((current) => {
-                        if (current && data.some((org) => org.id === current)) {
-                            return current;
-                        }
-
-                        hasManualSelectionRef.current = false;
+                setSelectedOrgId((current) => {
+                    if (hasManualSelectionRef.current && current && data.some((org) => org.id === current)) {
                         return current;
-                    });
-                }
+                    }
 
-                if (hasManualSelectionRef.current) return;
+                    if (data.length > 0) {
+                        hasManualSelectionRef.current = false;
+                        return data[0].id;
+                    }
 
-                const { data: profile } = await supabase
-                    .from('user_profiles')
-                    .select('organization_id')
-                    .eq('id', user.id)
-                    .single();
-
-                if (profile?.organization_id && data.some((org) => org.id === profile.organization_id)) {
-                    setSelectedOrgId(profile.organization_id);
-                } else if (data.length > 0) {
-                    setSelectedOrgId(data[0].id);
-                }
+                    return '';
+                });
             } catch (error) {
                 safeLog.error('Erro ao carregar organizacoes:', error);
             } finally {

@@ -118,5 +118,5 @@ export function useUploadProcessor(organizationId?: string) {
 }
 
 function isValidOrganizationId(value?: string): value is string {
-    return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+    return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
