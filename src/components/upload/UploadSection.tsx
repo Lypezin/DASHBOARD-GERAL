@@ -65,7 +65,7 @@ export const UploadSection = memo(function UploadSection({
         </div>
 
         <div className="space-y-6">
-          <FileList files={files} onRemove={onRemoveFile} disabled={uploading} variant={variant} />
+          <FileList files={files} onRemove={onRemoveFile} disabled={uploading || disabled} variant={variant} />
           <UploadMessage message={message} variant={variant} />
           <UploadMVProgress isRefreshingMVs={isRefreshingMVs} mvRefreshProgress={mvRefreshProgress} mvRefreshStatus={mvRefreshStatus} />
           <UploadProgress progress={progress} progressLabel={progressLabel} variant={variant} />
@@ -75,6 +75,7 @@ export const UploadSection = memo(function UploadSection({
           onUpload={onUpload}
           uploading={uploading}
           fileCount={files.length}
+          disabled={disabled}
           variant={variant}
           tips={tips}
           expectedColumns={expectedColumns}

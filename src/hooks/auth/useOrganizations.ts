@@ -26,12 +26,18 @@ export interface OrganizationOperationResult {
   id?: string;
 }
 
-export function useOrganizations() {
+export function useOrganizations(options: { enabled?: boolean } = {}) {
+  const { enabled = true } = options;
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   const fetchOrganizations = useCallback(async () => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -44,7 +50,7 @@ export function useOrganizations() {
       setOrganizations(data || []);
     }
     setLoading(false);
-  }, []);
+  }, [enabled]);
 
   const createOrganization = useCallback(async (formData: OrganizationFormData): Promise<OrganizationOperationResult> => { // Updated return type
     const result = await createNewOrganization(formData);
@@ -66,8 +72,15 @@ export function useOrganizations() {
   }, [fetchOrganizations]);
 
   useEffect(() => {
-    fetchOrganizations();
-  }, [fetchOrganizations]);
+    if (enabled) {
+      fetchOrganizations();
+      return;
+    }
+
+    setOrganizations([]);
+    setError(null);
+    setLoading(false);
+  }, [enabled, fetchOrganizations]);
 
   return {
     organizations,

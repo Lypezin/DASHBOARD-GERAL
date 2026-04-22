@@ -7,7 +7,7 @@ export interface UploadSectionProps {
   files: File[];
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveFile: (index: number) => void;
-  onUpload: () => void;
+  onUpload: () => void | Promise<void>;
   uploading: boolean;
   progress: number;
   progressLabel?: string;

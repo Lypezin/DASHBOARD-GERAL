@@ -2,27 +2,48 @@
 
 import { useState, useMemo } from 'react';
 import type {
-  Totals, AderenciaSemanal, AderenciaDia, AderenciaTurno, AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem, DimensoesDashboard,
+  Totals,
+  AderenciaSemanal,
+  AderenciaDia,
+  AderenciaTurno,
+  AderenciaSubPraca,
+  AderenciaOrigem,
+  AderenciaDiaOrigem,
+  DimensoesDashboard,
 } from '@/types';
 import { useDashboardDataFetcher } from './useDashboardDataFetcher';
 import { useDashboardCache, getInitialCacheData } from './useDashboardCache';
 import { useDashboardDataEffect } from './useDashboardDataEffect';
 import { useOrganization } from '@/contexts/OrganizationContext';
-
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 
-interface UseDashboardMainDataOptions { filterPayload: FilterPayload; onError?: (error: Error | RpcError) => void; }
+interface UseDashboardMainDataOptions {
+  filterPayload: FilterPayload;
+  onError?: (error: Error | RpcError) => void;
+}
 
-/** Hook para buscar dados principais do dashboard */
 export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const { filterPayload, onError } = options;
   const { isLoading: isOrgLoading } = useOrganization();
 
-  // Inicializar estados com dados do cache global para evitar "refresh" ao voltar para a aba
-  const initialCache = getInitialCacheData();
+  const payloadKey = useMemo(() => JSON.stringify(filterPayload), [
+    filterPayload.p_ano,
+    filterPayload.p_semana,
+    filterPayload.p_praca,
+    filterPayload.p_sub_praca,
+    filterPayload.p_origem,
+    filterPayload.p_turno,
+    filterPayload.p_data_inicial,
+    filterPayload.p_data_final,
+    filterPayload.p_organization_id,
+    isOrgLoading,
+    JSON.stringify(filterPayload.p_sub_pracas),
+    JSON.stringify(filterPayload.p_origens),
+    JSON.stringify(filterPayload.p_turnos),
+  ]);
 
-  // Converter totais do cache para o tipo Totals usado no componente
+  const initialCache = getInitialCacheData(payloadKey);
   const cachedTotals: Totals | null = initialCache?.totais ? {
     ofertadas: initialCache.totais.corridas_ofertadas,
     aceitas: initialCache.totais.corridas_aceitas,
@@ -40,27 +61,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const [dimensoes, setDimensoes] = useState<DimensoesDashboard | null>(initialCache?.dimensoes ?? null);
 
   const { fetchDashboardData, loading, error } = useDashboardDataFetcher({ filterPayload, onError });
-
   const { checkCache, updateCache, clearCache, previousPayloadRef, isFirstExecutionRef, pendingPayloadKeyRef } = useDashboardCache();
 
-  // Criar uma string estável do payload para usar como dependência
-  const payloadKey = useMemo(() => JSON.stringify(filterPayload), [
-    filterPayload.p_ano,
-    filterPayload.p_semana,
-    filterPayload.p_praca,
-    filterPayload.p_sub_praca,
-    filterPayload.p_origem,
-    filterPayload.p_turno,
-    filterPayload.p_data_inicial,
-    filterPayload.p_data_final,
-    filterPayload.p_organization_id,
-    isOrgLoading,
-    JSON.stringify(filterPayload.p_sub_pracas),
-    JSON.stringify(filterPayload.p_origens),
-    JSON.stringify(filterPayload.p_turnos),
-  ]);
-
-  // Usar o hook de efeito extraído
   useDashboardDataEffect({
     filterPayload,
     fetchDashboardData,
@@ -83,5 +85,16 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     shouldFetch: !isOrgLoading
   }, payloadKey);
 
-  return { totals, aderenciaSemanal, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, aderenciaDiaOrigem, dimensoes, loading: loading || isOrgLoading, error };
+  return {
+    totals,
+    aderenciaSemanal,
+    aderenciaDia,
+    aderenciaTurno,
+    aderenciaSubPraca,
+    aderenciaOrigem,
+    aderenciaDiaOrigem,
+    dimensoes,
+    loading: loading || isOrgLoading,
+    error
+  };
 }

@@ -3,21 +3,25 @@ import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import type { DimensoesDashboard } from '@/types';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useDashboardDimensions() {
+  const { organizationId, isLoading: isOrgLoading } = useOrganization();
   const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
   const [semanasDisponiveis, setSemanasDisponiveis] = useState<string[]>([]);
   const [outrasDimensoes, setOutrasDimensoes] = useState<DimensoesDashboard | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isOrgLoading) return;
+
     const fetchInitialDimensions = async () => {
       setLoading(true);
 
       // Cache Key
-      const CACHE_KEY = 'dashboard_dimensions_cache_v2';
+      const CACHE_KEY = `dashboard_dimensions_cache_v3_${organizationId || 'global'}`;
       const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
 
       try {
@@ -37,13 +41,26 @@ export function useDashboardDimensions() {
         }
 
         // 2. Se não houver cache ou expirou, buscar da API em paralelo
+        const scopedDimensionQuery = (column: 'praca' | 'sub_praca' | 'origem' | 'turno') => {
+          let query = supabase
+            .from('mv_aderencia_agregada')
+            .select(column, { count: 'exact', head: false })
+            .neq(column, null);
+
+          if (organizationId) {
+            query = query.eq('organization_id', organizationId);
+          }
+
+          return query;
+        };
+
         const [anosResult, semanasResult, pracasResult, subPracasResult, origensResult, turnosResult] = await Promise.all([
           safeRpc<number[]>('listar_anos_disponiveis', {}, { timeout: 10000, validateParams: false }),
           safeRpc<any[]>('listar_todas_semanas', {}, { timeout: 10000, validateParams: false }),
-          supabase.from('mv_aderencia_agregada').select('praca', { count: 'exact', head: false }).neq('praca', null),
-          supabase.from('mv_aderencia_agregada').select('sub_praca', { count: 'exact', head: false }).neq('sub_praca', null),
-          supabase.from('mv_aderencia_agregada').select('origem', { count: 'exact', head: false }).neq('origem', null),
-          supabase.from('mv_aderencia_agregada').select('turno', { count: 'exact', head: false }).neq('turno', null)
+          scopedDimensionQuery('praca'),
+          scopedDimensionQuery('sub_praca'),
+          scopedDimensionQuery('origem'),
+          scopedDimensionQuery('turno')
         ]);
 
         // Processar Anos
@@ -58,13 +75,18 @@ export function useDashboardDimensions() {
         setSemanasDisponiveis(semanasData);
 
         // Processar Outras Dimensões
+        const pracasData = (pracasResult.data || []) as Array<{ praca: string | null }>;
+        const subPracasData = (subPracasResult.data || []) as Array<{ sub_praca: string | null }>;
+        const origensData = (origensResult.data || []) as Array<{ origem: string | null }>;
+        const turnosData = (turnosResult.data || []) as Array<{ turno: string | null }>;
+
         const dimensoesBase: DimensoesDashboard = {
           anos: mergedYears,
           semanas: semanasData,
-          pracas: Array.from(new Set((pracasResult.data || []).map(d => d.praca))),
-          sub_pracas: Array.from(new Set((subPracasResult.data || []).map(d => d.sub_praca))),
-          origens: Array.from(new Set((origensResult.data || []).map(d => d.origem))),
-          turnos: Array.from(new Set((turnosResult.data || []).map(d => d.turno)))
+          pracas: Array.from(new Set(pracasData.map(d => d.praca).filter(Boolean))) as string[],
+          sub_pracas: Array.from(new Set(subPracasData.map(d => d.sub_praca).filter(Boolean))) as string[],
+          origens: Array.from(new Set(origensData.map(d => d.origem).filter(Boolean))) as string[],
+          turnos: Array.from(new Set(turnosData.map(d => d.turno).filter(Boolean))) as string[]
         };
         
         setOutrasDimensoes(dimensoesBase);
@@ -87,7 +109,7 @@ export function useDashboardDimensions() {
       }
     };
     fetchInitialDimensions();
-  }, []);
+  }, [isOrgLoading, organizationId]);
 
   return { anosDisponiveis, semanasDisponiveis, dimensoes: outrasDimensoes, loadingDimensions: loading };
 }

@@ -2,15 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-type IdleCallbackHandle = number;
-
-declare global {
-  interface Window {
-    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => IdleCallbackHandle;
-    cancelIdleCallback?: (handle: IdleCallbackHandle) => void;
-  }
-}
-
 interface UseDeferredMountOptions {
   enabled?: boolean;
   timeoutMs?: number;
@@ -28,8 +19,8 @@ export function useDeferredMount(options: UseDeferredMountOptions = {}) {
 
     setIsMounted(false);
 
-    let timeoutId: ReturnType<typeof window.setTimeout> | null = null;
-    let idleId: IdleCallbackHandle | null = null;
+    let timeoutId: number | null = null;
+    let idleId: number | null = null;
 
     const mount = () => setIsMounted(true);
 

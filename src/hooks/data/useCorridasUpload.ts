@@ -22,8 +22,8 @@ export function useCorridasUpload({ organizationId, onUploadSuccess }: UseCorrid
     handleFileChange(e, (msg) => setState(prev => ({ ...prev, message: msg })));
   };
 
-  const handleUpload = () => {
-    processUpload(files, () => {
+  const handleUpload = async () => {
+    await processUpload(files, () => {
       clearFiles();
       safeLog.info('[Corridas] Sucesso! Disparando auto-refresh de MVs com force=true...');
       startAutoRefresh(true);

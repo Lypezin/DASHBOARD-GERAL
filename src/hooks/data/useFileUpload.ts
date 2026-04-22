@@ -17,6 +17,14 @@ export interface UploadState {
   message: string; currentFileIndex: number;
 }
 
+export interface UploadResult {
+  success: boolean;
+  inserted: number;
+  successCount: number;
+  errorCount: number;
+  message: string;
+}
+
 export function useFileUpload(options: FileUploadOptions) {
   const {
     tableName, excelConfig, overwrite = false, deleteRpcFunction,
@@ -27,13 +35,33 @@ export function useFileUpload(options: FileUploadOptions) {
     uploading: false, progress: 0, progressLabel: '', message: '', currentFileIndex: 0
   });
 
-  const uploadFiles = useCallback(async (files: File[]) => {
-    if (!files.length) return setState(p => ({ ...p, message: 'Selecione um arquivo.' }));
+  const uploadFiles = useCallback(async (files: File[]): Promise<UploadResult> => {
+    const emptyResult = (message: string): UploadResult => ({
+      success: false,
+      inserted: 0,
+      successCount: 0,
+      errorCount: 0,
+      message
+    });
+
+    if (!files.length) {
+      const message = 'Selecione um arquivo.';
+      setState(p => ({ ...p, message }));
+      return emptyResult(message);
+    }
+
+    if (!isValidOrganizationId(organizationId)) {
+      const message = 'Selecione uma organização antes de iniciar o upload.';
+      setState(p => ({ ...p, message }));
+      return emptyResult(message);
+    }
 
     const rateLimit = uploadRateLimiter();
     if (!rateLimit.allowed) {
       const wait = Math.ceil((rateLimit.resetTime - Date.now()) / 60000);
-      return setState(p => ({ ...p, message: `⚠️ Aguarde ${wait}min` }));
+      const message = `⚠️ Aguarde ${wait}min`;
+      setState(p => ({ ...p, message }));
+      return emptyResult(message);
     }
 
     setState({ uploading: true, progress: 0, progressLabel: 'Iniciando...', message: '', currentFileIndex: 0 });
@@ -44,7 +72,10 @@ export function useFileUpload(options: FileUploadOptions) {
     try {
       if (overwrite) {
         setState(p => ({ ...p, progressLabel: 'Limpando dados...', progress: 5 }));
-        await deleteAllRecords(tableName, deleteRpcFunction);
+        await deleteAllRecords(tableName, deleteRpcFunction, {
+          organizationId,
+          requireOrganization: true
+        });
         setState(p => ({ ...p, progress: 10 }));
       }
 
@@ -83,16 +114,35 @@ export function useFileUpload(options: FileUploadOptions) {
 
       setState(p => ({ ...p, message: msg }));
 
-      if (refreshRpcFunction) triggerConcurrentRefresh(refreshRpcFunction);
+      if (errorCount === 0 && successCount > 0 && refreshRpcFunction) triggerConcurrentRefresh(refreshRpcFunction);
+
+      return {
+        success: errorCount === 0 && successCount > 0,
+        inserted: totalInserted,
+        successCount,
+        errorCount,
+        message: msg
+      };
 
     } catch (err: unknown) {
       safeLog.error('Erro geral upload', err);
       const msg = err instanceof Error ? err.message : 'Erro desconhecido';
       setState(p => ({ ...p, message: `Erro: ${msg}` }));
+      return {
+        success: false,
+        inserted: totalInserted,
+        successCount,
+        errorCount: errorCount || 1,
+        message: msg
+      };
     } finally {
       setState(p => ({ ...p, uploading: false }));
     }
   }, [tableName, excelConfig, overwrite, deleteRpcFunction, insertOptions, refreshRpcFunction, organizationId]);
 
   return { ...state, uploadFiles, resetState: () => setState({ uploading: false, progress: 0, progressLabel: '', message: '', currentFileIndex: 0 }) };
+}
+
+function isValidOrganizationId(value?: string): value is string {
+  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }

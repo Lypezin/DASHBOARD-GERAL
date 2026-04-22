@@ -69,16 +69,16 @@ export const useUploadPageLogic = () => {
     });
 
     const handleMarketingUpload = async () => {
-        await marketingUpload.uploadFiles(marketingState.files);
-        if (!marketingUpload.uploading) {
+        const result = await marketingUpload.uploadFiles(marketingState.files);
+        if (result.success) {
             registerInteraction('upload');
             marketingState.clearFiles('marketing');
         }
     };
 
     const handleValoresCidadeUpload = async () => {
-        await valoresCidadeUpload.uploadFiles(valoresCidadeState.files);
-        if (!valoresCidadeUpload.uploading) {
+        const result = await valoresCidadeUpload.uploadFiles(valoresCidadeState.files);
+        if (result.success) {
             registerInteraction('upload');
             valoresCidadeState.clearFiles('valores-cidade');
         }

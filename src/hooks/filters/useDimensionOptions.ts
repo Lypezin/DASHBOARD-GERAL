@@ -29,10 +29,16 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
         if (targetPracas.length > 0) {
             const fetchFromView = async () => {
                 try {
-                    const { data, error } = await supabase
+                    let query = supabase
                         .from('mv_aderencia_agregada')
                         .select('sub_praca, turno, origem')
                         .in('praca', targetPracas);
+
+                    if (currentUser?.organization_id) {
+                        query = query.eq('organization_id', currentUser.organization_id);
+                    }
+
+                    const { data, error } = await query;
 
                     if (!error && data && data.length > 0) {
                         const uniqueSubs = Array.from(new Set(data.map((d: any) => d.sub_praca).filter(Boolean)));

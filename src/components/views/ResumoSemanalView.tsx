@@ -101,3 +101,5 @@ export const ResumoSemanalView = React.memo(({
         </div>
     );
 });
+
+ResumoSemanalView.displayName = 'ResumoSemanalView';

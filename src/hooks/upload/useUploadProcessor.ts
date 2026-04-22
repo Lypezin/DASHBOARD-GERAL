@@ -5,22 +5,39 @@ import { processCorridasFile } from '@/utils/processors/corridasProcessor';
 import { insertInBatches } from '@/utils/dbHelpers';
 import { BATCH_SIZE } from '@/constants/upload';
 
-export interface UploadState { uploading: boolean; message: string; progress: number; progressLabel: string; currentFileIndex: number; }
+export interface UploadState {
+    uploading: boolean;
+    message: string;
+    progress: number;
+    progressLabel: string;
+    currentFileIndex: number;
+}
 
 export function useUploadProcessor(organizationId?: string) {
-    const [state, setState] = useState<UploadState>({ uploading: false, message: '', progress: 0, progressLabel: '', currentFileIndex: 0 });
+    const [state, setState] = useState<UploadState>({
+        uploading: false,
+        message: '',
+        progress: 0,
+        progressLabel: '',
+        currentFileIndex: 0
+    });
 
-    const processUpload = useCallback(async (files: File[], onSuccess: () => void) => {
+    const processUpload = useCallback(async (files: File[], onSuccess: () => void): Promise<boolean> => {
         if (files.length === 0) {
             setState(prev => ({ ...prev, message: 'Por favor, selecione pelo menos um arquivo.' }));
-            return;
+            return false;
+        }
+
+        if (!isValidOrganizationId(organizationId)) {
+            setState(prev => ({ ...prev, message: 'Selecione uma organizacao antes de iniciar o upload.' }));
+            return false;
         }
 
         const rateLimit = uploadRateLimiter();
         if (!rateLimit.allowed) {
             const waitTime = Math.ceil((rateLimit.resetTime - Date.now()) / 1000 / 60);
-            setState(prev => ({ ...prev, message: `⚠️ Muitos uploads recentes. Aguarde ${waitTime} minuto(s).` }));
-            return;
+            setState(prev => ({ ...prev, message: `Muitos uploads recentes. Aguarde ${waitTime} minuto(s).` }));
+            return false;
         }
 
         setState({ uploading: true, message: '', progress: 0, progressLabel: '', currentFileIndex: 0 });
@@ -63,7 +80,7 @@ export function useUploadProcessor(organizationId?: string) {
                     }
                 );
 
-                if (insertErrors.length > 0) throw new Error(`Erros durante inserção: ${insertErrors.join('; ')}`);
+                if (insertErrors.length > 0) throw new Error(`Erros durante insercao: ${insertErrors.join('; ')}`);
                 successCount++;
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -73,26 +90,33 @@ export function useUploadProcessor(organizationId?: string) {
             }
         }
 
-        const detailedErrorMsg = finalErrorMessageParts.length > 0 ? `\n\nDetalhes do erro:\n${finalErrorMessageParts.join('\n')}` : '';
+        const detailedErrorMsg = finalErrorMessageParts.length > 0
+            ? `\n\nDetalhes do erro:\n${finalErrorMessageParts.join('\n')}`
+            : '';
 
         setState(prev => ({
             ...prev,
             progress: 100,
-            progressLabel: 'Concluído!',
+            progressLabel: 'Concluido!',
             message: errorCount === 0
-                ? `✅ Todos os ${successCount} arquivo(s) foram importados com sucesso!\n\n⏳ Atualizando dados agregados...`
-                : `⚠️ ${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro.${detailedErrorMsg}`,
+                ? `Todos os ${successCount} arquivo(s) foram importados com sucesso!\n\nAtualizando dados agregados...`
+                : `${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro.${detailedErrorMsg}`,
             uploading: false
         }));
 
         if (errorCount === 0) {
-            safeLog.info('[Upload] Upload concluído com sucesso, chamando onSuccess (auto-refresh MVs)...');
+            safeLog.info('[Upload] Upload concluido com sucesso, chamando onSuccess (auto-refresh MVs)...');
             onSuccess();
-        } else {
-            safeLog.warn(`[Upload] Upload concluído com ${errorCount} erro(s), auto-refresh NÃO será disparado`);
+            return true;
         }
 
+        safeLog.warn(`[Upload] Upload concluido com ${errorCount} erro(s), auto-refresh nao sera disparado`);
+        return false;
     }, [organizationId]);
 
     return { state, setState, processUpload };
+}
+
+function isValidOrganizationId(value?: string): value is string {
+    return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }

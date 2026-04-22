@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 
 interface UploadActionsProps {
-    onUpload: () => void;
+    onUpload: () => void | Promise<void>;
     uploading: boolean;
     hasFiles: boolean;
+    disabled?: boolean;
     variant?: 'default' | 'marketing' | 'valores';
     fileCount: number;
 }
@@ -15,13 +16,14 @@ export const UploadActions: React.FC<UploadActionsProps> = ({
     onUpload,
     uploading,
     hasFiles,
+    disabled = false,
     variant = 'default',
     fileCount
 }) => {
     return (
         <Button
             onClick={onUpload}
-            disabled={uploading || !hasFiles}
+            disabled={disabled || uploading || !hasFiles}
             className="w-full"
             variant={variant === 'marketing' ? 'default' : variant === 'valores' ? 'default' : 'default'}
         >

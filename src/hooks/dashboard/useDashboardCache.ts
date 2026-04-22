@@ -15,8 +15,9 @@ const globalDashboardCache = {
  * Retorna os dados iniciais do cache global para inicialização de estados
  * Isso evita o efeito de "refresh" quando o componente é remontado
  */
-export function getInitialCacheData(): DashboardResumoData | null {
-    return globalDashboardCache.data;
+export function getInitialCacheData(payloadKey?: string): DashboardResumoData | null {
+    if (!payloadKey) return null;
+    return globalDashboardCache.key === payloadKey ? globalDashboardCache.data : null;
 }
 
 /**

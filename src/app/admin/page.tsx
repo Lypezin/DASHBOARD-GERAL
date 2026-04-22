@@ -25,13 +25,15 @@ export default function AdminPage() {
     fetchData,
   } = useAdminData();
 
+  const isAdmin = currentUser?.is_admin === true;
+
   const {
     organizations,
     loading: orgsLoading,
     error: orgsError,
     createOrganization,
     updateOrganization,
-  } = useOrganizations();
+  } = useOrganizations({ enabled: isAdmin });
 
   useEffect(() => {
     void checkAuth();
@@ -39,12 +41,12 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    if (!currentUser?.is_admin) {
+    if (!isAdmin) {
       return;
     }
 
     void fetchData();
-  }, [currentUser?.is_admin, fetchData]);
+  }, [isAdmin, fetchData]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();

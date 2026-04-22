@@ -4,67 +4,76 @@ import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-declare global {
-    interface Window {
-        requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-        cancelIdleCallback?: (handle: number) => void;
-    }
-}
-
 export function UserActivityTracker() {
     const pathname = usePathname();
     const visitIdRef = useRef<string | null>(null);
     const startTimeRef = useRef<number | null>(null);
-    const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
+    const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
+        if (pathname?.startsWith('/dashboard')) {
+            return;
+        }
+
         let isMounted = true;
+
+        const closeCurrentVisit = () => {
+            if (heartbeatRef.current) {
+                clearInterval(heartbeatRef.current);
+                heartbeatRef.current = null;
+            }
+
+            if (visitIdRef.current && startTimeRef.current) {
+                const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
+                supabase
+                    .from('user_activity_logs')
+                    .update({
+                        exited_at: new Date().toISOString(),
+                        duration_seconds: duration,
+                        last_seen: new Date().toISOString()
+                    })
+                    .eq('id', visitIdRef.current)
+                    .then();
+            }
+
+            visitIdRef.current = null;
+            startTimeRef.current = null;
+        };
 
         const handleRouteChange = async () => {
             const now = Date.now();
-
             const { data: { session } } = await supabase.auth.getSession();
             const user = session?.user;
 
             if (!user || !isMounted) return;
 
-            if (visitIdRef.current && startTimeRef.current) {
-                if (heartbeatRef.current) {
-                    clearInterval(heartbeatRef.current);
-                    heartbeatRef.current = null;
-                }
-
-                const duration = Math.round((now - startTimeRef.current) / 1000);
-
-                supabase
-                    .from('user_activity_logs')
-                    .update({ exited_at: new Date().toISOString(), duration_seconds: duration, last_seen: new Date().toISOString() })
-                    .eq('id', visitIdRef.current)
-                    .then();
-            }
-
+            closeCurrentVisit();
             startTimeRef.current = now;
 
             try {
                 const { data, error } = await supabase
                     .from('user_activity_logs')
-                    .insert({ user_id: user.id, path: pathname, entered_at: new Date().toISOString(), last_seen: new Date().toISOString() })
+                    .insert({
+                        user_id: user.id,
+                        path: pathname,
+                        entered_at: new Date().toISOString(),
+                        last_seen: new Date().toISOString()
+                    })
                     .select('id')
                     .single();
 
                 if (data && !error) {
                     visitIdRef.current = data.id;
-
                     heartbeatRef.current = setInterval(() => {
-                        if (visitIdRef.current) {
-                            supabase
-                                .from('user_activity_logs')
-                                .update({ last_seen: new Date().toISOString() })
-                                .eq('id', visitIdRef.current)
-                                .then(({ error: heartbeatError }) => {
-                                    if (heartbeatError) console.error('Heartbeat error:', heartbeatError);
-                                });
-                        }
+                        if (!visitIdRef.current || document.hidden) return;
+
+                        supabase
+                            .from('user_activity_logs')
+                            .update({ last_seen: new Date().toISOString() })
+                            .eq('id', visitIdRef.current)
+                            .then(({ error: heartbeatError }) => {
+                                if (heartbeatError) console.error('Heartbeat error:', heartbeatError);
+                            });
                     }, 30000);
                 } else {
                     console.error('Failed to start activity session:', error);
@@ -99,18 +108,7 @@ export function UserActivityTracker() {
                 clearTimeout(timeoutId);
             }
 
-            if (heartbeatRef.current) {
-                clearInterval(heartbeatRef.current);
-                heartbeatRef.current = null;
-            }
-            if (visitIdRef.current && startTimeRef.current) {
-                const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
-                supabase
-                    .from('user_activity_logs')
-                    .update({ exited_at: new Date().toISOString(), duration_seconds: duration, last_seen: new Date().toISOString() })
-                    .eq('id', visitIdRef.current)
-                    .then();
-            }
+            closeCurrentVisit();
         };
     }, [pathname]);
 

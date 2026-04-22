@@ -37,6 +37,8 @@ export default function UploadPage() {
     return null;
   }
 
+  const uploadsDisabled = isLoadingOrgs || !selectedOrgId;
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-slate-50/50 p-6 md:p-12 dark:bg-slate-950/50">
@@ -55,6 +57,7 @@ export default function UploadPage() {
               onRemoveFile={corridasUpload.removeFile} onUpload={corridasUpload.handleUpload}
               uploading={corridasUpload.uploading} progress={corridasUpload.progress}
               progressLabel={corridasUpload.progressLabel} message={corridasUpload.message}
+              disabled={uploadsDisabled}
               variant="default" dataAttribute="corridas"
               tips={[
                 { text: 'Certifique-se de que a planilha contém todas as colunas necessárias' },
@@ -72,6 +75,7 @@ export default function UploadPage() {
               onRemoveFile={marketingState.removeFile} onUpload={handleMarketingUpload}
               uploading={marketingUpload.uploading} progress={marketingUpload.progress}
               progressLabel={marketingUpload.progressLabel} message={marketingUpload.message}
+              disabled={uploadsDisabled}
               variant="marketing" dataAttribute="marketing"
               tips={[
                 { text: 'Sobrescrita: Todos os dados anteriores serão removidos' },
@@ -87,6 +91,7 @@ export default function UploadPage() {
               onRemoveFile={valoresCidadeState.removeFile} onUpload={handleValoresCidadeUpload}
               uploading={valoresCidadeUpload.uploading} progress={valoresCidadeUpload.progress}
               progressLabel={valoresCidadeUpload.progressLabel} message={valoresCidadeUpload.message}
+              disabled={uploadsDisabled}
               variant="valores" dataAttribute="valores-cidade"
               tips={[
                 { text: 'Sobrescrita: Todos os dados anteriores serão removidos' },
