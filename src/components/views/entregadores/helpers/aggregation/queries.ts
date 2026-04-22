@@ -8,12 +8,17 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 export async function fetchEntregadoresIds(
     cidadeSelecionada: string,
     searchTerm: string,
-    filtroRodouDia: MarketingDateFilter
+    filtroRodouDia: MarketingDateFilter,
+    organizationId: string | null = null
 ) {
     let entregadoresQuery = supabase
         .from('dados_marketing')
         .select('id_entregador, nome, regiao_atuacao, rodando, rodou_dia')
         .not('id_entregador', 'is', null);
+
+    if (organizationId) {
+        entregadoresQuery = entregadoresQuery.eq('organization_id', organizationId);
+    }
 
     if (cidadeSelecionada) {
         if (cidadeSelecionada === 'Santo André') {
@@ -42,18 +47,22 @@ export async function fetchEntregadoresIds(
     return data || [];
 }
 
-export async function fetchCorridasBatch(ids: string[]) {
+export async function fetchCorridasBatch(ids: string[], organizationId: string | null = null) {
     // Parallel batches
     const BATCH_SIZE = 100;
     const promises = [];
 
     for (let i = 0; i < ids.length; i += BATCH_SIZE) {
         const batchIds = ids.slice(i, i + BATCH_SIZE);
-        const corridasQuery = supabase
+        let corridasQuery = supabase
             .from('dados_corridas')
             .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_completadas, numero_de_corridas_rejeitadas, data_do_periodo, tempo_disponivel_escalado_segundos')
             .in('id_da_pessoa_entregadora', batchIds)
             .limit(QUERY_LIMITS.AGGREGATION_MAX);
+
+        if (organizationId) {
+            corridasQuery = corridasQuery.eq('organization_id', organizationId);
+        }
 
         promises.push(corridasQuery);
     }

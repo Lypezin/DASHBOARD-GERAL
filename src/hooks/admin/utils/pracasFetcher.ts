@@ -33,23 +33,6 @@ export async function fetchPracasWithFallback(): Promise<string[]> {
     }
 
     try {
-        const { data: mvPracas, error: mvError } = await supabase
-            .from('mv_aderencia_agregada')
-            .select('praca')
-            .not('praca', 'is', null)
-            .order('praca');
-
-        if (!mvError && mvPracas && mvPracas.length > 0) {
-            const uniquePracas = [...new Set(mvPracas.map(p => p.praca))].filter(Boolean);
-            sessionStorage.setItem('admin_pracas_cache', JSON.stringify(uniquePracas));
-            sessionStorage.setItem('admin_pracas_cache_time', Date.now().toString());
-            return uniquePracas;
-        }
-    } catch (err) {
-        if (IS_DEV) safeLog.warn('Fallback MV falhou, tentando dados_corridas:', err);
-    }
-
-    try {
         const { data: fallbackPracas, error: fallbackError } = await supabase
             .from('dados_corridas')
             .select('praca')

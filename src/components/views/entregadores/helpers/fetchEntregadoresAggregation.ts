@@ -10,18 +10,19 @@ export async function fetchEntregadoresAggregation(
     filtroDataInicio: MarketingDateFilter,
     filtroRodouDia: MarketingDateFilter,
     cidadeSelecionada: string,
-    searchTerm: string
+    searchTerm: string,
+    organizationId: string | null = null
 ): Promise<EntregadorMarketing[]> {
 
     // 1. Fetch Entregadores
-    const entregadores = await fetchEntregadoresIds(cidadeSelecionada, searchTerm, filtroRodouDia);
+    const entregadores = await fetchEntregadoresIds(cidadeSelecionada, searchTerm, filtroRodouDia, organizationId);
     if (!entregadores.length) return [];
 
     const idsEntregadores = entregadores.map(e => e.id_entregador).filter((id): id is string => !!id);
     if (!idsEntregadores.length) return [];
 
     // 2. Fetch Corridas in Parallel Batches
-    const todasCorridas = await fetchCorridasBatch(idsEntregadores);
+    const todasCorridas = await fetchCorridasBatch(idsEntregadores, organizationId);
 
     // 3. Map Corridas by Entregador
     const corridasMap = new Map<string, any[]>();

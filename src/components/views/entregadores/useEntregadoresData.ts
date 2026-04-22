@@ -32,10 +32,10 @@ export function useEntregadoresData() {
 
     // Data Fetching Logic
     const fetchEntregadoresFallbackFn = useCallback(async () => {
-        const data = await fetchEntregadoresFallback(filtroDataInicio, filtroRodouDia, cidadeSelecionada, debouncedSearchTerm);
+        const data = await fetchEntregadoresFallback(filtroDataInicio, filtroRodouDia, cidadeSelecionada, debouncedSearchTerm, organizationId);
         setEntregadores(data);
         return data;
-    }, [filtroDataInicio, filtroRodouDia, cidadeSelecionada, debouncedSearchTerm]);
+    }, [filtroDataInicio, filtroRodouDia, cidadeSelecionada, debouncedSearchTerm, organizationId]);
 
     const fetchEntregadoresFn = useCallback(async () => {
         // Se a organização ainda está carregando, não faz nada
