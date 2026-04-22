@@ -60,7 +60,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const [aderenciaDiaOrigem, setAderenciaDiaOrigem] = useState<AderenciaDiaOrigem[]>(initialCache?.aderencia_dia_origem ?? []);
   const [dimensoes, setDimensoes] = useState<DimensoesDashboard | null>(initialCache?.dimensoes ?? null);
 
-  const { fetchDashboardData, loading, error } = useDashboardDataFetcher({ filterPayload, onError });
+  const { fetchDashboardData, loading, error } = useDashboardDataFetcher({ onError });
   const { checkCache, updateCache, clearCache, previousPayloadRef, isFirstExecutionRef, pendingPayloadKeyRef } = useDashboardCache();
 
   useDashboardDataEffect({

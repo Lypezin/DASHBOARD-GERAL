@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -26,6 +26,16 @@ interface EvolucaoCacheEntry extends EvolucaoRequestData {
 const evolucaoCache = new Map<string, EvolucaoCacheEntry>();
 const evolucaoInFlight = new Map<string, Promise<EvolucaoRequestData>>();
 
+function pruneEvolucaoCache() {
+  const now = Date.now();
+
+  for (const [key, value] of evolucaoCache.entries()) {
+    if (now - value.cachedAt > CACHE.EVOLUCAO_TTL) {
+      evolucaoCache.delete(key);
+    }
+  }
+}
+
 function getCachedEvolucao(signature: string) {
   const cached = evolucaoCache.get(signature);
 
@@ -49,6 +59,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
   const { isLoading: isOrgLoading } = useOrganization();
   const lastFetchSignature = useRef<string | null>(null);
   const filterPayloadKey = JSON.stringify(filterPayload);
+  const stableFilterPayload = useMemo(() => JSON.parse(filterPayloadKey) as FilterPayload, [filterPayloadKey]);
 
   useEffect(() => {
     if (isOrgLoading) return;
@@ -57,7 +68,9 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
     if (!needsEvolucao) return;
     if (!anoEvolucao) return;
 
-    const currentSignature = JSON.stringify({ filterPayload, anoEvolucao });
+    pruneEvolucaoCache();
+
+    const currentSignature = JSON.stringify({ filterPayload: stableFilterPayload, anoEvolucao });
     const cachedData = getCachedEvolucao(currentSignature);
 
     if (cachedData) {
@@ -87,7 +100,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
         let request = evolucaoInFlight.get(currentSignature);
 
         if (!request) {
-          request = fetchDashboardEvolucaoData(filterPayload, anoEvolucao, activeTab);
+          request = fetchDashboardEvolucaoData(stableFilterPayload, anoEvolucao, activeTab);
           evolucaoInFlight.set(currentSignature, request);
         }
 
@@ -121,7 +134,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
       mounted = false;
       clearTimeout(timeoutId);
     };
-  }, [activeTab, anoEvolucao, filterPayload, filterPayloadKey, isOrgLoading, evolucaoMensal.length, evolucaoSemanal.length, utrSemanal.length]);
+  }, [activeTab, anoEvolucao, filterPayloadKey, isOrgLoading, stableFilterPayload, evolucaoMensal.length, evolucaoSemanal.length, utrSemanal.length]);
 
   return {
     evolucaoMensal,

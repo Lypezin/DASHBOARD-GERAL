@@ -1,4 +1,3 @@
-import { supabase } from '@/lib/supabaseClient';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
 import type { FilterPayload } from '@/types/filters';
@@ -23,7 +22,7 @@ export interface DashboardEvolucaoDataResult {
 export async function fetchDashboardEvolucaoData(
     filterPayload: FilterPayload,
     anoEvolucao: number,
-    activeTab: string
+    _activeTab: string
 ): Promise<DashboardEvolucaoDataResult> {
     const params = {
         p_ano: anoEvolucao,
@@ -64,30 +63,6 @@ export async function fetchDashboardEvolucaoData(
         return { mensalData, semanalData, utrData };
     }
 
-    safeLog.warn('[useDashboardEvolucao] Bundle indisponivel, usando fallback legado:', bundleError);
-
-    const [mensalRes, semanalRes, utrRes] = await Promise.all([
-        supabase.rpc('dashboard_evolucao_mensal', params),
-        supabase.rpc('dashboard_evolucao_semanal', params),
-        supabase.rpc('dashboard_utr_semanal', params)
-    ]);
-
-    if (process.env.NODE_ENV === 'development') {
-        safeLog.info('[useDashboardEvolucao] Dados recebidos via fallback:', {
-            mensalLength: mensalRes.data?.length,
-            semanalLength: semanalRes.data?.length,
-            utrLength: utrRes.data?.length,
-            ano: params.p_ano
-        });
-    }
-
-    if (mensalRes.error) throw mensalRes.error;
-    if (semanalRes.error) throw semanalRes.error;
-    if (utrRes.error && activeTab === 'utr') throw utrRes.error;
-
-    return {
-        mensalData: normalizeArray(mensalRes.data),
-        semanalData: normalizeArray(semanalRes.data),
-        utrData: normalizeArray(utrRes.data)
-    };
+    safeLog.error('[useDashboardEvolucao] Bundle indisponivel:', bundleError);
+    throw new Error(bundleError?.message || 'Erro ao carregar dados consolidados de evolucao');
 }

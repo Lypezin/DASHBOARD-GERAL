@@ -1,61 +1,93 @@
 import { useRef } from 'react';
+import { CACHE } from '@/constants/config';
 import { DashboardResumoData } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+const MAX_CACHE_ENTRIES = 8;
 
-// Cache global em memória (sobrevive a desmontagem de componentes)
-const globalDashboardCache = {
-    key: '',
-    data: null as DashboardResumoData | null,
-    timestamp: 0
-};
-
-/**
- * Retorna os dados iniciais do cache global para inicialização de estados
- * Isso evita o efeito de "refresh" quando o componente é remontado
- */
-export function getInitialCacheData(payloadKey?: string): DashboardResumoData | null {
-    if (!payloadKey) return null;
-    return globalDashboardCache.key === payloadKey ? globalDashboardCache.data : null;
+interface DashboardCacheEntry {
+    data: DashboardResumoData;
+    timestamp: number;
 }
 
-/**
- * Retorna a chave do cache atual
- */
+const globalDashboardCache = new Map<string, DashboardCacheEntry>();
+
+function pruneCache() {
+    const now = Date.now();
+
+    for (const [key, entry] of globalDashboardCache.entries()) {
+        if (now - entry.timestamp > CACHE.TAB_DATA_TTL) {
+            globalDashboardCache.delete(key);
+        }
+    }
+
+    while (globalDashboardCache.size > MAX_CACHE_ENTRIES) {
+        const oldestKey = globalDashboardCache.keys().next().value;
+        if (!oldestKey) break;
+        globalDashboardCache.delete(oldestKey);
+    }
+}
+
+function touchCacheEntry(key: string, entry: DashboardCacheEntry) {
+    globalDashboardCache.delete(key);
+    globalDashboardCache.set(key, entry);
+}
+
+export function getInitialCacheData(payloadKey?: string): DashboardResumoData | null {
+    if (!payloadKey) return null;
+
+    pruneCache();
+
+    const cached = globalDashboardCache.get(payloadKey);
+    if (!cached) return null;
+
+    touchCacheEntry(payloadKey, cached);
+    return cached.data;
+}
+
 export function getCacheKey(): string {
-    return globalDashboardCache.key;
+    pruneCache();
+    const latestKey = Array.from(globalDashboardCache.keys()).pop();
+    return latestKey || '';
 }
 
 export function useDashboardCache() {
-    // Initialize previousPayloadRef with global cache key to prevent re-fetch when component remounts
-    // This fixes the issue where returning to the tab caused a refresh
-    const previousPayloadRef = useRef<string>(globalDashboardCache.key || '');
-    const isFirstExecutionRef = useRef<boolean>(!globalDashboardCache.data);
+    pruneCache();
+
+    const previousPayloadRef = useRef<string>(getCacheKey());
+    const isFirstExecutionRef = useRef<boolean>(globalDashboardCache.size === 0);
     const pendingPayloadKeyRef = useRef<string>('');
 
     const checkCache = (payloadKey: string) => {
-        if (globalDashboardCache.key === payloadKey && globalDashboardCache.data) {
-            if (IS_DEV) safeLog.info('[useDashboardCache] Usando dados do cache global');
-            return globalDashboardCache.data;
-        }
-        return null;
+        pruneCache();
+
+        const cached = globalDashboardCache.get(payloadKey);
+        if (!cached) return null;
+
+        if (IS_DEV) safeLog.info('[useDashboardCache] Usando dados do cache global');
+        touchCacheEntry(payloadKey, cached);
+        return cached.data;
     };
 
     const updateCache = (payloadKey: string, data: DashboardResumoData) => {
-        globalDashboardCache.data = data;
-        globalDashboardCache.key = payloadKey;
-        globalDashboardCache.timestamp = Date.now();
+        pruneCache();
+        touchCacheEntry(payloadKey, {
+            data,
+            timestamp: Date.now()
+        });
     };
 
     const clearCache = () => {
         if (IS_DEV) safeLog.info('[useDashboardCache] Limpando cache global');
-        globalDashboardCache.key = '';
-        globalDashboardCache.data = null;
-        globalDashboardCache.timestamp = 0;
+        globalDashboardCache.clear();
     };
 
-    const getCacheData = () => globalDashboardCache.data;
+    const getCacheData = () => {
+        pruneCache();
+        const latestEntry = Array.from(globalDashboardCache.values()).pop();
+        return latestEntry?.data ?? null;
+    };
 
     return {
         checkCache,

@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useCallback, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { DashboardResumoData } from '@/types';
@@ -18,16 +18,14 @@ function getSafeErrorMessage(error: unknown): string {
 }
 
 export function useDashboardDataFetcher({
-    filterPayload,
     onError,
 }: {
-    filterPayload: FilterPayload;
     onError?: (error: Error | RpcError) => void;
 }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchDashboardData = async (currentPayload: FilterPayload) => {
+    const fetchDashboardData = useCallback(async (currentPayload: FilterPayload) => {
         setLoading(true);
         setError(null);
 
@@ -85,7 +83,7 @@ export function useDashboardDataFetcher({
             setLoading(false);
             return null;
         }
-    };
+    }, [onError]);
 
     return { fetchDashboardData, loading, error };
 }
