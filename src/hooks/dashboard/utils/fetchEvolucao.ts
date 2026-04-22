@@ -1,6 +1,18 @@
 import { supabase } from '@/lib/supabaseClient';
-import type { FilterPayload } from '@/types/filters';
+import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
+import type { FilterPayload } from '@/types/filters';
+import type { EvolucaoMensal, EvolucaoSemanal, UtrSemanal } from '@/types';
+
+interface DashboardEvolucaoBundle {
+    mensal?: EvolucaoMensal[];
+    semanal?: EvolucaoSemanal[];
+    utr?: UtrSemanal[];
+}
+
+function normalizeArray<T>(value: T[] | null | undefined): T[] {
+    return Array.isArray(value) ? value : [];
+}
 
 export async function fetchDashboardEvolucaoData(filterPayload: FilterPayload, anoEvolucao: number, activeTab: string) {
     const params = {
@@ -16,8 +28,33 @@ export async function fetchDashboardEvolucaoData(filterPayload: FilterPayload, a
     };
 
     if (process.env.NODE_ENV === 'development') {
-        safeLog.info('[useDashboardEvolucao] Buscando dados de evolução:', params);
+        safeLog.info('[useDashboardEvolucao] Buscando dados de evolucao:', params);
     }
+
+    const { data: bundleData, error: bundleError } = await safeRpc<DashboardEvolucaoBundle>(
+        'dashboard_evolucao_bundle',
+        params,
+        { validateParams: false }
+    );
+
+    if (!bundleError && bundleData) {
+        const mensalData = normalizeArray(bundleData.mensal);
+        const semanalData = normalizeArray(bundleData.semanal);
+        const utrData = normalizeArray(bundleData.utr);
+
+        if (process.env.NODE_ENV === 'development') {
+            safeLog.info('[useDashboardEvolucao] Dados recebidos via bundle:', {
+                mensalLength: mensalData.length,
+                semanalLength: semanalData.length,
+                utrLength: utrData.length,
+                ano: params.p_ano
+            });
+        }
+
+        return { mensalData, semanalData, utrData };
+    }
+
+    safeLog.warn('[useDashboardEvolucao] Bundle indisponivel, usando fallback legado:', bundleError);
 
     const [mensalRes, semanalRes, utrRes] = await Promise.all([
         supabase.rpc('dashboard_evolucao_mensal', params),
@@ -26,20 +63,21 @@ export async function fetchDashboardEvolucaoData(filterPayload: FilterPayload, a
     ]);
 
     if (process.env.NODE_ENV === 'development') {
-        safeLog.info('[useDashboardEvolucao] Dados recebidos:', {
+        safeLog.info('[useDashboardEvolucao] Dados recebidos via fallback:', {
             mensalLength: mensalRes.data?.length,
             semanalLength: semanalRes.data?.length,
+            utrLength: utrRes.data?.length,
             ano: params.p_ano
         });
     }
 
     if (mensalRes.error) throw mensalRes.error;
     if (semanalRes.error) throw semanalRes.error;
-    if (utrRes.error && activeTab === 'utr') throw utrRes.error; // UTR might be optional for other tabs
+    if (utrRes.error && activeTab === 'utr') throw utrRes.error;
 
     return {
-        mensalData: mensalRes.data,
-        semanalData: semanalRes.data,
-        utrData: utrRes.data
+        mensalData: normalizeArray(mensalRes.data),
+        semanalData: normalizeArray(semanalRes.data),
+        utrData: normalizeArray(utrRes.data)
     };
 }
