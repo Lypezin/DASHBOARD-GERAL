@@ -44,7 +44,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
                         const uniqueOrigens = Array.from(new Set(data.map((d: any) => d.origem).filter(Boolean)));
 
                         setSubPracas(uniqueSubs.map(v => ({ value: String(v), label: String(v) })));
-                        setTurnos(uniqueTurnos.length > 0 ? uniqueTurnos.map(v => ({ value: String(v), label: String(v) })) : mapToOptions((dimensoes as any).turnos));
+                        setTurnos(uniqueTurnos.length > 0 ? uniqueTurnos.map(v => ({ value: String(v), label: String(v) })) : []);
                         setOrigens(uniqueOrigens.map(v => ({ value: String(v), label: String(v) })));
                         return;
                     }
@@ -54,7 +54,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
 
                 // Fallback (último caso)
                 setSubPracas(processFallbackSubPracas(dimensoes, targetPracas));
-                setTurnos(mapToOptions((dimensoes as any).turnos));
+                setTurnos([]);
                 // Se temos praças específicas, não fazemos fallback para todas as origens do sistema
                 if (targetPracas.length > 0) {
                     setOrigens([]);

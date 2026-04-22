@@ -15,13 +15,27 @@ import { useUploadPageLogic } from './useUploadPageLogic';
 
 export default function UploadPage() {
   const {
-    loading, isAuthorized, user, organizations, selectedOrgId, isLoadingOrgs,
+    loading, isAuthorized, user, errorMessage, organizations, selectedOrgId, isLoadingOrgs,
     setSelectedOrgId, marketingState, valoresCidadeState, corridasUpload,
     marketingUpload, valoresCidadeUpload, handleMarketingUpload, handleValoresCidadeUpload
   } = useUploadPageLogic();
 
   if (loading) return <PageLoading text="Verificando permissões..." />;
-  if (!isAuthorized) return null;
+
+  if (!isAuthorized) {
+    if (errorMessage) {
+      return (
+        <div className="flex min-h-[60vh] items-center justify-center p-8">
+          <div className="max-w-md rounded-xl border border-amber-200 bg-white p-6 text-center shadow-sm dark:border-amber-900 dark:bg-slate-900">
+            <p className="text-lg font-semibold text-slate-900 dark:text-white">Acesso ao upload indisponível</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{errorMessage}</p>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  }
 
   return (
     <ErrorBoundary>
@@ -60,7 +74,7 @@ export default function UploadPage() {
               progressLabel={marketingUpload.progressLabel} message={marketingUpload.message}
               variant="marketing" dataAttribute="marketing"
               tips={[
-                { text: '⚠️ Sobrescrita: Todos os dados anteriores serão removidos' },
+                { text: 'Sobrescrita: Todos os dados anteriores serão removidos' },
                 { text: 'Formato de data: DD/MM/YYYY' },
               ]}
               expectedColumns={Object.keys(MARKETING_COLUMN_MAP)}
@@ -75,7 +89,7 @@ export default function UploadPage() {
               progressLabel={valoresCidadeUpload.progressLabel} message={valoresCidadeUpload.message}
               variant="valores" dataAttribute="valores-cidade"
               tips={[
-                { text: '⚠️ Sobrescrita: Todos os dados anteriores serão removidos' },
+                { text: 'Sobrescrita: Todos os dados anteriores serão removidos' },
                 { text: 'Colunas obrigatórias: DATA, ID, CIDADE, VALOR' },
               ]}
               expectedColumns={Object.keys(VALORES_CIDADE_COLUMN_MAP)}

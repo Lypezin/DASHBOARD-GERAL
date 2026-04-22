@@ -9,6 +9,7 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  swcMinify: true,
 
   eslint: {
     ignoreDuringBuilds: true,
@@ -90,23 +91,19 @@ const nextConfig = {
               "img-src 'self' data: https: blob:",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
               "frame-ancestors 'self'",
-            ].join('; ')
+            ].join('; '),
           },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' }
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
       },
       {
         source: '/:path*.{jpg,jpeg,png,gif,webp,avif,ico,svg,woff,woff2,ttf,eot}',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }
-        ]
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
         source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }
-        ]
-      }
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }],
+      },
     ];
   },
 };

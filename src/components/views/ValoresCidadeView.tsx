@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ValoresCidadeDateFilter, MarketingDateFilter } from '@/types';
+import React from 'react';
 import { useValoresCidadeAuth } from '@/hooks/valoresCidade/useValoresCidadeAuth';
 import { useValoresCidadeData } from '@/hooks/valoresCidade/useValoresCidadeData';
 import { useValoresCidadeFilters } from '@/hooks/valoresCidade/useValoresCidadeFilters';
@@ -23,20 +22,33 @@ const item: Variants = {
 };
 
 const ValoresCidadeView = React.memo(function ValoresCidadeView() {
-  const { isAuthenticated, password, passwordError, loading: authLoading, setPassword, handlePasswordSubmit } = useValoresCidadeAuth();
+  const { isAuthenticated, errorMessage, loading: authLoading } = useValoresCidadeAuth();
   const { filter, filterEnviados, handleFilterChange, handleFilterEnviadosChange } = useValoresCidadeFilters();
 
-  const { loading, error, cidadesData, totalGeral, custoPorLiberado } = useValoresCidadeData(isAuthenticated, filter, filterEnviados);
+  const { loading, error, cidadesData, totalGeral, custoPorLiberado } = useValoresCidadeData(
+    isAuthenticated,
+    filter,
+    filterEnviados
+  );
 
-  if (!isAuthenticated) return <ValoresCidadeAuth password={password} passwordError={passwordError} loading={authLoading} onPasswordChange={setPassword} onSubmit={handlePasswordSubmit} />;
+  if (!isAuthenticated) {
+    return <ValoresCidadeAuth loading={authLoading} errorMessage={errorMessage} />;
+  }
 
-  if (loading || error) return <ValoresCidadeFeedback loading={loading} error={error} />;
+  if (loading || error) {
+    return <ValoresCidadeFeedback loading={loading} error={error} />;
+  }
 
   return (
     <motion.div className="space-y-6 animate-fade-in pb-8" variants={container} initial="hidden" animate="show">
       <motion.div variants={item} className="space-y-4">
         <ValoresCidadeHeader />
-        <ValoresCidadeFilters filter={filter} filterEnviados={filterEnviados} onFilterChange={handleFilterChange} onFilterEnviadosChange={handleFilterEnviadosChange} />
+        <ValoresCidadeFilters
+          filter={filter}
+          filterEnviados={filterEnviados}
+          onFilterChange={handleFilterChange}
+          onFilterEnviadosChange={handleFilterEnviadosChange}
+        />
       </motion.div>
 
       <motion.div variants={item}>
@@ -49,4 +61,3 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
 ValoresCidadeView.displayName = 'ValoresCidadeView';
 
 export default ValoresCidadeView;
-

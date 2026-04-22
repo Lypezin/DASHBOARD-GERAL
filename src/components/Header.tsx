@@ -10,19 +10,6 @@ export function Header() {
   const { user, isLoading, hasTriedAuth, handleLogout } = useHeaderAuth();
   const avatarUrl = useHeaderAvatar(user);
 
-
-  // Não mostrar header nas páginas de login/registro e recuperação de senha
-  if (typeof window !== 'undefined' && (
-    window.location.pathname === '/login' ||
-    window.location.pathname === '/registro' ||
-    window.location.pathname === '/esqueci-senha' ||
-    window.location.pathname === '/redefinir-senha' ||
-    window.location.pathname.startsWith('/apresentacao')
-  )) {
-    return null;
-  }
-
-  // CRÍTICO: Sempre mostrar header após timeout ou se já tentou autenticar
   if (isLoading && !hasTriedAuth) {
     return null;
   }

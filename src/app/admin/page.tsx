@@ -35,9 +35,17 @@ export default function AdminPage() {
 
   useEffect(() => {
     checkAuth();
-    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!currentUser?.is_admin) {
+      return;
+    }
+
+    fetchData();
+  }, [currentUser?.is_admin, fetchData]);
+
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();

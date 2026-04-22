@@ -11,7 +11,7 @@ import { marketingTransformers, valoresCidadeTransformers } from '@/utils/upload
 import { useGamification } from '@/contexts/GamificationContext';
 
 export const useUploadPageLogic = () => {
-    const { loading, isAuthorized, user } = useUploadAuth();
+    const { loading, isAuthorized, user, errorMessage } = useUploadAuth();
     const [showRetry, setShowRetry] = useState(false);
     const { registerInteraction } = useGamification();
 
@@ -86,7 +86,7 @@ export const useUploadPageLogic = () => {
     };
 
     return {
-        loading, isAuthorized, user, showRetry, organizations, selectedOrgId, setSelectedOrgId, isLoadingOrgs,
+        loading, isAuthorized, user, errorMessage, showRetry, organizations, selectedOrgId, setSelectedOrgId, isLoadingOrgs,
         marketingState, valoresCidadeState, corridasUpload, marketingUpload, valoresCidadeUpload,
         handleMarketingUpload, handleValoresCidadeUpload
     };

@@ -1,11 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { safeLog } from '@/lib/errorHandler';
 import { useAuthState } from '@/hooks/upload-auth/useAuthState';
 import { checkAdminStatus } from '@/hooks/upload-auth/checkAuth';
 
 const AUTH_TIMEOUT = 10000;
-const MAX_RETRIES = 2;
 
 export function useUploadAuth() {
   const router = useRouter();
@@ -17,22 +16,20 @@ export function useUploadAuth() {
     user,
     setUser,
     isMountedRef,
-    retryCountRef,
     timeoutRef
   } = useAuthState();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const performAuthCheck = async () => {
-      // Limpar timeout anterior
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-      // Timeout de segurança
       timeoutRef.current = setTimeout(() => {
         if (isMountedRef.current) {
           safeLog.error('Timeout na verificação de autenticação');
           setLoading(false);
           setIsAuthorized(false);
-          handleRetry();
+          setErrorMessage('Não foi possível validar o acesso ao upload dentro do tempo esperado.');
         }
       }, AUTH_TIMEOUT);
 
@@ -45,7 +42,7 @@ export function useUploadAuth() {
       if (result.error) {
         setLoading(false);
         setIsAuthorized(false);
-        handleRetry();
+        setErrorMessage('Não foi possível validar suas permissões de upload agora.');
         return;
       }
 
@@ -56,22 +53,12 @@ export function useUploadAuth() {
 
       if (result.user) setUser(result.user);
       setIsAuthorized(result.authorized);
+      setErrorMessage(result.authorized ? null : 'Você não possui permissão para acessar a área de upload.');
       setLoading(false);
-    };
-
-    const handleRetry = () => {
-      if (retryCountRef.current < MAX_RETRIES) {
-        retryCountRef.current++;
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            window.location.reload();
-          }
-        }, 2000);
-      }
     };
 
     performAuthCheck();
   }, [router]);
 
-  return { loading, isAuthorized, user };
+  return { loading, isAuthorized, user, errorMessage };
 }
