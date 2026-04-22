@@ -8,17 +8,20 @@ import { MARKETING_COLUMN_MAP, VALORES_CIDADE_COLUMN_MAP } from '@/constants/upl
 import { marketingTransformers, valoresCidadeTransformers } from '@/utils/uploadTransformers';
 
 import { useGamification } from '@/contexts/GamificationContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 export const useUploadPageLogic = () => {
     const { loading, isAuthorized, user, errorMessage } = useUploadAuth();
     const [showRetry, setShowRetry] = useState(false);
     const { registerInteraction } = useGamification();
+    const { organizationId: contextOrganizationId } = useOrganization();
 
     // Generic State Hooks
     const marketingState = useGenericUploadState();
     const valoresCidadeState = useGenericUploadState();
 
     const { organizations, selectedOrgId, setSelectedOrgId, isLoadingOrgs } = useOrganizationSelection(isAuthorized, user);
+    const effectiveOrgId = selectedOrgId || contextOrganizationId || '';
 
     // Mostrar botão de retry se o loading demorar muito
     useEffect(() => {
@@ -35,7 +38,7 @@ export const useUploadPageLogic = () => {
 
     // Hook para upload de corridas
     const corridasUpload = useCorridasUpload({
-        organizationId: selectedOrgId,
+        organizationId: effectiveOrgId,
         onUploadSuccess: () => registerInteraction('upload')
     });
 
@@ -51,7 +54,7 @@ export const useUploadPageLogic = () => {
         overwrite: true,
         deleteRpcFunction: 'delete_all_dados_marketing',
         refreshRpcFunction: 'refresh_mv_entregadores_marketing',
-        organizationId: selectedOrgId
+        organizationId: effectiveOrgId
     });
 
     // Hook genérico para upload de Valores por Cidade
@@ -65,7 +68,7 @@ export const useUploadPageLogic = () => {
         },
         overwrite: true,
         deleteRpcFunction: 'delete_all_dados_valores_cidade',
-        organizationId: selectedOrgId
+        organizationId: effectiveOrgId
     });
 
     const handleMarketingUpload = async () => {
@@ -85,7 +88,7 @@ export const useUploadPageLogic = () => {
     };
 
     return {
-        loading, isAuthorized, user, errorMessage, showRetry, organizations, selectedOrgId, setSelectedOrgId, isLoadingOrgs,
+        loading, isAuthorized, user, errorMessage, showRetry, organizations, selectedOrgId: effectiveOrgId, setSelectedOrgId, isLoadingOrgs,
         marketingState, valoresCidadeState, corridasUpload, marketingUpload, valoresCidadeUpload,
         handleMarketingUpload, handleValoresCidadeUpload
     };
