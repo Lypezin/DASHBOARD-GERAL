@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useDashboardFilters } from '@/hooks/dashboard/useDashboardFilters';
 import { useDashboardDimensions } from '@/hooks/dashboard/useDashboardDimensions';
 import { fetchComparisonMetrics } from '@/hooks/comparacao/useComparisonMetrics';
@@ -27,6 +27,13 @@ export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
     const [previousWeekLabel, setPreviousWeekLabel] = useState('');
 
     const weeksToCompare = useTargetWeeks(filters, aderenciaSemanal);
+    const weeksComparisonKey = weeksToCompare
+        ? `${weeksToCompare.previous}|${weeksToCompare.current}|${weeksToCompare.previousLabel}|${weeksToCompare.currentLabel}`
+        : '';
+    const currentUserKey = currentUser
+        ? `${currentUser.id || ''}|${currentUser.is_admin ? '1' : '0'}|${(currentUser.assigned_pracas || []).join('|')}`
+        : 'anonymous';
+    const stableCurrentUser = useMemo(() => currentUser, [currentUserKey]);
 
     useEffect(() => {
         if (!weeksToCompare || isOrgLoading) {
@@ -40,7 +47,7 @@ export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
             try {
                 const praca = filters.praca || null;
                 const year = filters.ano || undefined;
-                const results = await fetchComparisonMetrics([weeksToCompare.previous, weeksToCompare.current], praca, currentUser, organizationId || null, year);
+                const results = await fetchComparisonMetrics([weeksToCompare.previous, weeksToCompare.current], praca, stableCurrentUser, organizationId || null, year);
                 if (!isMounted) return;
 
                 if (results.length === 2) {
@@ -67,7 +74,7 @@ export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
 
         fetchData();
         return () => { isMounted = false; };
-    }, [weeksToCompare?.current, weeksToCompare?.previous, filters.praca, filters.ano, isOrgLoading, currentUser, organizationId]);
+    }, [filters.ano, filters.praca, isOrgLoading, loadingDimensions, organizationId, stableCurrentUser, weeksComparisonKey, weeksToCompare]);
 
     return { metrics, loading, currentWeekLabel, previousWeekLabel };
 }

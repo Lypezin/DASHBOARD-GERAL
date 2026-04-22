@@ -3,7 +3,7 @@ import { DELAYS } from '@/constants/config';
 
 export function useDashboardDebounce(
     callback: () => void,
-    dependencies: any[],
+    dependencies: readonly unknown[],
     delay: number = DELAYS.DEBOUNCE
 ) {
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -22,5 +22,5 @@ export function useDashboardDebounce(
                 clearTimeout(debounceRef.current);
             }
         };
-    }, dependencies);
+    }, [callback, delay, ...dependencies]);
 }

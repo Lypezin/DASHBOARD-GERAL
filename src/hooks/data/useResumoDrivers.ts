@@ -15,6 +15,8 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
     const [error, setError] = useState<Error | null>(null);
 
     const { organization, isLoading: isOrgLoading } = useOrganization();
+    const pracasKey = useMemo(() => pracas.join('|'), [pracas]);
+    const stablePracas = useMemo(() => pracas, [pracasKey]);
 
     useEffect(() => {
         if (isOrgLoading) return;
@@ -31,7 +33,7 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
                 const params = {
                     p_ano: ano,
                     p_organization_id: organization.id,
-                    p_pracas: pracas.length > 0 ? pracas : null,
+                    p_pracas: stablePracas.length > 0 ? stablePracas : null,
                 };
 
                 if (process.env.NODE_ENV === 'development') {
@@ -77,7 +79,7 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
             mounted = false;
             clearTimeout(timeoutId);
         };
-    }, [ano, JSON.stringify(pracas), activeTab, isOrgLoading, organization?.id]);
+    }, [activeTab, ano, isOrgLoading, organization?.id, pracasKey, stablePracas]);
 
     // Merge drivers and pedidos data into a single map
     const dataMap = useMemo(() => {

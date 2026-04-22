@@ -54,18 +54,21 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         }) : 'null';
     }, [currentUser?.is_admin, assignedPracasKey, organizationId]);
 
+    const stableFilters = useMemo(() => initialFilters, [filtersKey]);
+    const stableCurrentUser = useMemo(() => currentUser, [currentUserKey]);
+
     const filterPayload = useMemo(() => {
         if (IS_DEV) {
             try {
                 safeLog.info('[useDashboardKeys] Gerando payload', {
-                    filters: { ...initialFilters },
-                    user_set: !!currentUser,
+                    filters: { ...stableFilters },
+                    user_set: !!stableCurrentUser,
                     organizationId
                 });
             } catch (e) { /* ignore */ }
         }
-        return buildFilterPayload(initialFilters, currentUser, organizationId);
-    }, [filtersKey, currentUserKey, organizationId]);
+        return buildFilterPayload(stableFilters, stableCurrentUser, organizationId);
+    }, [organizationId, stableCurrentUser, stableFilters]);
 
     const filterPayloadKey = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
 
