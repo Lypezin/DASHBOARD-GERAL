@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { ValoresEntregador } from '@/types';
 
@@ -6,13 +6,14 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const searchParamsKey = searchParams.toString();
 
-    const getInitialSortField = () => {
+    const getInitialSortField = useCallback(() => {
         return (searchParams.get('val_sort') as keyof ValoresEntregador) || 'total_taxas';
-    };
-    const getInitialSortDirection = () => {
+    }, [searchParams]);
+    const getInitialSortDirection = useCallback(() => {
         return (searchParams.get('val_dir') as 'asc' | 'desc') || 'desc';
-    };
+    }, [searchParams]);
 
     const [sortField, setSortField] = useState<keyof ValoresEntregador>(getInitialSortField);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(getInitialSortDirection);
@@ -41,7 +42,7 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
         const urlDir = getInitialSortDirection();
         if (urlSort !== sortField) setSortField(urlSort);
         if (urlDir !== sortDirection) setSortDirection(urlDir);
-    }, [searchParams]);
+    }, [getInitialSortDirection, getInitialSortField, searchParamsKey, sortDirection, sortField]);
 
     const sortedValores = useMemo(() => {
         if (!Array.isArray(dataToDisplay) || dataToDisplay.length === 0) return [];

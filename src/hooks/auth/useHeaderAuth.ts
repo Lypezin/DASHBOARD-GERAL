@@ -72,15 +72,21 @@ export function useHeaderAuth() {
   useAuthSubscription({ checkUser, setUser, pathname });
 
   useEffect(() => {
-    loadingTimeoutRef.current = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       if (isLoading) {
         if (IS_DEV) safeLog.warn('[Header] Timeout atingido (3s), exibindo header publicamente');
         setIsLoading(false);
       }
     }, 3000);
+    loadingTimeoutRef.current = timeoutId;
     checkUser();
-    return () => { if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current); };
-  }, [checkUser]);
+    return () => {
+      clearTimeout(timeoutId);
+      if (loadingTimeoutRef.current === timeoutId) {
+        loadingTimeoutRef.current = null;
+      }
+    };
+  }, [checkUser, isLoading]);
 
   const handleLogout = useCallback(async () => {
     try {
