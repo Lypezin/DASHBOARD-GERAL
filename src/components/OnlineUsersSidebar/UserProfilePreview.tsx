@@ -3,8 +3,7 @@ import { OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Activity, Clock3, ExternalLink, MessageSquare, User2 } from 'lucide-react';
+import { Activity, Clock3, ExternalLink, MessageSquare, User2, ChevronRight } from 'lucide-react';
 
 interface UserProfilePreviewProps {
     user: OnlineUser | null;
@@ -40,7 +39,7 @@ export function UserProfilePreview({
         return (
             <div className="px-3 pt-3">
                 <div className="rounded-2xl border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400 dark:border-slate-800 dark:text-slate-500">
-                    Selecione alguem da lista para ver o perfil rapido.
+                    Selecione alguem da lista para ver um perfil rapido.
                 </div>
             </div>
         );
@@ -53,7 +52,7 @@ export function UserProfilePreview({
         <div className="px-3 pt-3">
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                 <div className="flex items-start gap-3">
-                    <Avatar className="h-14 w-14 border border-slate-200 dark:border-slate-800">
+                    <Avatar className="h-12 w-12 border border-slate-200 dark:border-slate-800">
                         <AvatarImage src={user.avatar_url || undefined} alt={user.name || 'Usuario'} />
                         <AvatarFallback>{user.name?.slice(0, 2).toUpperCase() || 'US'}</AvatarFallback>
                     </Avatar>
@@ -66,7 +65,6 @@ export function UserProfilePreview({
 
                         <div className="mt-2 flex flex-wrap gap-2">
                             <Badge variant="outline" className="capitalize">{user.role || 'usuario'}</Badge>
-                            <Badge variant="secondary">{user.is_idle ? 'Ausente' : 'Online'}</Badge>
                             {unreadCount > 0 && (
                                 <Badge className="bg-red-500 hover:bg-red-500">{unreadCount > 9 ? '9+' : unreadCount} nao lida(s)</Badge>
                             )}
@@ -74,21 +72,10 @@ export function UserProfilePreview({
                     </div>
                 </div>
 
-                <Separator className="my-4" />
-
-                <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                <div className="mt-3 grid gap-2 text-xs text-slate-600 dark:text-slate-300">
                     {user.custom_status && (
                         <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-900">
                             <span className="font-medium text-slate-800 dark:text-slate-100">Status:</span> {user.custom_status}
-                        </div>
-                    )}
-
-                    {user.current_tab && (
-                        <div className="flex items-center gap-2">
-                            <Activity size={13} className="text-blue-500" />
-                            <span>
-                                Vendo agora: <strong>{user.current_tab.replace(/-/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase())}</strong>
-                            </span>
                         </div>
                     )}
 
@@ -96,20 +83,36 @@ export function UserProfilePreview({
                         <Clock3 size={13} className="text-slate-400" />
                         <span>Conectado ha {formatTimeOnline(user.online_at)}</span>
                     </div>
+
+                    {user.current_tab && (
+                        <div className="flex items-center gap-2">
+                            <Activity size={13} className="text-blue-500" />
+                            <span className="truncate">
+                                Agora em <strong>{user.current_tab.replace(/-/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase())}</strong>
+                            </span>
+                        </div>
+                    )}
                 </div>
 
-                <div className="mt-4 flex gap-2">
-                    {!isCurrentUser && (
-                        <Button className="flex-1 gap-2" onClick={() => onStartChat(user)}>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                    {!isCurrentUser ? (
+                        <Button className="gap-2" onClick={() => onStartChat(user)}>
                             <MessageSquare size={14} />
                             Conversar
                         </Button>
+                    ) : (
+                        <Button asChild className="gap-2">
+                            <Link href="/perfil">
+                                <User2 size={14} />
+                                Meu perfil
+                            </Link>
+                        </Button>
                     )}
 
-                    <Button asChild variant={isCurrentUser ? 'default' : 'outline'} className="flex-1 gap-2">
+                    <Button asChild variant="outline" className="gap-2">
                         <Link href={profileHref}>
-                            {isCurrentUser ? <User2 size={14} /> : <ExternalLink size={14} />}
-                            {isCurrentUser ? 'Meu perfil' : 'Entrar no perfil'}
+                            {isCurrentUser ? <ChevronRight size={14} /> : <ExternalLink size={14} />}
+                            {isCurrentUser ? 'Abrir perfil' : 'Ver perfil'}
                         </Link>
                     </Button>
                 </div>

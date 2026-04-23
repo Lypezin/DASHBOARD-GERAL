@@ -46,7 +46,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                 unreadCount={totalUnread}
             />
 
-            <SidebarContainer isOpen={isOpen}>
+            <SidebarContainer isOpen={isOpen} onClose={() => setIsOpen(false)}>
                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} />
 
                 <ChatWindow
@@ -74,11 +74,13 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                 <SidebarHeader
                     isOpen={isOpen}
                     onlineCount={onlineUsers.length}
+                    unreadCount={totalUnread}
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
                     myCustomStatus={myCustomStatus}
                     setMyCustomStatus={setMyCustomStatus}
                     onStatusSubmit={setCustomStatus}
+                    onClose={() => setIsOpen(false)}
                 />
 
                 <UserProfilePreview

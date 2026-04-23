@@ -13,6 +13,21 @@ interface UserListProps {
     formatTimeOnline: (d: string) => string;
 }
 
+function sortUsers(users: OnlineUser[], unreadCounts: Record<string, number>, currentUserId: string) {
+    return [...users].sort((a, b) => {
+        const aUnread = unreadCounts[a.id] || 0;
+        const bUnread = unreadCounts[b.id] || 0;
+        if (aUnread !== bUnread) return bUnread - aUnread;
+
+        if (a.id === currentUserId && b.id !== currentUserId) return -1;
+        if (b.id === currentUserId && a.id !== currentUserId) return 1;
+
+        if (!!a.is_idle !== !!b.is_idle) return a.is_idle ? 1 : -1;
+
+        return (a.name || '').localeCompare(b.name || '');
+    });
+}
+
 export function UserList({
     isOpen,
     currentUser,
@@ -24,9 +39,9 @@ export function UserList({
     formatTimeOnline
 }: UserListProps) {
     const groupedUsers = {
-        admin: filteredUsers.filter((u) => u.role === 'admin' || u.role === 'master'),
-        marketing: filteredUsers.filter((u) => u.role === 'marketing'),
-        user: filteredUsers.filter((u) => u.role === 'user' || !u.role || (u.role !== 'admin' && u.role !== 'master' && u.role !== 'marketing'))
+        admin: sortUsers(filteredUsers.filter((user) => user.role === 'admin' || user.role === 'master'), unreadCounts, currentUser.id),
+        marketing: sortUsers(filteredUsers.filter((user) => user.role === 'marketing'), unreadCounts, currentUser.id),
+        user: sortUsers(filteredUsers.filter((user) => user.role === 'user' || !user.role || (user.role !== 'admin' && user.role !== 'master' && user.role !== 'marketing')), unreadCounts, currentUser.id)
     };
 
     const hasUsers = filteredUsers.length > 0;
