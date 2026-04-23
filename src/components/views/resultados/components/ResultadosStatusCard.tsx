@@ -6,40 +6,30 @@ interface ResultadosStatusCardProps {
     title: string;
     value: string;
     icon: LucideIcon;
-    gradient: string;
-    iconBgColor?: string;
-    textColor: string;
-    pulseColor: string;
+    iconColorClass?: string;
 }
 
 export const ResultadosStatusCard = React.memo(function ResultadosStatusCard({
     title,
     value,
     icon: Icon,
-    gradient,
-    textColor,
-    pulseColor
+    iconColorClass = "text-slate-500 dark:text-slate-400"
 }: ResultadosStatusCardProps) {
     return (
-        <Card className={`border-none shadow-lg hover:shadow-xl transition-all duration-500 group overflow-hidden relative bg-gradient-to-br ${gradient}`}>
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="absolute -top-4 -right-4 p-3 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110 group-hover:rotate-12 duration-500">
-                <Icon className="w-24 h-24 text-white" />
-            </div>
-            <div className="p-5 z-10 relative">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className={`text-sm font-medium ${textColor} mb-2 flex items-center gap-2`}>
-                            <span className={`h-2 w-2 rounded-full ${pulseColor} animate-pulse`} />
-                            {title}
-                        </p>
-                        <p className="text-4xl font-bold text-white font-mono tracking-tight drop-shadow-lg">
-                            {value}
-                        </p>
+        <Card className="border-none shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 backdrop-blur-sm relative overflow-hidden group">
+            <div className="p-5 flex flex-col justify-between h-full">
+                <div className="flex justify-between items-start mb-4">
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        {title}
+                    </p>
+                    <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 transition-colors duration-300 group-hover:bg-slate-100 dark:group-hover:bg-slate-700">
+                        <Icon className={`h-4 w-4 ${iconColorClass}`} />
                     </div>
-                    <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
-                        <Icon className="h-7 w-7 text-white" />
-                    </div>
+                </div>
+                <div>
+                    <p className="text-3xl font-bold tracking-tight text-slate-700 dark:text-slate-300 mb-1 truncate">
+                        {value}
+                    </p>
                 </div>
             </div>
         </Card>

@@ -24,36 +24,29 @@ export const AtendenteHeader = ({
 
     return (
         <div className="flex items-center gap-4">
-            {/* Foto com borda gradient */}
-            <div className={`
-            relative shrink-0 p-[3px] rounded-full 
-            ${metaAtingida
-                    ? 'bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-400'
-                    : 'bg-gradient-to-br from-purple-400 via-pink-500 to-purple-400'
-                }
-            shadow-lg group-hover:shadow-xl transition-shadow duration-300
-          `}>
+            {/* Foto com borda simples */}
+            <div className="relative shrink-0 p-[2px] rounded-full ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-800">
                 {atendenteData.fotoUrl && !imageError ? (
-                    <div className="relative h-16 w-16 overflow-hidden rounded-full bg-white dark:bg-slate-900">
+                    <div className="relative h-12 w-12 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-900">
                         <Image
                             src={atendenteData.fotoUrl}
                             alt={atendenteData.nome}
-                            width={64}
-                            height={64}
+                            width={48}
+                            height={48}
                             className="h-full w-full object-cover"
                             unoptimized
                             onError={onImageError}
                         />
                     </div>
                 ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold text-lg">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm">
                         {iniciais}
                     </div>
                 )}
                 {/* Badge de status */}
                 {metaAtingida && (
-                    <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-emerald-500 shadow-lg">
-                        <Sparkles className="h-3 w-3 text-white" />
+                    <div className="absolute -bottom-0.5 -right-0.5 p-1 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900">
+                        <Sparkles className="h-2.5 w-2.5 text-white" />
                     </div>
                 )}
             </div>
@@ -71,10 +64,10 @@ export const AtendenteHeader = ({
                     <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
                             className={`h-full rounded-full transition-all duration-700 ${taxaConversao >= 50
-                                ? 'bg-gradient-to-r from-emerald-400 to-teal-500'
+                                ? 'bg-emerald-500'
                                 : taxaConversao >= 25
-                                    ? 'bg-gradient-to-r from-amber-400 to-orange-500'
-                                    : 'bg-gradient-to-r from-rose-400 to-pink-500'
+                                    ? 'bg-amber-500'
+                                    : 'bg-rose-500'
                                 }`}
                             style={{ width: `${Math.min(taxaConversao, 100)}%` }}
                         />

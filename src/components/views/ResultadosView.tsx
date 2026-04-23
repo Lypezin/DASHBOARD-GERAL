@@ -59,7 +59,7 @@ const ResultadosView = React.memo(function ResultadosView() {
     >
       <motion.div variants={item} className="space-y-4">
         <div className="flex items-center gap-3 px-2">
-          <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-purple-500 to-blue-600 shadow-sm" />
+          <div className="h-8 w-1.5 rounded-full bg-blue-600 shadow-sm" />
           <div>
             <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
               Análise de Resultados

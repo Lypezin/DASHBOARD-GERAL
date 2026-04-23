@@ -51,15 +51,15 @@ export const CityMetricItem = React.memo(function CityMetricItem({ cidadeData, a
 
             {/* Métricas em linha */}
             <div className="flex flex-wrap gap-1.5">
-                <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/30 px-1.5 py-0 h-auto">
-                    <Send className="h-2.5 w-2.5 mr-1 text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-[9px] font-medium text-emerald-700 dark:text-emerald-300 font-mono">
+                <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 px-1.5 py-0 h-auto">
+                    <Send className="h-2.5 w-2.5 mr-1 text-slate-500 dark:text-slate-400" />
+                    <span className="text-[9px] font-medium text-slate-600 dark:text-slate-300 font-mono">
                         {cidadeData.enviado.toLocaleString('pt-BR')}
                     </span>
                 </Badge>
-                <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/30 px-1.5 py-0 h-auto">
-                    <CheckCircle2 className="h-2.5 w-2.5 mr-1 text-blue-600 dark:text-blue-400" />
-                    <span className="text-[9px] font-medium text-blue-700 dark:text-blue-300 font-mono">
+                <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 px-1.5 py-0 h-auto">
+                    <CheckCircle2 className="h-2.5 w-2.5 mr-1 text-blue-500 dark:text-blue-400" />
+                    <span className="text-[9px] font-medium text-slate-600 dark:text-slate-300 font-mono">
                         {cidadeData.liberado.toLocaleString('pt-BR')}
                     </span>
                 </Badge>

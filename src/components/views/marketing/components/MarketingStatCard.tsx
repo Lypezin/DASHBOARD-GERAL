@@ -33,7 +33,7 @@ export const MarketingStatCard: React.FC<MarketingStatCardProps> = ({
             </div>
         </CardHeader>
         <CardContent className="z-10 relative">
-            <div className={`text-3xl font-bold tracking-tight ${colorClass} mb-2`}>
+            <div className={`text-3xl font-bold tracking-tight ${colorClass} mb-2 truncate`}>
                 {value}
             </div>
             <div className="flex items-center gap-2">

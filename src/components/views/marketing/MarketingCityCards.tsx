@@ -17,7 +17,7 @@ export const MarketingCityCards = React.memo(function MarketingCityCards({
         <div className="space-y-4">
             {/* Section Header */}
             <div className="flex items-center gap-3 px-2">
-                <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-purple-500 to-blue-600 shadow-sm" />
+                <div className="h-8 w-1.5 rounded-full bg-blue-600 shadow-sm" />
                 <div>
                     <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                         Métricas por Cidade
@@ -33,10 +33,8 @@ export const MarketingCityCards = React.memo(function MarketingCityCards({
                 {citiesData.map((cityData) => (
                     <Card
                         key={cityData.cidade}
-                        className="border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 group overflow-hidden relative"
+                        className="border-none shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 group overflow-hidden relative"
                     >
-                        {/* Gradient Overlay */}
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 opacity-40 rounded-bl-full -mr-6 -mt-6 transition-transform group-hover:scale-110 duration-500" />
 
                         <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/50 z-10 relative">
                             <CardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate flex items-center gap-2" title={cityData.cidade}>

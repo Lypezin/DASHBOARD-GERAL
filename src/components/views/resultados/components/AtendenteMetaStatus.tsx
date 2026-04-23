@@ -14,13 +14,13 @@ export const AtendenteMetaStatus = ({ atendenteData, metaInfoAtendente }: Atende
     return (
         <div className="space-y-3">
             {/* Custo por Liberado */}
-            <div className="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 p-3 border border-slate-200/50 dark:border-slate-700/30">
+            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-2.5 border border-slate-100 dark:border-slate-700/50">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                        <Target className="h-3 w-3 text-slate-600 dark:text-slate-400" />
-                        <p className="text-[10px] font-medium text-slate-600 dark:text-slate-300">Custo por Liberado</p>
+                        <Target className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                        <p className="text-[10px] font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider">Custo por Liberado</p>
                     </div>
-                    <p className="text-lg font-bold text-slate-900 dark:text-white font-mono">
+                    <p className="text-lg font-bold text-slate-800 dark:text-slate-200 font-mono">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(atendenteData.custoPorLiberado)}
                     </p>
                 </div>
@@ -29,10 +29,10 @@ export const AtendenteMetaStatus = ({ atendenteData, metaInfoAtendente }: Atende
             {/* Status da Meta */}
             {metaInfoAtendente && (
                 <div className={`
-        rounded-xl p-3 border flex items-center gap-3
+        rounded-lg p-2.5 border flex items-center gap-3
         ${metaInfoAtendente.jaAtingiuMeta
-                        ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-emerald-200 dark:border-emerald-800/30'
-                        : 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800/30'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-800/30'
+                        : 'bg-amber-50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-800/30'
                     }
       `}>
                     {metaInfoAtendente.jaAtingiuMeta ? (
