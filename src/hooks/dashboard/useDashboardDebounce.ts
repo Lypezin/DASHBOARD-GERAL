@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { DELAYS } from '@/constants/config';
 
 export function useDashboardDebounce(
@@ -7,6 +7,26 @@ export function useDashboardDebounce(
     delay: number = DELAYS.DEBOUNCE
 ) {
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    const callbackRef = useRef(callback);
+
+    useEffect(() => {
+        callbackRef.current = callback;
+    }, [callback]);
+
+    const dependencyKey = useMemo(() => {
+        return dependencies.map((dependency) => {
+            if (dependency instanceof Date) return dependency.toISOString();
+            if (typeof dependency === 'function') return `fn:${dependency.name || 'anonymous'}`;
+            if (typeof dependency === 'object' && dependency !== null) {
+                try {
+                    return JSON.stringify(dependency);
+                } catch {
+                    return String(dependency);
+                }
+            }
+            return String(dependency);
+        }).join('|');
+    }, [dependencies]);
 
     useEffect(() => {
         if (debounceRef.current) {
@@ -14,7 +34,7 @@ export function useDashboardDebounce(
         }
 
         debounceRef.current = setTimeout(() => {
-            callback();
+            callbackRef.current();
         }, delay);
 
         return () => {
@@ -22,5 +42,5 @@ export function useDashboardDebounce(
                 clearTimeout(debounceRef.current);
             }
         };
-    }, [callback, delay, ...dependencies]);
+    }, [delay, dependencyKey]);
 }

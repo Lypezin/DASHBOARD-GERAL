@@ -25,15 +25,28 @@ export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
     const [metrics, setMetrics] = useState<ComparisonMetricData[]>([]);
     const [currentWeekLabel, setCurrentWeekLabel] = useState('');
     const [previousWeekLabel, setPreviousWeekLabel] = useState('');
+    const currentUserId = currentUser?.id || '';
+    const currentUserRole = currentUser?.role;
+    const currentUserOrganizationId = currentUser?.organization_id ?? null;
+    const isCurrentUserAdmin = currentUser?.is_admin ?? false;
+    const assignedPracasKey = (currentUser?.assigned_pracas || []).join('|');
 
     const weeksToCompare = useTargetWeeks(filters, aderenciaSemanal);
     const weeksComparisonKey = weeksToCompare
         ? `${weeksToCompare.previous}|${weeksToCompare.current}|${weeksToCompare.previousLabel}|${weeksToCompare.currentLabel}`
         : '';
     const currentUserKey = currentUser
-        ? `${currentUser.id || ''}|${currentUser.is_admin ? '1' : '0'}|${(currentUser.assigned_pracas || []).join('|')}`
+        ? `${currentUserId}|${isCurrentUserAdmin ? '1' : '0'}|${assignedPracasKey}|${currentUserRole || ''}|${currentUserOrganizationId || ''}`
         : 'anonymous';
-    const stableCurrentUser = useMemo(() => currentUser, [currentUserKey]);
+    const stableCurrentUser = useMemo(() => currentUserKey !== 'anonymous'
+        ? {
+            id: currentUserId,
+            is_admin: isCurrentUserAdmin,
+            assigned_pracas: assignedPracasKey ? assignedPracasKey.split('|') : [],
+            role: currentUserRole,
+            organization_id: currentUserOrganizationId
+        }
+        : null, [assignedPracasKey, currentUserId, currentUserKey, currentUserOrganizationId, currentUserRole, isCurrentUserAdmin]);
 
     useEffect(() => {
         if (!weeksToCompare || isOrgLoading) {

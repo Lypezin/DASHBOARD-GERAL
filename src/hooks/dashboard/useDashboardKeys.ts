@@ -8,54 +8,96 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentUser | null) {
     const { organizationId } = useOrganization();
-    const subPracasKey = initialFilters.subPracas.join('|');
-    const origensKey = initialFilters.origens.join('|');
-    const turnosKey = initialFilters.turnos.join('|');
-    const semanasKey = initialFilters.semanas.join('|');
+    const {
+        ano,
+        semana,
+        praca,
+        subPraca,
+        origem,
+        turno,
+        subPracas,
+        origens,
+        turnos,
+        semanas,
+        filtroModo,
+        dataInicial,
+        dataFinal
+    } = initialFilters;
+    const subPracasKey = subPracas.join('|');
+    const origensKey = origens.join('|');
+    const turnosKey = turnos.join('|');
+    const semanasKey = semanas.join('|');
+    const currentUserId = currentUser?.id || '';
+    const isCurrentUserAdmin = currentUser?.is_admin ?? false;
+    const currentUserRole = currentUser?.role;
+    const currentUserOrganizationId = currentUser?.organization_id ?? null;
     const assignedPracasKey = currentUser?.assigned_pracas?.join('|') || '';
 
     const filtersKey = useMemo(() => {
         return JSON.stringify({
-            ano: initialFilters.ano,
-            semana: initialFilters.semana,
-            praca: initialFilters.praca,
-            subPraca: initialFilters.subPraca,
-            origem: initialFilters.origem,
-            turno: initialFilters.turno,
+            ano,
+            semana,
+            praca,
+            subPraca,
+            origem,
+            turno,
             subPracas: subPracasKey,
             origens: origensKey,
             turnos: turnosKey,
             semanas: semanasKey,
-            filtroModo: initialFilters.filtroModo,
-            dataInicial: initialFilters.dataInicial,
-            dataFinal: initialFilters.dataFinal,
+            filtroModo,
+            dataInicial,
+            dataFinal,
         });
     }, [
-        initialFilters.ano,
-        initialFilters.semana,
-        initialFilters.praca,
-        initialFilters.subPraca,
-        initialFilters.origem,
-        initialFilters.turno,
+        ano,
+        semana,
+        praca,
+        subPraca,
+        origem,
+        turno,
         subPracasKey,
         origensKey,
         turnosKey,
         semanasKey,
-        initialFilters.filtroModo,
-        initialFilters.dataInicial,
-        initialFilters.dataFinal,
+        filtroModo,
+        dataInicial,
+        dataFinal,
     ]);
 
     const currentUserKey = useMemo(() => {
         return currentUser ? JSON.stringify({
-            is_admin: currentUser.is_admin,
+            id: currentUserId,
+            is_admin: isCurrentUserAdmin,
+            role: currentUserRole,
             assigned_pracas: assignedPracasKey,
-            organization_id: organizationId // Include organizationId in key
+            organization_id: currentUserOrganizationId,
+            context_organization_id: organizationId
         }) : 'null';
-    }, [currentUser?.is_admin, assignedPracasKey, organizationId]);
+    }, [assignedPracasKey, currentUser, currentUserId, currentUserOrganizationId, currentUserRole, isCurrentUserAdmin, organizationId]);
 
-    const stableFilters = useMemo(() => initialFilters, [filtersKey]);
-    const stableCurrentUser = useMemo(() => currentUser, [currentUserKey]);
+    const stableFilters = useMemo(() => ({
+        ano,
+        semana,
+        praca,
+        subPraca,
+        origem,
+        turno,
+        subPracas: [...subPracas],
+        origens: [...origens],
+        turnos: [...turnos],
+        semanas: [...semanas],
+        filtroModo,
+        dataInicial,
+        dataFinal
+    }), [ano, dataFinal, dataInicial, filtroModo, origem, origens, praca, semana, semanas, subPraca, subPracas, turno, turnos]);
+    const stableCurrentUser = useMemo(() => currentUserKey !== 'null' ? ({
+        id: currentUserId,
+        is_admin: isCurrentUserAdmin,
+        assigned_pracas: assignedPracasKey ? assignedPracasKey.split('|') : [],
+        role: currentUserRole,
+        organization_id: currentUserOrganizationId
+    }) : null, [assignedPracasKey, currentUserId, currentUserKey, currentUserOrganizationId, currentUserRole, isCurrentUserAdmin]);
 
     const filterPayload = useMemo(() => {
         if (IS_DEV) {

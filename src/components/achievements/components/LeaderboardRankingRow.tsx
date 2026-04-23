@@ -22,7 +22,7 @@ export const LeaderboardRankingRow: React.FC<LeaderboardRankingRowProps> = ({ en
 
                     <div className="flex items-center gap-3">
                         <div className={cn("w-10 h-10 rounded-full overflow-hidden border-2", isTop1 ? "border-yellow-400 shadow-sm" : "border-slate-100 dark:border-slate-700")}>
-                            {entry.avatar_url ? <img src={entry.avatar_url} alt={entry.user_name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400"><User className="w-5 h-5" /></div>}
+                            {entry.avatar_url ? <img src={entry.avatar_url} alt={entry.user_name} loading="lazy" decoding="async" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400"><User className="w-5 h-5" /></div>}
                         </div>
 
                         <div>

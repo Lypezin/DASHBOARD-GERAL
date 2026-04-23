@@ -51,7 +51,7 @@ export const ImageElement: React.FC<ImageElementProps> = ({ element: el, canDrag
             )}
 
             <div className="relative pointer-events-none select-none">
-                <img src={el.content} className={`max-w-[85vw] max-h-[85vh] object-contain drop-shadow-2xl rounded-lg`} alt="Slide Element" draggable={false} />
+                <img src={el.content} className={`max-w-[85vw] max-h-[85vh] object-contain drop-shadow-2xl rounded-lg`} alt="Slide Element" decoding="async" draggable={false} />
             </div>
         </motion.div>
     );

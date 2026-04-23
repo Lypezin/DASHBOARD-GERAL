@@ -1,12 +1,16 @@
-/** Hook dedicado para buscar dados do resumo semanal com filtro local de praça */
-import { useState, useEffect, useMemo, useCallback } from 'react';
+/** Hook dedicado para buscar dados do resumo semanal com filtro local de praca */
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { mergeDriversAndPedidosData, DriversData, PedidosData } from '@/utils/data/driverTransformers';
 
-interface UseResumoLocalDataOptions { ano: number; pracas: string[]; activeTab: string; }
+interface UseResumoLocalDataOptions {
+    ano: number;
+    pracas: string[];
+    activeTab: string;
+}
 
 export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDataOptions) {
     const [driversData, setDriversData] = useState<DriversData[]>([]);
@@ -16,7 +20,7 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
 
     const { organization, isLoading: isOrgLoading } = useOrganization();
     const pracasKey = useMemo(() => pracas.join('|'), [pracas]);
-    const stablePracas = useMemo(() => pracas, [pracasKey]);
+    const selectedPracas = useMemo(() => pracasKey ? pracasKey.split('|') : [], [pracasKey]);
 
     useEffect(() => {
         if (isOrgLoading) return;
@@ -33,14 +37,13 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
                 const params = {
                     p_ano: ano,
                     p_organization_id: organization.id,
-                    p_pracas: stablePracas.length > 0 ? stablePracas : null,
+                    p_pracas: selectedPracas.length > 0 ? selectedPracas : null,
                 };
 
                 if (process.env.NODE_ENV === 'development') {
                     safeLog.info('[useResumoLocalData] Fetching data:', params);
                 }
 
-                // Fetch both drivers and pedidos in parallel
                 const [driversResult, pedidosResult] = await Promise.all([
                     supabase.rpc('resumo_semanal_drivers', params),
                     supabase.rpc('resumo_semanal_pedidos', params)
@@ -62,12 +65,10 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
 
                 setDriversData(driversResult.data || []);
                 setPedidosData(pedidosResult.data || []);
-
             } catch (err: unknown) {
-                if (mounted) {
-                    safeLog.error('[useResumoLocalData] Error:', err);
-                    setError(err instanceof Error ? err : new Error('Erro desconhecido'));
-                }
+                if (!mounted) return;
+                safeLog.error('[useResumoLocalData] Error:', err);
+                setError(err instanceof Error ? err : new Error('Erro desconhecido'));
             } finally {
                 if (mounted) setLoading(false);
             }
@@ -79,9 +80,8 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
             mounted = false;
             clearTimeout(timeoutId);
         };
-    }, [activeTab, ano, isOrgLoading, organization?.id, pracasKey, stablePracas]);
+    }, [activeTab, ano, isOrgLoading, organization?.id, selectedPracas]);
 
-    // Merge drivers and pedidos data into a single map
     const dataMap = useMemo(() => {
         return mergeDriversAndPedidosData(driversData, pedidosData);
     }, [driversData, pedidosData]);
@@ -92,4 +92,3 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
         error
     };
 }
-
