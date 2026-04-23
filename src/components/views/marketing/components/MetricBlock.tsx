@@ -4,13 +4,12 @@ interface MetricBlockProps {
     type: 'entradas' | 'saidas' | 'retomada';
     marketing: number;
     total: number;
-    operacional?: number; // optional if not pre-calculated, but good to pass in
+    operacional?: number;
 }
 
 export const MetricBlock: React.FC<MetricBlockProps> = ({ type, marketing, total, operacional }) => {
     const isEntrada = type === 'entradas';
     const isRetomada = type === 'retomada';
-    // Calculate operacional if not provided (assume total >= marketing)
     const opsValue = operacional !== undefined ? operacional : Math.max(0, total - marketing);
 
     let bgColor = isEntrada ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-rose-50 dark:bg-rose-900/20';
@@ -24,8 +23,8 @@ export const MetricBlock: React.FC<MetricBlockProps> = ({ type, marketing, total
     let footerBorder = isEntrada ? 'border-emerald-200/50 dark:border-emerald-800/30' : 'border-rose-200/50 dark:border-rose-800/30';
     let totalLabelColor = isEntrada ? 'text-emerald-800/60 dark:text-emerald-300/60' : 'text-rose-800/60 dark:text-rose-300/60';
     let totalValueColor = isEntrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400';
-    let sign = isEntrada || isRetomada ? '+' : '-';
-    let titleLabel = isEntrada ? 'Entradas' : (isRetomada ? 'Retomada' : 'Saídas');
+    const sign = isEntrada || isRetomada ? '+' : '-';
+    const titleLabel = isEntrada ? 'Entradas' : (isRetomada ? 'Retomada' : 'Saídas');
 
     if (isRetomada) {
         bgColor = 'bg-indigo-50 dark:bg-indigo-900/20';
@@ -50,14 +49,14 @@ export const MetricBlock: React.FC<MetricBlockProps> = ({ type, marketing, total
             <div className="space-y-1 mb-2">
                 <div className="flex justify-between items-center text-xs">
                     <span className={`${mktTextColor} flex items-center gap-1.5`}>
-                        <div className={`h-1.5 w-1.5 rounded-full ${mktDotColor}`}></div>
+                        <div className={`h-1.5 w-1.5 rounded-full ${mktDotColor}`} />
                         Mkt
                     </span>
                     <span className={`font-semibold ${mktValueColor} tabular-nums`}>{sign}{marketing || 0}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                     <span className={`${opsTextColor} flex items-center gap-1.5`}>
-                        <div className={`h-1.5 w-1.5 rounded-full ${opsDotColor}`}></div>
+                        <div className={`h-1.5 w-1.5 rounded-full ${opsDotColor}`} />
                         Operacional
                     </span>
                     <span className={`font-semibold ${opsValueColor} tabular-nums`}>

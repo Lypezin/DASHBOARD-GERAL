@@ -1,5 +1,5 @@
 import { OnlineUser, ChatMessage } from '@/hooks/data/useOnlineUsers';
-import { Image, ChevronRight, Reply, X } from 'lucide-react';
+import { Image as ImageIcon, ChevronRight, Reply, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React from 'react';
 
@@ -39,7 +39,7 @@ export function MessageInput({
                     onClick={() => fileInputRef.current?.click()}
                     title="Enviar Imagem/Arquivo"
                 >
-                    <Image size={18} />
+                    <ImageIcon size={18} />
                 </button>
                 <div className="flex-1 relative">
                     <textarea

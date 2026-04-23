@@ -13,7 +13,7 @@ export async function fetchUtrFallback(payload: FilterPayload): Promise<UtrData 
         validateDateFilter(payload, 'fetchUtrFallback');
         const safePayload = ensureDateFilter(payload);
 
-        let query = buildUtrQuery(safePayload);
+        const query = buildUtrQuery(safePayload);
 
         const { data, error } = await query;
 
