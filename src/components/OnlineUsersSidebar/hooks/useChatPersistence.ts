@@ -73,7 +73,7 @@ export function useChatPersistence(
                 });
             }
         }
-    }, [activeChatUser, currentUser]);
+    }, [activeChatUser, currentUser, messages]);
 
     // Update read status when new messages arrive while chat is open
     useEffect(() => {

@@ -1,6 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 
+function clearStoredTimeout(timeoutRef: React.MutableRefObject<NodeJS.Timeout | null>) {
+    if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+    }
+}
+
 export function useAuthState() {
     const [loading, setLoading] = useState(true);
     const [isAuthorized, setIsAuthorized] = useState(false);
@@ -13,9 +20,7 @@ export function useAuthState() {
         isMountedRef.current = true;
         return () => {
             isMountedRef.current = false;
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
+            clearStoredTimeout(timeoutRef);
         };
     }, []);
 

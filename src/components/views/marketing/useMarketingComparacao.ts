@@ -70,12 +70,13 @@ export function useMarketingComparacao(dataInicial: string, dataFinal: string, o
 
     useEffect(() => {
         fetchData();
+        const activeRequestId = requestIdRef.current;
 
         // Cleanup function to invalidate current request on unmount or deps change
         return () => {
             // We don't actively abort the fetch since safeRpc doesn't return an abort controller,
             // but the requestId check will prevent state updates.
-            requestIdRef.current++;
+            requestIdRef.current = activeRequestId + 1;
         };
     }, [fetchData]);
 
